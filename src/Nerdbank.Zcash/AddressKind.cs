@@ -9,6 +9,11 @@ namespace Nerdbank.Zcash;
 public enum AddressKind
 {
     /// <summary>
+    /// The address is invalid and cannot be classified as any valid address kind.
+    /// </summary>
+    Invalid,
+
+    /// <summary>
     /// An address that sends funds to the <see cref="Pool.Transparent"/> pool.
     /// </summary>
     Transparent,

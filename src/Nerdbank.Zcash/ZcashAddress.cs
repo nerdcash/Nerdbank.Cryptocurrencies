@@ -16,7 +16,33 @@ public record struct ZcashAddress(string Address)
     /// <summary>
     /// Gets the kind of address.
     /// </summary>
-    public AddressKind Kind => throw new NotImplementedException();
+    public AddressKind Kind
+    {
+        get
+        {
+            if (this.Address.StartsWith("t", StringComparison.OrdinalIgnoreCase))
+            {
+                return AddressKind.Transparent;
+            }
+
+            if (this.Address.StartsWith("u", StringComparison.OrdinalIgnoreCase))
+            {
+                return AddressKind.Unified;
+            }
+
+            if (this.Address.StartsWith("zc", StringComparison.OrdinalIgnoreCase))
+            {
+                return AddressKind.Sprout;
+            }
+
+            if (this.Address.StartsWith("zs", StringComparison.OrdinalIgnoreCase))
+            {
+                return AddressKind.Sapling;
+            }
+
+            return AddressKind.Invalid;
+        }
+    }
 
     /// <summary>
     /// Gets the receivers for this address, in order of preference.
