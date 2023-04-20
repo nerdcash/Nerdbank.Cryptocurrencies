@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft;
+
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -29,17 +31,64 @@ public class UnifiedAddress : ZcashAddress
     public IEnumerable<ZcashAddress> Receivers => throw new NotImplementedException();
 
     /// <summary>
+    /// Gets a value indicating whether this address is a raw Orchard address rather than an address with receivers.
+    /// </summary>
+    internal bool IsOrchardRaw => throw new NotImplementedException();
+
+    /// <summary>
     /// Creates a unified address from a list of receiver addresses.
     /// </summary>
     /// <param name="receivers">
-    /// The receivers to build into the unified address. This list should be in preferred order.
-    /// At least one of these must be a shielded address.
-    /// At most one of these can be a transparent address.
-    /// Sprout addresses are not supported.
+    /// The receivers to build into the unified address.
+    /// These will be sorted by preferred order before being encoded into the address.
+    /// No more than one of each type of address is allowed.
+    /// Sprout addresses are not allowed.
     /// </param>
     /// <returns>A unified address that contains all the receivers.</returns>
-    public static UnifiedAddress Create(IReadOnlyList<ZcashAddress> receivers)
+    public static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers)
     {
+        ZcashAddress? orchard = null;
+        ZcashAddress? sapling = null;
+        ZcashAddress? transparent = null;
+
+        void AssignOrThrow(ref ZcashAddress? location, ZcashAddress value)
+        {
+            if (location is null)
+            {
+                location = value;
+            }
+            else
+            {
+                throw new ArgumentException("Only one of each type of address is allowed.", nameof(receivers));
+            }
+        }
+
+        bool hasShieldedAddress = false;
+        foreach (ZcashAddress receiver in receivers)
+        {
+            // Pattern matching would be amazing, but https://github.com/dotnet/csharplang/discussions/7133
+            if (receiver is UnifiedAddress { IsOrchardRaw: true })
+            {
+                AssignOrThrow(ref orchard, receiver);
+                hasShieldedAddress = true;
+            }
+            else if (receiver is SaplingAddress)
+            {
+                AssignOrThrow(ref sapling, receiver);
+                hasShieldedAddress = true;
+            }
+            else if (receiver is TransparentAddress)
+            {
+                AssignOrThrow(ref transparent, receiver);
+            }
+            else
+            {
+                throw new ArgumentException("Only Orchard, Sapling, and Transparent addresses are supported.", nameof(receivers));
+            }
+        }
+
+        Requires.Argument(hasShieldedAddress, nameof(receivers), "At least one shielded address is required.");
+
         throw new NotImplementedException();
     }
 

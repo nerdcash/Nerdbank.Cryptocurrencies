@@ -81,6 +81,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
             {
                 'c' => new SproutAddress(address),
                 's' => new SaplingAddress(address),
+                't' => address.StartsWith("ztestsapling", StringComparison.Ordinal) ? new SaplingAddress(address) : new SproutAddress(address),
                 _ => null,
             },
             'u' => new UnifiedAddress(address),

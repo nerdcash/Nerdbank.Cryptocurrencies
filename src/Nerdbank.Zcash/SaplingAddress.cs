@@ -18,7 +18,10 @@ public class SaplingAddress : ZcashAddress
     }
 
     /// <inheritdoc/>
-    public override ZcashNetwork Network => throw new NotImplementedException();
+    public override ZcashNetwork Network =>
+        this.Address.StartsWith("zs", StringComparison.Ordinal) ? ZcashNetwork.MainNet :
+        this.Address.StartsWith("ztestsapling", StringComparison.Ordinal) ? ZcashNetwork.TestNet :
+        throw new FormatException("Invalid address prefix");
 
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sapling;
