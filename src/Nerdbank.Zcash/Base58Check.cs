@@ -38,6 +38,20 @@ internal static class Base58Check
     private static ReadOnlySpan<char> Alphabet => "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
     /// <summary>
+    /// Gets the maximum number of characters that can be encoded from a given number of bytes.
+    /// </summary>
+    /// <param name="byteCount">The number of bytes to be encoded.</param>
+    /// <returns>The length of the buffer that should be allocated to encode.</returns>
+    internal static int GetMaximumEncodedLength(int byteCount) => ((byteCount + ChecksumLength) * 138 / 100) + 1;
+
+    /// <summary>
+    /// Gets the maximum number of bytes that can be decoded from a given number of characters.
+    /// </summary>
+    /// <param name="charCount">The number of encoded characters.</param>
+    /// <returns>The length of the buffer that should be allocated to decode.</returns>
+    internal static int GetMaximumDecodedLength(int charCount) => (charCount * 733 / 1000) + 1;
+
+    /// <summary>
     /// Encodes some data into a Base58Check string.
     /// </summary>
     /// <param name="payload">The data to encode. This should usually include the 1-byte version header.</param>

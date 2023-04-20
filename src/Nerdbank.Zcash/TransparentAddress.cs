@@ -20,12 +20,20 @@ public class TransparentAddress : ZcashAddress
     /// <summary>
     /// Gets the type of this transparent address.
     /// </summary>
-    public string Type => this.Address[1] switch
+    public string Type
     {
-        '1' => "P2PKH",
-        '3' => "P2SH",
-        _ => throw new InvalidOperationException("Invalid transparent address type"),
-    };
+        get
+        {
+            Span<byte> raw = stackalloc byte[Base58Check.GetMaximumDecodedLength(this.Address.Length)];
+            this.DecodeAddress(raw);
+            return (raw[0], raw[1]) switch
+            {
+                (0x1c, 0xba) or (0x1c, 0xbd) => "P2SH",
+                (0x1c, 0xb8) or (0x1d, 0x25) => "P2PKH",
+                _ => throw new InvalidOperationException("Invalid transparent address network"),
+            };
+        }
+    }
 
     /// <inheritdoc/>
     public override ZcashNetwork Network
@@ -33,7 +41,7 @@ public class TransparentAddress : ZcashAddress
         get
         {
             Span<byte> raw = stackalloc byte[this.Address.Length];
-            int decodedLength = this.DecodeAddress(raw);
+            this.DecodeAddress(raw);
             return (raw[0], raw[1]) switch
             {
                 (0x1c, 0xb8) or (0x1c, 0xbd) => ZcashNetwork.MainNet,
