@@ -25,6 +25,16 @@ public class UnifiedAddress : ZcashAddress
     /// </remarks>
     public IEnumerable<ZcashAddress> Receivers => throw new NotImplementedException();
 
+    /// <summary>
+    /// Creates a unified address from a list of receiver addresses.
+    /// </summary>
+    /// <param name="receivers">The receivers to build into the unified address. This list should be in preferred order.</param>
+    /// <returns>A unified address that contains all the receivers.</returns>
+    public static UnifiedAddress Create(IReadOnlyList<ZcashAddress> receivers)
+    {
+        throw new NotImplementedException();
+    }
+
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool)
     {

@@ -72,4 +72,12 @@ public class ZcashAddressTests : TestBase
             Assert.Equal(Array.IndexOf(pools, pool) != -1, addr.SupportsPool(pool));
         }
     }
+
+    [Fact]
+    public void ImplicitlyCastableToString()
+    {
+        ZcashAddress addr = ZcashAddress.Parse(ValidTransparentAddress);
+        string str = addr;
+        Assert.Equal(ValidTransparentAddress, str);
+    }
 }

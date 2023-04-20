@@ -25,6 +25,12 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     protected string Address { get; }
 
     /// <summary>
+    /// Implicitly casts this address to a string.
+    /// </summary>
+    /// <param name="address">The address to convert.</param>
+    public static implicit operator string(ZcashAddress address) => address.Address;
+
+    /// <summary>
     /// Parse a string of characters as an address.
     /// </summary>
     /// <param name="address">The address.</param>
@@ -50,7 +56,8 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     {
         if (address.Length < 2)
         {
-            throw new ArgumentException();
+            result = null;
+            return false;
         }
 
         result = char.ToLowerInvariant(address[0]) switch

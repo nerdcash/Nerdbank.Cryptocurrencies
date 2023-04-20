@@ -25,4 +25,29 @@ public class UnifiedAddressTests : TestBase
             },
             addr.Receivers);
     }
+
+    [Fact]
+    public void Create_InvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => UnifiedAddress.Create(null!));
+        Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(Array.Empty<ZcashAddress>()));
+    }
+
+    [Fact]
+    public void Create_WithCompoundUnifiedReceiver()
+    {
+        Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[] { ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling), ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent) }));
+    }
+
+    [Fact]
+    public void Create()
+    {
+        UnifiedAddress addr = UnifiedAddress.Create(new[]
+        {
+            ZcashAddress.Parse(ValidUnifiedAddressOrchard),
+            ZcashAddress.Parse(ValidSaplingAddress),
+            ZcashAddress.Parse(ValidTransparentAddress),
+        });
+        Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparent, addr.ToString());
+    }
 }
