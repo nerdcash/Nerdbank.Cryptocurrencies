@@ -1,7 +1,6 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Nerdbank.Zcash;
@@ -17,7 +16,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// <param name="address">The address in string form.</param>
     protected ZcashAddress(ReadOnlySpan<char> address)
     {
-        this.Address = address.ToString().ToLowerInvariant();
+        this.Address = address.ToString();
     }
 
     /// <summary>
@@ -75,7 +74,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// </summary>
     /// <param name="pool">The pool of interest.</param>
     /// <returns><see langword="true" /> if the address can receive funds for the <paramref name="pool"/>; otherwise <see langword="false"/>.</returns>
-    public bool SupportsPool(Pool pool) => throw new NotImplementedException();
+    public abstract bool SupportsPool(Pool pool);
 
     /// <summary>
     /// Returns the zcash address.

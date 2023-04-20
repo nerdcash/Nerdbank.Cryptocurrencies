@@ -3,30 +3,46 @@
 
 public class ZcashAddressTests : TestBase
 {
-    [Theory]
-    [InlineData(ValidUnifiedAddressOrchardSapling)]
-    [InlineData(ValidUnifiedAddressOrchard)]
-    [InlineData(ValidSaplingAddress)]
-    [InlineData(ValidSproutAddress)]
-    [InlineData(ValidTransparentAddress)]
+    public static object[][] ValidAddresses => new object[][]
+    {
+        new object[] { ValidUnifiedAddressOrchardSapling },
+        new object[] { ValidUnifiedAddressOrchard },
+        new object[] { ValidSaplingAddress },
+        new object[] { ValidSproutAddress },
+        new object[] { ValidTransparentAddress },
+    };
+
+    public static object?[][] InvalidAddresses => new object?[][]
+    {
+        new object?[] { null },
+        new object?[] { string.Empty },
+        new object?[] { "foo" },
+    };
+
+    [Theory, MemberData(nameof(ValidAddresses))]
     public void Parse_Valid(string address)
     {
         ZcashAddress addr = ZcashAddress.Parse(address);
         Assert.Equal(address, addr.ToString());
     }
 
-    [Fact]
-    public void Parse_Null()
+    [Theory, MemberData(nameof(ValidAddresses))]
+    public void TryParse_Valid(string address)
     {
-        Assert.Throws<ArgumentNullException>(() => ZcashAddress.Parse(null));
+        Assert.True(ZcashAddress.TryParse(address, out ZcashAddress? addr));
+        Assert.Equal(address, addr.ToString());
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("foo")]
+    [Theory, MemberData(nameof(InvalidAddresses))]
     public void Parse_Invalid(string address)
     {
         Assert.Throws<ArgumentException>(() => ZcashAddress.Parse(address));
+    }
+
+    [Theory, MemberData(nameof(InvalidAddresses))]
+    public void TryParse_Invalid(string address)
+    {
+        Assert.False(ZcashAddress.TryParse(address, out _));
     }
 
     [Theory]

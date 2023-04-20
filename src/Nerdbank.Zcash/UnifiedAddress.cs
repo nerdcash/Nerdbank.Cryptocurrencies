@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -27,4 +24,10 @@ public class UnifiedAddress : ZcashAddress
     /// <para>Every address has at least one receiver, if it is valid. Non-unified addresses will simply enumerate themselves.</para>
     /// </remarks>
     public IEnumerable<ZcashAddress> Receivers => throw new NotImplementedException();
+
+    /// <inheritdoc/>
+    public override bool SupportsPool(Pool pool)
+    {
+        throw new NotImplementedException();
+    }
 }
