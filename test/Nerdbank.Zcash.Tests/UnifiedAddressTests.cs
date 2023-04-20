@@ -31,8 +31,13 @@ public class UnifiedAddressTests : TestBase
     {
         Assert.Throws<ArgumentNullException>(() => UnifiedAddress.Create(null!));
         Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(Array.Empty<ZcashAddress>()));
+        Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[] { ZcashAddress.Parse(ValidSaplingAddress), ZcashAddress.Parse(ValidSproutAddress) }));
+        ////Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[] { ZcashAddress.Parse(ValidSaplingAddress), ZcashAddress.Parse(ValidTransparentP2SHAddress), ZcashAddress.Parse(ValidTransparentP2PKHAddress) }));
     }
 
+    /// <summary>
+    /// Verifies an exception when one of the receivers is itself a unified address that contains multiple receivers.
+    /// </summary>
     [Fact]
     public void Create_WithCompoundUnifiedReceiver()
     {
@@ -46,7 +51,7 @@ public class UnifiedAddressTests : TestBase
         {
             ZcashAddress.Parse(ValidUnifiedAddressOrchard),
             ZcashAddress.Parse(ValidSaplingAddress),
-            ZcashAddress.Parse(ValidTransparentAddress),
+            ZcashAddress.Parse(ValidTransparentP2PKHAddress),
         });
         Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparent, addr.ToString());
     }

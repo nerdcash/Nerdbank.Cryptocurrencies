@@ -17,6 +17,9 @@ public class UnifiedAddress : ZcashAddress
     {
     }
 
+    /// <inheritdoc/>
+    public override ZcashNetwork Network => throw new NotImplementedException();
+
     /// <summary>
     /// Gets the receivers for this address, in order of preference.
     /// </summary>
@@ -28,7 +31,12 @@ public class UnifiedAddress : ZcashAddress
     /// <summary>
     /// Creates a unified address from a list of receiver addresses.
     /// </summary>
-    /// <param name="receivers">The receivers to build into the unified address. This list should be in preferred order.</param>
+    /// <param name="receivers">
+    /// The receivers to build into the unified address. This list should be in preferred order.
+    /// At least one of these must be a shielded address.
+    /// At most one of these can be a transparent address.
+    /// Sprout addresses are not supported.
+    /// </param>
     /// <returns>A unified address that contains all the receivers.</returns>
     public static UnifiedAddress Create(IReadOnlyList<ZcashAddress> receivers)
     {
@@ -39,5 +47,15 @@ public class UnifiedAddress : ZcashAddress
     public override bool SupportsPool(Pool pool)
     {
         throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    protected override int DecodeAddress(Span<byte> rawEncoding) => throw new NotImplementedException();
+
+    /// <inheritdoc/>
+    protected override bool CheckValidity(bool throwIfInvalid = false)
+    {
+        // TODO: implement this.
+        return true;
     }
 }

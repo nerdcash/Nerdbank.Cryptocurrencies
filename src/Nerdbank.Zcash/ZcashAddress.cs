@@ -20,9 +20,19 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     }
 
     /// <summary>
+    /// Gets the network the address belongs to.
+    /// </summary>
+    public abstract ZcashNetwork Network { get; }
+
+    /// <summary>
     /// Gets the address as a string.
     /// </summary>
     protected string Address { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the address is valid.
+    /// </summary>
+    protected bool IsValid => this.CheckValidity();
 
     /// <summary>
     /// Implicitly casts this address to a string.
@@ -40,6 +50,10 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     {
         if (!TryParse(address, out ZcashAddress? result))
         {
+            // If we were able to at least recognize the address type, then allow it to throw an informative exception.
+            result?.CheckValidity(throwIfInvalid: true);
+
+            // It didn't throw, or it wasn't even a valid address type.
             throw new ArgumentException();
         }
 
@@ -73,7 +87,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
             _ => null,
         };
 
-        return result is not null;
+        return result?.IsValid is true;
     }
 
     /// <summary>
@@ -97,4 +111,20 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 
     /// <inheritdoc/>
     public bool Equals(ZcashAddress? other) => this == other || this.Address == other?.Address;
+
+    /// <summary>
+    /// Decodes the address to its raw encoding.
+    /// </summary>
+    /// <param name="rawEncoding">Receives the raw encoding of the data within the address.</param>
+    /// <returns>The number of bytes written to <paramref name="rawEncoding"/>.</returns>
+    /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
+    protected abstract int DecodeAddress(Span<byte> rawEncoding);
+
+    /// <summary>
+    /// Checks whether the address is valid.
+    /// </summary>
+    /// <param name="throwIfInvalid">A value indicating whether to throw an exception if the address is invalid.</param>
+    /// <returns>A value indicating whether the address is invalid.</returns>
+    /// <exception cref="FormatException">Thrown if <paramref name="throwIfInvalid"/> is <see langword="true" /> and the address is invalid.</exception>
+    protected abstract bool CheckValidity(bool throwIfInvalid = false);
 }

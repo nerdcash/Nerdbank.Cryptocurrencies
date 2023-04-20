@@ -18,5 +18,18 @@ public class SaplingAddress : ZcashAddress
     }
 
     /// <inheritdoc/>
+    public override ZcashNetwork Network => throw new NotImplementedException();
+
+    /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sapling;
+
+    /// <inheritdoc/>
+    protected override int DecodeAddress(Span<byte> rawEncoding) => throw new NotImplementedException();
+
+    /// <inheritdoc/>
+    protected override bool CheckValidity(bool throwIfInvalid = false)
+    {
+        // TODO: implement this.
+        return true;
+    }
 }

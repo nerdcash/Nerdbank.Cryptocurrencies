@@ -8,5 +8,8 @@ public abstract class TestBase
     protected const string ValidUnifiedAddressOrchard = "u1v0j6szgvcquae449dltsrhdhlle4ac8cxd3z8k4j2wtxgfxg6xnq25a900d3yq65mz0l6heqhcj468f7q3l2wnxdsxjrcw90svum7q67";
     protected const string ValidSaplingAddress = "zs1andrewyvxpx2d0zthcafwxn0n6clu4rwjhl9fpa86zt0np6pxqxrgar2e2tareutxfxdv2rll5v";
     protected const string ValidSproutAddress = "zc***";
-    protected const string ValidTransparentAddress = "t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF";
+    protected const string ValidTransparentP2PKHAddress = "t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF";
+
+    // When we ever get a sample of a valid P2SH address, we can add it here, and then search all code for commented references to this field and enable it.
+    ////protected const string ValidTransparentP2SHAddress = "3KQYMMqMBTv8254UqwmaLzW5NDT879KzK8";
 }

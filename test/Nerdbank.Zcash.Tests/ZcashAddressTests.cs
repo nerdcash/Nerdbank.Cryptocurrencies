@@ -9,7 +9,7 @@ public class ZcashAddressTests : TestBase
         new object[] { ValidUnifiedAddressOrchard },
         new object[] { ValidSaplingAddress },
         new object[] { ValidSproutAddress },
-        new object[] { ValidTransparentAddress },
+        new object[] { ValidTransparentP2PKHAddress },
     };
 
     public static object?[][] InvalidAddresses => new object?[][]
@@ -50,7 +50,7 @@ public class ZcashAddressTests : TestBase
     [InlineData(ValidUnifiedAddressOrchardSapling, typeof(UnifiedAddress))]
     [InlineData(ValidSaplingAddress, typeof(SaplingAddress))]
     [InlineData(ValidSproutAddress, typeof(SproutAddress))]
-    [InlineData(ValidTransparentAddress, typeof(TransparentAddress))]
+    [InlineData(ValidTransparentP2PKHAddress, typeof(TransparentAddress))]
     public void Parse_ReturnsAppropriateType(string address, Type expectedKind)
     {
         ZcashAddress addr = ZcashAddress.Parse(address);
@@ -63,7 +63,7 @@ public class ZcashAddressTests : TestBase
     [InlineData(ValidUnifiedAddressOrchardSaplingTransparent, Pool.Orchard, Pool.Sapling, Pool.Transparent)]
     [InlineData(ValidSaplingAddress, Pool.Sapling)]
     [InlineData(ValidSproutAddress, Pool.Sprout)]
-    [InlineData(ValidTransparentAddress, Pool.Transparent)]
+    [InlineData(ValidTransparentP2PKHAddress, Pool.Transparent)]
     public void SupportsPool(string address, params Pool[] pools)
     {
         ZcashAddress addr = ZcashAddress.Parse(address);
@@ -76,8 +76,8 @@ public class ZcashAddressTests : TestBase
     [Fact]
     public void ImplicitlyCastableToString()
     {
-        ZcashAddress addr = ZcashAddress.Parse(ValidTransparentAddress);
+        ZcashAddress addr = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
         string str = addr;
-        Assert.Equal(ValidTransparentAddress, str);
+        Assert.Equal(ValidTransparentP2PKHAddress, str);
     }
 }

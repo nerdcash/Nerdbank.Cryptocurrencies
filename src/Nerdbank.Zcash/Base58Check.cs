@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Security.Cryptography;
 
@@ -12,6 +13,27 @@ namespace Nerdbank.Zcash;
 internal static class Base58Check
 {
     private const int ChecksumLength = 4;
+
+    /// <summary>
+    /// The failure modes that may occur while decoding.
+    /// </summary>
+    internal enum DecodeError
+    {
+        /// <summary>
+        /// A disallowed character was found in the encoded string.
+        /// </summary>
+        InvalidCharacter,
+
+        /// <summary>
+        /// The checksum failed to match.
+        /// </summary>
+        InvalidChecksum,
+
+        /// <summary>
+        /// The buffer to decode into was too small.
+        /// </summary>
+        BufferTooSmall,
+    }
 
     private static ReadOnlySpan<char> Alphabet => "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -45,12 +67,43 @@ internal static class Base58Check
     /// <exception cref="FormatException">Thrown if the checksum fails to match or invalid characters are found.</exception>
     internal static int Decode(ReadOnlySpan<char> encoded, Span<byte> bytes)
     {
+        if (!TryDecode(encoded, bytes, out DecodeError? error, out string? errorMessage, out int bytesWritten))
+        {
+            throw error switch
+            {
+                DecodeError.BufferTooSmall => new ArgumentException(errorMessage),
+                _ => new FormatException(errorMessage),
+            };
+        }
+
+        return bytesWritten;
+    }
+
+    /// <summary>
+    /// Decodes a base58check encoded string to its original bytes.
+    /// </summary>
+    /// <param name="encoded">The encoded base58 representation.</param>
+    /// <param name="bytes">Receives the decoded bytes.</param>
+    /// <param name="decodeResult">Receives the error code of a failed decode operation.</param>
+    /// <param name="errorMessage">Receives the error message of a failed decode operation.</param>
+    /// <param name="bytesWritten">Receives the number of bytes written to <paramref name="bytes" />.</param>
+    /// <returns>A value indicating whether decoding was successful.</returns>
+    internal static bool TryDecode(ReadOnlySpan<char> encoded, Span<byte> bytes, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out int bytesWritten)
+    {
         Span<byte> rawBytes = stackalloc byte[encoded.Length + ChecksumLength];
-        int decodedCount = DecodeRaw(encoded, rawBytes);
+        if (!TryDecodeRaw(encoded, rawBytes, out int decodedCount, out DecodeError? rawDecodeResult, out errorMessage))
+        {
+            decodeResult = rawDecodeResult;
+            bytesWritten = 0;
+            return false;
+        }
 
         if (decodedCount < 4)
         {
-            throw new FormatException("Input too short to include a checksum.");
+            bytesWritten = 0;
+            decodeResult = DecodeError.InvalidChecksum;
+            errorMessage = "Too short to contain a checksum.";
+            return false;
         }
 
         Span<byte> payload = rawBytes.Slice(0, decodedCount - ChecksumLength);
@@ -60,11 +113,17 @@ internal static class Base58Check
         ComputeChecksum(payload, computedChecksum);
         if (!computedChecksum.SequenceEqual(checksum))
         {
-            throw new FormatException("Base58Check encoded string has invalid checksum.");
+            bytesWritten = 0;
+            decodeResult = DecodeError.InvalidChecksum;
+            errorMessage = "Checksum does not match.";
+            return false;
         }
 
         payload.CopyTo(bytes);
-        return payload.Length;
+        bytesWritten = payload.Length;
+        decodeResult = null;
+        errorMessage = null;
+        return true;
     }
 
     /// <summary>
@@ -100,9 +159,12 @@ internal static class Base58Check
     /// </summary>
     /// <param name="chars">The base58 characters to decode.</param>
     /// <param name="payload">Receives the decoded bytes.</param>
-    /// <returns>The number of bytes written to <paramref name="payload"/>.</returns>
+    /// <param name="bytesWritten">The number of bytes written to <paramref name="payload"/>.</param>
+    /// <param name="errorCode">Receives the error code when a failure occurs.</param>
+    /// <param name="errorMessage">Receives the error message if a failure occurs.</param>
+    /// <returns>A value indicating whether the decoding was successful.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="payload"/> is not sufficiently large to store the decoded payload.</exception>
-    private static int DecodeRaw(ReadOnlySpan<char> chars, Span<byte> payload)
+    private static bool TryDecodeRaw(ReadOnlySpan<char> chars, Span<byte> payload, out int bytesWritten, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
         BigInteger number = BigInteger.Zero;
         int leadingZerosCount = 0;
@@ -113,7 +175,10 @@ internal static class Base58Check
             int position = Alphabet.IndexOf(ch);
             if (position == -1)
             {
-                throw new FormatException($"Non-base58 character: {ch} found at position {i + 1}.");
+                errorMessage = $"Non-base58 character: {ch} found at position {i + 1}.";
+                bytesWritten = 0;
+                errorCode = DecodeError.InvalidCharacter;
+                return false;
             }
 
             if (position == 0 && !encounteredNonZero)
@@ -129,12 +194,18 @@ internal static class Base58Check
 
         payload.Slice(0, leadingZerosCount).Clear();
 
-        if (!number.TryWriteBytes(payload.Slice(leadingZerosCount), out int bytesWritten, isUnsigned: true, isBigEndian: true))
+        if (!number.TryWriteBytes(payload.Slice(leadingZerosCount), out bytesWritten, isUnsigned: true, isBigEndian: true))
         {
-            throw new ArgumentException("Target buffer is not large enough to hold the decoded payload.", nameof(payload));
+            errorMessage = "Target buffer is not large enough to hold the decoded payload.";
+            bytesWritten = 0;
+            errorCode = DecodeError.BufferTooSmall;
+            return false;
         }
 
-        return leadingZerosCount + bytesWritten;
+        errorMessage = null;
+        bytesWritten += leadingZerosCount;
+        errorCode = null;
+        return true;
     }
 
     /// <summary>
