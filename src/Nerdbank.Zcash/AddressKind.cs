@@ -3,10 +3,28 @@
 
 namespace Nerdbank.Zcash;
 
+/// <summary>
+/// The kinds of Zcash addresses.
+/// </summary>
 public enum AddressKind
 {
+    /// <summary>
+    /// An address that sends funds to the <see cref="Pool.Transparent"/> pool.
+    /// </summary>
     Transparent,
+
+    /// <summary>
+    /// An address that sends funds to the <see cref="Pool.Sprout"/> pool.
+    /// </summary>
     Sprout,
+
+    /// <summary>
+    /// An address that sends funds to the <see cref="Pool.Sapling"/> pool.
+    /// </summary>
     Sapling,
+
+    /// <summary>
+    /// An address that sends funds to one or more pools based on the receivers that are embedded in the address.
+    /// </summary>
     Unified,
 }

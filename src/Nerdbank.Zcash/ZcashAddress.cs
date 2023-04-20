@@ -6,9 +6,25 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A Zcash address.
 /// </summary>
-public record ZcashAddress(string Address)
+public record struct ZcashAddress(string Address)
 {
-    public AddressKind Kind { get; private init; }
+    /// <summary>
+    /// Gets a value indicating whether this address is valid.
+    /// </summary>
+    public bool IsValid => throw new NotImplementedException();
+
+    /// <summary>
+    /// Gets the kind of address.
+    /// </summary>
+    public AddressKind Kind => throw new NotImplementedException();
+
+    /// <summary>
+    /// Gets the receivers for this address, in order of preference.
+    /// </summary>
+    /// <remarks>
+    /// <para>Every address has at least one receiver, if it is valid. Non-unified addresses will simply enumerate themselves.</para>
+    /// </remarks>
+    public IEnumerable<ZcashAddress> Receivers => throw new NotImplementedException();
 
     /// <summary>
     /// Gets a value indicating whether this address is or contains an address for the specified pool.
@@ -16,9 +32,4 @@ public record ZcashAddress(string Address)
     /// <param name="pool">The pool of interest.</param>
     /// <returns><see langword="true" /> if the address can receive funds for the <paramref name="pool"/>; otherwise <see langword="false"/>.</returns>
     public bool SupportsPool(Pool pool) => throw new NotImplementedException();
-
-    public static ZcashAddress Parse(ReadOnlySpan<char> address)
-    {
-        return new();
-    }
 }
