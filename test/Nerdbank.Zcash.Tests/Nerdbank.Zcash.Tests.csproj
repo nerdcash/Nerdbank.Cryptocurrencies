@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\src\Nerdbank.Zcash\Base58Check.cs" Link="Internals\Base58Check.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
   </ItemGroup>
 
