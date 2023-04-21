@@ -6,7 +6,7 @@ using Microsoft;
 namespace Nerdbank.Zcash;
 
 /// <summary>
-/// A unified Zcash address.
+/// A <see href="https://zips.z.cash/zip-0316">unified Zcash address</see>.
 /// </summary>
 public class UnifiedAddress : ZcashAddress
 {

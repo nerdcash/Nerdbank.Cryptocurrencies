@@ -5,35 +5,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Security.Cryptography;
 
-namespace Nerdbank.Zcash;
+namespace Nerdbank.Zcash.Utilities;
 
 /// <summary>
 /// Contains Base58Check encoding and decoding methods.
 /// </summary>
-internal static class Base58Check
+internal static partial class Base58Check
 {
     private const int ChecksumLength = 4;
-
-    /// <summary>
-    /// The failure modes that may occur while decoding.
-    /// </summary>
-    internal enum DecodeError
-    {
-        /// <summary>
-        /// A disallowed character was found in the encoded string.
-        /// </summary>
-        InvalidCharacter,
-
-        /// <summary>
-        /// The checksum failed to match.
-        /// </summary>
-        InvalidChecksum,
-
-        /// <summary>
-        /// The buffer to decode into was too small.
-        /// </summary>
-        BufferTooSmall,
-    }
 
     private static ReadOnlySpan<char> Alphabet => "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -52,7 +31,7 @@ internal static class Base58Check
     internal static int GetMaximumDecodedLength(int charCount) => (charCount * 733 / 1000) + 1;
 
     /// <summary>
-    /// Encodes some data into a Base58Check string.
+    /// Encodes some data into a string.
     /// </summary>
     /// <param name="payload">The data to encode. This should usually include the 1-byte version header.</param>
     /// <param name="chars">Receives the encoded characters.</param>
@@ -72,9 +51,9 @@ internal static class Base58Check
     }
 
     /// <summary>
-    /// Decodes a base58check encoded string to its original bytes.
+    /// Decodes a string to its original bytes.
     /// </summary>
-    /// <param name="encoded">The encoded base58 representation.</param>
+    /// <param name="encoded">The encoded representation.</param>
     /// <param name="bytes">Receives the decoded bytes.</param>
     /// <returns>The number of bytes written to <paramref name="bytes" />.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="bytes"/> is not sufficiently large to store the decoded payload.</exception>
@@ -94,9 +73,9 @@ internal static class Base58Check
     }
 
     /// <summary>
-    /// Decodes a base58check encoded string to its original bytes.
+    /// Decodes a string to its original bytes.
     /// </summary>
-    /// <param name="encoded">The encoded base58 representation.</param>
+    /// <param name="encoded">The encoded representation.</param>
     /// <param name="bytes">Receives the decoded bytes.</param>
     /// <param name="decodeResult">Receives the error code of a failed decode operation.</param>
     /// <param name="errorMessage">Receives the error message of a failed decode operation.</param>
@@ -149,7 +128,7 @@ internal static class Base58Check
     private static int EncodeRaw(ReadOnlySpan<byte> payload, Span<char> chars)
     {
         BigInteger number = new(payload, isUnsigned: true, isBigEndian: true);
-        BigInteger alphabetLength = new BigInteger(Alphabet.Length);
+        var alphabetLength = new BigInteger(Alphabet.Length);
         int charsWritten = 0;
         while (number > 0)
         {
@@ -169,9 +148,9 @@ internal static class Base58Check
     }
 
     /// <summary>
-    /// Decodes a base58 encoded string into a buffer, without regard to a version or checksum.
+    /// Decodes a string into a buffer, without regard to a version or checksum.
     /// </summary>
-    /// <param name="chars">The base58 characters to decode.</param>
+    /// <param name="chars">The characters to decode.</param>
     /// <param name="payload">Receives the decoded bytes.</param>
     /// <param name="bytesWritten">The number of bytes written to <paramref name="payload"/>.</param>
     /// <param name="errorCode">Receives the error code when a failure occurs.</param>

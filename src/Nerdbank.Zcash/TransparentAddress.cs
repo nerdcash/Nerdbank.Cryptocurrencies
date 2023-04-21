@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Zcash.Utilities;
+
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -61,7 +63,7 @@ public class TransparentAddress : ZcashAddress
     protected override bool CheckValidity(bool throwIfInvalid = false)
     {
         Span<byte> raw = stackalloc byte[this.Address.Length];
-        if (!Base58Check.TryDecode(this.Address, raw, out Base58Check.DecodeError? error, out string? errorMessage, out int decodedLength))
+        if (!Base58Check.TryDecode(this.Address, raw, out DecodeError? error, out string? errorMessage, out int decodedLength))
         {
             if (throwIfInvalid)
             {

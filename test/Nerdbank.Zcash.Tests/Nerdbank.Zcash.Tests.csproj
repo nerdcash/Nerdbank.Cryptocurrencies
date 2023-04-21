@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\Nerdbank.Zcash\Base58Check.cs" Link="Internals\Base58Check.cs" />
+    <Compile Include="..\..\src\Nerdbank.Zcash\Utilities\*.cs" LinkBase="Internals" />
   </ItemGroup>
 
   <ItemGroup>
