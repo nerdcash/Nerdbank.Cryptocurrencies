@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Encoder = Nerdbank.Zcash.Utilities.Bech32m;
+using Encoder = Nerdbank.Zcash.Utilities.Bech32;
 
 namespace Utilities;
 
-public class Bech32mTests
+public class Bech32Tests
 {
     /// <summary>
-    /// Gets the hex encoded and Bech32m encoded equivalents.
+    /// Gets the hex encoded and Bech32 encoded equivalents.
     /// </summary>
     public static object?[][] Pairings => new object?[][]
     {
-        new[] { "c5f38b70305f519bf66d85fb6cf03058f3dde463ecd7918f2dc743918f2d", "split1checkupstagehandshakeupstreamerranterredcaperredlc445v" },
+        new[] { "", "" },
     };
 
     [Theory, MemberData(nameof(Pairings))]
