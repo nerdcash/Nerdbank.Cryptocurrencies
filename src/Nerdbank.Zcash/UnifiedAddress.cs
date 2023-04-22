@@ -98,8 +98,13 @@ public class UnifiedAddress : ZcashAddress
         throw new NotImplementedException();
     }
 
-    /// <inheritdoc/>
-    protected override int DecodeAddress(Span<byte> rawEncoding) => throw new NotImplementedException();
+    /// <summary>
+    /// Decodes the address to its raw encoding.
+    /// </summary>
+    /// <param name="rawEncoding">Receives the raw encoding of the data within the address.</param>
+    /// <returns>The number of bytes written to <paramref name="rawEncoding"/>.</returns>
+    /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
+    internal int Decode(Span<byte> rawEncoding) => throw new NotImplementedException();
 
     /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)

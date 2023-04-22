@@ -22,17 +22,18 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// <summary>
     /// Gets the network the address belongs to.
     /// </summary>
+    /// <exception cref="InvalidAddressException">Thrown if the address is invalid.</exception>
     public abstract ZcashNetwork Network { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the address is valid.
+    /// </summary>
+    internal bool IsValid => this.CheckValidity();
 
     /// <summary>
     /// Gets the address as a string.
     /// </summary>
     protected string Address { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether the address is valid.
-    /// </summary>
-    protected bool IsValid => this.CheckValidity();
 
     /// <summary>
     /// Implicitly casts this address to a string.
@@ -80,8 +81,8 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
             'z' => char.ToLowerInvariant(address[1]) switch
             {
                 'c' => new SproutAddress(address),
-                's' => new SaplingAddress(address),
-                't' => address.StartsWith("ztestsapling", StringComparison.Ordinal) ? new SaplingAddress(address) : new SproutAddress(address),
+                's' => address[2] == '1' ? new SaplingAddress(address) : null,
+                't' => address.StartsWith("ztestsapling1", StringComparison.Ordinal) ? new SaplingAddress(address) : new SproutAddress(address),
                 _ => null,
             },
             'u' => new UnifiedAddress(address),
@@ -112,14 +113,6 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 
     /// <inheritdoc/>
     public bool Equals(ZcashAddress? other) => this == other || this.Address == other?.Address;
-
-    /// <summary>
-    /// Decodes the address to its raw encoding.
-    /// </summary>
-    /// <param name="rawEncoding">Receives the raw encoding of the data within the address.</param>
-    /// <returns>The number of bytes written to <paramref name="rawEncoding"/>.</returns>
-    /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
-    protected abstract int DecodeAddress(Span<byte> rawEncoding);
 
     /// <summary>
     /// Checks whether the address is valid.

@@ -3,17 +3,19 @@
 
 public class TransparentAddressTests : TestBase
 {
+    private static readonly TransparentAddress ParsedP2PKHAddress = (TransparentAddress)ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+
     [Fact]
-    public void Classify()
+    public void Type()
     {
-        Assert.Equal("P2PKH", Assert.IsType<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2PKHAddress)).Type);
+        Assert.Equal("P2PKH", ParsedP2PKHAddress.Type);
         ////Assert.Equal("P2SH", Assert.IsType<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2SHAddress)).Type);
     }
 
     [Fact]
     public void Network()
     {
-        Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2PKHAddress)).Network);
+        Assert.Equal(ZcashNetwork.MainNet, ParsedP2PKHAddress.Network);
         ////Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2SHAddress)).Network);
     }
 
