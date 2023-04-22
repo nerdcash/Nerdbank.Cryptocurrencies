@@ -22,4 +22,14 @@ internal enum DecodeError
     /// The buffer to decode into was too small.
     /// </summary>
     BufferTooSmall,
+
+    /// <summary>
+    /// The encoded string is missing a required separator.
+    /// </summary>
+    NoSeparator,
+
+    /// <summary>
+    /// The input was not the correct length for the specified encoding or the padding was not the expected value.
+    /// </summary>
+    BadPadding,
 }
