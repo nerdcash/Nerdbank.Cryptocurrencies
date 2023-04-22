@@ -40,7 +40,7 @@ public class SaplingAddress : ZcashAddress
     /// <param name="data">Receives the raw encoding of the data within the address.</param>
     /// <returns>The actual length of the decoded bytes written to <paramref name="humanReadablePart"/> and <paramref name="data"/>.</returns>
     /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
-    internal (int HumanReadablePartLength, int DataLength) Decode(Span<char> humanReadablePart, Span<byte> data) => Bech32.Decode(this.Address, humanReadablePart, data);
+    internal (int HumanReadablePartLength, int DataLength) Decode(Span<char> humanReadablePart, Span<byte> data) => Bech32.Original.Decode(this.Address, humanReadablePart, data);
 
     /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)

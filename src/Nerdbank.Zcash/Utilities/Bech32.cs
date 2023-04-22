@@ -8,17 +8,41 @@ using Microsoft;
 namespace Nerdbank.Zcash.Utilities;
 
 /// <summary>
-/// Contains <see href="https://zips.z.cash/zip-0173">Bech32 (ZIP-173)</see> encoding and decoding methods.
+/// Contains <see href="https://zips.z.cash/zip-0173">Bech32 (ZIP-173)</see>
+/// and <see href="https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki">Bech32m (BIP-350)</see> encoding and decoding methods.
 /// </summary>
 /// <remarks>
-/// Bech32 is a base32 encoding with a 6-byte checksum.
+/// Bech32(m) is a base32 encoding with a 6-byte checksum.
 /// </remarks>
-internal static class Bech32
+internal sealed class Bech32
 {
+    /// <summary>
+    /// Gets the instance that implements <see href="https://zips.z.cash/zip-0173">Bech32 (ZIP-173)</see>.
+    /// </summary>
+    public static readonly Bech32 Original = new Bech32(Bech32Const);
+
+    /// <summary>
+    /// Gets the instance that implements <see href="https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki">Bech32m (BIP-350)</see>.
+    /// </summary>
+    public static readonly Bech32 Bech32m = new Bech32(Bech32mConst);
+
+    private const uint Bech32Const = 1;
+    private const uint Bech32mConst = 0x2bc830a3;
     private const char TagDataSeparator = '1';
     private const int ChecksumLength = 6;
 
     private static readonly ReadOnlyMemory<uint> Gen = new uint[] { 0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3 };
+
+    private readonly uint powerConstant;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Bech32"/> class.
+    /// </summary>
+    /// <param name="powerConstant">The constant to use when computing or verifying the hash. Should be either <see cref="Bech32Const"/> or <see cref="Bech32mConst"/>.</param>
+    private Bech32(uint powerConstant)
+    {
+        this.powerConstant = powerConstant;
+    }
 
     private static ReadOnlySpan<char> Alphabet => "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 
@@ -34,8 +58,12 @@ internal static class Bech32
     /// Gets the maximum number of bytes that can be decoded from a given number of characters.
     /// </summary>
     /// <param name="encoded">The Bech32 characters to decode.</param>
-    /// <returns>The length of the buffers that should be allocated to decode. Will be <see langword="null" /> if the encoding is invalid to the point that the lengths cannot be determined.</returns>
-    internal static (int TagLength, int DataLength)? GetDecodedLength(ReadOnlySpan<char> encoded)
+    /// <returns>
+    /// The length of the buffers that should be allocated to decode.
+    /// Will be <see langword="null" /> if the encoding is invalid to the point that the lengths cannot be determined.
+    /// A non-<see langword="null" /> result does not guarantee that the encoding is valid.
+    /// </returns>
+    internal static (int Tag, int Data)? GetDecodedLength(ReadOnlySpan<char> encoded)
     {
         int separatorIdx = encoded.LastIndexOf(TagDataSeparator);
         if (separatorIdx == -1)
@@ -43,7 +71,13 @@ internal static class Bech32
             return null;
         }
 
-        return (separatorIdx, (encoded.Length - separatorIdx - 1 - ChecksumLength) * 5 / 8);
+        int dataLength = (encoded.Length - separatorIdx - 1 - ChecksumLength) * 5 / 8;
+        if (dataLength < 0)
+        {
+            return null;
+        }
+
+        return (separatorIdx, dataLength);
     }
 
     /// <summary>
@@ -53,7 +87,7 @@ internal static class Bech32
     /// <param name="data">The data to encode.</param>
     /// <param name="output">Receives the encoded characters.</param>
     /// <returns>The number of characters written to <paramref name="output"/>.</returns>
-    internal static int Encode(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data, Span<char> output)
+    internal int Encode(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data, Span<char> output)
     {
         Requires.Argument(!tag.IsEmpty, nameof(tag), "An empty human-readable part is not allowed.");
 
@@ -68,7 +102,7 @@ internal static class Bech32
         int written = Stretch8bitTo5bitBytes(data, encodedWithChecksum);
 
         // Append the checksum.
-        written += CreateChecksum(tag, encodedWithChecksum.Slice(0, written), encodedWithChecksum.Slice(written));
+        written += this.CreateChecksum(tag, encodedWithChecksum.Slice(0, written), encodedWithChecksum.Slice(written));
 
         // Convert the resulting encoding the characters and append them to the end.
         outputBytesWritten += MapToAlphabet(encodedWithChecksum.Slice(0, written), output.Slice(outputBytesWritten));
@@ -85,9 +119,9 @@ internal static class Bech32
     /// <returns>The number of bytes written to <paramref name="tag"/> and <paramref name="data" />.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="tag"/> or <paramref name="data"/> is not sufficiently large to store the decoded payload.</exception>
     /// <exception cref="FormatException">Thrown if the checksum fails to match or invalid characters are found.</exception>
-    internal static (int TagLength, int DataLength) Decode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data)
+    internal (int TagLength, int DataLength) Decode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data)
     {
-        if (!TryDecode(encoded, tag, data, out DecodeError? errorCode, out string? errorMessage, out (int Tag, int Data) length))
+        if (!this.TryDecode(encoded, tag, data, out DecodeError? errorCode, out string? errorMessage, out (int Tag, int Data) length))
         {
             throw errorCode switch
             {
@@ -109,7 +143,7 @@ internal static class Bech32
     /// <param name="errorMessage">Receives the error message of a failed decode operation.</param>
     /// <param name="length">Receives the length written to <paramref name="tag" /> and <paramref name="data"/>.</param>
     /// <returns>A value indicating whether decoding was successful.</returns>
-    internal static bool TryDecode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out (int Tag, int Data) length)
+    internal bool TryDecode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out (int Tag, int Data) length)
     {
         // Extract the tag first.
         int separatorIdx = encoded.LastIndexOf(TagDataSeparator);
@@ -121,7 +155,18 @@ internal static class Bech32
             return false;
         }
 
-        encoded.Slice(0, separatorIdx).CopyTo(tag);
+        if (tag.Length < separatorIdx)
+        {
+            decodeResult = DecodeError.BufferTooSmall;
+            errorMessage = "The tag buffer is too small.";
+            length = default;
+            return false;
+        }
+
+        for (int i = 0; i < separatorIdx; i++)
+        {
+            tag[i] = char.ToLowerInvariant(encoded[i]);
+        }
 
         // Do the simple character to 5 bit byte conversion of the data.
         Span<byte> dataAndChecksum5bitBytes = stackalloc byte[encoded.Length - separatorIdx - 1];
@@ -132,7 +177,7 @@ internal static class Bech32
         }
 
         // Verify the checksum.
-        if (!VerifyChecksum(tag.Slice(0, separatorIdx), dataAndChecksum5bitBytes))
+        if (!this.VerifyChecksum(tag.Slice(0, separatorIdx), dataAndChecksum5bitBytes))
         {
             decodeResult = DecodeError.InvalidChecksum;
             errorMessage = "Invalid checksum.";
@@ -196,64 +241,17 @@ internal static class Bech32
 
         for (int i = 0; i < chars.Length; i++)
         {
-            bytes[i] = (byte)(chars[i] >> 5);
+            bytes[i] = (byte)(char.ToLowerInvariant(chars[i]) >> 5);
         }
 
         bytes[chars.Length] = 0;
 
         for (int i = 0; i < chars.Length; i++)
         {
-            bytes[chars.Length + 1 + i] = (byte)(chars[i] & 0x1f);
+            bytes[chars.Length + 1 + i] = (byte)(char.ToLowerInvariant(chars[i]) & 0x1f);
         }
 
         return (chars.Length * 2) + 1;
-    }
-
-    /// <summary>
-    /// Creates a checksum.
-    /// </summary>
-    /// <param name="tag">The human readable part.</param>
-    /// <param name="data">The data.</param>
-    /// <param name="checksum">Receives the 6-byte checksum.</param>
-    /// <returns>The number of bytes written to <paramref name="checksum"/> (always 6).</returns>
-    private static int CreateChecksum(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data, Span<byte> checksum)
-    {
-        // Spec source:
-        //// values = bech32_hrp_expand(hrp) + data
-        //// polymod = bech32_polymod(values + [0,0,0,0,0,0]) ^ 1
-        //// return [(polymod >> 5 * (5 - i)) & 31 for i in range(6)]
-
-        int expandedLength = (tag.Length * 2) + 1;
-        Span<byte> values = stackalloc byte[expandedLength + data.Length + ChecksumLength];
-        int written = Expand(tag, values.Slice(0, expandedLength));
-        Debug.Assert(written == expandedLength, "Expand wrote an unexpected number of bytes.");
-        data.CopyTo(values.Slice(expandedLength));
-        uint polymod = PolyMod(values) ^ 1;
-        for (int i = 0; i < ChecksumLength; i++)
-        {
-            checksum[i] = (byte)((polymod >> (5 * (5 - i))) & 0x1f);
-        }
-
-        return ChecksumLength;
-    }
-
-    /// <summary>
-    /// Verifies a checksum.
-    /// </summary>
-    /// <param name="tag">The human-readable part.</param>
-    /// <param name="data">Additional data that feeds into the checksum, and the checksum itself.</param>
-    /// <returns>A value indicating whether the checksum is correct.</returns>
-    private static bool VerifyChecksum(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data)
-    {
-        // Spec source:
-        // return bech32_polymod(bech32_hrp_expand(hrp) + data) == 1
-        int expandedLength = (tag.Length * 2) + 1;
-        Span<byte> values = stackalloc byte[expandedLength + data.Length];
-        int written = Expand(tag, values.Slice(0, expandedLength));
-        Debug.Assert(written == expandedLength, $"{nameof(Expand)} didn't write the expected number of bytes.");
-        data.CopyTo(values.Slice(written));
-        uint checksum = PolyMod(values);
-        return checksum == 1;
     }
 
     /// <summary>
@@ -456,7 +454,7 @@ internal static class Bech32
             char c = data[i];
 
             // Perf opportunity: create a reverse mapping array that directly translates the ordinal value of the character to the 5-bit value to use.
-            int index = Alphabet.IndexOf(c);
+            int index = Alphabet.IndexOf(char.ToLowerInvariant(c));
             if (index < 0)
             {
                 errorMessage = $"Invalid character '{c}' at index {i}.";
@@ -472,5 +470,52 @@ internal static class Bech32
         errorMessage = null;
         bytesWritten = data.Length;
         return true;
+    }
+
+    /// <summary>
+    /// Creates a checksum.
+    /// </summary>
+    /// <param name="tag">The human readable part.</param>
+    /// <param name="data">The data.</param>
+    /// <param name="checksum">Receives the 6-byte checksum.</param>
+    /// <returns>The number of bytes written to <paramref name="checksum"/> (always 6).</returns>
+    private int CreateChecksum(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data, Span<byte> checksum)
+    {
+        // Spec source:
+        //// values = bech32_hrp_expand(hrp) + data
+        //// polymod = bech32_polymod(values + [0,0,0,0,0,0]) ^ 1
+        //// return [(polymod >> 5 * (5 - i)) & 31 for i in range(6)]
+
+        int expandedLength = (tag.Length * 2) + 1;
+        Span<byte> values = stackalloc byte[expandedLength + data.Length + ChecksumLength];
+        int written = Expand(tag, values.Slice(0, expandedLength));
+        Debug.Assert(written == expandedLength, "Expand wrote an unexpected number of bytes.");
+        data.CopyTo(values.Slice(expandedLength));
+        uint polymod = PolyMod(values) ^ this.powerConstant;
+        for (int i = 0; i < ChecksumLength; i++)
+        {
+            checksum[i] = (byte)((polymod >> (5 * (5 - i))) & 0x1f);
+        }
+
+        return ChecksumLength;
+    }
+
+    /// <summary>
+    /// Verifies a checksum.
+    /// </summary>
+    /// <param name="tag">The human-readable part.</param>
+    /// <param name="data">Additional data that feeds into the checksum, and the checksum itself.</param>
+    /// <returns>A value indicating whether the checksum is correct.</returns>
+    private bool VerifyChecksum(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data)
+    {
+        // Spec source:
+        // return bech32_polymod(bech32_hrp_expand(hrp) + data) == 1
+        int expandedLength = (tag.Length * 2) + 1;
+        Span<byte> values = stackalloc byte[expandedLength + data.Length];
+        int written = Expand(tag, values.Slice(0, expandedLength));
+        Debug.Assert(written == expandedLength, $"{nameof(Expand)} didn't write the expected number of bytes.");
+        data.CopyTo(values.Slice(written));
+        uint checksum = PolyMod(values);
+        return checksum == this.powerConstant;
     }
 }
