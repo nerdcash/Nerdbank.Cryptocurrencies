@@ -39,7 +39,7 @@ public class SproutAddress : ZcashAddress
     /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)
     {
-        // TODO: implement this.
-        return true;
+        Span<byte> data = stackalloc byte[Base58Check.GetMaximumDecodedLength(this.Address.Length)];
+        return Base58Check.TryDecode(this.Address, data, out _, out _, out _);
     }
 }

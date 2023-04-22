@@ -3,6 +3,12 @@
 
 public class UnifiedAddressTests : TestBase
 {
+    public static object?[][] InvalidAddresses => new object?[][]
+    {
+        new object?[] { "u1" },
+        new object?[] { "u1oecuh" },
+    };
+
     [Fact]
     public void Receivers_UnifiedMultiple()
     {
@@ -54,5 +60,11 @@ public class UnifiedAddressTests : TestBase
             ZcashAddress.Parse(ValidTransparentP2PKHAddress),
         });
         Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparent, addr.ToString());
+    }
+
+    [Theory, MemberData(nameof(InvalidAddresses))]
+    public void TryParse_Invalid(string address)
+    {
+        Assert.False(ZcashAddress.TryParse(address, out _));
     }
 }

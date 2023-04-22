@@ -1,18 +1,20 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-public class SaplingAddressTests : TestBase
+public class SproutAddressTests : TestBase
 {
     public static object?[][] InvalidAddresses => new object?[][]
     {
-        new object?[] { "zs" },
-        new object?[] { "zs1znewe2l2ucm8gsd2ue24kvp3jjjwgrhmytmv0scenaf460kdj70r299a88r8n0pyvwz7c9skfmy" },
+        new object?[] { "zt" },
+        new object?[] { "ztoeuchch" },
+        new object?[] { "zc" },
+        new object?[] { "zceuoch" },
     };
 
     [Fact]
     public void Network()
     {
-        Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SaplingAddress>(ZcashAddress.Parse(ValidSaplingAddress)).Network);
+        Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SproutAddress>(ZcashAddress.Parse(ValidSproutAddress)).Network);
     }
 
     [Theory, MemberData(nameof(InvalidAddresses))]

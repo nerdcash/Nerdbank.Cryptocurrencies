@@ -81,11 +81,11 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
             'z' => char.ToLowerInvariant(address[1]) switch
             {
                 'c' => new SproutAddress(address),
-                's' => address[2] == '1' ? new SaplingAddress(address) : null,
+                's' => address.Length > 2 && address[2] == '1' ? new SaplingAddress(address) : null,
                 't' => address.StartsWith("ztestsapling1", StringComparison.Ordinal) ? new SaplingAddress(address) : new SproutAddress(address),
                 _ => null,
             },
-            'u' => new UnifiedAddress(address),
+            'u' => address[1] == '1' ? new UnifiedAddress(address) : null,
             _ => null,
         };
 
