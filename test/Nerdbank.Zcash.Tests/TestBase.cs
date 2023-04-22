@@ -7,7 +7,7 @@ public abstract class TestBase
     protected const string ValidUnifiedAddressOrchardSapling = "u10p78pgwpatn9n5zsut79577c78yt59cerl0ymdk7m4ug3hd7cw0fj2c7k20q3ndt2x49zzy69xgl22wr7tgl652lxflaex79xgpg2kyk9m83nzerccpvkxfy47v7xz6g5fqaz3x4tvl6lnkh58j6mj60synt2kr5rgxcpdm3qq9u0nm2";
     protected const string ValidUnifiedAddressOrchard = "u1v0j6szgvcquae449dltsrhdhlle4ac8cxd3z8k4j2wtxgfxg6xnq25a900d3yq65mz0l6heqhcj468f7q3l2wnxdsxjrcw90svum7q67";
     protected const string ValidSaplingAddress = "zs1andrewyvxpx2d0zthcafwxn0n6clu4rwjhl9fpa86zt0np6pxqxrgar2e2tareutxfxdv2rll5v";
-    protected const string ValidSproutAddress = "zc***";
+    protected const string ValidSproutAddress = "zc8E5gYid86n4bo2Usdq1cpr7PpfoJGzttwBHEEgGhGkLUg7SPPVFNB2AkRFXZ7usfphup5426dt1buMmY3fkYeRrQGLa8y"; // I made this one up to just satisfy length and Base58Check encoding.
     protected const string ValidTransparentP2PKHAddress = "t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF";
 
     // When we ever get a sample of a valid P2SH address, we can add it here, and then search all code for commented references to this field and enable it.

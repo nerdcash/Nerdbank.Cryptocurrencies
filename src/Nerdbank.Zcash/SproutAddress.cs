@@ -18,7 +18,10 @@ public class SproutAddress : ZcashAddress
     }
 
     /// <inheritdoc/>
-    public override ZcashNetwork Network => throw new NotImplementedException();
+    public override ZcashNetwork Network =>
+        this.Address.StartsWith("zc", StringComparison.Ordinal) ? ZcashNetwork.MainNet :
+        this.Address.StartsWith("zt", StringComparison.Ordinal) ? ZcashNetwork.TestNet :
+        throw new FormatException("Invalid address prefix");
 
     /// <summary>
     /// Gets the length of the buffer required to decode the address.
