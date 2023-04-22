@@ -31,6 +31,12 @@ public class SaplingAddress : ZcashAddress
     internal (int HumanReadablePart, int Data) DecodedLength => Bech32.GetDecodedLength(this.Address) ?? throw new InvalidAddressException();
 
     /// <inheritdoc/>
+    internal override byte UnifiedAddressTypeCode => 0x02;
+
+    /// <inheritdoc/>
+    private protected override int ReceiverEncodingLength => (Bech32.GetDecodedLength(this.Address) ?? throw new InvalidAddressException()).Data;
+
+    /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sapling;
 
     /// <summary>
@@ -41,6 +47,22 @@ public class SaplingAddress : ZcashAddress
     /// <returns>The actual length of the decoded bytes written to <paramref name="humanReadablePart"/> and <paramref name="data"/>.</returns>
     /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
     internal (int HumanReadablePartLength, int DataLength) Decode(Span<char> humanReadablePart, Span<byte> data) => Bech32.Original.Decode(this.Address, humanReadablePart, data);
+
+    /// <inheritdoc/>
+    internal override int GetReceiverEncoding(Span<byte> destination)
+    {
+        (int Tag, int Data)? lengthPredicted = Bech32.GetDecodedLength(this.Address);
+        if (lengthPredicted is null)
+        {
+            throw new InvalidAddressException();
+        }
+
+        Span<char> tag = stackalloc char[lengthPredicted.Value.Tag];
+        Span<byte> data = stackalloc byte[lengthPredicted.Value.Data];
+        (int TagLength, int DataLength) lengthWritten = Bech32.Original.Decode(this.Address, tag, data);
+        data.Slice(0, lengthWritten.DataLength).CopyTo(destination);
+        return lengthWritten.DataLength;
+    }
 
     /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)

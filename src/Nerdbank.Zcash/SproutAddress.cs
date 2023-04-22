@@ -29,6 +29,12 @@ public class SproutAddress : ZcashAddress
     internal int DecodedLength => Base58Check.GetMaximumDecodedLength(this.Address.Length);
 
     /// <inheritdoc/>
+    internal override byte UnifiedAddressTypeCode => throw new NotSupportedException();
+
+    /// <inheritdoc/>
+    private protected override int ReceiverEncodingLength => throw new NotSupportedException();
+
+    /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sprout;
 
     /// <summary>
@@ -38,6 +44,9 @@ public class SproutAddress : ZcashAddress
     /// <returns>The actual length of the decoded bytes written to <paramref name="rawEncoding"/>.</returns>
     /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
     internal int Decode(Span<byte> rawEncoding) => Base58Check.Decode(this.Address, rawEncoding);
+
+    /// <inheritdoc/>
+    internal override int GetReceiverEncoding(Span<byte> destination) => throw new NotSupportedException();
 
     /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)

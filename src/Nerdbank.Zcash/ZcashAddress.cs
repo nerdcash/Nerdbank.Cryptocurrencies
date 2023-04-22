@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft;
 
 namespace Nerdbank.Zcash;
 
@@ -31,9 +32,24 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     internal bool IsValid => this.CheckValidity();
 
     /// <summary>
+    /// Gets the total length of this address's contribution to a unified address.
+    /// </summary>
+    internal int UAContributionLength => 1 + CompactSize.GetEncodedLength((ulong)this.ReceiverEncodingLength) + this.ReceiverEncodingLength;
+
+    /// <summary>
+    /// Gets the type code to use when embedded in a unified address.
+    /// </summary>
+    internal abstract byte UnifiedAddressTypeCode { get; }
+
+    /// <summary>
     /// Gets the address as a string.
     /// </summary>
     protected string Address { get; }
+
+    /// <summary>
+    /// Gets the length of the receiver encoding in a unified address.
+    /// </summary>
+    private protected abstract int ReceiverEncodingLength { get; }
 
     /// <summary>
     /// Implicitly casts this address to a string.
@@ -113,6 +129,30 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 
     /// <inheritdoc/>
     public bool Equals(ZcashAddress? other) => this == other || this.Address == other?.Address;
+
+    /// <summary>
+    /// Gets the Receiver Encoding of this address for inclusion in a unified address.
+    /// </summary>
+    /// <param name="destination">The buffer to write the encoding to. Must be at least <see cref="ReceiverEncodingLength"/> in size.</param>
+    /// <returns>The number of bytes written to the destination buffer.</returns>
+    internal abstract int GetReceiverEncoding(Span<byte> destination);
+
+    /// <summary>
+    /// Writes this address's contribution to a unified address.
+    /// </summary>
+    /// <param name="destination">The buffer to receive the UA contribution.</param>
+    /// <returns>The number of bytes actually written to the buffer.</returns>
+    internal int WriteUAContribution(Span<byte> destination)
+    {
+        int bytesWritten = 0;
+        destination[bytesWritten++] = this.UnifiedAddressTypeCode;
+        int predictedEncodingLength = this.ReceiverEncodingLength;
+        bytesWritten += CompactSize.Encode((ulong)predictedEncodingLength, destination);
+        int actualEncodingLength = this.GetReceiverEncoding(destination.Slice(bytesWritten));
+        Assumes.True(predictedEncodingLength == actualEncodingLength); // If this is wrong, we encoded the wrong length in the compact size.
+        bytesWritten += actualEncodingLength;
+        return bytesWritten;
+    }
 
     /// <summary>
     /// Checks whether the address is valid.

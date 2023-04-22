@@ -15,7 +15,7 @@ public class TransparentAddressTests : TestBase
     [Fact]
     public void Type()
     {
-        Assert.Equal("P2PKH", ParsedP2PKHAddress.Type);
+        Assert.Equal(TransparentAddress.TransparentType.P2PKH, ParsedP2PKHAddress.Type);
         ////Assert.Equal("P2SH", Assert.IsType<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2SHAddress)).Type);
     }
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using Microsoft;
 
 namespace Nerdbank.Zcash;
@@ -10,6 +11,12 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public class UnifiedAddress : ZcashAddress
 {
+    private const string HumanReadablePart = "u";
+
+    private const int MaxF4JumbleInputLength = 4194368;
+
+    private ReadOnlyCollection<ZcashAddress>? receivers;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UnifiedAddress"/> class.
     /// </summary>
@@ -26,14 +33,25 @@ public class UnifiedAddress : ZcashAddress
     /// Gets the receivers for this address, in order of preference.
     /// </summary>
     /// <remarks>
-    /// <para>Every address has at least one receiver, if it is valid. Non-unified addresses will simply enumerate themselves.</para>
+    /// <para>Every address has at least one receiver, if it is valid. A <see cref="UnifiedAddress"/> in this sequence should be interpreted as an Orchard raw receiver.</para>
     /// </remarks>
-    public IEnumerable<ZcashAddress> Receivers => throw new NotImplementedException();
+    public IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= this.GetReceivers();
 
     /// <summary>
     /// Gets a value indicating whether this address is a raw Orchard address rather than an address with receivers.
     /// </summary>
     internal bool IsOrchardRaw => throw new NotImplementedException();
+
+    /// <inheritdoc/>
+    internal override byte UnifiedAddressTypeCode => 0x03;
+
+    /// <inheritdoc/>
+    private protected override int ReceiverEncodingLength => throw new NotImplementedException();
+
+    /// <summary>
+    /// Gets the padding bytes that must be present in a unified address.
+    /// </summary>
+    private static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
 
     /// <summary>
     /// Creates a unified address from a list of receiver addresses.
@@ -47,49 +65,41 @@ public class UnifiedAddress : ZcashAddress
     /// <returns>A unified address that contains all the receivers.</returns>
     public static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers)
     {
-        ZcashAddress? orchard = null;
-        ZcashAddress? sapling = null;
-        ZcashAddress? transparent = null;
-
-        void AssignOrThrow(ref ZcashAddress? location, ZcashAddress value)
-        {
-            if (location is null)
-            {
-                location = value;
-            }
-            else
-            {
-                throw new ArgumentException("Only one of each type of address is allowed.", nameof(receivers));
-            }
-        }
+        SortedDictionary<byte, ZcashAddress> sortedReceiversByTypeCode = new();
+        int totalLength = 0;
 
         bool hasShieldedAddress = false;
         foreach (ZcashAddress receiver in receivers)
         {
-            // Pattern matching would be amazing, but https://github.com/dotnet/csharplang/discussions/7133
-            if (receiver is UnifiedAddress { IsOrchardRaw: true })
+            hasShieldedAddress |= receiver.UnifiedAddressTypeCode > 0x01;
+            if (sortedReceiversByTypeCode.TryAdd(receiver.UnifiedAddressTypeCode, receiver))
             {
-                AssignOrThrow(ref orchard, receiver);
-                hasShieldedAddress = true;
+                throw new ArgumentException($"Only one of each type of address is allowed, but more than one {receiver.GetType().Name} was specified.", nameof(receivers));
             }
-            else if (receiver is SaplingAddress)
-            {
-                AssignOrThrow(ref sapling, receiver);
-                hasShieldedAddress = true;
-            }
-            else if (receiver is TransparentAddress)
-            {
-                AssignOrThrow(ref transparent, receiver);
-            }
-            else
-            {
-                throw new ArgumentException("Only Orchard, Sapling, and Transparent addresses are supported.", nameof(receivers));
-            }
+
+            totalLength += receiver.UAContributionLength;
         }
 
         Requires.Argument(hasShieldedAddress, nameof(receivers), "At least one shielded address is required.");
 
-        throw new NotImplementedException();
+        totalLength += Padding.Length;
+        Span<byte> ua = stackalloc byte[totalLength];
+        int uaBytesWritten = 0;
+        foreach (ZcashAddress receiver in sortedReceiversByTypeCode.Values)
+        {
+            uaBytesWritten += receiver.GetReceiverEncoding(ua.Slice(uaBytesWritten));
+        }
+
+        Padding.CopyTo(ua.Slice(uaBytesWritten));
+        uaBytesWritten += Padding.Length;
+        F4Jumble(ua);
+
+        Assumes.True(uaBytesWritten == ua.Length);
+
+        Span<char> result = stackalloc char[Bech32.GetEncodedLength(HumanReadablePart.Length, ua.Length)];
+        int finalLength = Bech32.Bech32m.Encode(HumanReadablePart, ua, result);
+        Assumes.True(result.Length == finalLength);
+        return new(result);
     }
 
     /// <inheritdoc/>
@@ -107,6 +117,13 @@ public class UnifiedAddress : ZcashAddress
     internal int Decode(Span<byte> rawEncoding) => throw new NotImplementedException();
 
     /// <inheritdoc/>
+    internal override int GetReceiverEncoding(Span<byte> destination)
+    {
+        Verify.Operation(this.IsOrchardRaw, "This is a combined UA.");
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)
     {
         (int Tag, int Data)? length = Bech32.GetDecodedLength(this.Address);
@@ -118,5 +135,39 @@ public class UnifiedAddress : ZcashAddress
         Span<char> tag = stackalloc char[length.Value.Tag];
         Span<byte> data = stackalloc byte[length.Value.Data];
         return Bech32.Bech32m.TryDecode(this.Address, tag, data, out _, out _, out _);
+    }
+
+    private static void F4Jumble(Span<byte> ua)
+    {
+        if (ua.Length > MaxF4JumbleInputLength)
+        {
+            throw new ArgumentException($"The UA cannot exceed {MaxF4JumbleInputLength} bytes.", nameof(ua));
+        }
+
+        throw new NotImplementedException();
+    }
+
+    private ReadOnlyCollection<ZcashAddress> GetReceivers()
+    {
+        (int Tag, int Data) bech32DecodedLength = Bech32.GetDecodedLength(this.Address) ?? throw new InvalidAddressException();
+
+        if (bech32DecodedLength.Data is < 48 or > MaxF4JumbleInputLength)
+        {
+            throw new InvalidAddressException();
+        }
+
+        Span<char> tag = stackalloc char[bech32DecodedLength.Tag];
+        Span<byte> data = stackalloc byte[bech32DecodedLength.Data];
+        Bech32.Bech32m.Decode(this.Address, tag, data);
+
+        // Verify the 16-byte padding is as expected, then strip it.
+        if (!data.Slice(data.Length - Padding.Length).SequenceEqual(Padding))
+        {
+            throw new InvalidAddressException();
+        }
+
+        data = data.Slice(0, data.Length - Padding.Length);
+
+        throw new NotImplementedException();
     }
 }
