@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Konscious.Security.Cryptography;
 using Microsoft;
 
 namespace Nerdbank.Zcash;
@@ -13,7 +15,9 @@ public class UnifiedAddress : ZcashAddress
 {
     private const string HumanReadablePart = "u";
 
+    private const int MinF4JumbleInputLength = 48;
     private const int MaxF4JumbleInputLength = 4194368;
+    private const int F4OutputLength = 64; // known in the spec as ℒᵢ
 
     private ReadOnlyCollection<ZcashAddress>? receivers;
 
@@ -137,21 +141,86 @@ public class UnifiedAddress : ZcashAddress
         return Bech32.Bech32m.TryDecode(this.Address, tag, data, out _, out _, out _);
     }
 
-    private static void F4Jumble(Span<byte> ua)
+    /// <summary>
+    /// Applies the F4Jumble function to the specified buffer.
+    /// </summary>
+    /// <param name="ua">The buffer to mutate.</param>
+    /// <param name="inverted"><see langword="true" /> to reverse the process.</param>
+    /// <exception cref="ArgumentException">Thrown when the input buffer is shorter than <see cref="MinF4JumbleInputLength"/> or longer than <see cref="MaxF4JumbleInputLength"/>.</exception>
+    /// <devremarks>
+    /// <see href="https://docs.rs/f4jumble/latest/src/f4jumble/lib.rs.html#208">Some source for inspiration</see> while interpreting the spec.
+    /// </devremarks>
+    private static void F4Jumble(Span<byte> ua, bool inverted = false)
     {
-        if (ua.Length > MaxF4JumbleInputLength)
+        if (ua.Length is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
         {
             throw new ArgumentException($"The UA cannot exceed {MaxF4JumbleInputLength} bytes.", nameof(ua));
         }
 
-        throw new NotImplementedException();
+        byte[] arrayBuffer = new byte[ua.Length];
+        ua.CopyTo(arrayBuffer);
+
+        byte leftLength = (byte)Math.Min(F4OutputLength, ua.Length / 2);
+        int rightLength = ua.Length - leftLength;
+
+        if (inverted)
+        {
+            RoundH(1);
+            RoundG(1);
+            RoundH(0);
+            RoundG(0);
+        }
+        else
+        {
+            RoundG(0);
+            RoundH(0);
+            RoundG(1);
+            RoundH(1);
+        }
+
+        arrayBuffer.CopyTo(ua);
+
+        // TODO: Several opportunities below to reduce allocations.
+
+        void RoundG(byte i)
+        {
+            ushort top = checked((ushort)CeilDiv(rightLength, F4OutputLength));
+            for (ushort j = 0; j < top; j++)
+            {
+                using HMACBlake2B blake2 = new(PersonalizeG(i, j), F4OutputLength);
+                byte[] hash = blake2.ComputeHash(arrayBuffer, 0, leftLength);
+                Xor(arrayBuffer.AsSpan(j * F4OutputLength), hash);
+            }
+        }
+
+        void RoundH(byte i)
+        {
+            using HMACBlake2B blake2 = new(PersonalizeH(i), leftLength);
+            byte[] hash = blake2.ComputeHash(arrayBuffer, leftLength, rightLength);
+            Xor(arrayBuffer.AsSpan(0, leftLength), hash);
+        }
+
+        static byte[] PersonalizeH(byte i) => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 72, i, 0, 0 };
+
+        static byte[] PersonalizeG(byte i, ushort j) => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 71, i, (byte)(j & 0xff), (byte)(j >> 8) };
+
+        static int CeilDiv(int number, int divisor) => (number + divisor - 1) / divisor;
+
+        static void Xor(Span<byte> left, ReadOnlySpan<byte> right)
+        {
+            Debug.Assert(left.Length == right.Length, "Buffer lengths must equal.");
+            for (int i = 0; i < left.Length; i++)
+            {
+                left[i] ^= right[i];
+            }
+        }
     }
 
     private ReadOnlyCollection<ZcashAddress> GetReceivers()
     {
         (int Tag, int Data) bech32DecodedLength = Bech32.GetDecodedLength(this.Address) ?? throw new InvalidAddressException();
 
-        if (bech32DecodedLength.Data is < 48 or > MaxF4JumbleInputLength)
+        if (bech32DecodedLength.Data is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
         {
             throw new InvalidAddressException();
         }

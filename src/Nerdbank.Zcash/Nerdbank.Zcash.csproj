@@ -2,6 +2,8 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0</TargetFrameworks>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Blake2 isn't strong-named. But as we target .NET, it doesn't matter. -->
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(RepoRootPath)README.md" Pack="true" PackagePath="" />
