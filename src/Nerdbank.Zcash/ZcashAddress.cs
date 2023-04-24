@@ -93,7 +93,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 
         result = char.ToLowerInvariant(address[0]) switch
         {
-            't' => new TransparentAddress(address),
+            't' => TransparentAddress.TryParse(address),
             'z' => char.ToLowerInvariant(address[1]) switch
             {
                 'c' => new SproutAddress(address),
@@ -101,7 +101,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
                 't' => address.StartsWith("ztestsapling1", StringComparison.Ordinal) ? new SaplingAddress(address) : new SproutAddress(address),
                 _ => null,
             },
-            'u' => address[1] == '1' ? new UnifiedAddress(address) : null,
+            'u' => address[1] == '1' ? UnifiedAddress.TryParse(address) : null,
             _ => null,
         };
 
@@ -131,11 +131,28 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     public bool Equals(ZcashAddress? other) => this == other || this.Address == other?.Address;
 
     /// <summary>
-    /// Gets the Receiver Encoding of this address for inclusion in a unified address.
+    /// Gets the receiver for a particular pool, if embedded in this address.
     /// </summary>
-    /// <param name="destination">The buffer to write the encoding to. Must be at least <see cref="ReceiverEncodingLength"/> in size.</param>
-    /// <returns>The number of bytes written to the destination buffer.</returns>
-    internal abstract int GetReceiverEncoding(Span<byte> destination);
+    /// <typeparam name="TPoolReceiver">
+    /// <para>The type of receiver to extract.
+    /// The type chosen here determines which pool may be sent funds, and by which method.</para>
+    /// <para>Possible type arguments here include:</para>
+    /// <list type="bullet">
+    /// <item><see cref="OrchardReceiver"/></item>
+    /// <item><see cref="SaplingReceiver"/></item>
+    /// <item><see cref="TransparentP2PKHReceiver"/></item>
+    /// <item><see cref="TransparentP2SHReceiver"/></item>
+    /// </list>
+    /// </typeparam>
+    /// <returns>The encoded receiver, or <see langword="null" /> if no receiver of the specified type is embedded in this address.</returns>
+    /// <remarks>
+    /// For legacy address types (<see cref="TransparentAddress">transparent</see>, <see cref="SproutAddress">sprout</see>, <see cref="SaplingAddress">sapling</see>), only one type of receiver will return a non-<see langword="null" /> result.
+    /// For <see cref="UnifiedAddress">unified addresses</see>, several receiver types may produce a result.
+    /// </remarks>
+    public abstract TPoolReceiver? GetPoolReceiver<TPoolReceiver>()
+        where TPoolReceiver : unmanaged, IPoolReceiver;
+
+    private protected abstract int GetReceiverEncoding(Span<byte> output);
 
     /// <summary>
     /// Writes this address's contribution to a unified address.
@@ -152,6 +169,38 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
         Assumes.True(predictedEncodingLength == actualEncodingLength); // If this is wrong, we encoded the wrong length in the compact size.
         bytesWritten += actualEncodingLength;
         return bytesWritten;
+    }
+
+    private protected static unsafe int GetUAContributionLength<TReceiver>()
+        where TReceiver : unmanaged, IPoolReceiver
+    {
+        return 1 + CompactSize.GetEncodedLength((ulong)sizeof(TReceiver)) + sizeof(TReceiver);
+    }
+
+    private protected static unsafe int WriteUAContribution<TReceiver>(TReceiver receiver, Span<byte> destination)
+        where TReceiver : unmanaged, IPoolReceiver
+    {
+        int bytesWritten = 0;
+        destination[bytesWritten++] = TReceiver.UnifiedReceiverTypeCode;
+        bytesWritten += CompactSize.Encode((ulong)receiver.WholeThing.Length, destination);
+        receiver.WholeThing.CopyTo(destination.Slice(bytesWritten));
+        bytesWritten += receiver.WholeThing.Length;
+        return bytesWritten;
+    }
+
+    protected static TTarget? CastReceiver<TNative, TTarget>(TNative receiver)
+        where TNative : unmanaged, IPoolReceiver
+        where TTarget : unmanaged, IPoolReceiver
+    {
+        // If this step boxes the struct, we could fix it with some "unsafe" code.
+        return (TTarget)(object)receiver;
+    }
+
+    protected static TTarget? AsReceiver<TNative, TTarget>(TNative receiver)
+        where TNative : unmanaged, IPoolReceiver
+        where TTarget : unmanaged, IPoolReceiver
+    {
+        return typeof(TNative) == typeof(TTarget) ? CastReceiver<TNative, TTarget>(receiver) : null;
     }
 
     /// <summary>

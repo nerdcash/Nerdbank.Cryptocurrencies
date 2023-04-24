@@ -8,6 +8,14 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public class SproutAddress : ZcashAddress
 {
+    private readonly SproutReceiver receiver;
+
+    public SproutAddress(SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+        : base(CreateAddress(receiver, network))
+    {
+        this.receiver = receiver;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SproutAddress"/> class.
     /// </summary>
@@ -15,6 +23,7 @@ public class SproutAddress : ZcashAddress
     internal SproutAddress(ReadOnlySpan<char> address)
         : base(address)
     {
+        this.receiver = CreateReceiver(address);
     }
 
     /// <inheritdoc/>
@@ -32,7 +41,14 @@ public class SproutAddress : ZcashAddress
     internal override byte UnifiedAddressTypeCode => throw new NotSupportedException();
 
     /// <inheritdoc/>
-    private protected override int ReceiverEncodingLength => throw new NotSupportedException();
+    private protected override int ReceiverEncodingLength => this.receiver.WholeThing.Length;
+
+    /// <inheritdoc/>
+    private protected override int GetReceiverEncoding(Span<byte> output)
+    {
+        this.receiver.WholeThing.CopyTo(output);
+        return this.receiver.WholeThing.Length;
+    }
 
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sprout;
@@ -46,12 +62,34 @@ public class SproutAddress : ZcashAddress
     internal int Decode(Span<byte> rawEncoding) => Base58Check.Decode(this.Address, rawEncoding);
 
     /// <inheritdoc/>
-    internal override int GetReceiverEncoding(Span<byte> destination) => throw new NotSupportedException();
+    public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
 
     /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)
     {
         Span<byte> data = stackalloc byte[Base58Check.GetMaximumDecodedLength(this.Address.Length)];
         return Base58Check.TryDecode(this.Address, data, out _, out _, out _);
+    }
+
+    private static string CreateAddress(SproutReceiver receiver, ZcashNetwork network)
+    {
+        Span<byte> input = stackalloc byte[2 + receiver.WholeThing.Length];
+        (input[0], input[1]) = network switch
+        {
+            ZcashNetwork.MainNet => ((byte)0x16, (byte)0x9a),
+            ZcashNetwork.TestNet => ((byte)0x16, (byte)0xb6),
+            _ => throw new NotSupportedException("Unrecognized network."),
+        };
+        receiver.WholeThing.CopyTo(input.Slice(2));
+        Span<char> addressChars = stackalloc char[Base58Check.GetMaximumEncodedLength(input.Length)];
+        int charsLength = Base58Check.Encode(input, addressChars);
+        return addressChars.Slice(0, charsLength).ToString();
+    }
+
+    private static unsafe SproutReceiver CreateReceiver(ReadOnlySpan<char> address)
+    {
+        Span<byte> decoded = stackalloc byte[2 + sizeof(SproutReceiver)];
+        Base58Check.Decode(address, decoded);
+        return new SproutReceiver(decoded.Slice(2));
     }
 }

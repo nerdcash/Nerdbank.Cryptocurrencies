@@ -4,22 +4,19 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Konscious.Security.Cryptography;
-using Microsoft;
 
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A <see href="https://zips.z.cash/zip-0316">unified Zcash address</see>.
 /// </summary>
-public class UnifiedAddress : ZcashAddress
+public abstract class UnifiedAddress : ZcashAddress
 {
-    private const string HumanReadablePart = "u";
+    private protected const string HumanReadablePart = "u";
 
-    private const int MinF4JumbleInputLength = 48;
-    private const int MaxF4JumbleInputLength = 4194368;
+    private protected const int MinF4JumbleInputLength = 48;
+    private protected const int MaxF4JumbleInputLength = 4194368;
     private const int F4OutputLength = 64; // known in the spec as ℒᵢ
-
-    private ReadOnlyCollection<ZcashAddress>? receivers;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UnifiedAddress"/> class.
@@ -31,31 +28,12 @@ public class UnifiedAddress : ZcashAddress
     }
 
     /// <inheritdoc/>
-    public override ZcashNetwork Network => throw new NotImplementedException();
-
-    /// <summary>
-    /// Gets the receivers for this address, in order of preference.
-    /// </summary>
-    /// <remarks>
-    /// <para>Every address has at least one receiver, if it is valid. A <see cref="UnifiedAddress"/> in this sequence should be interpreted as an Orchard raw receiver.</para>
-    /// </remarks>
-    public IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= this.GetReceivers();
-
-    /// <summary>
-    /// Gets a value indicating whether this address is a raw Orchard address rather than an address with receivers.
-    /// </summary>
-    internal bool IsOrchardRaw => throw new NotImplementedException();
-
-    /// <inheritdoc/>
-    internal override byte UnifiedAddressTypeCode => 0x03;
-
-    /// <inheritdoc/>
-    private protected override int ReceiverEncodingLength => throw new NotImplementedException();
+    public override ZcashNetwork Network => ZcashNetwork.MainNet;
 
     /// <summary>
     /// Gets the padding bytes that must be present in a unified address.
     /// </summary>
-    private static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
+    protected static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
 
     /// <summary>
     /// Creates a unified address from a list of receiver addresses.
@@ -69,6 +47,14 @@ public class UnifiedAddress : ZcashAddress
     /// <returns>A unified address that contains all the receivers.</returns>
     public static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers)
     {
+        Requires.Argument(receivers.Count > 0, nameof(receivers), "Cannot create a unified address with no receivers.");
+
+        if (receivers.Count == 1 && receivers.Single() is UnifiedAddress existingUnifiedAddress)
+        {
+            // If the only receiver is a UA, just return it.
+            return existingUnifiedAddress;
+        }
+
         SortedDictionary<byte, ZcashAddress> sortedReceiversByTypeCode = new();
         int totalLength = 0;
 
@@ -91,7 +77,7 @@ public class UnifiedAddress : ZcashAddress
         int uaBytesWritten = 0;
         foreach (ZcashAddress receiver in sortedReceiversByTypeCode.Values)
         {
-            uaBytesWritten += receiver.GetReceiverEncoding(ua.Slice(uaBytesWritten));
+            uaBytesWritten += receiver.WriteUAContribution(ua.Slice(uaBytesWritten));
         }
 
         Padding.CopyTo(ua.Slice(uaBytesWritten));
@@ -103,27 +89,24 @@ public class UnifiedAddress : ZcashAddress
         Span<char> result = stackalloc char[Bech32.GetEncodedLength(HumanReadablePart.Length, ua.Length)];
         int finalLength = Bech32.Bech32m.Encode(HumanReadablePart, ua, result);
         Assumes.True(result.Length == finalLength);
-        return new(result);
+
+        return new CompoundUnifiedAddress(result.Slice(0, finalLength), new(sortedReceiversByTypeCode.Values.ToList()));
     }
 
-    /// <inheritdoc/>
-    public override bool SupportsPool(Pool pool)
+    internal static UnifiedAddress? TryParse(ReadOnlySpan<char> address)
     {
-        throw new NotImplementedException();
-    }
+        (int Tag, int Data) length = Bech32.GetDecodedLength(address) ?? throw new InvalidAddressException();
 
-    /// <summary>
-    /// Decodes the address to its raw encoding.
-    /// </summary>
-    /// <param name="rawEncoding">Receives the raw encoding of the data within the address.</param>
-    /// <returns>The number of bytes written to <paramref name="rawEncoding"/>.</returns>
-    /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
-    internal int Decode(Span<byte> rawEncoding) => throw new NotImplementedException();
+        Span<char> humanReadablePart = stackalloc char[length.Tag];
+        Span<byte> data = stackalloc byte[length.Data];
+        Bech32.Bech32m.Decode(address, humanReadablePart, data);
 
-    /// <inheritdoc/>
-    internal override int GetReceiverEncoding(Span<byte> destination)
-    {
-        Verify.Operation(this.IsOrchardRaw, "This is a combined UA.");
+        if (!humanReadablePart.SequenceEqual(HumanReadablePart))
+        {
+            throw new InvalidAddressException();
+        }
+
+        F4Jumble(data, inverted: true);
         throw new NotImplementedException();
     }
 
@@ -150,7 +133,7 @@ public class UnifiedAddress : ZcashAddress
     /// <devremarks>
     /// <see href="https://docs.rs/f4jumble/latest/src/f4jumble/lib.rs.html#208">Some source for inspiration</see> while interpreting the spec.
     /// </devremarks>
-    private static void F4Jumble(Span<byte> ua, bool inverted = false)
+    protected static void F4Jumble(Span<byte> ua, bool inverted = false)
     {
         if (ua.Length is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
         {
@@ -215,6 +198,48 @@ public class UnifiedAddress : ZcashAddress
             }
         }
     }
+}
+
+public class CompoundUnifiedAddress : UnifiedAddress
+{
+    private ReadOnlyCollection<ZcashAddress> receivers;
+
+    internal CompoundUnifiedAddress(ReadOnlySpan<char> address, ReadOnlyCollection<ZcashAddress> receivers)
+        : base(address)
+    {
+        this.receivers = receivers;
+    }
+
+    /// <inheritdoc/>
+    private protected override int ReceiverEncodingLength => throw new NotImplementedException();
+
+    /// <summary>
+    /// Gets the receivers for this address, in order of preference.
+    /// </summary>
+    /// <remarks>
+    /// <para>Every address has at least one receiver, if it is valid. A <see cref="UnifiedAddress"/> in this sequence should be interpreted as an Orchard raw receiver.</para>
+    /// </remarks>
+    public IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= this.GetReceivers();
+
+    /// <inheritdoc/>
+    internal override byte UnifiedAddressTypeCode => throw new NotSupportedException("This unified address is not a raw receiver address and cannot be embedded into another unified address.");
+
+    /// <inheritdoc/>
+    public unsafe override TPoolReceiver? GetPoolReceiver<TPoolReceiver>()
+    {
+        byte typeCode = TPoolReceiver.UnifiedReceiverTypeCode;
+        int length = sizeof(TPoolReceiver);
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public override bool SupportsPool(Pool pool) => this.receivers.Any(r => r.SupportsPool(pool));
+
+    private protected override int GetReceiverEncoding(Span<byte> output)
+    {
+        throw new NotSupportedException("This is a compound unified address and cannot be directly added to another one.");
+    }
 
     private ReadOnlyCollection<ZcashAddress> GetReceivers()
     {
@@ -238,5 +263,56 @@ public class UnifiedAddress : ZcashAddress
         data = data.Slice(0, data.Length - Padding.Length);
 
         throw new NotImplementedException();
+    }
+}
+
+public class OrchardAddress : UnifiedAddress
+{
+    internal const byte OrchardRawTypeCode = 0x03;
+    private readonly OrchardReceiver receiver;
+
+    public OrchardAddress(OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+        : base(CreateAddress(receiver, network))
+    {
+        this.receiver = receiver;
+    }
+
+    /// <inheritdoc/>
+    internal override byte UnifiedAddressTypeCode => OrchardRawTypeCode;
+
+    public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);
+
+    /// <inheritdoc/>
+    private protected override int ReceiverEncodingLength => this.receiver.WholeThing.Length;
+
+    /// <inheritdoc/>
+    private protected override int GetReceiverEncoding(Span<byte> output)
+    {
+        this.receiver.WholeThing.CopyTo(output);
+        return this.receiver.WholeThing.Length;
+    }
+
+    public override bool SupportsPool(Pool pool) => pool == Pool.Orchard;
+
+    private static unsafe string CreateAddress(OrchardReceiver receiver, ZcashNetwork network)
+    {
+        string humanReadablePart = network switch
+        {
+            ZcashNetwork.MainNet => HumanReadablePart,
+            _ => throw new NotSupportedException("Unrecognized network."),
+        };
+
+        Span<byte> buffer = stackalloc byte[GetUAContributionLength<OrchardReceiver>() + Padding.Length];
+        int written = 0;
+        written += WriteUAContribution(receiver, buffer);
+        Padding.CopyTo(buffer.Slice(written));
+        written += Padding.Length;
+
+        F4Jumble(buffer);
+
+        Span<char> address = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, buffer.Length)];
+        int finalLength = Bech32.Bech32m.Encode(humanReadablePart, buffer, address);
+        Assumes.True(address.Length == finalLength);
+        return new(address);
     }
 }

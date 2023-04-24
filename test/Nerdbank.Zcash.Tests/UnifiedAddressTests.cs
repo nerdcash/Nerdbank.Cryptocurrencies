@@ -12,7 +12,7 @@ public class UnifiedAddressTests : TestBase
     [Fact]
     public void Receivers_UnifiedMultiple()
     {
-        UnifiedAddress addr = Assert.IsType<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling));
+        CompoundUnifiedAddress addr = Assert.IsType<CompoundUnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling));
         Assert.Equal(
             new[]
             {
@@ -21,7 +21,7 @@ public class UnifiedAddressTests : TestBase
             },
             addr.Receivers);
 
-        addr = Assert.IsType<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent));
+        addr = Assert.IsType<CompoundUnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent));
         Assert.Equal(
             new[]
             {
@@ -30,6 +30,16 @@ public class UnifiedAddressTests : TestBase
                 ZcashAddress.Parse("t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF"),
             },
             addr.Receivers);
+    }
+
+    [Fact]
+    public void GetReceivers()
+    {
+        UnifiedAddress ua = (UnifiedAddress) ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent);
+        OrchardReceiver orchard = ua.GetPoolReceiver<OrchardReceiver>() ?? throw new Exception("Missing Orchard receiver");
+        SaplingReceiver sapling = ua.GetPoolReceiver<SaplingReceiver>() ?? throw new Exception("Missing Sapling receiver");
+        TransparentP2PKHReceiver p2pkh = ua.GetPoolReceiver<TransparentP2PKHReceiver>() ?? throw new Exception("Missing P2PKH receiver");
+        p2pkh.ValidatingKeyHash.Clear();
     }
 
     [Fact]
@@ -60,6 +70,11 @@ public class UnifiedAddressTests : TestBase
             ZcashAddress.Parse(ValidTransparentP2PKHAddress),
         });
         Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparent, addr.ToString());
+    }
+
+    [Fact]
+    public void Create_SaplingOnly()
+    {
     }
 
     [Theory, MemberData(nameof(InvalidAddresses))]

@@ -8,6 +8,16 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public class SaplingAddress : ZcashAddress
 {
+    private const string MainNetHumanReadablePart = "zs";
+    private const string TestNetHumanReadablePart = "ztestsapling";
+    private readonly SaplingReceiver receiver;
+
+    public SaplingAddress(SaplingReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+        : base(CreateAddress(receiver, network))
+    {
+        this.receiver = receiver;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SaplingAddress"/> class.
     /// </summary>
@@ -15,12 +25,13 @@ public class SaplingAddress : ZcashAddress
     internal SaplingAddress(ReadOnlySpan<char> address)
         : base(address)
     {
+        this.receiver = CreateReceiver(address);
     }
 
     /// <inheritdoc/>
     public override ZcashNetwork Network =>
-        this.Address.StartsWith("zs", StringComparison.Ordinal) ? ZcashNetwork.MainNet :
-        this.Address.StartsWith("ztestsapling", StringComparison.Ordinal) ? ZcashNetwork.TestNet :
+        this.Address.StartsWith(MainNetHumanReadablePart, StringComparison.Ordinal) ? ZcashNetwork.MainNet :
+        this.Address.StartsWith(TestNetHumanReadablePart, StringComparison.Ordinal) ? ZcashNetwork.TestNet :
         throw new FormatException("Invalid address prefix");
 
     /// <summary>
@@ -34,7 +45,14 @@ public class SaplingAddress : ZcashAddress
     internal override byte UnifiedAddressTypeCode => 0x02;
 
     /// <inheritdoc/>
-    private protected override int ReceiverEncodingLength => (Bech32.GetDecodedLength(this.Address) ?? throw new InvalidAddressException()).Data;
+    private protected override int ReceiverEncodingLength => this.receiver.WholeThing.Length;
+
+    /// <inheritdoc/>
+    private protected override int GetReceiverEncoding(Span<byte> output)
+    {
+        this.receiver.WholeThing.CopyTo(output);
+        return this.receiver.WholeThing.Length;
+    }
 
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sapling;
@@ -49,20 +67,7 @@ public class SaplingAddress : ZcashAddress
     internal (int HumanReadablePartLength, int DataLength) Decode(Span<char> humanReadablePart, Span<byte> data) => Bech32.Original.Decode(this.Address, humanReadablePart, data);
 
     /// <inheritdoc/>
-    internal override int GetReceiverEncoding(Span<byte> destination)
-    {
-        (int Tag, int Data)? lengthPredicted = Bech32.GetDecodedLength(this.Address);
-        if (lengthPredicted is null)
-        {
-            throw new InvalidAddressException();
-        }
-
-        Span<char> tag = stackalloc char[lengthPredicted.Value.Tag];
-        Span<byte> data = stackalloc byte[lengthPredicted.Value.Data];
-        (int TagLength, int DataLength) lengthWritten = Bech32.Original.Decode(this.Address, tag, data);
-        data.Slice(0, lengthWritten.DataLength).CopyTo(destination);
-        return lengthWritten.DataLength;
-    }
+    public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SaplingReceiver, TPoolReceiver>(this.receiver);
 
     /// <inheritdoc/>
     protected override bool CheckValidity(bool throwIfInvalid = false)
@@ -76,5 +81,33 @@ public class SaplingAddress : ZcashAddress
         Span<char> tag = stackalloc char[length.Value.Tag];
         Span<byte> data = stackalloc byte[length.Value.Data];
         return Bech32.Original.TryDecode(this.Address, tag, data, out _, out _, out _);
+    }
+
+    private static string CreateAddress(SaplingReceiver receiver, ZcashNetwork network)
+    {
+        string humanReadablePart = network switch
+        {
+            ZcashNetwork.MainNet => MainNetHumanReadablePart,
+            ZcashNetwork.TestNet => TestNetHumanReadablePart,
+            _ => throw new NotSupportedException("Unrecognized network."),
+        };
+        Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, receiver.WholeThing.Length)];
+        int charsLength = Bech32.Original.Encode(humanReadablePart, receiver.WholeThing, addressChars);
+        return addressChars.Slice(0, charsLength).ToString();
+    }
+
+    private static unsafe SaplingReceiver CreateReceiver(ReadOnlySpan<char> address)
+    {
+        (int Tag, int Data)? lengthPredicted = Bech32.GetDecodedLength(address);
+        if (lengthPredicted is null)
+        {
+            throw new InvalidAddressException();
+        }
+
+        Span<char> tag = stackalloc char[lengthPredicted.Value.Tag];
+        Span<byte> data = stackalloc byte[lengthPredicted.Value.Data];
+        (int Tag, int Data) lengthWritten = Bech32.Original.Decode(address, tag, data);
+
+        return new SaplingReceiver(data);
     }
 }
