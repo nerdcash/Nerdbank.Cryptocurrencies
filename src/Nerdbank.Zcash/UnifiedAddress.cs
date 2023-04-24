@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Konscious.Security.Cryptography;
 
 namespace Nerdbank.Zcash;
@@ -12,10 +12,21 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public abstract class UnifiedAddress : ZcashAddress
 {
+    /// <summary>
+    /// The human-readable part of a Unified Address.
+    /// </summary>
     private protected const string HumanReadablePart = "u";
 
+    /// <summary>
+    /// The shortest allowed length of the input to the <see cref="F4Jumble"/> function.
+    /// </summary>
     private protected const int MinF4JumbleInputLength = 48;
+
+    /// <summary>
+    /// The longest allowed length of the input to the <see cref="F4Jumble"/> function.
+    /// </summary>
     private protected const int MaxF4JumbleInputLength = 4194368;
+
     private const int F4OutputLength = 64; // known in the spec as ℒᵢ
 
     /// <summary>
@@ -93,35 +104,103 @@ public abstract class UnifiedAddress : ZcashAddress
         return new CompoundUnifiedAddress(result.Slice(0, finalLength), new(sortedReceiversByTypeCode.Values.ToList()));
     }
 
-    internal static UnifiedAddress? TryParse(ReadOnlySpan<char> address)
+    /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
+    internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out UnifiedAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
-        (int Tag, int Data) length = Bech32.GetDecodedLength(address) ?? throw new InvalidAddressException();
-
-        Span<char> humanReadablePart = stackalloc char[length.Tag];
-        Span<byte> data = stackalloc byte[length.Data];
-        Bech32.Bech32m.Decode(address, humanReadablePart, data);
-
-        if (!humanReadablePart.SequenceEqual(HumanReadablePart))
+        if (!address.StartsWith("u1"))
         {
-            throw new InvalidAddressException();
-        }
-
-        F4Jumble(data, inverted: true);
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc/>
-    protected override bool CheckValidity(bool throwIfInvalid = false)
-    {
-        (int Tag, int Data)? length = Bech32.GetDecodedLength(this.Address);
-        if (length is null)
-        {
+            errorCode = ParseError.UnrecognizedAddressType;
+            errorMessage = Strings.UnrecognizedAddress;
+            result = null;
             return false;
         }
 
-        Span<char> tag = stackalloc char[length.Value.Tag];
+        (int Tag, int Data)? length = Bech32.GetDecodedLength(address);
+        if (length is null)
+        {
+            errorCode = ParseError.UnrecognizedAddressType;
+            errorMessage = Strings.UnrecognizedAddress;
+            result = null;
+            return false;
+        }
+
+        Span<char> humanReadablePart = stackalloc char[length.Value.Tag];
         Span<byte> data = stackalloc byte[length.Value.Data];
-        return Bech32.Bech32m.TryDecode(this.Address, tag, data, out _, out _, out _);
+        if (!Bech32.Bech32m.TryDecode(address, humanReadablePart, data, out DecodeError? decodeError, out errorMessage, out _))
+        {
+            errorCode = DecodeToParseError(decodeError);
+            result = null;
+            return false;
+        }
+
+        if (!humanReadablePart.SequenceEqual(HumanReadablePart))
+        {
+            errorCode = ParseError.UnrecognizedAddressType;
+            errorMessage = Strings.UnrecognizedAddress;
+            result = null;
+            return false;
+        }
+
+        if (length.Value.Data is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
+        {
+            errorCode = ParseError.InvalidAddress;
+            errorMessage = Strings.InvalidAddressLength;
+            result = null;
+            return false;
+        }
+
+        F4Jumble(data, inverted: true);
+
+        // Verify the 16-byte padding is as expected.
+        if (!data[^Padding.Length..].SequenceEqual(Padding))
+        {
+            errorCode = ParseError.InvalidAddress;
+            errorMessage = Strings.InvalidPadding;
+            result = null;
+            return false;
+        }
+
+        // Strip the padding.
+        data = data[..^Padding.Length];
+
+        // Walk over each receiver.
+        List<ZcashAddress> receiverAddresses = new();
+        while (data.Length > 0)
+        {
+            byte typeCode = data[0];
+            data = data[1..];
+            data = data[CompactSize.Decode(data, out ulong receiverLengthUL)..];
+            int receiverLength = checked((int)receiverLengthUL);
+
+            // Process each receiver type we support, and quietly ignore any we don't.
+            ReadOnlySpan<byte> receiverData = data[..receiverLength];
+            switch (typeCode)
+            {
+                case 0x00:
+                    receiverAddresses.Add(new TransparentP2PKHAddress(new TransparentP2PKHReceiver(receiverData)));
+                    break;
+                case 0x01:
+                    receiverAddresses.Add(new TransparentP2SHAddress(new TransparentP2SHReceiver(receiverData)));
+                    break;
+                case 0x02:
+                    receiverAddresses.Add(new SaplingAddress(new SaplingReceiver(receiverData)));
+                    break;
+                case 0x03:
+                    receiverAddresses.Add(new OrchardAddress(address, new OrchardReceiver(receiverData)));
+                    break;
+            }
+
+            // Move on to the next receiver.
+            data = data[receiverLength..];
+        }
+
+        // If we parsed exactly one Orchard receiver, just return it as its own address.
+        errorCode = null;
+        errorMessage = null;
+        result = receiverAddresses.Count == 1 && receiverAddresses[0] is OrchardAddress orchardAddr
+            ? orchardAddr
+            : new CompoundUnifiedAddress(address, new(receiverAddresses));
+        return true;
     }
 
     /// <summary>
@@ -164,7 +243,9 @@ public abstract class UnifiedAddress : ZcashAddress
         arrayBuffer.CopyTo(ua);
 
         // TODO: Several opportunities below to reduce allocations.
-
+        // 1. Use a single HMACBlake2B instance for G and another for H, and just change the key.
+        // 2. Re-implement blake2 or find another library that doesn't allocate a new array for each hash.
+        // 3. Reuse the Personalize G/H arrays by just mutating them as needed.
         void RoundG(byte i)
         {
             ushort top = checked((ushort)CeilDiv(rightLength, F4OutputLength));
@@ -198,121 +279,18 @@ public abstract class UnifiedAddress : ZcashAddress
             }
         }
     }
-}
-
-public class CompoundUnifiedAddress : UnifiedAddress
-{
-    private ReadOnlyCollection<ZcashAddress> receivers;
-
-    internal CompoundUnifiedAddress(ReadOnlySpan<char> address, ReadOnlyCollection<ZcashAddress> receivers)
-        : base(address)
-    {
-        this.receivers = receivers;
-    }
 
     /// <inheritdoc/>
-    private protected override int ReceiverEncodingLength => throw new NotImplementedException();
-
-    /// <summary>
-    /// Gets the receivers for this address, in order of preference.
-    /// </summary>
-    /// <remarks>
-    /// <para>Every address has at least one receiver, if it is valid. A <see cref="UnifiedAddress"/> in this sequence should be interpreted as an Orchard raw receiver.</para>
-    /// </remarks>
-    public IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= this.GetReceivers();
-
-    /// <inheritdoc/>
-    internal override byte UnifiedAddressTypeCode => throw new NotSupportedException("This unified address is not a raw receiver address and cannot be embedded into another unified address.");
-
-    /// <inheritdoc/>
-    public unsafe override TPoolReceiver? GetPoolReceiver<TPoolReceiver>()
+    protected override bool CheckValidity(bool throwIfInvalid = false)
     {
-        byte typeCode = TPoolReceiver.UnifiedReceiverTypeCode;
-        int length = sizeof(TPoolReceiver);
-
-        return null;
-    }
-
-    /// <inheritdoc/>
-    public override bool SupportsPool(Pool pool) => this.receivers.Any(r => r.SupportsPool(pool));
-
-    private protected override int GetReceiverEncoding(Span<byte> output)
-    {
-        throw new NotSupportedException("This is a compound unified address and cannot be directly added to another one.");
-    }
-
-    private ReadOnlyCollection<ZcashAddress> GetReceivers()
-    {
-        (int Tag, int Data) bech32DecodedLength = Bech32.GetDecodedLength(this.Address) ?? throw new InvalidAddressException();
-
-        if (bech32DecodedLength.Data is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
+        (int Tag, int Data)? length = Bech32.GetDecodedLength(this.Address);
+        if (length is null)
         {
-            throw new InvalidAddressException();
+            return false;
         }
 
-        Span<char> tag = stackalloc char[bech32DecodedLength.Tag];
-        Span<byte> data = stackalloc byte[bech32DecodedLength.Data];
-        Bech32.Bech32m.Decode(this.Address, tag, data);
-
-        // Verify the 16-byte padding is as expected, then strip it.
-        if (!data.Slice(data.Length - Padding.Length).SequenceEqual(Padding))
-        {
-            throw new InvalidAddressException();
-        }
-
-        data = data.Slice(0, data.Length - Padding.Length);
-
-        throw new NotImplementedException();
-    }
-}
-
-public class OrchardAddress : UnifiedAddress
-{
-    internal const byte OrchardRawTypeCode = 0x03;
-    private readonly OrchardReceiver receiver;
-
-    public OrchardAddress(OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
-        : base(CreateAddress(receiver, network))
-    {
-        this.receiver = receiver;
-    }
-
-    /// <inheritdoc/>
-    internal override byte UnifiedAddressTypeCode => OrchardRawTypeCode;
-
-    public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);
-
-    /// <inheritdoc/>
-    private protected override int ReceiverEncodingLength => this.receiver.WholeThing.Length;
-
-    /// <inheritdoc/>
-    private protected override int GetReceiverEncoding(Span<byte> output)
-    {
-        this.receiver.WholeThing.CopyTo(output);
-        return this.receiver.WholeThing.Length;
-    }
-
-    public override bool SupportsPool(Pool pool) => pool == Pool.Orchard;
-
-    private static unsafe string CreateAddress(OrchardReceiver receiver, ZcashNetwork network)
-    {
-        string humanReadablePart = network switch
-        {
-            ZcashNetwork.MainNet => HumanReadablePart,
-            _ => throw new NotSupportedException("Unrecognized network."),
-        };
-
-        Span<byte> buffer = stackalloc byte[GetUAContributionLength<OrchardReceiver>() + Padding.Length];
-        int written = 0;
-        written += WriteUAContribution(receiver, buffer);
-        Padding.CopyTo(buffer.Slice(written));
-        written += Padding.Length;
-
-        F4Jumble(buffer);
-
-        Span<char> address = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, buffer.Length)];
-        int finalLength = Bech32.Bech32m.Encode(humanReadablePart, buffer, address);
-        Assumes.True(address.Length == finalLength);
-        return new(address);
+        Span<char> tag = stackalloc char[length.Value.Tag];
+        Span<byte> data = stackalloc byte[length.Value.Data];
+        return Bech32.Bech32m.TryDecode(this.Address, tag, data, out _, out _, out _);
     }
 }

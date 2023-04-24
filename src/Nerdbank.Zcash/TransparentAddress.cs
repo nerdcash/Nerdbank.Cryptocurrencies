@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Nerdbank.Zcash;
 
@@ -27,21 +27,55 @@ public abstract class TransparentAddress : ZcashAddress
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Transparent;
 
-    internal static TransparentAddress? TryParse(ReadOnlySpan<char> address)
+    /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
+    internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out TransparentAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
-        if (address.Length < 2)
+        if (address.StartsWith("t", StringComparison.OrdinalIgnoreCase) && address.Length > 2)
         {
-            return null;
+            Span<byte> decoded = stackalloc byte[DecodedLength];
+            if (!Base58Check.TryDecode(address, decoded, out DecodeError? decodeError, out errorMessage, out _))
+            {
+                result = null;
+                errorCode = DecodeToParseError(decodeError);
+                return false;
+            }
+
+#pragma warning disable SA1010 // Opening square brackets should be spaced correctly (https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3503)
+            ZcashNetwork? network = decoded[..2] switch
+            {
+                [0x1c, 0xbd] or [0x1c, 0xb8] => ZcashNetwork.MainNet,
+                [0x1c, 0xba] or [0x1d, 0x25] => ZcashNetwork.TestNet,
+                _ => null,
+            };
+
+            if (network is null)
+            {
+                errorCode = ParseError.InvalidAddress;
+                errorMessage = Strings.InvalidNetworkHeader;
+                result = null;
+                return false;
+            }
+
+            result = decoded[..2] switch
+            {
+                [0x1c, 0xb8] or [0x1d, 0x25] => new TransparentP2PKHAddress(address, new TransparentP2PKHReceiver(decoded), network.Value),
+                [0x1c, 0xbd] or [0x1c, 0xba] => new TransparentP2SHAddress(address, new TransparentP2SHReceiver(decoded), network.Value),
+                _ => null,
+            };
+#pragma warning restore SA1010 // Opening square brackets should be spaced correctly
+
+            if (result is not null)
+            {
+                errorMessage = null;
+                errorCode = null;
+                return true;
+            }
         }
 
-        Span<byte> decoded = stackalloc byte[DecodedLength];
-        Base58Check.Decode(address, decoded);
-        return decoded[..2] switch
-        {
-            [0x1c, 0xb8] or [0x1d, 0x25] => new TransparentP2PKHAddress(address),
-            [0x1c, 0xbd] or [0x1c, 0xBA] => new TransparentP2SHAddress(address),
-            _ => null,
-        };
+        result = null;
+        errorCode = ParseError.UnrecognizedAddressType;
+        errorMessage = Strings.UnrecognizedAddress;
+        return false;
     }
 
     /// <summary>
@@ -80,145 +114,5 @@ public abstract class TransparentAddress : ZcashAddress
         }
 
         return true;
-    }
-}
-
-public class TransparentP2SHAddress : TransparentAddress
-{
-    private readonly TransparentP2SHReceiver receiver;
-
-    public TransparentP2SHAddress(TransparentP2SHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
-        : base(CreateAddress(receiver, network))
-    {
-        this.receiver = receiver;
-    }
-
-    internal TransparentP2SHAddress(ReadOnlySpan<char> address)
-        : base(address)
-    {
-        this.receiver = CreateReceiver(address);
-    }
-
-    /// <inheritdoc/>
-    public override ZcashNetwork Network
-    {
-        get
-        {
-            Span<byte> raw = stackalloc byte[22];
-            this.Decode(raw);
-            return (raw[0], raw[1]) switch
-            {
-                (0x1c, 0xbd) => ZcashNetwork.MainNet,
-                (0x1c, 0xba) => ZcashNetwork.TestNet,
-                _ => throw new InvalidAddressException(),
-            };
-        }
-    }
-
-    /// <inheritdoc/>
-    internal override byte UnifiedAddressTypeCode => 0x01;
-
-    /// <inheritdoc/>
-    private protected override int ReceiverEncodingLength => this.receiver.WholeThing.Length;
-
-    /// <inheritdoc/>
-    private protected override int GetReceiverEncoding(Span<byte> output)
-    {
-        this.receiver.WholeThing.CopyTo(output);
-        return this.receiver.WholeThing.Length;
-    }
-
-    public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2SHReceiver, TPoolReceiver>(this.receiver);
-
-    private static string CreateAddress(TransparentP2SHReceiver receiver, ZcashNetwork network)
-    {
-        Span<byte> input = stackalloc byte[2 + receiver.ScriptHash.Length];
-        (input[0], input[1]) = network switch
-        {
-            ZcashNetwork.MainNet => ((byte)0x1c, (byte)0xbd),
-            ZcashNetwork.TestNet => ((byte)0x1c, (byte)0xba),
-            _ => throw new NotSupportedException("Unrecognized network."),
-        };
-        receiver.ScriptHash.CopyTo(input.Slice(2));
-        Span<char> addressChars = stackalloc char[Base58Check.GetMaximumEncodedLength(input.Length)];
-        int charsLength = Base58Check.Encode(input, addressChars);
-        return addressChars.Slice(0, charsLength).ToString();
-    }
-
-    private static TransparentP2SHReceiver CreateReceiver(ReadOnlySpan<char> address)
-    {
-        Span<byte> decoded = stackalloc byte[DecodedLength];
-        Base58Check.Decode(address, decoded);
-        return new TransparentP2SHReceiver(decoded.Slice(2));
-    }
-}
-
-public class TransparentP2PKHAddress : TransparentAddress
-{
-    private readonly TransparentP2PKHReceiver receiver;
-
-    public TransparentP2PKHAddress(TransparentP2PKHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
-        : base(CreateAddress(receiver, network))
-    {
-        this.receiver = receiver;
-    }
-
-    internal TransparentP2PKHAddress(ReadOnlySpan<char> address)
-        : base(address)
-    {
-        this.receiver = CreateReceiver(address);
-    }
-
-    /// <inheritdoc/>
-    public override ZcashNetwork Network
-    {
-        get
-        {
-            Span<byte> raw = stackalloc byte[22];
-            this.Decode(raw);
-            return (raw[0], raw[1]) switch
-            {
-                (0x1c, 0xb8) => ZcashNetwork.MainNet,
-                (0x1d, 0x25) => ZcashNetwork.TestNet,
-                _ => throw new InvalidAddressException(),
-            };
-        }
-    }
-
-    /// <inheritdoc/>
-    internal override byte UnifiedAddressTypeCode => 0x00;
-
-    /// <inheritdoc/>
-    private protected override int ReceiverEncodingLength => this.receiver.WholeThing.Length;
-
-    /// <inheritdoc/>
-    private protected override int GetReceiverEncoding(Span<byte> output)
-    {
-        this.receiver.WholeThing.CopyTo(output);
-        return this.receiver.WholeThing.Length;
-    }
-
-    public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2PKHReceiver, TPoolReceiver>(this.receiver);
-
-    private static string CreateAddress(TransparentP2PKHReceiver receiver, ZcashNetwork network)
-    {
-        Span<byte> input = stackalloc byte[2 + receiver.ValidatingKeyHash.Length];
-        (input[0], input[1]) = network switch
-        {
-            ZcashNetwork.MainNet => ((byte)0x1c, (byte)0xb8),
-            ZcashNetwork.TestNet => ((byte)0x1d, (byte)0x25),
-            _ => throw new NotSupportedException("Unrecognized network."),
-        };
-        receiver.ValidatingKeyHash.CopyTo(input.Slice(2));
-        Span<char> addressChars = stackalloc char[Base58Check.GetMaximumEncodedLength(input.Length)];
-        int charsLength = Base58Check.Encode(input, addressChars);
-        return addressChars.Slice(0, charsLength).ToString();
-    }
-
-    private static TransparentP2PKHReceiver CreateReceiver(ReadOnlySpan<char> address)
-    {
-        Span<byte> decoded = stackalloc byte[DecodedLength];
-        Base58Check.Decode(address, decoded);
-        return new TransparentP2PKHReceiver(decoded.Slice(2));
     }
 }
