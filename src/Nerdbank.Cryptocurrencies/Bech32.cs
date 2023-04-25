@@ -3,9 +3,8 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft;
 
-namespace Nerdbank.Zcash.Utilities;
+namespace Nerdbank.Cryptocurrencies;
 
 /// <summary>
 /// Contains <see href="https://zips.z.cash/zip-0173">Bech32 (ZIP-173)</see>
@@ -14,7 +13,7 @@ namespace Nerdbank.Zcash.Utilities;
 /// <remarks>
 /// Bech32(m) is a base32 encoding with a 6-byte checksum.
 /// </remarks>
-internal sealed class Bech32
+public sealed class Bech32
 {
 	/// <summary>
 	/// Gets the instance that implements <see href="https://zips.z.cash/zip-0173">Bech32 (ZIP-173)</see>.
@@ -52,7 +51,7 @@ internal sealed class Bech32
 	/// <param name="tagLength">The number of characters in the tag to be encoded.</param>
 	/// <param name="dataLength">The number of bytes in the data portion to be encoded.</param>
 	/// <returns>The length of the buffer that should be allocated to encode.</returns>
-	internal static int GetEncodedLength(int tagLength, int dataLength) => tagLength + 1 + (int)Math.Ceiling((double)dataLength * 8 / 5) + 6;
+	public static int GetEncodedLength(int tagLength, int dataLength) => tagLength + 1 + (int)Math.Ceiling((double)dataLength * 8 / 5) + 6;
 
 	/// <summary>
 	/// Gets the maximum number of bytes that can be decoded from a given number of characters.
@@ -63,7 +62,7 @@ internal sealed class Bech32
 	/// Will be <see langword="null" /> if the encoding is invalid to the point that the lengths cannot be determined.
 	/// A non-<see langword="null" /> result does not guarantee that the encoding is valid.
 	/// </returns>
-	internal static (int Tag, int Data)? GetDecodedLength(ReadOnlySpan<char> encoded)
+	public static (int Tag, int Data)? GetDecodedLength(ReadOnlySpan<char> encoded)
 	{
 		int separatorIdx = encoded.LastIndexOf(TagDataSeparator);
 		if (separatorIdx == -1)
@@ -87,7 +86,7 @@ internal sealed class Bech32
 	/// <param name="data">The data to encode.</param>
 	/// <param name="output">Receives the encoded characters.</param>
 	/// <returns>The number of characters written to <paramref name="output"/>.</returns>
-	internal int Encode(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data, Span<char> output)
+	public int Encode(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data, Span<char> output)
 	{
 		Requires.Argument(!tag.IsEmpty, nameof(tag), "An empty human-readable part is not allowed.");
 
@@ -119,7 +118,7 @@ internal sealed class Bech32
 	/// <returns>The number of bytes written to <paramref name="tag"/> and <paramref name="data" />.</returns>
 	/// <exception cref="ArgumentException">Thrown if <paramref name="tag"/> or <paramref name="data"/> is not sufficiently large to store the decoded payload.</exception>
 	/// <exception cref="FormatException">Thrown if the checksum fails to match or invalid characters are found.</exception>
-	internal (int TagLength, int DataLength) Decode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data)
+	public (int TagLength, int DataLength) Decode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data)
 	{
 		if (!this.TryDecode(encoded, tag, data, out DecodeError? errorCode, out string? errorMessage, out (int Tag, int Data) length))
 		{
@@ -143,7 +142,7 @@ internal sealed class Bech32
 	/// <param name="errorMessage">Receives the error message of a failed decode operation.</param>
 	/// <param name="length">Receives the length written to <paramref name="tag" /> and <paramref name="data"/>.</param>
 	/// <returns>A value indicating whether decoding was successful.</returns>
-	internal bool TryDecode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out (int Tag, int Data) length)
+	public bool TryDecode(ReadOnlySpan<char> encoded, Span<char> tag, Span<byte> data, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out (int Tag, int Data) length)
 	{
 		// Extract the tag first.
 		int separatorIdx = encoded.LastIndexOf(TagDataSeparator);

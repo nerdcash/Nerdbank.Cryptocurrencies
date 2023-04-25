@@ -37,16 +37,19 @@ public class SproutAddress : ZcashAddress
 	/// <inheritdoc/>
 	public override ZcashNetwork Network => this.network;
 
-	/// <summary>
-	/// Gets the length of the buffer required to decode the address.
-	/// </summary>
-	internal int DecodedLength => Base58Check.GetMaximumDecodedLength(this.Address.Length);
-
 	/// <inheritdoc/>
 	internal override byte UnifiedAddressTypeCode => throw new NotSupportedException();
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
+	[ExcludeFromCodeCoverage]
+	internal override int ReceiverEncodingLength
+	{
+		get
+		{
+			// This method is only called by UAs, which don't support sprout addresses.
+			throw new NotImplementedException();
+		}
+	}
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
@@ -80,20 +83,12 @@ public class SproutAddress : ZcashAddress
 	}
 
 	/// <inheritdoc/>
+	[ExcludeFromCodeCoverage]
 	internal override int GetReceiverEncoding(Span<byte> output)
 	{
-		ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
-		receiverSpan.CopyTo(output);
-		return receiverSpan.Length;
+		// This method is only called by UAs, which don't support sprout addresses.
+		throw new NotImplementedException();
 	}
-
-	/// <summary>
-	/// Decodes the address to its raw encoding.
-	/// </summary>
-	/// <param name="rawEncoding">Receives the raw encoding of the data within the address. This should be at least <see cref="DecodedLength"/> in size.</param>
-	/// <returns>The actual length of the decoded bytes written to <paramref name="rawEncoding"/>.</returns>
-	/// <exception cref="FormatException">Thrown if the address is invalid.</exception>
-	internal int Decode(Span<byte> rawEncoding) => Base58Check.Decode(this.Address, rawEncoding);
 
 	private static string CreateAddress(in SproutReceiver receiver, ZcashNetwork network)
 	{
@@ -106,7 +101,7 @@ public class SproutAddress : ZcashAddress
 			_ => throw new NotSupportedException("Unrecognized network."),
 		};
 		receiverSpan.CopyTo(input.Slice(2));
-		Span<char> addressChars = stackalloc char[Base58Check.GetMaximumEncodedLength(input.Length)];
+		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
 		int charsLength = Base58Check.Encode(input, addressChars);
 		return addressChars.Slice(0, charsLength).ToString();
 	}

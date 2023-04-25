@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Nerdbank.Zcash.Utilities;
+namespace Nerdbank.Cryptocurrencies;
 
 /// <summary>
 /// Encodes or decodes an integer with <see href="https://en.bitcoin.it/wiki/Protocol_documentation#Variable_length_integer">the "compact size" encoding used by Bitcoin</see>.
 /// </summary>
-internal static class CompactSize
+public static class CompactSize
 {
 	/// <summary>
 	/// Gets the number of bytes required to encode an integer.
 	/// </summary>
 	/// <param name="value">The value to be encoded.</param>
 	/// <returns>The number of bytes required.</returns>
-	internal static int GetEncodedLength(ulong value)
+	public static int GetEncodedLength(ulong value)
 	{
 		return value switch
 		{
@@ -31,7 +31,7 @@ internal static class CompactSize
 	/// <param name="buffer">The buffer to receive the encoding. This should be at least 9 bytes to store the largest integers.</param>
 	/// <returns>The number of bytes actually written to <paramref name="buffer"/>.</returns>
 	/// <exception cref="ArgumentException">Thrown when <paramref name="buffer"/> is too small.</exception>
-	internal static int Encode(ulong value, Span<byte> buffer)
+	public static int Encode(ulong value, Span<byte> buffer)
 	{
 		try
 		{
@@ -82,7 +82,7 @@ internal static class CompactSize
 	/// <param name="buffer">The buffer to decode from.</param>
 	/// <param name="value">Receives the decoded integer.</param>
 	/// <returns>The number of bytes actually read.</returns>
-	internal static int Decode(ReadOnlySpan<byte> buffer, out ulong value)
+	public static int Decode(ReadOnlySpan<byte> buffer, out ulong value)
 	{
 		switch (buffer[0])
 		{

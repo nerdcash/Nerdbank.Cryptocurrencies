@@ -1,0 +1,25 @@
+﻿#nullable enable
+Nerdbank.Cryptocurrencies.Base58Check
+Nerdbank.Cryptocurrencies.Bech32
+Nerdbank.Cryptocurrencies.Bech32.Decode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data) -> (int TagLength, int DataLength)
+Nerdbank.Cryptocurrencies.Bech32.Encode(System.ReadOnlySpan<char> tag, System.ReadOnlySpan<byte> data, System.Span<char> output) -> int
+Nerdbank.Cryptocurrencies.Bech32.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length) -> bool
+Nerdbank.Cryptocurrencies.CompactSize
+Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.BadPadding = 4 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.BufferTooSmall = 2 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.InvalidCharacter = 0 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.InvalidChecksum = 1 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.NoSeparator = 3 -> Nerdbank.Cryptocurrencies.DecodeError
+static Nerdbank.Cryptocurrencies.Base58Check.Decode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes) -> int
+static Nerdbank.Cryptocurrencies.Base58Check.Encode(System.ReadOnlySpan<byte> payload, System.Span<char> chars) -> int
+static Nerdbank.Cryptocurrencies.Base58Check.GetMaxDecodedLength(int charCount) -> int
+static Nerdbank.Cryptocurrencies.Base58Check.GetMaxEncodedLength(int byteCount) -> int
+static Nerdbank.Cryptocurrencies.Base58Check.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out int bytesWritten) -> bool
+static Nerdbank.Cryptocurrencies.Bech32.GetDecodedLength(System.ReadOnlySpan<char> encoded) -> (int Tag, int Data)?
+static Nerdbank.Cryptocurrencies.Bech32.GetEncodedLength(int tagLength, int dataLength) -> int
+static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> buffer, out ulong value) -> int
+static Nerdbank.Cryptocurrencies.CompactSize.Encode(ulong value, System.Span<byte> buffer) -> int
+static Nerdbank.Cryptocurrencies.CompactSize.GetEncodedLength(ulong value) -> int
+static readonly Nerdbank.Cryptocurrencies.Bech32.Bech32m -> Nerdbank.Cryptocurrencies.Bech32!
+static readonly Nerdbank.Cryptocurrencies.Bech32.Original -> Nerdbank.Cryptocurrencies.Bech32!

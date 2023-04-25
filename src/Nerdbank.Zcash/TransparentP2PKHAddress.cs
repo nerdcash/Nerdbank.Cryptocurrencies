@@ -61,7 +61,7 @@ public class TransparentP2PKHAddress : TransparentAddress
 			_ => throw new NotSupportedException("Unrecognized network."),
 		};
 		receiver.ValidatingKeyHash.CopyTo(input.Slice(2));
-		Span<char> addressChars = stackalloc char[Base58Check.GetMaximumEncodedLength(input.Length)];
+		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
 		int charsLength = Base58Check.Encode(input, addressChars);
 		return addressChars.Slice(0, charsLength).ToString();
 	}

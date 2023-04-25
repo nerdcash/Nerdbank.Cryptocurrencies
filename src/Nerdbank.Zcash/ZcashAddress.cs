@@ -28,6 +28,11 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	public abstract ZcashNetwork Network { get; }
 
 	/// <summary>
+	/// Gets the address as a string.
+	/// </summary>
+	public string Address { get; }
+
+	/// <summary>
 	/// Gets the total length of this address's contribution to a unified address.
 	/// </summary>
 	internal int UAContributionLength => 1 + CompactSize.GetEncodedLength((ulong)this.ReceiverEncodingLength) + this.ReceiverEncodingLength;
@@ -41,11 +46,6 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	/// Gets the length of the receiver encoding in a unified address.
 	/// </summary>
 	internal abstract int ReceiverEncodingLength { get; }
-
-	/// <summary>
-	/// Gets the address as a string.
-	/// </summary>
-	protected string Address { get; }
 
 	/// <summary>
 	/// Implicitly casts this address to a string.
