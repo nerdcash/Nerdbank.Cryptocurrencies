@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash;
 /// Contains one or more receivers for a <see cref="UnifiedAddress"/>.
 /// </summary>
 // TODO: Consider moving the overrides here to the base class and eliminating this class.
-public class CompoundUnifiedAddress : UnifiedAddress
+internal class CompoundUnifiedAddress : UnifiedAddress
 {
     private ReadOnlyCollection<ZcashAddress> receivers;
 
@@ -24,13 +24,8 @@ public class CompoundUnifiedAddress : UnifiedAddress
         this.receivers = receivers;
     }
 
-    /// <summary>
-    /// Gets the receivers for this address, in order of preference.
-    /// </summary>
-    /// <remarks>
-    /// <para>Every address has at least one receiver, if it is valid. A <see cref="UnifiedAddress"/> in this sequence should be interpreted as an Orchard raw receiver.</para>
-    /// </remarks>
-    public IReadOnlyList<ZcashAddress> Receivers => this.receivers;
+    /// <inheritdoc/>
+    public override IReadOnlyList<ZcashAddress> Receivers => this.receivers;
 
     /// <inheritdoc/>
     internal override int ReceiverEncodingLength

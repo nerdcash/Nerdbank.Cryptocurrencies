@@ -12,7 +12,7 @@ public class UnifiedAddressTests : TestBase
     [Fact]
     public void Receivers_UnifiedMultiple()
     {
-        CompoundUnifiedAddress addr = Assert.IsType<CompoundUnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling));
+        UnifiedAddress addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling));
         Assert.Equal(
             new[]
             {
@@ -21,7 +21,7 @@ public class UnifiedAddressTests : TestBase
             },
             addr.Receivers);
 
-        addr = Assert.IsType<CompoundUnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent));
+        addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent));
         Assert.Equal(
             new[]
             {

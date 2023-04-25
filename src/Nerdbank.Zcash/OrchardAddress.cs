@@ -36,6 +36,9 @@ public class OrchardAddress : UnifiedAddress
     public override ZcashNetwork Network => this.network;
 
     /// <inheritdoc/>
+    public override IReadOnlyList<ZcashAddress> Receivers => new[] { this };
+
+    /// <inheritdoc/>
     internal override byte UnifiedAddressTypeCode => 0x03;
 
     /// <inheritdoc/>

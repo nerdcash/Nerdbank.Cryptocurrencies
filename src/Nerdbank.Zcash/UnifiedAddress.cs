@@ -42,6 +42,14 @@ public abstract class UnifiedAddress : ZcashAddress
     public override ZcashNetwork Network => ZcashNetwork.MainNet;
 
     /// <summary>
+    /// Gets the receivers for this address, in order of preference.
+    /// </summary>
+    /// <remarks>
+    /// <para>Every address has at least one receiver, if it is valid. A <see cref="UnifiedAddress"/> in this sequence should be interpreted as an Orchard raw receiver.</para>
+    /// </remarks>
+    public abstract IReadOnlyList<ZcashAddress> Receivers { get; }
+
+    /// <summary>
     /// Gets the padding bytes that must be present in a unified address.
     /// </summary>
     protected static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
