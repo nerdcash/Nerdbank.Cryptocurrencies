@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Buffers;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using Isopoh.Cryptography.Blake2b;
@@ -28,6 +29,27 @@ public abstract class UnifiedAddress : ZcashAddress
 	private protected const int MaxF4JumbleInputLength = 4194368;
 
 	private const int F4OutputLength = 64; // known in the spec as ℒᵢ
+
+	/// <summary>
+	/// A reusable array for use as the output array of a Blake2B round.
+	/// </summary>
+	private static readonly ThreadLocal<(Blake2BConfig GConfig, Blake2BConfig HConfig)> Blake2BPooledObjects = new(() =>
+	{
+		byte[] outputBuffer = new byte[64];
+		Blake2BConfig cfgG = new()
+		{
+			Result64ByteBuffer = outputBuffer,
+			LockMemoryPolicy = LockMemoryPolicy.None,
+			OutputSizeInBytes = F4OutputLength,
+		};
+		Blake2BConfig cfgH = new()
+		{
+			Result64ByteBuffer = outputBuffer,
+			LockMemoryPolicy = LockMemoryPolicy.None,
+		};
+
+		return (cfgG, cfgH);
+	});
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="UnifiedAddress"/> class.
@@ -236,59 +258,55 @@ public abstract class UnifiedAddress : ZcashAddress
 			throw new ArgumentException($"The UA cannot exceed {MaxF4JumbleInputLength} bytes.", nameof(ua));
 		}
 
-		byte[] arrayBuffer = new byte[ua.Length];
-		ua.CopyTo(arrayBuffer);
-
-		byte leftLength = (byte)Math.Min(F4OutputLength, ua.Length / 2);
-		int rightLength = ua.Length - leftLength;
-
-		if (inverted)
+		byte[] arrayBuffer = ArrayPool<byte>.Shared.Rent(ua.Length);
+		try
 		{
-			RoundH(1);
-			RoundG(1);
-			RoundH(0);
-			RoundG(0);
-		}
-		else
-		{
-			RoundG(0);
-			RoundH(0);
-			RoundG(1);
-			RoundH(1);
-		}
+			ua.CopyTo(arrayBuffer);
 
-		arrayBuffer.CopyTo(ua);
+			byte leftLength = (byte)Math.Min(F4OutputLength, ua.Length / 2);
+			int rightLength = ua.Length - leftLength;
 
-		// TODO: Several opportunities below to reduce allocations.
-		// 1. Use a single HMACBlake2B instance for G and another for H, and just change the key.
-		// 2. Re-implement blake2 or find another library that doesn't allocate a new array for each hash.
-		// 3. Reuse the Personalize G/H arrays by just mutating them as needed.
-		void RoundG(byte i)
-		{
-			ushort top = checked((ushort)CeilDiv(rightLength, F4OutputLength));
-			for (ushort j = 0; j < top; j++)
+			(Blake2BConfig GConfig, Blake2BConfig HConfig) blake2bPool = Blake2BPooledObjects.Value;
+			blake2bPool.HConfig.OutputSizeInBytes = leftLength;
+
+			if (inverted)
 			{
-				Blake2BConfig cfg = new()
+				RoundH(1);
+				RoundG(1);
+				RoundH(0);
+				RoundG(0);
+			}
+			else
+			{
+				RoundG(0);
+				RoundH(0);
+				RoundG(1);
+				RoundH(1);
+			}
+
+			arrayBuffer.AsSpan(0, ua.Length).CopyTo(ua);
+
+			void RoundG(byte i)
+			{
+				ushort top = checked((ushort)CeilDiv(rightLength, F4OutputLength));
+				for (ushort j = 0; j < top; j++)
 				{
-					Personalization = PersonalizeG(i, j),
-					OutputSizeInBytes = F4OutputLength,
-					LockMemoryPolicy = LockMemoryPolicy.None,
-				};
-				byte[] hash = Blake2B.ComputeHash(arrayBuffer, 0, leftLength, cfg, null!);
-				Xor(arrayBuffer.AsSpan(leftLength + (j * F4OutputLength)), hash);
+					blake2bPool.GConfig.Personalization = PersonalizeG(i, j);
+					byte[] hash = Blake2B.ComputeHash(arrayBuffer, 0, leftLength, blake2bPool.GConfig, null!);
+					Xor(arrayBuffer.AsSpan(leftLength + (j * F4OutputLength)), hash);
+				}
+			}
+
+			void RoundH(byte i)
+			{
+				blake2bPool.HConfig.Personalization = PersonalizeH(i);
+				byte[] hash = Blake2B.ComputeHash(arrayBuffer, leftLength, rightLength, blake2bPool.HConfig, null!);
+				Xor(arrayBuffer.AsSpan(0, leftLength), hash);
 			}
 		}
-
-		void RoundH(byte i)
+		finally
 		{
-			Blake2BConfig cfg = new()
-			{
-				Personalization = PersonalizeH(i),
-				OutputSizeInBytes = leftLength,
-				LockMemoryPolicy = LockMemoryPolicy.None,
-			};
-			byte[] hash = Blake2B.ComputeHash(arrayBuffer, leftLength, rightLength, cfg, null!);
-			Xor(arrayBuffer.AsSpan(0, leftLength), hash);
+			ArrayPool<byte>.Shared.Return(arrayBuffer);
 		}
 
 		static byte[] PersonalizeH(byte i) => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 72, i, 0, 0 };
