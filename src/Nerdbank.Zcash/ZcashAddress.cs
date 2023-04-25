@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
@@ -227,21 +228,6 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	}
 
 	/// <summary>
-	/// Casts one receiver type to another, throwing an exception if the cast is invalid.
-	/// </summary>
-	/// <typeparam name="TNative">The native receiver type for the calling address.</typeparam>
-	/// <typeparam name="TTarget">The generic type parameter provided to the caller, to which the receiver must be cast.</typeparam>
-	/// <param name="receiver">The receiver to be cast.</param>
-	/// <returns>The re-cast receiver.</returns>
-	private protected static TTarget? CastReceiver<TNative, TTarget>(in TNative receiver)
-		where TNative : unmanaged, IPoolReceiver
-		where TTarget : unmanaged, IPoolReceiver
-	{
-		// If this step boxes the struct, we could fix it with some "unsafe" code.
-		return (TTarget)(object)receiver;
-	}
-
-	/// <summary>
 	/// Casts one receiver type to another if they are compatible, returning <see langword="null" /> if the cast is invalid.
 	/// </summary>
 	/// <typeparam name="TNative">The native receiver type for the calling address.</typeparam>
@@ -252,7 +238,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 		where TNative : unmanaged, IPoolReceiver
 		where TTarget : unmanaged, IPoolReceiver
 	{
-		return typeof(TNative) == typeof(TTarget) ? CastReceiver<TNative, TTarget>(receiver) : null;
+		return typeof(TNative) == typeof(TTarget) ? Unsafe.As<TNative, TTarget>(ref Unsafe.AsRef(in receiver)) : null;
 	}
 
 	/// <summary>
