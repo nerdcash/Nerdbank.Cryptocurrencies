@@ -25,12 +25,12 @@ public unsafe struct OrchardReceiver : IPoolReceiver
     {
         if (d.Length != DLength)
         {
-            throw new ArgumentException($"Length must be exactly {DLength}.", nameof(d));
+            throw new ArgumentException($"Length must be exactly {DLength}, but was {d.Length}.", nameof(d));
         }
 
         if (pkd.Length != PkdLength)
         {
-            throw new ArgumentException($"Length must be exactly {PkdLength}.", nameof(pkd));
+            throw new ArgumentException($"Length must be exactly {PkdLength}, but was {pkd.Length}.", nameof(pkd));
         }
 
         d.CopyTo(this.D);
@@ -46,7 +46,7 @@ public unsafe struct OrchardReceiver : IPoolReceiver
     {
         if (receiver.Length != Length)
         {
-            throw new ArgumentException($"Length must be exactly {Length}.", nameof(receiver));
+            throw new ArgumentException($"Length must be exactly {Length}, but was {receiver.Length}.", nameof(receiver));
         }
 
         receiver.CopyTo(this.GetSpan());

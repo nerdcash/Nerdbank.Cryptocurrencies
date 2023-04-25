@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Konscious.Security.Cryptography;
+using Isopoh.Cryptography.Blake2b;
 
 namespace Nerdbank.Zcash;
 
@@ -58,6 +57,7 @@ public abstract class UnifiedAddress : ZcashAddress
     /// <returns>A unified address that contains all the receivers.</returns>
     public static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers)
     {
+        Requires.NotNull(receivers);
         Requires.Argument(receivers.Count > 0, nameof(receivers), "Cannot create a unified address with no receivers.");
 
         if (receivers.Count == 1 && receivers.Single() is UnifiedAddress existingUnifiedAddress)
@@ -72,8 +72,16 @@ public abstract class UnifiedAddress : ZcashAddress
         bool hasShieldedAddress = false;
         foreach (ZcashAddress receiver in receivers)
         {
-            hasShieldedAddress |= receiver.UnifiedAddressTypeCode > 0x01;
-            if (sortedReceiversByTypeCode.TryAdd(receiver.UnifiedAddressTypeCode, receiver))
+            try
+            {
+                hasShieldedAddress |= receiver.UnifiedAddressTypeCode > 0x01;
+            }
+            catch (NotSupportedException ex)
+            {
+                throw new ArgumentException("Unified Addresses with multiple receivers cannot be specified as one receiver in another UA.", ex);
+            }
+
+            if (!sortedReceiversByTypeCode.TryAdd(receiver.UnifiedAddressTypeCode, receiver))
             {
                 throw new ArgumentException($"Only one of each type of address is allowed, but more than one {receiver.GetType().Name} was specified.", nameof(receivers));
             }
@@ -251,16 +259,26 @@ public abstract class UnifiedAddress : ZcashAddress
             ushort top = checked((ushort)CeilDiv(rightLength, F4OutputLength));
             for (ushort j = 0; j < top; j++)
             {
-                using HMACBlake2B blake2 = new(PersonalizeG(i, j), F4OutputLength);
-                byte[] hash = blake2.ComputeHash(arrayBuffer, 0, leftLength);
-                Xor(arrayBuffer.AsSpan(j * F4OutputLength), hash);
+                Blake2BConfig cfg = new()
+                {
+                    Personalization = PersonalizeG(i, j),
+                    OutputSizeInBytes = F4OutputLength,
+                    LockMemoryPolicy = LockMemoryPolicy.None,
+                };
+                byte[] hash = Blake2B.ComputeHash(arrayBuffer, 0, leftLength, cfg, null!);
+                Xor(arrayBuffer.AsSpan(leftLength + (j * F4OutputLength)), hash);
             }
         }
 
         void RoundH(byte i)
         {
-            using HMACBlake2B blake2 = new(PersonalizeH(i), leftLength);
-            byte[] hash = blake2.ComputeHash(arrayBuffer, leftLength, rightLength);
+            Blake2BConfig cfg = new()
+            {
+                Personalization = PersonalizeH(i),
+                OutputSizeInBytes = leftLength,
+                LockMemoryPolicy = LockMemoryPolicy.None,
+            };
+            byte[] hash = Blake2B.ComputeHash(arrayBuffer, leftLength, rightLength, cfg, null!);
             Xor(arrayBuffer.AsSpan(0, leftLength), hash);
         }
 
@@ -272,8 +290,7 @@ public abstract class UnifiedAddress : ZcashAddress
 
         static void Xor(Span<byte> left, ReadOnlySpan<byte> right)
         {
-            Debug.Assert(left.Length == right.Length, "Buffer lengths must equal.");
-            for (int i = 0; i < left.Length; i++)
+            for (int i = 0; i < left.Length & i < right.Length; i++)
             {
                 left[i] ^= right[i];
             }

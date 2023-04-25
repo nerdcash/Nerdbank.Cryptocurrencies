@@ -24,7 +24,7 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
     {
         if (p2sh.Length != Length)
         {
-            throw new ArgumentException($"Length must be exactly {Length}.", nameof(p2sh));
+            throw new ArgumentException($"Length must be exactly {Length}, but was {p2sh.Length}.", nameof(p2sh));
         }
 
         p2sh.CopyTo(this.ScriptHash);

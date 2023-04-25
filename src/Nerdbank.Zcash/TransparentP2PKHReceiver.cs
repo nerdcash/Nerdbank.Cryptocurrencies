@@ -24,7 +24,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
     {
         if (p2pkh.Length != Length)
         {
-            throw new ArgumentException($"Length must be exactly {Length}.", nameof(p2pkh));
+            throw new ArgumentException($"Length must be exactly {Length}, but was {p2pkh.Length}.", nameof(p2pkh));
         }
 
         p2pkh.CopyTo(this.ValidatingKeyHash);

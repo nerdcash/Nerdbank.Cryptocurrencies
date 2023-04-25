@@ -24,12 +24,12 @@ public unsafe struct SproutReceiver : IPoolReceiver
     {
         if (apk.Length != FieldLength)
         {
-            throw new ArgumentException($"Length must be exactly {FieldLength}.", nameof(apk));
+            throw new ArgumentException($"Length must be exactly {FieldLength}, but was {apk.Length}.", nameof(apk));
         }
 
         if (pkEnc.Length != FieldLength)
         {
-            throw new ArgumentException($"Length must be exactly {FieldLength}.", nameof(pkEnc));
+            throw new ArgumentException($"Length must be exactly {FieldLength}, but was {pkEnc.Length}.", nameof(pkEnc));
         }
 
         apk.CopyTo(this.Apk);
@@ -45,7 +45,7 @@ public unsafe struct SproutReceiver : IPoolReceiver
     {
         if (receiver.Length != Length)
         {
-            throw new ArgumentException($"Length must be exactly {Length}.", nameof(receiver));
+            throw new ArgumentException($"Length must be exactly {Length}, but was {receiver.Length}.", nameof(receiver));
         }
 
         receiver.CopyTo(this.GetSpan());

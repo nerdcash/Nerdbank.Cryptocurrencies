@@ -58,8 +58,8 @@ public abstract class TransparentAddress : ZcashAddress
 
             result = decoded[..2] switch
             {
-                [0x1c, 0xb8] or [0x1d, 0x25] => new TransparentP2PKHAddress(address, new TransparentP2PKHReceiver(decoded), network.Value),
-                [0x1c, 0xbd] or [0x1c, 0xba] => new TransparentP2SHAddress(address, new TransparentP2SHReceiver(decoded), network.Value),
+                [0x1c, 0xb8] or [0x1d, 0x25] => new TransparentP2PKHAddress(address, new TransparentP2PKHReceiver(decoded[2..]), network.Value),
+                [0x1c, 0xbd] or [0x1c, 0xba] => new TransparentP2SHAddress(address, new TransparentP2SHReceiver(decoded[2..]), network.Value),
                 _ => null,
             };
 #pragma warning restore SA1010 // Opening square brackets should be spaced correctly
