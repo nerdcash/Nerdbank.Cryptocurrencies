@@ -50,7 +50,7 @@ public class SaplingAddress : ZcashAddress
     internal override byte UnifiedAddressTypeCode => 0x02;
 
     /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.GetSpan().Length;
+    internal override int ReceiverEncodingLength => this.receiver.GetReadOnlySpan().Length;
 
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sapling;
@@ -99,7 +99,7 @@ public class SaplingAddress : ZcashAddress
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
-        Span<byte> receiverSpan = this.receiver.GetSpan();
+        ReadOnlySpan<byte> receiverSpan = this.receiver.GetReadOnlySpan();
         receiverSpan.CopyTo(output);
         return receiverSpan.Length;
     }

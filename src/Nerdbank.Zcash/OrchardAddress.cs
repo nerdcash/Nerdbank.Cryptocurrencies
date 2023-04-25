@@ -39,7 +39,7 @@ public class OrchardAddress : UnifiedAddress
     internal override byte UnifiedAddressTypeCode => 0x03;
 
     /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.GetSpan().Length;
+    internal override int ReceiverEncodingLength => this.receiver.GetReadOnlySpan().Length;
 
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);
@@ -50,7 +50,7 @@ public class OrchardAddress : UnifiedAddress
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
-        Span<byte> receiverSpan = this.receiver.GetSpan();
+        ReadOnlySpan<byte> receiverSpan = this.receiver.GetReadOnlySpan();
         receiverSpan.CopyTo(output);
         return receiverSpan.Length;
     }

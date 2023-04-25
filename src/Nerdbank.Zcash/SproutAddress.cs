@@ -46,7 +46,7 @@ public class SproutAddress : ZcashAddress
     internal override byte UnifiedAddressTypeCode => throw new NotSupportedException();
 
     /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.GetSpan().Length;
+    internal override int ReceiverEncodingLength => this.receiver.GetReadOnlySpan().Length;
 
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
@@ -85,7 +85,7 @@ public class SproutAddress : ZcashAddress
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
-        Span<byte> receiverSpan = this.receiver.GetSpan();
+        ReadOnlySpan<byte> receiverSpan = this.receiver.GetReadOnlySpan();
         receiverSpan.CopyTo(output);
         return receiverSpan.Length;
     }

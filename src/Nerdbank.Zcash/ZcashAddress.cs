@@ -198,7 +198,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
         int bytesWritten = 0;
         destination[bytesWritten++] = this.UnifiedAddressTypeCode;
         int predictedEncodingLength = this.ReceiverEncodingLength;
-        bytesWritten += CompactSize.Encode((ulong)predictedEncodingLength, destination);
+        bytesWritten += CompactSize.Encode((ulong)predictedEncodingLength, destination.Slice(bytesWritten));
         int actualEncodingLength = this.GetReceiverEncoding(destination.Slice(bytesWritten));
         Assumes.True(predictedEncodingLength == actualEncodingLength); // If this is wrong, we encoded the wrong length in the compact size.
         bytesWritten += actualEncodingLength;
@@ -231,13 +231,13 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// <param name="receiver">The receiver.</param>
     /// <param name="destination">The buffer to write to.</param>
     /// <returns>The number of bytes actually written.</returns>
-    private protected static unsafe int WriteUAContribution<TReceiver>(TReceiver receiver, Span<byte> destination)
+    private protected static unsafe int WriteUAContribution<TReceiver>(in TReceiver receiver, Span<byte> destination)
         where TReceiver : unmanaged, IPoolReceiver
     {
         int bytesWritten = 0;
         destination[bytesWritten++] = TReceiver.UnifiedReceiverTypeCode;
-        bytesWritten += CompactSize.Encode((ulong)receiver.GetSpan().Length, destination);
-        Span<byte> receiverSpan = receiver.GetSpan();
+        bytesWritten += CompactSize.Encode((ulong)receiver.GetReadOnlySpan().Length, destination.Slice(bytesWritten));
+        ReadOnlySpan<byte> receiverSpan = receiver.GetReadOnlySpan();
         receiverSpan.CopyTo(destination.Slice(bytesWritten));
         bytesWritten += receiverSpan.Length;
         return bytesWritten;

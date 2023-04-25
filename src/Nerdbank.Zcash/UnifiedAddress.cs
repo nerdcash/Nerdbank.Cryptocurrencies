@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using Isopoh.Cryptography.Blake2b;
 
@@ -109,7 +110,7 @@ public abstract class UnifiedAddress : ZcashAddress
         int finalLength = Bech32.Bech32m.Encode(HumanReadablePart, ua, result);
         Assumes.True(result.Length == finalLength);
 
-        return new CompoundUnifiedAddress(result.Slice(0, finalLength), new(sortedReceiversByTypeCode.Values.ToList()));
+        return new CompoundUnifiedAddress(result.Slice(0, finalLength), new(GetReceiversInPreferredOrder(sortedReceiversByTypeCode.Values)));
     }
 
     /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
@@ -194,7 +195,7 @@ public abstract class UnifiedAddress : ZcashAddress
                     receiverAddresses.Add(new SaplingAddress(new SaplingReceiver(receiverData)));
                     break;
                 case 0x03:
-                    receiverAddresses.Add(new OrchardAddress(address, new OrchardReceiver(receiverData)));
+                    receiverAddresses.Add(new OrchardAddress(new OrchardReceiver(receiverData)));
                     break;
             }
 
@@ -207,7 +208,7 @@ public abstract class UnifiedAddress : ZcashAddress
         errorMessage = null;
         result = receiverAddresses.Count == 1 && receiverAddresses[0] is OrchardAddress orchardAddr
             ? orchardAddr
-            : new CompoundUnifiedAddress(address, new(receiverAddresses));
+            : new CompoundUnifiedAddress(address, new(GetReceiversInPreferredOrder(receiverAddresses)));
         return true;
     }
 
@@ -309,5 +310,14 @@ public abstract class UnifiedAddress : ZcashAddress
         Span<char> tag = stackalloc char[length.Value.Tag];
         Span<byte> data = stackalloc byte[length.Value.Data];
         return Bech32.Bech32m.TryDecode(this.Address, tag, data, out _, out _, out _);
+    }
+
+    private static ReadOnlyCollection<ZcashAddress> GetReceiversInPreferredOrder(IReadOnlyCollection<ZcashAddress> addresses)
+    {
+        // Although the UA encoding requires the receivers to be sorted in ascending Type Code order,
+        // we want to list receivers in order of preference, which is the opposite.
+        List<ZcashAddress> sortedAddresses = addresses.ToList();
+        sortedAddresses.Sort((a, b) => -a.UnifiedAddressTypeCode.CompareTo(b.UnifiedAddressTypeCode));
+        return new(sortedAddresses);
     }
 }

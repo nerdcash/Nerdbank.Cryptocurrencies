@@ -17,7 +17,7 @@ public class CompoundUnifiedAddress : UnifiedAddress
     /// Initializes a new instance of the <see cref="CompoundUnifiedAddress"/> class.
     /// </summary>
     /// <param name="address">The Unified Address from which this instance was constructed.</param>
-    /// <param name="receivers">The embedded receivers in this unified address.</param>
+    /// <param name="receivers">The embedded receivers in this unified address, in order of preference.</param>
     internal CompoundUnifiedAddress(ReadOnlySpan<char> address, ReadOnlyCollection<ZcashAddress> receivers)
         : base(address)
     {
@@ -57,8 +57,13 @@ public class CompoundUnifiedAddress : UnifiedAddress
     /// <inheritdoc/>
     public unsafe override TPoolReceiver? GetPoolReceiver<TPoolReceiver>()
     {
-        byte typeCode = TPoolReceiver.UnifiedReceiverTypeCode;
-        int length = sizeof(TPoolReceiver);
+        foreach (ZcashAddress receiver in this.receivers)
+        {
+            if (receiver.GetPoolReceiver<TPoolReceiver>() is TPoolReceiver poolReceiver)
+            {
+                return poolReceiver;
+            }
+        }
 
         return null;
     }
