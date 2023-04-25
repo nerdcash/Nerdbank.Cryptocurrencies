@@ -8,13 +8,13 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public enum ParseError
 {
-    /// <summary>
-    /// The address did not conform to a recognized type.
-    /// </summary>
-    UnrecognizedAddressType,
+	/// <summary>
+	/// The address did not conform to a recognized type.
+	/// </summary>
+	UnrecognizedAddressType,
 
-    /// <summary>
-    /// The address violated an internal consistency check.
-    /// </summary>
-    InvalidAddress,
+	/// <summary>
+	/// The address violated an internal consistency check.
+	/// </summary>
+	InvalidAddress,
 }

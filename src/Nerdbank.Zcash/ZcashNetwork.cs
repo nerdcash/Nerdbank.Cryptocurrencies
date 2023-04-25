@@ -8,13 +8,13 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public enum ZcashNetwork
 {
-    /// <summary>
-    /// The Zcash main network.
-    /// </summary>
-    MainNet,
+	/// <summary>
+	/// The Zcash main network.
+	/// </summary>
+	MainNet,
 
-    /// <summary>
-    /// The Zcash test network.
-    /// </summary>
-    TestNet,
+	/// <summary>
+	/// The Zcash test network.
+	/// </summary>
+	TestNet,
 }

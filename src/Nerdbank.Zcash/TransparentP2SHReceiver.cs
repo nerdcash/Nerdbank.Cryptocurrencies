@@ -12,44 +12,44 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public unsafe struct TransparentP2SHReceiver : IPoolReceiver
 {
-    private const int Length = 160 / 8;
+	private const int Length = 160 / 8;
 
-    private fixed byte scriptHash[Length];
+	private fixed byte scriptHash[Length];
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TransparentP2SHReceiver"/> struct.
-    /// </summary>
-    /// <param name="p2sh">The script hash.</param>
-    /// <exception cref="ArgumentException">Thrown when the arguments have an unexpected length.</exception>
-    public TransparentP2SHReceiver(ReadOnlySpan<byte> p2sh)
-    {
-        if (p2sh.Length != Length)
-        {
-            throw new ArgumentException($"Length must be exactly {Length}, but was {p2sh.Length}.", nameof(p2sh));
-        }
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TransparentP2SHReceiver"/> struct.
+	/// </summary>
+	/// <param name="p2sh">The script hash.</param>
+	/// <exception cref="ArgumentException">Thrown when the arguments have an unexpected length.</exception>
+	public TransparentP2SHReceiver(ReadOnlySpan<byte> p2sh)
+	{
+		if (p2sh.Length != Length)
+		{
+			throw new ArgumentException($"Length must be exactly {Length}, but was {p2sh.Length}.", nameof(p2sh));
+		}
 
-        p2sh.CopyTo(this.ScriptHashWritable);
-    }
+		p2sh.CopyTo(this.ScriptHashWritable);
+	}
 
-    /// <summary>
-    /// Gets a span over the whole receiver.
-    /// </summary>
-    /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-    public static byte UnifiedReceiverTypeCode => 0x01;
+	/// <summary>
+	/// Gets a span over the whole receiver.
+	/// </summary>
+	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
+	public static byte UnifiedReceiverTypeCode => 0x01;
 
-    /// <inheritdoc/>
-    public Pool Pool => Pool.Transparent;
+	/// <inheritdoc/>
+	public Pool Pool => Pool.Transparent;
 
-    /// <summary>
-    /// Gets the script hash.
-    /// </summary>
-    public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
+	/// <summary>
+	/// Gets the script hash.
+	/// </summary>
+	public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
 
-    /// <inheritdoc />
-    public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
+	/// <inheritdoc />
+	public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
 
-    /// <summary>
-    /// Gets the script hash.
-    /// </summary>
-    private Span<byte> ScriptHashWritable => MemoryMarshal.CreateSpan(ref this.scriptHash[0], Length);
+	/// <summary>
+	/// Gets the script hash.
+	/// </summary>
+	private Span<byte> ScriptHashWritable => MemoryMarshal.CreateSpan(ref this.scriptHash[0], Length);
 }

@@ -12,41 +12,41 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 {
-    private const int Length = 160 / 8;
+	private const int Length = 160 / 8;
 
-    private fixed byte validatingKeyHash[Length];
+	private fixed byte validatingKeyHash[Length];
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TransparentP2PKHReceiver"/> struct.
-    /// </summary>
-    /// <param name="p2pkh">The validating key hash.</param>
-    /// <exception cref="ArgumentException">Thrown when the arguments have an unexpected length.</exception>
-    public TransparentP2PKHReceiver(ReadOnlySpan<byte> p2pkh)
-    {
-        if (p2pkh.Length != Length)
-        {
-            throw new ArgumentException($"Length must be exactly {Length}, but was {p2pkh.Length}.", nameof(p2pkh));
-        }
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TransparentP2PKHReceiver"/> struct.
+	/// </summary>
+	/// <param name="p2pkh">The validating key hash.</param>
+	/// <exception cref="ArgumentException">Thrown when the arguments have an unexpected length.</exception>
+	public TransparentP2PKHReceiver(ReadOnlySpan<byte> p2pkh)
+	{
+		if (p2pkh.Length != Length)
+		{
+			throw new ArgumentException($"Length must be exactly {Length}, but was {p2pkh.Length}.", nameof(p2pkh));
+		}
 
-        p2pkh.CopyTo(this.ValidatingKeyHashWritable);
-    }
+		p2pkh.CopyTo(this.ValidatingKeyHashWritable);
+	}
 
-    /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-    public static byte UnifiedReceiverTypeCode => 0x02;
+	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
+	public static byte UnifiedReceiverTypeCode => 0x02;
 
-    /// <inheritdoc/>
-    public Pool Pool => Pool.Transparent;
+	/// <inheritdoc/>
+	public Pool Pool => Pool.Transparent;
 
-    /// <summary>
-    /// Gets the validating key hash.
-    /// </summary>
-    public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
+	/// <summary>
+	/// Gets the validating key hash.
+	/// </summary>
+	public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
 
-    /// <inheritdoc />
-    public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
+	/// <inheritdoc />
+	public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
 
-    /// <summary>
-    /// Gets the validating key hash.
-    /// </summary>
-    private Span<byte> ValidatingKeyHashWritable => MemoryMarshal.CreateSpan(ref this.validatingKeyHash[0], Length);
+	/// <summary>
+	/// Gets the validating key hash.
+	/// </summary>
+	private Span<byte> ValidatingKeyHashWritable => MemoryMarshal.CreateSpan(ref this.validatingKeyHash[0], Length);
 }

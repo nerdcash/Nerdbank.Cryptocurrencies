@@ -3,23 +3,23 @@
 
 public class SproutAddressTests : TestBase
 {
-    public static object?[][] InvalidAddresses => new object?[][]
-    {
-        new object?[] { "zt" },
-        new object?[] { "ztoeuchch" },
-        new object?[] { "zc" },
-        new object?[] { "zceuoch" },
-    };
+	public static object?[][] InvalidAddresses => new object?[][]
+	{
+		new object?[] { "zt" },
+		new object?[] { "ztoeuchch" },
+		new object?[] { "zc" },
+		new object?[] { "zceuoch" },
+	};
 
-    [Fact]
-    public void Network()
-    {
-        Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SproutAddress>(ZcashAddress.Parse(ValidSproutAddress)).Network);
-    }
+	[Fact]
+	public void Network()
+	{
+		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SproutAddress>(ZcashAddress.Parse(ValidSproutAddress)).Network);
+	}
 
-    [Theory, MemberData(nameof(InvalidAddresses))]
-    public void TryParse_Invalid(string address)
-    {
-        Assert.False(ZcashAddress.TryParse(address, out _));
-    }
+	[Theory, MemberData(nameof(InvalidAddresses))]
+	public void TryParse_Invalid(string address)
+	{
+		Assert.False(ZcashAddress.TryParse(address, out _));
+	}
 }

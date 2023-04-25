@@ -8,61 +8,61 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public class TransparentP2PKHAddress : TransparentAddress
 {
-    private readonly TransparentP2PKHReceiver receiver;
-    private readonly ZcashNetwork network;
+	private readonly TransparentP2PKHReceiver receiver;
+	private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="TransparentP2PKHAddress(string, in TransparentP2PKHReceiver, ZcashNetwork)"/>
-    public TransparentP2PKHAddress(in TransparentP2PKHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
-        : base(CreateAddress(receiver, network))
-    {
-        this.receiver = receiver;
-    }
+	/// <inheritdoc cref="TransparentP2PKHAddress(string, in TransparentP2PKHReceiver, ZcashNetwork)"/>
+	public TransparentP2PKHAddress(in TransparentP2PKHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+		: base(CreateAddress(receiver, network))
+	{
+		this.receiver = receiver;
+	}
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TransparentP2PKHAddress"/> class.
-    /// </summary>
-    /// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
-    /// <param name="receiver">The encoded receiver.</param>
-    /// <param name="network">The network to which this address belongs.</param>
-    internal TransparentP2PKHAddress(string address, in TransparentP2PKHReceiver receiver, ZcashNetwork network)
-        : base(address)
-    {
-        this.receiver = receiver;
-        this.network = network;
-    }
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TransparentP2PKHAddress"/> class.
+	/// </summary>
+	/// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
+	/// <param name="receiver">The encoded receiver.</param>
+	/// <param name="network">The network to which this address belongs.</param>
+	internal TransparentP2PKHAddress(string address, in TransparentP2PKHReceiver receiver, ZcashNetwork network)
+		: base(address)
+	{
+		this.receiver = receiver;
+		this.network = network;
+	}
 
-    /// <inheritdoc/>
-    public override ZcashNetwork Network => this.network;
+	/// <inheritdoc/>
+	public override ZcashNetwork Network => this.network;
 
-    /// <inheritdoc/>
-    internal override byte UnifiedAddressTypeCode => 0x00;
+	/// <inheritdoc/>
+	internal override byte UnifiedAddressTypeCode => 0x00;
 
-    /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.Span.Length;
+	/// <inheritdoc/>
+	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
 
-    /// <inheritdoc/>
-    public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2PKHReceiver, TPoolReceiver>(this.receiver);
+	/// <inheritdoc/>
+	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2PKHReceiver, TPoolReceiver>(this.receiver);
 
-    /// <inheritdoc/>
-    internal override int GetReceiverEncoding(Span<byte> output)
-    {
-        ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
-        receiverSpan.CopyTo(output);
-        return receiverSpan.Length;
-    }
+	/// <inheritdoc/>
+	internal override int GetReceiverEncoding(Span<byte> output)
+	{
+		ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
+		receiverSpan.CopyTo(output);
+		return receiverSpan.Length;
+	}
 
-    private static string CreateAddress(in TransparentP2PKHReceiver receiver, ZcashNetwork network)
-    {
-        Span<byte> input = stackalloc byte[2 + receiver.ValidatingKeyHash.Length];
-        (input[0], input[1]) = network switch
-        {
-            ZcashNetwork.MainNet => ((byte)0x1c, (byte)0xb8),
-            ZcashNetwork.TestNet => ((byte)0x1d, (byte)0x25),
-            _ => throw new NotSupportedException("Unrecognized network."),
-        };
-        receiver.ValidatingKeyHash.CopyTo(input.Slice(2));
-        Span<char> addressChars = stackalloc char[Base58Check.GetMaximumEncodedLength(input.Length)];
-        int charsLength = Base58Check.Encode(input, addressChars);
-        return addressChars.Slice(0, charsLength).ToString();
-    }
+	private static string CreateAddress(in TransparentP2PKHReceiver receiver, ZcashNetwork network)
+	{
+		Span<byte> input = stackalloc byte[2 + receiver.ValidatingKeyHash.Length];
+		(input[0], input[1]) = network switch
+		{
+			ZcashNetwork.MainNet => ((byte)0x1c, (byte)0xb8),
+			ZcashNetwork.TestNet => ((byte)0x1d, (byte)0x25),
+			_ => throw new NotSupportedException("Unrecognized network."),
+		};
+		receiver.ValidatingKeyHash.CopyTo(input.Slice(2));
+		Span<char> addressChars = stackalloc char[Base58Check.GetMaximumEncodedLength(input.Length)];
+		int charsLength = Base58Check.Encode(input, addressChars);
+		return addressChars.Slice(0, charsLength).ToString();
+	}
 }
