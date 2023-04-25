@@ -65,11 +65,4 @@ public class TransparentP2SHAddress : TransparentAddress
 		int charsLength = Base58Check.Encode(input, addressChars);
 		return addressChars.Slice(0, charsLength).ToString();
 	}
-
-	private static TransparentP2SHReceiver CreateReceiver(ReadOnlySpan<char> address)
-	{
-		Span<byte> decoded = stackalloc byte[DecodedLength];
-		Base58Check.Decode(address, decoded);
-		return new TransparentP2SHReceiver(decoded.Slice(2));
-	}
 }

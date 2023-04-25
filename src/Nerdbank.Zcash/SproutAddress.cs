@@ -41,7 +41,15 @@ public class SproutAddress : ZcashAddress
 	internal override byte UnifiedAddressTypeCode => throw new NotSupportedException();
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
+	[ExcludeFromCodeCoverage]
+	internal override int ReceiverEncodingLength
+	{
+		get
+		{
+			// This method is only called by UAs, which don't support sprout addresses.
+			throw new NotImplementedException();
+		}
+	}
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
@@ -75,11 +83,11 @@ public class SproutAddress : ZcashAddress
 	}
 
 	/// <inheritdoc/>
+	[ExcludeFromCodeCoverage]
 	internal override int GetReceiverEncoding(Span<byte> output)
 	{
-		ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
-		receiverSpan.CopyTo(output);
-		return receiverSpan.Length;
+		// This method is only called by UAs, which don't support sprout addresses.
+		throw new NotImplementedException();
 	}
 
 	private static string CreateAddress(in SproutReceiver receiver, ZcashNetwork network)

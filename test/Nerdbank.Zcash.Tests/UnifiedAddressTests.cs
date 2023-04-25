@@ -21,7 +21,7 @@ public class UnifiedAddressTests : TestBase
 			},
 			addr.Receivers);
 
-		addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent));
+		addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH));
 		Assert.Equal(
 			new[]
 			{
@@ -30,12 +30,22 @@ public class UnifiedAddressTests : TestBase
 				ZcashAddress.Parse(ValidTransparentP2PKHAddress),
 			},
 			addr.Receivers);
+
+		addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2SH));
+		Assert.Equal(
+			new[]
+			{
+				ZcashAddress.Parse(ValidUnifiedAddressOrchard),
+				ZcashAddress.Parse(ValidSaplingAddress),
+				ZcashAddress.Parse(ValidTransparentP2SHAddress),
+			},
+			addr.Receivers);
 	}
 
 	[Fact]
 	public void GetPoolReceiver()
 	{
-		UnifiedAddress ua = (UnifiedAddress)ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent);
+		UnifiedAddress ua = (UnifiedAddress)ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH);
 		OrchardReceiver orchard = ua.GetPoolReceiver<OrchardReceiver>() ?? throw new Exception("Missing Orchard receiver");
 		SaplingReceiver sapling = ua.GetPoolReceiver<SaplingReceiver>() ?? throw new Exception("Missing Sapling receiver");
 		TransparentP2PKHReceiver p2pkh = ua.GetPoolReceiver<TransparentP2PKHReceiver>() ?? throw new Exception("Missing P2PKH receiver");
@@ -88,7 +98,11 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Create_WithCompoundUnifiedReceiver()
 	{
-		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[] { ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling), ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparent) }));
+		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
+		{
+			ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling),
+			ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH),
+		}));
 	}
 
 	[Fact]
@@ -100,7 +114,15 @@ public class UnifiedAddressTests : TestBase
 			ZcashAddress.Parse(ValidSaplingAddress),
 			ZcashAddress.Parse(ValidTransparentP2PKHAddress),
 		});
-		Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparent, addr.ToString());
+		Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparentP2PKH, addr.ToString());
+
+		addr = UnifiedAddress.Create(new[]
+		{
+			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
+			ZcashAddress.Parse(ValidSaplingAddress),
+			ZcashAddress.Parse(ValidTransparentP2SHAddress),
+		});
+		Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparentP2SH, addr.ToString());
 	}
 
 	[Fact]

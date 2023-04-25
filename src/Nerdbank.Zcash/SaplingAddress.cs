@@ -39,13 +39,6 @@ public class SaplingAddress : ZcashAddress
 	/// <inheritdoc/>
 	public override ZcashNetwork Network => this.network;
 
-	/// <summary>
-	/// Gets the length of the buffers required to decode the address.
-	/// </summary>
-	/// <returns>The length of the human readable part and data buffers required.</returns>
-	/// <exception cref="InvalidAddressException">Thrown if the address is invalid.</exception>
-	internal (int HumanReadablePart, int Data) DecodedLength => Bech32.GetDecodedLength(this.Address) ?? throw new InvalidAddressException();
-
 	/// <inheritdoc/>
 	internal override byte UnifiedAddressTypeCode => 0x02;
 
