@@ -13,8 +13,8 @@ Nerdbank.Cryptocurrencies.DecodeError.InvalidChecksum = 1 -> Nerdbank.Cryptocurr
 Nerdbank.Cryptocurrencies.DecodeError.NoSeparator = 3 -> Nerdbank.Cryptocurrencies.DecodeError
 static Nerdbank.Cryptocurrencies.Base58Check.Decode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.Encode(System.ReadOnlySpan<byte> payload, System.Span<char> chars) -> int
-static Nerdbank.Cryptocurrencies.Base58Check.GetMaximumDecodedLength(int charCount) -> int
-static Nerdbank.Cryptocurrencies.Base58Check.GetMaximumEncodedLength(int byteCount) -> int
+static Nerdbank.Cryptocurrencies.Base58Check.GetMaxDecodedLength(int charCount) -> int
+static Nerdbank.Cryptocurrencies.Base58Check.GetMaxEncodedLength(int byteCount) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out int bytesWritten) -> bool
 static Nerdbank.Cryptocurrencies.Bech32.GetDecodedLength(System.ReadOnlySpan<char> encoded) -> (int Tag, int Data)?
 static Nerdbank.Cryptocurrencies.Bech32.GetEncodedLength(int tagLength, int dataLength) -> int

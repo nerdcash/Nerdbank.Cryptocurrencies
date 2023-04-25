@@ -20,7 +20,7 @@ public class Base58CheckTests
 	public void Encode(string hexEncoding, string base58checkEncoding)
 	{
 		Span<byte> decodedBytes = Convert.FromHexString(hexEncoding);
-		Span<char> encodedChars = stackalloc char[Encoder.GetMaximumEncodedLength(decodedBytes.Length)];
+		Span<char> encodedChars = stackalloc char[Encoder.GetMaxEncodedLength(decodedBytes.Length)];
 		int actualCount = Encoder.Encode(decodedBytes, encodedChars);
 		Assert.Equal(base58checkEncoding, encodedChars.Slice(0, actualCount).ToString(), ignoreCase: false);
 	}
@@ -30,7 +30,7 @@ public class Base58CheckTests
 	{
 		int expectedBytesWrittenCount = hexEncoding.Length / 2;
 
-		Span<byte> actual = stackalloc byte[Encoder.GetMaximumDecodedLength(base58checkEncoding.Length)];
+		Span<byte> actual = stackalloc byte[Encoder.GetMaxDecodedLength(base58checkEncoding.Length)];
 		int actualBytesWrittenCount = Encoder.Decode(base58checkEncoding, actual);
 
 		Assert.Equal(expectedBytesWrittenCount, actualBytesWrittenCount);

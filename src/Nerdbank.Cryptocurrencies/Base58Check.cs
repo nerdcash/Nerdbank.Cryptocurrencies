@@ -21,14 +21,14 @@ public static class Base58Check
 	/// </summary>
 	/// <param name="byteCount">The number of bytes to be encoded.</param>
 	/// <returns>The length of the buffer that should be allocated to encode.</returns>
-	public static int GetMaximumEncodedLength(int byteCount) => ((byteCount + ChecksumLength) * 138 / 100) + 1;
+	public static int GetMaxEncodedLength(int byteCount) => ((byteCount + ChecksumLength) * 138 / 100) + 1;
 
 	/// <summary>
 	/// Gets the maximum number of bytes that can be decoded from a given number of characters.
 	/// </summary>
 	/// <param name="charCount">The number of encoded characters.</param>
 	/// <returns>The length of the buffer that should be allocated to decode.</returns>
-	public static int GetMaximumDecodedLength(int charCount) => (charCount * 733 / 1000) + 1;
+	public static int GetMaxDecodedLength(int charCount) => (charCount * 733 / 1000) + 1;
 
 	/// <summary>
 	/// Encodes some data into a string.
