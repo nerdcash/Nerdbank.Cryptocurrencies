@@ -32,8 +32,8 @@ public abstract class UnifiedAddress : ZcashAddress
     /// <summary>
     /// Initializes a new instance of the <see cref="UnifiedAddress"/> class.
     /// </summary>
-    /// <param name="address"><inheritdoc cref="ZcashAddress.ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
-    internal UnifiedAddress(ReadOnlySpan<char> address)
+    /// <param name="address"><inheritdoc cref="ZcashAddress.ZcashAddress(string)" path="/param"/></param>
+    internal UnifiedAddress(string address)
         : base(address)
     {
     }
@@ -52,7 +52,7 @@ public abstract class UnifiedAddress : ZcashAddress
     /// <summary>
     /// Gets the padding bytes that must be present in a unified address.
     /// </summary>
-    protected static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
+    private protected static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
 
     /// <summary>
     /// Creates a unified address from a list of receiver addresses.
@@ -118,11 +118,11 @@ public abstract class UnifiedAddress : ZcashAddress
         int finalLength = Bech32.Bech32m.Encode(HumanReadablePart, ua, result);
         Assumes.True(result.Length == finalLength);
 
-        return new CompoundUnifiedAddress(result.Slice(0, finalLength), new(GetReceiversInPreferredOrder(sortedReceiversByTypeCode.Values)));
+        return new CompoundUnifiedAddress(result.Slice(0, finalLength).ToString(), new(GetReceiversInPreferredOrder(sortedReceiversByTypeCode.Values)));
     }
 
-    /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
-    internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out UnifiedAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+    /// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
+    internal static bool TryParse(string address, [NotNullWhen(true)] out UnifiedAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
         if (!address.StartsWith("u1"))
         {
@@ -229,7 +229,7 @@ public abstract class UnifiedAddress : ZcashAddress
     /// <devremarks>
     /// <see href="https://docs.rs/f4jumble/latest/src/f4jumble/lib.rs.html#208">Some source for inspiration</see> while interpreting the spec.
     /// </devremarks>
-    protected static void F4Jumble(Span<byte> ua, bool inverted = false)
+    private protected static void F4Jumble(Span<byte> ua, bool inverted = false)
     {
         if (ua.Length is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
         {

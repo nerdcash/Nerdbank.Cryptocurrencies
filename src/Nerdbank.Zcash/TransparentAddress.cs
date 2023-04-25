@@ -13,8 +13,8 @@ public abstract class TransparentAddress : ZcashAddress
     /// <summary>
     /// Initializes a new instance of the <see cref="TransparentAddress"/> class.
     /// </summary>
-    /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
-    internal TransparentAddress(ReadOnlySpan<char> address)
+    /// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
+    internal TransparentAddress(string address)
         : base(address)
     {
     }
@@ -24,8 +24,8 @@ public abstract class TransparentAddress : ZcashAddress
     /// </summary>
     internal static int DecodedLength => 22;
 
-    /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
-    internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out TransparentAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+    /// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
+    internal static bool TryParse(string address, [NotNullWhen(true)] out TransparentAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
         if (address.StartsWith("t", StringComparison.OrdinalIgnoreCase) && address.Length > 2)
         {

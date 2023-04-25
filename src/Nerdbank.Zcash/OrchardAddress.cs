@@ -11,7 +11,7 @@ public class OrchardAddress : UnifiedAddress
     private readonly OrchardReceiver receiver;
     private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="OrchardAddress(ReadOnlySpan{char}, in OrchardReceiver, ZcashNetwork)"/>
+    /// <inheritdoc cref="OrchardAddress(string, in OrchardReceiver, ZcashNetwork)"/>
     public OrchardAddress(in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
@@ -22,10 +22,10 @@ public class OrchardAddress : UnifiedAddress
     /// <summary>
     /// Initializes a new instance of the <see cref="OrchardAddress"/> class.
     /// </summary>
-    /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
+    /// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
     /// <param name="receiver">The encoded receiver.</param>
     /// <param name="network">The network to which this address belongs.</param>
-    internal OrchardAddress(ReadOnlySpan<char> address, in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    internal OrchardAddress(string address, in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(address)
     {
         this.receiver = receiver;

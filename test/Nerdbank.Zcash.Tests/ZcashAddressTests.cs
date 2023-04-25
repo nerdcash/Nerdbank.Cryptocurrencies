@@ -14,7 +14,6 @@ public class ZcashAddressTests : TestBase
 
     public static object?[][] InvalidAddresses => new object?[][]
     {
-        new object?[] { null },
         new object?[] { string.Empty },
         new object?[] { "foo" },
     };
@@ -43,6 +42,18 @@ public class ZcashAddressTests : TestBase
     public void TryParse_Invalid(string address)
     {
         Assert.False(ZcashAddress.TryParse(address, out _));
+    }
+
+    [Fact]
+    public void Parse_Null()
+    {
+        Assert.Throws<ArgumentNullException>(() => ZcashAddress.Parse(null!));
+    }
+
+    [Fact]
+    public void TryParse_Null()
+    {
+        Assert.Throws<ArgumentNullException>(() => ZcashAddress.TryParse(null!, out _));
     }
 
     [Theory]

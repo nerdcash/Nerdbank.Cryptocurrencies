@@ -18,7 +18,7 @@ internal class CompoundUnifiedAddress : UnifiedAddress
     /// </summary>
     /// <param name="address">The Unified Address from which this instance was constructed.</param>
     /// <param name="receivers">The embedded receivers in this unified address, in order of preference.</param>
-    internal CompoundUnifiedAddress(ReadOnlySpan<char> address, ReadOnlyCollection<ZcashAddress> receivers)
+    internal CompoundUnifiedAddress(string address, ReadOnlyCollection<ZcashAddress> receivers)
         : base(address)
     {
         this.receivers = receivers;

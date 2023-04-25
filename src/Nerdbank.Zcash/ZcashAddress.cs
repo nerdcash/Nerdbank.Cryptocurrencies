@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
 
@@ -14,7 +15,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// Initializes a new instance of the <see cref="ZcashAddress"/> class.
     /// </summary>
     /// <param name="address">The address in string form.</param>
-    protected ZcashAddress(ReadOnlySpan<char> address)
+    protected ZcashAddress(string address)
     {
         this.Address = address.ToString();
     }
@@ -57,7 +58,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// <param name="address">The address.</param>
     /// <returns>The parsed address.</returns>
     /// <exception type="InvalidAddressException">Thrown if the address is invalid.</exception>
-    public static ZcashAddress Parse(ReadOnlySpan<char> address)
+    public static ZcashAddress Parse(string address)
     {
         if (!TryParse(address, out ZcashAddress? result, out _, out string? errorMessage))
         {
@@ -67,8 +68,8 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
         return result;
     }
 
-    /// <inheritdoc cref="TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)"/>
-    public static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out ZcashAddress? result) => TryParse(address, out result, out _, out _);
+    /// <inheritdoc cref="TryParse(string, out ZcashAddress?, out ParseError?, out string?)"/>
+    public static bool TryParse(string address, [NotNullWhen(true)] out ZcashAddress? result) => TryParse(address, out result, out _, out _);
 
     /// <summary>
     /// Tries to parse a string of characters as an address.
@@ -78,8 +79,10 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// <param name="errorCode">Receives the error code if parsing fails.</param>
     /// <param name="errorMessage">Receives the error message if the parsing fails.</param>
     /// <returns>A value indicating whether the address parsed to a valid address.</returns>
-    public static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out ZcashAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+    public static bool TryParse(string address, [NotNullWhen(true)] out ZcashAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
+        Requires.NotNull(address, nameof(address));
+
         for (int attempt = 0; ; attempt++)
         {
             switch (attempt)

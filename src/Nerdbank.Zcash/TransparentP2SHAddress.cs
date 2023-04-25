@@ -11,7 +11,7 @@ public class TransparentP2SHAddress : TransparentAddress
     private readonly TransparentP2SHReceiver receiver;
     private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="TransparentP2SHAddress(ReadOnlySpan{char}, in TransparentP2SHReceiver, ZcashNetwork)"/>
+    /// <inheritdoc cref="TransparentP2SHAddress(string, in TransparentP2SHReceiver, ZcashNetwork)"/>
     public TransparentP2SHAddress(in TransparentP2SHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
@@ -21,10 +21,10 @@ public class TransparentP2SHAddress : TransparentAddress
     /// <summary>
     /// Initializes a new instance of the <see cref="TransparentP2SHAddress"/> class.
     /// </summary>
-    /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
+    /// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
     /// <param name="receiver">The encoded receiver.</param>
     /// <param name="network">The network to which this address belongs.</param>
-    internal TransparentP2SHAddress(ReadOnlySpan<char> address, in TransparentP2SHReceiver receiver, ZcashNetwork network)
+    internal TransparentP2SHAddress(string address, in TransparentP2SHReceiver receiver, ZcashNetwork network)
         : base(address)
     {
         this.receiver = receiver;

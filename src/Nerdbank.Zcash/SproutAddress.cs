@@ -13,7 +13,7 @@ public class SproutAddress : ZcashAddress
     private readonly SproutReceiver receiver;
     private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="SproutAddress(ReadOnlySpan{char}, in SproutReceiver, ZcashNetwork)"/>
+    /// <inheritdoc cref="SproutAddress(string, in SproutReceiver, ZcashNetwork)"/>
     public SproutAddress(in SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
@@ -24,10 +24,10 @@ public class SproutAddress : ZcashAddress
     /// <summary>
     /// Initializes a new instance of the <see cref="SproutAddress"/> class.
     /// </summary>
-    /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
+    /// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
     /// <param name="receiver">The encoded receiver.</param>
     /// <param name="network">The network to which this address belongs.</param>
-    private SproutAddress(ReadOnlySpan<char> address, in SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    private SproutAddress(string address, in SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(address)
     {
         this.receiver = receiver;
@@ -51,8 +51,8 @@ public class SproutAddress : ZcashAddress
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
 
-    /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
-    internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out SproutAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+    /// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
+    internal static bool TryParse(string address, [NotNullWhen(true)] out SproutAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
         ZcashNetwork? network =
             address.StartsWith("zc", StringComparison.Ordinal) ? ZcashNetwork.MainNet :
