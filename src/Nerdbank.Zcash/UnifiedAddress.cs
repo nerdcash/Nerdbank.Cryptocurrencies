@@ -45,7 +45,7 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// Gets the receivers for this address, in order of preference.
 	/// </summary>
 	/// <remarks>
-	/// <para>Every address has at least one receiver, if it is valid. A <see cref="UnifiedAddress"/> in this sequence should be interpreted as an Orchard raw receiver.</para>
+	/// <para>Every address has at least one receiver. An <see cref="OrchardAddress"/> will produce only itself.</para>
 	/// </remarks>
 	public abstract IReadOnlyList<ZcashAddress> Receivers { get; }
 

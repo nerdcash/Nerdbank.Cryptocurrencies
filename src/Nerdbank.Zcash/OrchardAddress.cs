@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
+
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -10,6 +12,7 @@ public class OrchardAddress : UnifiedAddress
 {
 	private readonly OrchardReceiver receiver;
 	private readonly ZcashNetwork network;
+	private ReadOnlyCollection<ZcashAddress>? receivers;
 
 	/// <inheritdoc cref="OrchardAddress(string, in OrchardReceiver, ZcashNetwork)"/>
 	public OrchardAddress(in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
@@ -36,7 +39,7 @@ public class OrchardAddress : UnifiedAddress
 	public override ZcashNetwork Network => this.network;
 
 	/// <inheritdoc/>
-	public override IReadOnlyList<ZcashAddress> Receivers => new[] { this };
+	public override IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= new ReadOnlyCollection<ZcashAddress>(new[] { this });
 
 	/// <inheritdoc/>
 	internal override byte UnifiedAddressTypeCode => 0x03;
