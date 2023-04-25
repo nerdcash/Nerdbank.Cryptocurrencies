@@ -9,6 +9,22 @@ namespace Nerdbank.Zcash.Utilities;
 internal static class CompactSize
 {
     /// <summary>
+    /// Gets the number of bytes required to encode an integer.
+    /// </summary>
+    /// <param name="value">The value to be encoded.</param>
+    /// <returns>The number of bytes required.</returns>
+    internal static int GetEncodedLength(ulong value)
+    {
+        return value switch
+        {
+            < 0xfd => 1,
+            <= 0xffff => 3,
+            <= 0xffffffff => 5,
+            _ => 9,
+        };
+    }
+
+    /// <summary>
     /// Encodes an integer.
     /// </summary>
     /// <param name="value">The integer to encode.</param>

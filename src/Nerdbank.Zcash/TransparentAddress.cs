@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A transparent Zcash address.
 /// </summary>
-public class TransparentAddress : ZcashAddress
+public abstract class TransparentAddress : ZcashAddress
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TransparentAddress"/> class.
@@ -18,47 +20,63 @@ public class TransparentAddress : ZcashAddress
     }
 
     /// <summary>
-    /// Gets the type of this transparent address.
-    /// </summary>
-    /// <exception cref="InvalidAddressException">Thrown if the address is invalid.</exception>
-    public string Type
-    {
-        get
-        {
-            Span<byte> raw = stackalloc byte[Base58Check.GetMaximumDecodedLength(this.Address.Length)];
-            this.Decode(raw);
-            return (raw[0], raw[1]) switch
-            {
-                (0x1c, 0xba) or (0x1c, 0xbd) => "P2SH",
-                (0x1c, 0xb8) or (0x1d, 0x25) => "P2PKH",
-                _ => throw new InvalidAddressException(),
-            };
-        }
-    }
-
-    /// <inheritdoc/>
-    public override ZcashNetwork Network
-    {
-        get
-        {
-            Span<byte> raw = stackalloc byte[22];
-            this.Decode(raw);
-            return (raw[0], raw[1]) switch
-            {
-                (0x1c, 0xb8) or (0x1c, 0xbd) => ZcashNetwork.MainNet,
-                (0x1d, 0x25) or (0x1c, 0xba) => ZcashNetwork.TestNet,
-                _ => throw new InvalidAddressException(),
-            };
-        }
-    }
-
-    /// <summary>
     /// Gets the length of the buffer required to decode the address.
     /// </summary>
-    internal int DecodedLength => 22;
+    internal static int DecodedLength => 22;
 
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Transparent;
+
+    /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
+    internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out TransparentAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+    {
+        if (address.StartsWith("t", StringComparison.OrdinalIgnoreCase) && address.Length > 2)
+        {
+            Span<byte> decoded = stackalloc byte[DecodedLength];
+            if (!Base58Check.TryDecode(address, decoded, out DecodeError? decodeError, out errorMessage, out _))
+            {
+                result = null;
+                errorCode = DecodeToParseError(decodeError);
+                return false;
+            }
+
+#pragma warning disable SA1010 // Opening square brackets should be spaced correctly (https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3503)
+            ZcashNetwork? network = decoded[..2] switch
+            {
+                [0x1c, 0xbd] or [0x1c, 0xb8] => ZcashNetwork.MainNet,
+                [0x1c, 0xba] or [0x1d, 0x25] => ZcashNetwork.TestNet,
+                _ => null,
+            };
+
+            if (network is null)
+            {
+                errorCode = ParseError.InvalidAddress;
+                errorMessage = Strings.InvalidNetworkHeader;
+                result = null;
+                return false;
+            }
+
+            result = decoded[..2] switch
+            {
+                [0x1c, 0xb8] or [0x1d, 0x25] => new TransparentP2PKHAddress(address, new TransparentP2PKHReceiver(decoded[2..]), network.Value),
+                [0x1c, 0xbd] or [0x1c, 0xba] => new TransparentP2SHAddress(address, new TransparentP2SHReceiver(decoded[2..]), network.Value),
+                _ => null,
+            };
+#pragma warning restore SA1010 // Opening square brackets should be spaced correctly
+
+            if (result is not null)
+            {
+                errorMessage = null;
+                errorCode = null;
+                return true;
+            }
+        }
+
+        result = null;
+        errorCode = ParseError.UnrecognizedAddressType;
+        errorMessage = Strings.UnrecognizedAddress;
+        return false;
+    }
 
     /// <summary>
     /// Decodes the address to its raw encoding.

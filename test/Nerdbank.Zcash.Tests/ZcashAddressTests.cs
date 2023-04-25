@@ -46,11 +46,13 @@ public class ZcashAddressTests : TestBase
     }
 
     [Theory]
-    [InlineData(ValidUnifiedAddressOrchard, typeof(UnifiedAddress))]
-    [InlineData(ValidUnifiedAddressOrchardSapling, typeof(UnifiedAddress))]
+    [InlineData(ValidUnifiedAddressOrchard, typeof(OrchardAddress))]
+    [InlineData(ValidUnifiedAddressOrchardSapling, typeof(CompoundUnifiedAddress))]
+    [InlineData(ValidUnifiedAddressSapling, typeof(CompoundUnifiedAddress))]
     [InlineData(ValidSaplingAddress, typeof(SaplingAddress))]
     [InlineData(ValidSproutAddress, typeof(SproutAddress))]
-    [InlineData(ValidTransparentP2PKHAddress, typeof(TransparentAddress))]
+    [InlineData(ValidTransparentP2PKHAddress, typeof(TransparentP2PKHAddress))]
+    ////[InlineData(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
     public void Parse_ReturnsAppropriateType(string address, Type expectedKind)
     {
         ZcashAddress addr = ZcashAddress.Parse(address);
