@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
@@ -32,8 +33,8 @@ public unsafe struct SproutReceiver : IPoolReceiver
             throw new ArgumentException($"Length must be exactly {FieldLength}, but was {pkEnc.Length}.", nameof(pkEnc));
         }
 
-        apk.CopyTo(this.Apk);
-        pkEnc.CopyTo(this.PkEnc);
+        apk.CopyTo(this.ApkWritable);
+        pkEnc.CopyTo(this.PkEncWritable);
     }
 
     /// <summary>
@@ -48,7 +49,7 @@ public unsafe struct SproutReceiver : IPoolReceiver
             throw new ArgumentException($"Length must be exactly {Length}, but was {receiver.Length}.", nameof(receiver));
         }
 
-        receiver.CopyTo(this.GetSpan());
+        receiver.CopyTo(this.SpanWritable);
     }
 
     /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
@@ -58,10 +59,26 @@ public unsafe struct SproutReceiver : IPoolReceiver
     /// <summary>
     /// Gets the a{pk} on the receiver.
     /// </summary>
-    public Span<byte> Apk => MemoryMarshal.CreateSpan(ref this.backing[0], FieldLength);
+    public readonly ReadOnlySpan<byte> Apk => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), FieldLength);
 
     /// <summary>
     /// Gets the pk{enc} on the receiver.
     /// </summary>
-    public Span<byte> PkEnc => MemoryMarshal.CreateSpan(ref this.backing[FieldLength], FieldLength);
+    public readonly ReadOnlySpan<byte> PkEnc => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[FieldLength]), FieldLength);
+
+    /// <inheritdoc />
+    public readonly ReadOnlySpan<byte> Span => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), Length);
+
+    /// <inheritdoc cref="Span" />
+    private Span<byte> SpanWritable => MemoryMarshal.CreateSpan(ref this.backing[0], Length);
+
+    /// <summary>
+    /// Gets the a{pk} on the receiver.
+    /// </summary>
+    private Span<byte> ApkWritable => MemoryMarshal.CreateSpan(ref this.backing[0], FieldLength);
+
+    /// <summary>
+    /// Gets the pk{enc} on the receiver.
+    /// </summary>
+    private Span<byte> PkEncWritable => MemoryMarshal.CreateSpan(ref this.backing[FieldLength], FieldLength);
 }

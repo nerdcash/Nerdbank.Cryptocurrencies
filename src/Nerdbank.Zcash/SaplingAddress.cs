@@ -16,8 +16,8 @@ public class SaplingAddress : ZcashAddress
     private readonly SaplingReceiver receiver;
     private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="SaplingAddress(ReadOnlySpan{char}, SaplingReceiver, ZcashNetwork)"/>
-    public SaplingAddress(SaplingReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    /// <inheritdoc cref="SaplingAddress(ReadOnlySpan{char}, in SaplingReceiver, ZcashNetwork)"/>
+    public SaplingAddress(in SaplingReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
         this.receiver = receiver;
@@ -29,7 +29,7 @@ public class SaplingAddress : ZcashAddress
     /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
     /// <param name="receiver">The encoded receiver.</param>
     /// <param name="network">The network to which this address belongs.</param>
-    private SaplingAddress(ReadOnlySpan<char> address, SaplingReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    private SaplingAddress(ReadOnlySpan<char> address, in SaplingReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(address)
     {
         this.network = network;
@@ -50,7 +50,7 @@ public class SaplingAddress : ZcashAddress
     internal override byte UnifiedAddressTypeCode => 0x02;
 
     /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.GetReadOnlySpan().Length;
+    internal override int ReceiverEncodingLength => this.receiver.Span.Length;
 
     /// <inheritdoc/>
     public override bool SupportsPool(Pool pool) => pool == Pool.Sapling;
@@ -99,7 +99,7 @@ public class SaplingAddress : ZcashAddress
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
-        ReadOnlySpan<byte> receiverSpan = this.receiver.GetReadOnlySpan();
+        ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
         receiverSpan.CopyTo(output);
         return receiverSpan.Length;
     }
@@ -127,7 +127,7 @@ public class SaplingAddress : ZcashAddress
         return Bech32.Original.TryDecode(this.Address, tag, data, out _, out _, out _);
     }
 
-    private static string CreateAddress(SaplingReceiver receiver, ZcashNetwork network)
+    private static string CreateAddress(in SaplingReceiver receiver, ZcashNetwork network)
     {
         string humanReadablePart = network switch
         {
@@ -135,7 +135,7 @@ public class SaplingAddress : ZcashAddress
             ZcashNetwork.TestNet => TestNetHumanReadablePart,
             _ => throw new NotSupportedException("Unrecognized network."),
         };
-        Span<byte> receiverSpan = receiver.GetSpan();
+        ReadOnlySpan<byte> receiverSpan = receiver.Span;
         Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, receiverSpan.Length)];
         int charsLength = Bech32.Original.Encode(humanReadablePart, receiverSpan, addressChars);
         return addressChars.Slice(0, charsLength).ToString();

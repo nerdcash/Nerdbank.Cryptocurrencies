@@ -11,8 +11,8 @@ public class TransparentP2SHAddress : TransparentAddress
     private readonly TransparentP2SHReceiver receiver;
     private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="TransparentP2SHAddress(ReadOnlySpan{char}, TransparentP2SHReceiver, ZcashNetwork)"/>
-    public TransparentP2SHAddress(TransparentP2SHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    /// <inheritdoc cref="TransparentP2SHAddress(ReadOnlySpan{char}, in TransparentP2SHReceiver, ZcashNetwork)"/>
+    public TransparentP2SHAddress(in TransparentP2SHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
         this.receiver = receiver;
@@ -24,7 +24,7 @@ public class TransparentP2SHAddress : TransparentAddress
     /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
     /// <param name="receiver">The encoded receiver.</param>
     /// <param name="network">The network to which this address belongs.</param>
-    internal TransparentP2SHAddress(ReadOnlySpan<char> address, TransparentP2SHReceiver receiver, ZcashNetwork network)
+    internal TransparentP2SHAddress(ReadOnlySpan<char> address, in TransparentP2SHReceiver receiver, ZcashNetwork network)
         : base(address)
     {
         this.receiver = receiver;
@@ -38,7 +38,7 @@ public class TransparentP2SHAddress : TransparentAddress
     internal override byte UnifiedAddressTypeCode => 0x01;
 
     /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.GetReadOnlySpan().Length;
+    internal override int ReceiverEncodingLength => this.receiver.Span.Length;
 
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2SHReceiver, TPoolReceiver>(this.receiver);
@@ -46,12 +46,12 @@ public class TransparentP2SHAddress : TransparentAddress
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
-        ReadOnlySpan<byte> receiverSpan = this.receiver.GetReadOnlySpan();
+        ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
         receiverSpan.CopyTo(output);
         return receiverSpan.Length;
     }
 
-    private static string CreateAddress(TransparentP2SHReceiver receiver, ZcashNetwork network)
+    private static string CreateAddress(in TransparentP2SHReceiver receiver, ZcashNetwork network)
     {
         Span<byte> input = stackalloc byte[2 + receiver.ScriptHash.Length];
         (input[0], input[1]) = network switch

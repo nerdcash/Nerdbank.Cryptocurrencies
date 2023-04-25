@@ -214,7 +214,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     protected abstract bool CheckValidity(bool throwIfInvalid = false);
 
     /// <summary>
-    /// Gets the length of the buffer required to call <see cref="WriteUAContribution{TReceiver}(TReceiver, Span{byte})"/>.
+    /// Gets the length of the buffer required to call <see cref="WriteUAContribution{TReceiver}(in TReceiver, Span{byte})"/>.
     /// </summary>
     /// <typeparam name="TReceiver">The type of receiver to be written.</typeparam>
     /// <returns>The length of the required buffer, in bytes.</returns>
@@ -236,8 +236,8 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     {
         int bytesWritten = 0;
         destination[bytesWritten++] = TReceiver.UnifiedReceiverTypeCode;
-        bytesWritten += CompactSize.Encode((ulong)receiver.GetReadOnlySpan().Length, destination.Slice(bytesWritten));
-        ReadOnlySpan<byte> receiverSpan = receiver.GetReadOnlySpan();
+        bytesWritten += CompactSize.Encode((ulong)receiver.Span.Length, destination.Slice(bytesWritten));
+        ReadOnlySpan<byte> receiverSpan = receiver.Span;
         receiverSpan.CopyTo(destination.Slice(bytesWritten));
         bytesWritten += receiverSpan.Length;
         return bytesWritten;
@@ -250,7 +250,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// <typeparam name="TTarget">The generic type parameter provided to the caller, to which the receiver must be cast.</typeparam>
     /// <param name="receiver">The receiver to be cast.</param>
     /// <returns>The re-cast receiver.</returns>
-    private protected static TTarget? CastReceiver<TNative, TTarget>(TNative receiver)
+    private protected static TTarget? CastReceiver<TNative, TTarget>(in TNative receiver)
         where TNative : unmanaged, IPoolReceiver
         where TTarget : unmanaged, IPoolReceiver
     {
@@ -265,7 +265,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// <typeparam name="TTarget">The generic type parameter provided to the caller, to which the receiver must be cast.</typeparam>
     /// <param name="receiver">The receiver to be cast.</param>
     /// <returns>The re-cast receiver, or <see langword="null" /> if the types do not match.</returns>
-    private protected static TTarget? AsReceiver<TNative, TTarget>(TNative receiver)
+    private protected static TTarget? AsReceiver<TNative, TTarget>(in TNative receiver)
         where TNative : unmanaged, IPoolReceiver
         where TTarget : unmanaged, IPoolReceiver
     {

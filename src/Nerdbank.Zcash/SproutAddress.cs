@@ -13,8 +13,8 @@ public class SproutAddress : ZcashAddress
     private readonly SproutReceiver receiver;
     private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="SproutAddress(ReadOnlySpan{char}, SproutReceiver, ZcashNetwork)"/>
-    public SproutAddress(SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    /// <inheritdoc cref="SproutAddress(ReadOnlySpan{char}, in SproutReceiver, ZcashNetwork)"/>
+    public SproutAddress(in SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
         this.receiver = receiver;
@@ -27,7 +27,7 @@ public class SproutAddress : ZcashAddress
     /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
     /// <param name="receiver">The encoded receiver.</param>
     /// <param name="network">The network to which this address belongs.</param>
-    private SproutAddress(ReadOnlySpan<char> address, SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    private SproutAddress(ReadOnlySpan<char> address, in SproutReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(address)
     {
         this.receiver = receiver;
@@ -46,7 +46,7 @@ public class SproutAddress : ZcashAddress
     internal override byte UnifiedAddressTypeCode => throw new NotSupportedException();
 
     /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.GetReadOnlySpan().Length;
+    internal override int ReceiverEncodingLength => this.receiver.Span.Length;
 
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
@@ -85,7 +85,7 @@ public class SproutAddress : ZcashAddress
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
-        ReadOnlySpan<byte> receiverSpan = this.receiver.GetReadOnlySpan();
+        ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
         receiverSpan.CopyTo(output);
         return receiverSpan.Length;
     }
@@ -105,9 +105,9 @@ public class SproutAddress : ZcashAddress
         return Base58Check.TryDecode(this.Address, data, out _, out _, out _);
     }
 
-    private static string CreateAddress(SproutReceiver receiver, ZcashNetwork network)
+    private static string CreateAddress(in SproutReceiver receiver, ZcashNetwork network)
     {
-        Span<byte> receiverSpan = receiver.GetSpan();
+        ReadOnlySpan<byte> receiverSpan = receiver.Span;
         Span<byte> input = stackalloc byte[2 + receiverSpan.Length];
         (input[0], input[1]) = network switch
         {

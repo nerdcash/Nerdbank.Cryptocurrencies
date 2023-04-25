@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
@@ -33,8 +34,8 @@ public unsafe struct OrchardReceiver : IPoolReceiver
             throw new ArgumentException($"Length must be exactly {PkdLength}, but was {pkd.Length}.", nameof(pkd));
         }
 
-        d.CopyTo(this.D);
-        pkd.CopyTo(this.Pkd);
+        d.CopyTo(this.DWritable);
+        pkd.CopyTo(this.PkdWritable);
     }
 
     /// <summary>
@@ -49,7 +50,7 @@ public unsafe struct OrchardReceiver : IPoolReceiver
             throw new ArgumentException($"Length must be exactly {Length}, but was {receiver.Length}.", nameof(receiver));
         }
 
-        receiver.CopyTo(this.GetSpan());
+        receiver.CopyTo(this.SpanWritable);
     }
 
     /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
@@ -58,10 +59,26 @@ public unsafe struct OrchardReceiver : IPoolReceiver
     /// <summary>
     /// Gets the LEBS2OSP(d) on the receiver.
     /// </summary>
-    public Span<byte> D => MemoryMarshal.CreateSpan(ref this.backing[0], DLength);
+    public readonly ReadOnlySpan<byte> D => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), DLength);
 
     /// <summary>
     /// Gets the LEBS2OSP(repr(pkd)) on the receiver.
     /// </summary>
-    public Span<byte> Pkd => MemoryMarshal.CreateSpan(ref this.backing[DLength], PkdLength);
+    public readonly ReadOnlySpan<byte> Pkd => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[DLength]), PkdLength);
+
+    /// <inheritdoc />
+    public readonly ReadOnlySpan<byte> Span => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), Length);
+
+    /// <inheritdoc cref="Span" />
+    private Span<byte> SpanWritable => MemoryMarshal.CreateSpan(ref this.backing[0], Length);
+
+    /// <summary>
+    /// Gets the LEBS2OSP(d) on the receiver.
+    /// </summary>
+    private Span<byte> DWritable => MemoryMarshal.CreateSpan(ref this.backing[0], DLength);
+
+    /// <summary>
+    /// Gets the LEBS2OSP(repr(pkd)) on the receiver.
+    /// </summary>
+    private Span<byte> PkdWritable => MemoryMarshal.CreateSpan(ref this.backing[DLength], PkdLength);
 }

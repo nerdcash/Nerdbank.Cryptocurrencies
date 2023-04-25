@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
@@ -27,7 +28,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
             throw new ArgumentException($"Length must be exactly {Length}, but was {p2pkh.Length}.", nameof(p2pkh));
         }
 
-        p2pkh.CopyTo(this.ValidatingKeyHash);
+        p2pkh.CopyTo(this.ValidatingKeyHashWritable);
     }
 
     /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
@@ -36,5 +37,13 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
     /// <summary>
     /// Gets the validating key hash.
     /// </summary>
-    public Span<byte> ValidatingKeyHash => MemoryMarshal.CreateSpan(ref this.validatingKeyHash[0], Length);
+    public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
+
+    /// <inheritdoc />
+    public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
+
+    /// <summary>
+    /// Gets the validating key hash.
+    /// </summary>
+    private Span<byte> ValidatingKeyHashWritable => MemoryMarshal.CreateSpan(ref this.validatingKeyHash[0], Length);
 }

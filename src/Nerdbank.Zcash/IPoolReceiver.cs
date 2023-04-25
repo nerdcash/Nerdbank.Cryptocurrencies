@@ -12,4 +12,9 @@ public interface IPoolReceiver
     /// Gets the type code that identifies the type of receiver in a Unified Address.
     /// </summary>
     static abstract byte UnifiedReceiverTypeCode { get; }
+
+    /// <summary>
+    /// Gets a span encompassing the entire receiver.
+    /// </summary>
+    ReadOnlySpan<byte> Span { get; }
 }

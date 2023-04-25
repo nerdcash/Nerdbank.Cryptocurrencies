@@ -11,7 +11,7 @@ public class OrchardAddress : UnifiedAddress
     private readonly OrchardReceiver receiver;
     private readonly ZcashNetwork network;
 
-    /// <inheritdoc cref="OrchardAddress(ReadOnlySpan{char}, OrchardReceiver, ZcashNetwork)"/>
+    /// <inheritdoc cref="OrchardAddress(ReadOnlySpan{char}, in OrchardReceiver, ZcashNetwork)"/>
     public OrchardAddress(OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
@@ -25,7 +25,7 @@ public class OrchardAddress : UnifiedAddress
     /// <param name="address"><inheritdoc cref="ZcashAddress(ReadOnlySpan{char})" path="/param"/></param>
     /// <param name="receiver">The encoded receiver.</param>
     /// <param name="network">The network to which this address belongs.</param>
-    internal OrchardAddress(ReadOnlySpan<char> address, OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    internal OrchardAddress(ReadOnlySpan<char> address, in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(address)
     {
         this.receiver = receiver;
@@ -39,7 +39,7 @@ public class OrchardAddress : UnifiedAddress
     internal override byte UnifiedAddressTypeCode => 0x03;
 
     /// <inheritdoc/>
-    internal override int ReceiverEncodingLength => this.receiver.GetReadOnlySpan().Length;
+    internal override int ReceiverEncodingLength => this.receiver.Span.Length;
 
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);
@@ -50,12 +50,12 @@ public class OrchardAddress : UnifiedAddress
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
-        ReadOnlySpan<byte> receiverSpan = this.receiver.GetReadOnlySpan();
+        ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
         receiverSpan.CopyTo(output);
         return receiverSpan.Length;
     }
 
-    private static unsafe string CreateAddress(OrchardReceiver receiver, ZcashNetwork network)
+    private static unsafe string CreateAddress(in OrchardReceiver receiver, ZcashNetwork network)
     {
         string humanReadablePart = network switch
         {

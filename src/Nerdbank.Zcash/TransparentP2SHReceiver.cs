@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
@@ -27,7 +28,7 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
             throw new ArgumentException($"Length must be exactly {Length}, but was {p2sh.Length}.", nameof(p2sh));
         }
 
-        p2sh.CopyTo(this.ScriptHash);
+        p2sh.CopyTo(this.ScriptHashWritable);
     }
 
     /// <summary>
@@ -39,5 +40,13 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
     /// <summary>
     /// Gets the script hash.
     /// </summary>
-    public Span<byte> ScriptHash => MemoryMarshal.CreateSpan(ref this.scriptHash[0], Length);
+    public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
+
+    /// <inheritdoc />
+    public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
+
+    /// <summary>
+    /// Gets the script hash.
+    /// </summary>
+    private Span<byte> ScriptHashWritable => MemoryMarshal.CreateSpan(ref this.scriptHash[0], Length);
 }
