@@ -33,7 +33,7 @@ public abstract class UnifiedAddress : ZcashAddress
     /// Initializes a new instance of the <see cref="UnifiedAddress"/> class.
     /// </summary>
     /// <param name="address"><inheritdoc cref="ZcashAddress.ZcashAddress(string)" path="/param"/></param>
-    internal UnifiedAddress(string address)
+    public UnifiedAddress(string address)
         : base(address)
     {
     }

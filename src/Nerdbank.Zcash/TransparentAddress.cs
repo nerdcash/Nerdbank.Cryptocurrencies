@@ -14,7 +14,7 @@ public abstract class TransparentAddress : ZcashAddress
     /// Initializes a new instance of the <see cref="TransparentAddress"/> class.
     /// </summary>
     /// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
-    internal TransparentAddress(string address)
+    public TransparentAddress(string address)
         : base(address)
     {
     }
