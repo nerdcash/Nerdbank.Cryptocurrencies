@@ -74,15 +74,4 @@ public abstract class TransparentAddress : ZcashAddress
 		errorMessage = Strings.UnrecognizedAddress;
 		return false;
 	}
-
-	/// <summary>
-	/// Decodes the address to its raw encoding.
-	/// </summary>
-	/// <param name="rawEncoding">
-	/// Receives the raw encoding of the data within the address. This should be at least <see cref="DecodedLength"/> in length.
-	/// This will include the 2 byte header and the 20 byte hash of the script or validating key.
-	/// </param>
-	/// <returns>The actual length of the decoded bytes written to <paramref name="rawEncoding"/>.</returns>
-	/// <exception cref="FormatException">Thrown if the address is invalid.</exception>
-	internal int Decode(Span<byte> rawEncoding) => Base58Check.Decode(this.Address, rawEncoding);
 }

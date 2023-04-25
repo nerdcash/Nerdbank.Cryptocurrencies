@@ -101,15 +101,6 @@ public class SaplingAddress : ZcashAddress
 		return receiverSpan.Length;
 	}
 
-	/// <summary>
-	/// Decodes the address to its raw encoding.
-	/// </summary>
-	/// <param name="humanReadablePart">Receives the human-readable part of the address (e.g. "zs" or "ztestsapling").</param>
-	/// <param name="data">Receives the raw encoding of the data within the address.</param>
-	/// <returns>The actual length of the decoded bytes written to <paramref name="humanReadablePart"/> and <paramref name="data"/>.</returns>
-	/// <exception cref="FormatException">Thrown if the address is invalid.</exception>
-	internal (int HumanReadablePartLength, int DataLength) Decode(Span<char> humanReadablePart, Span<byte> data) => Bech32.Original.Decode(this.Address, humanReadablePart, data);
-
 	private static string CreateAddress(in SaplingReceiver receiver, ZcashNetwork network)
 	{
 		string humanReadablePart = network switch

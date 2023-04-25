@@ -10,6 +10,7 @@ public class ZcashAddressTests : TestBase
 		new object[] { ValidSaplingAddress },
 		new object[] { ValidSproutAddress },
 		new object[] { ValidTransparentP2PKHAddress },
+		new object[] { ValidTransparentP2SHAddress },
 	};
 
 	public static object?[][] InvalidAddresses => new object?[][]
@@ -63,7 +64,7 @@ public class ZcashAddressTests : TestBase
 	[InlineData(ValidSaplingAddress, typeof(SaplingAddress))]
 	[InlineData(ValidSproutAddress, typeof(SproutAddress))]
 	[InlineData(ValidTransparentP2PKHAddress, typeof(TransparentP2PKHAddress))]
-	////[InlineData(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
+	[InlineData(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
 	public void Parse_ReturnsAppropriateType(string address, Type expectedKind)
 	{
 		ZcashAddress addr = ZcashAddress.Parse(address);
@@ -76,5 +77,25 @@ public class ZcashAddressTests : TestBase
 		ZcashAddress addr = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
 		string str = addr;
 		Assert.Equal(ValidTransparentP2PKHAddress, str);
+	}
+
+	[Fact]
+	public void Equality()
+	{
+		ZcashAddress addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		ZcashAddress addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		ZcashAddress addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		Assert.Equal(addr1a, addr1b);
+		Assert.NotEqual(addr1a, addr2);
+	}
+
+	[Fact]
+	public void HashCodes()
+	{
+		ZcashAddress addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		ZcashAddress addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		ZcashAddress addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		Assert.Equal(addr1a.GetHashCode(), addr1b.GetHashCode());
+		Assert.NotEqual(addr1a.GetHashCode(), addr2.GetHashCode());
 	}
 }

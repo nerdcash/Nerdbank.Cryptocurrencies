@@ -43,12 +43,43 @@ public class UnifiedAddressTests : TestBase
 	}
 
 	[Fact]
-	public void Create_InvalidInputs()
+	public void Create_RejectsEmptyInputs()
 	{
 		Assert.Throws<ArgumentNullException>(() => UnifiedAddress.Create(null!));
 		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(Array.Empty<ZcashAddress>()));
-		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[] { ZcashAddress.Parse(ValidSaplingAddress), ZcashAddress.Parse(ValidSproutAddress) }));
-		////Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[] { ZcashAddress.Parse(ValidSaplingAddress), ZcashAddress.Parse(ValidTransparentP2SHAddress), ZcashAddress.Parse(ValidTransparentP2PKHAddress) }));
+	}
+
+	[Fact]
+	public void Create_RejectsSproutAddresses()
+	{
+		// Per the spec, sprout addresses are not allowed.
+		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
+		{
+			ZcashAddress.Parse(ValidSaplingAddress),
+			ZcashAddress.Parse(ValidSproutAddress),
+		}));
+	}
+
+	[Fact]
+	public void Create_RejectsP2SHandP2PKHTogether()
+	{
+		// Per the spec, only one transparent address (of either type) is allowed in a UA.
+		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
+		{
+			ZcashAddress.Parse(ValidSaplingAddress),
+			ZcashAddress.Parse(ValidTransparentP2SHAddress),
+			ZcashAddress.Parse(ValidTransparentP2PKHAddress),
+		}));
+	}
+
+	[Fact]
+	public void Create_RejectsTwoSaplings()
+	{
+		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
+		{
+			ZcashAddress.Parse(ValidSaplingAddress),
+			ZcashAddress.Parse(ValidSaplingAddress2),
+		}));
 	}
 
 	/// <summary>
@@ -90,6 +121,12 @@ public class UnifiedAddressTests : TestBase
 			ZcashAddress.Parse(ValidSaplingAddress),
 		});
 		Assert.Equal(ValidUnifiedAddressSapling, addr.ToString());
+	}
+
+	[Fact]
+	public void Network()
+	{
+		Assert.Equal(ZcashNetwork.MainNet, ZcashAddress.Parse(ValidUnifiedAddressSapling).Network);
 	}
 
 	[Theory, MemberData(nameof(InvalidAddresses))]

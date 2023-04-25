@@ -101,6 +101,7 @@ public abstract class UnifiedAddress : ZcashAddress
 		int totalLength = 0;
 
 		bool hasShieldedAddress = false;
+		bool hasTransparentAddress = false;
 		foreach (ZcashAddress receiver in receivers)
 		{
 			try
@@ -110,6 +111,16 @@ public abstract class UnifiedAddress : ZcashAddress
 			catch (NotSupportedException ex)
 			{
 				throw new ArgumentException("Unified Addresses with multiple receivers cannot be specified as one receiver in another UA.", ex);
+			}
+
+			if (receiver is TransparentAddress)
+			{
+				if (hasTransparentAddress)
+				{
+					throw new ArgumentException("Unified Addresses may carry at most one transparent address.");
+				}
+
+				hasTransparentAddress = true;
 			}
 
 			if (!sortedReceiversByTypeCode.TryAdd(receiver.UnifiedAddressTypeCode, receiver))

@@ -16,7 +16,7 @@ public class TransparentAddressTests : TestBase
 	public void Network()
 	{
 		Assert.Equal(ZcashNetwork.MainNet, ParsedP2PKHAddress.Network);
-		////Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2SHAddress)).Network);
+		Assert.Equal(ZcashNetwork.MainNet, Assert.IsAssignableFrom<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2SHAddress)).Network);
 	}
 
 	[Theory, MemberData(nameof(InvalidAddresses))]

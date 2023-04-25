@@ -22,4 +22,14 @@ public class SproutAddressTests : TestBase
 	{
 		Assert.False(ZcashAddress.TryParse(address, out _));
 	}
+
+	[Fact]
+	public void Ctor_Receiver()
+	{
+		SproutReceiver? receiver = ZcashAddress.Parse(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
+		Assert.NotNull(receiver);
+		SproutAddress addr = new(receiver.Value);
+		Assert.Equal(receiver, addr.GetPoolReceiver<SproutReceiver>());
+		Assert.Equal("zc8E5gYid86n4bo2Usdq1cpr7PpfoJGzttwBHEEgGhGkLUg7SPPVFNB2AkRFXZ7usfphup5426dt1buMmY3fkYeRrQGLa8y", addr.Address);
+	}
 }
