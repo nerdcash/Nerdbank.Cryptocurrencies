@@ -53,9 +53,6 @@ public class SaplingAddress : ZcashAddress
     internal override int ReceiverEncodingLength => this.receiver.Span.Length;
 
     /// <inheritdoc/>
-    public override bool SupportsPool(Pool pool) => pool == Pool.Sapling;
-
-    /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SaplingReceiver, TPoolReceiver>(this.receiver);
 
     /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
@@ -112,20 +109,6 @@ public class SaplingAddress : ZcashAddress
     /// <returns>The actual length of the decoded bytes written to <paramref name="humanReadablePart"/> and <paramref name="data"/>.</returns>
     /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
     internal (int HumanReadablePartLength, int DataLength) Decode(Span<char> humanReadablePart, Span<byte> data) => Bech32.Original.Decode(this.Address, humanReadablePart, data);
-
-    /// <inheritdoc/>
-    protected override bool CheckValidity(bool throwIfInvalid = false)
-    {
-        (int Tag, int Data)? length = Bech32.GetDecodedLength(this.Address);
-        if (length is null)
-        {
-            return false;
-        }
-
-        Span<char> tag = stackalloc char[length.Value.Tag];
-        Span<byte> data = stackalloc byte[length.Value.Data];
-        return Bech32.Original.TryDecode(this.Address, tag, data, out _, out _, out _);
-    }
 
     private static string CreateAddress(in SaplingReceiver receiver, ZcashNetwork network)
     {

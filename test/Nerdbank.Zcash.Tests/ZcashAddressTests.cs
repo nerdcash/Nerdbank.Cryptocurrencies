@@ -36,7 +36,7 @@ public class ZcashAddressTests : TestBase
     [Theory, MemberData(nameof(InvalidAddresses))]
     public void Parse_Invalid(string address)
     {
-        Assert.Throws<ArgumentException>(() => ZcashAddress.Parse(address));
+        Assert.Throws<InvalidAddressException>(() => ZcashAddress.Parse(address));
     }
 
     [Theory, MemberData(nameof(InvalidAddresses))]
@@ -57,22 +57,6 @@ public class ZcashAddressTests : TestBase
     {
         ZcashAddress addr = ZcashAddress.Parse(address);
         Assert.IsAssignableFrom(expectedKind, addr);
-    }
-
-    [Theory]
-    [InlineData(ValidUnifiedAddressOrchard, Pool.Orchard)]
-    [InlineData(ValidUnifiedAddressOrchardSapling, Pool.Orchard, Pool.Sapling)]
-    [InlineData(ValidUnifiedAddressOrchardSaplingTransparent, Pool.Orchard, Pool.Sapling, Pool.Transparent)]
-    [InlineData(ValidSaplingAddress, Pool.Sapling)]
-    [InlineData(ValidSproutAddress, Pool.Sprout)]
-    [InlineData(ValidTransparentP2PKHAddress, Pool.Transparent)]
-    public void SupportsPool(string address, params Pool[] pools)
-    {
-        ZcashAddress addr = ZcashAddress.Parse(address);
-        foreach (Pool pool in Enum.GetValues(typeof(Pool)))
-        {
-            Assert.Equal(Array.IndexOf(pools, pool) != -1, addr.SupportsPool(pool));
-        }
     }
 
     [Fact]

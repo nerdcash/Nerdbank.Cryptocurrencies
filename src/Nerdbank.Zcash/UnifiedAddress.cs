@@ -306,20 +306,6 @@ public abstract class UnifiedAddress : ZcashAddress
         }
     }
 
-    /// <inheritdoc/>
-    protected override bool CheckValidity(bool throwIfInvalid = false)
-    {
-        (int Tag, int Data)? length = Bech32.GetDecodedLength(this.Address);
-        if (length is null)
-        {
-            return false;
-        }
-
-        Span<char> tag = stackalloc char[length.Value.Tag];
-        Span<byte> data = stackalloc byte[length.Value.Data];
-        return Bech32.Bech32m.TryDecode(this.Address, tag, data, out _, out _, out _);
-    }
-
     private static ReadOnlyCollection<ZcashAddress> GetReceiversInPreferredOrder(IReadOnlyCollection<ZcashAddress> addresses)
     {
         // Although the UA encoding requires the receivers to be sorted in ascending Type Code order,

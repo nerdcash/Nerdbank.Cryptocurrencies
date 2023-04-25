@@ -26,11 +26,6 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     public abstract ZcashNetwork Network { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the address is valid.
-    /// </summary>
-    internal bool IsValid => this.CheckValidity();
-
-    /// <summary>
     /// Gets the total length of this address's contribution to a unified address.
     /// </summary>
     internal int UAContributionLength => 1 + CompactSize.GetEncodedLength((ulong)this.ReceiverEncodingLength) + this.ReceiverEncodingLength;
@@ -61,12 +56,12 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     /// </summary>
     /// <param name="address">The address.</param>
     /// <returns>The parsed address.</returns>
-    /// <exception type="ArgumentException">Thrown if the address is invalid.</exception>
+    /// <exception type="InvalidAddressException">Thrown if the address is invalid.</exception>
     public static ZcashAddress Parse(ReadOnlySpan<char> address)
     {
         if (!TryParse(address, out ZcashAddress? result, out _, out string? errorMessage))
         {
-            throw new ArgumentException(errorMessage);
+            throw new InvalidAddressException(errorMessage);
         }
 
         return result;
@@ -138,13 +133,6 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
     }
 
     /// <summary>
-    /// Gets a value indicating whether this address is or contains an address for the specified pool.
-    /// </summary>
-    /// <param name="pool">The pool of interest.</param>
-    /// <returns><see langword="true" /> if the address can receive funds for the <paramref name="pool"/>; otherwise <see langword="false"/>.</returns>
-    public abstract bool SupportsPool(Pool pool);
-
-    /// <summary>
     /// Returns the zcash address.
     /// </summary>
     /// <returns>The address.</returns>
@@ -204,14 +192,6 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
         bytesWritten += actualEncodingLength;
         return bytesWritten;
     }
-
-    /// <summary>
-    /// Checks whether the address is valid.
-    /// </summary>
-    /// <param name="throwIfInvalid">A value indicating whether to throw an exception if the address is invalid.</param>
-    /// <returns>A value indicating whether the address is invalid.</returns>
-    /// <exception cref="FormatException">Thrown if <paramref name="throwIfInvalid"/> is <see langword="true" /> and the address is invalid.</exception>
-    protected abstract bool CheckValidity(bool throwIfInvalid = false);
 
     /// <summary>
     /// Gets the length of the buffer required to call <see cref="WriteUAContribution{TReceiver}(in TReceiver, Span{byte})"/>.

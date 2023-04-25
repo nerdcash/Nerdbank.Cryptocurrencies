@@ -12,7 +12,7 @@ public class OrchardAddress : UnifiedAddress
     private readonly ZcashNetwork network;
 
     /// <inheritdoc cref="OrchardAddress(ReadOnlySpan{char}, in OrchardReceiver, ZcashNetwork)"/>
-    public OrchardAddress(OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+    public OrchardAddress(in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
         : base(CreateAddress(receiver, network))
     {
         this.receiver = receiver;
@@ -46,9 +46,6 @@ public class OrchardAddress : UnifiedAddress
 
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);
-
-    /// <inheritdoc/>
-    public override bool SupportsPool(Pool pool) => pool == Pool.Orchard;
 
     /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)

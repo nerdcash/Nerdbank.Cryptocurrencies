@@ -14,6 +14,11 @@ public interface IPoolReceiver
     static abstract byte UnifiedReceiverTypeCode { get; }
 
     /// <summary>
+    /// Gets the pool that this receiver can send funds into.
+    /// </summary>
+    Pool Pool { get; }
+
+    /// <summary>
     /// Gets a span encompassing the entire receiver.
     /// </summary>
     ReadOnlySpan<byte> Span { get; }

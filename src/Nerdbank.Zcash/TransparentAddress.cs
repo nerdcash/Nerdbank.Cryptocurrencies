@@ -24,9 +24,6 @@ public abstract class TransparentAddress : ZcashAddress
     /// </summary>
     internal static int DecodedLength => 22;
 
-    /// <inheritdoc/>
-    public override bool SupportsPool(Pool pool) => pool == Pool.Transparent;
-
     /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
     internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out TransparentAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
@@ -88,31 +85,4 @@ public abstract class TransparentAddress : ZcashAddress
     /// <returns>The actual length of the decoded bytes written to <paramref name="rawEncoding"/>.</returns>
     /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
     internal int Decode(Span<byte> rawEncoding) => Base58Check.Decode(this.Address, rawEncoding);
-
-    /// <inheritdoc/>
-    protected override bool CheckValidity(bool throwIfInvalid = false)
-    {
-        Span<byte> raw = stackalloc byte[this.Address.Length];
-        if (!Base58Check.TryDecode(this.Address, raw, out DecodeError? error, out string? errorMessage, out int decodedLength))
-        {
-            if (throwIfInvalid)
-            {
-                throw new FormatException(errorMessage);
-            }
-
-            return false;
-        }
-
-        if ((raw[0], raw[1]) is not ((0x1c, 0xb8) or (0x1c, 0xbd) or (0x1d, 0x25) or (0x1c, 0xba)))
-        {
-            if (throwIfInvalid)
-            {
-                throw new FormatException("Unrecognized header.");
-            }
-
-            return false;
-        }
-
-        return true;
-    }
 }

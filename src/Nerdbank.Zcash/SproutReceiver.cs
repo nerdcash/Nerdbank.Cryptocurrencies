@@ -56,6 +56,9 @@ public unsafe struct SproutReceiver : IPoolReceiver
     /// <exception cref="NotSupportedException">Always thrown because Unified Addresses do not support sprout receivers.</exception>
     public static byte UnifiedReceiverTypeCode => throw new NotSupportedException();
 
+    /// <inheritdoc/>
+    public Pool Pool => Pool.Sprout;
+
     /// <summary>
     /// Gets the a{pk} on the receiver.
     /// </summary>

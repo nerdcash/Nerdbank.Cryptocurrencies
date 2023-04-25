@@ -56,6 +56,9 @@ public unsafe struct OrchardReceiver : IPoolReceiver
     /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
     public static byte UnifiedReceiverTypeCode => 0x03;
 
+    /// <inheritdoc/>
+    public Pool Pool => Pool.Orchard;
+
     /// <summary>
     /// Gets the LEBS2OSP(d) on the receiver.
     /// </summary>

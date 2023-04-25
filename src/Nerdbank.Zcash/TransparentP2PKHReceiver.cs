@@ -34,6 +34,9 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
     /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
     public static byte UnifiedReceiverTypeCode => 0x02;
 
+    /// <inheritdoc/>
+    public Pool Pool => Pool.Transparent;
+
     /// <summary>
     /// Gets the validating key hash.
     /// </summary>

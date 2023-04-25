@@ -64,9 +64,6 @@ internal class CompoundUnifiedAddress : UnifiedAddress
     }
 
     /// <inheritdoc/>
-    public override bool SupportsPool(Pool pool) => this.receivers.Any(r => r.SupportsPool(pool));
-
-    /// <inheritdoc/>
     internal override int GetReceiverEncoding(Span<byte> output)
     {
         return this.receivers.Count == 1

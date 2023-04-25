@@ -37,6 +37,9 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
     /// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
     public static byte UnifiedReceiverTypeCode => 0x01;
 
+    /// <inheritdoc/>
+    public Pool Pool => Pool.Transparent;
+
     /// <summary>
     /// Gets the script hash.
     /// </summary>

@@ -51,9 +51,6 @@ public class SproutAddress : ZcashAddress
     /// <inheritdoc/>
     public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
 
-    /// <inheritdoc/>
-    public override bool SupportsPool(Pool pool) => pool == Pool.Sprout;
-
     /// <inheritdoc cref="ZcashAddress.TryParse(ReadOnlySpan{char}, out ZcashAddress?, out ParseError?, out string?)" />
     internal static bool TryParse(ReadOnlySpan<char> address, [NotNullWhen(true)] out SproutAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
     {
@@ -97,13 +94,6 @@ public class SproutAddress : ZcashAddress
     /// <returns>The actual length of the decoded bytes written to <paramref name="rawEncoding"/>.</returns>
     /// <exception cref="FormatException">Thrown if the address is invalid.</exception>
     internal int Decode(Span<byte> rawEncoding) => Base58Check.Decode(this.Address, rawEncoding);
-
-    /// <inheritdoc/>
-    protected override bool CheckValidity(bool throwIfInvalid = false)
-    {
-        Span<byte> data = stackalloc byte[Base58Check.GetMaximumDecodedLength(this.Address.Length)];
-        return Base58Check.TryDecode(this.Address, data, out _, out _, out _);
-    }
 
     private static string CreateAddress(in SproutReceiver receiver, ZcashNetwork network)
     {
