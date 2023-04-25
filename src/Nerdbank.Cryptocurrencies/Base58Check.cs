@@ -5,12 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Security.Cryptography;
 
-namespace Nerdbank.Zcash.Utilities;
+namespace Nerdbank.Cryptocurrencies;
 
 /// <summary>
 /// Contains Base58Check encoding and decoding methods.
 /// </summary>
-internal static partial class Base58Check
+public static class Base58Check
 {
 	private const int ChecksumLength = 4;
 
@@ -21,14 +21,14 @@ internal static partial class Base58Check
 	/// </summary>
 	/// <param name="byteCount">The number of bytes to be encoded.</param>
 	/// <returns>The length of the buffer that should be allocated to encode.</returns>
-	internal static int GetMaximumEncodedLength(int byteCount) => ((byteCount + ChecksumLength) * 138 / 100) + 1;
+	public static int GetMaximumEncodedLength(int byteCount) => ((byteCount + ChecksumLength) * 138 / 100) + 1;
 
 	/// <summary>
 	/// Gets the maximum number of bytes that can be decoded from a given number of characters.
 	/// </summary>
 	/// <param name="charCount">The number of encoded characters.</param>
 	/// <returns>The length of the buffer that should be allocated to decode.</returns>
-	internal static int GetMaximumDecodedLength(int charCount) => (charCount * 733 / 1000) + 1;
+	public static int GetMaximumDecodedLength(int charCount) => (charCount * 733 / 1000) + 1;
 
 	/// <summary>
 	/// Encodes some data into a string.
@@ -36,7 +36,7 @@ internal static partial class Base58Check
 	/// <param name="payload">The data to encode. This should usually include the 1-byte version header.</param>
 	/// <param name="chars">Receives the encoded characters.</param>
 	/// <returns>The number of characters written to <paramref name="chars"/>.</returns>
-	internal static int Encode(ReadOnlySpan<byte> payload, Span<char> chars)
+	public static int Encode(ReadOnlySpan<byte> payload, Span<char> chars)
 	{
 		// Compute checksum(payload)
 		Span<byte> checksum = stackalloc byte[ChecksumLength];
@@ -58,7 +58,7 @@ internal static partial class Base58Check
 	/// <returns>The number of bytes written to <paramref name="bytes" />.</returns>
 	/// <exception cref="ArgumentException">Thrown if <paramref name="bytes"/> is not sufficiently large to store the decoded payload.</exception>
 	/// <exception cref="FormatException">Thrown if the checksum fails to match or invalid characters are found.</exception>
-	internal static int Decode(ReadOnlySpan<char> encoded, Span<byte> bytes)
+	public static int Decode(ReadOnlySpan<char> encoded, Span<byte> bytes)
 	{
 		if (!TryDecode(encoded, bytes, out DecodeError? error, out string? errorMessage, out int bytesWritten))
 		{
@@ -81,7 +81,7 @@ internal static partial class Base58Check
 	/// <param name="errorMessage">Receives the error message of a failed decode operation.</param>
 	/// <param name="bytesWritten">Receives the number of bytes written to <paramref name="bytes" />.</param>
 	/// <returns>A value indicating whether decoding was successful.</returns>
-	internal static bool TryDecode(ReadOnlySpan<char> encoded, Span<byte> bytes, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out int bytesWritten)
+	public static bool TryDecode(ReadOnlySpan<char> encoded, Span<byte> bytes, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out int bytesWritten)
 	{
 		Span<byte> rawBytes = stackalloc byte[encoded.Length + ChecksumLength];
 		if (!TryDecodeRaw(encoded, rawBytes, out int decodedCount, out DecodeError? rawDecodeResult, out errorMessage))

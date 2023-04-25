@@ -1,20 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFramework>net7.0</TargetFramework>
     <RootNamespace />
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" />
-    <ProjectReference Include="..\..\src\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" />
   </ItemGroup>
 
 </Project>
