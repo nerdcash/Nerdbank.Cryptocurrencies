@@ -3,6 +3,7 @@
 ***A .NET library for interacting with Zcash***
 
 [![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Zcash.svg)](https://nuget.org/packages/Nerdbank.Zcash)
+[![codecov](https://codecov.io/gh/AArnott/Nerdbank.Zcash/branch/main/graph/badge.svg?token=ATCC7NEXTC)](https://codecov.io/gh/AArnott/Nerdbank.Zcash)
 
 ## Features
 
