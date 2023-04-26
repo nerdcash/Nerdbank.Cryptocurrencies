@@ -55,7 +55,7 @@ public class SproutAddress : ZcashAddress
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
 
 	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
-	internal static bool TryParse(string address, [NotNullWhen(true)] out SproutAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+	internal static unsafe bool TryParse(string address, [NotNullWhen(true)] out SproutAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
 	{
 		ZcashNetwork? network =
 			address.StartsWith("zc", StringComparison.Ordinal) ? ZcashNetwork.MainNet :
@@ -69,14 +69,17 @@ public class SproutAddress : ZcashAddress
 			return false;
 		}
 
-		if (!TryCreateReceiver(address, out SproutReceiver? receiver, out DecodeError? decodeError, out errorMessage))
+		Span<byte> decoded = stackalloc byte[2 + sizeof(SproutReceiver)];
+		if (!Base58Check.TryDecode(address, decoded, out DecodeError? decodeError, out errorMessage, out _))
 		{
 			result = null;
 			errorCode = DecodeToParseError(decodeError);
 			return false;
 		}
 
-		result = new(address, receiver.Value, network.Value);
+		SproutReceiver receiver = new(decoded[2..]);
+
+		result = new(address, receiver, network.Value);
 		errorCode = null;
 		errorMessage = null;
 		return true;
@@ -104,18 +107,5 @@ public class SproutAddress : ZcashAddress
 		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
 		int charsLength = Base58Check.Encode(input, addressChars);
 		return addressChars.Slice(0, charsLength).ToString();
-	}
-
-	private static unsafe bool TryCreateReceiver(ReadOnlySpan<char> address, [NotNullWhen(true)] out SproutReceiver? receiver, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage)
-	{
-		Span<byte> decoded = stackalloc byte[2 + sizeof(SproutReceiver)];
-		if (!Base58Check.TryDecode(address, decoded, out errorCode, out errorMessage, out _))
-		{
-			receiver = null;
-			return false;
-		}
-
-		receiver = new SproutReceiver(decoded[2..]);
-		return true;
 	}
 }

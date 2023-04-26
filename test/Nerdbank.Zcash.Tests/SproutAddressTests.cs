@@ -29,6 +29,7 @@ public class SproutAddressTests : TestBase
 		SproutReceiver? receiver = ZcashAddress.Parse(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
 		Assert.NotNull(receiver);
 		SproutAddress addr = new(receiver.Value);
+		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
 		Assert.Equal(receiver, addr.GetPoolReceiver<SproutReceiver>());
 		Assert.Equal("zc8E5gYid86n4bo2Usdq1cpr7PpfoJGzttwBHEEgGhGkLUg7SPPVFNB2AkRFXZ7usfphup5426dt1buMmY3fkYeRrQGLa8y", addr.Address);
 	}
@@ -39,6 +40,7 @@ public class SproutAddressTests : TestBase
 		SproutReceiver? receiver = ZcashAddress.Parse(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
 		Assert.NotNull(receiver);
 		SproutAddress addr = new(receiver.Value, ZcashNetwork.TestNet);
+		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
 		Assert.Equal(receiver, addr.GetPoolReceiver<SproutReceiver>());
 		Assert.Equal("ztJ1EWLKcGwF2S4NA17pAJVdco8Sdkz4AQPxt1cLTEfNuyNswJJc2BbBqYrsRZsp31xbVZwhF7c7a2L9jsF3p3ZwRWpqqyS", addr.Address);
 	}

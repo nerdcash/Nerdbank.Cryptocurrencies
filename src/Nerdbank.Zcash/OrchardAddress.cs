@@ -62,7 +62,8 @@ public class OrchardAddress : UnifiedAddress
 	{
 		string humanReadablePart = network switch
 		{
-			ZcashNetwork.MainNet => HumanReadablePart,
+			ZcashNetwork.MainNet => HumanReadablePartMainNet,
+			ZcashNetwork.TestNet => HumanReadablePartTestNet,
 			_ => throw new NotSupportedException("Unrecognized network."),
 		};
 

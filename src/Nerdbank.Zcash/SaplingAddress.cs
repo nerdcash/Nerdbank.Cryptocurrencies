@@ -20,6 +20,7 @@ public class SaplingAddress : ZcashAddress
 	public SaplingAddress(in SaplingReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
 		: base(CreateAddress(receiver, network))
 	{
+		this.network = network;
 		this.receiver = receiver;
 	}
 

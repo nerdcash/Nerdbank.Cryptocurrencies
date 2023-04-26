@@ -135,6 +135,9 @@
   <data name="InvalidXAddress" xml:space="preserve">
     <value>This {0} address does to conform to expected requirements.</value>
   </data>
+  <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
+    <value>All receivers must come from the same Zcash network.</value>
+  </data>
   <data name="UnrecognizedAddress" xml:space="preserve">
     <value>This address does not conform to any known format.</value>
   </data>

@@ -3,6 +3,13 @@
 
 public class UnifiedAddressTests : TestBase
 {
+	private readonly ITestOutputHelper logger;
+
+	public UnifiedAddressTests(ITestOutputHelper logger)
+	{
+		this.logger = logger;
+	}
+
 	public static object?[][] InvalidAddresses => new object?[][]
 	{
 		new object?[] { "u1" },
@@ -126,12 +133,52 @@ public class UnifiedAddressTests : TestBase
 	}
 
 	[Fact]
+	public void Create_OrchardSapling_TestNet()
+	{
+		UnifiedAddress addr = UnifiedAddress.Create(
+			new[]
+			{
+				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
+				ZcashAddress.Parse(ValidSaplingAddressTestNet),
+			});
+		this.logger.WriteLine(addr);
+		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
+		Assert.StartsWith("utest1", addr);
+		Assert.Equal(ValidUnifiedAddressOrchardSaplingTestNet, addr.ToString());
+	}
+
+	[Fact]
+	public void Create_OrchardOnly_TestNet()
+	{
+		UnifiedAddress addr = UnifiedAddress.Create(
+			new[]
+			{
+				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
+			});
+		this.logger.WriteLine(addr);
+		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
+		Assert.StartsWith("utest1", addr);
+		Assert.Equal(ValidUnifiedAddressOrchardTestNet, addr.ToString());
+	}
+
+	[Fact]
+	public void Create_RejectsMixedNetworks()
+	{
+		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
+		{
+			ZcashAddress.Parse(ValidSaplingAddressTestNet),
+			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
+		}));
+	}
+
+	[Fact]
 	public void Create_OrchardOnly()
 	{
 		UnifiedAddress addr = UnifiedAddress.Create(new[]
 		{
 			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
 		});
+		this.logger.WriteLine(addr);
 		Assert.Equal(ValidUnifiedAddressOrchard, addr.ToString());
 	}
 
@@ -142,13 +189,30 @@ public class UnifiedAddressTests : TestBase
 		{
 			ZcashAddress.Parse(ValidSaplingAddress),
 		});
+		this.logger.WriteLine(addr);
+		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
 		Assert.Equal(ValidUnifiedAddressSapling, addr.ToString());
 	}
 
 	[Fact]
-	public void Network()
+	public void Create_SaplingOnly_TestNet()
+	{
+		UnifiedAddress addr = UnifiedAddress.Create(
+			new[]
+			{
+				ZcashAddress.Parse(ValidSaplingAddressTestNet),
+			});
+		this.logger.WriteLine(addr);
+		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
+		Assert.StartsWith("utest1", addr);
+		Assert.Equal(ValidUnifiedAddressSaplingTestNet, addr.ToString());
+	}
+
+	[Fact]
+	public void Network_AfterParse()
 	{
 		Assert.Equal(ZcashNetwork.MainNet, ZcashAddress.Parse(ValidUnifiedAddressSapling).Network);
+		Assert.Equal(ZcashNetwork.TestNet, ZcashAddress.Parse(ValidUnifiedAddressSaplingTestNet).Network);
 	}
 
 	[Theory, MemberData(nameof(InvalidAddresses))]

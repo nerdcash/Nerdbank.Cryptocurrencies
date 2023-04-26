@@ -13,9 +13,14 @@ namespace Nerdbank.Zcash;
 public abstract class UnifiedAddress : ZcashAddress
 {
 	/// <summary>
-	/// The human-readable part of a Unified Address.
+	/// The human-readable part of a Unified Address on mainnet.
 	/// </summary>
-	private protected const string HumanReadablePart = "u";
+	private protected const string HumanReadablePartMainNet = "u";
+
+	/// <summary>
+	/// The human-readable part of a Unified Address on testnet.
+	/// </summary>
+	private protected const string HumanReadablePartTestNet = "utest";
 
 	/// <summary>
 	/// The shortest allowed length of the input to the <see cref="F4Jumble"/> function.
@@ -39,7 +44,7 @@ public abstract class UnifiedAddress : ZcashAddress
 	}
 
 	/// <inheritdoc/>
-	public override ZcashNetwork Network => ZcashNetwork.MainNet;
+	public override ZcashNetwork Network => this.Receivers[0].Network;
 
 	/// <summary>
 	/// Gets the receivers for this address, in order of preference.
@@ -84,6 +89,7 @@ public abstract class UnifiedAddress : ZcashAddress
 
 		bool hasShieldedAddress = false;
 		bool hasTransparentAddress = false;
+		ZcashNetwork? network = null;
 		foreach (ZcashAddress receiver in receivers)
 		{
 			try
@@ -110,6 +116,15 @@ public abstract class UnifiedAddress : ZcashAddress
 				throw new ArgumentException($"Only one of each type of address is allowed, but more than one {receiver.GetType().Name} was specified.", nameof(receivers));
 			}
 
+			if (network is null)
+			{
+				network = receiver.Network;
+			}
+			else if (network != receiver.Network)
+			{
+				throw new ArgumentException(Strings.MixingNetworksInUANotAllowed, nameof(receivers));
+			}
+
 			totalLength += receiver.UAContributionLength;
 		}
 
@@ -129,8 +144,15 @@ public abstract class UnifiedAddress : ZcashAddress
 
 		Assumes.True(uaBytesWritten == ua.Length);
 
-		Span<char> result = stackalloc char[Bech32.GetEncodedLength(HumanReadablePart.Length, ua.Length)];
-		int finalLength = Bech32.Bech32m.Encode(HumanReadablePart, ua, result);
+		string humanReadablePart = network switch
+		{
+			ZcashNetwork.MainNet => HumanReadablePartMainNet,
+			ZcashNetwork.TestNet => HumanReadablePartTestNet,
+			_ => throw new NotSupportedException(),
+		};
+
+		Span<char> result = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, ua.Length)];
+		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, ua, result);
 		Assumes.True(result.Length == finalLength);
 
 		return new CompoundUnifiedAddress(result.Slice(0, finalLength).ToString(), new(GetReceiversInPreferredOrder(sortedReceiversByTypeCode.Values)));
@@ -139,7 +161,7 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
 	internal static bool TryParse(string address, [NotNullWhen(true)] out UnifiedAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
 	{
-		if (!address.StartsWith("u1"))
+		if (!address.StartsWith("u1", StringComparison.Ordinal) && !address.StartsWith("utest1", StringComparison.Ordinal))
 		{
 			errorCode = ParseError.UnrecognizedAddressType;
 			errorMessage = Strings.UnrecognizedAddress;
@@ -165,7 +187,16 @@ public abstract class UnifiedAddress : ZcashAddress
 			return false;
 		}
 
-		if (!humanReadablePart.SequenceEqual(HumanReadablePart))
+		ZcashNetwork network;
+		if (humanReadablePart.SequenceEqual(HumanReadablePartMainNet))
+		{
+			network = ZcashNetwork.MainNet;
+		}
+		else if (humanReadablePart.SequenceEqual(HumanReadablePartTestNet))
+		{
+			network = ZcashNetwork.TestNet;
+		}
+		else
 		{
 			errorCode = ParseError.UnrecognizedAddressType;
 			errorMessage = Strings.UnrecognizedAddress;
@@ -209,16 +240,16 @@ public abstract class UnifiedAddress : ZcashAddress
 			switch (typeCode)
 			{
 				case 0x00:
-					receiverAddresses.Add(new TransparentP2PKHAddress(new TransparentP2PKHReceiver(receiverData)));
+					receiverAddresses.Add(new TransparentP2PKHAddress(new TransparentP2PKHReceiver(receiverData), network));
 					break;
 				case 0x01:
-					receiverAddresses.Add(new TransparentP2SHAddress(new TransparentP2SHReceiver(receiverData)));
+					receiverAddresses.Add(new TransparentP2SHAddress(new TransparentP2SHReceiver(receiverData), network));
 					break;
 				case 0x02:
-					receiverAddresses.Add(new SaplingAddress(new SaplingReceiver(receiverData)));
+					receiverAddresses.Add(new SaplingAddress(new SaplingReceiver(receiverData), network));
 					break;
 				case 0x03:
-					receiverAddresses.Add(new OrchardAddress(new OrchardReceiver(receiverData)));
+					receiverAddresses.Add(new OrchardAddress(new OrchardReceiver(receiverData), network));
 					break;
 			}
 

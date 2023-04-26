@@ -3,6 +3,13 @@
 
 public class SaplingAddressTests : TestBase
 {
+	private readonly ITestOutputHelper logger;
+
+	public SaplingAddressTests(ITestOutputHelper logger)
+	{
+		this.logger = logger;
+	}
+
 	public static object?[][] InvalidAddresses => new object?[][]
 	{
 		new object?[] { "zs" },
@@ -19,5 +26,14 @@ public class SaplingAddressTests : TestBase
 	public void TryParse_Invalid(string address)
 	{
 		Assert.False(ZcashAddress.TryParse(address, out _));
+	}
+
+	[Fact]
+	public void Ctor_Receiver_TestNet()
+	{
+		SaplingReceiver receiver = new SaplingReceiver(new byte[88 / 8], new byte[256 / 8]);
+		SaplingAddress addr = new(receiver, ZcashNetwork.TestNet);
+		Assert.StartsWith("ztestsapling1", addr.ToString());
+		this.logger.WriteLine(addr);
 	}
 }

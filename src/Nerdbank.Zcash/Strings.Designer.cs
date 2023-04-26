@@ -115,6 +115,15 @@ namespace Nerdbank.Zcash {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All receivers must come from the same Zcash network..
+        /// </summary>
+        internal static string MixingNetworksInUANotAllowed {
+            get {
+                return ResourceManager.GetString("MixingNetworksInUANotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This address does not conform to any known format..
         /// </summary>
         internal static string UnrecognizedAddress {

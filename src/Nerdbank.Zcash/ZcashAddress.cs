@@ -96,7 +96,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 					}
 
 					break;
-				case 1:
+				case 2:
 					if (SproutAddress.TryParse(address, out SproutAddress? sproutAddr, out errorCode, out errorMessage))
 					{
 						result = sproutAddr;
@@ -104,7 +104,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 					}
 
 					break;
-				case 2:
+				case 1:
 					if (SaplingAddress.TryParse(address, out SaplingAddress? saplingAddr, out errorCode, out errorMessage))
 					{
 						result = saplingAddr;
