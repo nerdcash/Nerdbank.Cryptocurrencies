@@ -22,6 +22,6 @@ public class OrchardAddressTests : TestBase
 		OrchardReceiver receiver = new OrchardReceiver(new byte[88 / 8], new byte[256 / 8]);
 		OrchardAddress addr = new(receiver, ZcashNetwork.TestNet);
 		Assert.StartsWith("utest1", addr.ToString());
-		this.logger.WriteLine(addr);
+		this.logger.WriteLine(addr.Address);
 	}
 }

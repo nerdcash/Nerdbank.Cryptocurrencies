@@ -75,7 +75,7 @@ public class ZcashAddressTests : TestBase
 	public void ImplicitlyCastableToString()
 	{
 		ZcashAddress addr = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		string str = addr;
+		string str = addr.Address;
 		Assert.Equal(ValidTransparentP2PKHAddress, str);
 	}
 

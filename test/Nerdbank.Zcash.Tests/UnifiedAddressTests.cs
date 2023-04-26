@@ -141,9 +141,9 @@ public class UnifiedAddressTests : TestBase
 				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
 				ZcashAddress.Parse(ValidSaplingAddressTestNet),
 			});
-		this.logger.WriteLine(addr);
+		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
-		Assert.StartsWith("utest1", addr);
+		Assert.StartsWith("utest1", addr.Address);
 		Assert.Equal(ValidUnifiedAddressOrchardSaplingTestNet, addr.ToString());
 	}
 
@@ -155,9 +155,9 @@ public class UnifiedAddressTests : TestBase
 			{
 				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
 			});
-		this.logger.WriteLine(addr);
+		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
-		Assert.StartsWith("utest1", addr);
+		Assert.StartsWith("utest1", addr.Address);
 		Assert.Equal(ValidUnifiedAddressOrchardTestNet, addr.ToString());
 	}
 
@@ -178,7 +178,7 @@ public class UnifiedAddressTests : TestBase
 		{
 			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
 		});
-		this.logger.WriteLine(addr);
+		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ValidUnifiedAddressOrchard, addr.ToString());
 	}
 
@@ -189,7 +189,7 @@ public class UnifiedAddressTests : TestBase
 		{
 			ZcashAddress.Parse(ValidSaplingAddress),
 		});
-		this.logger.WriteLine(addr);
+		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
 		Assert.Equal(ValidUnifiedAddressSapling, addr.ToString());
 	}
@@ -202,9 +202,9 @@ public class UnifiedAddressTests : TestBase
 			{
 				ZcashAddress.Parse(ValidSaplingAddressTestNet),
 			});
-		this.logger.WriteLine(addr);
+		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
-		Assert.StartsWith("utest1", addr);
+		Assert.StartsWith("utest1", addr.Address);
 		Assert.Equal(ValidUnifiedAddressSaplingTestNet, addr.ToString());
 	}
 
