@@ -38,9 +38,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2C99DF2C-0
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.Tests", "test\Nerdbank.Zcash.Tests\Nerdbank.Zcash.Tests.csproj", "{0F833CBA-991C-4A81-BABB-4964307CCCFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Cryptocurrencies", "src\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj", "{777CF9A5-26F4-42BA-9ECB-5ED6B75D988C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Cryptocurrencies", "src\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj", "{777CF9A5-26F4-42BA-9ECB-5ED6B75D988C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Cryptocurrencies.Tests", "test\Nerdbank.Cryptocurrencies.Tests\Nerdbank.Cryptocurrencies.Tests.csproj", "{46FE7AFC-B261-46A7-9AEC-4EF580608D28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Cryptocurrencies.Tests", "test\Nerdbank.Cryptocurrencies.Tests\Nerdbank.Cryptocurrencies.Tests.csproj", "{46FE7AFC-B261-46A7-9AEC-4EF580608D28}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.Web", "src\Nerdbank.Zcash.Web\Nerdbank.Zcash.Web.csproj", "{F6767CA9-4D7B-439E-A419-A0797D3BCEFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +66,10 @@ Global
 		{46FE7AFC-B261-46A7-9AEC-4EF580608D28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46FE7AFC-B261-46A7-9AEC-4EF580608D28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46FE7AFC-B261-46A7-9AEC-4EF580608D28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6767CA9-4D7B-439E-A419-A0797D3BCEFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6767CA9-4D7B-439E-A419-A0797D3BCEFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6767CA9-4D7B-439E-A419-A0797D3BCEFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6767CA9-4D7B-439E-A419-A0797D3BCEFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,6 +81,7 @@ Global
 		{0F833CBA-991C-4A81-BABB-4964307CCCFF} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
 		{777CF9A5-26F4-42BA-9ECB-5ED6B75D988C} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{46FE7AFC-B261-46A7-9AEC-4EF580608D28} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
+		{F6767CA9-4D7B-439E-A419-A0797D3BCEFA} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}

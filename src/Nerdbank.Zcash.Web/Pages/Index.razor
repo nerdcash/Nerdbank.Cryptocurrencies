@@ -1,0 +1,113 @@
+﻿@page "/"
+@using Nerdbank.Zcash;
+
+<h1>Zcash demo</h1>
+
+<p>
+This site is running locally in your browser and does not send any data to a server.
+</p>
+
+<p>Enter a Zcash address:</p>
+<input @bind="@address" />
+<button class="btn btn-primary" @onclick="ParseAddress">Parse</button>
+
+<p>@errorMessage</p>
+
+<table>
+    <tr>
+        <td nowrap>Original address</td>
+        <td><pre>@interpretedAddress</pre></td>
+    </tr>
+    <tr>
+        <td>Network</td>
+        <td>@network</td>
+    </tr>
+    <tr>
+        <td nowrap>🔍 Transparent address</td>
+        <td><pre>@transparentAddress</pre></td>
+    </tr>
+    <tr>
+        <td>🛡️ Sprout address</td>
+        <td><pre>@sproutAddress</pre></td>
+    </tr>
+    <tr>
+        <td>🛡️ Sapling address</td>
+        <td><pre>@saplingAddress</pre></td>
+    </tr>
+    <tr>
+        <td>🛡️ Orchard address</td>
+        <td><pre>@orchardAddress</pre></td>
+    </tr>
+</table>
+
+<p>Enter one or more addresses to form into a Unified Address:</p>
+<textarea @bind="@userAddressList" />
+<br/>
+<button class="btn btn-primary" @onclick="CreateUnifiedAddress">Create</button>
+
+<hr/>
+
+<p>
+    This site and the .NET library that powers it are open source and available on GitHub: <a href="https://github.com/AArnott/Nerdbank.Cryptocurrencies/">Nerdbank.Cryptocurrencies</a>.
+</p>
+
+@code {
+    private string address = string.Empty;
+    private string? errorMessage;
+
+    private string? interpretedAddress;
+    private string? network;
+    private string? transparentAddress;
+    private string? sproutAddress;
+    private string? saplingAddress;
+    private string? orchardAddress;
+
+    private void ParseAddress()
+    {
+        this.interpretedAddress = this.address;
+        if (ZcashAddress.TryParse(this.address, out ZcashAddress? addr, out _, out errorMessage))
+        {
+            this.network = addr.Network.ToString();
+            this.transparentAddress = GetReceiverAddress<TransparentAddress>(addr);
+            this.sproutAddress = GetReceiverAddress<SproutAddress>(addr);
+            this.saplingAddress = GetReceiverAddress<SaplingAddress>(addr);
+            this.orchardAddress = GetReceiverAddress<OrchardAddress>(addr);
+        }
+        else
+        {
+            this.network = null;
+            this.transparentAddress = null;
+            this.sproutAddress = null;
+            this.saplingAddress = null;
+            this.orchardAddress = null;
+        }
+    }
+
+    private static string? GetReceiverAddress<T>(ZcashAddress addr)
+        where T: ZcashAddress
+    {
+        if (addr is T)
+        {
+            return addr.Address;
+        }
+
+        if (addr is UnifiedAddress uAddr)
+        {
+            return uAddr.Receivers.OfType<T>().FirstOrDefault()?.Address;
+        }
+
+        return null;
+    }
+
+    private string? userAddressList;
+
+    private void CreateUnifiedAddress()
+    {
+        if (!string.IsNullOrWhiteSpace(this.userAddressList))
+        {
+            var addrs = this.userAddressList.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Select(ZcashAddress.Parse).ToList();
+            this.address = UnifiedAddress.Create(addrs).ToString();
+            this.ParseAddress();
+        }
+    }
+}
