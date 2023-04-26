@@ -83,7 +83,7 @@ public class SaplingAddress : ZcashAddress
 
 		result = null;
 		errorCode = ParseError.UnrecognizedAddressType;
-		errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.InvalidXAddress, "sapling");
+		errorMessage = Strings.FormatInvalidXAddress("sapling");
 		return false;
 	}
 
