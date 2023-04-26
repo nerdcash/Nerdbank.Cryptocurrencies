@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A shielded Zcash address belonging to the <see cref="Pool.Sapling"/> pool.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(Address)},nq}}")]
 public class SaplingAddress : ZcashAddress
 {
 	private const string MainNetHumanReadablePart = "zs";
 	private const string TestNetHumanReadablePart = "ztestsapling";
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly SaplingReceiver receiver;
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly ZcashNetwork network;
 
 	/// <inheritdoc cref="SaplingAddress(string, in SaplingReceiver, ZcashNetwork)"/>

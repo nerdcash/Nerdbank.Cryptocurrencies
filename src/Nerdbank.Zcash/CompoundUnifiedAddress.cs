@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.ObjectModel;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// Contains one or more receivers for a <see cref="UnifiedAddress"/>.
 /// </summary>
-// TODO: Consider moving the overrides here to the base class and eliminating this class.
+[DebuggerDisplay($"{{{nameof(Address)},nq}}")]
 internal class CompoundUnifiedAddress : UnifiedAddress
 {
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private ReadOnlyCollection<ZcashAddress> receivers;
 
 	/// <summary>

@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A shielded Zcash address belonging to the <see cref="Pool.Sprout"/> pool.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(Address)},nq}}")]
 public class SproutAddress : ZcashAddress
 {
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly SproutReceiver receiver;
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly ZcashNetwork network;
 
 	/// <inheritdoc cref="SproutAddress(string, in SproutReceiver, ZcashNetwork)"/>

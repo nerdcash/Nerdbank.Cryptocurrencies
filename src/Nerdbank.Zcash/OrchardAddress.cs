@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.ObjectModel;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A Unified Address that carries a single Orchard receiver.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(Address)},nq}}")]
 public class OrchardAddress : UnifiedAddress
 {
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly OrchardReceiver receiver;
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly ZcashNetwork network;
 	private ReadOnlyCollection<ZcashAddress>? receivers;
 

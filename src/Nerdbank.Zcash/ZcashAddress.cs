@@ -1,9 +1,7 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
 
@@ -35,16 +33,19 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	/// <summary>
 	/// Gets the total length of this address's contribution to a unified address.
 	/// </summary>
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	internal int UAContributionLength => 1 + CompactSize.GetEncodedLength((ulong)this.ReceiverEncodingLength) + this.ReceiverEncodingLength;
 
 	/// <summary>
 	/// Gets the type code to use when embedded in a unified address.
 	/// </summary>
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	internal abstract byte UnifiedAddressTypeCode { get; }
 
 	/// <summary>
 	/// Gets the length of the receiver encoding in a unified address.
 	/// </summary>
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	internal abstract int ReceiverEncodingLength { get; }
 
 	/// <summary>

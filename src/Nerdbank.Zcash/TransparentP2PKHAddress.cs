@@ -6,9 +6,12 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A transparent address with a "Pay to Public Key Hash" (P2PKH) receiver.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(Address)},nq}}")]
 public class TransparentP2PKHAddress : TransparentAddress
 {
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly TransparentP2PKHReceiver receiver;
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly ZcashNetwork network;
 
 	/// <inheritdoc cref="TransparentP2PKHAddress(string, in TransparentP2PKHReceiver, ZcashNetwork)"/>
