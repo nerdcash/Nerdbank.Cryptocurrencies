@@ -64,7 +64,7 @@ public class OrchardAddress : UnifiedAddress
 		{
 			ZcashNetwork.MainNet => HumanReadablePartMainNet,
 			ZcashNetwork.TestNet => HumanReadablePartTestNet,
-			_ => throw new NotSupportedException("Unrecognized network."),
+			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
 		};
 
 		Span<byte> buffer = stackalloc byte[GetUAContributionLength<OrchardReceiver>() + Padding.Length];

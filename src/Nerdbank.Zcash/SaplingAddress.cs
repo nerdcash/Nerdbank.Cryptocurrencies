@@ -101,7 +101,7 @@ public class SaplingAddress : ZcashAddress
 		{
 			ZcashNetwork.MainNet => MainNetHumanReadablePart,
 			ZcashNetwork.TestNet => TestNetHumanReadablePart,
-			_ => throw new NotSupportedException("Unrecognized network."),
+			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
 		};
 		ReadOnlySpan<byte> receiverSpan = receiver.Span;
 		Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, receiverSpan.Length)];

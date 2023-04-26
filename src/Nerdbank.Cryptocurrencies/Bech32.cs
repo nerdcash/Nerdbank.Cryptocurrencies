@@ -149,7 +149,7 @@ public sealed class Bech32
 		if (separatorIdx == -1)
 		{
 			decodeResult = DecodeError.NoSeparator;
-			errorMessage = "No '1' separator character found.";
+			errorMessage = Strings.MissingBech32Separator;
 			length = default;
 			return false;
 		}
@@ -157,7 +157,7 @@ public sealed class Bech32
 		if (tag.Length < separatorIdx)
 		{
 			decodeResult = DecodeError.BufferTooSmall;
-			errorMessage = "The tag buffer is too small.";
+			errorMessage = Strings.Bech32TagBufferTooSmall;
 			length = default;
 			return false;
 		}
@@ -179,7 +179,7 @@ public sealed class Bech32
 		if (!this.VerifyChecksum(tag.Slice(0, separatorIdx), dataAndChecksum5bitBytes))
 		{
 			decodeResult = DecodeError.InvalidChecksum;
-			errorMessage = "Invalid checksum.";
+			errorMessage = Strings.InvalidChecksum;
 			length = default;
 			return false;
 		}

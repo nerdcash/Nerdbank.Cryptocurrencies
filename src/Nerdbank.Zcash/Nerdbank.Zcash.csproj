@@ -16,7 +16,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" PrivateAssets="compile" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="*.resx" EmitFormatMethods="true" />
-  </ItemGroup>
 </Project>
