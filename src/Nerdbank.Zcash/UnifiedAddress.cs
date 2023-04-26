@@ -4,7 +4,6 @@
 using System.Buffers;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using Isopoh.Cryptography.Blake2b;
 
 namespace Nerdbank.Zcash;
 
@@ -31,27 +30,6 @@ public abstract class UnifiedAddress : ZcashAddress
 	private const int F4OutputLength = 64; // known in the spec as ℒᵢ
 
 	/// <summary>
-	/// A reusable array for use as the output array of a Blake2B round.
-	/// </summary>
-	private static readonly ThreadLocal<(Blake2BConfig GConfig, Blake2BConfig HConfig)> Blake2BPooledObjects = new(() =>
-	{
-		byte[] outputBuffer = new byte[64];
-		Blake2BConfig cfgG = new()
-		{
-			Result64ByteBuffer = outputBuffer,
-			LockMemoryPolicy = LockMemoryPolicy.None,
-			OutputSizeInBytes = F4OutputLength,
-		};
-		Blake2BConfig cfgH = new()
-		{
-			Result64ByteBuffer = outputBuffer,
-			LockMemoryPolicy = LockMemoryPolicy.None,
-		};
-
-		return (cfgG, cfgH);
-	});
-
-	/// <summary>
 	/// Initializes a new instance of the <see cref="UnifiedAddress"/> class.
 	/// </summary>
 	/// <param name="address"><inheritdoc cref="ZcashAddress.ZcashAddress(string)" path="/param"/></param>
@@ -75,6 +53,10 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// Gets the padding bytes that must be present in a unified address.
 	/// </summary>
 	private protected static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
+
+	private static ReadOnlySpan<byte> StartingHPersonalization => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 72, 0, 0, 0 };
+
+	private static ReadOnlySpan<byte> StartingGPersonalization => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 71, 0, 0, 0 };
 
 	/// <summary>
 	/// Creates a unified address from a list of receiver addresses.
@@ -269,60 +251,63 @@ public abstract class UnifiedAddress : ZcashAddress
 			throw new ArgumentException($"The UA cannot exceed {MaxF4JumbleInputLength} bytes.", nameof(ua));
 		}
 
-		byte[] arrayBuffer = ArrayPool<byte>.Shared.Rent(ua.Length);
-		try
+		Span<byte> arrayBuffer = stackalloc byte[ua.Length];
+		ua.CopyTo(arrayBuffer);
+
+		byte leftLength = (byte)Math.Min(F4OutputLength, ua.Length / 2);
+		int rightLength = ua.Length - leftLength;
+		Span<byte> hash = stackalloc byte[F4OutputLength];
+
+		if (inverted)
 		{
-			ua.CopyTo(arrayBuffer);
+			RoundH(1, hash, arrayBuffer);
+			RoundG(1, hash, arrayBuffer);
+			RoundH(0, hash, arrayBuffer);
+			RoundG(0, hash, arrayBuffer);
+		}
+		else
+		{
+			RoundG(0, hash, arrayBuffer);
+			RoundH(0, hash, arrayBuffer);
+			RoundG(1, hash, arrayBuffer);
+			RoundH(1, hash, arrayBuffer);
+		}
 
-			byte leftLength = (byte)Math.Min(F4OutputLength, ua.Length / 2);
-			int rightLength = ua.Length - leftLength;
+		arrayBuffer.Slice(0, ua.Length).CopyTo(ua);
 
-			(Blake2BConfig GConfig, Blake2BConfig HConfig) blake2bPool = Blake2BPooledObjects.Value;
-			blake2bPool.HConfig.OutputSizeInBytes = leftLength;
-
-			if (inverted)
+		void RoundG(byte i, Span<byte> hash, Span<byte> arrayBuffer)
+		{
+			Span<byte> personalization = stackalloc byte[StartingGPersonalization.Length];
+			StartingGPersonalization.CopyTo(personalization);
+			personalization[^3] = i;
+			ushort top = checked((ushort)CeilDiv(rightLength, F4OutputLength));
+			for (ushort j = 0; j < top; j++)
 			{
-				RoundH(1);
-				RoundG(1);
-				RoundH(0);
-				RoundG(0);
-			}
-			else
-			{
-				RoundG(0);
-				RoundH(0);
-				RoundG(1);
-				RoundH(1);
-			}
-
-			arrayBuffer.AsSpan(0, ua.Length).CopyTo(ua);
-
-			void RoundG(byte i)
-			{
-				ushort top = checked((ushort)CeilDiv(rightLength, F4OutputLength));
-				for (ushort j = 0; j < top; j++)
+				personalization[^2] = (byte)(j & 0xff);
+				personalization[^1] = (byte)(j >> 8);
+				Blake2B.Config config = new()
 				{
-					blake2bPool.GConfig.Personalization = PersonalizeG(i, j);
-					byte[] hash = Blake2B.ComputeHash(arrayBuffer, 0, leftLength, blake2bPool.GConfig, null!);
-					Xor(arrayBuffer.AsSpan(leftLength + (j * F4OutputLength)), hash);
-				}
-			}
-
-			void RoundH(byte i)
-			{
-				blake2bPool.HConfig.Personalization = PersonalizeH(i);
-				byte[] hash = Blake2B.ComputeHash(arrayBuffer, leftLength, rightLength, blake2bPool.HConfig, null!);
-				Xor(arrayBuffer.AsSpan(0, leftLength), hash);
+					OutputSizeInBytes = F4OutputLength,
+					Personalization = personalization,
+				};
+				int length = Blake2B.ComputeHash(arrayBuffer.Slice(0, leftLength), hash, config);
+				Xor(arrayBuffer.Slice(leftLength + (j * F4OutputLength)), hash.Slice(0, length));
 			}
 		}
-		finally
+
+		void RoundH(byte i, Span<byte> hash, Span<byte> arrayBuffer)
 		{
-			ArrayPool<byte>.Shared.Return(arrayBuffer);
+			Span<byte> personalization = stackalloc byte[StartingHPersonalization.Length];
+			StartingHPersonalization.CopyTo(personalization);
+			personalization[^3] = i;
+			Blake2B.Config config = new()
+			{
+				OutputSizeInBytes = leftLength,
+				Personalization = personalization,
+			};
+			int length = Blake2B.ComputeHash(arrayBuffer.Slice(leftLength, rightLength), hash, config);
+			Xor(arrayBuffer.Slice(0, leftLength), hash.Slice(0, length));
 		}
-
-		static byte[] PersonalizeH(byte i) => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 72, i, 0, 0 };
-
-		static byte[] PersonalizeG(byte i, ushort j) => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 71, i, (byte)(j & 0xff), (byte)(j >> 8) };
 
 		static int CeilDiv(int number, int divisor) => (number + divisor - 1) / divisor;
 

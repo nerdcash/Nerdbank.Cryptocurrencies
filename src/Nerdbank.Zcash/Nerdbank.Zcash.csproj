@@ -10,7 +10,6 @@
     <None Include="$(RepoRootPath)README.md" Pack="true" PackagePath="" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Isopoh.Cryptography.Blake2b" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
   </ItemGroup>
