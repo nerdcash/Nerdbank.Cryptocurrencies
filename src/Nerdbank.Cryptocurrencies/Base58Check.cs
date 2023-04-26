@@ -95,7 +95,7 @@ public static class Base58Check
 		{
 			bytesWritten = 0;
 			decodeResult = DecodeError.InvalidChecksum;
-			errorMessage = "Too short to contain a checksum.";
+			errorMessage = Strings.DecodeInputTooShort;
 			return false;
 		}
 
@@ -108,7 +108,7 @@ public static class Base58Check
 		{
 			bytesWritten = 0;
 			decodeResult = DecodeError.InvalidChecksum;
-			errorMessage = "Checksum does not match.";
+			errorMessage = Strings.InvalidChecksum;
 			return false;
 		}
 
@@ -168,7 +168,7 @@ public static class Base58Check
 			int position = Alphabet.IndexOf(ch);
 			if (position == -1)
 			{
-				errorMessage = $"Non-base58 character: {ch} found at position {i + 1}.";
+				errorMessage = Strings.FormatInvalidCharXFoundAtY(ch, i + 1);
 				bytesWritten = 0;
 				errorCode = DecodeError.InvalidCharacter;
 				return false;
@@ -189,7 +189,7 @@ public static class Base58Check
 
 		if (!number.TryWriteBytes(payload.Slice(leadingZerosCount), out bytesWritten, isUnsigned: true, isBigEndian: true))
 		{
-			errorMessage = "Target buffer is not large enough to hold the decoded payload.";
+			errorMessage = Strings.TargetBufferTooSmall;
 			bytesWritten = 0;
 			errorCode = DecodeError.BufferTooSmall;
 			return false;

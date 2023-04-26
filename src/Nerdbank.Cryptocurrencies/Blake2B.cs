@@ -131,7 +131,7 @@ public class Blake2B
 	{
 		if (!this.isInitialized)
 		{
-			throw new InvalidOperationException("Not initialized");
+			throw new InvalidOperationException(Strings.FormatCallResetFirst(nameof(this.Reset)));
 		}
 
 		this.isInitialized = false;
@@ -333,7 +333,7 @@ public class Blake2B
 	{
 		if (!this.isInitialized)
 		{
-			throw new InvalidOperationException("Not initialized");
+			throw new InvalidOperationException(Strings.FormatCallResetFirst(nameof(this.Reset)));
 		}
 
 		int offset = 0;

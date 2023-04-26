@@ -1,0 +1,5 @@
+# Code files
+[*.{cs,csx,vb,vbx,h,cpp,idl}]
+
+# Use localizable strings
+dotnet_diagnostic.CA1303.severity = warning

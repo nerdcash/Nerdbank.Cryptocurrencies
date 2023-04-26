@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
+
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -10,12 +12,12 @@ public class InvalidAddressException : Exception
 {
 	/// <inheritdoc cref="InvalidAddressException(string?, Exception?)"/>
 	public InvalidAddressException()
-		: this("The address is invalid.")
+		: this(Strings.InvalidAddress)
 	{
 	}
 
 	/// <inheritdoc cref="InvalidAddressException(string?, Exception?)"/>
-	public InvalidAddressException(string? message)
+	public InvalidAddressException([Localizable(true)] string? message)
 		: base(message)
 	{
 	}
@@ -25,7 +27,7 @@ public class InvalidAddressException : Exception
 	/// </summary>
 	/// <param name="message">The exception message.</param>
 	/// <param name="inner">An inner exception.</param>
-	public InvalidAddressException(string? message, Exception? inner)
+	public InvalidAddressException([Localizable(true)] string? message, Exception? inner)
 		: base(message, inner)
 	{
 	}

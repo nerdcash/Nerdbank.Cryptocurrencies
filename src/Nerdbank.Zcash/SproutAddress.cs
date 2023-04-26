@@ -65,7 +65,7 @@ public class SproutAddress : ZcashAddress
 		{
 			result = null;
 			errorCode = ParseError.UnrecognizedAddressType;
-			errorMessage = "A sprout address must start with 'zc' or 'zt'.";
+			errorMessage = Strings.InvalidSproutPreamble;
 			return false;
 		}
 
@@ -101,7 +101,7 @@ public class SproutAddress : ZcashAddress
 		{
 			ZcashNetwork.MainNet => ((byte)0x16, (byte)0x9a),
 			ZcashNetwork.TestNet => ((byte)0x16, (byte)0xb6),
-			_ => throw new NotSupportedException("Unrecognized network."),
+			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
 		};
 		receiverSpan.CopyTo(input.Slice(2));
 		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
