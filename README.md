@@ -4,7 +4,9 @@
 
 [![codecov](https://codecov.io/gh/AArnott/Nerdbank.Zcash/branch/main/graph/badge.svg?token=ATCC7NEXTC)](https://codecov.io/gh/AArnott/Nerdbank.Zcash)
 
-Check out [our docs](doc/index.md) and our features below:
+Check out [our docs](doc/index.md) and our features below.
+
+See this library [running live via Blazor in your web browser](https://zcash.nerdbank.net/).
 
 ## Nerdbank.Cryptocurrencies
 

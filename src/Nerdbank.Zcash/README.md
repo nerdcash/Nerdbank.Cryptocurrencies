@@ -7,6 +7,10 @@
 
 This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Unified_Address_library_for_NET.pdf) by the 🛡️ [Zcash Foundation](https://twitter.com/ZcashFoundation).
 
+## Online live demo
+
+See this library [running live via Blazor in your web browser](https://zcash.nerdbank.net/).
+
 ## Sample usage
 
 ```csharp
