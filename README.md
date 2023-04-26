@@ -16,12 +16,16 @@ Check out [our docs](doc/index.md) and our features below:
   * Blake2B
   * Compact Size
 
+[Learn more about this package.](doc/Nerdbank.Cryptocurrencies.md)
+
 ## Nerdbank.Zcash
 
 [![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Zcash.svg)](https://nuget.org/packages/Nerdbank.Zcash)
 
 * Parse and construct Zcash addresses, including transparent, shielded and unified addresses.
 * Extract the receivers from unified addresses and others.
+
+[Learn more about this package.](doc/Nerdbank.Zcash.md)
 
 This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Unified_Address_library_for_NET.pdf) by the 🛡️ [Zcash Foundation](https://twitter.com/ZcashFoundation).
 
