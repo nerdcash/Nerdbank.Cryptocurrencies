@@ -68,11 +68,13 @@ public class OrchardAddress : UnifiedAddress
 			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
 		};
 
-		Span<byte> buffer = stackalloc byte[GetUAContributionLength<OrchardReceiver>() + Padding.Length];
+		Span<byte> padding = stackalloc byte[16];
+		InitializePadding(network, padding);
+		Span<byte> buffer = stackalloc byte[GetUAContributionLength<OrchardReceiver>() + padding.Length];
 		int written = 0;
 		written += WriteUAContribution(receiver, buffer);
-		Padding.CopyTo(buffer.Slice(written));
-		written += Padding.Length;
+		padding.CopyTo(buffer.Slice(written));
+		written += padding.Length;
 
 		F4Jumble(buffer);
 

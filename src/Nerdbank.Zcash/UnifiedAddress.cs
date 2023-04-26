@@ -50,11 +50,6 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// </remarks>
 	public abstract IReadOnlyList<ZcashAddress> Receivers { get; }
 
-	/// <summary>
-	/// Gets the padding bytes that must be present in a unified address.
-	/// </summary>
-	private protected static ReadOnlySpan<byte> Padding => "u\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
-
 	private static ReadOnlySpan<byte> StartingHPersonalization => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 72, 0, 0, 0 };
 
 	private static ReadOnlySpan<byte> StartingGPersonalization => new byte[] { 85, 65, 95, 70, 52, 74, 117, 109, 98, 108, 101, 95, 71, 0, 0, 0 };
@@ -126,7 +121,16 @@ public abstract class UnifiedAddress : ZcashAddress
 
 		Requires.Argument(hasShieldedAddress, nameof(receivers), "At least one shielded address is required.");
 
-		totalLength += Padding.Length;
+		string humanReadablePart = network switch
+		{
+			ZcashNetwork.MainNet => HumanReadablePartMainNet,
+			ZcashNetwork.TestNet => HumanReadablePartTestNet,
+			_ => throw new NotSupportedException(),
+		};
+
+		Span<byte> padding = stackalloc byte[16];
+		InitializePadding(network.Value, padding);
+		totalLength += padding.Length;
 		Span<byte> ua = stackalloc byte[totalLength];
 		int uaBytesWritten = 0;
 		foreach (ZcashAddress receiver in sortedReceiversByTypeCode.Values)
@@ -134,18 +138,11 @@ public abstract class UnifiedAddress : ZcashAddress
 			uaBytesWritten += receiver.WriteUAContribution(ua.Slice(uaBytesWritten));
 		}
 
-		Padding.CopyTo(ua.Slice(uaBytesWritten));
-		uaBytesWritten += Padding.Length;
+		padding.CopyTo(ua.Slice(uaBytesWritten));
+		uaBytesWritten += padding.Length;
 		F4Jumble(ua);
 
 		Assumes.True(uaBytesWritten == ua.Length);
-
-		string humanReadablePart = network switch
-		{
-			ZcashNetwork.MainNet => HumanReadablePartMainNet,
-			ZcashNetwork.TestNet => HumanReadablePartTestNet,
-			_ => throw new NotSupportedException(),
-		};
 
 		Span<char> result = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, ua.Length)];
 		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, ua, result);
@@ -211,7 +208,9 @@ public abstract class UnifiedAddress : ZcashAddress
 		F4Jumble(data, inverted: true);
 
 		// Verify the 16-byte padding is as expected.
-		if (!data[^Padding.Length..].SequenceEqual(Padding))
+		Span<byte> padding = stackalloc byte[16];
+		InitializePadding(network, padding);
+		if (!data[^padding.Length..].SequenceEqual(padding))
 		{
 			errorCode = ParseError.InvalidAddress;
 			errorMessage = Strings.InvalidPadding;
@@ -220,7 +219,7 @@ public abstract class UnifiedAddress : ZcashAddress
 		}
 
 		// Strip the padding.
-		data = data[..^Padding.Length];
+		data = data[..^padding.Length];
 
 		// Walk over each receiver.
 		List<ZcashAddress> receiverAddresses = new();
@@ -344,6 +343,29 @@ public abstract class UnifiedAddress : ZcashAddress
 			{
 				left[i] ^= right[i];
 			}
+		}
+	}
+
+	/// <summary>
+	/// Initializes the padding buffer.
+	/// </summary>
+	/// <param name="network">The network the address is for.</param>
+	/// <param name="padding">The buffer to write to. This <em>must</em> be cleared before passing in.</param>
+	private protected static void InitializePadding(ZcashNetwork network, Span<byte> padding)
+	{
+		Assumes.True(padding.Length == 16);
+		switch (network)
+		{
+			case ZcashNetwork.MainNet:
+				ReadOnlySpan<byte> mainNetHRP = "u"u8;
+				mainNetHRP.CopyTo(padding);
+				break;
+			case ZcashNetwork.TestNet:
+				ReadOnlySpan<byte> testNetHRP = "utest"u8;
+				testNetHRP.CopyTo(padding);
+				break;
+			default:
+				throw new NotSupportedException();
 		}
 	}
 
