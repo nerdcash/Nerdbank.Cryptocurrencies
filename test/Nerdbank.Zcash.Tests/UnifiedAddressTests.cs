@@ -52,7 +52,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void GetPoolReceiver()
 	{
-		UnifiedAddress ua = (UnifiedAddress)ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH);
+		var ua = (UnifiedAddress)ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH);
 		OrchardReceiver orchard = ua.GetPoolReceiver<OrchardReceiver>() ?? throw new Exception("Missing Orchard receiver");
 		SaplingReceiver sapling = ua.GetPoolReceiver<SaplingReceiver>() ?? throw new Exception("Missing Sapling receiver");
 		TransparentP2PKHReceiver p2pkh = ua.GetPoolReceiver<TransparentP2PKHReceiver>() ?? throw new Exception("Missing P2PKH receiver");
@@ -115,7 +115,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Create()
 	{
-		UnifiedAddress addr = UnifiedAddress.Create(new[]
+		var addr = UnifiedAddress.Create(new[]
 		{
 			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
 			ZcashAddress.Parse(ValidSaplingAddress),
@@ -135,7 +135,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Create_OrchardSapling_TestNet()
 	{
-		UnifiedAddress addr = UnifiedAddress.Create(
+		var addr = UnifiedAddress.Create(
 			new[]
 			{
 				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
@@ -150,7 +150,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Create_OrchardOnly_TestNet()
 	{
-		UnifiedAddress addr = UnifiedAddress.Create(
+		var addr = UnifiedAddress.Create(
 			new[]
 			{
 				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
@@ -174,7 +174,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Create_OrchardOnly()
 	{
-		UnifiedAddress addr = UnifiedAddress.Create(new[]
+		var addr = UnifiedAddress.Create(new[]
 		{
 			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
 		});
@@ -185,7 +185,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Create_SaplingOnly()
 	{
-		UnifiedAddress addr = UnifiedAddress.Create(new[]
+		var addr = UnifiedAddress.Create(new[]
 		{
 			ZcashAddress.Parse(ValidSaplingAddress),
 		});
@@ -197,7 +197,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Create_SaplingOnly_TestNet()
 	{
-		UnifiedAddress addr = UnifiedAddress.Create(
+		var addr = UnifiedAddress.Create(
 			new[]
 			{
 				ZcashAddress.Parse(ValidSaplingAddressTestNet),

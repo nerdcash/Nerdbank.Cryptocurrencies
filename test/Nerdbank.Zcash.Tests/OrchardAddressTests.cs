@@ -19,7 +19,7 @@ public class OrchardAddressTests : TestBase
 	[Fact]
 	public void Ctor_Receiver_TestNet()
 	{
-		OrchardReceiver receiver = new OrchardReceiver(new byte[88 / 8], new byte[256 / 8]);
+		var receiver = new OrchardReceiver(new byte[88 / 8], new byte[256 / 8]);
 		OrchardAddress addr = new(receiver, ZcashNetwork.TestNet);
 		Assert.StartsWith("utest1", addr.ToString());
 		this.logger.WriteLine(addr.Address);

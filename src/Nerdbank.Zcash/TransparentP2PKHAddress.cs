@@ -63,9 +63,9 @@ public class TransparentP2PKHAddress : TransparentAddress
 			ZcashNetwork.TestNet => ((byte)0x1d, (byte)0x25),
 			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
 		};
-		receiver.ValidatingKeyHash.CopyTo(input.Slice(2));
+		receiver.ValidatingKeyHash.CopyTo(input[2..]);
 		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
 		int charsLength = Base58Check.Encode(input, addressChars);
-		return addressChars.Slice(0, charsLength).ToString();
+		return addressChars[..charsLength].ToString();
 	}
 }

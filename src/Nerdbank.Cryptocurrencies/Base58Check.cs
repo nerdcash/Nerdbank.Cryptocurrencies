@@ -45,7 +45,7 @@ public static class Base58Check
 		// Assemble as [payload, checksum(payload)]
 		Span<byte> payloadAndChecksum = stackalloc byte[payload.Length + checksum.Length];
 		payload.CopyTo(payloadAndChecksum);
-		checksum.CopyTo(payloadAndChecksum.Slice(payload.Length));
+		checksum.CopyTo(payloadAndChecksum[payload.Length..]);
 
 		return EncodeRaw(payloadAndChecksum, chars);
 	}
@@ -99,7 +99,7 @@ public static class Base58Check
 			return false;
 		}
 
-		Span<byte> payload = rawBytes.Slice(0, decodedCount - ChecksumLength);
+		Span<byte> payload = rawBytes[..(decodedCount - ChecksumLength)];
 		Span<byte> checksum = rawBytes.Slice(decodedCount - ChecksumLength, ChecksumLength);
 
 		Span<byte> computedChecksum = stackalloc byte[ChecksumLength];
@@ -112,7 +112,14 @@ public static class Base58Check
 			return false;
 		}
 
-		payload.CopyTo(bytes);
+		if (!payload.TryCopyTo(bytes))
+		{
+			bytesWritten = 0;
+			decodeResult = DecodeError.BufferTooSmall;
+			errorMessage = Strings.TargetBufferTooSmall;
+			return false;
+		}
+
 		bytesWritten = payload.Length;
 		decodeResult = null;
 		errorMessage = null;
@@ -142,7 +149,7 @@ public static class Base58Check
 			chars[charsWritten++] = Alphabet[0];
 		}
 
-		chars.Slice(0, charsWritten).Reverse();
+		chars[..charsWritten].Reverse();
 
 		return charsWritten;
 	}
@@ -185,15 +192,10 @@ public static class Base58Check
 			}
 		}
 
-		payload.Slice(0, leadingZerosCount).Clear();
+		payload[..leadingZerosCount].Clear();
 
-		if (!number.TryWriteBytes(payload.Slice(leadingZerosCount), out bytesWritten, isUnsigned: true, isBigEndian: true))
-		{
-			errorMessage = Strings.TargetBufferTooSmall;
-			bytesWritten = 0;
-			errorCode = DecodeError.BufferTooSmall;
-			return false;
-		}
+		// Be unforgiving on this because our internal caller allocates this buffer.
+		Assumes.True(number.TryWriteBytes(payload[leadingZerosCount..], out bytesWritten, isUnsigned: true, isBigEndian: true));
 
 		errorMessage = null;
 		bytesWritten += leadingZerosCount;
@@ -211,6 +213,6 @@ public static class Base58Check
 		Span<byte> hash = stackalloc byte[32];
 		SHA256.HashData(payload, hash);
 		SHA256.HashData(hash, hash);
-		hash.Slice(0, ChecksumLength).CopyTo(checksum);
+		hash[..ChecksumLength].CopyTo(checksum);
 	}
 }

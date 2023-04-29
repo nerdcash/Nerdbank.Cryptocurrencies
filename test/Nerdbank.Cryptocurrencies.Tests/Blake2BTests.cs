@@ -532,6 +532,13 @@ public class Blake2BTests
 		"142709D62E28FCCCD0AF97FAD0F8465B971E82201DC51070FAA0372AA43E92484BE1C1E73BA10906D5D1853DB6A4106E0A7BF9800D373D6DEE2D46D62EF2A461",
 	};
 
+	private readonly ITestOutputHelper logger;
+
+	public Blake2BTests(ITestOutputHelper logger)
+	{
+		this.logger = logger;
+	}
+
 	[Fact]
 	public void CheckTestVectors()
 	{
@@ -572,7 +579,7 @@ public class Blake2BTests
 		for (int len = 0; len <= 256; len++)
 		{
 			hasher.Reset();
-			hasher.Update(Input.Span.Slice(0, len));
+			hasher.Update(Input.Span[..len]);
 			hasher.Finish(hash);
 			string hash0 = BitConverter.ToString(hash);
 
@@ -581,14 +588,57 @@ public class Blake2BTests
 				for (int split2 = split1; split2 <= len; split2++)
 				{
 					hasher.Reset();
-					hasher.Update(Input.Span.Slice(0, split1));
-					hasher.Update(Input.Span.Slice(split1, split2 - split1));
-					hasher.Update(Input.Span.Slice(split2, len - split2));
+					hasher.Update(Input.Span[..split1]);
+					hasher.Update(Input.Span[split1..split2]);
+					hasher.Update(Input.Span[split2..len]);
 					hasher.Finish(hash);
 					string hash1 = BitConverter.ToString(hash);
 					Assert.Equal(hash0, hash1);
 				}
 			}
 		}
+	}
+
+	[Fact]
+	public void FinishTwice()
+	{
+		Blake2B hasher = new();
+		hasher.Finish(new byte[10]);
+		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => hasher.Finish(new byte[10]));
+		this.logger.WriteLine(ex.Message);
+	}
+
+	[Fact]
+	public void Finish_Reset_Finish()
+	{
+		Blake2B hasher = new();
+		hasher.Finish(new byte[10]);
+		hasher.Reset();
+		hasher.Finish(new byte[10]);
+	}
+
+	[Fact]
+	public void OutputSizeTooLarge()
+	{
+		Assert.Throws<ArgumentOutOfRangeException>(() => new Blake2B(new() { OutputSizeInBytes = 96 }));
+	}
+
+	[Fact]
+	public void KeySizeTooLarge()
+	{
+		Assert.Throws<ArgumentException>(() => new Blake2B(new() { Key = new byte[100] }));
+	}
+
+	[Fact]
+	public void SaltSizeWrong()
+	{
+		Assert.Throws<ArgumentException>(() => new Blake2B(new() { Salt = new byte[100] }));
+	}
+
+	[Fact]
+	public void SaltSet()
+	{
+		Blake2B b = new(new() { Salt = new byte[16] });
+		b.Finish(new byte[10]);
 	}
 }

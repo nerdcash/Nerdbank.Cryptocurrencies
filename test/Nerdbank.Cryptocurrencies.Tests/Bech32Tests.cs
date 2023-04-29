@@ -51,7 +51,7 @@ public class Bech32Tests
 		Span<byte> data = Convert.FromHexString(human.HexData);
 		Span<char> encodedChars = stackalloc char[Bech32.GetEncodedLength(human.Tag.Length, data.Length)];
 		int actualCount = Bech32.Original.Encode(human.Tag, data, encodedChars);
-		Assert.Equal(bech32Encoding, encodedChars.Slice(0, actualCount).ToString(), ignoreCase: false);
+		Assert.Equal(bech32Encoding, encodedChars[..actualCount].ToString(), ignoreCase: false);
 	}
 
 	[Theory, MemberData(nameof(Bech32Pairings))]
@@ -61,10 +61,10 @@ public class Bech32Tests
 		Assert.NotNull(maxLength);
 		Span<char> tag = stackalloc char[maxLength.Value.TagLength];
 		Span<byte> data = stackalloc byte[maxLength.Value.DataLength];
-		(int TagLength, int DataLength) actualLength = Bech32.Original.Decode(bech32Encoding, tag, data);
+		(int tagLength, int dataLength) = Bech32.Original.Decode(bech32Encoding, tag, data);
 
-		Assert.Equal(human.Tag, tag.Slice(0, actualLength.TagLength).ToString(), ignoreCase: false);
-		Assert.Equal(human.HexData, Convert.ToHexString(data.Slice(0, actualLength.DataLength)).ToLowerInvariant(), ignoreCase: true);
+		Assert.Equal(human.Tag, tag[..tagLength].ToString(), ignoreCase: false);
+		Assert.Equal(human.HexData, Convert.ToHexString(data[..dataLength]).ToLowerInvariant(), ignoreCase: true);
 	}
 
 	[Theory, MemberData(nameof(Bech32mPairings))]
@@ -73,7 +73,7 @@ public class Bech32Tests
 		Span<byte> data = Convert.FromHexString(human.HexData);
 		Span<char> encodedChars = stackalloc char[Bech32.GetEncodedLength(human.Tag.Length, data.Length)];
 		int actualCount = Bech32.Bech32m.Encode(human.Tag, data, encodedChars);
-		Assert.Equal(bech32Encoding.ToLowerInvariant(), encodedChars.Slice(0, actualCount).ToString(), ignoreCase: false);
+		Assert.Equal(bech32Encoding.ToLowerInvariant(), encodedChars[..actualCount].ToString(), ignoreCase: false);
 	}
 
 	[Theory, MemberData(nameof(Bech32mPairings))]
@@ -83,10 +83,10 @@ public class Bech32Tests
 		Assert.NotNull(maxLength);
 		Span<char> tag = stackalloc char[maxLength.Value.TagLength];
 		Span<byte> data = stackalloc byte[maxLength.Value.DataLength];
-		(int TagLength, int DataLength) actualLength = Bech32.Bech32m.Decode(bech32Encoding, tag, data);
+		(int tagLength, int dataLength) = Bech32.Bech32m.Decode(bech32Encoding, tag, data);
 
-		Assert.Equal(human.Tag, tag.Slice(0, actualLength.TagLength).ToString(), ignoreCase: false);
-		Assert.Equal(human.HexData, Convert.ToHexString(data.Slice(0, actualLength.DataLength)).ToLowerInvariant(), ignoreCase: true);
+		Assert.Equal(human.Tag, tag[..tagLength].ToString(), ignoreCase: false);
+		Assert.Equal(human.HexData, Convert.ToHexString(data[..dataLength]).ToLowerInvariant(), ignoreCase: true);
 	}
 
 	[Theory, MemberData(nameof(Bech32Pairings))]
@@ -118,6 +118,22 @@ public class Bech32Tests
 		Assert.False(Bech32.Original.TryDecode("234", tag, data, out DecodeError? error, out string? msg, out (int Tag, int Data) length));
 		Assert.Equal(DecodeError.NoSeparator, error);
 		this.logger.WriteLine(msg);
+	}
+
+	[Fact]
+	public void TryDecode_TagBufferTooSmall_ReturnsFalse()
+	{
+		// Arrange
+		var encoded = "teststring1q8bchz";
+		var tag = new char[5];
+		var data = new byte[10];
+
+		// Act
+		bool result = Bech32.Original.TryDecode(encoded, tag, data, out DecodeError? decodeResult, out _, out _);
+
+		// Assert
+		Assert.False(result);
+		Assert.Equal(DecodeError.BufferTooSmall, decodeResult);
 	}
 
 	[Fact]

@@ -135,10 +135,10 @@ public abstract class UnifiedAddress : ZcashAddress
 		int uaBytesWritten = 0;
 		foreach (ZcashAddress receiver in sortedReceiversByTypeCode.Values)
 		{
-			uaBytesWritten += receiver.WriteUAContribution(ua.Slice(uaBytesWritten));
+			uaBytesWritten += receiver.WriteUAContribution(ua[uaBytesWritten..]);
 		}
 
-		padding.CopyTo(ua.Slice(uaBytesWritten));
+		padding.CopyTo(ua[uaBytesWritten..]);
 		uaBytesWritten += padding.Length;
 		F4Jumble(ua);
 
@@ -148,7 +148,7 @@ public abstract class UnifiedAddress : ZcashAddress
 		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, ua, result);
 		Assumes.True(result.Length == finalLength);
 
-		return new CompoundUnifiedAddress(result.Slice(0, finalLength).ToString(), new(GetReceiversInPreferredOrder(sortedReceiversByTypeCode.Values)));
+		return new CompoundUnifiedAddress(result[..finalLength].ToString(), new(GetReceiversInPreferredOrder(sortedReceiversByTypeCode.Values)));
 	}
 
 	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
@@ -299,7 +299,7 @@ public abstract class UnifiedAddress : ZcashAddress
 			RoundH(1, hash, arrayBuffer);
 		}
 
-		arrayBuffer.Slice(0, ua.Length).CopyTo(ua);
+		arrayBuffer[..ua.Length].CopyTo(ua);
 
 		void RoundG(byte i, Span<byte> hash, Span<byte> arrayBuffer)
 		{
@@ -316,8 +316,8 @@ public abstract class UnifiedAddress : ZcashAddress
 					OutputSizeInBytes = F4OutputLength,
 					Personalization = personalization,
 				};
-				int length = Blake2B.ComputeHash(arrayBuffer.Slice(0, leftLength), hash, config);
-				Xor(arrayBuffer.Slice(leftLength + (j * F4OutputLength)), hash.Slice(0, length));
+				int length = Blake2B.ComputeHash(arrayBuffer[..leftLength], hash, config);
+				Xor(arrayBuffer[(leftLength + (j * F4OutputLength))..], hash[..length]);
 			}
 		}
 
@@ -332,7 +332,7 @@ public abstract class UnifiedAddress : ZcashAddress
 				Personalization = personalization,
 			};
 			int length = Blake2B.ComputeHash(arrayBuffer.Slice(leftLength, rightLength), hash, config);
-			Xor(arrayBuffer.Slice(0, leftLength), hash.Slice(0, length));
+			Xor(arrayBuffer[..leftLength], hash[..length]);
 		}
 
 		static int CeilDiv(int number, int divisor) => (number + divisor - 1) / divisor;

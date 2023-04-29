@@ -37,7 +37,7 @@ dotnet_diagnostic.CS1591.severity = silent
 dotnet_diagnostic.CA1707.severity = silent
 
 # CA1062: Validate arguments of public methods
-dotnet_diagnostic.CA1062.severity = suggestion
+dotnet_diagnostic.CA1062.severity = silent
 
 # CA1063: Implement IDisposable Correctly
 dotnet_diagnostic.CA1063.severity = silent

@@ -106,6 +106,6 @@ public class SaplingAddress : ZcashAddress
 		ReadOnlySpan<byte> receiverSpan = receiver.Span;
 		Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, receiverSpan.Length)];
 		int charsLength = Bech32.Original.Encode(humanReadablePart, receiverSpan, addressChars);
-		return addressChars.Slice(0, charsLength).ToString();
+		return addressChars[..charsLength].ToString();
 	}
 }

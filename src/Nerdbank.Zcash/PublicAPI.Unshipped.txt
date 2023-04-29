@@ -93,7 +93,7 @@ static Nerdbank.Zcash.SproutReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2PKHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2SHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.UnifiedAddress.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.ZcashAddress!>! receivers) -> Nerdbank.Zcash.UnifiedAddress!
-static Nerdbank.Zcash.ZcashAddress.implicit operator string!(Nerdbank.Zcash.ZcashAddress! address) -> string!
+static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?
 static Nerdbank.Zcash.ZcashAddress.Parse(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.TryParse(string! address, out Nerdbank.Zcash.ZcashAddress? result) -> bool
 static Nerdbank.Zcash.ZcashAddress.TryParse(string! address, out Nerdbank.Zcash.ZcashAddress? result, out Nerdbank.Zcash.ParseError? errorCode, out string? errorMessage) -> bool

@@ -29,7 +29,7 @@ public class Blake2B
 	private const ulong IV6 = 0x1F83D9ABFB41BD6BUL;
 	private const ulong IV7 = 0x5BE0CD19137E2179UL;
 
-	private static readonly ThreadLocal<Blake2B> RecycleBlake = new ThreadLocal<Blake2B>();
+	private static readonly ThreadLocal<Blake2B> RecycleBlake = new();
 
 	private static readonly int[] Sigma = new int[NumberOfRounds * 16]
 	{
@@ -153,7 +153,7 @@ public class Blake2B
 		Span<ulong> h = this.buffers.H;
 		for (int i = 0; i < 8; ++i)
 		{
-			WriteInt64LE(h[i], hash.Slice(i << 3));
+			WriteInt64LE(h[i], hash[(i << 3)..]);
 		}
 
 		int bytesWritten = Math.Min(finalHash.Length, hash.Length);
@@ -223,7 +223,7 @@ public class Blake2B
 		int maxHeight = 1;
 
 		// digest length
-		if (config.OutputSizeInBytes <= 0 | config.OutputSizeInBytes > 64)
+		if (config.OutputSizeInBytes <= 0 || config.OutputSizeInBytes > 64)
 		{
 			throw new ArgumentOutOfRangeException("config.OutputSize");
 		}
@@ -261,7 +261,7 @@ public class Blake2B
 			}
 
 			rawConfig[4] = ReadUInt64LE(config.Salt);
-			rawConfig[5] = ReadUInt64LE(config.Salt.Slice(8));
+			rawConfig[5] = ReadUInt64LE(config.Salt[8..]);
 		}
 
 		// Personalization
@@ -273,7 +273,7 @@ public class Blake2B
 			}
 
 			rawConfig[6] = ReadUInt64LE(config.Personalization);
-			rawConfig[7] = ReadUInt64LE(config.Personalization.Slice(8));
+			rawConfig[7] = ReadUInt64LE(config.Personalization[8..]);
 		}
 	}
 
@@ -342,7 +342,7 @@ public class Blake2B
 
 		if ((this.bufferFilled > 0) && (count > bufferRemaining))
 		{
-			array.Slice(offset, bufferRemaining).CopyTo(this.buffers.Buf.Slice(this.bufferFilled));
+			array.Slice(offset, bufferRemaining).CopyTo(this.buffers.Buf[this.bufferFilled..]);
 			this.counter0 += BlockSizeInBytes;
 			if (this.counter0 == 0)
 			{
@@ -363,14 +363,14 @@ public class Blake2B
 				this.counter1++;
 			}
 
-			this.Compress(array.Slice(offset));
+			this.Compress(array[offset..]);
 			offset += BlockSizeInBytes;
 			count -= BlockSizeInBytes;
 		}
 
 		if (count > 0)
 		{
-			array.Slice(offset, count).CopyTo(this.buffers.Buf.Slice(this.bufferFilled));
+			array.Slice(offset, count).CopyTo(this.buffers.Buf[this.bufferFilled..]);
 			this.bufferFilled += count;
 		}
 	}
@@ -383,7 +383,7 @@ public class Blake2B
 
 		for (int i = 0; i < 16; ++i)
 		{
-			m[i] = ReadUInt64LE(block.Slice(i << 3));
+			m[i] = ReadUInt64LE(block[(i << 3)..]);
 		}
 
 		v[0] = h[0];
@@ -421,7 +421,7 @@ public class Blake2B
 			h[i] ^= v[i] ^ v[i + 8];
 		}
 
-		void G(int a, int b, int c, int d, int r, int i, Span<ulong> v, Span<ulong> m)
+		static void G(int a, int b, int c, int d, int r, int i, Span<ulong> v, Span<ulong> m)
 		{
 			int p = (r << 4) + i;
 			int p0 = Sigma[p];
@@ -443,7 +443,7 @@ public class Blake2B
 	/// <summary>
 	/// Configuration parameters for the hash function.
 	/// </summary>
-	public ref struct Config
+	public readonly ref struct Config
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Config"/> struct.
@@ -460,11 +460,13 @@ public class Blake2B
 		/// <summary>
 		/// Gets the salt for the hash.
 		/// </summary>
+		/// <value>This must be empty or a 16-byte buffer.</value>
 		public ReadOnlySpan<byte> Salt { get; init; }
 
 		/// <summary>
 		/// Gets the key for the hash.
 		/// </summary>
+		/// <value>This buffer must not exceed 64 bytes in length.</value>
 		public ReadOnlySpan<byte> Key { get; init; }
 
 		/// <summary>

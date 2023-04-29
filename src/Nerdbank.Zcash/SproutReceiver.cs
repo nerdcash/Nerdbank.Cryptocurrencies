@@ -57,7 +57,7 @@ public unsafe struct SproutReceiver : IPoolReceiver
 	public static byte UnifiedReceiverTypeCode => throw new NotSupportedException();
 
 	/// <inheritdoc/>
-	public Pool Pool => Pool.Sprout;
+	public readonly Pool Pool => Pool.Sprout;
 
 	/// <summary>
 	/// Gets the a{pk} on the receiver.

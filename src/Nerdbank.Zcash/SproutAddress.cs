@@ -104,9 +104,9 @@ public class SproutAddress : ZcashAddress
 			ZcashNetwork.TestNet => ((byte)0x16, (byte)0xb6),
 			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
 		};
-		receiverSpan.CopyTo(input.Slice(2));
+		receiverSpan.CopyTo(input[2..]);
 		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
 		int charsLength = Base58Check.Encode(input, addressChars);
-		return addressChars.Slice(0, charsLength).ToString();
+		return addressChars[..charsLength].ToString();
 	}
 }

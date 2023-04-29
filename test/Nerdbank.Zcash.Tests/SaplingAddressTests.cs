@@ -31,7 +31,7 @@ public class SaplingAddressTests : TestBase
 	[Fact]
 	public void Ctor_Receiver_TestNet()
 	{
-		SaplingReceiver receiver = new SaplingReceiver(new byte[88 / 8], new byte[256 / 8]);
+		var receiver = new SaplingReceiver(new byte[88 / 8], new byte[256 / 8]);
 		SaplingAddress addr = new(receiver, ZcashNetwork.TestNet);
 		Assert.StartsWith("ztestsapling1", addr.ToString());
 		this.logger.WriteLine(addr.Address);

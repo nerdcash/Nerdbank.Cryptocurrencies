@@ -22,7 +22,7 @@ public class ZcashAddressTests : TestBase
 	[Theory, MemberData(nameof(ValidAddresses))]
 	public void Parse_Valid(string address)
 	{
-		ZcashAddress addr = ZcashAddress.Parse(address);
+		var addr = ZcashAddress.Parse(address);
 		Assert.Equal(address, addr.ToString());
 	}
 
@@ -67,14 +67,14 @@ public class ZcashAddressTests : TestBase
 	[InlineData(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
 	public void Parse_ReturnsAppropriateType(string address, Type expectedKind)
 	{
-		ZcashAddress addr = ZcashAddress.Parse(address);
+		var addr = ZcashAddress.Parse(address);
 		Assert.IsAssignableFrom(expectedKind, addr);
 	}
 
 	[Fact]
 	public void ImplicitlyCastableToString()
 	{
-		ZcashAddress addr = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		var addr = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
 		string str = addr.Address;
 		Assert.Equal(ValidTransparentP2PKHAddress, str);
 	}
@@ -82,9 +82,9 @@ public class ZcashAddressTests : TestBase
 	[Fact]
 	public void Equality()
 	{
-		ZcashAddress addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		ZcashAddress addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		ZcashAddress addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		var addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		var addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		var addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
 		Assert.Equal(addr1a, addr1b);
 		Assert.NotEqual(addr1a, addr2);
 	}
@@ -92,10 +92,24 @@ public class ZcashAddressTests : TestBase
 	[Fact]
 	public void HashCodes()
 	{
-		ZcashAddress addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		ZcashAddress addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		ZcashAddress addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		var addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		var addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		var addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
 		Assert.Equal(addr1a.GetHashCode(), addr1b.GetHashCode());
 		Assert.NotEqual(addr1a.GetHashCode(), addr2.GetHashCode());
+	}
+
+	[Fact]
+	public void ImplicitCast()
+	{
+		string address = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		Assert.Equal(ValidTransparentP2SHAddress, address);
+	}
+
+	[Fact]
+	public void ImplicitCast_Null()
+	{
+		string? address = (ZcashAddress?)null;
+		Assert.Null(address);
 	}
 }

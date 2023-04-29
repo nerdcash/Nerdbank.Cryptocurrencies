@@ -18,12 +18,12 @@ public sealed class Bech32
 	/// <summary>
 	/// Gets the instance that implements <see href="https://zips.z.cash/zip-0173">Bech32 (ZIP-173)</see>.
 	/// </summary>
-	public static readonly Bech32 Original = new Bech32(Bech32Const);
+	public static readonly Bech32 Original = new(Bech32Const);
 
 	/// <summary>
 	/// Gets the instance that implements <see href="https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki">Bech32m (BIP-350)</see>.
 	/// </summary>
-	public static readonly Bech32 Bech32m = new Bech32(Bech32mConst);
+	public static readonly Bech32 Bech32m = new(Bech32mConst);
 
 	private const uint Bech32Const = 1;
 	private const uint Bech32mConst = 0x2bc830a3;
@@ -101,10 +101,10 @@ public sealed class Bech32
 		int written = Stretch8bitTo5bitBytes(data, encodedWithChecksum);
 
 		// Append the checksum.
-		written += this.CreateChecksum(tag, encodedWithChecksum.Slice(0, written), encodedWithChecksum.Slice(written));
+		written += this.CreateChecksum(tag, encodedWithChecksum[..written], encodedWithChecksum[written..]);
 
 		// Convert the resulting encoding the characters and append them to the end.
-		outputBytesWritten += MapToAlphabet(encodedWithChecksum.Slice(0, written), output.Slice(outputBytesWritten));
+		outputBytesWritten += MapToAlphabet(encodedWithChecksum[..written], output[outputBytesWritten..]);
 
 		return outputBytesWritten;
 	}
@@ -169,14 +169,14 @@ public sealed class Bech32
 
 		// Do the simple character to 5 bit byte conversion of the data.
 		Span<byte> dataAndChecksum5bitBytes = stackalloc byte[encoded.Length - separatorIdx - 1];
-		if (!TryMapFromAlphabet(encoded.Slice(separatorIdx + 1), dataAndChecksum5bitBytes, out decodeResult, out errorMessage, out _))
+		if (!TryMapFromAlphabet(encoded[(separatorIdx + 1)..], dataAndChecksum5bitBytes, out decodeResult, out errorMessage, out _))
 		{
 			length = default;
 			return false;
 		}
 
 		// Verify the checksum.
-		if (!this.VerifyChecksum(tag.Slice(0, separatorIdx), dataAndChecksum5bitBytes))
+		if (!this.VerifyChecksum(tag[..separatorIdx], dataAndChecksum5bitBytes))
 		{
 			decodeResult = DecodeError.InvalidChecksum;
 			errorMessage = Strings.InvalidChecksum;
@@ -185,7 +185,7 @@ public sealed class Bech32
 		}
 
 		// Compress the 5 bit bytes back to 8 bit bytes.
-		ReadOnlySpan<byte> data5bitBytes = dataAndChecksum5bitBytes.Slice(0, dataAndChecksum5bitBytes.Length - ChecksumLength);
+		ReadOnlySpan<byte> data5bitBytes = dataAndChecksum5bitBytes[..^6];
 		bool result = TryCompress5bitTo8bitBytes(data5bitBytes, data, out int dataLength, out decodeResult, out errorMessage);
 		length = (separatorIdx, dataLength);
 		return result;
@@ -487,9 +487,9 @@ public sealed class Bech32
 
 		int expandedLength = (tag.Length * 2) + 1;
 		Span<byte> values = stackalloc byte[expandedLength + data.Length + ChecksumLength];
-		int written = Expand(tag, values.Slice(0, expandedLength));
+		int written = Expand(tag, values[..expandedLength]);
 		Debug.Assert(written == expandedLength, "Expand wrote an unexpected number of bytes.");
-		data.CopyTo(values.Slice(expandedLength));
+		data.CopyTo(values[expandedLength..]);
 		uint polymod = PolyMod(values) ^ this.powerConstant;
 		for (int i = 0; i < ChecksumLength; i++)
 		{
@@ -511,9 +511,9 @@ public sealed class Bech32
 		// return bech32_polymod(bech32_hrp_expand(hrp) + data) == 1
 		int expandedLength = (tag.Length * 2) + 1;
 		Span<byte> values = stackalloc byte[expandedLength + data.Length];
-		int written = Expand(tag, values.Slice(0, expandedLength));
+		int written = Expand(tag, values[..expandedLength]);
 		Debug.Assert(written == expandedLength, $"{nameof(Expand)} didn't write the expected number of bytes.");
-		data.CopyTo(values.Slice(written));
+		data.CopyTo(values[written..]);
 		uint checksum = PolyMod(values);
 		return checksum == this.powerConstant;
 	}

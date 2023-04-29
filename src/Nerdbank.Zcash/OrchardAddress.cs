@@ -73,7 +73,7 @@ public class OrchardAddress : UnifiedAddress
 		Span<byte> buffer = stackalloc byte[GetUAContributionLength<OrchardReceiver>() + padding.Length];
 		int written = 0;
 		written += WriteUAContribution(receiver, buffer);
-		padding.CopyTo(buffer.Slice(written));
+		padding.CopyTo(buffer[written..]);
 		written += padding.Length;
 
 		F4Jumble(buffer);

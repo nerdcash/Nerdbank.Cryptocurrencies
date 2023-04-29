@@ -7,6 +7,13 @@ public class TransparentAddressTests : TestBase
 {
 	private static readonly TransparentAddress ParsedP2PKHAddress = (TransparentP2PKHAddress)ZcashAddress.Parse(ValidTransparentP2PKHAddress);
 
+	private readonly ITestOutputHelper logger;
+
+	public TransparentAddressTests(ITestOutputHelper logger)
+	{
+		this.logger = logger;
+	}
+
 	public static object?[][] InvalidAddresses => new object?[][]
 	{
 		new object?[] { "T" },
@@ -36,9 +43,23 @@ public class TransparentAddressTests : TestBase
 		receiver[1] = 0xbb;
 		char[] addrChars = new char[50];
 		int count = Base58Check.Encode(receiver, addrChars);
-		string addr = new string(addrChars, 0, count);
+		string addr = new(addrChars, 0, count);
 		Assumes.True(addr.StartsWith('t'));
 
 		Assert.False(ZcashAddress.TryParse(addr, out _));
+	}
+
+	[Theory]
+	[InlineData("tdasgh2344235")]
+	[InlineData("tadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada")]
+	[InlineData("tbalsdhfldsfhsdhfgdfgdf")]
+	public void TryParse_FuzzInputs_ShouldReturnFalse(string input)
+	{
+		Assert.False(ZcashAddress.TryParse(input, out ZcashAddress? address, out ParseError? errorCode, out string? errorMessage));
+		this.logger.WriteLine(errorMessage);
+
+		Assert.Null(address);
+		Assert.NotNull(errorCode);
+		Assert.NotNull(errorMessage);
 	}
 }

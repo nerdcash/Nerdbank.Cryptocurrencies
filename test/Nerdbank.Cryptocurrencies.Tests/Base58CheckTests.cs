@@ -7,6 +7,13 @@ namespace Utilities;
 
 public class Base58CheckTests
 {
+	private readonly ITestOutputHelper logger;
+
+	public Base58CheckTests(ITestOutputHelper logger)
+	{
+		this.logger = logger;
+	}
+
 	/// <summary>
 	/// Gets the hex encoded and base58check encoded equivalents.
 	/// </summary>
@@ -22,7 +29,7 @@ public class Base58CheckTests
 		Span<byte> decodedBytes = Convert.FromHexString(hexEncoding);
 		Span<char> encodedChars = stackalloc char[Encoder.GetMaxEncodedLength(decodedBytes.Length)];
 		int actualCount = Encoder.Encode(decodedBytes, encodedChars);
-		Assert.Equal(base58checkEncoding, encodedChars.Slice(0, actualCount).ToString(), ignoreCase: false);
+		Assert.Equal(base58checkEncoding, encodedChars[..actualCount].ToString(), ignoreCase: false);
 	}
 
 	[Theory, MemberData(nameof(Pairings))]
@@ -34,7 +41,7 @@ public class Base58CheckTests
 		int actualBytesWrittenCount = Encoder.Decode(base58checkEncoding, actual);
 
 		Assert.Equal(expectedBytesWrittenCount, actualBytesWrittenCount);
-		Assert.Equal(hexEncoding, Convert.ToHexString(actual.Slice(0, actualBytesWrittenCount)), ignoreCase: true);
+		Assert.Equal(hexEncoding, Convert.ToHexString(actual[..actualBytesWrittenCount]), ignoreCase: true);
 	}
 
 	[Theory]
@@ -53,5 +60,53 @@ public class Base58CheckTests
 			Span<byte> bytes = stackalloc byte[10];
 			Encoder.Decode("1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs", bytes);
 		});
+	}
+
+	[Fact]
+	public void TryDecode_InvalidChecksum()
+	{
+		// Arrange
+		var encoded = "qwerty";
+		var bytes = new byte[10];
+		DecodeError expectedDecodeResult = DecodeError.InvalidChecksum;
+
+		// Act
+		bool result = Base58Check.TryDecode(encoded.AsSpan(), bytes, out DecodeError? decodeResult, out _, out _);
+
+		// Assert
+		Assert.False(result);
+		Assert.Equal(expectedDecodeResult, decodeResult);
+	}
+
+	[Fact]
+	public void TryDecode_InputTooShort_InvalidChecksumResult()
+	{
+		// Arrange
+		var encoded = "StV1DL6CwTryKyV";
+		var bytes = new byte[10];
+		DecodeError expectedDecodeResult = DecodeError.InvalidChecksum;
+
+		// Act
+		bool result = Base58Check.TryDecode(encoded.AsSpan(), bytes, out DecodeError? decodeResult, out _, out _);
+
+		// Assert
+		Assert.False(result);
+		Assert.Equal(expectedDecodeResult, decodeResult);
+	}
+
+	[Fact]
+	public void TryDecode_InvalidCharacter()
+	{
+		Assert.False(Base58Check.TryDecode(":", new byte[10], out DecodeError? decodeError, out string? errorMessage, out _));
+		this.logger.WriteLine(errorMessage);
+		Assert.Equal(DecodeError.InvalidCharacter, decodeError.Value);
+	}
+
+	[Fact]
+	public void TryDecode_OutputBufferTooShort()
+	{
+		Assert.False(Base58Check.TryDecode("1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs", new byte[5], out DecodeError? decodeError, out string? errorMessage, out _));
+		this.logger.WriteLine(errorMessage);
+		Assert.Equal(DecodeError.BufferTooSmall, decodeError.Value);
 	}
 }

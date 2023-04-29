@@ -57,7 +57,7 @@ public unsafe struct SaplingReceiver : IPoolReceiver
 	public static byte UnifiedReceiverTypeCode => 0x02;
 
 	/// <inheritdoc/>
-	public Pool Pool => Pool.Sapling;
+	public readonly Pool Pool => Pool.Sapling;
 
 	/// <summary>
 	/// Gets the LEBS2OSP(d) on the receiver.

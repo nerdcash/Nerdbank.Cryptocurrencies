@@ -16,6 +16,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	/// <param name="address">The address in string form.</param>
 	protected ZcashAddress(string address)
 	{
+		Requires.NotNullOrEmpty(address);
 		this.Address = address.ToString();
 	}
 
@@ -52,7 +53,8 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	/// Implicitly casts this address to a string.
 	/// </summary>
 	/// <param name="address">The address to convert.</param>
-	public static implicit operator string(ZcashAddress address) => address.Address;
+	[return: NotNullIfNotNull(nameof(address))]
+	public static implicit operator string?(ZcashAddress? address) => address?.Address;
 
 	/// <summary>
 	/// Parse a string of characters as an address.
@@ -191,8 +193,8 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 		int bytesWritten = 0;
 		destination[bytesWritten++] = this.UnifiedAddressTypeCode;
 		int predictedEncodingLength = this.ReceiverEncodingLength;
-		bytesWritten += CompactSize.Encode((ulong)predictedEncodingLength, destination.Slice(bytesWritten));
-		int actualEncodingLength = this.GetReceiverEncoding(destination.Slice(bytesWritten));
+		bytesWritten += CompactSize.Encode((ulong)predictedEncodingLength, destination[bytesWritten..]);
+		int actualEncodingLength = this.GetReceiverEncoding(destination[bytesWritten..]);
 		Assumes.True(predictedEncodingLength == actualEncodingLength); // If this is wrong, we encoded the wrong length in the compact size.
 		bytesWritten += actualEncodingLength;
 		return bytesWritten;
@@ -221,9 +223,9 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	{
 		int bytesWritten = 0;
 		destination[bytesWritten++] = TReceiver.UnifiedReceiverTypeCode;
-		bytesWritten += CompactSize.Encode((ulong)receiver.Span.Length, destination.Slice(bytesWritten));
+		bytesWritten += CompactSize.Encode((ulong)receiver.Span.Length, destination[bytesWritten..]);
 		ReadOnlySpan<byte> receiverSpan = receiver.Span;
-		receiverSpan.CopyTo(destination.Slice(bytesWritten));
+		receiverSpan.CopyTo(destination[bytesWritten..]);
 		bytesWritten += receiverSpan.Length;
 		return bytesWritten;
 	}

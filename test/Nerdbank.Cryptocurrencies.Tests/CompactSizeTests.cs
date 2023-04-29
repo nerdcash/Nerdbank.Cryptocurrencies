@@ -24,7 +24,7 @@ public class CompactSizeTests
 	{
 		Span<byte> encodedBytes = stackalloc byte[9];
 		int actualCount = Encoder.Encode(value, encodedBytes);
-		Assert.Equal(hex, Convert.ToHexString(encodedBytes.Slice(0, actualCount)), ignoreCase: true);
+		Assert.Equal(hex, Convert.ToHexString(encodedBytes[..actualCount]), ignoreCase: true);
 	}
 
 	[Theory, MemberData(nameof(Pairings))]
