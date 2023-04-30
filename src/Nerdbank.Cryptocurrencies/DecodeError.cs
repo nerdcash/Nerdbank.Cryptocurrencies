@@ -32,4 +32,9 @@ public enum DecodeError
 	/// The input was not the correct length for the specified encoding or the padding was not the expected value.
 	/// </summary>
 	BadPadding,
+
+	/// <summary>
+	/// A word was encountered that was not in the dictionary of allowed words for this encoding.
+	/// </summary>
+	InvalidWord,
 }

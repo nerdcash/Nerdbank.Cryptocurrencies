@@ -4,6 +4,7 @@ Nerdbank.Cryptocurrencies.Bech32
 Nerdbank.Cryptocurrencies.Bech32.Decode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data) -> (int TagLength, int DataLength)
 Nerdbank.Cryptocurrencies.Bech32.Encode(System.ReadOnlySpan<char> tag, System.ReadOnlySpan<byte> data, System.Span<char> output) -> int
 Nerdbank.Cryptocurrencies.Bech32.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length) -> bool
+Nerdbank.Cryptocurrencies.Bip39SeedPhrase
 Nerdbank.Cryptocurrencies.Blake2B
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B() -> void
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B(in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> void
@@ -28,6 +29,7 @@ Nerdbank.Cryptocurrencies.DecodeError.BadPadding = 4 -> Nerdbank.Cryptocurrencie
 Nerdbank.Cryptocurrencies.DecodeError.BufferTooSmall = 2 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.InvalidCharacter = 0 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.InvalidChecksum = 1 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.InvalidWord = 5 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.NoSeparator = 3 -> Nerdbank.Cryptocurrencies.DecodeError
 static Nerdbank.Cryptocurrencies.Base58Check.Decode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.Encode(System.ReadOnlySpan<byte> payload, System.Span<char> chars) -> int
@@ -36,6 +38,10 @@ static Nerdbank.Cryptocurrencies.Base58Check.GetMaxEncodedLength(int byteCount) 
 static Nerdbank.Cryptocurrencies.Base58Check.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out int bytesWritten) -> bool
 static Nerdbank.Cryptocurrencies.Bech32.GetDecodedLength(System.ReadOnlySpan<char> encoded) -> (int Tag, int Data)?
 static Nerdbank.Cryptocurrencies.Bech32.GetEncodedLength(int tagLength, int dataLength) -> int
+static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.Generate(int entropyLengthInBits) -> string!
+static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.Generate(System.ReadOnlySpan<byte> entropy) -> string!
+static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.GetEntropyLengthInBits(System.ReadOnlySpan<char> seedPhrase) -> int
+static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.TryGetEntropy(System.ReadOnlySpan<char> seedPhrase, System.Span<byte> entropy, out int bytesWritten, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash) -> int
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash, in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> buffer, out ulong value) -> int

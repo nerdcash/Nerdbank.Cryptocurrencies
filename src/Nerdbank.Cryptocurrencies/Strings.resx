@@ -132,10 +132,19 @@
   <data name="InvalidChecksum" xml:space="preserve">
     <value>Invalid checksum.</value>
   </data>
+  <data name="LengthMustBeNonEmptyAndDivisibleBy4" xml:space="preserve">
+    <value>The length of the buffer must be non-zero multiple of 4.</value>
+  </data>
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>No '1' separator character found.</value>
   </data>
+  <data name="MustBeNonZeroMultipleOf32" xml:space="preserve">
+    <value>This number must be a non-zero multiple of 32.</value>
+  </data>
   <data name="TargetBufferTooSmall" xml:space="preserve">
     <value>Target buffer is not large enough to hold the decoded payload.</value>
+  </data>
+  <data name="WordNotOnWordList" xml:space="preserve">
+    <value>The word '{word}' does not appear on the allowed word list.</value>
   </data>
 </root>
