@@ -17,6 +17,7 @@ See this library [running live via Blazor in your web browser](https://zcash.ner
   * Bech32 and Bech32m
   * Blake2B
   * Compact Size
+  * BIP-39 seed phrases
 
 [Learn more about this package.](doc/Nerdbank.Cryptocurrencies.md)
 

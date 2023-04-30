@@ -7,3 +7,4 @@
   * Bech32 and Bech32m
   * Blake2B
   * Compact Size
+  * BIP-39 seed phrases

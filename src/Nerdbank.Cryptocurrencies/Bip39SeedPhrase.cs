@@ -50,7 +50,7 @@ public static partial class Bip39SeedPhrase
 		for (int wordNumber = 0; wordNumber < wordCount; wordNumber++)
 		{
 			int wordIdx = GetBits(entropyAndChecksum, wordNumber * 11, 11);
-			string word = wordList[wordIdx];
+			ReadOnlySpan<char> word = wordList[wordIdx];
 			word.CopyTo(seedPhrase[phraseLength..]);
 			phraseLength += word.Length;
 			seedPhrase[phraseLength] = ' ';
