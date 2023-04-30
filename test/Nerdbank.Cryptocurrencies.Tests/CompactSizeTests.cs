@@ -3,8 +3,6 @@
 
 using Encoder = Nerdbank.Cryptocurrencies.CompactSize;
 
-namespace Utilities;
-
 public class CompactSizeTests
 {
 	/// <summary>

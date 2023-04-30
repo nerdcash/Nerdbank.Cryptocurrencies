@@ -3,8 +3,6 @@
 
 using Encoder = Nerdbank.Cryptocurrencies.Base58Check;
 
-namespace Utilities;
-
 public class Base58CheckTests
 {
 	private readonly ITestOutputHelper logger;
