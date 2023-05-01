@@ -16,15 +16,12 @@ namespace Nerdbank.Cryptocurrencies;
 /// </summary>
 public partial class Bip39Mnemonic
 {
+	private static readonly Encoding BinarySeedEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
 	/// <summary>
 	/// The inline arrays where we store data to avoid allocating another object.
 	/// </summary>
 	private readonly FixedArrays fixedArrays;
-
-	/// <summary>
-	/// Caches the value for the lazily-initialized <see cref="SeedPhrase"/> property.
-	/// </summary>
-	private string? seedPhrase;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Bip39Mnemonic"/> class.
@@ -39,8 +36,14 @@ public partial class Bip39Mnemonic
 	public Bip39Mnemonic(ReadOnlySpan<byte> entropy, ReadOnlyMemory<char> password = default)
 	{
 		Requires.Argument(entropy.Length % 4 == 0 && entropy.Length > 0, nameof(entropy), Strings.LengthMustBeNonEmptyAndDivisibleBy4);
-		this.fixedArrays = new FixedArrays(entropy);
+
+		this.fixedArrays = new FixedArrays(entropy.Length);
+		entropy.CopyTo(this.fixedArrays.EntropyWritable);
+
+		this.SeedPhrase = CreateSeedPhrase(entropy, WordList.Default);
 		this.Password = password;
+
+		CreateBinarySeed(this.SeedPhrase, password.Span, this.fixedArrays.SeedWritable);
 	}
 
 	/// <summary>
@@ -49,7 +52,7 @@ public partial class Bip39Mnemonic
 	/// <remarks>
 	/// This does <em>not</em> include the <see cref="Password"/>.
 	/// </remarks>
-	public string SeedPhrase => this.seedPhrase ??= this.CreateSeedPhrase(WordList.Default);
+	public string SeedPhrase { get; }
 
 	/// <summary>
 	/// Gets the entropy described by the mnemonic.
@@ -65,9 +68,18 @@ public partial class Bip39Mnemonic
 	public ReadOnlyMemory<char> Password { get; }
 
 	/// <summary>
+	/// Gets the binary seed that may be used to generate deterministic wallets.
+	/// </summary>
+	public ReadOnlySpan<byte> Seed => this.fixedArrays.Seed;
+
+	/// <summary>
 	/// Generates a seed phrase for a newly generated secret.
 	/// </summary>
-	/// <param name="entropyLengthInBits">The number of secret bits that must be represented by the seed phrase. Must be a multiple of 32.</param>
+	/// <param name="entropyLengthInBits">
+	/// The number of secret bits that must be represented by the seed phrase.
+	/// Common values are 128 (which produces a 12 word phrase), and 256 (which produces a 24 word phrase).
+	/// Must be a multiple of 32.
+	/// </param>
 	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed.</param>
 	/// <returns>The seed phrase.</returns>
 	/// <exception cref="ArgumentException">Throw if <paramref name="entropyLengthInBits"/> is not a multiple of 32.</exception>
@@ -322,9 +334,32 @@ public partial class Bip39Mnemonic
 		return (entropyLength, checksumLength);
 	}
 
-	private string CreateSeedPhrase(WordList wordList)
+	private static ReadOnlySpan<char> GetNFKDChars(ReadOnlySpan<char> chars)
 	{
-		ReadOnlySpan<byte> entropy = this.Entropy;
+		bool allAscii = true;
+		for (int i = 0; i < chars.Length && allAscii; i++)
+		{
+			allAscii &= char.IsAscii(chars[i]);
+		}
+
+		return allAscii ? chars : chars.ToString().Normalize(NormalizationForm.FormKD);
+	}
+
+	private static void CreateBinarySeed(ReadOnlySpan<char> seedPhrase, ReadOnlySpan<char> password, Span<byte> binarySeed)
+	{
+		// The salt is "mnemonic{password}".
+		ReadOnlySpan<byte> seedSaltPrefix = "mnemonic"u8;
+		password = GetNFKDChars(password);
+		Span<byte> salt = stackalloc byte[seedSaltPrefix.Length + BinarySeedEncoding.GetMaxByteCount(password.Length)];
+		seedSaltPrefix.CopyTo(salt);
+		int encodedPasswordLength = BinarySeedEncoding.GetBytes(password, salt[seedSaltPrefix.Length..]);
+		salt = salt[..(seedSaltPrefix.Length + encodedPasswordLength)];
+
+		Rfc2898DeriveBytes.Pbkdf2(GetNFKDChars(seedPhrase), salt, binarySeed, 2048, HashAlgorithmName.SHA512);
+	}
+
+	private static string CreateSeedPhrase(ReadOnlySpan<byte> entropy, WordList wordList)
+	{
 		int checksumLengthInBits = entropy.Length / 4;
 
 		Span<byte> entropyAndChecksum = stackalloc byte[entropy.Length + SHA256.HashSizeInBytes];
@@ -357,19 +392,32 @@ public partial class Bip39Mnemonic
 
 	private unsafe struct FixedArrays
 	{
-		private const int MaxEntropyLengthInBytes = 512 / 8;
+		/// <summary>
+		/// This is the exact seed length as specified by BIP-39.
+		/// </summary>
+		internal const int SeedLengthInBytes = 512 / 8;
+
+		// This value is somewhat arbitrary.
+		internal const int MaxEntropyLengthInBytes = 512 / 8;
 
 		private readonly byte entropyLength;
 
 		private fixed byte entropy[MaxEntropyLengthInBytes];
 
-		internal FixedArrays(ReadOnlySpan<byte> entropy)
+		private fixed byte seed[SeedLengthInBytes];
+
+		internal FixedArrays(int entropyLength)
 		{
-			this.entropyLength = (byte)entropy.Length;
-			Span<byte> entropyFieldSpan = MemoryMarshal.CreateSpan(ref this.entropy[0], entropy.Length);
-			entropy.CopyTo(entropyFieldSpan);
+			Requires.Range(entropyLength <= MaxEntropyLengthInBytes, nameof(entropyLength));
+			this.entropyLength = (byte)entropyLength;
 		}
 
 		internal readonly ReadOnlySpan<byte> Entropy => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.entropy[0]), this.entropyLength);
+
+		internal readonly ReadOnlySpan<byte> Seed => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.seed[0]), SeedLengthInBytes);
+
+		internal Span<byte> EntropyWritable => MemoryMarshal.CreateSpan(ref this.entropy[0], this.entropyLength);
+
+		internal Span<byte> SeedWritable => MemoryMarshal.CreateSpan(ref this.seed[0], SeedLengthInBytes);
 	}
 }
