@@ -3,7 +3,7 @@
 
 namespace Nerdbank.Cryptocurrencies;
 
-public static partial class Bip39SeedPhrase
+public partial class Bip39Mnemonic
 {
 	/// <summary>
 	/// The word lists as specified at <see href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki" />.
@@ -52,8 +52,18 @@ public static partial class Bip39SeedPhrase
 
 		internal int LongestWord { get; }
 
+		/// <summary>
+		/// Gets the word at the specified index from the word list.
+		/// </summary>
+		/// <param name="index">The index of the word. Allowed range is [0, 2048).</param>
+		/// <returns>The word.</returns>
 		internal ReadOnlySpan<char> this[int index] => this.words.Span[index].Span;
 
+		/// <summary>
+		/// Finds the index in the word list to the specified word.
+		/// </summary>
+		/// <param name="word">The word to search for.</param>
+		/// <returns>The index of the word, or -1 if the word does not appear in the list.</returns>
 		internal int Find(ReadOnlySpan<char> word)
 		{
 			// PERF: We could use a binary search instead of a linear one.

@@ -4,7 +4,11 @@ Nerdbank.Cryptocurrencies.Bech32
 Nerdbank.Cryptocurrencies.Bech32.Decode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data) -> (int TagLength, int DataLength)
 Nerdbank.Cryptocurrencies.Bech32.Encode(System.ReadOnlySpan<char> tag, System.ReadOnlySpan<byte> data, System.Span<char> output) -> int
 Nerdbank.Cryptocurrencies.Bech32.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length) -> bool
-Nerdbank.Cryptocurrencies.Bip39SeedPhrase
+Nerdbank.Cryptocurrencies.Bip39Mnemonic
+Nerdbank.Cryptocurrencies.Bip39Mnemonic.Bip39Mnemonic(System.ReadOnlySpan<byte> entropy, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> void
+Nerdbank.Cryptocurrencies.Bip39Mnemonic.Entropy.get -> System.ReadOnlySpan<byte>
+Nerdbank.Cryptocurrencies.Bip39Mnemonic.Password.get -> System.ReadOnlyMemory<char>
+Nerdbank.Cryptocurrencies.Bip39Mnemonic.SeedPhrase.get -> string!
 Nerdbank.Cryptocurrencies.Blake2B
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B() -> void
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B(in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> void
@@ -38,10 +42,9 @@ static Nerdbank.Cryptocurrencies.Base58Check.GetMaxEncodedLength(int byteCount) 
 static Nerdbank.Cryptocurrencies.Base58Check.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out int bytesWritten) -> bool
 static Nerdbank.Cryptocurrencies.Bech32.GetDecodedLength(System.ReadOnlySpan<char> encoded) -> (int Tag, int Data)?
 static Nerdbank.Cryptocurrencies.Bech32.GetEncodedLength(int tagLength, int dataLength) -> int
-static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.Generate(int entropyLengthInBits) -> string!
-static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.Generate(System.ReadOnlySpan<byte> entropy) -> string!
-static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.GetEntropyLengthInBits(System.ReadOnlySpan<char> seedPhrase) -> int
-static Nerdbank.Cryptocurrencies.Bip39SeedPhrase.TryGetEntropy(System.ReadOnlySpan<char> seedPhrase, System.Span<byte> entropy, out int bytesWritten, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
+static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Generate(int entropyLengthInBits, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
+static Nerdbank.Cryptocurrencies.Bip39Mnemonic.GetEntropyLengthInBits(System.ReadOnlySpan<char> seedPhrase) -> int
+static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, System.ReadOnlyMemory<char> password, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash) -> int
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash, in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> buffer, out ulong value) -> int

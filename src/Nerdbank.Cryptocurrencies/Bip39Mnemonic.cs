@@ -3,62 +3,80 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace Nerdbank.Cryptocurrencies;
 
 /// <summary>
-/// A seed phrase generator.
+/// A BIP-39 implementation that can generate new seed phrases and seed binary keys
+/// that can be used to generate deterministic wallets using BIP-0032 or similar methods.
 /// </summary>
-public static partial class Bip39SeedPhrase
+public partial class Bip39Mnemonic
 {
+	/// <summary>
+	/// The inline arrays where we store data to avoid allocating another object.
+	/// </summary>
+	private readonly FixedArrays fixedArrays;
+
+	/// <summary>
+	/// Caches the value for the lazily-initialized <see cref="SeedPhrase"/> property.
+	/// </summary>
+	private string? seedPhrase;
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="Bip39Mnemonic"/> class.
+	/// </summary>
+	/// <param name="entropy">The entropy buffer that must be represented by the seed phrase. The length in bytes must be a non-zero multiple of 4. This should <em>not</em> include the checksum.</param>
+	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed.</param>
+	/// <exception cref="ArgumentException">Throw if the length of <paramref name="entropy"/> is not a multiple of 4.</exception>
+	/// <remarks>
+	/// This constructor is useful for those who already have the entropy created from a cryptographically strong random number generator.
+	/// To generate a new mnemonic, use the <see cref="Generate(int, ReadOnlyMemory{char})"/> static method.
+	/// </remarks>
+	public Bip39Mnemonic(ReadOnlySpan<byte> entropy, ReadOnlyMemory<char> password = default)
+	{
+		Requires.Argument(entropy.Length % 4 == 0 && entropy.Length > 0, nameof(entropy), Strings.LengthMustBeNonEmptyAndDivisibleBy4);
+		this.fixedArrays = new FixedArrays(entropy);
+		this.Password = password;
+	}
+
+	/// <summary>
+	/// Gets the seed phrase.
+	/// </summary>
+	/// <remarks>
+	/// This does <em>not</em> include the <see cref="Password"/>.
+	/// </remarks>
+	public string SeedPhrase => this.seedPhrase ??= this.CreateSeedPhrase(WordList.Default);
+
+	/// <summary>
+	/// Gets the entropy described by the mnemonic.
+	/// </summary>
+	public ReadOnlySpan<byte> Entropy => this.fixedArrays.Entropy;
+
+	/// <summary>
+	/// Gets the optional password that is added to the mnemonic when creating the binary seed.
+	/// </summary>
+	/// <remarks>
+	/// Any password is a valid addition, and each unique password will produce a unique, deterministic binary seed.
+	/// </remarks>
+	public ReadOnlyMemory<char> Password { get; }
+
 	/// <summary>
 	/// Generates a seed phrase for a newly generated secret.
 	/// </summary>
 	/// <param name="entropyLengthInBits">The number of secret bits that must be represented by the seed phrase. Must be a multiple of 32.</param>
+	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed.</param>
 	/// <returns>The seed phrase.</returns>
 	/// <exception cref="ArgumentException">Throw if <paramref name="entropyLengthInBits"/> is not a multiple of 32.</exception>
-	public static string Generate(int entropyLengthInBits)
+	public static Bip39Mnemonic Generate(int entropyLengthInBits, ReadOnlyMemory<char> password = default)
 	{
 		Requires.Argument(entropyLengthInBits % 32 == 0, nameof(entropyLengthInBits), Strings.MustBeNonZeroMultipleOf32);
 		Span<byte> entropy = stackalloc byte[entropyLengthInBits / 8];
 		RandomNumberGenerator.Fill(entropy);
-		return Generate(entropy);
-	}
-
-	/// <summary>
-	/// Generates a seed phrase for a given entropy buffer.
-	/// </summary>
-	/// <param name="entropy">The entropy buffer that must be represented by the seed phrase. The length in bytes must be a non-zero multiple of 4.</param>
-	/// <returns>The seed phrase.</returns>
-	/// <exception cref="ArgumentException">Throw if the length of <paramref name="entropy"/> is not a multiple of 4.</exception>
-	public static string Generate(ReadOnlySpan<byte> entropy)
-	{
-		Requires.Argument(entropy.Length % 4 == 0 && entropy.Length > 0, nameof(entropy), Strings.LengthMustBeNonEmptyAndDivisibleBy4);
-		int checksumLengthInBits = entropy.Length / 4;
-
-		Span<byte> entropyAndChecksum = stackalloc byte[entropy.Length + SHA256.HashSizeInBytes];
-		entropy.CopyTo(entropyAndChecksum);
-		Span<byte> hash = entropyAndChecksum[entropy.Length..];
-		SHA256.HashData(entropy, hash);
-
-		WordList wordList = WordList.Default;
-		int wordCount = ((entropy.Length * 8) + checksumLengthInBits) / 11;
-		Span<char> seedPhrase = stackalloc char[(wordList.LongestWord + 1) * wordCount];
-		int phraseLength = 0;
-		for (int wordNumber = 0; wordNumber < wordCount; wordNumber++)
-		{
-			int wordIdx = GetBits(entropyAndChecksum, wordNumber * 11, 11);
-			ReadOnlySpan<char> word = wordList[wordIdx];
-			word.CopyTo(seedPhrase[phraseLength..]);
-			phraseLength += word.Length;
-			seedPhrase[phraseLength] = ' ';
-			phraseLength++;
-		}
-
-		phraseLength--; // remove trailing space
-		return seedPhrase[..phraseLength].ToString();
+		return new(entropy, password);
 	}
 
 	/// <summary>
@@ -78,12 +96,12 @@ public static partial class Bip39SeedPhrase
 	/// Decodes a seed phrase to the entropy data it represents.
 	/// </summary>
 	/// <param name="seedPhrase">The seed phrase.</param>
-	/// <param name="entropy">Receives the entropy data. The minimum required length for this can be obtained from <see cref="GetEntropyLengthInBits(ReadOnlySpan{char})"/>.</param>
-	/// <param name="bytesWritten">Receives the number of bytes written to <paramref name="entropy"/>.</param>
+	/// <param name="password">An optional password. This may contain any character including spaces, although spaces are not recommended because some wallet software does not provide a special password entry but instead accepts it as a <em>single</em> additional word in the seed phrase.</param>
+	/// <param name="mnemonic">Receives the mnemonic.</param>
 	/// <param name="decodeError">Receives the error code if decoding fails.</param>
 	/// <param name="errorMessage">Receives the error message if decoding fails.</param>
 	/// <returns><see langword="true" /> if decoding succeeds; <see langword="false" /> otherwise.</returns>
-	public static bool TryGetEntropy(ReadOnlySpan<char> seedPhrase, Span<byte> entropy, out int bytesWritten, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage)
+	public static bool TryParse(ReadOnlySpan<char> seedPhrase, ReadOnlyMemory<char> password, [NotNullWhen(true)] out Bip39Mnemonic? mnemonic, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage)
 	{
 		WordList wordList = WordList.Default;
 		int bitsInitialized = 0;
@@ -107,7 +125,7 @@ public static partial class Bip39SeedPhrase
 			int wordIndex = wordList.Find(word);
 			if (wordIndex == -1)
 			{
-				bytesWritten = 0;
+				mnemonic = null;
 				decodeError = DecodeError.InvalidWord;
 				errorMessage = Strings.FormatWordNotOnWordList(word.ToString());
 				return false;
@@ -132,12 +150,11 @@ public static partial class Bip39SeedPhrase
 		{
 			decodeError = DecodeError.InvalidChecksum;
 			errorMessage = Strings.InvalidChecksum;
-			bytesWritten = 0;
+			mnemonic = null;
 			return false;
 		}
 
-		entropyAndChecksum[..(entropyLengthInBits / 8)].CopyTo(entropy);
-		bytesWritten = entropy.Length;
+		mnemonic = new Bip39Mnemonic(decodedEntropy, password);
 		decodeError = null;
 		errorMessage = null;
 		return true;
@@ -277,5 +294,56 @@ public static partial class Bip39SeedPhrase
 		int entropyLength = dataLengthInBits * 32 / 33;
 		int checksumLength = dataLengthInBits - entropyLength;
 		return (entropyLength, checksumLength);
+	}
+
+	private string CreateSeedPhrase(WordList wordList)
+	{
+		ReadOnlySpan<byte> entropy = this.Entropy;
+		int checksumLengthInBits = entropy.Length / 4;
+
+		Span<byte> entropyAndChecksum = stackalloc byte[entropy.Length + SHA256.HashSizeInBytes];
+		entropy.CopyTo(entropyAndChecksum);
+		Span<byte> hash = entropyAndChecksum[entropy.Length..];
+		SHA256.HashData(entropy, hash);
+
+		int wordCount = ((entropy.Length * 8) + checksumLengthInBits) / 11;
+		Span<ushort> wordIndexes = stackalloc ushort[wordCount];
+		for (int wordNumber = 0; wordNumber < wordCount; wordNumber++)
+		{
+			int wordIdx = GetBits(entropyAndChecksum, wordNumber * 11, 11);
+			wordIndexes[wordNumber] = (ushort)wordIdx;
+		}
+
+		Span<char> seedPhrase = stackalloc char[(wordList.LongestWord + 1) * wordIndexes.Length];
+		int phraseLength = 0;
+		for (int wordNumber = 0; wordNumber < wordIndexes.Length; wordNumber++)
+		{
+			ReadOnlySpan<char> word = wordList[wordIndexes[wordNumber]];
+			word.CopyTo(seedPhrase[phraseLength..]);
+			phraseLength += word.Length;
+			seedPhrase[phraseLength] = ' ';
+			phraseLength++;
+		}
+
+		phraseLength--; // remove trailing space
+		return seedPhrase[..phraseLength].ToString();
+	}
+
+	private unsafe struct FixedArrays
+	{
+		private const int MaxEntropyLengthInBytes = 512 / 8;
+
+		private readonly byte entropyLength;
+
+		private fixed byte entropy[MaxEntropyLengthInBytes];
+
+		internal FixedArrays(ReadOnlySpan<byte> entropy)
+		{
+			this.entropyLength = (byte)entropy.Length;
+			Span<byte> entropyFieldSpan = MemoryMarshal.CreateSpan(ref this.entropy[0], entropy.Length);
+			entropy.CopyTo(entropyFieldSpan);
+		}
+
+		internal readonly ReadOnlySpan<byte> Entropy => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.entropy[0]), this.entropyLength);
 	}
 }
