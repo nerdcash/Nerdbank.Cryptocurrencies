@@ -95,6 +95,37 @@ public partial class Bip39Mnemonic
 	/// <summary>
 	/// Decodes a seed phrase to the entropy data it represents.
 	/// </summary>
+	/// <param name="seedPhrase">The seed phrase. This <em>may</em> include exactly one extra word that serves as a password.</param>
+	/// <param name="mnemonic">Receives the mnemonic.</param>
+	/// <param name="decodeError">Receives the error code if decoding fails.</param>
+	/// <param name="errorMessage">Receives the error message if decoding fails.</param>
+	/// <returns><see langword="true" /> if decoding succeeds; <see langword="false" /> otherwise.</returns>
+	public static bool TryParse(ReadOnlySpan<char> seedPhrase, [NotNullWhen(true)] out Bip39Mnemonic? mnemonic, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage)
+	{
+		// Look for an extra word in the seed phrase. If it is present, interpret that as a password.
+		ReadOnlyMemory<char> password = default;
+		if (CountWords(seedPhrase) % 3 == 1)
+		{
+			// There is one too many words in the seed phrase for it to be valid.
+			// Assume the last word is a password and move it from the seed phrase to the password parameter.
+			seedPhrase = seedPhrase.Trim();
+			for (int i = seedPhrase.Length - 1; i >= 0; i--)
+			{
+				if (char.IsWhiteSpace(seedPhrase[i]))
+				{
+					password = seedPhrase[(i + 1)..].ToString().AsMemory();
+					seedPhrase = seedPhrase[..i];
+					break;
+				}
+			}
+		}
+
+		return TryParse(seedPhrase, password, out mnemonic, out decodeError, out errorMessage);
+	}
+
+	/// <summary>
+	/// Decodes a seed phrase to the entropy data it represents.
+	/// </summary>
 	/// <param name="seedPhrase">The seed phrase.</param>
 	/// <param name="password">An optional password. This may contain any character including spaces, although spaces are not recommended because some wallet software does not provide a special password entry but instead accepts it as a <em>single</em> additional word in the seed phrase.</param>
 	/// <param name="mnemonic">Receives the mnemonic.</param>
@@ -106,6 +137,14 @@ public partial class Bip39Mnemonic
 		WordList wordList = WordList.Default;
 		int bitsInitialized = 0;
 		int wordCount = CountWords(seedPhrase);
+		if (wordCount % 3 > 0)
+		{
+			mnemonic = null;
+			decodeError = DecodeError.BadWordCount;
+			errorMessage = Strings.WrongNumberOfWords;
+			return false;
+		}
+
 		(int entropyLengthInBits, int checksumLengthInBits) = GetLengths(wordCount);
 
 		Span<byte> entropyAndChecksum = stackalloc byte[(int)Math.Ceiling((double)(entropyLengthInBits + checksumLengthInBits) / 8)];

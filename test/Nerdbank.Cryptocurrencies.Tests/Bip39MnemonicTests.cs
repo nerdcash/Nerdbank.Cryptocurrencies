@@ -84,7 +84,7 @@ public class Bip39MnemonicTests
 	}
 
 	[Fact]
-	public void TryParse_WithPassword()
+	public void TryParse_WithExplicitPassword()
 	{
 		const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
 		const string Password = "some password";
@@ -92,6 +92,26 @@ public class Bip39MnemonicTests
 		Assert.Equal("5E29A6C2EF223A851C2FF239B0026271", Convert.ToHexString(mnemonic.Entropy));
 		Assert.Equal(Password.AsMemory(), mnemonic.Password);
 		Assert.Equal(SeedPhrase, mnemonic.SeedPhrase);
+	}
+
+	[Fact]
+	public void TryParse_WithImplicitPassword()
+	{
+		const string Password = "somepassword";
+		const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
+		Assert.True(Bip39Mnemonic.TryParse($"{SeedPhrase} {Password}", out Bip39Mnemonic? mnemonic, out _, out _));
+		Assert.Equal("5E29A6C2EF223A851C2FF239B0026271", Convert.ToHexString(mnemonic.Entropy));
+		Assert.Equal(Password.AsMemory().ToString(), mnemonic.Password.ToString());
+		Assert.Equal(SeedPhrase, mnemonic.SeedPhrase);
+	}
+
+	[Fact]
+	public void TryParse_WithTwoExtraWords()
+	{
+		const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco obtain tobacco";
+		Assert.False(Bip39Mnemonic.TryParse(SeedPhrase, out Bip39Mnemonic? mnemonic, out DecodeError? decodeError, out string? errorMessage));
+		this.logger.WriteLine(errorMessage);
+		Assert.Equal(DecodeError.BadWordCount, decodeError);
 	}
 
 	[Theory]

@@ -37,4 +37,9 @@ public enum DecodeError
 	/// A word was encountered that was not in the dictionary of allowed words for this encoding.
 	/// </summary>
 	InvalidWord,
+
+	/// <summary>
+	/// A phrase had an unexpected number of words in it.
+	/// </summary>
+	BadWordCount,
 }

@@ -147,4 +147,7 @@
   <data name="WordNotOnWordList" xml:space="preserve">
     <value>The word '{word}' does not appear on the allowed word list.</value>
   </data>
+  <data name="WrongNumberOfWords" xml:space="preserve">
+    <value>A mnemonic does not have this number of words.</value>
+  </data>
 </root>
