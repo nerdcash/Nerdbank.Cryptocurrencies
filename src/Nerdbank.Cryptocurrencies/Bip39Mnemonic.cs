@@ -80,19 +80,6 @@ public partial class Bip39Mnemonic
 	}
 
 	/// <summary>
-	/// Gets the length of the the entropy buffer required to decode a given seed phrase.
-	/// </summary>
-	/// <param name="seedPhrase">The seed phrase.</param>
-	/// <returns>The entropy length, in bits. Always a multiple of 32.</returns>
-	public static int GetEntropyLengthInBits(ReadOnlySpan<char> seedPhrase)
-	{
-		int wordCount = CountWords(seedPhrase);
-
-		(int entropyLength, _) = GetLengths(wordCount);
-		return entropyLength;
-	}
-
-	/// <summary>
 	/// Decodes a seed phrase to the entropy data it represents.
 	/// </summary>
 	/// <param name="seedPhrase">The seed phrase. This <em>may</em> include exactly one extra word that serves as a password.</param>

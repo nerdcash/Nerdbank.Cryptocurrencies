@@ -43,19 +43,6 @@ public class Bip39MnemonicTests
 	}
 
 	[Fact]
-	public void GetEntropyLength()
-	{
-		StringBuilder seedPhraseBuilder = new();
-		for (int wordCount = 3; wordCount <= 24; wordCount += 3)
-		{
-			seedPhraseBuilder.Append("a a  a ");
-			int expectedEntropy = wordCount / 3 * 32;
-			int actualEntropy = Bip39Mnemonic.GetEntropyLengthInBits(seedPhraseBuilder.ToString());
-			Assert.Equal(expectedEntropy, actualEntropy);
-		}
-	}
-
-	[Fact]
 	public void Generate_Entropy()
 	{
 		Span<byte> entropy = stackalloc byte[16];
