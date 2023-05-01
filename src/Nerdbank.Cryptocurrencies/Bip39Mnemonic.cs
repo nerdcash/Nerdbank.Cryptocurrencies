@@ -31,7 +31,7 @@ public partial class Bip39Mnemonic
 	/// <exception cref="ArgumentException">Throw if the length of <paramref name="entropy"/> is not a multiple of 4.</exception>
 	/// <remarks>
 	/// This constructor is useful for those who already have the entropy created from a cryptographically strong random number generator.
-	/// To generate a new mnemonic, use the <see cref="Generate(int, ReadOnlyMemory{char})"/> static method.
+	/// To generate a new mnemonic, use the <see cref="Create(int, ReadOnlyMemory{char})"/> static method.
 	/// </remarks>
 	public Bip39Mnemonic(ReadOnlySpan<byte> entropy, ReadOnlyMemory<char> password = default)
 	{
@@ -83,7 +83,7 @@ public partial class Bip39Mnemonic
 	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed.</param>
 	/// <returns>The seed phrase.</returns>
 	/// <exception cref="ArgumentException">Throw if <paramref name="entropyLengthInBits"/> is not a multiple of 32.</exception>
-	public static Bip39Mnemonic Generate(int entropyLengthInBits, ReadOnlyMemory<char> password = default)
+	public static Bip39Mnemonic Create(int entropyLengthInBits, ReadOnlyMemory<char> password = default)
 	{
 		Requires.Argument(entropyLengthInBits % 32 == 0, nameof(entropyLengthInBits), Strings.MustBeNonZeroMultipleOf32);
 		Span<byte> entropy = stackalloc byte[entropyLengthInBits / 8];

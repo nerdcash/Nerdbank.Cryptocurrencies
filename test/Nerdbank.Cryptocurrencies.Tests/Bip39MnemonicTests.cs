@@ -21,7 +21,7 @@ public class Bip39MnemonicTests
 	[InlineData(32, 3)]
 	public void Generate_Length(int bitLength, int expectedWordCount)
 	{
-		string seedPhrase = Bip39Mnemonic.Generate(bitLength).SeedPhrase;
+		string seedPhrase = Bip39Mnemonic.Create(bitLength).SeedPhrase;
 		this.logger.WriteLine(seedPhrase);
 		Assert.Equal(expectedWordCount, seedPhrase.Split().Length);
 	}
@@ -29,17 +29,17 @@ public class Bip39MnemonicTests
 	[Fact]
 	public void Generate_Length_ProducesUniquePhrases()
 	{
-		string seedPhrase = Bip39Mnemonic.Generate(64).SeedPhrase;
-		string seedPhrase2 = Bip39Mnemonic.Generate(64).SeedPhrase;
+		string seedPhrase = Bip39Mnemonic.Create(64).SeedPhrase;
+		string seedPhrase2 = Bip39Mnemonic.Create(64).SeedPhrase;
 		Assert.NotEqual(seedPhrase, seedPhrase2);
 	}
 
 	[Fact]
 	public void Generate_BadLengths()
 	{
-		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Generate(65));
-		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Generate(16));
-		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Generate(0));
+		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Create(65));
+		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Create(16));
+		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Create(0));
 	}
 
 	[Fact]
