@@ -126,6 +126,9 @@
   <data name="DecodeInputTooShort" xml:space="preserve">
     <value>The input length is shorter than the minimum required for this encoding.</value>
   </data>
+  <data name="InvalidBip32KeyPath" xml:space="preserve">
+    <value>Invalid BIP-32 key derivation path.</value>
+  </data>
   <data name="InvalidCharXFoundAtY" xml:space="preserve">
     <value>Disallowed character '{character}' found at position {position}.</value>
   </data>
