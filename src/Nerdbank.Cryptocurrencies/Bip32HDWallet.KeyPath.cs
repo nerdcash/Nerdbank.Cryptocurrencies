@@ -14,7 +14,7 @@ public partial class Bip32HDWallet
 	/// </summary>
 	/// <param name="Index">The index for this particular step, including the <see cref="HardenedBit"/> if the key should be hardened.</param>
 	/// <param name="Parent">The prior step in this path.</param>
-	public record KeyPath(uint Index, KeyPath? Parent = null)
+	public record KeyPath(uint Index, KeyPath? Parent = null) : IComparable<KeyPath>
 	{
 		/// <summary>
 		/// The bit that should be bitwise-OR'd with the <see cref="Index"/> to produce a hardened key.
@@ -26,7 +26,36 @@ public partial class Bip32HDWallet
 		/// </summary>
 		public bool IsHardened => (this.Index & 0x80000000) != 0;
 
+		/// <summary>
+		/// Gets the number of steps in this path.
+		/// </summary>
+		public uint Length => this.Parent is null ? 1 : this.Parent.Length + 1;
+
 		private string IndexWithApplicableHardenedFlag => this.IsHardened ? Invariant($"{this.Index & ~HardenedBit}'") : this.Index.ToString(CultureInfo.InvariantCulture);
+
+		/// <summary>
+		/// Gets the index in this <see cref="KeyPath"/> at a particular position in the path.
+		/// </summary>
+		/// <param name="level">The position in the path, considering the first index to be 1.</param>
+		/// <returns>The index at the specified path.</returns>
+		public uint this[uint level]
+		{
+			get
+			{
+				if (level < this.Length)
+				{
+					return this.Parent?[level] ?? throw new IndexOutOfRangeException(nameof(level));
+				}
+				else if (level > this.Length)
+				{
+					throw new IndexOutOfRangeException(nameof(level));
+				}
+				else
+				{
+					return this.Index;
+				}
+			}
+		}
 
 		/// <summary>
 		/// Parses an "m/1/2'/3" style string into a <see cref="KeyPath"/> instance.
@@ -108,10 +137,73 @@ public partial class Bip32HDWallet
 			return result is not null;
 		}
 
+		/// <inheritdoc/>
+		public int CompareTo(KeyPath? other)
+		{
+			if (other is null)
+			{
+				return 1;
+			}
+
+			// Compare all levels that have counterparts.
+			uint greatestCommonLength = Math.Min(this.Length, other.Length);
+			for (uint level = 1; level <= greatestCommonLength; level++)
+			{
+				int compare = CompareIndex(this[level], other[level]);
+				if (compare != 0)
+				{
+					return compare;
+				}
+			}
+
+			// If all levels are equal, then the longer path is greater.
+			return this.Length.CompareTo(other.Length);
+
+			static int CompareIndex(uint a, uint b)
+			{
+				// When comparing indexes, remove the hardened bit first so that 3 and 3' sort together.
+				int compare = (a & ~HardenedBit).CompareTo(b & ~HardenedBit);
+				if (compare != 0)
+				{
+					return compare;
+				}
+
+				// If the indexes are the same, then the hardened bit determines the sort order.
+				if ((a & HardenedBit) != (b & HardenedBit))
+				{
+					return (a & HardenedBit) != 0 ? -1 : 1;
+				}
+
+				return 0;
+			}
+		}
+
 		/// <summary>
 		/// Prints out the standard "m/0/1'/2" format for the key path.
 		/// </summary>
 		/// <returns>A standard format "m/0/1/2" string.</returns>
 		public override string ToString() => $"{this.Parent?.ToString() ?? "m"}/{this.IndexWithApplicableHardenedFlag}";
+
+		/// <summary>
+		/// Gets this <see cref="KeyPath"/> or some parent of it whose <see cref="Length"/> matches the specified <paramref name="length"/>.
+		/// </summary>
+		/// <param name="length">The desired length of the key path.</param>
+		/// <returns>The key path.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown if the desired level is greater than this key path's own length.</exception>
+		public KeyPath Truncate(uint length)
+		{
+			if (length < this.Length)
+			{
+				return this.Parent?.Truncate(length) ?? throw new ArgumentOutOfRangeException(nameof(length));
+			}
+			else if (length > this.Length)
+			{
+				throw new ArgumentOutOfRangeException(nameof(length));
+			}
+			else
+			{
+				return this;
+			}
+		}
 	}
 }

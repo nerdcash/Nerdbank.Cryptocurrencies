@@ -1,5 +1,6 @@
 ﻿#nullable enable
 const Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.HardenedBit = 2147483648 -> uint
+const Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.RecommendedAddressGapLimit = 20 -> uint
 Nerdbank.Cryptocurrencies.Base58Check
 Nerdbank.Cryptocurrencies.Bech32
 Nerdbank.Cryptocurrencies.Bech32.Decode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data) -> (int TagLength, int DataLength)
@@ -7,12 +8,16 @@ Nerdbank.Cryptocurrencies.Bech32.Encode(System.ReadOnlySpan<char> tag, System.Re
 Nerdbank.Cryptocurrencies.Bech32.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length) -> bool
 Nerdbank.Cryptocurrencies.Bip32HDWallet
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath
+Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.CompareTo(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? other) -> int
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Index.get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Index.init -> void
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.IsHardened.get -> bool
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.KeyPath(uint Index, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? Parent = null) -> void
+Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Length.get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parent.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parent.init -> void
+Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.this[uint level].get -> uint
+Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Truncate(uint length) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 Nerdbank.Cryptocurrencies.Bip39Mnemonic
 Nerdbank.Cryptocurrencies.Bip39Mnemonic.Bip39Mnemonic(System.ReadOnlySpan<byte> entropy, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> void
 Nerdbank.Cryptocurrencies.Bip39Mnemonic.Entropy.get -> System.ReadOnlySpan<byte>
@@ -20,6 +25,9 @@ Nerdbank.Cryptocurrencies.Bip39Mnemonic.Password.get -> System.ReadOnlyMemory<ch
 Nerdbank.Cryptocurrencies.Bip39Mnemonic.Seed.get -> System.ReadOnlySpan<byte>
 Nerdbank.Cryptocurrencies.Bip39Mnemonic.SeedPhrase.get -> string!
 Nerdbank.Cryptocurrencies.Bip44MultiAccountHD
+Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
+Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change.ChangeAddressChain = 1 -> Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
+Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change.ReceivingAddressChain = 0 -> Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
 Nerdbank.Cryptocurrencies.Blake2B
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B() -> void
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B(in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> void
@@ -60,7 +68,10 @@ static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.TryParse(System.ReadOnlyS
 static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Create(int entropyLengthInBits, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
 static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
 static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, System.ReadOnlyMemory<char> password, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
-static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account, uint change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account, Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint coinType, System.Func<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
+static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAddressesAsync(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! account, System.Func<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash) -> int
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash, in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> buffer, out ulong value) -> int

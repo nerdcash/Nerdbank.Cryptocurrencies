@@ -13,6 +13,32 @@ namespace Nerdbank.Cryptocurrencies;
 public static class Bip44MultiAccountHD
 {
 	/// <summary>
+	/// The address gap limit that is recommended by BIP-44.
+	/// </summary>
+	public const uint RecommendedAddressGapLimit = 20;
+
+	/// <summary>
+	/// The value of the <c>purpose</c> position in the key path.
+	/// </summary>
+	private const uint Purpose = 44;
+
+	/// <summary>
+	/// Enumerates the constants that are to be used for the <c>change</c> position in the key path.
+	/// </summary>
+	public enum Change : uint
+	{
+		/// <summary>
+		/// The external chain that is used for generating receiving addresses.
+		/// </summary>
+		ReceivingAddressChain = 0,
+
+		/// <summary>
+		/// The internal chain that is used for generating change addresses (i.e. those addresses that should receive the funds that are <em>not</em> transmitted to another party).
+		/// </summary>
+		ChangeAddressChain = 1,
+	}
+
+	/// <summary>
 	/// Creates a key derivation path that conforms to the <see href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP-44</see> specification
 	/// of <c>m / purpose' / coin_type' / account' / change / address_index</c>.
 	/// </summary>
@@ -41,9 +67,111 @@ public static class Bip44MultiAccountHD
 	/// <para>This number should <em>not</em> include the <see cref="HardenedBit"/>.</para>
 	/// </param>
 	/// <returns>The BIP-44 compliant key path.</returns>
-	public static KeyPath CreateKeyPath(uint coinType, uint account, uint change, uint addressIndex)
+	public static KeyPath CreateKeyPath(uint coinType, uint account, Change change, uint addressIndex)
 	{
 		// m / purpose' / coin_type' / account' / change / address_index
-		return new(addressIndex, new(change, new(account | HardenedBit, new(coinType | HardenedBit, new(44 | HardenedBit)))));
+		return new(addressIndex, new((uint)change, CreateKeyPath(coinType, account)));
+	}
+
+	/// <summary>
+	/// Creates a key derivation path that conforms to the <see href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP-44</see> specification
+	/// of <c>m / purpose' / coin_type' / account'</c>.
+	/// </summary>
+	/// <inheritdoc cref="CreateKeyPath(uint, uint, Change, uint)"/>
+	public static KeyPath CreateKeyPath(uint coinType, uint account)
+	{
+		// m / purpose' / coin_type' / account'
+		return new(account | HardenedBit, new(coinType | HardenedBit, new(Purpose | HardenedBit)));
+	}
+
+	/// <summary>
+	/// Searches for accounts that have been used.
+	/// </summary>
+	/// <param name="coinType">The coin type to search.</param>
+	/// <param name="discover"><inheritdoc cref="DiscoverUsedAddressesAsync(KeyPath, Func{KeyPath, ValueTask{bool}}, uint)" path="/param[@name='discover']" /></param>
+	/// <param name="addressGapLimit"><inheritdoc cref="DiscoverUsedAddressesAsync(KeyPath, Func{KeyPath, ValueTask{bool}}, uint)" path="/param[@name='addressGapLimit']" /></param>
+	/// <returns>
+	/// An asynchronous sequence of account-level key paths (i.e. <c>m/44'/coin'/account'</c>) that contain transactions.
+	/// </returns>
+	public static async IAsyncEnumerable<KeyPath> DiscoverUsedAccountsAsync(uint coinType, Func<KeyPath, ValueTask<bool>> discover, uint addressGapLimit = RecommendedAddressGapLimit)
+	{
+		Requires.NotNull(discover);
+
+		const int AccountGapLimit = 1;
+		for (uint accountIndex = 0, consecutiveUnusedAccounts = 1; consecutiveUnusedAccounts <= AccountGapLimit; accountIndex++, consecutiveUnusedAccounts++)
+		{
+			KeyPath accountKeyPath = CreateKeyPath(coinType, accountIndex);
+			await foreach (KeyPath usedAddress in DiscoverUsedAddressesAsync(accountKeyPath, discover, addressGapLimit))
+			{
+				yield return accountKeyPath;
+
+				// Stop looking for funds in this account and search for the next account.
+				consecutiveUnusedAccounts = 0;
+				break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Searches for addresses that have been used within an account.
+	/// </summary>
+	/// <param name="account">The account-level key path (i.e. <c>m/44'/coin'/account'</c>) to search.</param>
+	/// <param name="discover">
+	/// <para>
+	/// A callback that will perform the actual search. This callback receives the full key derivation path from which to derive an address and search it for transactions.
+	/// It should return a value indicating whether the address has <em>ever</em> received funds, which serves as feedback into the search to direct it to continue or stop.
+	/// </para>
+	/// <para>
+	/// This delegate may be invoked concurrently from multiple threads. Care should be taken to ensure that any side-effects are thread-safe.
+	/// </para>
+	/// <para>
+	/// Exceptions thrown from this delegate will abort the search and be allowed to propagate outside this method.
+	/// </para>
+	/// </param>
+	/// <param name="addressGapLimit">
+	/// The number of consecutively unused addresses to search before aborting the search in one particular chain.
+	/// The <see cref="RecommendedAddressGapLimit">default value</see> is the one recommended by BIP-44, and is a good value to use because wallet software should have
+	/// warned the user about generating a new address that would create a gap beyond this limit.
+	/// </param>
+	/// <returns>
+	/// An asynchronous sequence of full key paths (i.e. <c>m/44'/coin'/account'/change/addressIndex</c>) that contain transactions.
+	/// </returns>
+	public static async IAsyncEnumerable<KeyPath> DiscoverUsedAddressesAsync(KeyPath account, Func<KeyPath, ValueTask<bool>> discover, uint addressGapLimit = RecommendedAddressGapLimit)
+	{
+		Requires.NotNull(account);
+		Requires.Argument(account.Length == 3 && account[1] == (Purpose | HardenedBit), nameof(account), "This is not an account-level BIP-44 key derivation path.");
+		Requires.NotNull(discover);
+
+		// Always search the external chain, as that is where receiving addresses come from.
+		bool foundAny = false;
+		await foreach (KeyPath usedAddress in SearchChainAsync(new((uint)Change.ReceivingAddressChain, account)))
+		{
+			yield return usedAddress;
+			foundAny = true;
+		}
+
+		// If the external chain was used, then the internal "change" chain may have been used as well.
+		if (foundAny)
+		{
+			await foreach (KeyPath usedAddress in SearchChainAsync(new((uint)Change.ChangeAddressChain, account)))
+			{
+				yield return usedAddress;
+				foundAny = true;
+			}
+		}
+
+		async IAsyncEnumerable<KeyPath> SearchChainAsync(KeyPath chain)
+		{
+			// This loops over the address indexes, incrementing the index each time, until it encounters too many unused indexes in a row.
+			for (uint addressIndex = 0, consecutiveUnusedAddresses = 1; consecutiveUnusedAddresses <= addressGapLimit; addressIndex++, consecutiveUnusedAddresses++)
+			{
+				KeyPath keyPath = new(addressIndex, chain);
+				if (await discover(keyPath).ConfigureAwait(false))
+				{
+					consecutiveUnusedAddresses = 0;
+					yield return keyPath;
+				}
+			}
+		}
 	}
 }

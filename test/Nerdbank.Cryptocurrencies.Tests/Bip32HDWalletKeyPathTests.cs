@@ -107,4 +107,64 @@ public class Bip32HDWalletKeyPathTests
 	{
 		Assert.False(KeyPath.TryParse(path, out _));
 	}
+
+	[Fact]
+	public void CompareTo_OddCases()
+	{
+		Assert.Equal(1, new KeyPath(0).CompareTo(null));
+	}
+
+	[Fact]
+	public void CompareTo_SortingBehavior()
+	{
+		KeyPath[] unsorted = new[]
+		{
+			KeyPath.Parse("m/2/5"),
+			KeyPath.Parse("m/2"),
+			KeyPath.Parse("m/2/4"),
+			KeyPath.Parse("m/2/4'"),
+			KeyPath.Parse("m/3"),
+		};
+
+		KeyPath[] sorted = new[]
+		{
+			KeyPath.Parse("m/2"),
+			KeyPath.Parse("m/2/4'"),
+			KeyPath.Parse("m/2/4"),
+			KeyPath.Parse("m/2/5"),
+			KeyPath.Parse("m/3"),
+		};
+
+		Assert.Equal(sorted, unsorted.Order());
+	}
+
+	[Fact]
+	public void Truncate_OutOfRange()
+	{
+		Assert.Throws<ArgumentOutOfRangeException>(() => KeyPath.Parse("m/0").Truncate(2));
+		Assert.Throws<ArgumentOutOfRangeException>(() => KeyPath.Parse("m/0").Truncate(0));
+	}
+
+	[Fact]
+	public void Truncate()
+	{
+		KeyPath kp = KeyPath.Parse("m/0/1/2/3/4/5/6/7/8/9");
+		Assert.Equal(2u, kp.Truncate(2).Length);
+		Assert.Same(kp, kp.Truncate(10));
+	}
+
+	[Fact]
+	public void Indexer_OutOfRange()
+	{
+		Assert.Throws<IndexOutOfRangeException>(() => KeyPath.Parse("m/0")[2]);
+		Assert.Throws<IndexOutOfRangeException>(() => KeyPath.Parse("m/0")[0]);
+	}
+
+	[Fact]
+	public void Indexer()
+	{
+		KeyPath kp = KeyPath.Parse("m/0/1/2/3/4/5/6/7/8/9");
+		Assert.Equal(1u, kp[2]);
+		Assert.Equal(9u, kp[10]);
+	}
 }
