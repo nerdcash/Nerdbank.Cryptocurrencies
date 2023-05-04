@@ -91,6 +91,32 @@ public partial class Bip39Mnemonic
 		return new(entropy, password);
 	}
 
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, out Bip39Mnemonic?, out DecodeError?, out string?)"/>
+	/// <returns>The mnemonic.</returns>
+	/// <exception cref="FormatException">Thrown if parsing fails.</exception>
+	public static Bip39Mnemonic Parse(ReadOnlySpan<char> seedPhrase)
+	{
+		if (!TryParse(seedPhrase, out Bip39Mnemonic? result, out DecodeError? _, out string? errorMessage))
+		{
+			throw new FormatException(errorMessage);
+		}
+
+		return result;
+	}
+
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, ReadOnlyMemory{char}, out Bip39Mnemonic?, out DecodeError?, out string?)"/>
+	/// <returns>The mnemonic.</returns>
+	/// <exception cref="FormatException">Thrown if parsing fails.</exception>
+	public static Bip39Mnemonic Parse(ReadOnlySpan<char> seedPhrase, ReadOnlyMemory<char> password)
+	{
+		if (!TryParse(seedPhrase, password, out Bip39Mnemonic? result, out DecodeError? _, out string? errorMessage))
+		{
+			throw new FormatException(errorMessage);
+		}
+
+		return result;
+	}
+
 	/// <summary>
 	/// Decodes a seed phrase to the entropy data it represents.
 	/// </summary>
@@ -197,6 +223,12 @@ public partial class Bip39Mnemonic
 		errorMessage = null;
 		return true;
 	}
+
+	/// <summary>
+	/// Returns the <see cref="SeedPhrase"/>.
+	/// </summary>
+	/// <returns>The seed phrase.</returns>
+	public override string ToString() => this.SeedPhrase;
 
 	/// <summary>
 	/// Appends bits to a buffer.

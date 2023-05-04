@@ -56,6 +56,7 @@ Nerdbank.Cryptocurrencies.DecodeError.InvalidChecksum = 1 -> Nerdbank.Cryptocurr
 Nerdbank.Cryptocurrencies.DecodeError.InvalidWord = 5 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.NoSeparator = 3 -> Nerdbank.Cryptocurrencies.DecodeError
 override Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.ToString() -> string!
+override Nerdbank.Cryptocurrencies.Bip39Mnemonic.ToString() -> string!
 static Nerdbank.Cryptocurrencies.Base58Check.Decode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.Encode(System.ReadOnlySpan<byte> payload, System.Span<char> chars) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.GetMaxDecodedLength(int charCount) -> int
@@ -66,6 +67,8 @@ static Nerdbank.Cryptocurrencies.Bech32.GetEncodedLength(int tagLength, int data
 static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parse(System.ReadOnlySpan<char> path) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.TryParse(System.ReadOnlySpan<char> path, out Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? result) -> bool
 static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Create(int entropyLengthInBits, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
+static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Parse(System.ReadOnlySpan<char> seedPhrase) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
+static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Parse(System.ReadOnlySpan<char> seedPhrase, System.ReadOnlyMemory<char> password) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
 static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
 static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, System.ReadOnlyMemory<char> password, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
 static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
