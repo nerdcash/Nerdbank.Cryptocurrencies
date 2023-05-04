@@ -10,6 +10,10 @@ namespace Nerdbank.Cryptocurrencies;
 /// <summary>
 /// Contains Base58Check encoding and decoding methods.
 /// </summary>
+/// <remarks>
+/// Base58Check is exactly like Base58, except that a 4-byte checksum is appended to the end of the payload
+/// prior to encoding as characters.
+/// </remarks>
 public static class Base58Check
 {
 	private const int ChecksumLength = 4;

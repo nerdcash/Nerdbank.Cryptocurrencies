@@ -153,7 +153,7 @@ public class Blake2B
 		Span<ulong> h = this.buffers.H;
 		for (int i = 0; i < 8; ++i)
 		{
-			WriteInt64LE(h[i], hash[(i << 3)..]);
+			BitUtilities.WriteLE(h[i], hash[(i << 3)..]);
 		}
 
 		int bytesWritten = Math.Min(finalHash.Length, hash.Length);
@@ -260,8 +260,8 @@ public class Blake2B
 				throw new ArgumentException("config.Salt has invalid length");
 			}
 
-			rawConfig[4] = ReadUInt64LE(config.Salt);
-			rawConfig[5] = ReadUInt64LE(config.Salt[8..]);
+			rawConfig[4] = BitUtilities.ReadUInt64LE(config.Salt);
+			rawConfig[5] = BitUtilities.ReadUInt64LE(config.Salt[8..]);
 		}
 
 		// Personalization
@@ -272,60 +272,8 @@ public class Blake2B
 				throw new ArgumentException("config.Personalization has invalid length");
 			}
 
-			rawConfig[6] = ReadUInt64LE(config.Personalization);
-			rawConfig[7] = ReadUInt64LE(config.Personalization[8..]);
-		}
-	}
-
-	/// <summary>
-	/// Reads a little-endian 64-bit integer from the given buffer.
-	/// </summary>
-	/// <param name="buffer">The buffer to read from.</param>
-	/// <returns>The unsigned 64-bit integer.</returns>
-	private static ulong ReadUInt64LE(ReadOnlySpan<byte> buffer)
-	{
-		if (BitConverter.IsLittleEndian)
-		{
-			return BitConverter.ToUInt64(buffer);
-		}
-		else
-		{
-			return
-				((ulong)buffer[7] << (7 * 8)) |
-				((ulong)buffer[6] << (6 * 8)) |
-				((ulong)buffer[5] << (5 * 8)) |
-				((ulong)buffer[4] << (4 * 8)) |
-				((ulong)buffer[3] << (3 * 8)) |
-				((ulong)buffer[2] << (2 * 8)) |
-				((ulong)buffer[1] << (1 * 8)) |
-				buffer[0];
-		}
-	}
-
-	/// <summary>
-	/// Writes a little-endian 64-bit integer to the given buffer.
-	/// </summary>
-	/// <param name="value">The value to write.</param>
-	/// <param name="buffer">The buffer.</param>
-	private static void WriteInt64LE(ulong value, Span<byte> buffer)
-	{
-		if (BitConverter.IsLittleEndian)
-		{
-			if (!BitConverter.TryWriteBytes(buffer, value))
-			{
-				throw new IndexOutOfRangeException();
-			}
-		}
-		else
-		{
-			buffer[7] = (byte)(value >> (7 * 8));
-			buffer[6] = (byte)(value >> (6 * 8));
-			buffer[5] = (byte)(value >> (5 * 8));
-			buffer[4] = (byte)(value >> (4 * 8));
-			buffer[3] = (byte)(value >> (3 * 8));
-			buffer[2] = (byte)(value >> (2 * 8));
-			buffer[1] = (byte)(value >> (1 * 8));
-			buffer[0] = (byte)value;
+			rawConfig[6] = BitUtilities.ReadUInt64LE(config.Personalization);
+			rawConfig[7] = BitUtilities.ReadUInt64LE(config.Personalization[8..]);
 		}
 	}
 
@@ -383,7 +331,7 @@ public class Blake2B
 
 		for (int i = 0; i < 16; ++i)
 		{
-			m[i] = ReadUInt64LE(block[(i << 3)..]);
+			m[i] = BitUtilities.ReadUInt64LE(block[(i << 3)..]);
 		}
 
 		v[0] = h[0];

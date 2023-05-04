@@ -28,6 +28,7 @@ Nerdbank.Cryptocurrencies.Bip44MultiAccountHD
 Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
 Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change.ChangeAddressChain = 1 -> Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
 Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change.ReceivingAddressChain = 0 -> Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
+Nerdbank.Cryptocurrencies.BitUtilities
 Nerdbank.Cryptocurrencies.Blake2B
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B() -> void
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B(in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> void
@@ -75,6 +76,10 @@ static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType
 static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account, Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint coinType, System.Func<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
 static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAddressesAsync(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! account, System.Func<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
+static Nerdbank.Cryptocurrencies.BitUtilities.ReadUInt32LE(System.ReadOnlySpan<byte> buffer) -> uint
+static Nerdbank.Cryptocurrencies.BitUtilities.ReadUInt64LE(System.ReadOnlySpan<byte> buffer) -> ulong
+static Nerdbank.Cryptocurrencies.BitUtilities.WriteLE(uint value, System.Span<byte> buffer) -> int
+static Nerdbank.Cryptocurrencies.BitUtilities.WriteLE(ulong value, System.Span<byte> buffer) -> int
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash) -> int
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash, in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> buffer, out ulong value) -> int
