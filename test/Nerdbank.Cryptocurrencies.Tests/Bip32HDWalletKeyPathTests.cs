@@ -18,6 +18,7 @@ public class Bip32HDWalletKeyPathTests
 
 	public static object[][] ValidPaths => new object[][]
 	{
+		new object[] { "m" },
 		new object[] { "m/0" },
 		new object[] { "m/0/3" },
 		new object[] { "m/0/3'/4" },
