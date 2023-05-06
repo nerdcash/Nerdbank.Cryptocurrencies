@@ -35,6 +35,32 @@ public static class BitUtilities
 	}
 
 	/// <summary>
+	/// Writes a big-endian 32-bit integer to the given buffer.
+	/// </summary>
+	/// <param name="value">The value to write.</param>
+	/// <param name="buffer">The buffer.</param>
+	/// <returns>The number of bytes written to <paramref name="buffer"/> (always 4).</returns>
+	public static int WriteBE(uint value, Span<byte> buffer)
+	{
+		if (!BitConverter.IsLittleEndian)
+		{
+			if (!BitConverter.TryWriteBytes(buffer, value))
+			{
+				throw new ArgumentException(Strings.TargetBufferTooSmall);
+			}
+		}
+		else
+		{
+			buffer[3] = (byte)value;
+			buffer[2] = (byte)(value >> (1 * 8));
+			buffer[1] = (byte)(value >> (2 * 8));
+			buffer[0] = (byte)(value >> (3 * 8));
+		}
+
+		return sizeof(uint);
+	}
+
+	/// <summary>
 	/// Reads a little-endian 32-bit integer from the given buffer.
 	/// </summary>
 	/// <param name="buffer">The buffer to read from.</param>

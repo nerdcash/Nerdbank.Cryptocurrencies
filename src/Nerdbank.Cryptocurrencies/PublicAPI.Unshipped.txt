@@ -78,6 +78,7 @@ static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAccountsAsync(u
 static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAddressesAsync(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! account, System.Func<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
 static Nerdbank.Cryptocurrencies.BitUtilities.ReadUInt32LE(System.ReadOnlySpan<byte> buffer) -> uint
 static Nerdbank.Cryptocurrencies.BitUtilities.ReadUInt64LE(System.ReadOnlySpan<byte> buffer) -> ulong
+static Nerdbank.Cryptocurrencies.BitUtilities.WriteBE(uint value, System.Span<byte> buffer) -> int
 static Nerdbank.Cryptocurrencies.BitUtilities.WriteLE(uint value, System.Span<byte> buffer) -> int
 static Nerdbank.Cryptocurrencies.BitUtilities.WriteLE(ulong value, System.Span<byte> buffer) -> int
 static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> data, System.Span<byte> hash) -> int
