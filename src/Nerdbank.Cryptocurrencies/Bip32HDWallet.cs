@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace Nerdbank.Cryptocurrencies;
 
@@ -14,7 +15,7 @@ namespace Nerdbank.Cryptocurrencies;
 /// </summary>
 public static partial class Bip32HDWallet
 {
-	private const int KeyMaterialLength = 32;
+	private const int PublicKeyLength = 33;
 	private const int ChainCodeLength = 32;
 	private const int ParentFingerprintLength = 4;
 
@@ -79,7 +80,7 @@ public static partial class Bip32HDWallet
 		/// It is not advised to represent this data in base58 format though, as it may be interpreted as an address that way
 		/// (and wallet software is not required to accept payment to the chain key itself).
 		/// </remarks>
-		public ReadOnlySpan<byte> Identifier => default;
+		public abstract ReadOnlySpan<byte> Identifier { get; }
 
 		/// <summary>
 		/// Gets the number of derivations from the master key to this one.
@@ -94,7 +95,7 @@ public static partial class Bip32HDWallet
 		/// <summary>
 		/// Gets the first 32-bits of the <see cref="Identifier"/> of the parent key.
 		/// </summary>
-		protected ReadOnlySpan<byte> ParentFingerprint => new byte[4];
+		protected ReadOnlySpan<byte> ParentFingerprint => this.fixedArrays.ParentFingerprint;
 
 		/// <summary>
 		/// Gets the chain code for this key.
@@ -106,7 +107,9 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		protected abstract ReadOnlySpan<byte> Version { get; }
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Writes out the binary representation of this key in the standard Base58Check encoding.
+		/// </summary>
 		public override string ToString()
 		{
 			Span<byte> data = stackalloc byte[78];
@@ -131,7 +134,7 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		/// <param name="destination">The buffer to write to. It must be at least 78 bytes in length.</param>
 		/// <returns>The number of bytes written to <paramref name="destination"/>. Always 78.</returns>
-		private int WriteBytes(Span<byte> destination)
+		protected int WriteBytes(Span<byte> destination)
 		{
 			int bytesWritten = 0;
 
@@ -185,8 +188,15 @@ public static partial class Bip32HDWallet
 			this.PublicKey = new ExtendedPublicKey(this.key.CreatePublicKey(), this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildNumber, this.IsTestNet);
 		}
 
+		/// <summary>
+		/// Gets the public extended key counterpart to this private key.
+		/// </summary>
 		public ExtendedPublicKey PublicKey { get; }
 
+		/// <inheritdoc/>
+		public override ReadOnlySpan<byte> Identifier => this.PublicKey.Identifier;
+
+		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNetPrivate : MainNetPrivate;
 
 		private static ReadOnlySpan<byte> MainNetPrivate => new byte[] { 0x04, 0x88, 0xAD, 0xE4 };
@@ -198,21 +208,84 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
 		/// <returns>The extended key.</returns>
-		public static ExtendedPrivateKey Create(Bip39Mnemonic mnemonic)
-		{
-			Requires.NotNull(mnemonic);
+		public static ExtendedPrivateKey Create(Bip39Mnemonic mnemonic) => Create(Requires.NotNull(mnemonic).Seed);
 
+		/// <summary>
+		/// Creates an extended key based on a seed.
+		/// </summary>
+		/// <param name="seed">The seed from which to generate the master key.</param>
+		/// <returns>The extended key.</returns>
+		public static ExtendedPrivateKey Create(ReadOnlySpan<byte> seed)
+		{
 			Span<byte> hmac = stackalloc byte[512 / 8];
-			HMACSHA512.HashData("Bitcoin seed"u8, mnemonic.Seed, hmac);
+			HMACSHA512.HashData("Bitcoin seed"u8, seed, hmac);
 			ReadOnlySpan<byte> masterKey = hmac[..32];
 			ReadOnlySpan<byte> chainCode = hmac[32..];
 
 			return new ExtendedPrivateKey(new PrivateKey(NBitcoin.Secp256k1.ECPrivKey.Create(masterKey)), chainCode);
 		}
 
+		/// <summary>
+		/// Derives a new extended private key that is a direct child of this one.
+		/// </summary>
+		/// <param name="childNumber">The child key number to derive. This may include the <see cref="KeyPath.HardenedBit"/> to derive a hardened key.</param>
+		/// <returns>A derived extended private key.</returns>
+		public ExtendedPrivateKey Derive(uint childNumber)
+		{
+			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
+			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
+			if ((childNumber & KeyPath.HardenedBit) != 0)
+			{
+				this.key.Key.WriteToSpan(hashInput[1..]);
+			}
+			else
+			{
+				this.PublicKey.Key.Key.WriteToSpan(true, hashInput, out _);
+			}
+
+			Span<byte> hashOutput = stackalloc byte[512 / 8];
+			HMACSHA512.HashData(this.ChainCode, hashInput, hashOutput);
+			Span<byte> childKeyAdd = hashOutput[..32];
+			Span<byte> childChainCode = hashOutput[32..];
+
+			// From the spec:
+			// In case parse256(IL) ≥ n or ki = 0, the resulting key is invalid,
+			// and one should proceed with the next value for i.
+			// (Note: this has probability lower than 1 in 2^127.)
+			//// TODO: add check here.
+
+			PrivateKey pvk = new(this.key.Key.TweakAdd(childKeyAdd));
+			byte childDepth = checked((byte)(this.Depth + 1));
+
+			return new ExtendedPrivateKey(pvk, childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
+		}
+
+		/// <summary>
+		/// Derives a new extended private key by following the steps in the specified path.
+		/// </summary>
+		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
+		/// <returns>A derived extended private key.</returns>
+		public ExtendedPrivateKey Derive(KeyPath keyPath)
+		{
+			Requires.NotNull(keyPath);
+			if (this.Depth > 0)
+			{
+				throw new NotSupportedException("Deriving with a key path from a non-rooted key is not yet supported.");
+			}
+
+			ExtendedPrivateKey result = this;
+			foreach (uint index in keyPath)
+			{
+				result = result.Derive(index);
+			}
+
+			return result;
+		}
+
 		/// <inheritdoc/>
 		public void Dispose() => this.key.Dispose();
 
+		/// <inheritdoc/>
 		protected override int WriteKeyMaterial(Span<byte> destination)
 		{
 			destination[0] = 0;
@@ -224,12 +297,30 @@ public static partial class Bip32HDWallet
 	public class ExtendedPublicKey : ExtendedKeyBase
 	{
 		private readonly PublicKey key;
+		private readonly FixedArrays fixedArrays;
 
 		internal ExtendedPublicKey(PublicKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
 			: base(chainCode, parentFingerprint, depth, childNumber, testNet)
 		{
 			this.key = key;
+
+			Span<byte> publicKey = stackalloc byte[33];
+			key.Key.WriteToSpan(true, publicKey, out int publicKeyLength);
+
+			Span<byte> sha256Hash = stackalloc byte[256 / 8];
+			int firstHashLength = SHA256.HashData(publicKey[..publicKeyLength], sha256Hash);
+
+			RipeMD160Digest digest160 = new();
+			Span<byte> identifier = stackalloc byte[digest160.GetDigestSize()];
+			digest160.BlockUpdate(sha256Hash[..firstHashLength]);
+			int finalHashLength = digest160.DoFinal(identifier);
+
+			this.fixedArrays = new(identifier[..finalHashLength]);
 		}
+
+		public override ReadOnlySpan<byte> Identifier => this.fixedArrays.Identifier;
+
+		internal PublicKey Key => this.key;
 
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNetPublic : MainNetPublic;
@@ -238,11 +329,61 @@ public static partial class Bip32HDWallet
 
 		private static ReadOnlySpan<byte> TestNetPublic => new byte[] { 0x04, 0x35, 0x87, 0xCF };
 
+		/// <summary>
+		/// Derives a new extended public key that is a direct child of this one.
+		/// </summary>
+		/// <param name="childNumber">The child key number to derive.</param>
+		/// <returns>A derived extended public key.</returns>
+		public ExtendedPublicKey Derive(uint childNumber)
+		{
+			Span<byte> childChainCode = stackalloc byte[ChainCodeLength];
+
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Derives a new extended public key by following the steps in the specified path.
+		/// </summary>
+		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
+		/// <returns>A derived extended public key.</returns>
+		public ExtendedPublicKey Derive(KeyPath keyPath)
+		{
+			Requires.NotNull(keyPath);
+			if (this.Depth > 0)
+			{
+				throw new NotSupportedException("Deriving with a key path from a non-rooted key is not yet supported.");
+			}
+
+			ExtendedPublicKey result = this;
+			foreach (uint index in keyPath)
+			{
+				result = result.Derive(index);
+			}
+
+			return result;
+		}
+
 		/// <inheritdoc/>
 		protected override int WriteKeyMaterial(Span<byte> destination)
 		{
 			this.key.Key.WriteToSpan(compressed: true, destination, out int written);
 			return written;
+		}
+
+		private unsafe struct FixedArrays
+		{
+			internal const int IdentifierLength = 160 / 8;
+			private fixed byte identifier[IdentifierLength];
+
+			internal FixedArrays(ReadOnlySpan<byte> identifier)
+			{
+				Requires.Argument(identifier.Length == IdentifierLength, nameof(identifier), "Unexpected length.");
+				identifier.CopyTo(this.IdentifierWritable);
+			}
+
+			internal readonly ReadOnlySpan<byte> Identifier => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.identifier[0]), IdentifierLength);
+
+			private Span<byte> IdentifierWritable => MemoryMarshal.CreateSpan(ref this.identifier[0], IdentifierLength);
 		}
 	}
 
