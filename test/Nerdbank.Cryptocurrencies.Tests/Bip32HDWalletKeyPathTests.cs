@@ -84,6 +84,12 @@ public class Bip32HDWalletKeyPathTests
 	}
 
 	[Fact]
+	public void TryParse_RootReturnsSingleton()
+	{
+		Assert.Same(KeyPath.Root, KeyPath.Parse("m"));
+	}
+
+	[Fact]
 	public void Parse_NullOrEmptyPath()
 	{
 		Assert.Throws<ArgumentException>(() => KeyPath.Parse(null!));
@@ -177,5 +183,13 @@ public class Bip32HDWalletKeyPathTests
 		Assert.Throws<IndexOutOfRangeException>(() => KeyPath.Root[0]);
 		Assert.Throws<IndexOutOfRangeException>(() => KeyPath.Root[1]);
 		Assert.Null(KeyPath.Root.Parent);
+	}
+
+	[Fact]
+	public void Enumerator()
+	{
+		Assert.Empty(KeyPath.Root);
+		Assert.Equal(new uint[] { 1 }, KeyPath.Parse("m/1"	));
+		Assert.Equal(new uint[] { 1, 3, 5 }, KeyPath.Parse("m/1/3/5"));
 	}
 }
