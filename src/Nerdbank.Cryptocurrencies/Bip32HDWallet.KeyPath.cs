@@ -12,14 +12,43 @@ public partial class Bip32HDWallet
 	/// <summary>
 	/// Represents a step in a path to a key.
 	/// </summary>
-	/// <param name="Index">The index for this particular step, including the <see cref="HardenedBit"/> if the key should be hardened.</param>
-	/// <param name="Parent">The prior step in this path.</param>
-	public record KeyPath(uint Index, KeyPath? Parent = null) : IComparable<KeyPath>
+	public record KeyPath : IComparable<KeyPath>
 	{
 		/// <summary>
 		/// The bit that should be bitwise-OR'd with the <see cref="Index"/> to produce a hardened key.
 		/// </summary>
 		public const uint HardenedBit = 0x80000000;
+
+		/// <summary>
+		/// The "m" root of the key path. Signifies the master key.
+		/// </summary>
+		public static readonly KeyPath Root = new();
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="KeyPath"/> class.
+		/// </summary>
+		/// <param name="index">The index for this particular step, including the <see cref="HardenedBit"/> if the key should be hardened.</param>
+		/// <param name="parent">The prior step in this path.</param>
+		public KeyPath(uint index, KeyPath? parent = null)
+		{
+			this.Index = index;
+			this.Parent = parent ?? Root;
+		}
+
+		private KeyPath()
+		{
+		}
+
+		/// <summary>
+		/// Gets the index for this particular step, including the <see cref="HardenedBit"/> if the key should be hardened.
+		/// </summary>
+		public uint Index { get; }
+
+		/// <summary>
+		/// Gets the prior step in this path.
+		/// </summary>
+		/// <value>Ths will be <see langword="null" /> only for the <see cref="Root"/> instance.</value>
+		public KeyPath? Parent { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether this key path should produce a hardened key.
@@ -29,7 +58,8 @@ public partial class Bip32HDWallet
 		/// <summary>
 		/// Gets the number of steps in this path.
 		/// </summary>
-		public uint Length => this.Parent is null ? 1 : this.Parent.Length + 1;
+		/// <value>0 is for the <see cref="Root"/> path. Each derivation from that adds 1.</value>
+		public uint Length => this.Parent is null ? 0 : (this.Parent.Length + 1);
 
 		private string IndexWithApplicableHardenedFlag => this.IsHardened ? Invariant($"{this.Index & ~HardenedBit}'") : this.Index.ToString(CultureInfo.InvariantCulture);
 
@@ -42,13 +72,19 @@ public partial class Bip32HDWallet
 		{
 			get
 			{
+				// level 0 is the root ("m") which has no index.
+				if(level <= 0)
+				{
+					throw new IndexOutOfRangeException();
+				}
+
 				if (level < this.Length)
 				{
-					return this.Parent?[level] ?? throw new IndexOutOfRangeException(nameof(level));
+					return this.Parent?[level] ?? throw new IndexOutOfRangeException();
 				}
 				else if (level > this.Length)
 				{
-					throw new IndexOutOfRangeException(nameof(level));
+					throw new IndexOutOfRangeException();
 				}
 				else
 				{
@@ -91,6 +127,7 @@ public partial class Bip32HDWallet
 				return false;
 			}
 
+			result = Root;
 			ReadOnlySpan<char> remainingPath = path[1..];
 
 			while (remainingPath.Length > 0)
@@ -134,7 +171,7 @@ public partial class Bip32HDWallet
 				remainingPath = remainingPath[nextSlash..];
 			}
 
-			return result is not null;
+			return true;
 		}
 
 		/// <inheritdoc/>
@@ -182,7 +219,7 @@ public partial class Bip32HDWallet
 		/// Prints out the standard "m/0/1'/2" format for the key path.
 		/// </summary>
 		/// <returns>A standard format "m/0/1/2" string.</returns>
-		public override string ToString() => $"{this.Parent?.ToString() ?? "m"}/{this.IndexWithApplicableHardenedFlag}";
+		public override string ToString() => this.Parent is null ? "m" : $"{this.Parent}/{this.IndexWithApplicableHardenedFlag}";
 
 		/// <summary>
 		/// Gets this <see cref="KeyPath"/> or some parent of it whose <see cref="Length"/> matches the specified <paramref name="length"/>.

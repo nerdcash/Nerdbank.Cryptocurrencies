@@ -30,18 +30,18 @@ public class Bip32HDWalletKeyPathTests
 	{
 		KeyPath keyPath = new(0);
 		Assert.Equal(0u, keyPath.Index);
-		Assert.Null(keyPath.Parent);
+		Assert.Same(KeyPath.Root, keyPath.Parent);
 
 		keyPath = new KeyPath(4, keyPath);
 		Assert.Equal(4u, keyPath.Index);
 		Assert.Equal(0u, keyPath.Parent!.Index);
-		Assert.Null(keyPath.Parent.Parent);
+		Assert.Same(KeyPath.Root, keyPath.Parent.Parent);
 
 		keyPath = new KeyPath(2, keyPath);
 		Assert.Equal(2u, keyPath.Index);
 		Assert.Equal(4u, keyPath.Parent!.Index);
 		Assert.Equal(0u, keyPath.Parent.Parent!.Index);
-		Assert.Null(keyPath.Parent.Parent.Parent);
+		Assert.Same(KeyPath.Root, keyPath.Parent.Parent.Parent);
 	}
 
 	[Fact]
@@ -143,12 +143,13 @@ public class Bip32HDWalletKeyPathTests
 	public void Truncate_OutOfRange()
 	{
 		Assert.Throws<ArgumentOutOfRangeException>(() => KeyPath.Parse("m/0").Truncate(2));
-		Assert.Throws<ArgumentOutOfRangeException>(() => KeyPath.Parse("m/0").Truncate(0));
 	}
 
 	[Fact]
 	public void Truncate()
 	{
+		Assert.Same(KeyPath.Root, KeyPath.Parse("m/0").Truncate(0));
+
 		KeyPath kp = KeyPath.Parse("m/0/1/2/3/4/5/6/7/8/9");
 		Assert.Equal(2u, kp.Truncate(2).Length);
 		Assert.Same(kp, kp.Truncate(10));
@@ -167,5 +168,14 @@ public class Bip32HDWalletKeyPathTests
 		KeyPath kp = KeyPath.Parse("m/0/1/2/3/4/5/6/7/8/9");
 		Assert.Equal(1u, kp[2]);
 		Assert.Equal(9u, kp[10]);
+	}
+
+	[Fact]
+	public void Root()
+	{
+		Assert.Equal("m", KeyPath.Root.ToString());
+		Assert.Throws<IndexOutOfRangeException>(() => KeyPath.Root[0]);
+		Assert.Throws<IndexOutOfRangeException>(() => KeyPath.Root[1]);
+		Assert.Null(KeyPath.Root.Parent);
 	}
 }
