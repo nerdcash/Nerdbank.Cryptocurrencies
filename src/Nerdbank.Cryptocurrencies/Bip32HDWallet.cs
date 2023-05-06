@@ -22,6 +22,8 @@ public static partial class Bip32HDWallet
 	/// <summary>
 	/// A BIP-32 extended key.
 	/// </summary>
+	/// <seealso cref="ExtendedPrivateKey"/>
+	/// <seealso cref="ExtendedPublicKey"/>
 	public abstract class ExtendedKeyBase
 	{
 		private readonly FixedArrays fixedArrays;
@@ -332,13 +334,37 @@ public static partial class Bip32HDWallet
 		/// <summary>
 		/// Derives a new extended public key that is a direct child of this one.
 		/// </summary>
-		/// <param name="childNumber">The child key number to derive.</param>
+		/// <param name="childNumber">
+		/// The child key number to derive. Must <em>not</em> contain the <see cref="KeyPath.HardenedBit"/>.
+		/// To derive a hardened child, use the <see cref="ExtendedPrivateKey"/>.
+		/// </param>
 		/// <returns>A derived extended public key.</returns>
+		/// <exception cref="NotSupportedException">Thrown if <paramref name="childNumber"/> contains the <see cref="KeyPath.HardenedBit"/>.</exception>
 		public ExtendedPublicKey Derive(uint childNumber)
 		{
-			Span<byte> childChainCode = stackalloc byte[ChainCodeLength];
+			if ((childNumber & KeyPath.HardenedBit) != 0)
+			{
+				throw new NotSupportedException(Strings.CannotDeriveHardenedChildFromPublicKey);
+			}
 
-			throw new NotImplementedException();
+			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
+			this.Key.Key.WriteToSpan(true, hashInput, out _);
+			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
+
+			Span<byte> hashOutput = stackalloc byte[512 / 8];
+			HMACSHA512.HashData(this.ChainCode, hashInput, hashOutput);
+			Span<byte> childKeyAdd = hashOutput[..32];
+			Span<byte> childChainCode = hashOutput[32..];
+
+			// From the spec:
+			// In case parse256(IL) ≥ n or Ki is the point at infinity, the resulting key is invalid,
+			// and one should proceed with the next value for i.
+			//// TODO: add check here.
+
+			PublicKey pbk = new(this.key.Key.AddTweak(childKeyAdd));
+			byte childDepth = checked((byte)(this.Depth + 1));
+
+			return new ExtendedPublicKey(pbk, childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
 		}
 
 		/// <summary>
