@@ -141,7 +141,7 @@ public static partial class Bip32HDWallet
 			bytesWritten += this.Version.CopyToRetLength(destination);
 			destination[bytesWritten++] = this.Depth;
 			bytesWritten += this.ParentFingerprint.CopyToRetLength(destination[bytesWritten..]);
-			bytesWritten += BitUtilities.WriteLE(this.ChildNumber, destination[bytesWritten..]);
+			bytesWritten += BitUtilities.WriteBE(this.ChildNumber, destination[bytesWritten..]);
 			bytesWritten += this.fixedArrays.ChainCode.CopyToRetLength(destination[bytesWritten..]);
 			bytesWritten += this.WriteKeyMaterial(destination[bytesWritten..]);
 

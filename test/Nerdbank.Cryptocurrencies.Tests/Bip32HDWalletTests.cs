@@ -99,8 +99,8 @@ public class Bip32HDWalletTests
 		{
 			this.logger.WriteLine($"Step {stepCount}: {step.KeyPath}");
 			ExtendedPrivateKey derived = m.Derive(KeyPath.Parse(step.KeyPath));
-			Assert.Equal(step.EncodedPublicKey, derived.PublicKey.ToString());
-			Assert.Equal(step.EncodedPrivateKey, derived.ToString());
+			Assert.Equal(Base58ToHex(step.EncodedPublicKey), Base58ToHex(derived.PublicKey.ToString()));
+			Assert.Equal(Base58ToHex(step.EncodedPrivateKey), Base58ToHex(derived.ToString()));
 
 			stepCount++;
 		}
