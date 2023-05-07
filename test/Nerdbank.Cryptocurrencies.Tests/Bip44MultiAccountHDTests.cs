@@ -19,7 +19,7 @@ public class Bip44MultiAccountHDTests
 	public void CreateKeyPath()
 	{
 		Assert.Equal("m/44'/133'/2'/1/4", Bip44MultiAccountHD.CreateKeyPath(0x80000085, 2, Change.ChangeAddressChain, 4).ToString());
-		Assert.Equal("m/44'/133'/2'/1/4", Bip44MultiAccountHD.CreateKeyPath(133, 2 | KeyPath.HardenedBit, Change.ChangeAddressChain, 4).ToString());
+		Assert.Equal("m/44'/133'/2'/1/4", Bip44MultiAccountHD.CreateKeyPath(133, 2 | HardenedBit, Change.ChangeAddressChain, 4).ToString());
 	}
 
 	/// <summary>
@@ -28,7 +28,7 @@ public class Bip44MultiAccountHDTests
 	[Fact]
 	public void CreateKeyPath_HardenedLastParts()
 	{
-		Assert.Equal("m/44'/133'/2'/3'/4'", Bip44MultiAccountHD.CreateKeyPath(0x80000085, 2, (Change)(3 | KeyPath.HardenedBit), 4 | KeyPath.HardenedBit).ToString());
+		Assert.Equal("m/44'/133'/2'/3'/4'", Bip44MultiAccountHD.CreateKeyPath(0x80000085, 2, (Change)(3 | HardenedBit), 4 | HardenedBit).ToString());
 	}
 
 	[Fact]

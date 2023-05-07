@@ -10,29 +10,35 @@ namespace Nerdbank.Cryptocurrencies;
 public partial class Bip32HDWallet
 {
 	/// <summary>
+	/// The bit that should be bitwise-OR'd with the <see cref="Index"/> to produce a hardened key.
+	/// </summary>
+	public const uint HardenedBit = 0x80000000;
+
+	/// <summary>
 	/// Represents a step in a path to a key.
 	/// </summary>
 	public record KeyPath : IComparable<KeyPath>
 	{
 		/// <summary>
-		/// The bit that should be bitwise-OR'd with the <see cref="Index"/> to produce a hardened key.
-		/// </summary>
-		public const uint HardenedBit = 0x80000000;
-
-		/// <summary>
 		/// The "m" root of the key path. Signifies the master key.
 		/// </summary>
 		public static readonly KeyPath Root = new();
+
+		private readonly uint? index;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="KeyPath"/> class.
 		/// </summary>
 		/// <param name="index">The index for this particular step, including the <see cref="HardenedBit"/> if the key should be hardened.</param>
-		/// <param name="parent">The prior step in this path.</param>
+		/// <param name="parent">
+		/// The prior step in this path.
+		/// May be <see langword="null" /> to indicate this is an unrooted path.
+		/// If this is the first step in a (rooted) path, use <see cref="Root"/> here.
+		/// </param>
 		public KeyPath(uint index, KeyPath? parent = null)
 		{
-			this.Index = index;
-			this.Parent = parent ?? Root;
+			this.index = index;
+			this.Parent = parent;
 		}
 
 		private KeyPath()
@@ -42,12 +48,35 @@ public partial class Bip32HDWallet
 		/// <summary>
 		/// Gets the index for this particular step, including the <see cref="HardenedBit"/> if the key should be hardened.
 		/// </summary>
-		public uint Index { get; }
+		/// <exception cref="InvalidOperationException">Thrown when called on the <see cref="Root"/> instance.</exception>
+		public uint Index => this.index ?? throw new InvalidOperationException(Strings.InvalidOnKeyPathRoot);
+
+		/// <summary>
+		/// Gets a value indicating whether this path is rooted.
+		/// </summary>
+		public bool IsRooted
+		{
+			get
+			{
+				KeyPath? current = this;
+				while (current is not null)
+				{
+					if (current == Root)
+					{
+						return true;
+					}
+
+					current = current.Parent;
+				}
+
+				return false;
+			}
+		}
 
 		/// <summary>
 		/// Gets the prior step in this path.
 		/// </summary>
-		/// <value>Ths will be <see langword="null" /> only for the <see cref="Root"/> instance.</value>
+		/// <value>This will be <see langword="null" /> for the <see cref="Root"/> instance or if this is the first element in an unrooted path.</value>
 		public KeyPath? Parent { get; }
 
 		/// <summary>
@@ -59,7 +88,7 @@ public partial class Bip32HDWallet
 		/// Gets the number of steps in this path.
 		/// </summary>
 		/// <value>0 is for the <see cref="Root"/> path. Each derivation from that adds 1.</value>
-		public uint Length => this.Parent is null ? 0 : (this.Parent.Length + 1);
+		public uint Length => this.index is null ? 0 : ((this.Parent?.Length ?? 0) + 1);
 
 		/// <summary>
 		/// Gets a each step described by this <see cref="KeyPath" />.
@@ -111,7 +140,7 @@ public partial class Bip32HDWallet
 		/// <summary>
 		/// Parses an "m/1/2'/3" style string into a <see cref="KeyPath"/> instance.
 		/// </summary>
-		/// <param name="path">The key derivation path.</param>
+		/// <param name="path">The key derivation path. Start with <c>m</c> to signify a rooted path, or omit this and start with a <c>/</c> to signify an unrooted (relative) path.</param>
 		/// <returns>The parsed <see cref="KeyPath"/>.</returns>
 		/// <exception cref="ArgumentException">Thrown if <paramref name="path"/> is empty.</exception>
 		/// <exception cref="FormatException">Thrown if the <paramref name="path"/> provided is not in the valid key derivation path format.</exception>
@@ -137,13 +166,13 @@ public partial class Bip32HDWallet
 			Requires.Argument(!path.IsEmpty, nameof(path), Strings.InvalidBip32KeyPath);
 
 			result = null;
-			if (path[0] != 'm')
-			{
-				return false;
-			}
+			ReadOnlySpan<char> remainingPath = path;
 
-			result = Root;
-			ReadOnlySpan<char> remainingPath = path[1..];
+			if (path[0] == 'm')
+			{
+				result = Root;
+				remainingPath = remainingPath[1..];
+			}
 
 			while (remainingPath.Length > 0)
 			{
@@ -186,7 +215,7 @@ public partial class Bip32HDWallet
 				remainingPath = remainingPath[nextSlash..];
 			}
 
-			return true;
+			return result is not null;
 		}
 
 		/// <inheritdoc/>
@@ -234,7 +263,7 @@ public partial class Bip32HDWallet
 		/// Prints out the standard "m/0/1'/2" format for the key path.
 		/// </summary>
 		/// <returns>A standard format "m/0/1/2" string.</returns>
-		public override string ToString() => this.Parent is null ? "m" : $"{this.Parent}/{this.IndexWithApplicableHardenedFlag}";
+		public override string ToString() => this == Root ? "m" : $"{this.Parent}/{this.IndexWithApplicableHardenedFlag}";
 
 		/// <summary>
 		/// Gets this <see cref="KeyPath"/> or some parent of it whose <see cref="Length"/> matches the specified <paramref name="length"/>.

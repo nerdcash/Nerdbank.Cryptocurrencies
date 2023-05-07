@@ -87,7 +87,7 @@ public static partial class Bip32HDWallet
 		/// <summary>
 		/// Derives a new extended private key that is a direct child of this one.
 		/// </summary>
-		/// <param name="childNumber">The child key number to derive. This may include the <see cref="KeyPath.HardenedBit"/> to derive a hardened key.</param>
+		/// <param name="childNumber">The child key number to derive. This may include the <see cref="HardenedBit"/> to derive a hardened key.</param>
 		/// <returns>A derived extended private key.</returns>
 		/// <exception cref="InvalidKeyException">
 		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
@@ -98,7 +98,7 @@ public static partial class Bip32HDWallet
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
 			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
-			if ((childNumber & KeyPath.HardenedBit) != 0)
+			if ((childNumber & HardenedBit) != 0)
 			{
 				this.key.Key.WriteToSpan(hashInput[1..]);
 			}
@@ -140,23 +140,28 @@ public static partial class Bip32HDWallet
 		public ExtendedPrivateKey Derive(KeyPath keyPath)
 		{
 			Requires.NotNull(keyPath);
-			if (this.Depth > 0)
+
+			if (this.Depth > 0 && keyPath.IsRooted)
 			{
-				// TODO: add support for this.
-				// And add support for *unrooted* key path derivation.
-				throw new NotSupportedException("Deriving with a key path from a non-rooted key is not yet supported.");
+				throw new NotSupportedException("Deriving with a rooted key path from a non-rooted key is not supported.");
 			}
 
 			ExtendedPrivateKey result = this;
+			ExtendedPrivateKey? intermediate = null;
 			foreach (KeyPath step in keyPath.Steps)
 			{
 				try
 				{
 					result = result.Derive(step.Index);
+
+					// If this isn't our first time around, dispose of the previous intermediate key,
+					// taking care to not dispose of the original key.
+					intermediate?.Dispose();
+					intermediate = result;
 				}
 				catch (InvalidKeyException ex)
 				{
-					throw new InvalidKeyException($"Key generation failure at {step}.", ex) { KeyPath = step };
+					throw new InvalidKeyException(Strings.FormatVeryUnlikelyUnvalidChildKeyOnPath(step), ex) { KeyPath = step };
 				}
 			}
 

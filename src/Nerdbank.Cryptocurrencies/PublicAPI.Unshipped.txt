@@ -1,6 +1,6 @@
 ﻿#nullable enable
 abstract Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.Identifier.get -> System.ReadOnlySpan<byte>
-const Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.HardenedBit = 2147483648 -> uint
+const Nerdbank.Cryptocurrencies.Bip32HDWallet.HardenedBit = 2147483648 -> uint
 const Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.RecommendedAddressGapLimit = 20 -> uint
 Nerdbank.Cryptocurrencies.Base58Check
 Nerdbank.Cryptocurrencies.Bech32
@@ -22,6 +22,7 @@ Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.CompareTo(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? other) -> int
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Index.get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.IsHardened.get -> bool
+Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.IsRooted.get -> bool
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.KeyPath(uint index, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? parent = null) -> void
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Length.get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parent.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?

@@ -16,7 +16,7 @@ public class Bip32HDWalletKeyPathTests
 		new object[] { "m/0/'/3" },
 	};
 
-	public static object[][] ValidPaths => new object[][]
+	public static object[][] ValidPathsRooted => new object[][]
 	{
 		new object[] { "m" },
 		new object[] { "m/0" },
@@ -25,10 +25,37 @@ public class Bip32HDWalletKeyPathTests
 		new object[] { "m/0/3'/4'" },
 	};
 
+	public static object[][] ValidPathsUnrooted => new object[][]
+	{
+		new object[] { "/0" },
+		new object[] { "/0/3" },
+		new object[] { "/0/3'/4" },
+		new object[] { "/0/3'/4'" },
+	};
+
 	[Fact]
-	public void KeyPath_Constructor()
+	public void KeyPath_Constructor_Unrooted()
 	{
 		KeyPath keyPath = new(0);
+		Assert.Equal(0u, keyPath.Index);
+		Assert.Null(keyPath.Parent);
+
+		keyPath = new KeyPath(4, keyPath);
+		Assert.Equal(4u, keyPath.Index);
+		Assert.Equal(0u, keyPath.Parent!.Index);
+		Assert.Null(keyPath.Parent.Parent);
+
+		keyPath = new KeyPath(2, keyPath);
+		Assert.Equal(2u, keyPath.Index);
+		Assert.Equal(4u, keyPath.Parent!.Index);
+		Assert.Equal(0u, keyPath.Parent.Parent!.Index);
+		Assert.Null(keyPath.Parent.Parent.Parent);
+	}
+
+	[Fact]
+	public void KeyPath_Constructor_Rooted()
+	{
+		KeyPath keyPath = new(0, KeyPath.Root);
 		Assert.Equal(0u, keyPath.Index);
 		Assert.Same(KeyPath.Root, keyPath.Parent);
 
@@ -45,6 +72,24 @@ public class Bip32HDWalletKeyPathTests
 	}
 
 	[Fact]
+	public void Index()
+	{
+		Assert.Equal(1u, new KeyPath(1).Index);
+		Assert.Equal(1u, new KeyPath(1, KeyPath.Root).Index);
+
+		Assert.Throws<InvalidOperationException>(() => KeyPath.Root.Index);
+	}
+
+	[Fact]
+	public void Parent()
+	{
+		Assert.Null(new KeyPath(1).Parent);
+		Assert.Same(KeyPath.Root, new KeyPath(1, KeyPath.Root).Parent);
+
+		Assert.Null(KeyPath.Root.Parent);
+	}
+
+	[Fact]
 	public void Equality()
 	{
 		KeyPath path1a = new(0, new(1));
@@ -53,6 +98,8 @@ public class Bip32HDWalletKeyPathTests
 
 		Assert.Equal(path1a, path1b);
 		Assert.NotEqual(path1a, path2);
+
+		Assert.NotEqual(new KeyPath(0), KeyPath.Root);
 	}
 
 	[Fact]
@@ -66,21 +113,65 @@ public class Bip32HDWalletKeyPathTests
 	}
 
 	[Fact]
-	public void ToString_Path()
+	public void Length()
 	{
-		Assert.Equal("m/0", new KeyPath(0).ToString());
-		Assert.Equal("m/0/4", new KeyPath(4, new(0)).ToString());
-		Assert.Equal("m/0/4'/6", new KeyPath(6, new(0x80000004, new(0))).ToString());
+		Assert.Equal(0u, KeyPath.Root.Length);
+
+		// Rooted
+		Assert.Equal(1u, new KeyPath(0, KeyPath.Root).Length);
+		Assert.Equal(1u, new KeyPath(1, KeyPath.Root).Length);
+		Assert.Equal(2u, new KeyPath(2, new KeyPath(1, KeyPath.Root)).Length);
+
+		// Unrooted
+		Assert.Equal(1u, new KeyPath(0).Length);
+		Assert.Equal(1u, new KeyPath(1).Length);
+		Assert.Equal(2u, new KeyPath(2, new KeyPath(1)).Length);
 	}
 
-	[Theory, MemberData(nameof(ValidPaths))]
+	[Fact]
+	public void ToString_Path()
+	{
+		// Rooted
+		Assert.Equal("m/0", new KeyPath(0, KeyPath.Root).ToString());
+		Assert.Equal("m/0/4", new KeyPath(4, new(0, KeyPath.Root)).ToString());
+		Assert.Equal("m/0/4'/6", new KeyPath(6, new(0x80000004, new(0, KeyPath.Root))).ToString());
+
+		// Unrooted
+		Assert.Equal("/0", new KeyPath(0).ToString());
+		Assert.Equal("/0/4", new KeyPath(4, new(0)).ToString());
+		Assert.Equal("/0/4'/6", new KeyPath(6, new(0x80000004, new(0))).ToString());
+	}
+
+	[Fact]
+	public void IsRooted()
+	{
+		Assert.True(KeyPath.Root.IsRooted);
+		Assert.True(new KeyPath(0, KeyPath.Root).IsRooted);
+		Assert.True(new KeyPath(1, KeyPath.Root).IsRooted);
+		Assert.True(KeyPath.Parse("m/1").IsRooted);
+
+		Assert.False(new KeyPath(0).IsRooted);
+		Assert.False(new KeyPath(1).IsRooted);
+		Assert.False(KeyPath.Parse("/1").IsRooted);
+	}
+
+	[Theory, MemberData(nameof(ValidPathsRooted))]
 	public void Parse(string path) => Assert.Equal(path, KeyPath.Parse(path).ToString());
 
-	[Theory, MemberData(nameof(ValidPaths))]
-	public void TryParse(string path)
+	[Theory, MemberData(nameof(ValidPathsRooted))]
+	public void TryParse_Rooted(string path)
 	{
 		Assert.True(KeyPath.TryParse(path, out KeyPath? result));
 		Assert.Equal(path, result.ToString());
+		Assert.True(result.IsRooted);
+	}
+
+	[Theory, MemberData(nameof(ValidPathsUnrooted))]
+	public void TryParse_Unrooted(string path)
+	{
+		Assert.True(KeyPath.TryParse(path, out KeyPath? result));
+		Assert.Equal(path, result.ToString());
+		Assert.False(result.IsRooted);
 	}
 
 	[Fact]
@@ -186,10 +277,16 @@ public class Bip32HDWalletKeyPathTests
 	}
 
 	[Fact]
-	public void Enumerator()
+	public void Steps()
 	{
 		Assert.Empty(KeyPath.Root.Steps);
+
+		// Rooted
 		Assert.Equal(new uint[] { 1 }, KeyPath.Parse("m/1").Steps.Select(kp => kp.Index));
 		Assert.Equal(new uint[] { 1, 3, 5 }, KeyPath.Parse("m/1/3/5").Steps.Select(kp => kp.Index));
+
+		// Unrooted
+		Assert.Equal(new uint[] { 1 }, KeyPath.Parse("/1").Steps.Select(kp => kp.Index));
+		Assert.Equal(new uint[] { 1, 3, 5 }, KeyPath.Parse("/1/3/5").Steps.Select(kp => kp.Index));
 	}
 }

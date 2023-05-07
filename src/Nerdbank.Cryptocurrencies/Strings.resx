@@ -138,6 +138,9 @@
   <data name="InvalidChecksum" xml:space="preserve">
     <value>Invalid checksum.</value>
   </data>
+  <data name="InvalidOnKeyPathRoot" xml:space="preserve">
+    <value>This operation is not valid on the KeyPath.Root node of a key path.</value>
+  </data>
   <data name="LengthMustBeNonEmptyAndDivisibleBy4" xml:space="preserve">
     <value>The length of the buffer must be non-zero multiple of 4.</value>
   </data>
@@ -152,6 +155,9 @@
   </data>
   <data name="VeryUnlikelyInvalidChildKey" xml:space="preserve">
     <value>This derived key is invalid for a statistically highly improbable reason. Please skip to the next child number.</value>
+  </data>
+  <data name="VeryUnlikelyUnvalidChildKeyOnPath" xml:space="preserve">
+    <value>Key generation failure at {keyPath}.</value>
   </data>
   <data name="WordNotOnWordList" xml:space="preserve">
     <value>The word '{word}' does not appear on the allowed word list.</value>

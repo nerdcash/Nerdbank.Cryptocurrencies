@@ -81,7 +81,7 @@ public static class Bip44MultiAccountHD
 	public static KeyPath CreateKeyPath(uint coinType, uint account)
 	{
 		// m / purpose' / coin_type' / account'
-		return new(account | HardenedBit, new(coinType | HardenedBit, new(Purpose | HardenedBit)));
+		return new(account | HardenedBit, new(coinType | HardenedBit, new(Purpose | HardenedBit, Root)));
 	}
 
 	/// <summary>
