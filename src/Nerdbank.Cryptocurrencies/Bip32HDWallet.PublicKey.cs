@@ -3,11 +3,15 @@
 
 namespace Nerdbank.Cryptocurrencies;
 
-/// <summary>
-/// Implements Hierarchical Deterministic Wallets as defined in
-/// <see href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">BIP-32</see>.
-/// </summary>
 public static partial class Bip32HDWallet
 {
-	private const int PublicKeyLength = 33;
+	internal class PublicKey
+	{
+		internal PublicKey(NBitcoin.Secp256k1.ECPubKey key)
+		{
+			this.Key = key;
+		}
+
+		internal NBitcoin.Secp256k1.ECPubKey Key { get; }
+	}
 }

@@ -189,7 +189,7 @@ public class Bip32HDWalletKeyPathTests
 	public void Enumerator()
 	{
 		Assert.Empty(KeyPath.Root);
-		Assert.Equal(new uint[] { 1 }, KeyPath.Parse("m/1"	));
+		Assert.Equal(new uint[] { 1 }, KeyPath.Parse("m/1"));
 		Assert.Equal(new uint[] { 1, 3, 5 }, KeyPath.Parse("m/1/3/5"));
 	}
 }
