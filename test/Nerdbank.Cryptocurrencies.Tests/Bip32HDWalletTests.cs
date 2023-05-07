@@ -329,7 +329,11 @@ public class Bip32HDWalletTests
 		using ExtendedPrivateKey pvk2 = Assert.IsType<ExtendedPrivateKey>(ExtendedKeyBase.Parse(pvk.ToString()));
 		AssertEqual(pvkAsString, pvk2);
 
-		// TODO: test parsing derived keys.
+		// Test parsing of derived keys.
+		using ExtendedPrivateKey pvkDerived = pvk.Derive(1);
+		string pvkDerivedAsString = pvkDerived.ToString();
+		using ExtendedPrivateKey pvkDerived2 = Assert.IsType<ExtendedPrivateKey>(ExtendedKeyBase.Parse(pvkDerived.ToString()));
+		AssertEqual(pvkDerivedAsString, pvkDerived2);
 	}
 
 	[Fact]
@@ -341,7 +345,11 @@ public class Bip32HDWalletTests
 		ExtendedPublicKey pub2 = Assert.IsType<ExtendedPublicKey>(ExtendedKeyBase.Parse(pub.ToString()));
 		AssertEqual(pubAsString, pub2);
 
-		// TODO: test parsing derived keys.
+		// Test parsing of derived keys.
+		ExtendedPublicKey pubDerived = pub.Derive(1);
+		string pubDerivedAsString = pubDerived.ToString();
+		ExtendedPublicKey pubDerived2 = Assert.IsType<ExtendedPublicKey>(ExtendedKeyBase.Parse(pubDerived.ToString()));
+		AssertEqual(pubDerivedAsString, pubDerived2);
 	}
 
 	private static void AssertEqual(string expectedBase58Encoding, ExtendedKeyBase actual)
