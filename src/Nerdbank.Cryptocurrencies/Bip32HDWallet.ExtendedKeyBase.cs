@@ -25,36 +25,13 @@ public static partial class Bip32HDWallet
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ExtendedKeyBase"/> class
-		/// for a master key.
-		/// </summary>
-		/// <param name="chainCode">The chain code.</param>
-		/// <param name="testNet"><see langword="true" /> if this key is for use on a testnet; <see langword="false" /> otherwise.</param>
-		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, bool testNet = false)
-		{
-			this.fixedArrays = new(chainCode, default);
-			this.IsTestNet = testNet;
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ExtendedKeyBase"/> class
-		/// for a derived key.
-		/// </summary>
-		/// <param name="parentKey">The key from which this one was derived.</param>
-		/// <param name="childNumber">The index used when deriving this key.</param>
-		internal ExtendedKeyBase(ExtendedKeyBase parentKey, uint childNumber)
-			: this(parentKey.ChainCode, parentKey.Identifier[..4], checked((byte)(parentKey.Depth + 1)), childNumber, parentKey.IsTestNet)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ExtendedKeyBase"/> class
 		/// for a derived key whose parent key is not available.
 		/// </summary>
-		/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, bool)" path="/param[@name='chainCode']"/></param>
+		/// <param name="chainCode">The chain code.</param>
 		/// <param name="parentFingerprint">The first four bytes of the parent key's <see cref="Identifier"/>.</param>
 		/// <param name="depth">The depth of the parent key, plus 1.</param>
 		/// <param name="childNumber">The index used when deriving this key.</param>
-		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, bool)" path="/param[@name='testNet']"/></param>
+		/// <param name="testNet"><see langword="true" /> if this key is for use on a testnet; <see langword="false" /> otherwise.</param>
 		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
 		{
 			this.fixedArrays = new(chainCode, parentFingerprint);
