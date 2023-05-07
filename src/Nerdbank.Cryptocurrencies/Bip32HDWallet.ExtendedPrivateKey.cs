@@ -89,6 +89,11 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		/// <param name="childNumber">The child key number to derive. This may include the <see cref="KeyPath.HardenedBit"/> to derive a hardened key.</param>
 		/// <returns>A derived extended private key.</returns>
+		/// <exception cref="InvalidKeyException">
+		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
+		/// Callers should handle this exception by requesting a new key with an incremented value
+		/// for <paramref name="childNumber"/>.
+		/// </exception>
 		public ExtendedPrivateKey Derive(uint childNumber)
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
@@ -111,12 +116,15 @@ public static partial class Bip32HDWallet
 			// In case parse256(IL) ≥ n or ki = 0, the resulting key is invalid,
 			// and one should proceed with the next value for i.
 			// (Note: this has probability lower than 1 in 2^127.)
-			//// TODO: add check here.
+			if (!this.key.Key.TryTweakAdd(childKeyAdd, out NBitcoin.Secp256k1.ECPrivKey? pvk))
+			{
+				throw new InvalidKeyException(Strings.VeryUnlikelyInvalidChildKey);
+			}
 
-			PrivateKey pvk = new(this.key.Key.TweakAdd(childKeyAdd));
 			byte childDepth = checked((byte)(this.Depth + 1));
 
-			return new ExtendedPrivateKey(pvk, childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
+			Assumes.NotNull(pvk); // bad null ref annotation in the Secp256k1 library.
+			return new ExtendedPrivateKey(new(pvk), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
 		}
 
 		/// <summary>
@@ -124,6 +132,11 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
 		/// <returns>A derived extended private key.</returns>
+		/// <exception cref="InvalidKeyException">
+		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
+		/// Callers should handle this exception by requesting a new key with an incremented value
+		/// for the child number at the failing position in the key path.
+		/// </exception>
 		public ExtendedPrivateKey Derive(KeyPath keyPath)
 		{
 			Requires.NotNull(keyPath);
@@ -135,9 +148,16 @@ public static partial class Bip32HDWallet
 			}
 
 			ExtendedPrivateKey result = this;
-			foreach (uint index in keyPath)
+			foreach (KeyPath step in keyPath.Steps)
 			{
-				result = result.Derive(index);
+				try
+				{
+					result = result.Derive(step.Index);
+				}
+				catch (InvalidKeyException ex)
+				{
+					throw new InvalidKeyException($"Key generation failure at {step}.", ex) { KeyPath = step };
+				}
 			}
 
 			return result;

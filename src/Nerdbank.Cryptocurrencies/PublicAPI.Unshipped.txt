@@ -20,12 +20,12 @@ Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Derive(Nerdbank.Crypto
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Derive(uint childNumber) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.CompareTo(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? other) -> int
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.GetEnumerator() -> System.Collections.Generic.IEnumerator<uint>!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Index.get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.IsHardened.get -> bool
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.KeyPath(uint index, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? parent = null) -> void
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Length.get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parent.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
+Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Steps.get -> System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.this[uint level].get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Truncate(uint length) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 Nerdbank.Cryptocurrencies.Bip39Mnemonic
@@ -70,6 +70,12 @@ Nerdbank.Cryptocurrencies.DecodeError.InvalidWord = 5 -> Nerdbank.Cryptocurrenci
 Nerdbank.Cryptocurrencies.DecodeError.NoSeparator = 3 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnexpectedLength = 7 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnrecognizedVersion = 8 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.InvalidKeyException
+Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException() -> void
+Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException(string? message) -> void
+Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException(string? message, System.Exception? inner) -> void
+Nerdbank.Cryptocurrencies.InvalidKeyException.KeyPath.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
+Nerdbank.Cryptocurrencies.InvalidKeyException.KeyPath.init -> void
 override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.ToString() -> string!
 override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Identifier.get -> System.ReadOnlySpan<byte>
 override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Identifier.get -> System.ReadOnlySpan<byte>

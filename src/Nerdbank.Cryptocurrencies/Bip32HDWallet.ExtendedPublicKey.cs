@@ -76,6 +76,11 @@ public static partial class Bip32HDWallet
 		/// </param>
 		/// <returns>A derived extended public key.</returns>
 		/// <exception cref="NotSupportedException">Thrown if <paramref name="childNumber"/> contains the <see cref="KeyPath.HardenedBit"/>.</exception>
+		/// <exception cref="InvalidKeyException">
+		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
+		/// Callers should handle this exception by requesting a new key with an incremented value
+		/// for <paramref name="childNumber"/>.
+		/// </exception>
 		public ExtendedPublicKey Derive(uint childNumber)
 		{
 			if ((childNumber & KeyPath.HardenedBit) != 0)
@@ -95,12 +100,14 @@ public static partial class Bip32HDWallet
 			// From the spec:
 			// In case parse256(IL) ≥ n or Ki is the point at infinity, the resulting key is invalid,
 			// and one should proceed with the next value for i.
-			//// TODO: add check here.
+			if (!this.key.Key.TryAddTweak(childKeyAdd, out NBitcoin.Secp256k1.ECPubKey? pubKey))
+			{
+				throw new InvalidKeyException(Strings.VeryUnlikelyInvalidChildKey);
+			}
 
-			PublicKey pbk = new(this.key.Key.AddTweak(childKeyAdd));
 			byte childDepth = checked((byte)(this.Depth + 1));
 
-			return new ExtendedPublicKey(pbk, childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
+			return new ExtendedPublicKey(new(pubKey), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
 		}
 
 		/// <summary>
@@ -108,6 +115,11 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
 		/// <returns>A derived extended public key.</returns>
+		/// <exception cref="InvalidKeyException">
+		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
+		/// Callers should handle this exception by requesting a new key with an incremented value
+		/// for the child number at the failing position in the key path.
+		/// </exception>
 		public ExtendedPublicKey Derive(KeyPath keyPath)
 		{
 			Requires.NotNull(keyPath);
@@ -117,9 +129,16 @@ public static partial class Bip32HDWallet
 			}
 
 			ExtendedPublicKey result = this;
-			foreach (uint index in keyPath)
+			foreach (KeyPath step in keyPath.Steps)
 			{
-				result = result.Derive(index);
+				try
+				{
+					result = result.Derive(step.Index);
+				}
+				catch (InvalidKeyException ex)
+				{
+					throw new InvalidKeyException($"Key generation failure at {step}.", ex) { KeyPath = step };
+				}
 			}
 
 			return result;

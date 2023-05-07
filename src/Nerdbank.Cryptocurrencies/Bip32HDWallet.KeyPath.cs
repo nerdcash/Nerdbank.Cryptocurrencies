@@ -12,7 +12,7 @@ public partial class Bip32HDWallet
 	/// <summary>
 	/// Represents a step in a path to a key.
 	/// </summary>
-	public record KeyPath : IComparable<KeyPath>, IEnumerable<uint>
+	public record KeyPath : IComparable<KeyPath>
 	{
 		/// <summary>
 		/// The bit that should be bitwise-OR'd with the <see cref="Index"/> to produce a hardened key.
@@ -60,6 +60,21 @@ public partial class Bip32HDWallet
 		/// </summary>
 		/// <value>0 is for the <see cref="Root"/> path. Each derivation from that adds 1.</value>
 		public uint Length => this.Parent is null ? 0 : (this.Parent.Length + 1);
+
+		/// <summary>
+		/// Gets a each step described by this <see cref="KeyPath" />.
+		/// </summary>
+		/// <returns>An enumeration of steps.</returns>
+		public IEnumerable<KeyPath> Steps
+		{
+			get
+			{
+				for (uint i = 1; i <= this.Length; i++)
+				{
+					yield return this.Truncate(i);
+				}
+			}
+		}
 
 		private string IndexWithApplicableHardenedFlag => this.IsHardened ? Invariant($"{this.Index & ~HardenedBit}'") : this.Index.ToString(CultureInfo.InvariantCulture);
 
@@ -242,20 +257,5 @@ public partial class Bip32HDWallet
 				return this;
 			}
 		}
-
-		/// <summary>
-		/// Gets an enumerator for the sequence of steps described by this <see cref="KeyPath" />.
-		/// </summary>
-		/// <returns>An enumerator.</returns>
-		public IEnumerator<uint> GetEnumerator()
-		{
-			for (uint i = 1; i <= this.Length; i++)
-			{
-				yield return this[i];
-			}
-		}
-
-		/// <inheritdoc cref="GetEnumerator()"/>
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
 	}
 }
