@@ -61,6 +61,27 @@ public static class BitUtilities
 	}
 
 	/// <summary>
+	/// Reads a big-endian 32-bit integer from the given buffer.
+	/// </summary>
+	/// <param name="buffer">The buffer to read from.</param>
+	/// <returns>The unsigned 32-bit integer.</returns>
+	public static uint ReadUInt32BE(ReadOnlySpan<byte> buffer)
+	{
+		if (!BitConverter.IsLittleEndian)
+		{
+			return BitConverter.ToUInt32(buffer);
+		}
+		else
+		{
+			return
+				buffer[3] |
+				((uint)buffer[2] << (1 * 8)) |
+				((uint)buffer[1] << (2 * 8)) |
+				((uint)buffer[0] << (3 * 8));
+		}
+	}
+
+	/// <summary>
 	/// Reads a little-endian 32-bit integer from the given buffer.
 	/// </summary>
 	/// <param name="buffer">The buffer to read from.</param>
