@@ -92,9 +92,9 @@ public sealed class Bech32
 
 		// The encoding always starts with the tag and the separator.
 		// The tag itself may contain a '1', so when decoding, the separator is the *last* 1 in the string.
-		tag.CopyTo(output);
-		output[tag.Length] = TagDataSeparator;
-		int outputBytesWritten = tag.Length + 1;
+		int outputBytesWritten = 0;
+		outputBytesWritten += tag.CopyToRetLength(output);
+		output[outputBytesWritten++] = TagDataSeparator;
 
 		// Stretch the 8 bit wide data to 5 bit wide bytes.
 		Span<byte> encodedWithChecksum = stackalloc byte[(data.Length * 8 / 5) + 1 + ChecksumLength];

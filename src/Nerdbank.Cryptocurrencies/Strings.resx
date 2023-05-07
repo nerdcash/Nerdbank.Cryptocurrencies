@@ -123,14 +123,23 @@
   <data name="CallResetFirst" xml:space="preserve">
     <value>This object has not been reinitialized since it was last finalized. Call "{methodName}" first.</value>
   </data>
+  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
+    <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
+  </data>
   <data name="DecodeInputTooShort" xml:space="preserve">
     <value>The input length is shorter than the minimum required for this encoding.</value>
+  </data>
+  <data name="InvalidBip32KeyPath" xml:space="preserve">
+    <value>Invalid BIP-32 key derivation path.</value>
   </data>
   <data name="InvalidCharXFoundAtY" xml:space="preserve">
     <value>Disallowed character '{character}' found at position {position}.</value>
   </data>
   <data name="InvalidChecksum" xml:space="preserve">
     <value>Invalid checksum.</value>
+  </data>
+  <data name="InvalidOnKeyPathRoot" xml:space="preserve">
+    <value>This operation is not valid on the KeyPath.Root node of a key path.</value>
   </data>
   <data name="LengthMustBeNonEmptyAndDivisibleBy4" xml:space="preserve">
     <value>The length of the buffer must be non-zero multiple of 4.</value>
@@ -143,6 +152,12 @@
   </data>
   <data name="TargetBufferTooSmall" xml:space="preserve">
     <value>Target buffer is not large enough to hold the decoded payload.</value>
+  </data>
+  <data name="VeryUnlikelyInvalidChildKey" xml:space="preserve">
+    <value>This derived key is invalid for a statistically highly improbable reason. Please skip to the next child number.</value>
+  </data>
+  <data name="VeryUnlikelyUnvalidChildKeyOnPath" xml:space="preserve">
+    <value>Key generation failure at {keyPath}.</value>
   </data>
   <data name="WordNotOnWordList" xml:space="preserve">
     <value>The word '{word}' does not appear on the allowed word list.</value>

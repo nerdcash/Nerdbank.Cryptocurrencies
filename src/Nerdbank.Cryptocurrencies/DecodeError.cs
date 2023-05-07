@@ -42,4 +42,24 @@ public enum DecodeError
 	/// A phrase had an unexpected number of words in it.
 	/// </summary>
 	BadWordCount,
+
+	/// <summary>
+	/// The input was or led to a data length that was not expected.
+	/// </summary>
+	UnexpectedLength,
+
+	/// <summary>
+	/// The version header was not recognized.
+	/// </summary>
+	UnrecognizedVersion,
+
+	/// <summary>
+	/// The key could not be created.
+	/// </summary>
+	InvalidKey,
+
+	/// <summary>
+	/// The key carries inconsistent data regarding its derivation.
+	/// </summary>
+	InvalidDerivationData,
 }
