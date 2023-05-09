@@ -14,10 +14,12 @@ Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Derive(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! keyPath) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Derive(uint childNumber) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Dispose() -> void
+Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Key.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.PrivateKey!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.PublicKey.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Derive(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! keyPath) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Derive(uint childNumber) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey!
+Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Key.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.PublicKey!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.CompareTo(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? other) -> int
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Index.get -> uint
@@ -29,6 +31,12 @@ Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parent.get -> Nerdbank.Cryptocur
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Steps.get -> System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.this[uint level].get -> uint
 Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Truncate(uint length) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+Nerdbank.Cryptocurrencies.Bip32HDWallet.PrivateKey
+Nerdbank.Cryptocurrencies.Bip32HDWallet.PrivateKey.Dispose() -> void
+Nerdbank.Cryptocurrencies.Bip32HDWallet.PrivateKey.Key.get -> NBitcoin.Secp256k1.ECPrivKey!
+Nerdbank.Cryptocurrencies.Bip32HDWallet.PrivateKey.PublicKey.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.PublicKey!
+Nerdbank.Cryptocurrencies.Bip32HDWallet.PublicKey
+Nerdbank.Cryptocurrencies.Bip32HDWallet.PublicKey.Key.get -> NBitcoin.Secp256k1.ECPubKey!
 Nerdbank.Cryptocurrencies.Bip39Mnemonic
 Nerdbank.Cryptocurrencies.Bip39Mnemonic.Bip39Mnemonic(System.ReadOnlySpan<byte> entropy, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> void
 Nerdbank.Cryptocurrencies.Bip39Mnemonic.Entropy.get -> System.ReadOnlySpan<byte>

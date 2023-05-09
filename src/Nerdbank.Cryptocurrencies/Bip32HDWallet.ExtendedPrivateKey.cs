@@ -12,8 +12,6 @@ public static partial class Bip32HDWallet
 	/// </summary>
 	public class ExtendedPrivateKey : ExtendedKeyBase, IDisposable
 	{
-		private readonly PrivateKey key;
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ExtendedPrivateKey"/> class.
 		/// </summary>
@@ -37,9 +35,14 @@ public static partial class Bip32HDWallet
 		internal ExtendedPrivateKey(PrivateKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
 			: base(chainCode, parentFingerprint, depth, childNumber, testNet)
 		{
-			this.key = key;
-			this.PublicKey = new ExtendedPublicKey(this.key.CreatePublicKey(), this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildNumber, this.IsTestNet);
+			this.Key = key;
+			this.PublicKey = new ExtendedPublicKey(this.Key.PublicKey, this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildNumber, this.IsTestNet);
 		}
+
+		/// <summary>
+		/// Gets the underlying private key that this object extends.
+		/// </summary>
+		public PrivateKey Key { get; }
 
 		/// <summary>
 		/// Gets the public extended key counterpart to this private key.
@@ -100,7 +103,7 @@ public static partial class Bip32HDWallet
 			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
 			if ((childNumber & HardenedBit) != 0)
 			{
-				this.key.Key.WriteToSpan(hashInput[1..]);
+				this.Key.Key.WriteToSpan(hashInput[1..]);
 			}
 			else
 			{
@@ -116,7 +119,7 @@ public static partial class Bip32HDWallet
 			// In case parse256(IL) ≥ n or ki = 0, the resulting key is invalid,
 			// and one should proceed with the next value for i.
 			// (Note: this has probability lower than 1 in 2^127.)
-			if (!this.key.Key.TryTweakAdd(childKeyAdd, out NBitcoin.Secp256k1.ECPrivKey? pvk))
+			if (!this.Key.Key.TryTweakAdd(childKeyAdd, out NBitcoin.Secp256k1.ECPrivKey? pvk))
 			{
 				throw new InvalidKeyException(Strings.VeryUnlikelyInvalidChildKey);
 			}
@@ -169,13 +172,13 @@ public static partial class Bip32HDWallet
 		}
 
 		/// <inheritdoc/>
-		public void Dispose() => this.key.Dispose();
+		public void Dispose() => this.Key.Dispose();
 
 		/// <inheritdoc/>
 		protected override int WriteKeyMaterial(Span<byte> destination)
 		{
 			destination[0] = 0;
-			this.key.Key.WriteToSpan(destination[1..]);
+			this.Key.Key.WriteToSpan(destination[1..]);
 			return 33;
 		}
 	}

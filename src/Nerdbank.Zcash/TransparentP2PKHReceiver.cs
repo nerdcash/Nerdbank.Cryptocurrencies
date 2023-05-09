@@ -3,6 +3,9 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto.Digests;
+using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -29,6 +32,30 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 		}
 
 		p2pkh.CopyTo(this.ValidatingKeyHashWritable);
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TransparentP2PKHReceiver"/> struct.
+	/// </summary>
+	/// <param name="publicKey">The EC public key to create a receiver for.</param>
+	public TransparentP2PKHReceiver(PublicKey publicKey)
+	{
+		Requires.NotNull(publicKey);
+
+		Span<byte> serializedPublicKey = stackalloc byte[33];
+		Span<byte> publicKeyHash1 = stackalloc byte[256 / 8];
+		Span<byte> publicKeyHash2 = stackalloc byte[Length];
+
+		publicKey.Key.WriteToSpan(compressed: true, serializedPublicKey, out int length);
+		serializedPublicKey = serializedPublicKey[..length];
+
+		SHA256.HashData(serializedPublicKey, publicKeyHash1);
+		RipeMD160Digest digest = new();
+		digest.BlockUpdate(publicKeyHash1);
+		int pkhLength = digest.DoFinal(publicKeyHash2);
+		publicKeyHash2 = publicKeyHash2[..pkhLength];
+
+		publicKeyHash2.CopyTo(this.ValidatingKeyHashWritable);
 	}
 
 	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
