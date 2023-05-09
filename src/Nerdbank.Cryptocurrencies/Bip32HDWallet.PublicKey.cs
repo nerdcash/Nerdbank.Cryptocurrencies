@@ -6,9 +6,9 @@ namespace Nerdbank.Cryptocurrencies;
 public static partial class Bip32HDWallet
 {
 	/// <summary>
-	/// A EC public key.
+	/// An elliptic curve public key.
 	/// </summary>
-	internal class PublicKey
+	public class PublicKey
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PublicKey" /> class.
@@ -22,6 +22,6 @@ public static partial class Bip32HDWallet
 		/// <summary>
 		/// Gets the underlying cryptographic key.
 		/// </summary>
-		internal NBitcoin.Secp256k1.ECPubKey Key { get; }
+		public NBitcoin.Secp256k1.ECPubKey Key { get; }
 	}
 }
