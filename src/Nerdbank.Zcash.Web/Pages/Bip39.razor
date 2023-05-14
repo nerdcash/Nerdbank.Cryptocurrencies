@@ -1,0 +1,41 @@
+﻿@page "/bip39"
+@using Nerdbank.Cryptocurrencies;
+
+<h1>BIP 39: mnemonic seed phrases</h1>
+
+<button class="btn btn-primary" @onclick="Generate">Generate</button>
+<input @bind="@wordLength" /> word seed phrase (must be multiple of 3)
+
+<p>
+<textarea @bind="@generatedSeedPhrase" cols="170" />
+</p>
+<p>Optional password: <input @bind="@password" /></p>
+
+<h1>BIP 32: HD wallet key derivation</h1>
+
+<button class="btn" @onclick="Derive">Derive addresses</button>
+
+<p>Zcash T-address: @tAddr</p>
+
+@code {
+	private string generatedSeedPhrase = string.Empty;
+	private int wordLength = 12;
+	private string password = string.Empty;
+	private string tAddr = string.Empty;
+
+	private void Generate()
+	{
+		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(wordLength / 3 * 32, password.AsMemory());
+		generatedSeedPhrase = mnemonic.SeedPhrase;
+	}
+
+	private void Derive()
+	{
+		var mnemonic = Bip39Mnemonic.Parse(generatedSeedPhrase, password.AsMemory());
+		using Bip32HDWallet.ExtendedPrivateKey masterKey = Bip32HDWallet.ExtendedPrivateKey.Create(mnemonic);
+		using Bip32HDWallet.ExtendedPrivateKey firstAddressKey = masterKey.Derive(Bip44MultiAccountHD.CreateKeyPath(133, 0, Bip44MultiAccountHD.Change.ReceivingAddressChain, 0));
+		var receiver = new TransparentP2PKHReceiver(firstAddressKey.PublicKey.Key);
+		var address = new TransparentP2PKHAddress(receiver);
+		tAddr = address;
+	}
+}
