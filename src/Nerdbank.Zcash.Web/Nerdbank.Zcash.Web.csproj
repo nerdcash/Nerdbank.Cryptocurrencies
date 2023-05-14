@@ -10,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
+    <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" />
   </ItemGroup>
 </Project>
