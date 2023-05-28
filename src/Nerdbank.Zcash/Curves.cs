@@ -16,7 +16,7 @@ internal static class Curves
 	/// The Pallas elliptic curve.
 	/// </summary>
 	/// <remarks>
-	/// The equation is <c>y^2 = x^3 + ax + b</c>.
+	/// The equation is <c>y² = x³ + ax + b</c>.
 	/// </remarks>
 	internal static class Pallas
 	{
@@ -24,19 +24,19 @@ internal static class Curves
 		/// The curve.
 		/// </summary>
 		internal static readonly ECCurve Curve = new FpCurve(
-			q: new BigInteger("52435875175126190479447740508185965837690552500527637822603658699938581184513"),
-			a: new BigInteger("5"),
-			b: new BigInteger("1"),
-			order: new BigInteger("52435875175126190479447740508185965837690552500527637822603658699938581184512"),
-			cofactor: new BigInteger("1"));
+			q: new("52435875175126190479447740508185965837690552500527637822603658699938581184513"),
+			a: new("5"),
+			b: new("1"),
+			order: new("52435875175126190479447740508185965837690552500527637822603658699938581184512"),
+			cofactor: new("1"));
 
 		/// <summary>
 		/// The basepoint (<c>G</c>) of the curve.
 		/// </summary>
 		internal static readonly ECPoint BasePoint = Curve.CreatePoint(
-			new BigInteger("35529392678556817526412750206378370998039579620092443977805913819117976852661"),
-			new BigInteger("17321585679444949914271250334039468343382271850312716954264829937000576695602"));
+			new("35529392678556817526412750206378370998039579620092443977805913819117976852661"),
+			new("17321585679444949914271250334039468343382271850312716954264829937000576695602"));
 
-		private static readonly ECDomainParameters Parameters = new ECDomainParameters(Curve, BasePoint, Curve.Order);
+		private static readonly ECDomainParameters Parameters = new(Curve, BasePoint, Curve.Order);
 	}
 }
