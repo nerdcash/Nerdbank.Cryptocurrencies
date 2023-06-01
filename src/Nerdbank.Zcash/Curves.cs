@@ -39,4 +39,34 @@ internal static class Curves
 
 		private static readonly ECDomainParameters Parameters = new(Curve, BasePoint, Curve.Order);
 	}
+
+	/// <summary>
+	/// The JubJub curve.
+	/// </summary>
+	/// <remarks>
+	/// The equation is <c>au² + v² = 1 + du²v²</c>, where <c>a = -1</c> and <c>d = −10240/10241</c>.
+	/// </remarks>
+	internal static class JubJub
+	{
+		private const string r = "6554484396890773809930967563523245729705921265872317281365359162392183254199";
+		private const string h = "8";
+
+		internal static readonly System.Numerics.BigInteger Order = System.Numerics.BigInteger.Multiply(System.Numerics.BigInteger.Parse(h), System.Numerics.BigInteger.Parse(r));
+
+		/// <summary>
+		/// Derived from Cofactor * r or (h * r), which per the Zcash protocol defines Order of JubJub.
+		/// </summary>
+		private static readonly BigInteger n = new BigInteger(h).Multiply(new BigInteger(r));
+
+		internal static readonly ECCurve Curve = new FpCurve(
+			q: new("52435875175126190479447740508185965837690552500527637822603658699938581184513"),
+			a: new("-1"),
+			b: null, // ???
+			order: n,
+			cofactor: new(h));
+
+		internal static readonly ECPoint BasePoint = null;
+
+		private static readonly ECDomainParameters Parameters = new(Curve, BasePoint, Curve.Order);
+	}
 }
