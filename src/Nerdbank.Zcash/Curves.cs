@@ -68,5 +68,10 @@ internal static class Curves
 		internal static readonly ECPoint BasePoint = null;
 
 		private static readonly ECDomainParameters Parameters = new(Curve, BasePoint, Curve.Order);
+
+		internal static ECPoint FindGroupHash(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

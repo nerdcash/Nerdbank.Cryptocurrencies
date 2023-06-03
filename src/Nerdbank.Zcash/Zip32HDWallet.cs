@@ -3,8 +3,10 @@
 
 using System.Collections.Generic;
 using System.Numerics;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Nerdbank.Cryptocurrencies;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace Nerdbank.Zcash;
 
@@ -22,9 +24,10 @@ public partial class Zip32HDWallet
 	/// A buffer to fill with the encoded integer.
 	/// Any excess bytes will be 0-padded.
 	/// </param>
+	/// <returns>The number of bytes written to <paramref name="output"/>. Always its length.</returns>
 	/// <remarks>This is the inverse operation to <see cref="LEOS2IP(ReadOnlySpan{byte})"/>.</remarks>
 	/// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="output"/> is not large enough to store <paramref name="value"/>.</exception>
-	private static void I2LEOSP(BigInteger value, Span<byte> output)
+	private static int I2LEOSP(BigInteger value, Span<byte> output)
 	{
 		BigInteger byteSize = 256;
 		int i = 0;
@@ -35,6 +38,7 @@ public partial class Zip32HDWallet
 		}
 
 		output[i..].Clear();
+		return output.Length;
 	}
 
 	/// <summary>
@@ -97,5 +101,44 @@ public partial class Zip32HDWallet
 		sk.CopyTo(buffer);
 		t.CopyTo(buffer[sk.Length..]);
 		return Blake2B.ComputeHash(buffer, output, new Blake2B.Config { Personalization = "Zcash_ExpandSeed"u8, OutputSizeInBytes = 512 / 8 });
+	}
+
+
+	/// <summary>
+	/// An implementation of FF1-AES encryption.
+	/// </summary>
+	/// <remarks>
+	/// This is as specified at <see href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38G.pdf">Recommendation for Block Cipher Modes of Operation</see>
+	/// with parameters as specified in <see href="https://zips.z.cash/zip-0032#conventions">ZIP-32</see>.
+	/// </remarks>
+	private static void FF1AES256(ReadOnlySpan<byte> key, Span<byte> data)
+	{
+		const int Radix = 2;
+		const int MinLen = 88;
+		const int MaxLen = 88;
+		const string Tweak = "";
+
+		if (key.Length != 256 / 8)
+		{
+			throw new ArgumentException(Strings.FormatUnexpectedLength(256 / 8, key.Length));
+		}
+
+		if (data.Length != 88 / 8)
+		{
+			throw new ArgumentException(Strings.FormatUnexpectedLength(88 / 8, data.Length));
+		}
+
+		int n = data.Length * 8;
+		int u = n / 2;
+		int v = n - u;
+
+		// questions:
+		// The spec calls for a 128-bit cipher. Does using AES256 require any other deviations from the spec?
+		// What does the ⊕ symbol mean?
+		// What does [1]^16 mean?
+		// How should we split 44 bits (5.5 bytes)?
+
+		Aes aes = Aes.Create();
+		throw new NotImplementedException();
 	}
 }
