@@ -15,6 +15,14 @@ namespace Nerdbank.Zcash;
 public partial class Zip32HDWallet
 {
 	/// <summary>
+	/// The "Randomness Beacon".
+	/// </summary>
+	/// <remarks>
+	/// The value for this is defined in <see href="https://zips.z.cash/protocol/protocol.pdf">the Zcash protocol</see> §5.9.
+	/// </remarks>
+	private static readonly BigInteger URS = BigInteger.Parse("096b36a5804bfacef1691e173c366a47ff5ba84a44f26ddd7e8d9f79d5b42df0", System.Globalization.NumberStyles.HexNumber);
+
+	/// <summary>
 	/// The coin type to use in the key derivation path.
 	/// </summary>
 	private const uint CoinType = 133;
@@ -25,10 +33,15 @@ public partial class Zip32HDWallet
 	private const uint Purpose = 32;
 
 	/// <summary>
-	/// Creates a key derivation path that conforms to the <see href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP-44</see> specification
+	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
 	/// of <c>m / purpose' / coin_type' / account'</c>.
 	/// </summary>
 	/// <inheritdoc cref="CreateKeyPath(uint, uint)"/>
+	/// <remarks>
+	/// With Zcash shielded accounts the recommended pattern is to have just one spending authority per account and issue
+	/// unique receiving addresses via unique diversifiers to each party that may send ZEC to avoid correlation.
+	/// This method creates a key path that will create the default key for the given account.
+	/// </remarks>
 	public static KeyPath CreateKeyPath(uint account)
 	{
 		// m / purpose' / coin_type' / account'
@@ -56,6 +69,10 @@ public partial class Zip32HDWallet
 	/// <remarks>
 	/// <para>zcashd 4.6.0 and later use <paramref name="account"/> <c>0x7fffffff</c> and hardened values for <paramref name="addressIndex"/>
 	/// to generate "legacy" Sapling addresses.</para>
+	/// <para>Ordinary Zcash accounts with shielded addresses should typically not use this overload
+	/// because multiple spending authorities within the same account increases sync time and complexity
+	/// where diversifiers typically suffice.
+	/// Instead, the <see cref="CreateKeyPath(uint)"/> overload should be used.</para>
 	/// </remarks>
 	public static KeyPath CreateKeyPath(uint account, uint addressIndex)
 	{

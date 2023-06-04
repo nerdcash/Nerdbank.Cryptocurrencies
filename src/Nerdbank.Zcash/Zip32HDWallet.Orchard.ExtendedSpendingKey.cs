@@ -15,30 +15,11 @@ public partial class Zip32HDWallet
 				this.SpendingKey = spendingKey;
 			}
 
-			public static ExtendedSpendingKey Create(ReadOnlySpan<byte> s, bool testNet = false)
-			{
-				Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
-				Blake2B.ComputeHash(s, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Orchard"u8, OutputSizeInBytes = blakeOutput.Length });
-
-				Span<byte> spendingKey = blakeOutput[..32];
-				Span<byte> chainCode = blakeOutput[32..];
-
-				SpendingKey key = new(spendingKey);
-				return new ExtendedSpendingKey(
-					key,
-					chainCode,
-					parentFullViewingKeyTag: default,
-					depth: 0,
-					childNumber: 0,
-					testNet);
-			}
-
 			public ExtendedFullViewingKey FullViewingKey { get; }
 
-			public override ReadOnlySpan<byte> Fingerprint => throw new NotImplementedException();
+			public SpendingKey SpendingKey { get; }
 
-			internal SpendingKey SpendingKey { get; }
-
+			/// <inheritdoc/>
 			public override ExtendedSpendingKey Derive(uint childNumber)
 			{
 				bool childIsHardened = (childNumber & Bip32HDWallet.HardenedBit) != 0;

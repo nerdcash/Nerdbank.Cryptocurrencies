@@ -9,22 +9,47 @@ namespace Nerdbank.Zcash;
 public partial class Zip32HDWallet
 {
 	/// <summary>
-	/// The "Randomness Beacon".
+	/// Contains types and methods related to the Sapling pool.
 	/// </summary>
-	/// <remarks>
-	/// The value for this is defined in <see href="https://zips.z.cash/protocol/protocol.pdf">the Zcash protocol</see> §5.9.
-	/// </remarks>
-	internal static readonly BigInteger URS = BigInteger.Parse("096b36a5804bfacef1691e173c366a47ff5ba84a44f26ddd7e8d9f79d5b42df0", System.Globalization.NumberStyles.HexNumber);
-
 	public static partial class Sapling
 	{
 		internal static readonly ECPoint G_Sapling = Curves.JubJub.FindGroupHash("Zcash_G_", string.Empty);
 
 		internal static readonly ECPoint H_Sapling = Curves.JubJub.FindGroupHash("Zcash_H_", string.Empty);
 
-		private static BigInteger ToScalar(ReadOnlySpan<byte> x)
+		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, bool)"/>
+		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
+		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, bool testNet = false) => Create(Requires.NotNull(mnemonic).Seed, testNet);
+
+		/// <summary>
+		/// Creates a master key for the Sapling pool.
+		/// </summary>
+		/// <param name="seed">The seed byte sequence, which MUST be at least 32 and at most 252 bytes.</param>
+		/// <param name="testNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
+		/// <returns>The master extended spending key.</returns>
+		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, bool testNet = false)
 		{
-			return BigInteger.Remainder(LEOS2IP(x), Curves.JubJub.Order);
+			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
+			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Sapling"u8, OutputSizeInBytes = blakeOutput.Length });
+			Span<byte> spendingKey = blakeOutput[..32];
+			Span<byte> chainCode = blakeOutput[32..];
+
+			Span<byte> expandOutput = stackalloc byte[64];
+			PRFexpand(spendingKey, new(0x00), expandOutput);
+			BigInteger ask = ToScalar(expandOutput);
+
+			PRFexpand(spendingKey, new(0x01), expandOutput);
+			BigInteger nsk = ToScalar(expandOutput);
+
+			PRFexpand(spendingKey, new(0x02), expandOutput);
+			Span<byte> ovk = stackalloc byte[32];
+			expandOutput[..32].CopyTo(ovk);
+
+			PRFexpand(spendingKey, new(0x10), expandOutput);
+			Span<byte> dk = stackalloc byte[32];
+			expandOutput[..32].CopyTo(dk);
+
+			return new ExtendedSpendingKey(new(ask, nsk, ovk, dk), chainCode, default, 0, 0, testNet);
 		}
 
 		/// <summary>
@@ -48,6 +73,11 @@ public partial class Zip32HDWallet
 			I2LEBSP(index, indexAsBytes);
 			FF1AES256(dk, indexAsBytes, d);
 			return !DiversifyHash(indexAsBytes).IsInfinity;
+		}
+
+		private static BigInteger ToScalar(ReadOnlySpan<byte> x)
+		{
+			return BigInteger.Remainder(LEOS2IP(x), Curves.JubJub.Order);
 		}
 
 		/// <summary>

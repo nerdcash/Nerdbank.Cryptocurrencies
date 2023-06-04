@@ -20,45 +20,12 @@ public partial class Zip32HDWallet
 					throw new ArgumentException($"Length must be exactly 32, but was {chainCode.Length}.", nameof(chainCode));
 				}
 
-				this.Key = key;
-			}
-
-			/// <summary>
-			/// Generates a master extended spending key.
-			/// </summary>
-			/// <param name="s">The seed byte sequence, which MUST be at least 32 and at most 252 bytes.</param>
-			/// <param name="testNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
-			/// <returns>The master extended spending key.</returns>
-			public static ExtendedSpendingKey Create(ReadOnlySpan<byte> s, bool testNet = false)
-			{
-				Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
-				Blake2B.ComputeHash(s, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Sapling"u8, OutputSizeInBytes = blakeOutput.Length });
-				Span<byte> spendingKey = blakeOutput[..32];
-				Span<byte> chainCode = blakeOutput[32..];
-
-				Span<byte> expandOutput = stackalloc byte[64];
-				PRFexpand(spendingKey, new(0x00), expandOutput);
-				BigInteger ask = ToScalar(expandOutput);
-
-				PRFexpand(spendingKey, new(0x01), expandOutput);
-				BigInteger nsk = ToScalar(expandOutput);
-
-				PRFexpand(spendingKey, new(0x02), expandOutput);
-				Span<byte> ovk = stackalloc byte[32];
-				expandOutput[..32].CopyTo(ovk);
-
-				PRFexpand(spendingKey, new(0x10), expandOutput);
-				Span<byte> dk = stackalloc byte[32];
-				expandOutput[..32].CopyTo(dk);
-
-				return new ExtendedSpendingKey(new(ask, nsk, ovk, dk), chainCode, default, 0, 0, testNet);
+				this.SpendingKey = key;
 			}
 
 			public ExtendedFullViewingKey FullViewingKey { get; }
 
-			public override ReadOnlySpan<byte> Fingerprint => throw new NotImplementedException();
-
-			public SpendingKey Key { get; }
+			public SpendingKey SpendingKey { get; }
 
 			/// <summary>
 			/// Derives a spending key from a given parent key.
@@ -74,7 +41,7 @@ public partial class Zip32HDWallet
 					Span<byte> bytes = stackalloc byte[133];
 					bytes[0] = 0x11;
 					int bytesWritten = 1;
-					bytesWritten += this.Key.EncodeExtSKParts(bytes[bytesWritten..]);
+					bytesWritten += this.SpendingKey.EncodeExtSKParts(bytes[bytesWritten..]);
 					bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
 					PRFexpand(this.ChainCode, bytes[..bytesWritten], i);
 				}
@@ -100,19 +67,19 @@ public partial class Zip32HDWallet
 
 				Span<byte> ovk = stackalloc byte[33];
 				ovk[0] = 0x15;
-				this.Key.Ovk.CopyTo(ovk[1..]);
+				this.SpendingKey.Ovk.CopyTo(ovk[1..]);
 				PRFexpand(il, ovk, expandOutput);
 				expandOutput[..32].CopyTo(ovk);
 
 				Span<byte> dk = stackalloc byte[33];
 				dk[0] = 0x16;
-				this.Key.Dk.CopyTo(dk[1..]);
+				this.SpendingKey.Dk.CopyTo(dk[1..]);
 				PRFexpand(il, dk, expandOutput);
 				expandOutput[..32].CopyTo(dk);
 
 				SpendingKey key = new(
-					ask: BigInteger.Remainder(ask + this.Key.Ask, Curves.JubJub.Order),
-					nsk: BigInteger.Remainder(nsk - this.Key.Nsk, Curves.JubJub.Order),
+					ask: BigInteger.Remainder(ask + this.SpendingKey.Ask, Curves.JubJub.Order),
+					nsk: BigInteger.Remainder(nsk - this.SpendingKey.Nsk, Curves.JubJub.Order),
 					ovk: ovk[..32],
 					dk: dk[..32]);
 
