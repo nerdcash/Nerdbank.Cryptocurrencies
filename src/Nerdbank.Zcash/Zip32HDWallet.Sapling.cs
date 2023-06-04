@@ -223,6 +223,39 @@ public partial class Zip32HDWallet
 			throw new NotImplementedException();
 		}
 
+		/// <summary>
+		/// Encodes a diversifier (the value of <see cref="SaplingReceiver.D"/>)
+		/// for a given diversifier key (the value of <see cref="ExtendedFullViewingKey.Dk"/>).
+		/// </summary>
+		/// <param name="dk">A 32-byte buffer containing the diversifier key.</param>
+		/// <param name="index">
+		/// The diversifier index, in the range of 0..(2^88 - 1).
+		/// Not every index will produce a valid diversifier. About half will fail.
+		/// The default diversifier is defined as the smallest non-negative index that produces a valid diversifier.
+		/// </param>
+		/// <param name="d">Receives the diversifier. Exactly 88 bytes from this span will be initialized.</param>
+		/// <returns>
+		/// <see langword="true"/> if a valid diversifier could be produced with the given <paramref name="index"/>.
+		/// <see langword="false"/> if the caller should retry with the next higher index.
+		/// </returns>
+		internal static bool TryGetDiversifier(ReadOnlySpan<byte> dk, BigInteger index, Span<byte> d)
+		{
+			Span<byte> indexAsBytes = stackalloc byte[88];
+			I2LEBSP(index, indexAsBytes);
+			FF1AES256(dk, indexAsBytes, d);
+			return !DiversifyHash(indexAsBytes).IsInfinity;
+		}
+
+		/// <summary>
+		/// Maps a diversifier to a base point on the JubJub elliptic curve, or to ⊥ if the diversifier is invalid.
+		/// </summary>
+		/// <param name="d">The diversifier.</param>
+		/// <returns>A point on the JubJub elliptic curve.</returns>
+		private static ECPoint DiversifyHash(ReadOnlySpan<byte> d)
+		{
+			throw new NotImplementedException();
+		}
+
 		internal unsafe struct ExtendedSpendingKey
 		{
 			private readonly BigInteger ask;

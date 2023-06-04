@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
 using System.Numerics;
 using System.Security.Cryptography;
-using System.Text.RegularExpressions;
-using Nerdbank.Cryptocurrencies;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
+using static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD;
 
 namespace Nerdbank.Zcash;
 
@@ -16,6 +14,66 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public partial class Zip32HDWallet
 {
+	/// <summary>
+	/// The coin type to use in the key derivation path.
+	/// </summary>
+	private const uint CoinType = 133;
+
+	/// <summary>
+	/// The value of the <c>purpose</c> position in the key path.
+	/// </summary>
+	private const uint Purpose = 32;
+
+	/// <summary>
+	/// Creates a key derivation path that conforms to the <see href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP-44</see> specification
+	/// of <c>m / purpose' / coin_type' / account'</c>.
+	/// </summary>
+	/// <inheritdoc cref="CreateKeyPath(uint, uint)"/>
+	public static KeyPath CreateKeyPath(uint account)
+	{
+		// m / purpose' / coin_type' / account'
+		return new(account | HardenedBit, new(CoinType | HardenedBit, new(Purpose | HardenedBit, KeyPath.Root)));
+	}
+
+	/// <summary>
+	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
+	/// of <c>m / purpose' / coin_type' / account' / address_index</c>.
+	/// </summary>
+	/// <param name="account">
+	/// <para>This level splits the key space into independent user identities, so the wallet never mixes the coins across different accounts.</para>
+	/// <para>Users can use these accounts to organize the funds in the same fashion as bank accounts; for donation purposes (where all addresses are considered public), for saving purposes, for common expenses etc.</para>
+	/// <para>Accounts are numbered from index 0 in sequentially increasing manner. This number is used as child index in BIP32 derivation.</para>
+	/// <para>Hardened derivation is used at this level. The <see cref="HardenedBit"/> is added automatically if necessary.</para>
+	/// <para>Software should prevent a creation of an account if a previous account does not have a transaction history (meaning none of its addresses have been used before).</para>
+	/// <para>Software needs to discover all used accounts after importing the seed from an external source. Such an algorithm is described in "Account discovery" chapter.</para>
+	/// </param>
+	/// <param name="addressIndex">
+	/// <para>The address index. Increment this to get a new receiving address that belongs to the same logical account.</para>
+	/// <para>Addresses are numbered from index 0 in sequentially increasing manner. This number is used as child index in BIP32 derivation.</para>
+	/// <para>This number should <em>not</em> include the <see cref="HardenedBit"/>.</para>
+	/// </param>
+	/// <returns>The key derivation path.</returns>
+	/// <remarks>
+	/// <para>zcashd 4.6.0 and later use <paramref name="account"/> <c>0x7fffffff</c> and hardened values for <paramref name="addressIndex"/>
+	/// to generate "legacy" Sapling addresses.</para>
+	/// </remarks>
+	public static KeyPath CreateKeyPath(uint account, uint addressIndex)
+	{
+		// m / purpose' / coin_type' / account' / address_index
+		return new(addressIndex, CreateKeyPath(account));
+	}
+
+	/// <summary>
+	/// Encodes a point on an elliptic curve as a bit sequence.
+	/// </summary>
+	/// <param name="p">The point on the elliptic curve.</param>
+	/// <param name="bitSequence">Receives the bit sequence.</param>
+	/// <returns>The number of bytes written to <paramref name="bitSequence"/>.</returns>
+	private static int Repr(Org.BouncyCastle.Math.EC.ECPoint p, Span<byte> bitSequence)
+	{
+		throw new NotImplementedException();
+	}
+
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.
 	/// </summary>
@@ -29,33 +87,42 @@ public partial class Zip32HDWallet
 	/// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="output"/> is not large enough to store <paramref name="value"/>.</exception>
 	private static int I2LEOSP(BigInteger value, Span<byte> output)
 	{
-		BigInteger byteSize = 256;
-		int i = 0;
-		for (; value > 0; i++)
+		if (!value.TryWriteBytes(output, out int bytesWritten, isUnsigned: true))
 		{
-			(value, BigInteger remainder) = BigInteger.DivRem(value, byteSize);
-			output[i] = (byte)remainder;
+			throw new ArgumentException("Insufficient length", nameof(output));
 		}
 
-		output[i..].Clear();
-		return output.Length;
+		return bytesWritten;
 	}
 
 	/// <summary>
-	/// Decodes a <see cref="BigInteger"/> that has been encoded in little-endian order.
+	/// Decodes a <see cref="BigInteger"/> that has been encoded as a byte array in little-endian order.
 	/// </summary>
 	/// <param name="input">A little-endian ordered encoding of an integer.</param>
-	/// <remarks>This is the inverse operation to <see cref="I2LEOSP(BigInteger, Span{byte})"/></remarks>.
-	private static BigInteger LEOS2IP(ReadOnlySpan<byte> input)
+	/// <remarks>This is the inverse operation to <see cref="I2LEOSP(BigInteger, Span{byte})"/>.</remarks>
+	private static BigInteger LEOS2IP(ReadOnlySpan<byte> input) => new(input, isUnsigned: true);
+
+	/// <summary>
+	/// Encodes a <see cref="BigInteger"/> as a bit sequence in little-endian order.
+	/// </summary>
+	/// <param name="value">The integer.</param>
+	/// <param name="output">
+	/// A buffer to fill with the encoded integer.
+	/// Any excess bytes will be 0-padded.
+	/// </param>
+	/// <returns>The number of bytes written to <paramref name="output"/>. Always its length.</returns>
+	private static int I2LEBSP(BigInteger value, Span<byte> output)
 	{
-		BigInteger result = default;
-		BigInteger multiplier = 1;
-		for (int i = 0; i < input.Length; i++, multiplier *= 256)
+		BigInteger bitSize = 2;
+		output.Clear();
+		int bitPosition = 0;
+		for (; value > 0; bitPosition++)
 		{
-			result += BigInteger.Multiply(input[i], multiplier);
+			(value, BigInteger remainder) = BigInteger.DivRem(value, bitSize);
+			output[bitPosition / 8] |= (byte)(remainder << (bitPosition % 8));
 		}
 
-		return result;
+		return output.Length;
 	}
 
 	/// <summary>
@@ -103,7 +170,6 @@ public partial class Zip32HDWallet
 		return Blake2B.ComputeHash(buffer, output, new Blake2B.Config { Personalization = "Zcash_ExpandSeed"u8, OutputSizeInBytes = 512 / 8 });
 	}
 
-
 	/// <summary>
 	/// An implementation of FF1-AES encryption.
 	/// </summary>
@@ -111,7 +177,7 @@ public partial class Zip32HDWallet
 	/// This is as specified at <see href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38G.pdf">Recommendation for Block Cipher Modes of Operation</see>
 	/// with parameters as specified in <see href="https://zips.z.cash/zip-0032#conventions">ZIP-32</see>.
 	/// </remarks>
-	private static void FF1AES256(ReadOnlySpan<byte> key, Span<byte> data)
+	private static void FF1AES256(ReadOnlySpan<byte> key, ReadOnlySpan<byte> input, Span<byte> output)
 	{
 		const int Radix = 2;
 		const int MinLen = 88;
@@ -123,12 +189,12 @@ public partial class Zip32HDWallet
 			throw new ArgumentException(Strings.FormatUnexpectedLength(256 / 8, key.Length));
 		}
 
-		if (data.Length != 88 / 8)
+		if (input.Length != 88 / 8)
 		{
-			throw new ArgumentException(Strings.FormatUnexpectedLength(88 / 8, data.Length));
+			throw new ArgumentException(Strings.FormatUnexpectedLength(88 / 8, input.Length));
 		}
 
-		int n = data.Length * 8;
+		int n = input.Length * 8;
 		int u = n / 2;
 		int v = n - u;
 

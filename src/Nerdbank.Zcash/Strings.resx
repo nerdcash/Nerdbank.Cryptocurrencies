@@ -150,6 +150,9 @@
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>
+  <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
+    <value>Only hardened keys are supported.</value>
+  </data>
   <data name="UnexpectedLength" xml:space="preserve">
     <value>Length must be exactly {expected}, but was {actual}.</value>
   </data>
