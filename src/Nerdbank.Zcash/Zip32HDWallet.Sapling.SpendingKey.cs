@@ -17,7 +17,7 @@ public partial class Zip32HDWallet
 			private readonly BigInteger nsk;
 			private readonly FixedArrays fixedArrays;
 
-			public SpendingKey(BigInteger ask, BigInteger nsk, ReadOnlySpan<byte> ovk, ReadOnlySpan<byte> dk)
+			internal SpendingKey(BigInteger ask, BigInteger nsk, ReadOnlySpan<byte> ovk, ReadOnlySpan<byte> dk)
 			{
 				if (ovk.Length != 32)
 				{

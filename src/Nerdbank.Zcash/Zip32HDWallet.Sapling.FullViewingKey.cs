@@ -18,7 +18,7 @@ public partial class Zip32HDWallet
 			private readonly ECPoint nk;
 			private readonly FixedArrays fixedArrays;
 
-			public FullViewingKey(ECPoint ak, ECPoint nk, ReadOnlySpan<byte> ovk, ReadOnlySpan<byte> dk)
+			internal FullViewingKey(ECPoint ak, ECPoint nk, ReadOnlySpan<byte> ovk, ReadOnlySpan<byte> dk)
 			{
 				if (!ak.IsValid()) // TODO: Does this include a zero point check?
 				{

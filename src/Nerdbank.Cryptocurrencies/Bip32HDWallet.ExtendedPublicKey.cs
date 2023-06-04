@@ -67,20 +67,7 @@ public static partial class Bip32HDWallet
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
 
-		/// <summary>
-		/// Derives a new extended public key that is a direct child of this one.
-		/// </summary>
-		/// <param name="childNumber">
-		/// The child key number to derive. Must <em>not</em> contain the <see cref="HardenedBit"/>.
-		/// To derive a hardened child, use the <see cref="ExtendedPrivateKey"/>.
-		/// </param>
-		/// <returns>A derived extended public key.</returns>
-		/// <exception cref="NotSupportedException">Thrown if <paramref name="childNumber"/> contains the <see cref="HardenedBit"/>.</exception>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for <paramref name="childNumber"/>.
-		/// </exception>
+		/// <inheritdoc/>
 		public override ExtendedPublicKey Derive(uint childNumber)
 		{
 			if ((childNumber & HardenedBit) != 0)

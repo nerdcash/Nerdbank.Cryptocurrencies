@@ -14,7 +14,7 @@ public partial class Zip32HDWallet
 		{
 			private readonly FixedArrays fixedArrays;
 
-			public SpendingKey(ReadOnlySpan<byte> spendingKey)
+			internal SpendingKey(ReadOnlySpan<byte> spendingKey)
 			{
 				this.fixedArrays = new(spendingKey);
 			}

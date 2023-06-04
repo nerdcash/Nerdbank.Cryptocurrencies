@@ -22,37 +22,6 @@ public partial class Zip32HDWallet
 
 		internal static readonly ECPoint H_Sapling = Curves.JubJub.FindGroupHash("Zcash_H_", string.Empty);
 
-		/// <summary>
-		/// Generates a master extended spending key.
-		/// </summary>
-		/// <param name="s">The seed byte sequence, which MUST be at least 32 and at most 252 bytes.</param>
-		/// <param name="isTestNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
-		/// <returns>The master extended spending key.</returns>
-		internal static ExtendedSpendingKey GenerateMasterKey(ReadOnlySpan<byte> s, bool isTestNet = false)
-		{
-			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
-			Blake2B.ComputeHash(s, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Sapling"u8, OutputSizeInBytes = blakeOutput.Length });
-			Span<byte> spendingKey = blakeOutput[..32];
-			Span<byte> chainCode = blakeOutput[32..];
-
-			Span<byte> expandOutput = stackalloc byte[64];
-			PRFexpand(spendingKey, new(0x00), expandOutput);
-			BigInteger ask = ToScalar(expandOutput);
-
-			PRFexpand(spendingKey, new(0x01), expandOutput);
-			BigInteger nsk = ToScalar(expandOutput);
-
-			PRFexpand(spendingKey, new(0x02), expandOutput);
-			Span<byte> ovk = stackalloc byte[32];
-			expandOutput[..32].CopyTo(ovk);
-
-			PRFexpand(spendingKey, new(0x10), expandOutput);
-			Span<byte> dk = stackalloc byte[32];
-			expandOutput[..32].CopyTo(dk);
-
-			return new ExtendedSpendingKey(new(ask, nsk, ovk, dk), chainCode, default, 0, 0, isTestNet);
-		}
-
 		private static BigInteger ToScalar(ReadOnlySpan<byte> x)
 		{
 			return BigInteger.Remainder(LEOS2IP(x), Curves.JubJub.Order);

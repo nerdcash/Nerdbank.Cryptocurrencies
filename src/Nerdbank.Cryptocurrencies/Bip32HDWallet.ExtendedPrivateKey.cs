@@ -65,38 +65,33 @@ public static partial class Bip32HDWallet
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 		/// <summary>
 		/// Creates an extended key based on a <see cref="Bip39Mnemonic"/>.
 		/// </summary>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
+		/// <param name="testNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
 		/// <returns>The extended key.</returns>
-		public static ExtendedPrivateKey Create(Bip39Mnemonic mnemonic) => Create(Requires.NotNull(mnemonic).Seed);
+		public static ExtendedPrivateKey Create(Bip39Mnemonic mnemonic, bool testNet = false) => Create(Requires.NotNull(mnemonic).Seed, testNet);
 
 		/// <summary>
 		/// Creates an extended key based on a seed.
 		/// </summary>
 		/// <param name="seed">The seed from which to generate the master key.</param>
+		/// <param name="testNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
 		/// <returns>The extended key.</returns>
-		public static ExtendedPrivateKey Create(ReadOnlySpan<byte> seed)
+		public static ExtendedPrivateKey Create(ReadOnlySpan<byte> seed, bool testNet = false)
 		{
 			Span<byte> hmac = stackalloc byte[512 / 8];
 			HMACSHA512.HashData("Bitcoin seed"u8, seed, hmac);
 			ReadOnlySpan<byte> masterKey = hmac[..32];
 			ReadOnlySpan<byte> chainCode = hmac[32..];
 
-			return new ExtendedPrivateKey(new PrivateKey(NBitcoin.Secp256k1.ECPrivKey.Create(masterKey)), chainCode);
+			return new ExtendedPrivateKey(new PrivateKey(NBitcoin.Secp256k1.ECPrivKey.Create(masterKey)), chainCode, testNet);
 		}
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
-		/// <summary>
-		/// Derives a new extended private key that is a direct child of this one.
-		/// </summary>
-		/// <param name="childNumber">The child key number to derive. This may include the <see cref="HardenedBit"/> to derive a hardened key.</param>
-		/// <returns>A derived extended private key.</returns>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for <paramref name="childNumber"/>.
-		/// </exception>
+		/// <inheritdoc/>
 		public override ExtendedPrivateKey Derive(uint childNumber)
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];

@@ -61,10 +61,8 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		public byte Depth { get; }
 
-		/// <summary>
-		/// Gets the index number used when deriving this key from its direct parent.
-		/// </summary>
-		protected uint ChildNumber { get; }
+		/// <inheritdoc/>
+		public uint ChildNumber { get; }
 
 		/// <summary>
 		/// Gets the first 32-bits of the <see cref="Identifier"/> of the parent key.
@@ -222,6 +220,7 @@ public static partial class Bip32HDWallet
 			return encoded[..length].ToString();
 		}
 
+		/// <inheritdoc/>
 		public abstract IExtendedKey Derive(uint childNumber);
 
 		/// <summary>

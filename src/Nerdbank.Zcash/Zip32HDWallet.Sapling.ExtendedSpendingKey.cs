@@ -12,7 +12,7 @@ public partial class Zip32HDWallet
 	{
 		public class ExtendedSpendingKey : ExtendedKeyBase
 		{
-			public ExtendedSpendingKey(SpendingKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+			internal ExtendedSpendingKey(SpendingKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
 				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				if (chainCode.Length != 32)
@@ -21,6 +21,37 @@ public partial class Zip32HDWallet
 				}
 
 				this.Key = key;
+			}
+
+			/// <summary>
+			/// Generates a master extended spending key.
+			/// </summary>
+			/// <param name="s">The seed byte sequence, which MUST be at least 32 and at most 252 bytes.</param>
+			/// <param name="testNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
+			/// <returns>The master extended spending key.</returns>
+			public static ExtendedSpendingKey Create(ReadOnlySpan<byte> s, bool testNet = false)
+			{
+				Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
+				Blake2B.ComputeHash(s, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Sapling"u8, OutputSizeInBytes = blakeOutput.Length });
+				Span<byte> spendingKey = blakeOutput[..32];
+				Span<byte> chainCode = blakeOutput[32..];
+
+				Span<byte> expandOutput = stackalloc byte[64];
+				PRFexpand(spendingKey, new(0x00), expandOutput);
+				BigInteger ask = ToScalar(expandOutput);
+
+				PRFexpand(spendingKey, new(0x01), expandOutput);
+				BigInteger nsk = ToScalar(expandOutput);
+
+				PRFexpand(spendingKey, new(0x02), expandOutput);
+				Span<byte> ovk = stackalloc byte[32];
+				expandOutput[..32].CopyTo(ovk);
+
+				PRFexpand(spendingKey, new(0x10), expandOutput);
+				Span<byte> dk = stackalloc byte[32];
+				expandOutput[..32].CopyTo(dk);
+
+				return new ExtendedSpendingKey(new(ask, nsk, ovk, dk), chainCode, default, 0, 0, testNet);
 			}
 
 			public ExtendedFullViewingKey FullViewingKey { get; }
