@@ -16,7 +16,7 @@ public static partial class Bip32HDWallet
 	/// </summary>
 	/// <seealso cref="ExtendedPrivateKey"/>
 	/// <seealso cref="ExtendedPublicKey"/>
-	public abstract class ExtendedKeyBase
+	public abstract class ExtendedKeyBase : IExtendedKey
 	{
 		private const int ChainCodeLength = 32;
 		private const int ParentFingerprintLength = 4;
@@ -59,7 +59,7 @@ public static partial class Bip32HDWallet
 		/// <summary>
 		/// Gets the number of derivations from the master key to this one.
 		/// </summary>
-		protected byte Depth { get; }
+		public byte Depth { get; }
 
 		/// <summary>
 		/// Gets the index number used when deriving this key from its direct parent.
@@ -221,6 +221,8 @@ public static partial class Bip32HDWallet
 
 			return encoded[..length].ToString();
 		}
+
+		public abstract IExtendedKey Derive(uint childNumber);
 
 		/// <summary>
 		/// Writes the key material.

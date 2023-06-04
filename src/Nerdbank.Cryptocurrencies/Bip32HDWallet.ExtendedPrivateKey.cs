@@ -97,7 +97,7 @@ public static partial class Bip32HDWallet
 		/// Callers should handle this exception by requesting a new key with an incremented value
 		/// for <paramref name="childNumber"/>.
 		/// </exception>
-		public ExtendedPrivateKey Derive(uint childNumber)
+		public override ExtendedPrivateKey Derive(uint childNumber)
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
 			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
@@ -128,47 +128,6 @@ public static partial class Bip32HDWallet
 
 			Assumes.NotNull(pvk); // bad null ref annotation in the Secp256k1 library.
 			return new ExtendedPrivateKey(new(pvk), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
-		}
-
-		/// <summary>
-		/// Derives a new extended private key by following the steps in the specified path.
-		/// </summary>
-		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
-		/// <returns>A derived extended private key.</returns>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for the child number at the failing position in the key path.
-		/// </exception>
-		public ExtendedPrivateKey Derive(KeyPath keyPath)
-		{
-			Requires.NotNull(keyPath);
-
-			if (this.Depth > 0 && keyPath.IsRooted)
-			{
-				throw new NotSupportedException("Deriving with a rooted key path from a non-rooted key is not supported.");
-			}
-
-			ExtendedPrivateKey result = this;
-			ExtendedPrivateKey? intermediate = null;
-			foreach (KeyPath step in keyPath.Steps)
-			{
-				try
-				{
-					result = result.Derive(step.Index);
-
-					// If this isn't our first time around, dispose of the previous intermediate key,
-					// taking care to not dispose of the original key.
-					intermediate?.Dispose();
-					intermediate = result;
-				}
-				catch (InvalidKeyException ex)
-				{
-					throw new InvalidKeyException(Strings.FormatVeryUnlikelyUnvalidChildKeyOnPath(step), ex) { KeyPath = step };
-				}
-			}
-
-			return result;
 		}
 
 		/// <inheritdoc/>

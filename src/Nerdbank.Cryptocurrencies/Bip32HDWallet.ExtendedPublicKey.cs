@@ -81,7 +81,7 @@ public static partial class Bip32HDWallet
 		/// Callers should handle this exception by requesting a new key with an incremented value
 		/// for <paramref name="childNumber"/>.
 		/// </exception>
-		public ExtendedPublicKey Derive(uint childNumber)
+		public override ExtendedPublicKey Derive(uint childNumber)
 		{
 			if ((childNumber & HardenedBit) != 0)
 			{
@@ -108,41 +108,6 @@ public static partial class Bip32HDWallet
 			byte childDepth = checked((byte)(this.Depth + 1));
 
 			return new ExtendedPublicKey(new(pubKey), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
-		}
-
-		/// <summary>
-		/// Derives a new extended public key by following the steps in the specified path.
-		/// </summary>
-		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
-		/// <returns>A derived extended public key.</returns>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for the child number at the failing position in the key path.
-		/// </exception>
-		public ExtendedPublicKey Derive(KeyPath keyPath)
-		{
-			Requires.NotNull(keyPath);
-
-			if (this.Depth > 0 && keyPath.IsRooted)
-			{
-				throw new NotSupportedException("Deriving with a rooted key path from a non-rooted key is not supported.");
-			}
-
-			ExtendedPublicKey result = this;
-			foreach (KeyPath step in keyPath.Steps)
-			{
-				try
-				{
-					result = result.Derive(step.Index);
-				}
-				catch (InvalidKeyException ex)
-				{
-					throw new InvalidKeyException(Strings.FormatVeryUnlikelyUnvalidChildKeyOnPath(step), ex) { KeyPath = step };
-				}
-			}
-
-			return result;
 		}
 
 		/// <inheritdoc/>

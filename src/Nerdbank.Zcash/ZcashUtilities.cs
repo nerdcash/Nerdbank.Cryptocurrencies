@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Internal utilities for this library.
 /// </summary>
-internal static class CryptoUtilities
+internal static class ZcashUtilities
 {
 	/// <summary>
 	/// Converts a .NET <see cref="System.Numerics.BigInteger"/> to the BouncyCastle equivalent.

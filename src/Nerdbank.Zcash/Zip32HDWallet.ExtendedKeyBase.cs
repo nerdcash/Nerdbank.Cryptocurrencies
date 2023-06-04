@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
 {
-	public abstract class ExtendedKeyBase
+	public abstract class ExtendedKeyBase : IExtendedKey
 	{
 		private const int ChainCodeLength = 32;
 		private const int ParentFullViewingKeyTagLength = 4;
@@ -68,7 +68,7 @@ public partial class Zip32HDWallet
 		/// </summary>
 		/// <param name="childNumber">The index of the derived child key.</param>
 		/// <returns>The derived key.</returns>
-		public abstract ExtendedKeyBase Derive(uint childNumber);
+		public abstract IExtendedKey Derive(uint childNumber);
 
 		private unsafe struct FixedArrays
 		{
