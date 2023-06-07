@@ -33,7 +33,6 @@ public partial class Zip32HDWallet
 			/// Encodes a diversifier (the value of <see cref="OrchardReceiver.D"/>)
 			/// for a given <see cref="ExtendedFullViewingKey"/>.
 			/// </summary>
-			/// <param name="viewingKey">An extended full viewing key.</param>
 			/// <param name="index">
 			/// The diversifier index, in the range of 0..(2^88 - 1).
 			/// Every index will produce a valid diversifier.

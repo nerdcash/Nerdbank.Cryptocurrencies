@@ -17,7 +17,6 @@ public partial class Zip32HDWallet
 
 			public FullViewingKey Key { get; }
 
-
 			/// <summary>
 			/// Gets the fingerprint for this key.
 			/// </summary>

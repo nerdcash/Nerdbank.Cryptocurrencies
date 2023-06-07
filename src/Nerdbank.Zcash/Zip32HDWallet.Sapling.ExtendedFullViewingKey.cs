@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
 
@@ -11,12 +13,14 @@ public partial class Zip32HDWallet
 	{
 		public class ExtendedFullViewingKey : ExtendedKeyBase
 		{
-			internal ExtendedFullViewingKey(FullViewingKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet)
+			private readonly FixedArrays fixedArrays;
+
+			internal ExtendedFullViewingKey(FullViewingKey key, ReadOnlySpan<byte> dk, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet)
 				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				this.Key = key;
+				this.fixedArrays = new(dk);
 			}
-
 
 			/// <summary>
 			/// Gets the fingerprint for this key.
@@ -30,6 +34,11 @@ public partial class Zip32HDWallet
 			public ReadOnlySpan<byte> Fingerprint => throw new NotImplementedException();
 
 			public FullViewingKey Key { get; }
+
+			/// <summary>
+			/// Gets the diversifier key.
+			/// </summary>
+			internal ReadOnlySpan<byte> Dk => this.fixedArrays.Dk;
 
 			public override ExtendedFullViewingKey Derive(uint childNumber)
 			{
@@ -66,23 +75,37 @@ public partial class Zip32HDWallet
 
 				Span<byte> dk = stackalloc byte[33];
 				dk[0] = 0x16;
-				this.Key.Dk.CopyTo(dk[1..]);
+				this.Dk.CopyTo(dk[1..]);
 				PRFexpand(il, dk, expandOutput);
 				expandOutput[..32].CopyTo(dk);
 
 				FullViewingKey key = new(
 					ak: G_Sapling.Multiply(ask.ToBouncyCastle()).Add(this.Key.Ak),
 					nk: H_Sapling.Multiply(nsk.ToBouncyCastle()).Add(this.Key.Nk),
-					ovk: ovk[..32],
-					dk: dk[..32]);
+					ovk: ovk[..32]);
 
 				return new ExtendedFullViewingKey(
 					key,
+					dk: dk[..32],
 					chainCode: ir,
 					parentFullViewingKeyTag: this.Fingerprint[..4],
 					depth: checked((byte)(this.Depth + 1)),
 					childNumber: childNumber,
 					isTestNet: this.IsTestNet);
+			}
+
+			private unsafe struct FixedArrays
+			{
+				private fixed byte dk[32];
+
+				internal FixedArrays(ReadOnlySpan<byte> dk)
+				{
+					dk.CopyToWithLengthCheck(this.DkWritable);
+				}
+
+				internal readonly ReadOnlySpan<byte> Dk => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.dk[0]), 32);
+
+				internal Span<byte> DkWritable => MemoryMarshal.CreateSpan(ref this.dk[0], 32);
 			}
 		}
 	}
