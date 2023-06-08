@@ -38,6 +38,7 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the diversifier key.
 			/// </summary>
+			/// <value>A 32-byte buffer.</value>
 			internal ReadOnlySpan<byte> Dk => this.fixedArrays.Dk;
 
 			public override ExtendedFullViewingKey Derive(uint childNumber)
@@ -53,7 +54,7 @@ public partial class Zip32HDWallet
 				Span<byte> bytes = stackalloc byte[133];
 				bytes[0] = 0x12;
 				int bytesWritten = 1;
-				bytesWritten += this.Key.EncodeExtFVKParts(bytes[bytesWritten..]);
+				bytesWritten += this.EncodeExtFVKParts(bytes[bytesWritten..]);
 				bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
 				PRFexpand(this.ChainCode, bytes[..bytesWritten], i);
 
@@ -123,6 +124,28 @@ public partial class Zip32HDWallet
 				}
 
 				return false;
+			}
+
+			/// <summary>
+			/// Encodes the extended full viewing key parts to a buffer.
+			/// </summary>
+			/// <param name="result">The buffer to receive the encoded key. Must be at least 128 bytes in length.</param>
+			/// <returns>The number of bytes written to <paramref name="result"/>. Always 128.</returns>
+			internal int EncodeExtFVKParts(Span<byte> result)
+			{
+				int length = 0;
+				Span<byte> reprOutput = stackalloc byte[32];
+
+				Repr_J(this.Key.Ak, reprOutput);
+				length += LEBS2OS(reprOutput, result[..32]);
+
+				Repr_J(this.Key.Nk, reprOutput);
+				length += LEBS2OSP(reprOutput, result[32..64]);
+
+				length += this.Key.Ovk.CopyToRetLength(result[length..]);
+				length += this.Dk.CopyToRetLength(result[length..]);
+
+				return length;
 			}
 
 			private unsafe struct FixedArrays

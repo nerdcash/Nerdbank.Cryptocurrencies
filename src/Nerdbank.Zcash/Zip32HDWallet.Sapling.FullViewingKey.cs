@@ -34,14 +34,11 @@ public partial class Zip32HDWallet
 
 			internal ECPoint Nk => this.nk;
 
+			/// <summary>
+			/// Gets the Ovk value.
+			/// </summary>
+			/// <value>A 32-byte buffer.</value>
 			internal ReadOnlySpan<byte> Ovk => this.fixedArrays.Ovk;
-
-			internal int EncodeExtFVKParts(Span<byte> result)
-			{
-				// TODO: implement this.
-				// This requires the EC function: reprJ
-				throw new NotImplementedException();
-			}
 
 			/// <summary>
 			/// Gets the raw encoding.

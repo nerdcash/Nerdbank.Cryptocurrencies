@@ -50,7 +50,7 @@ public partial class Zip32HDWallet
 					Span<byte> bytes = stackalloc byte[133];
 					bytes[0] = 0x12;
 					int bytesWritten = 1;
-					bytesWritten += this.FullViewingKey.Key.EncodeExtFVKParts(bytes[bytesWritten..]);
+					bytesWritten += this.FullViewingKey.EncodeExtFVKParts(bytes[bytesWritten..]);
 					bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
 					PRFexpand(this.ChainCode, bytes[..bytesWritten], i);
 				}

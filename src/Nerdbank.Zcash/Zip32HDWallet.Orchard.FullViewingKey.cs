@@ -12,18 +12,18 @@ public partial class Zip32HDWallet
 	{
 		public class FullViewingKey
 		{
-			private readonly BigInteger ak;
+			private readonly ECPoint ak;
 			private readonly BigInteger nk;
 			private readonly BigInteger rivk;
 
-			internal FullViewingKey(BigInteger ak, BigInteger nk, BigInteger rivk)
+			internal FullViewingKey(ECPoint ak, BigInteger nk, BigInteger rivk)
 			{
 				this.ak = ak;
 				this.nk = nk;
 				this.rivk = rivk;
 			}
 
-			internal BigInteger Ak => this.ak;
+			internal ECPoint Ak => this.ak;
 
 			internal BigInteger Nk => this.nk;
 
@@ -77,7 +77,7 @@ public partial class Zip32HDWallet
 			private int GetRawEncoding(Span<byte> rawEncoding)
 			{
 				int written = 0;
-				written += I2LEOSP(this.Ak, rawEncoding[..32]);
+				written += I2LEOSP(/*TODO: Convert ECPoint to Integer: this.Ak*/default, rawEncoding[..32]);
 				written += I2LEOSP(this.Nk, rawEncoding[32..64]);
 				written += I2LEOSP(this.Rivk, rawEncoding[64..96]);
 				return written;

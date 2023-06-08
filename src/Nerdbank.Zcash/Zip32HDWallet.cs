@@ -93,7 +93,7 @@ public partial class Zip32HDWallet
 		throw new NotImplementedException();
 	}
 
-	private static int Repr_P(BigInteger p, Span<byte> bitSequence)
+	private static int Repr_P(Org.BouncyCastle.Math.EC.ECPoint p, Span<byte> bitSequence)
 	{
 		throw new NotImplementedException();
 	}
@@ -180,6 +180,11 @@ public partial class Zip32HDWallet
 		}
 
 		return input.Length;
+	}
+
+	private static int LEBS2OS(ReadOnlySpan<byte> input, Span<byte> output)
+	{
+		throw new NotImplementedException();
 	}
 
 	/// <summary>
