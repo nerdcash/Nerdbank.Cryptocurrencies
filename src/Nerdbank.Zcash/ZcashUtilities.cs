@@ -54,4 +54,12 @@ internal static class ZcashUtilities
 
 		source.CopyTo(destination);
 	}
+
+	/// <inheritdoc cref="ReadOnlySpan{T}.CopyTo(Span{T})"/>
+	/// <returns>The number of elements copied.</returns>
+	internal static int CopyToRetLength<T>(this ReadOnlySpan<T> source, Span<T> destination)
+	{
+		source.CopyTo(destination);
+		return source.Length;
+	}
 }

@@ -88,7 +88,12 @@ public partial class Zip32HDWallet
 	/// <param name="p">The point on the elliptic curve.</param>
 	/// <param name="bitSequence">Receives the bit sequence.</param>
 	/// <returns>The number of bytes written to <paramref name="bitSequence"/>. Always 32.</returns>
-	private static int Repr(Org.BouncyCastle.Math.EC.ECPoint p, Span<byte> bitSequence)
+	private static int Repr_J(Org.BouncyCastle.Math.EC.ECPoint p, Span<byte> bitSequence)
+	{
+		throw new NotImplementedException();
+	}
+
+	private static int Repr_P(BigInteger p, Span<byte> bitSequence)
 	{
 		throw new NotImplementedException();
 	}
