@@ -98,6 +98,9 @@ public partial class Zip32HDWallet
 		throw new NotImplementedException();
 	}
 
+	private static BigInteger Extract_P(Org.BouncyCastle.Math.EC.ECPoint p)
+		=> p.XCoord.ToBigInteger().Remainder(Curves.Pallas.Curve.Q).ToNumerics();
+
 	private static int Abst() => throw new NotImplementedException();
 
 	private static int Jr() => throw new NotImplementedException();

@@ -23,7 +23,7 @@ internal static class Curves
 		/// <summary>
 		/// The curve.
 		/// </summary>
-		internal static readonly ECCurve Curve = new FpCurve(
+		internal static readonly FpCurve Curve = new FpCurve(
 			q: new("52435875175126190479447740508185965837690552500527637822603658699938581184513"),
 			a: new("5"),
 			b: new("1"),

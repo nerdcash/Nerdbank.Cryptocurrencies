@@ -77,7 +77,7 @@ public partial class Zip32HDWallet
 			private int GetRawEncoding(Span<byte> rawEncoding)
 			{
 				int written = 0;
-				written += I2LEOSP(/*TODO: Convert ECPoint to Integer: this.Ak*/default, rawEncoding[..32]);
+				written += I2LEOSP(Extract_P(this.Ak), rawEncoding[..32]);
 				written += I2LEOSP(this.Nk, rawEncoding[32..64]);
 				written += I2LEOSP(this.Rivk, rawEncoding[64..96]);
 				return written;
