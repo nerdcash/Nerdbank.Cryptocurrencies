@@ -22,6 +22,8 @@ public partial class Zip32HDWallet
 	/// </remarks>
 	private static readonly BigInteger URS = BigInteger.Parse("096b36a5804bfacef1691e173c366a47ff5ba84a44f26ddd7e8d9f79d5b42df0", System.Globalization.NumberStyles.HexNumber);
 
+	private static readonly BigInteger MaxDiversifierIndex = BigInteger.Pow(2, 88) - 1;
+
 	/// <summary>
 	/// The coin type to use in the key derivation path.
 	/// </summary>
@@ -85,11 +87,15 @@ public partial class Zip32HDWallet
 	/// </summary>
 	/// <param name="p">The point on the elliptic curve.</param>
 	/// <param name="bitSequence">Receives the bit sequence.</param>
-	/// <returns>The number of bytes written to <paramref name="bitSequence"/>.</returns>
+	/// <returns>The number of bytes written to <paramref name="bitSequence"/>. Always 32.</returns>
 	private static int Repr(Org.BouncyCastle.Math.EC.ECPoint p, Span<byte> bitSequence)
 	{
 		throw new NotImplementedException();
 	}
+
+	private static int Abst() => throw new NotImplementedException();
+
+	private static int Jr() => throw new NotImplementedException();
 
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.

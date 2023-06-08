@@ -67,7 +67,7 @@ public partial class Zip32HDWallet
 		/// <see langword="true"/> if a valid diversifier could be produced with the given <paramref name="index"/>.
 		/// <see langword="false"/> if the caller should retry with the next higher index.
 		/// </returns>
-		internal static bool TryGetDiversifier(ReadOnlySpan<byte> dk, BigInteger index, Span<byte> d)
+		private static bool TryGetDiversifier(ReadOnlySpan<byte> dk, BigInteger index, Span<byte> d)
 		{
 			Span<byte> indexAsBytes = stackalloc byte[88];
 			I2LEBSP(index, indexAsBytes);

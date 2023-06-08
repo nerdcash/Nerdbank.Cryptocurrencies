@@ -46,7 +46,6 @@ public partial class Zip32HDWallet
 			private unsafe struct FixedArrays
 			{
 				private fixed byte ovk[32];
-				private fixed byte dk[32];
 
 				internal FixedArrays(ReadOnlySpan<byte> ovk)
 				{

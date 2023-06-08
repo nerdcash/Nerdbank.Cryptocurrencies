@@ -94,6 +94,37 @@ public partial class Zip32HDWallet
 					isTestNet: this.IsTestNet);
 			}
 
+			/// <summary>
+			/// Searches for a valid diversifier (the value of <see cref="SaplingReceiver.D"/>)
+			/// for this viewing key, starting at a given diversifier index.
+			/// </summary>
+			/// <param name="index">
+			/// The diversifier index to start searching at, in the range of 0..(2^88 - 1).
+			/// Not every index will produce a valid diversifier. About half will fail.
+			/// The default diversifier is defined as the smallest non-negative index that produces a valid diversifier.
+			/// This value will be changed to match the index at which a diversifier was found.
+			/// </param>
+			/// <param name="d">Receives the diversifier. Exactly 11 bytes from this span will be initialized.</param>
+			/// <returns>
+			/// <see langword="true"/> if a valid diversifier could be produced at or above the initial value given by <paramref name="index"/>.
+			/// <see langword="false"/> if no valid diversifier could be found at or above <paramref name="index"/>.
+			/// </returns>
+			/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative.</exception>
+			public bool TryFindDiversifier(ref BigInteger index, Span<byte> d)
+			{
+				Requires.Range(index >= 0, nameof(index));
+
+				for (; index <= MaxDiversifierIndex; index++)
+				{
+					if (TryGetDiversifier(this.Dk, index, d))
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+
 			private unsafe struct FixedArrays
 			{
 				private fixed byte dk[32];
