@@ -137,7 +137,7 @@ public partial class Zip32HDWallet
 				Span<byte> reprOutput = stackalloc byte[32];
 
 				Repr_J(this.Key.Ak, reprOutput);
-				length += LEBS2OS(reprOutput, result[..32]);
+				length += LEBS2OSP(reprOutput, result[..32]);
 
 				Repr_J(this.Key.Nk, reprOutput);
 				length += LEBS2OSP(reprOutput, result[32..64]);

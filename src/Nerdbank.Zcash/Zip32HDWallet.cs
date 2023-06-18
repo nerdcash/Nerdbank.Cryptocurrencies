@@ -101,7 +101,7 @@ public partial class Zip32HDWallet
 	private static BigInteger Extract_P(Org.BouncyCastle.Math.EC.ECPoint p)
 		=> p.XCoord.ToBigInteger().Remainder(Curves.Pallas.Curve.Q).ToNumerics();
 
-	private static int Abst() => throw new NotImplementedException();
+	private static int Abst_J() => throw new NotImplementedException();
 
 	private static int Jr() => throw new NotImplementedException();
 
@@ -185,6 +185,8 @@ public partial class Zip32HDWallet
 		return input.Length;
 	}
 
+	/// <remarks>See <see href="https://forum.zcashcommunity.com/t/what-is-the-lebs2os-function-in-the-zip-32-spec/44886/2?u=aarnott">this comment</see>.</remarks>
+	[Obsolete("The spec's reference to this function is a typo. Use LEBS2OSP instead.", error: true)]
 	private static int LEBS2OS(ReadOnlySpan<byte> input, Span<byte> output)
 	{
 		throw new NotImplementedException();

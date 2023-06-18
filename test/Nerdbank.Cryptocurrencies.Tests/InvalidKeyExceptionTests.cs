@@ -31,7 +31,7 @@ public class InvalidKeyExceptionTests
 	public void Constructor_WithInnerException_NoException()
 	{
 		// Arrange
-		var innerException = new NotImplementedException();
+		var innerException = new InvalidOperationException();
 
 		// Act
 		var exception = new InvalidKeyException("Test message", innerException);
