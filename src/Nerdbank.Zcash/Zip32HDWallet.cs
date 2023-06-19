@@ -3,8 +3,10 @@
 
 using System.Numerics;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Math.EC;
 using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
-using static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD;
+using BCBigInteger = Org.BouncyCastle.Math.BigInteger;
+using BCMath = Org.BouncyCastle.Math;
 
 namespace Nerdbank.Zcash;
 
@@ -85,17 +87,27 @@ public partial class Zip32HDWallet
 	/// <summary>
 	/// Encodes a point on an elliptic curve as a bit sequence.
 	/// </summary>
+	/// <param name="curve">The curve. One of <see cref="Curves.Vesta"/> or <see cref="Curves.Pallas"/>.</param>
 	/// <param name="p">The point on the elliptic curve.</param>
-	/// <param name="bitSequence">Receives the bit sequence.</param>
+	/// <param name="bitSequence">Receives the bit sequence. Must be at least 32 bytes long.</param>
 	/// <returns>The number of bytes written to <paramref name="bitSequence"/>. Always 32.</returns>
-	private static int Repr_J(Org.BouncyCastle.Math.EC.ECPoint p, Span<byte> bitSequence)
+	private static int Repr(FpCurve curve, BCMath.EC.ECPoint p, Span<byte> bitSequence)
 	{
-		throw new NotImplementedException();
-	}
+		BigInteger encodingInput;
+		if (p.IsInfinity)
+		{
+			encodingInput = BigInteger.Zero;
+		}
+		else
+		{
+			encodingInput = p.XCoord.ToBigInteger().Mod(curve.Q).ToNumerics();
+			if (p.YCoord.ToBigInteger().Mod(BCBigInteger.Two).Equals(BCBigInteger.One))
+			{
+				encodingInput += BigInteger.Pow(new BigInteger(2), 255);
+			}
+		}
 
-	private static int Repr_P(Org.BouncyCastle.Math.EC.ECPoint p, Span<byte> bitSequence)
-	{
-		throw new NotImplementedException();
+		return I2LEBSP(encodingInput, bitSequence[..32]);
 	}
 
 	private static BigInteger Extract_P(Org.BouncyCastle.Math.EC.ECPoint p)
