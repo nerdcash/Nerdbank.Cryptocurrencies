@@ -24,7 +24,7 @@
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" />
     <GlobalPackageReference Include="Nullable" Version="1.3.1" />
     <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.435" />
-    <GlobalPackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.3.5-beta1.23308.2" />
+    <GlobalPackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.3.5-beta1.23319.1" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
