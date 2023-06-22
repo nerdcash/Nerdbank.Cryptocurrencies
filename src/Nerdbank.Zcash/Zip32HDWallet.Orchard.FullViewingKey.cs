@@ -51,7 +51,7 @@ public partial class Zip32HDWallet
 				I2LEBSP(this.Rivk, K);
 
 				Span<byte> B = stackalloc byte[64];
-				int bBytesWritten = Repr_P(this.Ak, B);
+				int bBytesWritten = Repr(Curves.Pallas.Curve, this.Ak, B);
 				bBytesWritten += I2LEBSP(this.Nk, B.Slice(bBytesWritten, 32));
 
 				Span<byte> t = stackalloc byte[65];

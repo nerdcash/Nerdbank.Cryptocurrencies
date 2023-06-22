@@ -110,6 +110,25 @@ public partial class Zip32HDWallet
 		return I2LEBSP(encodingInput, bitSequence[..32]);
 	}
 
+	/// <summary>
+	/// Encodes a point on the JubJub elliptic curve as a bit sequence.
+	/// </summary>
+	/// <param name="p">The point on the JubJub elliptic curve.</param>
+	/// <param name="bitSequence">Receives the bit sequence. Must be at least 32 bytes long.</param>
+	/// <returns>The number of bytes written to <paramref name="bitSequence"/>. Always 32.</returns>
+	private static int Repr_J(BCMath.EC.ECPoint p, Span<byte> bitSequence)
+	{
+		// This is *almost* the same as the Repr function that works with Pallas and Vesta curves,
+		// except this considers the Y coordinate where as the other considers the X coordinate.
+		BigInteger encodingInput = p.YCoord.ToBigInteger().Mod(Curves.JubJub.Curve.Q).ToNumerics();
+		if (p.YCoord.ToBigInteger().Mod(BCBigInteger.Two).Equals(BCBigInteger.One))
+		{
+			encodingInput += BigInteger.Pow(new BigInteger(2), 255);
+		}
+
+		return I2LEBSP(encodingInput, bitSequence[..32]);
+	}
+
 	private static BigInteger Extract_P(Org.BouncyCastle.Math.EC.ECPoint p)
 		=> p.XCoord.ToBigInteger().Remainder(Curves.Pallas.Curve.Q).ToNumerics();
 
