@@ -39,6 +39,9 @@ public partial class Zip32HDWallet
 				this.fixedArrays = new(ovk, dk);
 			}
 
+			/// <summary>
+			/// Gets the spending authorization key.
+			/// </summary>
 			internal BigInteger Ask => this.ask;
 
 			internal BigInteger Nsk => this.nsk;

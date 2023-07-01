@@ -35,7 +35,7 @@ public partial class Zip32HDWallet
 			internal ECPoint Nk => this.nk;
 
 			/// <summary>
-			/// Gets the Ovk value.
+			/// Gets the outgoing viewing key.
 			/// </summary>
 			/// <value>A 32-byte buffer.</value>
 			internal ReadOnlySpan<byte> Ovk => this.fixedArrays.Ovk;

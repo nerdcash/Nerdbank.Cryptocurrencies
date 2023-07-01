@@ -37,50 +37,44 @@ public partial class Zip32HDWallet
 				Span<byte> i = stackalloc byte[64];
 				if (childIsHardened)
 				{
-					Span<byte> bytes = stackalloc byte[133];
-					bytes[0] = 0x11;
-					int bytesWritten = 1;
+					Span<byte> bytes = stackalloc byte[132];
+					int bytesWritten = 0;
 					bytesWritten += this.SpendingKey.EncodeExtSKParts(bytes[bytesWritten..]);
 					bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
-					PRFexpand(this.ChainCode, bytes[..bytesWritten], i);
+					PRFexpand(this.ChainCode, PrfExpandCodes.SaplingExtSK, bytes[..bytesWritten], i);
 				}
 				else
 				{
-					Span<byte> bytes = stackalloc byte[133];
-					bytes[0] = 0x12;
-					int bytesWritten = 1;
+					Span<byte> bytes = stackalloc byte[132];
+					int bytesWritten = 0;
 					bytesWritten += this.FullViewingKey.EncodeExtFVKParts(bytes[bytesWritten..]);
 					bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
-					PRFexpand(this.ChainCode, bytes[..bytesWritten], i);
+					PRFexpand(this.ChainCode, PrfExpandCodes.SaplingExtFVK, bytes[..bytesWritten], i);
 				}
 
 				Span<byte> il = i[0..32];
 				Span<byte> ir = i[32..];
 				Span<byte> expandOutput = stackalloc byte[64];
 
-				PRFexpand(il, new(0x13), expandOutput);
+				PRFexpand(il, PrfExpandCodes.SaplingAskDerive, expandOutput);
 				BigInteger ask = ToScalar(expandOutput);
 
-				PRFexpand(il, new(0x14), expandOutput);
+				PRFexpand(il, PrfExpandCodes.SaplingNskDerive, expandOutput);
 				BigInteger nsk = ToScalar(expandOutput);
 
-				Span<byte> ovk = stackalloc byte[33];
-				ovk[0] = 0x15;
-				this.SpendingKey.Ovk.CopyTo(ovk[1..]);
-				PRFexpand(il, ovk, expandOutput);
+				Span<byte> ovk = stackalloc byte[32];
+				PRFexpand(il, PrfExpandCodes.SaplingOvkDerive, this.SpendingKey.Ovk, expandOutput);
 				expandOutput[..32].CopyTo(ovk);
 
-				Span<byte> dk = stackalloc byte[33];
-				dk[0] = 0x16;
-				this.SpendingKey.Dk.CopyTo(dk[1..]);
-				PRFexpand(il, dk, expandOutput);
+				PRFexpand(il, PrfExpandCodes.SaplingDkDerive, this.SpendingKey.Dk, expandOutput);
+				Span<byte> dk = stackalloc byte[32];
 				expandOutput[..32].CopyTo(dk);
 
 				SpendingKey key = new(
 					ask: BigInteger.Remainder(ask + this.SpendingKey.Ask, Curves.JubJub.Order),
 					nsk: BigInteger.Remainder(nsk - this.SpendingKey.Nsk, Curves.JubJub.Order),
-					ovk: ovk[..32],
-					dk: dk[..32]);
+					ovk: ovk,
+					dk: dk);
 
 				return new ExtendedSpendingKey(
 					key,

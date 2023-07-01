@@ -24,10 +24,10 @@ internal static class Curves
 		/// The curve.
 		/// </summary>
 		internal static readonly FpCurve Curve = new FpCurve(
-			q: new("0x40000000000000000000000000000000224698fc094cf91b992d30ed00000001", 16),
+			q: new("40000000000000000000000000000000224698fc094cf91b992d30ed00000001", 16),
 			a: BigInteger.Zero,
 			b: new("5"),
-			order: new("0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001", 16),
+			order: new("40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001", 16),
 			cofactor: new("1"));
 
 		/// <summary>
@@ -37,7 +37,7 @@ internal static class Curves
 			new("35529392678556817526412750206378370998039579620092443977805913819117976852661"),
 			new("17321585679444949914271250334039468343382271850312716954264829937000576695602"));
 
-		private static readonly ECDomainParameters Parameters = new(Curve, BasePoint, Curve.Order);
+		////private static readonly ECDomainParameters Parameters = new(Curve, BasePoint, Curve.Order);
 	}
 
 	/// <summary>
@@ -52,10 +52,10 @@ internal static class Curves
 		/// The curve.
 		/// </summary>
 		internal static readonly FpCurve Curve = new FpCurve(
-			q: new("0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001", 16),
+			q: new("40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001", 16),
 			a: BigInteger.Zero,
 			b: new("5"),
-			order: new("0x40000000000000000000000000000000224698fc094cf91b992d30ed00000001", 16),
+			order: new("40000000000000000000000000000000224698fc094cf91b992d30ed00000001", 16),
 			cofactor: new("1"));
 	}
 

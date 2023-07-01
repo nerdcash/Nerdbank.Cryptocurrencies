@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Numerics;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Math.EC;
+
 namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
@@ -22,6 +26,7 @@ public partial class Zip32HDWallet
 		/// <returns>A master extended spending key.</returns>
 		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, bool testNet = false)
 		{
+			// Rust: assert!(seed.len() >= 32 && seed.len() <= 252);
 			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
 			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Orchard"u8, OutputSizeInBytes = blakeOutput.Length });
 
@@ -36,6 +41,22 @@ public partial class Zip32HDWallet
 				depth: 0,
 				childNumber: 0,
 				testNet);
+		}
+
+		/// <summary>
+		/// Implement the ToScalar_Orchard function.
+		/// </summary>
+		private static BigInteger ToScalar(ReadOnlySpan<byte> input) => BigInteger.Remainder(LEOS2IP(input), Curves.Pallas.Curve.Order.ToNumerics());
+
+		private static BigInteger ToBase(ReadOnlySpan<byte> input) => BigInteger.Remainder(LEOS2IP(input), Curves.Pallas.Curve.Q.ToNumerics());
+
+		private static readonly SpendAuthSigOrchard SpendAuthSig = new();
+
+		private class SpendAuthSigOrchard : SpendAuthSigBase
+		{
+			internal override Org.BouncyCastle.Math.EC.ECPoint BasePoint => Curves.Pallas.BasePoint;
+
+			internal override FpCurve Curve => Curves.Pallas.Curve;
 		}
 	}
 }

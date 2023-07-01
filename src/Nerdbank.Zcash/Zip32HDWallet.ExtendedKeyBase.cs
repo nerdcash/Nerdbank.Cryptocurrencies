@@ -45,7 +45,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the first 32-bits of the <see cref="Fingerprint"/> of the parent key.
 		/// </summary>
-		protected ReadOnlySpan<byte> ParentFullViewingKeyTag => this.fixedArrays.ParentFullViewingKeyTag;
+		protected internal ReadOnlySpan<byte> ParentFullViewingKeyTag => this.fixedArrays.ParentFullViewingKeyTag;
 
 		/// <summary>
 		/// Gets the chain code for this key.

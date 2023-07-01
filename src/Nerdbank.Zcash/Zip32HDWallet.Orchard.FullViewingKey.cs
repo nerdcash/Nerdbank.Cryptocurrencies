@@ -16,6 +16,36 @@ public partial class Zip32HDWallet
 			private readonly BigInteger nk;
 			private readonly BigInteger rivk;
 
+			internal FullViewingKey(SpendingKey spendingKey)
+			{
+				Span<byte> askBytes = stackalloc byte[64];
+				PRFexpand(spendingKey.Sk, PrfExpandCodes.OrchardAsk, askBytes);
+				BigInteger ask = ToScalar(askBytes);
+				if (ask.IsZero)
+				{
+					throw new InvalidKeyException(Strings.InvalidKey);
+				}
+
+				ECPoint akP = SpendAuthSig.DerivePublic(ask.ToBouncyCastle());
+				Span<byte> akPrepr = stackalloc byte[32];
+				Repr(Curves.Pallas.Curve, akP, akPrepr);
+				if ((akPrepr[^1] & 0x1) == 1)
+				{
+					ask = -ask;
+				}
+
+				this.ak = akP; // Extract_P in the spec wouldn't allow the types to match.
+
+				Span<byte> expandOutput = stackalloc byte[64];
+				PRFexpand(spendingKey.Sk, PrfExpandCodes.OrchardNk, expandOutput);
+				this.nk = ToBase(expandOutput);
+
+				PRFexpand(spendingKey.Sk, PrfExpandCodes.OrchardRivk, expandOutput);
+				this.rivk = ToScalar(expandOutput);
+
+				throw new NotImplementedException();
+			}
+
 			internal FullViewingKey(ECPoint ak, BigInteger nk, BigInteger rivk)
 			{
 				this.ak = ak;
@@ -23,10 +53,19 @@ public partial class Zip32HDWallet
 				this.rivk = rivk;
 			}
 
+			/// <summary>
+			/// Gets the spend validating key.
+			/// </summary>
 			internal ECPoint Ak => this.ak;
 
+			/// <summary>
+			/// Gets the nullifier deriving key.
+			/// </summary>
 			internal BigInteger Nk => this.nk;
 
+			/// <summary>
+			/// Gets the commit randomness.
+			/// </summary>
 			internal BigInteger Rivk => this.rivk;
 
 			/// <summary>
@@ -54,11 +93,10 @@ public partial class Zip32HDWallet
 				int bBytesWritten = Repr(Curves.Pallas.Curve, this.Ak, B);
 				bBytesWritten += I2LEBSP(this.Nk, B.Slice(bBytesWritten, 32));
 
-				Span<byte> t = stackalloc byte[65];
-				t[0] = 0x82;
-				LEBS2OSP(B, t[1..]);
+				Span<byte> t = stackalloc byte[64];
+				LEBS2OSP(B, t);
 				Span<byte> prfExpandOutput = stackalloc byte[64];
-				PRFexpand(K, t, prfExpandOutput);
+				PRFexpand(K, PrfExpandCodes.OrchardDkOvk, t, prfExpandOutput);
 				Span<byte> dk = prfExpandOutput[..32];
 
 				Span<byte> indexEncoded = stackalloc byte[11];

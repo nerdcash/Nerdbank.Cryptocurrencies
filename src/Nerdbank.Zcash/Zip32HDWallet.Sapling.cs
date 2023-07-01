@@ -35,17 +35,17 @@ public partial class Zip32HDWallet
 			Span<byte> chainCode = blakeOutput[32..];
 
 			Span<byte> expandOutput = stackalloc byte[64];
-			PRFexpand(spendingKey, new(0x00), expandOutput);
+			PRFexpand(spendingKey, PrfExpandCodes.SaplingAsk, expandOutput);
 			BigInteger ask = ToScalar(expandOutput);
 
-			PRFexpand(spendingKey, new(0x01), expandOutput);
+			PRFexpand(spendingKey, PrfExpandCodes.SaplingNsk, expandOutput);
 			BigInteger nsk = ToScalar(expandOutput);
 
-			PRFexpand(spendingKey, new(0x02), expandOutput);
+			PRFexpand(spendingKey, PrfExpandCodes.SaplingOvk, expandOutput);
 			Span<byte> ovk = stackalloc byte[32];
 			expandOutput[..32].CopyTo(ovk);
 
-			PRFexpand(spendingKey, new(0x10), expandOutput);
+			PRFexpand(spendingKey, PrfExpandCodes.SaplingDk, expandOutput);
 			Span<byte> dk = stackalloc byte[32];
 			expandOutput[..32].CopyTo(dk);
 

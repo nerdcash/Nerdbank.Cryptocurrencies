@@ -9,13 +9,15 @@ public partial class Zip32HDWallet
 	{
 		public class ExtendedSpendingKey : ExtendedKeyBase
 		{
+			private ExtendedFullViewingKey? fullViewingKey;
+
 			internal ExtendedSpendingKey(SpendingKey spendingKey, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool testNet = false)
 				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, testNet)
 			{
 				this.SpendingKey = spendingKey;
 			}
 
-			public ExtendedFullViewingKey FullViewingKey { get; }
+			public ExtendedFullViewingKey FullViewingKey => this.fullViewingKey ??= new(this);
 
 			public SpendingKey SpendingKey { get; }
 
@@ -28,14 +30,12 @@ public partial class Zip32HDWallet
 					throw new ArgumentException(Strings.OnlyHardenedChildKeysSupported, nameof(childNumber));
 				}
 
-				Span<byte> bytes = stackalloc byte[1 + 32 + 4];
-				bytes[0] = 0x81;
-				int bytesWritten = 1;
-				this.SpendingKey.Sk.CopyTo(bytes[bytesWritten..]);
-				bytesWritten += this.SpendingKey.Sk.Length;
+				Span<byte> bytes = stackalloc byte[32 + 4];
+				int bytesWritten = 0;
+				bytesWritten += this.SpendingKey.Sk.CopyToRetLength(bytes);
 				bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
 				Span<byte> i = stackalloc byte[64];
-				PRFexpand(this.ChainCode, bytes[..bytesWritten], i);
+				PRFexpand(this.ChainCode, PrfExpandCodes.OrchardZip32Child, bytes, i);
 				Span<byte> spendingKey = i[0..32];
 				Span<byte> chainCode = i[32..];
 
