@@ -1,14 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net7.0</TargetFrameworks>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Blake2 isn't strong-named. But as we target .NET, it doesn't matter. -->
     <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
-  <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
@@ -17,4 +13,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" PrivateAssets="compile" />
   </ItemGroup>
+  <Import Project="NativeBindings.targets"/>
 </Project>

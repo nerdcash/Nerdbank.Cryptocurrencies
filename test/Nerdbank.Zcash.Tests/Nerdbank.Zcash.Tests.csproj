@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0</TargetFrameworks>
     <RootNamespace />
+    <Platforms>x64;ARM64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,5 +18,7 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.combinatorial" />
   </ItemGroup>
+
+  <Import Project="..\..\src\Nerdbank.Zcash\NativeBindings.targets"/>
 
 </Project>
