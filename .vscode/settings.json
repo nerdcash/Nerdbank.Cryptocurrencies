@@ -1,9 +1,12 @@
 {
-  "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true,
-  "omnisharp.enableEditorConfigSupport": true,
-  "omnisharp.enableRoslynAnalyzers": true,
-  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
-  "dotnet.defaultSolution": "Nerdbank.Cryptocurrencies.sln"
+	"files.trimTrailingWhitespace": true,
+	"files.insertFinalNewline": true,
+	"files.trimFinalNewlines": true,
+	"omnisharp.enableEditorConfigSupport": true,
+	"omnisharp.enableRoslynAnalyzers": true,
+	"dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+	"dotnet.defaultSolution": "Nerdbank.Cryptocurrencies.sln",
+	"rust-analyzer.linkedProjects": [
+		".\\src\\nerdbank-zcash-rust\\Cargo.toml"
+	]
 }

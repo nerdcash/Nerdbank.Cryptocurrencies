@@ -1,0 +1,58 @@
+<Project>
+  <PropertyGroup>
+    <RustOutputDir>$(RepoRootPath)obj/src/nerdbank-zcash-rust/$(Configuration.ToLower())/</RustOutputDir>
+  </PropertyGroup>
+  <!-- This file is imported both by the packaging project and by the test project.
+       In the case of the packaging project, which targets AnyCPU, we want all native files included.
+       But in the case of the test project, we only want the one that matches the platform. -->
+  <ItemGroup>
+    <!-- Windows -->
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)aarch64-pc-windows-msvc/nerdbank_zcash_rust.dll">
+      <PackagePath>runtimes/win-arm64/native/</PackagePath>
+    </RustBinary>
+    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)aarch64-pc-windows-msvc/nerdbank_zcash_rust.pdb">
+      <PackagePath>runtimes/win-arm64/native/</PackagePath>
+    </RustSymbol>
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)x86_64-pc-windows-msvc/nerdbank_zcash_rust.dll">
+      <PackagePath>runtimes/win-x64/native/</PackagePath>
+    </RustBinary>
+    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)x86_64-pc-windows-msvc/nerdbank_zcash_rust.pdb">
+      <PackagePath>runtimes/win-x64/native/</PackagePath>
+    </RustSymbol>
+
+    <!-- Linux -->
+    <!-- <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDir)aarch64-unknown-linux-gnu/libnerdbank_zcash_rust.so">
+      <PackagePath>runtimes/linux-arm64/native/</PackagePath>
+    </RustBinary> -->
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDir)x86_64-unknown-linux-gnu/libnerdbank_zcash_rust.so">
+      <PackagePath>runtimes/linux-x64/native/</PackagePath>
+    </RustBinary>
+
+    <!-- Mac -->
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDir)aarch64-apple-darwin/libnerdbank_zcash_rust.dylib">
+      <PackagePath>runtimes/osx-arm64/native/</PackagePath>
+    </RustBinary>
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDir)x86_64-apple-darwin/libnerdbank_zcash_rust.dylib">
+      <PackagePath>runtimes/osx-x64/native/</PackagePath>
+    </RustBinary>
+  </ItemGroup>
+  <ItemGroup>
+    <TfmSpecificDebugSymbolsFile Include="@(RustSymbol)" Condition="'$(TargetFramework)'=='net7.0'">
+      <TargetPath>/%(PackagePath)%(FileName)%(Extension)</TargetPath>
+      <TargetFramework>native</TargetFramework>
+    </TfmSpecificDebugSymbolsFile>
+    <None Include="@(RustBinary)">
+      <CopyToOutputDirectory Condition="'$(Platform)'!='AnyCPU'">PreserveNewest</CopyToOutputDirectory>
+      <Link Condition="'$(Platform)'=='AnyCPU'">%(PackagePath)</Link>
+      <Link Condition="'$(Platform)'!='AnyCPU'">%(FileName)%(Extension)</Link>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+  <Target Name="WarnOnMissingBinaries" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <MissingRustBinaries Include="@(RustBinary);@(RustSymbol)" Condition="!Exists('%(Identity)')" />
+      <None Remove="@(MissingRustBinaries)" />
+    </ItemGroup>
+    <Warning Text="The following Rust binaries were not found: @(MissingRustBinaries)" Condition="'@(MissingRustBinaries)' != ''" />
+  </Target>
+</Project>

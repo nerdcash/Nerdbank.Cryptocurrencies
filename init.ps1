@@ -20,6 +20,8 @@
     Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
 .PARAMETER NoPrerequisites
     Skips the installation of prerequisite software (e.g. SDKs, tools).
+.PARAMETER NoRust
+    Skips the installation of Rust targets.
 .PARAMETER NoNuGetCredProvider
     Skips the installation of the NuGet credential provider. Useful in pipelines with the `NuGetAuthenticate` task, as a workaround for https://github.com/microsoft/artifacts-credprovider/issues/244.
     This switch is ignored and installation is skipped when -NoPrerequisites is specified.
@@ -41,6 +43,8 @@ Param (
     [string]$InstallLocality = 'user',
     [Parameter()]
     [switch]$NoPrerequisites,
+    [Parameter()]
+    [switch]$NoRust,
     [Parameter()]
     [switch]$NoNuGetCredProvider,
     [Parameter()]
@@ -66,6 +70,11 @@ if (!$NoPrerequisites) {
     & "$PSScriptRoot\tools\Install-DotNetSdk.ps1" -InstallLocality $InstallLocality
     if ($LASTEXITCODE -eq 3010) {
         Exit 3010
+    }
+
+    if (!$NoRust) {
+        $rustTargets = @(& "$PSScriptRoot\azure-pipelines\Get-RustTargets.ps1")
+        rustup target add @rustTargets
     }
 
     # The procdump tool and env var is required for dotnet test to collect hang/crash dumps of tests.

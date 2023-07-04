@@ -7,3 +7,7 @@ updates:
   directory: /
   schedule:
     interval: weekly
+- package-ecosystem: cargo
+  directory: /src/nerdbank-zcash-rust
+  schedule:
+    interval: weekly

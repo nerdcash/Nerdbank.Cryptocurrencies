@@ -14,8 +14,47 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages/
 
 jobs:
-  build:
+  build_rust:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-20.04
+          test_target: x86_64-unknown-linux-gnu
+        - os: macos-latest
+          test_target: x86_64-apple-darwin
+        - os: windows-latest
+          test_target: x86_64-pc-windows-msvc
+    steps:
+    - uses: actions/checkout@v3
 
+    # - uses: Swatinem/rust-cache@v2
+    #   with:
+    #     shared-key: ${{ matrix.os }}
+
+    - name: ⚙️ Install rust targets
+      run: |
+        $rustTargets = @(azure-pipelines/Get-RustTargets.ps1)
+        rustup target add @rustTargets
+      shell: pwsh
+
+    - name: 🛠 cargo build
+      run: src/nerdbank-zcash-rust/build_all.ps1 -Release
+      shell: pwsh
+
+    - name: 📢 Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: rust
+        path: obj/src/nerdbank-zcash-rust/
+
+    - name: 🧪 cargo test
+      run: cargo test -r --target ${{ matrix.test_target }}
+      working-directory: ./src/nerdbank-zcash-rust
+
+  build_package:
+    needs: build_rust
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -31,7 +70,7 @@ jobs:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
     - name: ⚙ Install prerequisites
       run: |
-        ./init.ps1 -UpgradePrerequisites
+        ./init.ps1 -UpgradePrerequisites -NoRust
         dotnet --info
 
         # Print mono version if it is present.
@@ -42,11 +81,19 @@ jobs:
     - name: ⚙️ Set pipeline variables based on source
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
+
+    - name: 🔻 Download rust artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: rust
+        path: obj/src/nerdbank-zcash-rust/
+
     - name: 🛠 build
       run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
     - name: 🧪 test
       run: azure-pipelines/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
       shell: pwsh
+
     - name: ⚙ Update pipeline variables based on build outputs
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
