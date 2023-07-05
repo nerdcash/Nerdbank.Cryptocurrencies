@@ -1,7 +1,7 @@
 use std::ffi::CString;
 
 use orchard::{
-    keys::{Diversifier, FullViewingKey, Scope, SpendingKey},
+    keys::{FullViewingKey, Scope, SpendingKey},
     zip32,
 };
 use zcash_client_backend::address::UnifiedAddress;
@@ -37,12 +37,12 @@ pub extern "C" fn get_orchard_fvk_bytes_from_sk_bytes(
     }
 }
 
-fn get_raw_payment_address_from_fvk(fvk: &[u8; 96], d: Diversifier) -> Option<[u8; 43]> {
+fn get_raw_payment_address_from_fvk(fvk: &[u8; 96], diversifier_index: u64) -> Option<[u8; 43]> {
     let fvk = FullViewingKey::from_bytes(fvk);
     match fvk.is_some().into() {
         true => {
             let fvk = fvk.unwrap();
-            Some(fvk.address(d, Scope::External).to_raw_address_bytes())
+            Some(fvk.address_at(diversifier_index, Scope::External).to_raw_address_bytes())
         }
         false => None,
     }
@@ -51,15 +51,13 @@ fn get_raw_payment_address_from_fvk(fvk: &[u8; 96], d: Diversifier) -> Option<[u
 #[no_mangle]
 pub extern "C" fn get_orchard_raw_payment_address_from_fvk(
     fvk: *const [u8; 96],
-    d: *const [u8; 11],
+    diversifier_index: u64,
     raw_payment_address: *mut [u8; 43],
 ) -> i32 {
     let fvk = unsafe { &*fvk };
-    let d = unsafe { &*d };
     let raw_payment_address = unsafe { &mut *raw_payment_address };
 
-    let d = Diversifier::from_bytes(*d);
-    match get_raw_payment_address_from_fvk(fvk, d) {
+    match get_raw_payment_address_from_fvk(fvk, diversifier_index) {
         Some(raw_payment_address_bytes) => {
             raw_payment_address.copy_from_slice(&raw_payment_address_bytes);
             0

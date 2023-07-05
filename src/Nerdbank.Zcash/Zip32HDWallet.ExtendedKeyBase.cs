@@ -10,18 +10,18 @@ public partial class Zip32HDWallet
 {
 	public abstract class ExtendedKeyBase : IExtendedKey
 	{
-		private const int ChainCodeLength = 32;
-		private const int ParentFullViewingKeyTagLength = 4;
-		private readonly FixedArrays fixedArrays;
-
-		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ExtendedKeyBase"/> class.
+		/// </summary>
+		/// <param name="chainCode">The chain code.</param>
+		/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
+		/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
+		/// <param name="childNumber">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
+		/// <param name="isTestNet">A value indicating whether this key is to be used on a testnet.</param>
+		internal ExtendedKeyBase(in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
 		{
-			if (chainCode.Length != 32)
-			{
-				throw new ArgumentException($"Length must be exactly 32, but was {chainCode.Length}.", nameof(chainCode));
-			}
-
-			this.fixedArrays = new(chainCode, parentFullViewingKeyTag);
+			this.ChainCode = chainCode;
+			this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 			this.Depth = depth;
 			this.ChildNumber = childNumber;
 			this.IsTestNet = isTestNet;
@@ -43,14 +43,14 @@ public partial class Zip32HDWallet
 		public uint ChildNumber { get; }
 
 		/// <summary>
-		/// Gets the first 32-bits of the <see cref="Fingerprint"/> of the parent key.
+		/// Gets the first 32-bits of the fingerprint of the parent key.
 		/// </summary>
-		protected internal ReadOnlySpan<byte> ParentFullViewingKeyTag => this.fixedArrays.ParentFullViewingKeyTag;
+		protected internal FullViewingKeyTag ParentFullViewingKeyTag { get; }
 
 		/// <summary>
 		/// Gets the chain code for this key.
 		/// </summary>
-		protected internal ReadOnlySpan<byte> ChainCode => this.fixedArrays.ChainCode;
+		protected internal ChainCode ChainCode { get; }
 
 		/// <summary>
 		/// Derives an extended key from a parent extended key.
@@ -58,28 +58,5 @@ public partial class Zip32HDWallet
 		/// <param name="childNumber">The index of the derived child key.</param>
 		/// <returns>The derived key.</returns>
 		public abstract IExtendedKey Derive(uint childNumber);
-
-		private unsafe struct FixedArrays
-		{
-			private fixed byte chainCode[ChainCodeLength];
-			private fixed byte parentFingerprint[ParentFullViewingKeyTagLength];
-
-			internal FixedArrays(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag)
-			{
-				Requires.Argument(chainCode.Length == ChainCodeLength, nameof(chainCode), null);
-				Requires.Argument(parentFullViewingKeyTag.Length is 0 or ParentFullViewingKeyTagLength, nameof(parentFullViewingKeyTag), null);
-
-				chainCode.CopyTo(this.ChainCodeWritable);
-				parentFullViewingKeyTag.CopyTo(this.ParentFullViewingKeyTagWritable);
-			}
-
-			internal readonly ReadOnlySpan<byte> ChainCode => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.chainCode[0]), ChainCodeLength);
-
-			internal readonly ReadOnlySpan<byte> ParentFullViewingKeyTag => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.parentFingerprint[0]), ParentFullViewingKeyTagLength);
-
-			private Span<byte> ChainCodeWritable => MemoryMarshal.CreateSpan(ref this.chainCode[0], ChainCodeLength);
-
-			private Span<byte> ParentFullViewingKeyTagWritable => MemoryMarshal.CreateSpan(ref this.parentFingerprint[0], ParentFullViewingKeyTagLength);
-		}
 	}
 }

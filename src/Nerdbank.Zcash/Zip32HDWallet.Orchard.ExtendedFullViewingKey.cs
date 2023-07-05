@@ -17,7 +17,7 @@ public partial class Zip32HDWallet
 				this.Key = new(spendingKey.SpendingKey);
 			}
 
-			internal ExtendedFullViewingKey(FullViewingKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+			internal ExtendedFullViewingKey(FullViewingKey key, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
 				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				this.Key = key;
@@ -25,16 +25,17 @@ public partial class Zip32HDWallet
 
 			public FullViewingKey Key { get; }
 
-			/// <summary>
-			/// Gets the fingerprint for this key.
-			/// </summary>
+			/// <inheritdoc cref="FullViewingKey.Fingerprint"/>
 			/// <remarks>
 			/// Extended keys can be identified by the Hash160 (RIPEMD160 after SHA256) of the serialized ECDSA public key K, ignoring the chain code.
 			/// This corresponds exactly to the data used in traditional Bitcoin addresses.
 			/// It is not advised to represent this data in base58 format though, as it may be interpreted as an address that way
 			/// (and wallet software is not required to accept payment to the chain key itself).
 			/// </remarks>
-			public ReadOnlySpan<byte> Fingerprint => throw new NotImplementedException();
+			public FullViewingKeyFingerprint Fingerprint => this.Key.Fingerprint;
+
+			/// <inheritdoc cref="FullViewingKey.Tag"/>
+			public FullViewingKeyTag Tag => this.Key.Tag;
 
 			public override ExtendedKeyBase Derive(uint childNumber)
 			{

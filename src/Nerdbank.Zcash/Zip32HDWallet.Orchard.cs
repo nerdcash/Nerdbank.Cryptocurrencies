@@ -30,12 +30,11 @@ public partial class Zip32HDWallet
 			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
 			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Orchard"u8, OutputSizeInBytes = blakeOutput.Length });
 
-			Span<byte> spendingKey = blakeOutput[..32];
-			Span<byte> chainCode = blakeOutput[32..];
+			SpendingKey spendingKey = new(blakeOutput[..32]);
+			ChainCode chainCode = new(blakeOutput[32..]);
 
-			SpendingKey key = new(spendingKey);
 			return new ExtendedSpendingKey(
-				key,
+				spendingKey,
 				chainCode,
 				parentFullViewingKeyTag: default,
 				depth: 0,

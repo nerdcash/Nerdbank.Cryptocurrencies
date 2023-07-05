@@ -13,13 +13,11 @@ public partial class Zip32HDWallet
 	{
 		public class ExtendedFullViewingKey : ExtendedKeyBase
 		{
-			private readonly FixedArrays fixedArrays;
-
-			internal ExtendedFullViewingKey(FullViewingKey key, ReadOnlySpan<byte> dk, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet)
+			internal ExtendedFullViewingKey(FullViewingKey key, in DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet)
 				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				this.Key = key;
-				this.fixedArrays = new(dk);
+				this.Dk = dk;
 			}
 
 			/// <summary>
@@ -39,7 +37,7 @@ public partial class Zip32HDWallet
 			/// Gets the diversifier key.
 			/// </summary>
 			/// <value>A 32-byte buffer.</value>
-			internal ReadOnlySpan<byte> Dk => this.fixedArrays.Dk;
+			internal DiversifierKey Dk { get; }
 
 			public override ExtendedFullViewingKey Derive(uint childNumber)
 			{
@@ -55,7 +53,7 @@ public partial class Zip32HDWallet
 				int bytesWritten = 0;
 				bytesWritten += this.EncodeExtFVKParts(bytes);
 				bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
-				PRFexpand(this.ChainCode, PrfExpandCodes.SaplingExtFVK, bytes, i);
+				PRFexpand(this.ChainCode.Value, PrfExpandCodes.SaplingExtFVK, bytes, i);
 
 				Span<byte> il = i[0..32];
 				Span<byte> ir = i[32..];
@@ -67,24 +65,24 @@ public partial class Zip32HDWallet
 				PRFexpand(il, PrfExpandCodes.SaplingNskDerive, expandOutput);
 				BigInteger nsk = ToScalar(expandOutput);
 
-				PRFexpand(il, PrfExpandCodes.SaplingOvkDerive, this.Key.Ovk, expandOutput);
+				PRFexpand(il, PrfExpandCodes.SaplingOvkDerive, this.Key.Ovk.Value, expandOutput);
 				Span<byte> ovk = stackalloc byte[32];
 				expandOutput[..32].CopyTo(ovk);
 
-				PRFexpand(il, PrfExpandCodes.SaplingDkDerive, this.Dk, expandOutput);
+				PRFexpand(il, PrfExpandCodes.SaplingDkDerive, this.Dk.Value, expandOutput);
 				Span<byte> dk = stackalloc byte[32];
 				expandOutput[..32].CopyTo(dk);
 
 				FullViewingKey key = new(
 					ak: G_Sapling.Multiply(ask.ToBouncyCastle()).Add(this.Key.Ak),
 					nk: H_Sapling.Multiply(nsk.ToBouncyCastle()).Add(this.Key.Nk),
-					ovk: ovk[..32]);
+					ovk: new(ovk[..32]));
 
 				return new ExtendedFullViewingKey(
 					key,
-					dk: dk[..32],
-					chainCode: ir,
-					parentFullViewingKeyTag: this.Fingerprint[..4],
+					dk: new(dk[..32]),
+					chainCode: new(ir),
+					parentFullViewingKeyTag: this.Key.Tag,
 					depth: checked((byte)(this.Depth + 1)),
 					childNumber: childNumber,
 					isTestNet: this.IsTestNet);
@@ -137,24 +135,10 @@ public partial class Zip32HDWallet
 				Repr_J(this.Key.Nk, reprOutput);
 				length += LEBS2OSP(reprOutput, result[32..64]);
 
-				length += this.Key.Ovk.CopyToRetLength(result[length..]);
-				length += this.Dk.CopyToRetLength(result[length..]);
+				length += this.Key.Ovk.Value.CopyToRetLength(result[length..]);
+				length += this.Dk.Value.CopyToRetLength(result[length..]);
 
 				return length;
-			}
-
-			private unsafe struct FixedArrays
-			{
-				private fixed byte dk[32];
-
-				internal FixedArrays(ReadOnlySpan<byte> dk)
-				{
-					dk.CopyToWithLengthCheck(this.DkWritable);
-				}
-
-				internal readonly ReadOnlySpan<byte> Dk => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.dk[0]), 32);
-
-				internal Span<byte> DkWritable => MemoryMarshal.CreateSpan(ref this.dk[0], 32);
 			}
 		}
 	}

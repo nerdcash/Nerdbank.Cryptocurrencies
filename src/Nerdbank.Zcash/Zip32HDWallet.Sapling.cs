@@ -32,7 +32,7 @@ public partial class Zip32HDWallet
 			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
 			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Sapling"u8, OutputSizeInBytes = blakeOutput.Length });
 			Span<byte> spendingKey = blakeOutput[..32];
-			Span<byte> chainCode = blakeOutput[32..];
+			ChainCode chainCode = new(blakeOutput[32..]);
 
 			Span<byte> expandOutput = stackalloc byte[64];
 			PRFexpand(spendingKey, PrfExpandCodes.SaplingAsk, expandOutput);
@@ -67,11 +67,11 @@ public partial class Zip32HDWallet
 		/// <see langword="true"/> if a valid diversifier could be produced with the given <paramref name="index"/>.
 		/// <see langword="false"/> if the caller should retry with the next higher index.
 		/// </returns>
-		private static bool TryGetDiversifier(ReadOnlySpan<byte> dk, BigInteger index, Span<byte> d)
+		private static bool TryGetDiversifier(DiversifierKey dk, BigInteger index, Span<byte> d)
 		{
 			Span<byte> indexAsBytes = stackalloc byte[88];
 			I2LEBSP(index, indexAsBytes);
-			FF1AES256(dk, indexAsBytes, d);
+			FF1AES256(dk.Value, indexAsBytes, d);
 			return !DiversifyHash(indexAsBytes).IsInfinity;
 		}
 

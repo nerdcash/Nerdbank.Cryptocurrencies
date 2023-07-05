@@ -33,12 +33,23 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(0, masterSpendingKey.Depth);
 		Assert.Equal(0u, masterSpendingKey.ChildNumber);
 		Assert.Equal(testNet, masterSpendingKey.IsTestNet);
-		Assert.NotNull(masterSpendingKey.SpendingKey);
-		//Assert.NotNull(masterSpendingKey.FullViewingKey);
+		Assert.NotNull(masterSpendingKey.FullViewingKey);
 
 		Zip32HDWallet.Orchard.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
 		Assert.NotNull(accountSpendingKey.FullViewingKey);
 
-		Assert.NotEqual(0, masterSpendingKey.FullViewingKey.Fingerprint.Length);
+		Assert.NotEqual(default, masterSpendingKey.FullViewingKey.Fingerprint);
+	}
+
+	[Fact]
+	public void CreateOrchardAddressFromSeed()
+	{
+		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
+		Zip32HDWallet.Orchard.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Orchard.Create(mnemonic);
+		Zip32HDWallet.Orchard.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
+		OrchardReceiver receiver = accountSpendingKey.FullViewingKey.Key.CreateReceiver(0);
+		OrchardAddress address = new(receiver);
+		this.logger.WriteLine(address);
+		Assert.Equal("u1zpfqm4r0cc5ttvt4mft6nvyqe3uwsdcgx65s44sd3ar42rnkz7v9az0ez7dpyxvjcyj9x0sd89yy7635vn8fplwvg6vn4tr6wqpyxqaw", address.Address);
 	}
 }

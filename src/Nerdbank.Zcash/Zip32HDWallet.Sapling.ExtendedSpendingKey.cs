@@ -11,14 +11,9 @@ public partial class Zip32HDWallet
 	{
 		public class ExtendedSpendingKey : ExtendedKeyBase
 		{
-			internal ExtendedSpendingKey(SpendingKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+			internal ExtendedSpendingKey(SpendingKey key, ChainCode chainCode, FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
 				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
-				if (chainCode.Length != 32)
-				{
-					throw new ArgumentException($"Length must be exactly 32, but was {chainCode.Length}.", nameof(chainCode));
-				}
-
 				this.SpendingKey = key;
 			}
 
@@ -41,7 +36,7 @@ public partial class Zip32HDWallet
 					int bytesWritten = 0;
 					bytesWritten += this.SpendingKey.EncodeExtSKParts(bytes[bytesWritten..]);
 					bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
-					PRFexpand(this.ChainCode, PrfExpandCodes.SaplingExtSK, bytes[..bytesWritten], i);
+					PRFexpand(this.ChainCode.Value, PrfExpandCodes.SaplingExtSK, bytes[..bytesWritten], i);
 				}
 				else
 				{
@@ -49,7 +44,7 @@ public partial class Zip32HDWallet
 					int bytesWritten = 0;
 					bytesWritten += this.FullViewingKey.EncodeExtFVKParts(bytes[bytesWritten..]);
 					bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
-					PRFexpand(this.ChainCode, PrfExpandCodes.SaplingExtFVK, bytes[..bytesWritten], i);
+					PRFexpand(this.ChainCode.Value, PrfExpandCodes.SaplingExtFVK, bytes[..bytesWritten], i);
 				}
 
 				Span<byte> il = i[0..32];
@@ -78,8 +73,8 @@ public partial class Zip32HDWallet
 
 				return new ExtendedSpendingKey(
 					key,
-					chainCode: ir,
-					parentFullViewingKeyTag: this.FullViewingKey.Fingerprint[..4],
+					chainCode: new(ir),
+					parentFullViewingKeyTag: this.FullViewingKey.Key.Tag,
 					depth: checked((byte)(this.Depth + 1)),
 					childNumber: childNumber,
 					isTestNet: this.IsTestNet);
