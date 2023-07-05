@@ -59,6 +59,21 @@ public partial class Zip32HDWallet
 			internal FullViewingKeyTag Tag => new(this.Fingerprint.Value[..4]);
 
 			/// <summary>
+			/// Creates a sapling receiver using this key and a given diversifier.
+			/// </summary>
+			/// <param name="diversifier">A deterministic diversifier.</param>
+			/// <param name="receiver">Receives the sapling receiver, if successful.</param>
+			/// <returns>
+			/// A value indicating whether creation of the receiver was successful.
+			/// Approximately half of the diversifier values will fail.
+			/// Callers should increment the diversifier and retry when they fail.
+			/// </returns>
+			public bool TryCreateReceiver(ulong diversifier, out SaplingReceiver receiver)
+			{
+				throw new NotImplementedException();
+			}
+
+			/// <summary>
 			/// Gets the raw encoding.
 			/// </summary>
 			/// <param name="rawEncoding">Receives the raw encoding. Must be at least 96 bytes in length.</param>

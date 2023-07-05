@@ -31,11 +31,11 @@ internal static unsafe class NativeMethods
 	/// Constructs an Orchard raw payment address from a full viewing key and diversifier.
 	/// </summary>
 	/// <param name="fullViewingKey">The 96-byte full viewing key.</param>
-	/// <param name="diversifier">The 11-byte diversifier.</param>
+	/// <param name="diversifier_index">The 11-byte diversifier.</param>
 	/// <param name="rawPaymentAddress">The 43-byte buffer that will receive the raw payment address.</param>
 	/// <returns>0 if successful; negative for an error code.</returns>
 	/// <exception cref="ArgumentException">Thrown if any of the arguments are not of the required lengths.</exception>
-	internal static unsafe int TryGetOrchardRawPaymentAddress(ReadOnlySpan<byte> fullViewingKey, ulong diversifier_index, Span<byte> rawPaymentAddress)
+	internal static unsafe int TryGetOrchardRawPaymentAddress(ReadOnlySpan<byte> fullViewingKey, ReadOnlySpan<byte> diversifier_index, Span<byte> rawPaymentAddress)
 	{
 		if (fullViewingKey.Length != 96 || rawPaymentAddress.Length != 43)
 		{
@@ -44,9 +44,12 @@ internal static unsafe class NativeMethods
 
 		fixed (byte* fvk = fullViewingKey)
 		{
-			fixed (byte* p = rawPaymentAddress)
+			fixed (byte* pd = diversifier_index)
 			{
-				return NativeMethods.get_orchard_raw_payment_address_from_fvk(fvk, diversifier_index, p);
+				fixed (byte* p = rawPaymentAddress)
+				{
+					return NativeMethods.get_orchard_raw_payment_address_from_fvk(fvk, pd, p);
+				}
 			}
 		}
 	}
@@ -64,9 +67,9 @@ internal static unsafe class NativeMethods
 	/// Constructs an Orchard raw payment address from a full viewing key and diversifier.
 	/// </summary>
 	/// <param name="fvk">A pointer to the buffer containing the 96-byte full viewing key.</param>
-	/// <param name="diversifier_index">A diversifier.</param>
+	/// <param name="diversifier_index">A pointer to an 11-byte diversifier.</param>
 	/// <param name="raw_payment_address">A pointer to the 43 byte buffer that will receive the raw payment address.</param>
 	/// <returns>0 if successful; negative for an error code.</returns>
 	[DllImport(LibraryName)]
-	private static extern int get_orchard_raw_payment_address_from_fvk(byte* fvk, ulong diversifier_index, byte* raw_payment_address);
+	private static extern int get_orchard_raw_payment_address_from_fvk(byte* fvk, byte* diversifier_index, byte* raw_payment_address);
 }

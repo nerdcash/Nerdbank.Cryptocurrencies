@@ -26,15 +26,27 @@ public partial class Zip32HDWallet
 				this.rawEncoding = new Bytes96(fvk);
 			}
 
+			/// <inheritdoc cref="CreateReceiver(ReadOnlySpan{byte})"/>
+			public OrchardReceiver CreateReceiver(BigInteger diversifierIndex)
+			{
+				Span<byte> diversifierSpan = stackalloc byte[11];
+				if (!diversifierIndex.TryWriteBytes(diversifierSpan, out _, isUnsigned: true))
+				{
+					throw new ArgumentOutOfRangeException(nameof(diversifierIndex), "Integer must be representable in 11 bytes.");
+				}
+
+				return this.CreateReceiver(diversifierSpan);
+			}
+
 			/// <summary>
 			/// Creates an orchard receiver using this key and a given diversifier.
 			/// </summary>
-			/// <param name="diversifier">A 11-byte buffer used as a deterministic diversifier.</param>
+			/// <param name="diversifierIndex">An 11-byte deterministic diversifier.</param>
 			/// <returns>The orchard receiver.</returns>
-			public OrchardReceiver CreateReceiver(ulong diversifier)
+			public OrchardReceiver CreateReceiver(ReadOnlySpan<byte> diversifierIndex)
 			{
 				Span<byte> rawReceiver = stackalloc byte[43];
-				if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifier, rawReceiver) != 0)
+				if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex, rawReceiver) != 0)
 				{
 					throw new InvalidKeyException(Strings.InvalidKey);
 				}
