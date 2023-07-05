@@ -14,24 +14,17 @@ public partial class Zip32HDWallet
 	{
 		public class FullViewingKey
 		{
-			private readonly ECPoint ak;
-			private readonly ECPoint nk;
-
-			internal FullViewingKey(ECPoint ak, ECPoint nk, OutgoingViewingKey ovk)
+			internal FullViewingKey(in ViewingKey viewingKey, in OutgoingViewingKey ovk)
 			{
-				if (!ak.IsValid()) // TODO: Does this include a zero point check?
-				{
-					throw new ArgumentException(Strings.InvalidKey);
-				}
-
-				this.ak = ak;
-				this.nk = nk;
+				this.ViewingKey = viewingKey;
 				this.Ovk = ovk;
 			}
 
-			internal ECPoint Ak => this.ak;
+			internal ViewingKey ViewingKey { get; }
 
-			internal ECPoint Nk => this.nk;
+			internal SubgroupPoint Ak => this.ViewingKey.Ak;
+
+			internal NullifierDerivingKey Nk => this.ViewingKey.Nk;
 
 			/// <summary>
 			/// Gets the outgoing viewing key.
@@ -83,17 +76,10 @@ public partial class Zip32HDWallet
 			/// </remarks>
 			private int GetRawEncoding(Span<byte> rawEncoding)
 			{
-				Span<byte> reprOutput = stackalloc byte[32];
 				int written = 0;
-
-				Repr_J(this.Ak, reprOutput);
-				written += LEBS2OSP(reprOutput, rawEncoding[..32]);
-
-				Repr_J(this.Nk, reprOutput);
-				written += LEBS2OSP(reprOutput[..written], rawEncoding[32..64]);
-
-				written += this.Ovk.Value.CopyToRetLength(rawEncoding[64..]);
-
+				written += this.Ak.Value.CopyToRetLength(rawEncoding[written..]);
+				written += this.Nk.Value.CopyToRetLength(rawEncoding[written..]);
+				written += this.Ovk.Value.CopyToRetLength(rawEncoding[written..]);
 				return written;
 			}
 		}

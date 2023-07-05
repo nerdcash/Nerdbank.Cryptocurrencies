@@ -43,4 +43,21 @@ public partial class Zip32HDWallet
 		internal readonly ReadOnlySpan<byte> Value => this.value.Value;
 	}
 
+	/// <summary>
+	/// A subgroup point.
+	/// </summary>
+	internal readonly struct SubgroupPoint
+	{
+		private readonly Bytes32 value;
+
+		internal SubgroupPoint(ReadOnlySpan<byte> value)
+		{
+			this.value = new(value);
+		}
+
+		/// <summary>
+		/// Gets the buffer. Always 32 bytes in length.
+		/// </summary>
+		internal readonly ReadOnlySpan<byte> Value => this.value.Value;
+	}
 }

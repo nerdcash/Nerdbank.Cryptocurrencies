@@ -41,51 +41,7 @@ public partial class Zip32HDWallet
 
 			public override ExtendedFullViewingKey Derive(uint childNumber)
 			{
-				bool childIsHardened = (childNumber & Bip32HDWallet.HardenedBit) != 0;
-				if (childIsHardened)
-				{
-					throw new InvalidOperationException(Strings.CannotDeriveHardenedChildFromPublicKey);
-				}
-
-				Span<byte> i = stackalloc byte[64];
-
-				Span<byte> bytes = stackalloc byte[132];
-				int bytesWritten = 0;
-				bytesWritten += this.EncodeExtFVKParts(bytes);
-				bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
-				PRFexpand(this.ChainCode.Value, PrfExpandCodes.SaplingExtFVK, bytes, i);
-
-				Span<byte> il = i[0..32];
-				Span<byte> ir = i[32..];
-				Span<byte> expandOutput = stackalloc byte[64];
-
-				PRFexpand(il, PrfExpandCodes.SaplingAskDerive, expandOutput);
-				BigInteger ask = ToScalar(expandOutput);
-
-				PRFexpand(il, PrfExpandCodes.SaplingNskDerive, expandOutput);
-				BigInteger nsk = ToScalar(expandOutput);
-
-				PRFexpand(il, PrfExpandCodes.SaplingOvkDerive, this.Key.Ovk.Value, expandOutput);
-				Span<byte> ovk = stackalloc byte[32];
-				expandOutput[..32].CopyTo(ovk);
-
-				PRFexpand(il, PrfExpandCodes.SaplingDkDerive, this.Dk.Value, expandOutput);
-				Span<byte> dk = stackalloc byte[32];
-				expandOutput[..32].CopyTo(dk);
-
-				FullViewingKey key = new(
-					ak: G_Sapling.Multiply(ask.ToBouncyCastle()).Add(this.Key.Ak),
-					nk: H_Sapling.Multiply(nsk.ToBouncyCastle()).Add(this.Key.Nk),
-					ovk: new(ovk[..32]));
-
-				return new ExtendedFullViewingKey(
-					key,
-					dk: new(dk[..32]),
-					chainCode: new(ir),
-					parentFullViewingKeyTag: this.Key.Tag,
-					depth: checked((byte)(this.Depth + 1)),
-					childNumber: childNumber,
-					isTestNet: this.IsTestNet);
+				throw new NotImplementedException();
 			}
 
 			/// <summary>
@@ -127,17 +83,10 @@ public partial class Zip32HDWallet
 			internal int EncodeExtFVKParts(Span<byte> result)
 			{
 				int length = 0;
-				Span<byte> reprOutput = stackalloc byte[32];
-
-				Repr_J(this.Key.Ak, reprOutput);
-				length += LEBS2OSP(reprOutput, result[..32]);
-
-				Repr_J(this.Key.Nk, reprOutput);
-				length += LEBS2OSP(reprOutput, result[32..64]);
-
+				length += this.Key.Ak.Value.CopyToRetLength(result[length..]);
+				length += this.Key.Nk.Value.CopyToRetLength(result[length..]);
 				length += this.Key.Ovk.Value.CopyToRetLength(result[length..]);
 				length += this.Dk.Value.CopyToRetLength(result[length..]);
-
 				return length;
 			}
 		}

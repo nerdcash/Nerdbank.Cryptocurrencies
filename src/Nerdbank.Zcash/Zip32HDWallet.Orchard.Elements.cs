@@ -47,24 +47,6 @@ public partial class Zip32HDWallet
 		}
 
 		/// <summary>
-		/// A nullifier deriving key.
-		/// </summary>
-		internal readonly struct NullifierDerivingKey
-		{
-			private readonly Bytes32 value;
-
-			internal NullifierDerivingKey(ReadOnlySpan<byte> value)
-			{
-				this.value = new(value);
-			}
-
-			/// <summary>
-			/// Gets the buffer. Always 32 bytes in length.
-			/// </summary>
-			internal readonly ReadOnlySpan<byte> Value => this.value.Value;
-		}
-
-		/// <summary>
 		/// The IVK commit randomness.
 		/// </summary>
 		internal readonly struct CommitIvkRandomness
