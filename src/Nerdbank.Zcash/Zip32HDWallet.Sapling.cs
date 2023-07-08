@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Zcash.Sapling;
+
 namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
@@ -48,7 +50,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the fingerprint for this key.
 		/// </summary>
-		public static FullViewingKeyFingerprint GetFingerprint(Zcash.Sapling.FullViewingKey fullViewingKey)
+		public static FullViewingKeyFingerprint GetFingerprint(FullViewingKey fullViewingKey)
 		{
 			Requires.NotNull(fullViewingKey);
 

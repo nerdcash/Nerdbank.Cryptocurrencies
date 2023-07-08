@@ -44,7 +44,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the fingerprint for this key.
 		/// </summary>
-		public static FullViewingKeyFingerprint GetFingerprint(Zcash.Orchard.FullViewingKey fullViewingKey)
+		public static FullViewingKeyFingerprint GetFingerprint(FullViewingKey fullViewingKey)
 		{
 			Requires.NotNull(fullViewingKey);
 

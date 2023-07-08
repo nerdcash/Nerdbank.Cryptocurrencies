@@ -70,11 +70,7 @@ public partial class Zip32HDWallet
 			/// </summary>
 			internal DiversifierKey Dk { get; }
 
-			/// <summary>
-			/// Derives a spending key from a given parent key.
-			/// </summary>
-			/// <param name="childIndex">The index of the derived child key.</param>
-			/// <returns>The derived key.</returns>
+			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
 			public ExtendedSpendingKey Derive(uint childIndex)
 			{
 				Span<byte> selfAsBytes = stackalloc byte[169];

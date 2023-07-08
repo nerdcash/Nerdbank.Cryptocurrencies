@@ -51,15 +51,7 @@ public partial class Zip32HDWallet
 				this.IsTestNet = isTestNet;
 			}
 
-			/// <summary>
-			/// Gets the fingerprint for this key.
-			/// </summary>
-			/// <remarks>
-			/// Extended keys can be identified by the Hash160 (RIPEMD160 after SHA256) of the serialized ECDSA public key K, ignoring the chain code.
-			/// This corresponds exactly to the data used in traditional Bitcoin addresses.
-			/// It is not advised to represent this data in base58 format though, as it may be interpreted as an address that way
-			/// (and wallet software is not required to accept payment to the chain key itself).
-			/// </remarks>
+			/// <inheritdoc/>
 			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.Key);
 
 			/// <inheritdoc/>

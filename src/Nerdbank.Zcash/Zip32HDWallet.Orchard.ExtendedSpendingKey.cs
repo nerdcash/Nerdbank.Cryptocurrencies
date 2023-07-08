@@ -99,7 +99,6 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 			/// </summary>
-			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
 			private FullViewingKey CreateFullViewingKey()
 			{
 				Span<byte> fvk = stackalloc byte[96];
