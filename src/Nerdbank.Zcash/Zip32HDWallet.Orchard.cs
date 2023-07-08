@@ -16,6 +16,7 @@ public partial class Zip32HDWallet
 	{
 		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, bool)"/>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
+		/// <param name="testNet"><inheritdoc cref="Create(ReadOnlySpan{byte}, bool)" path="/param[@name='testNet']"/></param>
 		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, bool testNet = false) => Create(Requires.NotNull(mnemonic).Seed, testNet);
 
 		/// <summary>
@@ -40,22 +41,6 @@ public partial class Zip32HDWallet
 				depth: 0,
 				childNumber: 0,
 				testNet);
-		}
-
-		/// <summary>
-		/// Implement the ToScalar_Orchard function.
-		/// </summary>
-		private static BigInteger ToScalar(ReadOnlySpan<byte> input) => BigInteger.Remainder(LEOS2IP(input), Curves.Pallas.Curve.Order.ToNumerics());
-
-		private static BigInteger ToBase(ReadOnlySpan<byte> input) => BigInteger.Remainder(LEOS2IP(input), Curves.Pallas.Curve.Q.ToNumerics());
-
-		private static readonly SpendAuthSigOrchard SpendAuthSig = new();
-
-		private class SpendAuthSigOrchard : SpendAuthSigBase
-		{
-			internal override Org.BouncyCastle.Math.EC.ECPoint BasePoint => Curves.Pallas.BasePoint;
-
-			internal override FpCurve Curve => Curves.Pallas.Curve;
 		}
 	}
 }

@@ -17,6 +17,16 @@ namespace Nerdbank.Zcash;
 public partial class Zip32HDWallet
 {
 	/// <summary>
+	/// The coin type to use in the key derivation path.
+	/// </summary>
+	private const uint CoinType = 133;
+
+	/// <summary>
+	/// The value of the <c>purpose</c> position in the key path.
+	/// </summary>
+	private const uint Purpose = 32;
+
+	/// <summary>
 	/// The "Randomness Beacon".
 	/// </summary>
 	/// <remarks>
@@ -26,15 +36,28 @@ public partial class Zip32HDWallet
 
 	private static readonly BigInteger MaxDiversifierIndex = BigInteger.Pow(2, 88) - 1;
 
-	/// <summary>
-	/// The coin type to use in the key derivation path.
-	/// </summary>
-	private const uint CoinType = 133;
-
-	/// <summary>
-	/// The value of the <c>purpose</c> position in the key path.
-	/// </summary>
-	private const uint Purpose = 32;
+	private enum PrfExpandCodes : byte
+	{
+		SaplingAsk = 0x0,
+		SaplingNsk = 0x1,
+		SaplingOvk = 0x2,
+		Esk = 0x4,
+		Rcm = 0x5,
+		OrchardAsk = 0x6,
+		OrchardNk = 0x7,
+		OrchardRivk = 0x8,
+		Psi = 0x9,
+		SaplingDk = 0x10,
+		SaplingExtSK = 0x11,
+		SaplingExtFVK = 0x12,
+		SaplingAskDerive = 0x13,
+		SaplingNskDerive = 0x14,
+		SaplingOvkDerive = 0x15,
+		SaplingDkDerive = 0x16,
+		OrchardZip32Child = 0x81,
+		OrchardDkOvk = 0x82,
+		OrchardRivkInternal = 0x83,
+	}
 
 	/// <summary>
 	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
@@ -83,57 +106,6 @@ public partial class Zip32HDWallet
 		// m / purpose' / coin_type' / account' / address_index
 		return new(addressIndex, CreateKeyPath(account));
 	}
-
-	/// <summary>
-	/// Encodes a point on an elliptic curve as a bit sequence.
-	/// </summary>
-	/// <param name="curve">The curve. One of <see cref="Curves.Vesta"/> or <see cref="Curves.Pallas"/>.</param>
-	/// <param name="p">The point on the elliptic curve.</param>
-	/// <param name="bitSequence">Receives the bit sequence. Must be at least 32 bytes long.</param>
-	/// <returns>The number of bytes written to <paramref name="bitSequence"/>. Always 32.</returns>
-	private static int Repr(FpCurve curve, BCMath.EC.ECPoint p, Span<byte> bitSequence)
-	{
-		BigInteger encodingInput;
-		if (p.IsInfinity)
-		{
-			encodingInput = BigInteger.Zero;
-		}
-		else
-		{
-			encodingInput = p.XCoord.ToBigInteger().Mod(curve.Q).ToNumerics();
-			if (p.YCoord.ToBigInteger().Mod(BCBigInteger.Two).Equals(BCBigInteger.One))
-			{
-				encodingInput += BigInteger.Pow(new BigInteger(2), 255);
-			}
-		}
-
-		return I2LEBSP(encodingInput, bitSequence[..32]);
-	}
-
-	/// <summary>
-	/// Encodes a point on the JubJub elliptic curve as a bit sequence.
-	/// </summary>
-	/// <param name="p">The point on the JubJub elliptic curve.</param>
-	/// <param name="bitSequence">Receives the bit sequence. Must be at least 32 bytes long.</param>
-	/// <returns>The number of bytes written to <paramref name="bitSequence"/>. Always 32.</returns>
-	private static int Repr_J(BCMath.EC.ECPoint p, Span<byte> bitSequence)
-	{
-		// This is *almost* the same as the Repr function that works with Pallas and Vesta curves,
-		// except this considers the Y coordinate where as the other considers the X coordinate.
-		BigInteger encodingInput = p.YCoord.ToBigInteger().Mod(Curves.JubJub.Curve.Q).ToNumerics();
-		if (p.YCoord.ToBigInteger().Mod(BCBigInteger.Two).Equals(BCBigInteger.One))
-		{
-			encodingInput += BigInteger.Pow(new BigInteger(2), 255);
-		}
-
-		return I2LEBSP(encodingInput, bitSequence[..32]);
-	}
-
-	private static BigInteger Extract_P(BCMath.EC.ECPoint p) => p.XCoord.ToBigInteger().Remainder(Curves.Pallas.Curve.Q).ToNumerics();
-
-	private static int Abst_J() => throw new NotImplementedException();
-
-	private static int Jr() => throw new NotImplementedException();
 
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.
@@ -193,8 +165,7 @@ public partial class Zip32HDWallet
 	/// <param name="output">Receives the converted byte sequence, where each byte's bits are reversed so they are in LSB to MSB order.</param>
 	/// <returns>The number of bytes written to <paramref name="output"/> (i.e. the length of <paramref name="input"/>.)</returns>
 	/// <remarks>
-	/// Convert each group of 8 bits in 
-	/// to a byte value with the least significant bit first, and concatenate the resulting bytes in the same order as the groups.
+	/// Convert each group of 8 bits into a byte value with the least significant bit first, and concatenate the resulting bytes in the same order as the groups.
 	/// </remarks>
 	private static int LEBS2OSP(ReadOnlySpan<byte> input, Span<byte> output)
 	{
@@ -244,74 +215,4 @@ public partial class Zip32HDWallet
 
 	/// <inheritdoc cref="PRFexpand(ReadOnlySpan{byte}, PrfExpandCodes, ReadOnlySpan{byte}, Span{byte})"/>
 	private static int PRFexpand(ReadOnlySpan<byte> sk, PrfExpandCodes domainSpecifier, Span<byte> output) => PRFexpand(sk, domainSpecifier, default, output);
-
-	/// <summary>
-	/// An implementation of FF1-AES encryption.
-	/// </summary>
-	/// <remarks>
-	/// This is as specified at <see href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38G.pdf">Recommendation for Block Cipher Modes of Operation</see>
-	/// with parameters as specified in <see href="https://zips.z.cash/zip-0032#conventions">ZIP-32</see>.
-	/// </remarks>
-	private static void FF1AES256(ReadOnlySpan<byte> key, ReadOnlySpan<byte> input, Span<byte> output)
-	{
-		const int Radix = 2;
-		const int MinLen = 88;
-		const int MaxLen = 88;
-		const string Tweak = "";
-
-		if (key.Length != 256 / 8)
-		{
-			throw new ArgumentException(Strings.FormatUnexpectedLength(256 / 8, key.Length));
-		}
-
-		if (input.Length != 88 / 8)
-		{
-			throw new ArgumentException(Strings.FormatUnexpectedLength(88 / 8, input.Length));
-		}
-
-		int n = input.Length * 8;
-		int u = n / 2;
-		int v = n - u;
-
-		// questions:
-		// The spec calls for a 128-bit cipher. Does using AES256 require any other deviations from the spec?
-		// What does the ⊕ symbol mean?
-		// What does [1]^16 mean?
-		// How should we split 44 bits (5.5 bytes)?
-
-		Aes aes = Aes.Create();
-		throw new NotImplementedException();
-	}
-
-	private abstract class SpendAuthSigBase
-	{
-		internal abstract FpCurve Curve { get; }
-
-		internal abstract BCMath.EC.ECPoint BasePoint { get; }
-
-		internal BCMath.EC.ECPoint DerivePublic(BCBigInteger privateKey) => this.Curve.GetMultiplier().Multiply(this.BasePoint, privateKey);
-	}
-
-	private enum PrfExpandCodes : byte
-	{
-		SaplingAsk = 0x0,
-		SaplingNsk = 0x1,
-		SaplingOvk = 0x2,
-		Esk = 0x4,
-		Rcm = 0x5,
-		OrchardAsk = 0x6,
-		OrchardNk = 0x7,
-		OrchardRivk = 0x8,
-		Psi = 0x9,
-		SaplingDk = 0x10,
-		SaplingExtSK = 0x11,
-		SaplingExtFVK = 0x12,
-		SaplingAskDerive = 0x13,
-		SaplingNskDerive = 0x14,
-		SaplingOvkDerive = 0x15,
-		SaplingDkDerive = 0x16,
-		OrchardZip32Child = 0x81,
-		OrchardDkOvk = 0x82,
-		OrchardRivkInternal = 0x83,
-	}
 }

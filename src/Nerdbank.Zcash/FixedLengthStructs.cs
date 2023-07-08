@@ -6,6 +6,9 @@ using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash.FixedLengthStructs;
 
+#pragma warning disable SA1649 // File name should match first type name
+#pragma warning disable SA1600 // Elements should be documented
+
 internal unsafe struct Bytes4
 {
 	private const int Length = 4;

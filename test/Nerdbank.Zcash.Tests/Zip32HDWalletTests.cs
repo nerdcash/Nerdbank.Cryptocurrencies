@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Numerics;
+
 public class Zip32HDWalletTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
@@ -19,7 +21,6 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(0, spendingKey.Depth);
 		Assert.Equal(0u, spendingKey.ChildNumber);
 		Assert.Equal(testNet, spendingKey.IsTestNet);
-		Assert.NotNull(spendingKey.SpendingKey);
 		Assert.NotNull(spendingKey.FullViewingKey);
 		Assert.NotEqual(0, spendingKey.FullViewingKey.Fingerprint.Length);
 	}
@@ -59,7 +60,9 @@ public class Zip32HDWalletTests : TestBase
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
 		Zip32HDWallet.Sapling.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Sapling.Create(mnemonic);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
-		Assert.True(accountSpendingKey.FullViewingKey.Key.TryCreateReceiver(0, out SaplingReceiver receiver));
+		BigInteger diversifierIndex = 0;
+		Assert.True(accountSpendingKey.FullViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
+		Assert.Equal(1, diversifierIndex); // index 0 was invalid in this case.
 		SaplingAddress address = new(receiver);
 		this.logger.WriteLine(address);
 		Assert.Equal("zs1duqpcc2ql7zfjttdm2gpawe8t5ecek5k834u9vdg4mqhw7j8j39sgjy8xguvk2semyd4ujeyj28", address.Address);

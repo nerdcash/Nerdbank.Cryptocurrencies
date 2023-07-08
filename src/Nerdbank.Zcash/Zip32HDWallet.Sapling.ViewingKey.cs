@@ -5,10 +5,18 @@ namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
 {
-	partial class Sapling
+	public partial class Sapling
 	{
+		/// <summary>
+		/// A viewing key for incoming transactions.
+		/// </summary>
 		internal readonly struct ViewingKey
 		{
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ViewingKey"/> struct.
+			/// </summary>
+			/// <param name="ak">The ak value.</param>
+			/// <param name="nk">The nk value.</param>
 			internal ViewingKey(SubgroupPoint ak, NullifierDerivingKey nk)
 			{
 				this.Ak = ak;

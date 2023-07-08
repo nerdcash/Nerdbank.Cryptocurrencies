@@ -11,11 +11,14 @@ public partial class Zip32HDWallet
 {
 	public partial class Orchard
 	{
+		/// <summary>
+		/// A viewing key that can decrypt incoming and outgoing transactions.
+		/// </summary>
 		public class FullViewingKey
 		{
 			private readonly Bytes96 rawEncoding;
 
-			internal FullViewingKey(SpendingKey spendingKey)
+			internal FullViewingKey(in SpendingKey spendingKey)
 			{
 				Span<byte> fvk = stackalloc byte[96];
 				if (NativeMethods.TryDeriveOrchardFullViewingKeyFromSpendingKey(spendingKey.Value, fvk) != 0)

@@ -9,17 +9,32 @@ namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
 {
-
 	public partial class Sapling
 	{
+		/// <summary>
+		/// A viewing key that can decrypt incoming and outgoing transactions.
+		/// </summary>
 		public class FullViewingKey
 		{
-			internal FullViewingKey(in ViewingKey viewingKey, in OutgoingViewingKey ovk)
+			/// <summary>
+			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
+			/// </summary>
+			/// <param name="spendingKey">The spending key from which to derive this full viewing key.</param>
+			internal FullViewingKey(in ExpandedSpendingKey spendingKey)
 			{
-				this.ViewingKey = viewingKey;
-				this.Ovk = ovk;
+				Span<byte> fvk_bytes = stackalloc byte[96];
+				if (NativeMethods.TryGetSaplingFullViewingKeyFromExpandedSpendingKey(spendingKey.ToBytes().Value, fvk_bytes) != 0)
+				{
+					throw new ArgumentException();
+				}
+
+				this.ViewingKey = new(new(fvk_bytes[..32]), new(fvk_bytes[32..64]));
+				this.Ovk = new(fvk_bytes[64..96]);
 			}
 
+			/// <summary>
+			/// Gets the viewing key.
+			/// </summary>
 			internal ViewingKey ViewingKey { get; }
 
 			internal SubgroupPoint Ak => this.ViewingKey.Ak;
@@ -52,21 +67,6 @@ public partial class Zip32HDWallet
 			internal FullViewingKeyTag Tag => new(this.Fingerprint.Value[..4]);
 
 			/// <summary>
-			/// Creates a sapling receiver using this key and a given diversifier.
-			/// </summary>
-			/// <param name="diversifier">A deterministic diversifier.</param>
-			/// <param name="receiver">Receives the sapling receiver, if successful.</param>
-			/// <returns>
-			/// A value indicating whether creation of the receiver was successful.
-			/// Approximately half of the diversifier values will fail.
-			/// Callers should increment the diversifier and retry when they fail.
-			/// </returns>
-			public bool TryCreateReceiver(ulong diversifier, out SaplingReceiver receiver)
-			{
-				throw new NotImplementedException();
-			}
-
-			/// <summary>
 			/// Gets the raw encoding.
 			/// </summary>
 			/// <param name="rawEncoding">Receives the raw encoding. Must be at least 96 bytes in length.</param>
@@ -74,7 +74,7 @@ public partial class Zip32HDWallet
 			/// <remarks>
 			/// As specified in the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol spec section 5.6.3.3</see>.
 			/// </remarks>
-			private int GetRawEncoding(Span<byte> rawEncoding)
+			internal int GetRawEncoding(Span<byte> rawEncoding)
 			{
 				int written = 0;
 				written += this.Ak.Value.CopyToRetLength(rawEncoding[written..]);

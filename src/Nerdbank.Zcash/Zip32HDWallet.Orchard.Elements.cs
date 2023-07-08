@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Diagnostics;
+#pragma warning disable SA1600 // Elements should be documented
+
 using Nerdbank.Zcash.FixedLengthStructs;
 
 namespace Nerdbank.Zcash;

@@ -7,18 +7,36 @@ public partial class Zip32HDWallet
 {
 	public partial class Orchard
 	{
+		/// <summary>
+		/// A key capable of spending, extended so it can be used to derive child keys.
+		/// </summary>
 		public class ExtendedSpendingKey : ExtendedKeyBase
 		{
 			private ExtendedFullViewingKey? fullViewingKey;
 
-			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool testNet = false)
-				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, testNet)
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class.
+			/// </summary>
+			/// <param name="spendingKey">The spending key.</param>
+			/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
+			/// <param name="parentFullViewingKeyTag"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='parentFullViewingKeyTag']"/></param>
+			/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='depth']"/></param>
+			/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
+			/// <param name="isTestNet"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='isTestNet']"/></param>
+			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				this.SpendingKey = spendingKey;
 			}
 
+			/// <summary>
+			/// Gets the extended full viewing key.
+			/// </summary>
 			public ExtendedFullViewingKey FullViewingKey => this.fullViewingKey ??= new(this);
 
+			/// <summary>
+			/// Gets the spending key itself.
+			/// </summary>
 			internal SpendingKey SpendingKey { get; }
 
 			/// <inheritdoc/>

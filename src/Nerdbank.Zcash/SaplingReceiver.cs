@@ -11,9 +11,12 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public unsafe struct SaplingReceiver : IPoolReceiver
 {
-	private const int DLength = 88 / 8;
-	private const int PkdLength = 256 / 8;
-	private const int Length = DLength + PkdLength;
+	/// <summary>
+	/// Gets the number of bytes in a sapling receiver.
+	/// </summary>
+	internal const int Length = 11 + 32;
+	private const int DLength = 11;
+	private const int PkdLength = 32;
 	private fixed byte backing[Length];
 
 	/// <summary>

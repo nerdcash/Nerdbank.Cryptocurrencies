@@ -9,20 +9,39 @@ public partial class Zip32HDWallet
 {
 	public partial class Orchard
 	{
+		/// <summary>
+		/// A full viewing key, extended to allow deriving child keys.
+		/// </summary>
 		public class ExtendedFullViewingKey : ExtendedKeyBase
 		{
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
+			/// </summary>
+			/// <param name="spendingKey">The spending key from which to derive the viewing key.</param>
 			internal ExtendedFullViewingKey(ExtendedSpendingKey spendingKey)
 				: base(spendingKey.ChainCode, spendingKey.ParentFullViewingKeyTag, spendingKey.Depth, spendingKey.ChildNumber, spendingKey.IsTestNet)
 			{
 				this.Key = new(spendingKey.SpendingKey);
 			}
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
+			/// </summary>
+			/// <param name="key">The full viewing key.</param>
+			/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
+			/// <param name="parentFullViewingKeyTag"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='parentFullViewingKeyTag']"/></param>
+			/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='depth']"/></param>
+			/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
+			/// <param name="isTestNet"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='isTestNet']"/></param>
 			internal ExtendedFullViewingKey(FullViewingKey key, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
 				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				this.Key = key;
 			}
 
+			/// <summary>
+			/// Gets the full viewing key itself.
+			/// </summary>
 			public FullViewingKey Key { get; }
 
 			/// <inheritdoc cref="FullViewingKey.Fingerprint"/>
@@ -37,6 +56,7 @@ public partial class Zip32HDWallet
 			/// <inheritdoc cref="FullViewingKey.Tag"/>
 			public FullViewingKeyTag Tag => this.Key.Tag;
 
+			/// <inheritdoc/>
 			public override ExtendedKeyBase Derive(uint childNumber)
 			{
 				throw new NotImplementedException();

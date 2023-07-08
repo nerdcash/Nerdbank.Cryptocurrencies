@@ -8,6 +8,9 @@ namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
 {
+	/// <summary>
+	/// A base class for all extended keys.
+	/// </summary>
 	public abstract class ExtendedKeyBase : IExtendedKey
 	{
 		/// <summary>
