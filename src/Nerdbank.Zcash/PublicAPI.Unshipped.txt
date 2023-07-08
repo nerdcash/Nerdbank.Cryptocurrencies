@@ -11,10 +11,13 @@ Nerdbank.Zcash.IPoolReceiver.Pool.get -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.IPoolReceiver.Span.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.IPoolReceiver.UnifiedReceiverTypeCode.get -> byte
 Nerdbank.Zcash.Orchard.FullViewingKey
+Nerdbank.Zcash.Orchard.FullViewingKey.CheckReceiver(Nerdbank.Zcash.OrchardReceiver receiver) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateReceiver(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateReceiver(System.ReadOnlySpan<byte> diversifierIndex) -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.Orchard.FullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.OrchardReceiver receiver, out System.Numerics.BigInteger? diversifierIndex) -> bool
+Nerdbank.Zcash.Orchard.FullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.OrchardReceiver receiver, System.Span<byte> diversifierIndex) -> bool
 Nerdbank.Zcash.OrchardAddress
 Nerdbank.Zcash.OrchardAddress.OrchardAddress(in Nerdbank.Zcash.OrchardReceiver receiver, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
 Nerdbank.Zcash.OrchardReceiver

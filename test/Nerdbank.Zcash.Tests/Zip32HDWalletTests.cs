@@ -5,8 +5,6 @@ using System.Numerics;
 
 public class Zip32HDWalletTests : TestBase
 {
-	private static readonly Bip39Mnemonic Mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
-
 	private readonly ITestOutputHelper logger;
 
 	public Zip32HDWalletTests(ITestOutputHelper logger)

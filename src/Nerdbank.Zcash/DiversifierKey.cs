@@ -3,7 +3,7 @@
 
 using Nerdbank.Zcash.FixedLengthStructs;
 
-namespace Nerdbank.Zcash.Sapling;
+namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A diversifier key.
