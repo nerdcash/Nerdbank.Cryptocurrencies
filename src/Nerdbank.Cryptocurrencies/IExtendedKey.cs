@@ -6,7 +6,7 @@ namespace Nerdbank.Cryptocurrencies;
 /// <summary>
 /// An interface implemented by extended keys.
 /// </summary>
-public interface IExtendedKey
+public interface IExtendedKey : IKey
 {
 	/// <summary>
 	/// Gets the index number used when deriving this key from its direct parent.

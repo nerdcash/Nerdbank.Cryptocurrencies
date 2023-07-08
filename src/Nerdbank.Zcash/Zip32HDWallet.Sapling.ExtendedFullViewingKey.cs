@@ -12,17 +12,21 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
-		public class ExtendedFullViewingKey : ExtendedKeyBase
+		public class ExtendedFullViewingKey : IExtendedKey
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
 			/// </summary>
 			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
 			internal ExtendedFullViewingKey(ExtendedSpendingKey spendingKey)
-				: base(spendingKey.ChainCode, spendingKey.ParentFullViewingKeyTag, spendingKey.Depth, spendingKey.ChildNumber, spendingKey.IsTestNet)
 			{
-				this.Key = new(spendingKey.ExpandedSpendingKey);
+				this.Key = new(spendingKey.ExpandedSpendingKey, spendingKey.IsTestNet);
 				this.Dk = spendingKey.Dk;
+				this.ParentFullViewingKeyTag = spendingKey.ParentFullViewingKeyTag;
+				this.ChainCode = spendingKey.ChainCode;
+				this.ChildNumber = spendingKey.ChildNumber;
+				this.Depth = spendingKey.Depth;
+				this.IsTestNet = spendingKey.IsTestNet;
 			}
 
 			/// <summary>
@@ -30,16 +34,20 @@ public partial class Zip32HDWallet
 			/// </summary>
 			/// <param name="key">The full viewing key.</param>
 			/// <param name="dk">The diversifier key.</param>
-			/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
-			/// <param name="parentFullViewingKeyTag"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='parentFullViewingKeyTag']"/></param>
-			/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='depth']"/></param>
-			/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
-			/// <param name="isTestNet"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='isTestNet']"/></param>
+			/// <param name="chainCode">The chain code.</param>
+			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
+			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
+			/// <param name="childNumber">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
+			/// <param name="isTestNet">A value indicating whether this key is to be used on a testnet.</param>
 			internal ExtendedFullViewingKey(FullViewingKey key, DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
-				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				this.Key = key;
 				this.Dk = dk;
+				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
+				this.ChainCode = chainCode;
+				this.ChildNumber = childNumber;
+				this.Depth = depth;
+				this.IsTestNet = isTestNet;
 			}
 
 			/// <summary>
@@ -58,14 +66,29 @@ public partial class Zip32HDWallet
 			/// </summary>
 			public FullViewingKey Key { get; }
 
+			/// <inheritdoc/>
+			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
+
+			/// <inheritdoc/>
+			public ChainCode ChainCode { get; }
+
+			/// <inheritdoc/>
+			public uint ChildNumber { get; }
+
+			/// <inheritdoc/>
+			public byte Depth { get; }
+
+			/// <inheritdoc/>
+			public bool IsTestNet { get; }
+
 			/// <summary>
 			/// Gets the diversifier key.
 			/// </summary>
 			/// <value>A 32-byte buffer.</value>
 			internal DiversifierKey Dk { get; }
 
-			/// <inheritdoc/>
-			public override ExtendedFullViewingKey Derive(uint childNumber)
+			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
+			public ExtendedFullViewingKey Derive(uint childNumber)
 			{
 				Span<byte> selfAsBytes = stackalloc byte[169];
 				Span<byte> childAsBytes = stackalloc byte[169];
@@ -77,6 +100,9 @@ public partial class Zip32HDWallet
 
 				return Decode(childAsBytes, this.IsTestNet);
 			}
+
+			/// <inheritdoc/>
+			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childNumber) => this.Derive(childNumber);
 
 			/// <summary>
 			/// Creates a sapling receiver using this key and a given diversifier.
@@ -141,7 +167,7 @@ public partial class Zip32HDWallet
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
 				uint childNumber = BitUtilities.ReadUInt32LE(encoded[5..9]);
 				ChainCode chainCode = new(encoded[9..41]);
-				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137]);
+				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137], isTestNet);
 				DiversifierKey dk = new(encoded[137..169]);
 				return new(fvk, dk, chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet);
 			}

@@ -14,7 +14,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// A viewing key that can decrypt incoming and outgoing transactions.
 		/// </summary>
-		public class FullViewingKey
+		public class FullViewingKey : IKey
 		{
 			private readonly Bytes96 rawEncoding;
 
@@ -22,15 +22,32 @@ public partial class Zip32HDWallet
 			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 			/// </summary>
 			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
-			internal FullViewingKey(in SpendingKey spendingKey)
+			internal FullViewingKey(ExtendedSpendingKey spendingKey)
 			{
 				Span<byte> fvk = stackalloc byte[96];
-				if (NativeMethods.TryDeriveOrchardFullViewingKeyFromSpendingKey(spendingKey.Value, fvk) != 0)
+				if (NativeMethods.TryDeriveOrchardFullViewingKeyFromSpendingKey(spendingKey.SpendingKey.Value, fvk) != 0)
 				{
 					throw new ArgumentException(Strings.InvalidKey);
 				}
 
 				this.rawEncoding = new Bytes96(fvk);
+				this.IsTestNet = spendingKey.IsTestNet;
+			}
+
+			/// <inheritdoc/>
+			public bool IsTestNet { get; }
+
+			/// <summary>
+			/// Gets the fingerprint for this key.
+			/// </summary>
+			public FullViewingKeyFingerprint Fingerprint
+			{
+				get
+				{
+					Span<byte> output = stackalloc byte[32];
+					Blake2B.ComputeHash(this.rawEncoding.Value, output, new Blake2B.Config { Personalization = "ZcashOrchardFVFP"u8, OutputSizeInBytes = 32 });
+					return new(output);
+				}
 			}
 
 			/// <summary>
@@ -47,19 +64,6 @@ public partial class Zip32HDWallet
 			/// Gets the commit randomness.
 			/// </summary>
 			internal CommitIvkRandomness Rivk => new(this.rawEncoding.Value[64..]);
-
-			/// <summary>
-			/// Gets the fingerprint for this key.
-			/// </summary>
-			public FullViewingKeyFingerprint Fingerprint
-			{
-				get
-				{
-					Span<byte> output = stackalloc byte[32];
-					Blake2B.ComputeHash(this.rawEncoding.Value, output, new Blake2B.Config { Personalization = "ZcashOrchardFVFP"u8, OutputSizeInBytes = 32 });
-					return new(output);
-				}
-			}
 
 			/// <summary>
 			/// Gets the first 4 bytes of the fingerprint.

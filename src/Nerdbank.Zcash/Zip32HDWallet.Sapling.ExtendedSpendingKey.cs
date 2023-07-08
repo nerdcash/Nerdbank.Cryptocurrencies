@@ -12,7 +12,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The extended spending key.
 		/// </summary>
-		public class ExtendedSpendingKey : ExtendedKeyBase
+		public class ExtendedSpendingKey : IExtendedKey
 		{
 			private ExtendedFullViewingKey? fullViewingKey;
 
@@ -21,22 +21,41 @@ public partial class Zip32HDWallet
 			/// </summary>
 			/// <param name="key">The spending key's ask, nsk and ovk components.</param>
 			/// <param name="dk">The diversifier key.</param>
-			/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
-			/// <param name="parentFullViewingKeyTag"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='parentFullViewingKeyTag']"/></param>
-			/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='depth']"/></param>
-			/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
-			/// <param name="isTestNet"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='isTestNet']"/></param>
+			/// <param name="chainCode">The chain code.</param>
+			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
+			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
+			/// <param name="childNumber">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
+			/// <param name="isTestNet">A value indicating whether this key is to be used on a testnet.</param>
 			internal ExtendedSpendingKey(in ExpandedSpendingKey key, in DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
-				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
 			{
 				this.ExpandedSpendingKey = key;
 				this.Dk = dk;
+				this.ChainCode = chainCode;
+				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
+				this.Depth = depth;
+				this.ChildNumber = childNumber;
+				this.IsTestNet = isTestNet;
 			}
 
 			/// <summary>
 			/// Gets the extended full viewing key.
 			/// </summary>
 			public ExtendedFullViewingKey FullViewingKey => this.fullViewingKey ??= new(this);
+
+			/// <inheritdoc/>
+			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
+
+			/// <inheritdoc/>
+			public ChainCode ChainCode { get; }
+
+			/// <inheritdoc/>
+			public uint ChildNumber { get; }
+
+			/// <inheritdoc/>
+			public byte Depth { get; }
+
+			/// <inheritdoc/>
+			public bool IsTestNet { get; }
 
 			/// <summary>
 			/// Gets the expanded spending key (one that has ask, nsk, and ovk derived from the raw 32-byte spending key).
@@ -53,7 +72,7 @@ public partial class Zip32HDWallet
 			/// </summary>
 			/// <param name="childNumber">The index of the derived child key.</param>
 			/// <returns>The derived key.</returns>
-			public override ExtendedSpendingKey Derive(uint childNumber)
+			public ExtendedSpendingKey Derive(uint childNumber)
 			{
 				Span<byte> selfAsBytes = stackalloc byte[169];
 				Span<byte> childAsBytes = stackalloc byte[169];
@@ -65,6 +84,9 @@ public partial class Zip32HDWallet
 
 				return Decode(childAsBytes, this.IsTestNet);
 			}
+
+			/// <inheritdoc/>
+			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childNumber) => this.Derive(childNumber);
 
 			private static ExtendedSpendingKey Decode(ReadOnlySpan<byte> encoded, bool isTestNet)
 			{

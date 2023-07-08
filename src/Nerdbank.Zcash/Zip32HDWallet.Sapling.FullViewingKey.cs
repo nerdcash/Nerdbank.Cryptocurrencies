@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Org.BouncyCastle.Math.EC;
-
 namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
@@ -14,13 +10,14 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// A viewing key that can decrypt incoming and outgoing transactions.
 		/// </summary>
-		public class FullViewingKey
+		public class FullViewingKey : IKey
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 			/// </summary>
 			/// <param name="spendingKey">The spending key from which to derive this full viewing key.</param>
-			internal FullViewingKey(in ExpandedSpendingKey spendingKey)
+			/// <param name="isTestNet">A value indicating whether this key is for use with testnet.</param>
+			internal FullViewingKey(in ExpandedSpendingKey spendingKey, bool isTestNet)
 			{
 				Span<byte> fvk_bytes = stackalloc byte[96];
 				if (NativeMethods.TryGetSaplingFullViewingKeyFromExpandedSpendingKey(spendingKey.ToBytes().Value, fvk_bytes) != 0)
@@ -30,13 +27,18 @@ public partial class Zip32HDWallet
 
 				this.ViewingKey = new(new(fvk_bytes[..32]), new(fvk_bytes[32..64]));
 				this.Ovk = new(fvk_bytes[64..96]);
+				this.IsTestNet = isTestNet;
 			}
 
-			private FullViewingKey(ViewingKey viewingKey, OutgoingViewingKey ovk)
+			private FullViewingKey(ViewingKey viewingKey, OutgoingViewingKey ovk, bool isTestNet)
 			{
 				this.ViewingKey = viewingKey;
 				this.Ovk = ovk;
+				this.IsTestNet = isTestNet;
 			}
+
+			/// <inheritdoc/>
+			public bool IsTestNet { get; }
 
 			/// <summary>
 			/// Gets the viewing key.
@@ -83,13 +85,14 @@ public partial class Zip32HDWallet
 			/// by deserializing it from a buffer.
 			/// </summary>
 			/// <param name="buffer">The 96-byte buffer to read from.</param>
+			/// <param name="isTestNet">A value indicating whether this key is for use with testnet.</param>
 			/// <returns>The deserialized key.</returns>
-			internal static FullViewingKey FromBytes(ReadOnlySpan<byte> buffer)
+			internal static FullViewingKey FromBytes(ReadOnlySpan<byte> buffer, bool isTestNet)
 			{
 				SubgroupPoint ak = new(buffer[0..32]);
 				NullifierDerivingKey nk = new(buffer[32..64]);
 				OutgoingViewingKey ovk = new(buffer[64..96]);
-				return new FullViewingKey(new ViewingKey(ak, nk), ovk);
+				return new FullViewingKey(new ViewingKey(ak, nk), ovk, isTestNet);
 			}
 
 			/// <summary>
