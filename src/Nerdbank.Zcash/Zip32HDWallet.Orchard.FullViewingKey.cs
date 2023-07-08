@@ -18,6 +18,10 @@ public partial class Zip32HDWallet
 		{
 			private readonly Bytes96 rawEncoding;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
+			/// </summary>
+			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
 			internal FullViewingKey(in SpendingKey spendingKey)
 			{
 				Span<byte> fvk = stackalloc byte[96];
@@ -27,34 +31,6 @@ public partial class Zip32HDWallet
 				}
 
 				this.rawEncoding = new Bytes96(fvk);
-			}
-
-			/// <inheritdoc cref="CreateReceiver(ReadOnlySpan{byte})"/>
-			public OrchardReceiver CreateReceiver(BigInteger diversifierIndex)
-			{
-				Span<byte> diversifierSpan = stackalloc byte[11];
-				if (!diversifierIndex.TryWriteBytes(diversifierSpan, out _, isUnsigned: true))
-				{
-					throw new ArgumentOutOfRangeException(nameof(diversifierIndex), "Integer must be representable in 11 bytes.");
-				}
-
-				return this.CreateReceiver(diversifierSpan);
-			}
-
-			/// <summary>
-			/// Creates an orchard receiver using this key and a given diversifier.
-			/// </summary>
-			/// <param name="diversifierIndex">An 11-byte deterministic diversifier.</param>
-			/// <returns>The orchard receiver.</returns>
-			public OrchardReceiver CreateReceiver(ReadOnlySpan<byte> diversifierIndex)
-			{
-				Span<byte> rawReceiver = stackalloc byte[43];
-				if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex, rawReceiver) != 0)
-				{
-					throw new InvalidKeyException(Strings.InvalidKey);
-				}
-
-				return new(rawReceiver);
 			}
 
 			/// <summary>
@@ -89,6 +65,34 @@ public partial class Zip32HDWallet
 			/// Gets the first 4 bytes of the fingerprint.
 			/// </summary>
 			internal FullViewingKeyTag Tag => new(this.Fingerprint.Value[..4]);
+
+			/// <inheritdoc cref="CreateReceiver(ReadOnlySpan{byte})"/>
+			public OrchardReceiver CreateReceiver(BigInteger diversifierIndex)
+			{
+				Span<byte> diversifierSpan = stackalloc byte[11];
+				if (!diversifierIndex.TryWriteBytes(diversifierSpan, out _, isUnsigned: true))
+				{
+					throw new ArgumentOutOfRangeException(nameof(diversifierIndex), "Integer must be representable in 11 bytes.");
+				}
+
+				return this.CreateReceiver(diversifierSpan);
+			}
+
+			/// <summary>
+			/// Creates an orchard receiver using this key and a given diversifier.
+			/// </summary>
+			/// <param name="diversifierIndex">An 11-byte deterministic diversifier.</param>
+			/// <returns>The orchard receiver.</returns>
+			public OrchardReceiver CreateReceiver(ReadOnlySpan<byte> diversifierIndex)
+			{
+				Span<byte> rawReceiver = stackalloc byte[43];
+				if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex, rawReceiver) != 0)
+				{
+					throw new InvalidKeyException(Strings.InvalidKey);
+				}
+
+				return new(rawReceiver);
+			}
 		}
 	}
 }
