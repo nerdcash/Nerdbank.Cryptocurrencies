@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
+    <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
+  </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>This address is invalid or unrecognized.</value>
   </data>
@@ -125,6 +128,9 @@
   </data>
   <data name="InvalidAddressLength" xml:space="preserve">
     <value>This address does not meet length requirements.</value>
+  </data>
+  <data name="InvalidKey" xml:space="preserve">
+    <value>Invalid key.</value>
   </data>
   <data name="InvalidNetworkHeader" xml:space="preserve">
     <value>This address does not specify a recognized network.</value>
@@ -143,6 +149,12 @@
   </data>
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
+  </data>
+  <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
+    <value>Only hardened keys are supported.</value>
+  </data>
+  <data name="UnexpectedLength" xml:space="preserve">
+    <value>Length must be exactly {expected}, but was {actual}.</value>
   </data>
   <data name="UnrecognizedAddress" xml:space="preserve">
     <value>This address does not conform to any known format.</value>

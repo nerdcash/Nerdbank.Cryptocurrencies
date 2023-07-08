@@ -19,7 +19,7 @@ public static partial class Bip32HDWallet
 		/// <param name="chainCode">The chain code.</param>
 		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
 		internal ExtendedPrivateKey(PrivateKey key, ReadOnlySpan<byte> chainCode, bool testNet = false)
-			: this(key, chainCode, parentFingerprint: default, depth: 0, childNumber: 0, testNet)
+			: this(key, chainCode, parentFingerprint: default, depth: 0, childIndex: 0, testNet)
 		{
 		}
 
@@ -30,13 +30,13 @@ public static partial class Bip32HDWallet
 		/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
 		/// <param name="parentFingerprint"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='parentFingerprint']"/></param>
 		/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='depth']"/></param>
-		/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
+		/// <param name="childIndex"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childIndex']"/></param>
 		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
-		internal ExtendedPrivateKey(PrivateKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
-			: base(chainCode, parentFingerprint, depth, childNumber, testNet)
+		internal ExtendedPrivateKey(PrivateKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet = false)
+			: base(chainCode, parentFingerprint, depth, childIndex, testNet)
 		{
 			this.Key = key;
-			this.PublicKey = new ExtendedPublicKey(this.Key.PublicKey, this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildNumber, this.IsTestNet);
+			this.PublicKey = new ExtendedPublicKey(this.Key.PublicKey, this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildIndex, this.IsTestNet);
 		}
 
 		/// <summary>
@@ -65,43 +65,38 @@ public static partial class Bip32HDWallet
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 		/// <summary>
 		/// Creates an extended key based on a <see cref="Bip39Mnemonic"/>.
 		/// </summary>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
+		/// <param name="testNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
 		/// <returns>The extended key.</returns>
-		public static ExtendedPrivateKey Create(Bip39Mnemonic mnemonic) => Create(Requires.NotNull(mnemonic).Seed);
+		public static ExtendedPrivateKey Create(Bip39Mnemonic mnemonic, bool testNet = false) => Create(Requires.NotNull(mnemonic).Seed, testNet);
 
 		/// <summary>
 		/// Creates an extended key based on a seed.
 		/// </summary>
 		/// <param name="seed">The seed from which to generate the master key.</param>
+		/// <param name="testNet"><see langword="true" /> when the generated key will be used to interact with the zcash testnet; <see langword="false" /> otherwise.</param>
 		/// <returns>The extended key.</returns>
-		public static ExtendedPrivateKey Create(ReadOnlySpan<byte> seed)
+		public static ExtendedPrivateKey Create(ReadOnlySpan<byte> seed, bool testNet = false)
 		{
 			Span<byte> hmac = stackalloc byte[512 / 8];
 			HMACSHA512.HashData("Bitcoin seed"u8, seed, hmac);
 			ReadOnlySpan<byte> masterKey = hmac[..32];
 			ReadOnlySpan<byte> chainCode = hmac[32..];
 
-			return new ExtendedPrivateKey(new PrivateKey(NBitcoin.Secp256k1.ECPrivKey.Create(masterKey)), chainCode);
+			return new ExtendedPrivateKey(new PrivateKey(NBitcoin.Secp256k1.ECPrivKey.Create(masterKey)), chainCode, testNet);
 		}
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
-		/// <summary>
-		/// Derives a new extended private key that is a direct child of this one.
-		/// </summary>
-		/// <param name="childNumber">The child key number to derive. This may include the <see cref="HardenedBit"/> to derive a hardened key.</param>
-		/// <returns>A derived extended private key.</returns>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for <paramref name="childNumber"/>.
-		/// </exception>
-		public ExtendedPrivateKey Derive(uint childNumber)
+		/// <inheritdoc/>
+		public override ExtendedPrivateKey Derive(uint childIndex)
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
-			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
-			if ((childNumber & HardenedBit) != 0)
+			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
+			if ((childIndex & HardenedBit) != 0)
 			{
 				this.Key.Key.WriteToSpan(hashInput[1..]);
 			}
@@ -127,48 +122,7 @@ public static partial class Bip32HDWallet
 			byte childDepth = checked((byte)(this.Depth + 1));
 
 			Assumes.NotNull(pvk); // bad null ref annotation in the Secp256k1 library.
-			return new ExtendedPrivateKey(new(pvk), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
-		}
-
-		/// <summary>
-		/// Derives a new extended private key by following the steps in the specified path.
-		/// </summary>
-		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
-		/// <returns>A derived extended private key.</returns>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for the child number at the failing position in the key path.
-		/// </exception>
-		public ExtendedPrivateKey Derive(KeyPath keyPath)
-		{
-			Requires.NotNull(keyPath);
-
-			if (this.Depth > 0 && keyPath.IsRooted)
-			{
-				throw new NotSupportedException("Deriving with a rooted key path from a non-rooted key is not supported.");
-			}
-
-			ExtendedPrivateKey result = this;
-			ExtendedPrivateKey? intermediate = null;
-			foreach (KeyPath step in keyPath.Steps)
-			{
-				try
-				{
-					result = result.Derive(step.Index);
-
-					// If this isn't our first time around, dispose of the previous intermediate key,
-					// taking care to not dispose of the original key.
-					intermediate?.Dispose();
-					intermediate = result;
-				}
-				catch (InvalidKeyException ex)
-				{
-					throw new InvalidKeyException(Strings.FormatVeryUnlikelyUnvalidChildKeyOnPath(step), ex) { KeyPath = step };
-				}
-			}
-
-			return result;
+			return new ExtendedPrivateKey(new(pvk), childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet);
 		}
 
 		/// <inheritdoc/>

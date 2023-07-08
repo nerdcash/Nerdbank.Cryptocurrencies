@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.combinatorial" />
   </ItemGroup>
 
   <Import Project="..\..\src\Nerdbank.Zcash\NativeBindings.targets"/>

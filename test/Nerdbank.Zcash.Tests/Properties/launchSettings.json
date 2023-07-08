@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Nerdbank.Zcash.Tests": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

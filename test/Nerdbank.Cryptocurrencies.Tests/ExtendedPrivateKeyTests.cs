@@ -58,9 +58,9 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		for (int i = 1; i < vector.Steps.Length; i++)
 		{
 			step = vector.Steps[i];
-			keyPath = new KeyPath(step.ChildNumber, keyPath);
+			keyPath = new KeyPath(step.ChildIndex, keyPath);
 			this.logger.WriteLine($"Step {i}: {keyPath}");
-			current = current.Derive(step.ChildNumber);
+			current = current.Derive(step.ChildIndex);
 			AssertMatch();
 		}
 

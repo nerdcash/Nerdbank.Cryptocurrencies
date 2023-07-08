@@ -25,10 +25,10 @@ public static partial class Bip32HDWallet
 		/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
 		/// <param name="parentFingerprint"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='parentFingerprint']"/></param>
 		/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='depth']"/></param>
-		/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
+		/// <param name="childIndex"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childIndex']"/></param>
 		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
-		internal ExtendedPublicKey(PublicKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
-			: base(chainCode, parentFingerprint, depth, childNumber, testNet)
+		internal ExtendedPublicKey(PublicKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet = false)
+			: base(chainCode, parentFingerprint, depth, childIndex, testNet)
 		{
 			this.key = key;
 
@@ -67,30 +67,17 @@ public static partial class Bip32HDWallet
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
 
-		/// <summary>
-		/// Derives a new extended public key that is a direct child of this one.
-		/// </summary>
-		/// <param name="childNumber">
-		/// The child key number to derive. Must <em>not</em> contain the <see cref="HardenedBit"/>.
-		/// To derive a hardened child, use the <see cref="ExtendedPrivateKey"/>.
-		/// </param>
-		/// <returns>A derived extended public key.</returns>
-		/// <exception cref="NotSupportedException">Thrown if <paramref name="childNumber"/> contains the <see cref="HardenedBit"/>.</exception>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for <paramref name="childNumber"/>.
-		/// </exception>
-		public ExtendedPublicKey Derive(uint childNumber)
+		/// <inheritdoc/>
+		public override ExtendedPublicKey Derive(uint childIndex)
 		{
-			if ((childNumber & HardenedBit) != 0)
+			if ((childIndex & HardenedBit) != 0)
 			{
 				throw new NotSupportedException(Strings.CannotDeriveHardenedChildFromPublicKey);
 			}
 
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
 			this.Key.Key.WriteToSpan(true, hashInput, out _);
-			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
+			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
 
 			Span<byte> hashOutput = stackalloc byte[512 / 8];
 			HMACSHA512.HashData(this.ChainCode, hashInput, hashOutput);
@@ -107,42 +94,7 @@ public static partial class Bip32HDWallet
 
 			byte childDepth = checked((byte)(this.Depth + 1));
 
-			return new ExtendedPublicKey(new(pubKey), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
-		}
-
-		/// <summary>
-		/// Derives a new extended public key by following the steps in the specified path.
-		/// </summary>
-		/// <param name="keyPath">The derivation path to follow to produce the new key.</param>
-		/// <returns>A derived extended public key.</returns>
-		/// <exception cref="InvalidKeyException">
-		/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
-		/// Callers should handle this exception by requesting a new key with an incremented value
-		/// for the child number at the failing position in the key path.
-		/// </exception>
-		public ExtendedPublicKey Derive(KeyPath keyPath)
-		{
-			Requires.NotNull(keyPath);
-
-			if (this.Depth > 0 && keyPath.IsRooted)
-			{
-				throw new NotSupportedException("Deriving with a rooted key path from a non-rooted key is not supported.");
-			}
-
-			ExtendedPublicKey result = this;
-			foreach (KeyPath step in keyPath.Steps)
-			{
-				try
-				{
-					result = result.Derive(step.Index);
-				}
-				catch (InvalidKeyException ex)
-				{
-					throw new InvalidKeyException(Strings.FormatVeryUnlikelyUnvalidChildKeyOnPath(step), ex) { KeyPath = step };
-				}
-			}
-
-			return result;
+			return new ExtendedPublicKey(new(pubKey), childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet);
 		}
 
 		/// <inheritdoc/>

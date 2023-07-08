@@ -14,6 +14,7 @@ namespace Nerdbank.Cryptocurrencies;
 /// A BIP-39 implementation that can generate new seed phrases and seed binary keys
 /// that can be used to generate deterministic wallets using BIP-0032 or similar methods.
 /// </summary>
+[DebuggerDisplay($"Mnemonic: {{{nameof(SeedPhrase)}}}")]
 public partial class Bip39Mnemonic
 {
 	private static readonly Encoding BinarySeedEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
