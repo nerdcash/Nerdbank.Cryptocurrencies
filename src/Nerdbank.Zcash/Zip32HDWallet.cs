@@ -10,7 +10,8 @@ namespace Nerdbank.Zcash;
 /// Shielded Hierarchical Deterministic Wallets as defined in
 /// <see href="https://zips.z.cash/zip-0032">ZIP-32</see>.
 /// </summary>
-public static partial class Zip32HDWallet
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+public partial class Zip32HDWallet
 {
 	/// <summary>
 	/// The coin type to use in the key derivation path.
@@ -31,6 +32,34 @@ public static partial class Zip32HDWallet
 	private static readonly BigInteger URS = BigInteger.Parse("096b36a5804bfacef1691e173c366a47ff5ba84a44f26ddd7e8d9f79d5b42df0", System.Globalization.NumberStyles.HexNumber);
 
 	private static readonly BigInteger MaxDiversifierIndex = BigInteger.Pow(2, 88) - 1;
+
+	private Orchard.ExtendedSpendingKey masterOrchardKey;
+
+	private Sapling.ExtendedSpendingKey masterSaplingKey;
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="Zip32HDWallet"/> class.
+	/// </summary>
+	/// <param name="mnemonic">The BIP-39 mnemonic used to generate this HD wallet.</param>
+	/// <param name="isTestNet">A value indicating whether this wallet is to be used on the testnet.</param>
+	public Zip32HDWallet(Bip39Mnemonic mnemonic, bool isTestNet = false)
+		: this(Requires.NotNull(mnemonic).Seed, isTestNet)
+	{
+		this.Mnemonic = mnemonic;
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="Zip32HDWallet"/> class.
+	/// </summary>
+	/// <param name="seed">The seed used for master keys created within this wallet.</param>
+	/// <param name="isTestNet">A value indicating whether this wallet is to be used on the testnet.</param>
+	public Zip32HDWallet(ReadOnlySpan<byte> seed, bool isTestNet = false)
+	{
+		this.IsTestNet = isTestNet;
+		this.Seed = seed.ToArray();
+		this.masterOrchardKey = Orchard.Create(this.Seed.Span, this.IsTestNet);
+		this.masterSaplingKey = Sapling.Create(this.Seed.Span, this.IsTestNet);
+	}
 
 	private enum PrfExpandCodes : byte
 	{
@@ -54,6 +83,24 @@ public static partial class Zip32HDWallet
 		OrchardDkOvk = 0x82,
 		OrchardRivkInternal = 0x83,
 	}
+
+	/// <summary>
+	/// Gets a value indicating whether this wallet is meant for use on the testnet.
+	/// </summary>
+	public bool IsTestNet { get; }
+
+	/// <summary>
+	/// Gets the mnemonic that was used to create this wallet, if applicable.
+	/// </summary>
+	public Bip39Mnemonic? Mnemonic { get; }
+
+	/// <summary>
+	/// Gets the seed used to create this wallet.
+	/// </summary>
+	public ReadOnlyMemory<byte> Seed { get; }
+
+	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
+	private string DebuggerDisplay => $"ZIP-32 HD wallet: \"{this.Mnemonic?.SeedPhrase}\"";
 
 	/// <summary>
 	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
@@ -94,6 +141,20 @@ public static partial class Zip32HDWallet
 	/// Instead, the <see cref="CreateKeyPath(uint)"/> overload should be used, and provide a unique diversifier when creating the receiver for unique addresses.</para>
 	/// </remarks>
 	public static KeyPath CreateKeyPath(uint account, uint addressIndex) => new(addressIndex, CreateKeyPath(account));
+
+	/// <summary>
+	/// Creates a new orchard account.
+	/// </summary>
+	/// <param name="account">The account index. Use 0 for the first account and increment by one only after completing a transaction in the previous account so that account discovery can find all accounts.</param>
+	/// <returns>The account spending key.</returns>
+	public Orchard.ExtendedSpendingKey CreateOrchardAccount(uint account = 0) => this.masterOrchardKey.Derive(CreateKeyPath(account));
+
+	/// <summary>
+	/// Creates a new sapling account.
+	/// </summary>
+	/// <param name="account">The account index. Use 0 for the first account and increment by one only after completing a transaction in the previous account so that account discovery can find all accounts.</param>
+	/// <returns>The account spending key.</returns>
+	public Sapling.ExtendedSpendingKey CreateSaplingAccount(uint account = 0) => this.masterSaplingKey.Derive(CreateKeyPath(account));
 
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.

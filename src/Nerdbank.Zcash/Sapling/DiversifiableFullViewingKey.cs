@@ -48,7 +48,7 @@ public class DiversifiableFullViewingKey : FullViewingKey
 	/// The diversifier index to start searching at, in the range of 0..(2^88 - 1).
 	/// Not every index will produce a valid diversifier. About half will fail.
 	/// The default diversifier is defined as the smallest non-negative index that produces a valid diversifier.
-	/// This value will be changed to match the index at which a diversifier was found.
+	/// This value will be incremented until a diversifier can be found.
 	/// </param>
 	/// <param name="receiver">Receives the sapling receiver, if successful.</param>
 	/// <returns>
@@ -66,20 +66,55 @@ public class DiversifiableFullViewingKey : FullViewingKey
 			throw new ArgumentException("Index must fit within 11 bytes.");
 		}
 
+		bool result = this.TryCreateReceiver(indexBytes, out receiver);
+
+		if (result)
+		{
+			// The index may have been changed. Apply that change to our ref parameter.
+			index = new BigInteger(indexBytes, isUnsigned: true);
+		}
+
+		return result;
+	}
+
+	/// <summary>
+	/// Creates a sapling receiver using this key and a given diversifier.
+	/// </summary>
+	/// <param name="diversifierIndex">
+	/// The diversifier index to start searching at, in the range of 0..(2^88 - 1).
+	/// Not every index will produce a valid diversifier. About half will fail.
+	/// The default diversifier is defined as the smallest non-negative index that produces a valid diversifier.
+	/// This value will be incremented until a diversifier can be found, considering the buffer to be a little-endian encoded integer.
+	/// </param>
+	/// <param name="receiver">Receives the sapling receiver, if successful.</param>
+	/// <returns>
+	/// <see langword="true"/> if a valid diversifier could be produced at or above the initial value given by <paramref name="diversifierIndex"/>.
+	/// <see langword="false"/> if no valid diversifier could be found at or above <paramref name="diversifierIndex"/>.
+	/// </returns>
+	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="diversifierIndex"/> is negative.</exception>
+	public bool TryCreateReceiver(Span<byte> diversifierIndex, out SaplingReceiver receiver)
+	{
 		Span<byte> fvk = stackalloc byte[96];
 		this.ToBytes(fvk);
 
 		Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
-		if (NativeMethods.TryGetSaplingReceiver(fvk, this.Dk.Value, indexBytes, receiverBytes) != 0)
+		if (NativeMethods.TryGetSaplingReceiver(fvk, this.Dk.Value, diversifierIndex, receiverBytes) != 0)
 		{
 			return false;
 		}
 
-		// The index may have been changed. Apply that change to our ref parameter.
-		index = new BigInteger(indexBytes, isUnsigned: true);
-
 		receiver = new(receiverBytes);
-
 		return true;
+	}
+
+	/// <summary>
+	/// Creates the default sapling receiver for this key.
+	/// </summary>
+	/// <returns>The receiver.</returns>
+	public SaplingReceiver CreateDefaultReceiver()
+	{
+		Span<byte> diversifier = stackalloc byte[11];
+		Assumes.True(this.TryCreateReceiver(diversifier, out SaplingReceiver receiver));
+		return receiver;
 	}
 }

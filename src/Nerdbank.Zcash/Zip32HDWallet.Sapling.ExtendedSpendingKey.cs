@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Numerics;
 using Nerdbank.Zcash.Sapling;
 
 namespace Nerdbank.Zcash;
@@ -12,6 +13,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The extended spending key.
 		/// </summary>
+		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
 		public class ExtendedSpendingKey : IExtendedKey
 		{
 			private ExtendedFullViewingKey? fullViewingKey;
@@ -59,6 +61,15 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			public bool IsTestNet { get; }
+
+			/// <summary>
+			/// Gets the default address for this spending key.
+			/// </summary>
+			/// <remarks>
+			/// Create additional diversified addresses using <see cref="DiversifiableFullViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
+			/// found on the <see cref="FullViewingKey"/> property's <see cref="ExtendedFullViewingKey.Key"/> property.
+			/// </remarks>
+			public SaplingAddress DefaultAddress => new(this.FullViewingKey.Key.CreateDefaultReceiver(), this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
 
 			/// <summary>
 			/// Gets the expanded spending key (one that has ask, nsk, and ovk derived from the raw 32-byte spending key).

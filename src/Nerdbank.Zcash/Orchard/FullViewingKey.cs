@@ -74,4 +74,17 @@ public class FullViewingKey : IKey
 
 		return new(rawReceiver);
 	}
+
+	/// <summary>
+	/// Creates the default orchard receiver for this key.
+	/// </summary>
+	/// <returns>A receiver suitable for creating an address.</returns>
+	/// <remarks>
+	/// The default receiver is created using with a zero-filled diversifier.
+	/// </remarks>
+	public OrchardReceiver CreateDefaultReceiver()
+	{
+		Span<byte> diversifier = stackalloc byte[11];
+		return this.CreateReceiver(diversifier);
+	}
 }

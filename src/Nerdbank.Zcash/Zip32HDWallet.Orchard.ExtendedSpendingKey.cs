@@ -12,6 +12,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// A key capable of spending, extended so it can be used to derive child keys.
 		/// </summary>
+		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
 		public class ExtendedSpendingKey : IExtendedKey
 		{
 			private FullViewingKey? fullViewingKey;
@@ -59,6 +60,16 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			public bool IsTestNet { get; }
+
+			/// <summary>
+			/// Gets the default address for this spending key.
+			/// </summary>
+			/// <remarks>
+			/// Create additional diversified addresses using <see cref="FullViewingKey.CreateReceiver(System.Numerics.BigInteger)"/> found on the <see cref="FullViewingKey"/> property.
+			/// </remarks>
+			/// <seealso cref="FullViewingKey.CreateDefaultReceiver"/>
+			/// <seealso cref="FullViewingKey.CreateReceiver(System.Numerics.BigInteger)"/>
+			public OrchardAddress DefaultAddress => new(this.FullViewingKey.CreateDefaultReceiver(), this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
 
 			/// <summary>
 			/// Gets the spending key itself.
