@@ -2,11 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Numerics;
-using System.Security.Cryptography;
-using Org.BouncyCastle.Math.EC;
 using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
-using BCBigInteger = Org.BouncyCastle.Math.BigInteger;
-using BCMath = Org.BouncyCastle.Math;
 
 namespace Nerdbank.Zcash;
 
@@ -134,64 +130,6 @@ public static partial class Zip32HDWallet
 	/// <param name="input">A little-endian ordered encoding of an integer.</param>
 	/// <remarks>This is the inverse operation to <see cref="I2LEOSP(BigInteger, Span{byte})"/>.</remarks>
 	private static BigInteger LEOS2IP(ReadOnlySpan<byte> input) => new(input, isUnsigned: true);
-
-	/// <summary>
-	/// Encodes a <see cref="BigInteger"/> as a bit sequence in little-endian order.
-	/// </summary>
-	/// <param name="value">The integer.</param>
-	/// <param name="output">
-	/// A buffer to fill with the encoded integer.
-	/// Any excess bytes will be 0-padded.
-	/// </param>
-	/// <returns>The number of bytes written to <paramref name="output"/>. Always its length.</returns>
-	private static int I2LEBSP(BigInteger value, Span<byte> output)
-	{
-		BigInteger bitSize = 2;
-		output.Clear();
-		int bitPosition = 0;
-		for (; value > 0; bitPosition++)
-		{
-			(value, BigInteger remainder) = BigInteger.DivRem(value, bitSize);
-			output[bitPosition / 8] |= (byte)(remainder << (bitPosition % 8));
-		}
-
-		return output.Length;
-	}
-
-	/// <summary>
-	/// Reverse the order of bits in each individual byte in a buffer.
-	/// </summary>
-	/// <param name="input">The byte sequence to convert. Each byte's individual bits are assumed to be in MSB to LSB order.</param>
-	/// <param name="output">Receives the converted byte sequence, where each byte's bits are reversed so they are in LSB to MSB order.</param>
-	/// <returns>The number of bytes written to <paramref name="output"/> (i.e. the length of <paramref name="input"/>.)</returns>
-	/// <remarks>
-	/// Convert each group of 8 bits into a byte value with the least significant bit first, and concatenate the resulting bytes in the same order as the groups.
-	/// </remarks>
-	private static int LEBS2OSP(ReadOnlySpan<byte> input, Span<byte> output)
-	{
-		for (int i = 0; i < input.Length; i++)
-		{
-			byte originalValue = input[i];
-			output[i] = (byte)(
-				(originalValue & 0x80 >> 7) |
-				(originalValue & 0x40 >> 5) |
-				(originalValue & 0x20 >> 3) |
-				(originalValue & 0x10 >> 1) |
-				(originalValue & 0x08 << 1) |
-				(originalValue & 0x04 << 3) |
-				(originalValue & 0x02 << 5) |
-				(originalValue & 0x01 << 7));
-		}
-
-		return input.Length;
-	}
-
-	/// <remarks>See <see href="https://forum.zcashcommunity.com/t/what-is-the-lebs2os-function-in-the-zip-32-spec/44886/2?u=aarnott">this comment</see>.</remarks>
-	[Obsolete("The spec's reference to this function is a typo. Use LEBS2OSP instead.", error: true)]
-	private static int LEBS2OS(ReadOnlySpan<byte> input, Span<byte> output)
-	{
-		throw new NotImplementedException();
-	}
 
 	/// <summary>
 	/// Applies a Blake2b_512 hash to the concatenation of a pair of buffers.

@@ -50,6 +50,8 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the fingerprint for this key.
 		/// </summary>
+		/// <param name="fullViewingKey">The full viewing key for which to produce a fingerprint.</param>
+		/// <returns>The fingerprint.</returns>
 		public static FullViewingKeyFingerprint GetFingerprint(FullViewingKey fullViewingKey)
 		{
 			Requires.NotNull(fullViewingKey);
