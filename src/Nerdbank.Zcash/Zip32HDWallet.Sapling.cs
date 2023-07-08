@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Numerics;
-using Org.BouncyCastle.Math.EC;
-
 namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
@@ -46,6 +43,18 @@ public partial class Zip32HDWallet
 			expandOutput[..32].CopyTo(dk);
 
 			return new ExtendedSpendingKey(new(ask, nsk, ovk), new(dk), chainCode, default, 0, 0, testNet);
+		}
+
+		/// <summary>
+		/// Gets the fingerprint for this key.
+		/// </summary>
+		public static FullViewingKeyFingerprint GetFingerprint(Zcash.Sapling.FullViewingKey fullViewingKey)
+		{
+			Requires.NotNull(fullViewingKey);
+
+			Span<byte> fingerprint = stackalloc byte[32];
+			Blake2B.ComputeHash(fullViewingKey.ToBytes().Value, fingerprint, new Blake2B.Config { Personalization = "ZcashSaplingFVFP"u8, OutputSizeInBytes = 32 });
+			return new(fingerprint);
 		}
 	}
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Zcash.Orchard;
+
 namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
@@ -36,7 +38,12 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the full viewing key.
 			/// </summary>
-			public FullViewingKey FullViewingKey => this.fullViewingKey ??= new(this);
+			public FullViewingKey FullViewingKey => this.fullViewingKey ??= this.CreateFullViewingKey();
+
+			/// <summary>
+			/// Gets the fingerprint for this key.
+			/// </summary>
+			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey);
 
 			/// <inheritdoc/>
 			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
@@ -80,7 +87,7 @@ public partial class Zip32HDWallet
 				return new ExtendedSpendingKey(
 					key,
 					chainCode,
-					parentFullViewingKeyTag: this.FullViewingKey.Tag,
+					parentFullViewingKeyTag: GetFingerprint(this.FullViewingKey).Tag,
 					depth: checked((byte)(this.Depth + 1)),
 					childNumber,
 					this.IsTestNet);
@@ -88,6 +95,21 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childNumber) => this.Derive(childNumber);
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
+			/// </summary>
+			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
+			private FullViewingKey CreateFullViewingKey()
+			{
+				Span<byte> fvk = stackalloc byte[96];
+				if (NativeMethods.TryDeriveOrchardFullViewingKeyFromSpendingKey(this.SpendingKey.Value, fvk) != 0)
+				{
+					throw new ArgumentException(Strings.InvalidKey);
+				}
+
+				return new(fvk, this.IsTestNet);
+			}
 		}
 	}
 }

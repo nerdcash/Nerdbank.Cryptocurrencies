@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Numerics;
-using System.Security.Cryptography;
-using Org.BouncyCastle.Math.EC;
+using Nerdbank.Zcash.Orchard;
 
 namespace Nerdbank.Zcash;
 
@@ -41,6 +39,18 @@ public partial class Zip32HDWallet
 				depth: 0,
 				childNumber: 0,
 				testNet);
+		}
+
+		/// <summary>
+		/// Gets the fingerprint for this key.
+		/// </summary>
+		public static FullViewingKeyFingerprint GetFingerprint(Zcash.Orchard.FullViewingKey fullViewingKey)
+		{
+			Requires.NotNull(fullViewingKey);
+
+			Span<byte> output = stackalloc byte[32];
+			Blake2B.ComputeHash(fullViewingKey.RawEncoding, output, new Blake2B.Config { Personalization = "ZcashOrchardFVFP"u8, OutputSizeInBytes = 32 });
+			return new(output);
 		}
 	}
 }

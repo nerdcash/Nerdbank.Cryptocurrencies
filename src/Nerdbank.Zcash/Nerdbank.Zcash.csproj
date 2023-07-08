@@ -13,5 +13,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" PrivateAssets="compile" />
   </ItemGroup>
-  <Import Project="NativeBindings.targets"/>
+  <Import Project="NativeBindings.targets" />
 </Project>

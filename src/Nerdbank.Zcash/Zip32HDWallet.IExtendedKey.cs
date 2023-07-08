@@ -11,6 +11,11 @@ public partial class Zip32HDWallet
 	public interface IExtendedKey : Cryptocurrencies.IExtendedKey
 	{
 		/// <summary>
+		/// Gets the key's fingerprint.
+		/// </summary>
+		FullViewingKeyFingerprint Fingerprint { get; }
+
+		/// <summary>
 		/// Gets the first 32-bits of the fingerprint of the parent key.
 		/// </summary>
 		FullViewingKeyTag ParentFullViewingKeyTag { get; }

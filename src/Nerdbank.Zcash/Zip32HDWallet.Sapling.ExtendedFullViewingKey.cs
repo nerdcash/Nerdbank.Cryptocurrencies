@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Numerics;
+using Nerdbank.Zcash.Sapling;
 
 namespace Nerdbank.Zcash;
 
@@ -59,12 +60,7 @@ public partial class Zip32HDWallet
 			/// It is not advised to represent this data in base58 format though, as it may be interpreted as an address that way
 			/// (and wallet software is not required to accept payment to the chain key itself).
 			/// </remarks>
-			public ReadOnlySpan<byte> Fingerprint => this.Key.Fingerprint.Value;
-
-			/// <summary>
-			/// Gets the full viewing key.
-			/// </summary>
-			public FullViewingKey Key { get; }
+			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.Key);
 
 			/// <inheritdoc/>
 			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
@@ -80,6 +76,11 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			public bool IsTestNet { get; }
+
+			/// <summary>
+			/// Gets the full viewing key.
+			/// </summary>
+			public FullViewingKey Key { get; }
 
 			/// <summary>
 			/// Gets the diversifier key.

@@ -22,7 +22,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(0u, spendingKey.ChildNumber);
 		Assert.Equal(testNet, spendingKey.IsTestNet);
 		Assert.NotNull(spendingKey.FullViewingKey);
-		Assert.NotEqual(0, spendingKey.FullViewingKey.Fingerprint.Length);
+		Assert.NotEqual(default, spendingKey.FullViewingKey.Fingerprint);
 	}
 
 	[Theory, PairwiseData]
@@ -39,7 +39,7 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet.Orchard.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
 		Assert.NotNull(accountSpendingKey.FullViewingKey);
 
-		Assert.NotEqual(default, masterSpendingKey.FullViewingKey.Fingerprint);
+		Assert.NotEqual(default, masterSpendingKey.Fingerprint);
 	}
 
 	[Fact]
