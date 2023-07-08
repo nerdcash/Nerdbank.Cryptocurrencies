@@ -65,11 +65,7 @@ public static partial class Zip32HDWallet
 	/// unique receiving addresses via unique diversifiers to each party that may send ZEC to avoid correlation.
 	/// This method creates a key path that will create the default key for the given account.
 	/// </remarks>
-	public static KeyPath CreateKeyPath(uint account)
-	{
-		// m / purpose' / coin_type' / account'
-		return new(account | HardenedBit, new(CoinType | HardenedBit, new(Purpose | HardenedBit, KeyPath.Root)));
-	}
+	public static KeyPath CreateKeyPath(uint account) => new(account | HardenedBit, new(CoinType | HardenedBit, new(Purpose | HardenedBit, KeyPath.Root)));
 
 	/// <summary>
 	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
@@ -95,13 +91,9 @@ public static partial class Zip32HDWallet
 	/// <para>Ordinary Zcash accounts with shielded addresses should typically not use this overload
 	/// because multiple spending authorities within the same account increases sync time and complexity
 	/// where diversifiers typically suffice.
-	/// Instead, the <see cref="CreateKeyPath(uint)"/> overload should be used.</para>
+	/// Instead, the <see cref="CreateKeyPath(uint)"/> overload should be used, and provide a unique diversifier when creating the receiver for unique addresses.</para>
 	/// </remarks>
-	public static KeyPath CreateKeyPath(uint account, uint addressIndex)
-	{
-		// m / purpose' / coin_type' / account' / address_index
-		return new(addressIndex, CreateKeyPath(account));
-	}
+	public static KeyPath CreateKeyPath(uint account, uint addressIndex) => new(addressIndex, CreateKeyPath(account));
 
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.

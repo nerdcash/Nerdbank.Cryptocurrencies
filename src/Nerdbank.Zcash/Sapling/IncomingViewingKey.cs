@@ -8,20 +8,26 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key for incoming transactions.
 /// </summary>
-internal readonly struct ViewingKey
+internal readonly struct IncomingViewingKey
 {
 	/// <summary>
-	/// Initializes a new instance of the <see cref="ViewingKey"/> struct.
+	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> struct.
 	/// </summary>
 	/// <param name="ak">The ak value.</param>
 	/// <param name="nk">The nk value.</param>
-	internal ViewingKey(SubgroupPoint ak, NullifierDerivingKey nk)
+	internal IncomingViewingKey(SubgroupPoint ak, NullifierDerivingKey nk)
 	{
 		this.Ak = ak;
 		this.Nk = nk;
 	}
 
+	/// <summary>
+	/// Gets the sAk subgroup point.
+	/// </summary>
 	internal SubgroupPoint Ak { get; }
 
+	/// <summary>
+	/// Gets the nullifier deriving key.
+	/// </summary>
 	internal NullifierDerivingKey Nk { get; }
 }

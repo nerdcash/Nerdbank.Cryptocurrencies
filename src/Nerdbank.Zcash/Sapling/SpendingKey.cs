@@ -12,6 +12,10 @@ internal readonly struct SpendingKey
 {
 	private readonly Bytes32 value;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SpendingKey"/> struct.
+	/// </summary>
+	/// <param name="value">The spending key.</param>
 	internal SpendingKey(ReadOnlySpan<byte> value)
 	{
 		this.value = new(value);

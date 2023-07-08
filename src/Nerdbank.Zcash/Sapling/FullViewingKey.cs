@@ -29,7 +29,13 @@ public class FullViewingKey : IKey
 		this.IsTestNet = isTestNet;
 	}
 
-	private FullViewingKey(ViewingKey viewingKey, OutgoingViewingKey ovk, bool isTestNet)
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
+	/// </summary>
+	/// <param name="viewingKey">The incoming viewing key.</param>
+	/// <param name="ovk">The outgoing viewing key.</param>
+	/// <param name="isTestNet">A value indicating whether this key is for use on the testnet.</param>
+	internal FullViewingKey(IncomingViewingKey viewingKey, OutgoingViewingKey ovk, bool isTestNet)
 	{
 		this.ViewingKey = viewingKey;
 		this.Ovk = ovk;
@@ -42,7 +48,7 @@ public class FullViewingKey : IKey
 	/// <summary>
 	/// Gets the viewing key.
 	/// </summary>
-	internal ViewingKey ViewingKey { get; }
+	internal IncomingViewingKey ViewingKey { get; }
 
 	/// <summary>
 	/// Gets the Ak element.
@@ -71,7 +77,7 @@ public class FullViewingKey : IKey
 		SubgroupPoint ak = new(buffer[0..32]);
 		NullifierDerivingKey nk = new(buffer[32..64]);
 		OutgoingViewingKey ovk = new(buffer[64..96]);
-		return new FullViewingKey(new ViewingKey(ak, nk), ovk, isTestNet);
+		return new FullViewingKey(new IncomingViewingKey(ak, nk), ovk, isTestNet);
 	}
 
 	/// <summary>
