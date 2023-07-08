@@ -14,7 +14,11 @@ public partial class Zip32HDWallet
 	{
 		private readonly Bytes32 value;
 
-		internal ChainCode(ReadOnlySpan<byte> value)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ChainCode"/> struct.
+		/// </summary>
+		/// <param name="value">The value of the buffer.</param>
+		public ChainCode(ReadOnlySpan<byte> value)
 		{
 			this.value = new(value);
 		}
@@ -22,6 +26,6 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the buffer. Always 32 bytes in length.
 		/// </summary>
-		internal readonly ReadOnlySpan<byte> Value => this.value.Value;
+		public readonly ReadOnlySpan<byte> Value => this.value.Value;
 	}
 }

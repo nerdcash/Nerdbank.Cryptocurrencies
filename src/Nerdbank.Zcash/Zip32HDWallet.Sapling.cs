@@ -15,7 +15,7 @@ public partial class Zip32HDWallet
 		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)"/>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
 		/// <param name="network"><inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)" path="/param[@name='network']"/></param>
-		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network = ZcashNetwork.MainNet) => Create(Requires.NotNull(mnemonic).Seed, network);
+		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network) => Create(Requires.NotNull(mnemonic).Seed, network);
 
 		/// <summary>
 		/// Creates a master key for the Sapling pool.
@@ -23,7 +23,7 @@ public partial class Zip32HDWallet
 		/// <param name="seed">The seed byte sequence, which MUST be at least 32 and at most 252 bytes.</param>
 		/// <param name="network">The network this key should be used with.</param>
 		/// <returns>The master extended spending key.</returns>
-		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, ZcashNetwork network = ZcashNetwork.MainNet)
+		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, ZcashNetwork network)
 		{
 			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
 			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Sapling"u8, OutputSizeInBytes = blakeOutput.Length });
@@ -52,7 +52,7 @@ public partial class Zip32HDWallet
 		/// </summary>
 		/// <param name="fullViewingKey">The full viewing key for which to produce a fingerprint.</param>
 		/// <returns>The fingerprint.</returns>
-		public static FullViewingKeyFingerprint GetFingerprint(FullViewingKey fullViewingKey)
+		internal static FullViewingKeyFingerprint GetFingerprint(FullViewingKey fullViewingKey)
 		{
 			Requires.NotNull(fullViewingKey);
 

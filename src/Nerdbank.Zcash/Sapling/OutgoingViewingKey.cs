@@ -12,6 +12,10 @@ internal readonly struct OutgoingViewingKey
 {
 	private readonly Bytes32 value;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="OutgoingViewingKey"/> struct.
+	/// </summary>
+	/// <param name="value">The value of the buffer.</param>
 	internal OutgoingViewingKey(ReadOnlySpan<byte> value)
 	{
 		this.value = new(value);

@@ -42,7 +42,9 @@ public partial class Zip32HDWallet
 	/// </summary>
 	/// <param name="mnemonic">The BIP-39 mnemonic used to generate this HD wallet.</param>
 	/// <param name="network">The network this key should be used with.</param>
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
 	public Zip32HDWallet(Bip39Mnemonic mnemonic, ZcashNetwork network = ZcashNetwork.MainNet)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
 		: this(Requires.NotNull(mnemonic).Seed, network)
 	{
 		this.Mnemonic = mnemonic;
@@ -53,7 +55,7 @@ public partial class Zip32HDWallet
 	/// </summary>
 	/// <param name="seed">The seed used for master keys created within this wallet.</param>
 	/// <param name="network">The network this key should be used with.</param>
-	public Zip32HDWallet(ReadOnlySpan<byte> seed, ZcashNetwork network = ZcashNetwork.MainNet)
+	public Zip32HDWallet(ReadOnlySpan<byte> seed, ZcashNetwork network)
 	{
 		this.Network = network;
 		this.Seed = seed.ToArray();

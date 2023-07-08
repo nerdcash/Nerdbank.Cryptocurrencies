@@ -12,6 +12,10 @@ internal readonly struct DiversifierKey
 {
 	private readonly Bytes32 value;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DiversifierKey"/> struct.
+	/// </summary>
+	/// <param name="value">The value of the buffer.</param>
 	internal DiversifierKey(ReadOnlySpan<byte> value)
 	{
 		this.value = new(value);

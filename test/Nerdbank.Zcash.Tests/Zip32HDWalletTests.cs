@@ -59,7 +59,7 @@ public class Zip32HDWalletTests : TestBase
 	public void CreateSaplingAddressFromSeed()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
-		Zip32HDWallet.Sapling.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Sapling.Create(mnemonic);
+		Zip32HDWallet.Sapling.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Sapling.Create(mnemonic, ZcashNetwork.MainNet);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
 		BigInteger diversifierIndex = 0;
 		Assert.True(accountSpendingKey.FullViewingKey.Key.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
@@ -72,7 +72,7 @@ public class Zip32HDWalletTests : TestBase
 	[Fact]
 	public void CreateSaplingAddressFromSeed_ViaFVK()
 	{
-		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic).FullViewingKey;
+		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).FullViewingKey;
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey childFVK = masterFullViewingKey.Derive(3);
 		BigInteger diversifierIndex = 0;
 		Assert.True(childFVK.Key.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));

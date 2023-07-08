@@ -12,6 +12,10 @@ internal readonly struct SpendValidatingKey
 {
 	private readonly Bytes32 value;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SpendValidatingKey"/> struct.
+	/// </summary>
+	/// <param name="value">The value of the buffer.</param>
 	internal SpendValidatingKey(ReadOnlySpan<byte> value)
 	{
 		this.value = new(value);

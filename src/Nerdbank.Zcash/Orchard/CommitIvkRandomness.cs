@@ -12,6 +12,10 @@ internal readonly struct CommitIvkRandomness
 {
 	private readonly Bytes32 value;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CommitIvkRandomness"/> struct.
+	/// </summary>
+	/// <param name="value">The value of the buffer.</param>
 	internal CommitIvkRandomness(ReadOnlySpan<byte> value)
 	{
 		this.value = new(value);
