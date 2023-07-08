@@ -83,6 +83,8 @@ Nerdbank.Cryptocurrencies.IExtendedKey
 Nerdbank.Cryptocurrencies.IExtendedKey.ChildIndex.get -> uint
 Nerdbank.Cryptocurrencies.IExtendedKey.Depth.get -> byte
 Nerdbank.Cryptocurrencies.IExtendedKey.Derive(uint childIndex) -> Nerdbank.Cryptocurrencies.IExtendedKey!
+Nerdbank.Cryptocurrencies.IKey
+Nerdbank.Cryptocurrencies.IKey.IsTestNet.get -> bool
 Nerdbank.Cryptocurrencies.InvalidKeyException
 Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException() -> void
 Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException(string? message) -> void
