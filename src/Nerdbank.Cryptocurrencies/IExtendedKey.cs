@@ -11,7 +11,7 @@ public interface IExtendedKey : IKey
 	/// <summary>
 	/// Gets the index number used when deriving this key from its direct parent.
 	/// </summary>
-	uint ChildNumber { get; }
+	uint ChildIndex { get; }
 
 	/// <summary>
 	/// Gets the derivation depth of the extended key.
@@ -21,13 +21,13 @@ public interface IExtendedKey : IKey
 	/// <summary>
 	/// Derives a new extended private key that is a direct child of this one.
 	/// </summary>
-	/// <param name="childNumber">The child key number to derive. This may include the <see cref="Bip32HDWallet.HardenedBit"/> to derive a hardened key.</param>
+	/// <param name="childIndex">The child key number to derive. This may include the <see cref="Bip32HDWallet.HardenedBit"/> to derive a hardened key.</param>
 	/// <returns>A derived extended key.</returns>
 	/// <exception cref="InvalidKeyException">
 	/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
 	/// Callers should handle this exception by requesting a new key with an incremented value
-	/// for <paramref name="childNumber"/>.
+	/// for <paramref name="childIndex"/>.
 	/// </exception>
-	/// <exception cref="NotSupportedException">Thrown if the value of the <see cref="Bip32HDWallet.HardenedBit"/> in the <paramref name="childNumber"/> argument is not supported by the receiving key.</exception>
-	IExtendedKey Derive(uint childNumber);
+	/// <exception cref="NotSupportedException">Thrown if the value of the <see cref="Bip32HDWallet.HardenedBit"/> in the <paramref name="childIndex"/> argument is not supported by the receiving key.</exception>
+	IExtendedKey Derive(uint childIndex);
 }

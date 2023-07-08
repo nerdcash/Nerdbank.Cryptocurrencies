@@ -19,7 +19,7 @@ public class Zip32HDWalletTests : TestBase
 		this.logger.WriteLine($"Mnemonic: {mnemonic}");
 		Zip32HDWallet.Sapling.ExtendedSpendingKey spendingKey = Zip32HDWallet.Sapling.Create(mnemonic, testNet);
 		Assert.Equal(0, spendingKey.Depth);
-		Assert.Equal(0u, spendingKey.ChildNumber);
+		Assert.Equal(0u, spendingKey.ChildIndex);
 		Assert.Equal(testNet, spendingKey.IsTestNet);
 		Assert.NotNull(spendingKey.FullViewingKey);
 		Assert.NotEqual(default, spendingKey.FullViewingKey.Fingerprint);
@@ -32,7 +32,7 @@ public class Zip32HDWalletTests : TestBase
 		this.logger.WriteLine($"Mnemonic: {mnemonic}");
 		Zip32HDWallet.Orchard.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Orchard.Create(mnemonic, testNet);
 		Assert.Equal(0, masterSpendingKey.Depth);
-		Assert.Equal(0u, masterSpendingKey.ChildNumber);
+		Assert.Equal(0u, masterSpendingKey.ChildIndex);
 		Assert.Equal(testNet, masterSpendingKey.IsTestNet);
 		Assert.NotNull(masterSpendingKey.FullViewingKey);
 

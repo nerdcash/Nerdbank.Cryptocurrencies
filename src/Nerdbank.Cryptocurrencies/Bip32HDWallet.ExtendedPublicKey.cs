@@ -25,10 +25,10 @@ public static partial class Bip32HDWallet
 		/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
 		/// <param name="parentFingerprint"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='parentFingerprint']"/></param>
 		/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='depth']"/></param>
-		/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
+		/// <param name="childIndex"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childIndex']"/></param>
 		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
-		internal ExtendedPublicKey(PublicKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
-			: base(chainCode, parentFingerprint, depth, childNumber, testNet)
+		internal ExtendedPublicKey(PublicKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet = false)
+			: base(chainCode, parentFingerprint, depth, childIndex, testNet)
 		{
 			this.key = key;
 
@@ -68,16 +68,16 @@ public static partial class Bip32HDWallet
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
 
 		/// <inheritdoc/>
-		public override ExtendedPublicKey Derive(uint childNumber)
+		public override ExtendedPublicKey Derive(uint childIndex)
 		{
-			if ((childNumber & HardenedBit) != 0)
+			if ((childIndex & HardenedBit) != 0)
 			{
 				throw new NotSupportedException(Strings.CannotDeriveHardenedChildFromPublicKey);
 			}
 
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
 			this.Key.Key.WriteToSpan(true, hashInput, out _);
-			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
+			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
 
 			Span<byte> hashOutput = stackalloc byte[512 / 8];
 			HMACSHA512.HashData(this.ChainCode, hashInput, hashOutput);
@@ -94,7 +94,7 @@ public static partial class Bip32HDWallet
 
 			byte childDepth = checked((byte)(this.Depth + 1));
 
-			return new ExtendedPublicKey(new(pubKey), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
+			return new ExtendedPublicKey(new(pubKey), childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet);
 		}
 
 		/// <inheritdoc/>

@@ -30,13 +30,13 @@ public static partial class Bip32HDWallet
 		/// <param name="chainCode">The chain code.</param>
 		/// <param name="parentFingerprint">The first four bytes of the parent key's <see cref="Identifier"/>.</param>
 		/// <param name="depth">The depth of the parent key, plus 1.</param>
-		/// <param name="childNumber">The index used when deriving this key.</param>
+		/// <param name="childIndex">The index used when deriving this key.</param>
 		/// <param name="testNet"><see langword="true" /> if this key is for use on a testnet; <see langword="false" /> otherwise.</param>
-		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
+		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet = false)
 		{
 			this.fixedArrays = new(chainCode, parentFingerprint);
 			this.Depth = depth;
-			this.ChildNumber = childNumber;
+			this.ChildIndex = childIndex;
 			this.IsTestNet = testNet;
 		}
 
@@ -62,7 +62,7 @@ public static partial class Bip32HDWallet
 		public byte Depth { get; }
 
 		/// <inheritdoc/>
-		public uint ChildNumber { get; }
+		public uint ChildIndex { get; }
 
 		/// <summary>
 		/// Gets the first 32-bits of the <see cref="Identifier"/> of the parent key.
@@ -121,16 +121,16 @@ public static partial class Bip32HDWallet
 			ReadOnlySpan<byte> version = bytes[..4];
 			byte depth = bytes[4];
 			ReadOnlySpan<byte> parentFingerprint = bytes[5..9];
-			uint childNumber = BitUtilities.ReadUInt32BE(bytes[9..13]);
+			uint childIndex = BitUtilities.ReadUInt32BE(bytes[9..13]);
 			ReadOnlySpan<byte> chainCode = bytes.Slice(13, ChainCodeLength);
 			ReadOnlySpan<byte> keyMaterial = bytes[^PublicKeyLength..];
 
 			if (depth == 0)
 			{
-				if (childNumber != 0)
+				if (childIndex != 0)
 				{
 					decodeError = DecodeError.InvalidDerivationData;
-					errorMessage = $"The key claims to be a master key but has the non-zero child number {childNumber}.";
+					errorMessage = $"The key claims to be a master key but has the non-zero child number {childIndex}.";
 					return false;
 				}
 
@@ -187,7 +187,7 @@ public static partial class Bip32HDWallet
 					return false;
 				}
 
-				result = new ExtendedPrivateKey(new PrivateKey(ecKey), chainCode, parentFingerprint, depth, childNumber, isTestNet);
+				result = new ExtendedPrivateKey(new PrivateKey(ecKey), chainCode, parentFingerprint, depth, childIndex, isTestNet);
 			}
 			else
 			{
@@ -198,7 +198,7 @@ public static partial class Bip32HDWallet
 					return false;
 				}
 
-				result = new ExtendedPublicKey(new PublicKey(ecKey), chainCode, parentFingerprint, depth, childNumber, isTestNet);
+				result = new ExtendedPublicKey(new PublicKey(ecKey), chainCode, parentFingerprint, depth, childIndex, isTestNet);
 			}
 
 			return true;
@@ -221,7 +221,7 @@ public static partial class Bip32HDWallet
 		}
 
 		/// <inheritdoc/>
-		public abstract IExtendedKey Derive(uint childNumber);
+		public abstract IExtendedKey Derive(uint childIndex);
 
 		/// <summary>
 		/// Writes the key material.
@@ -242,7 +242,7 @@ public static partial class Bip32HDWallet
 			bytesWritten += this.Version.CopyToRetLength(destination);
 			destination[bytesWritten++] = this.Depth;
 			bytesWritten += this.ParentFingerprint.CopyToRetLength(destination[bytesWritten..]);
-			bytesWritten += BitUtilities.WriteBE(this.ChildNumber, destination[bytesWritten..]);
+			bytesWritten += BitUtilities.WriteBE(this.ChildIndex, destination[bytesWritten..]);
 			bytesWritten += this.fixedArrays.ChainCode.CopyToRetLength(destination[bytesWritten..]);
 			bytesWritten += this.WriteKeyMaterial(destination[bytesWritten..]);
 

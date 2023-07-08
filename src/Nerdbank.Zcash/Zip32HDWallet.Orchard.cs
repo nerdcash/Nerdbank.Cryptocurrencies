@@ -37,7 +37,7 @@ public partial class Zip32HDWallet
 				chainCode,
 				parentFullViewingKeyTag: default,
 				depth: 0,
-				childNumber: 0,
+				childIndex: 0,
 				testNet);
 		}
 

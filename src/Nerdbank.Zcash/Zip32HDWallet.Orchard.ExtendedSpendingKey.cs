@@ -23,15 +23,15 @@ public partial class Zip32HDWallet
 			/// <param name="chainCode">The chain code.</param>
 			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
 			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
-			/// <param name="childNumber">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
+			/// <param name="childIndex">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
 			/// <param name="isTestNet">A value indicating whether this key is to be used on a testnet.</param>
-			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, bool isTestNet = false)
 			{
 				this.SpendingKey = spendingKey;
 				this.ChainCode = chainCode;
 				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.Depth = depth;
-				this.ChildNumber = childNumber;
+				this.ChildIndex = childIndex;
 				this.IsTestNet = isTestNet;
 			}
 
@@ -52,7 +52,7 @@ public partial class Zip32HDWallet
 			public ChainCode ChainCode { get; }
 
 			/// <inheritdoc/>
-			public uint ChildNumber { get; }
+			public uint ChildIndex { get; }
 
 			/// <inheritdoc/>
 			public byte Depth { get; }
@@ -66,18 +66,18 @@ public partial class Zip32HDWallet
 			internal SpendingKey SpendingKey { get; }
 
 			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
-			public ExtendedSpendingKey Derive(uint childNumber)
+			public ExtendedSpendingKey Derive(uint childIndex)
 			{
-				bool childIsHardened = (childNumber & Bip32HDWallet.HardenedBit) != 0;
+				bool childIsHardened = (childIndex & Bip32HDWallet.HardenedBit) != 0;
 				if (!childIsHardened)
 				{
-					throw new ArgumentException(Strings.OnlyHardenedChildKeysSupported, nameof(childNumber));
+					throw new ArgumentException(Strings.OnlyHardenedChildKeysSupported, nameof(childIndex));
 				}
 
 				Span<byte> bytes = stackalloc byte[32 + 4];
 				int bytesWritten = 0;
 				bytesWritten += this.SpendingKey.Value.CopyToRetLength(bytes);
-				bytesWritten += I2LEOSP(childNumber, bytes.Slice(bytesWritten, 4));
+				bytesWritten += I2LEOSP(childIndex, bytes.Slice(bytesWritten, 4));
 				Span<byte> i = stackalloc byte[64];
 				PRFexpand(this.ChainCode.Value, PrfExpandCodes.OrchardZip32Child, bytes, i);
 				Span<byte> spendingKey = i[0..32];
@@ -89,12 +89,12 @@ public partial class Zip32HDWallet
 					chainCode,
 					parentFullViewingKeyTag: GetFingerprint(this.FullViewingKey).Tag,
 					depth: checked((byte)(this.Depth + 1)),
-					childNumber,
+					childIndex,
 					this.IsTestNet);
 			}
 
 			/// <inheritdoc/>
-			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childNumber) => this.Derive(childNumber);
+			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.

@@ -125,7 +125,7 @@ public abstract class Bip32HDWalletTestBase
 		Assert.Equal(Base58ToHex(expectedBase58Encoding), Base58ToHex(actual.ToString()));
 	}
 
-	public record TestVectorStep(uint ChildNumber, string EncodedPublicKey, string EncodedPrivateKey);
+	public record TestVectorStep(uint ChildIndex, string EncodedPublicKey, string EncodedPrivateKey);
 
 	public record TestVector(string SeedAsHex, params TestVectorStep[] Steps);
 }

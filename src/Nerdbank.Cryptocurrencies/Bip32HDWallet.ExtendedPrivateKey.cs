@@ -19,7 +19,7 @@ public static partial class Bip32HDWallet
 		/// <param name="chainCode">The chain code.</param>
 		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
 		internal ExtendedPrivateKey(PrivateKey key, ReadOnlySpan<byte> chainCode, bool testNet = false)
-			: this(key, chainCode, parentFingerprint: default, depth: 0, childNumber: 0, testNet)
+			: this(key, chainCode, parentFingerprint: default, depth: 0, childIndex: 0, testNet)
 		{
 		}
 
@@ -30,13 +30,13 @@ public static partial class Bip32HDWallet
 		/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
 		/// <param name="parentFingerprint"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='parentFingerprint']"/></param>
 		/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='depth']"/></param>
-		/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
+		/// <param name="childIndex"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childIndex']"/></param>
 		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
-		internal ExtendedPrivateKey(PrivateKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childNumber, bool testNet = false)
-			: base(chainCode, parentFingerprint, depth, childNumber, testNet)
+		internal ExtendedPrivateKey(PrivateKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet = false)
+			: base(chainCode, parentFingerprint, depth, childIndex, testNet)
 		{
 			this.Key = key;
-			this.PublicKey = new ExtendedPublicKey(this.Key.PublicKey, this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildNumber, this.IsTestNet);
+			this.PublicKey = new ExtendedPublicKey(this.Key.PublicKey, this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildIndex, this.IsTestNet);
 		}
 
 		/// <summary>
@@ -92,11 +92,11 @@ public static partial class Bip32HDWallet
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
 		/// <inheritdoc/>
-		public override ExtendedPrivateKey Derive(uint childNumber)
+		public override ExtendedPrivateKey Derive(uint childIndex)
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
-			BitUtilities.WriteBE(childNumber, hashInput[PublicKeyLength..]);
-			if ((childNumber & HardenedBit) != 0)
+			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
+			if ((childIndex & HardenedBit) != 0)
 			{
 				this.Key.Key.WriteToSpan(hashInput[1..]);
 			}
@@ -122,7 +122,7 @@ public static partial class Bip32HDWallet
 			byte childDepth = checked((byte)(this.Depth + 1));
 
 			Assumes.NotNull(pvk); // bad null ref annotation in the Secp256k1 library.
-			return new ExtendedPrivateKey(new(pvk), childChainCode, this.Identifier[..4], childDepth, childNumber, this.IsTestNet);
+			return new ExtendedPrivateKey(new(pvk), childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet);
 		}
 
 		/// <inheritdoc/>

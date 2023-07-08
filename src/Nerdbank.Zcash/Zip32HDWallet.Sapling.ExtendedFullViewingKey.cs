@@ -25,7 +25,7 @@ public partial class Zip32HDWallet
 				this.Dk = spendingKey.Dk;
 				this.ParentFullViewingKeyTag = spendingKey.ParentFullViewingKeyTag;
 				this.ChainCode = spendingKey.ChainCode;
-				this.ChildNumber = spendingKey.ChildNumber;
+				this.ChildIndex = spendingKey.ChildIndex;
 				this.Depth = spendingKey.Depth;
 				this.IsTestNet = spendingKey.IsTestNet;
 			}
@@ -38,15 +38,15 @@ public partial class Zip32HDWallet
 			/// <param name="chainCode">The chain code.</param>
 			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
 			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
-			/// <param name="childNumber">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
+			/// <param name="childIndex">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
 			/// <param name="isTestNet">A value indicating whether this key is to be used on a testnet.</param>
-			internal ExtendedFullViewingKey(FullViewingKey key, DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+			internal ExtendedFullViewingKey(FullViewingKey key, DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, bool isTestNet = false)
 			{
 				this.Key = key;
 				this.Dk = dk;
 				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.ChainCode = chainCode;
-				this.ChildNumber = childNumber;
+				this.ChildIndex = childIndex;
 				this.Depth = depth;
 				this.IsTestNet = isTestNet;
 			}
@@ -69,7 +69,7 @@ public partial class Zip32HDWallet
 			public ChainCode ChainCode { get; }
 
 			/// <inheritdoc/>
-			public uint ChildNumber { get; }
+			public uint ChildIndex { get; }
 
 			/// <inheritdoc/>
 			public byte Depth { get; }
@@ -89,12 +89,12 @@ public partial class Zip32HDWallet
 			internal DiversifierKey Dk { get; }
 
 			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
-			public ExtendedFullViewingKey Derive(uint childNumber)
+			public ExtendedFullViewingKey Derive(uint childIndex)
 			{
 				Span<byte> selfAsBytes = stackalloc byte[169];
 				Span<byte> childAsBytes = stackalloc byte[169];
 				this.Encode(selfAsBytes);
-				if (NativeMethods.DeriveSaplingChildFullViewingKey(selfAsBytes, childNumber, childAsBytes) != 0)
+				if (NativeMethods.DeriveSaplingChildFullViewingKey(selfAsBytes, childIndex, childAsBytes) != 0)
 				{
 					throw new InvalidKeyException();
 				}
@@ -103,7 +103,7 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
-			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childNumber) => this.Derive(childNumber);
+			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			/// <summary>
 			/// Creates a sapling receiver using this key and a given diversifier.
@@ -166,11 +166,11 @@ public partial class Zip32HDWallet
 			{
 				byte depth = encoded[0];
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
-				uint childNumber = BitUtilities.ReadUInt32LE(encoded[5..9]);
+				uint childIndex = BitUtilities.ReadUInt32LE(encoded[5..9]);
 				ChainCode chainCode = new(encoded[9..41]);
 				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137], isTestNet);
 				DiversifierKey dk = new(encoded[137..169]);
-				return new(fvk, dk, chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet);
+				return new(fvk, dk, chainCode, parentFullViewingKeyTag, depth, childIndex, isTestNet);
 			}
 
 			/// <summary>
@@ -186,7 +186,7 @@ public partial class Zip32HDWallet
 				int length = 0;
 				result[length++] = this.Depth;
 				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
-				length += BitUtilities.WriteLE(this.ChildNumber, result[length..]);
+				length += BitUtilities.WriteLE(this.ChildIndex, result[length..]);
 				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
 				length += this.Key.ToBytes(result[length..]);
 				length += this.Dk.Value.CopyToRetLength(result[length..]);

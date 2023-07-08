@@ -14,7 +14,7 @@ namespace Nerdbank.Zcash;
 /// Shielded Hierarchical Deterministic Wallets as defined in
 /// <see href="https://zips.z.cash/zip-0032">ZIP-32</see>.
 /// </summary>
-public partial class Zip32HDWallet
+public static partial class Zip32HDWallet
 {
 	/// <summary>
 	/// The coin type to use in the key derivation path.
