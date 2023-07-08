@@ -48,7 +48,7 @@ public class Zip32HDWalletTests : TestBase
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
 		Zip32HDWallet.Orchard.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Orchard.Create(mnemonic);
 		Zip32HDWallet.Orchard.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
-		OrchardReceiver receiver = accountSpendingKey.FullViewingKey.Key.CreateReceiver(0);
+		OrchardReceiver receiver = accountSpendingKey.FullViewingKey.CreateReceiver(0);
 		OrchardAddress address = new(receiver);
 		this.logger.WriteLine(address);
 		Assert.Equal("u1zpfqm4r0cc5ttvt4mft6nvyqe3uwsdcgx65s44sd3ar42rnkz7v9az0ez7dpyxvjcyj9x0sd89yy7635vn8fplwvg6vn4tr6wqpyxqaw", address.Address);

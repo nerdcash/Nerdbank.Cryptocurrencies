@@ -12,7 +12,7 @@ public partial class Zip32HDWallet
 		/// </summary>
 		public class ExtendedSpendingKey : ExtendedKeyBase
 		{
-			private ExtendedFullViewingKey? fullViewingKey;
+			private FullViewingKey? fullViewingKey;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class.
@@ -30,9 +30,9 @@ public partial class Zip32HDWallet
 			}
 
 			/// <summary>
-			/// Gets the extended full viewing key.
+			/// Gets the full viewing key.
 			/// </summary>
-			public ExtendedFullViewingKey FullViewingKey => this.fullViewingKey ??= new(this);
+			public FullViewingKey FullViewingKey => this.fullViewingKey ??= new(this.SpendingKey);
 
 			/// <summary>
 			/// Gets the spending key itself.
