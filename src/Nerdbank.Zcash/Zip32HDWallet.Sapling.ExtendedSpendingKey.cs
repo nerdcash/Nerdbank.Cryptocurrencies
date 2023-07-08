@@ -27,8 +27,8 @@ public partial class Zip32HDWallet
 			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
 			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
 			/// <param name="childIndex">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
-			/// <param name="isTestNet">A value indicating whether this key is to be used on a testnet.</param>
-			internal ExtendedSpendingKey(in ExpandedSpendingKey key, in DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, bool isTestNet = false)
+			/// <param name="network">The network this key should be used with.</param>
+			internal ExtendedSpendingKey(in ExpandedSpendingKey key, in DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, ZcashNetwork network = ZcashNetwork.MainNet)
 			{
 				this.ExpandedSpendingKey = key;
 				this.Dk = dk;
@@ -36,7 +36,7 @@ public partial class Zip32HDWallet
 				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.Depth = depth;
 				this.ChildIndex = childIndex;
-				this.IsTestNet = isTestNet;
+				this.Network = network;
 			}
 
 			/// <summary>
@@ -60,7 +60,10 @@ public partial class Zip32HDWallet
 			public byte Depth { get; }
 
 			/// <inheritdoc/>
-			public bool IsTestNet { get; }
+			public ZcashNetwork Network { get; }
+
+			/// <inheritdoc/>
+			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
 			/// <summary>
 			/// Gets the default address for this spending key.
@@ -69,7 +72,7 @@ public partial class Zip32HDWallet
 			/// Create additional diversified addresses using <see cref="DiversifiableFullViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
 			/// found on the <see cref="FullViewingKey"/> property's <see cref="ExtendedFullViewingKey.Key"/> property.
 			/// </remarks>
-			public SaplingAddress DefaultAddress => new(this.FullViewingKey.Key.CreateDefaultReceiver(), this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
+			public SaplingAddress DefaultAddress => new(this.FullViewingKey.Key.CreateDefaultReceiver(), this.Network);
 
 			/// <summary>
 			/// Gets the expanded spending key (one that has ask, nsk, and ovk derived from the raw 32-byte spending key).
@@ -92,13 +95,13 @@ public partial class Zip32HDWallet
 					throw new InvalidKeyException();
 				}
 
-				return Decode(childAsBytes, this.IsTestNet);
+				return Decode(childAsBytes, this.Network);
 			}
 
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
-			private static ExtendedSpendingKey Decode(ReadOnlySpan<byte> encoded, bool isTestNet)
+			private static ExtendedSpendingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
 			{
 				byte depth = encoded[0];
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
@@ -106,7 +109,7 @@ public partial class Zip32HDWallet
 				ChainCode chainCode = new(encoded[9..41]);
 				ExpandedSpendingKey expsk = ExpandedSpendingKey.FromBytes(encoded[41..137]);
 				DiversifierKey dk = new(encoded[137..169]);
-				return new(expsk, dk, chainCode, parentFullViewingKeyTag, depth, childIndex, isTestNet);
+				return new(expsk, dk, chainCode, parentFullViewingKeyTag, depth, childIndex, network);
 			}
 
 			/// <summary>

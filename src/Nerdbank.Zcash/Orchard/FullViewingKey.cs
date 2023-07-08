@@ -17,15 +17,20 @@ public class FullViewingKey : IKey
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 	/// </summary>
 	/// <param name="rawEncoding">The 96-byte raw encoding of the full viewing key.</param>
-	/// <param name="isTestNet">A value indicating whether this key is for use on the testnet.</param>
-	internal FullViewingKey(ReadOnlySpan<byte> rawEncoding, bool isTestNet)
+	/// <param name="network">The network this key should be used with.</param>
+	internal FullViewingKey(ReadOnlySpan<byte> rawEncoding, ZcashNetwork network)
 	{
 		this.rawEncoding = new(rawEncoding);
-		this.IsTestNet = isTestNet;
+		this.Network = network;
 	}
 
+	/// <summary>
+	/// Gets the network this key should be used with.
+	/// </summary>
+	public ZcashNetwork Network { get; }
+
 	/// <inheritdoc/>
-	public bool IsTestNet { get; }
+	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
 	/// <summary>
 	/// Gets the spend validating key.

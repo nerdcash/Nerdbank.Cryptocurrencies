@@ -25,15 +25,15 @@ public partial class Zip32HDWallet
 			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
 			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
 			/// <param name="childIndex">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
-			/// <param name="isTestNet">A value indicating whether this key is to be used on a testnet.</param>
-			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, bool isTestNet = false)
+			/// <param name="network">The network this key should be used with.</param>
+			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, ZcashNetwork network = ZcashNetwork.MainNet)
 			{
 				this.SpendingKey = spendingKey;
 				this.ChainCode = chainCode;
 				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.Depth = depth;
 				this.ChildIndex = childIndex;
-				this.IsTestNet = isTestNet;
+				this.Network = network;
 			}
 
 			/// <summary>
@@ -59,7 +59,10 @@ public partial class Zip32HDWallet
 			public byte Depth { get; }
 
 			/// <inheritdoc/>
-			public bool IsTestNet { get; }
+			public ZcashNetwork Network { get; }
+
+			/// <inheritdoc/>
+			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
 			/// <summary>
 			/// Gets the default address for this spending key.
@@ -69,7 +72,7 @@ public partial class Zip32HDWallet
 			/// </remarks>
 			/// <seealso cref="FullViewingKey.CreateDefaultReceiver"/>
 			/// <seealso cref="FullViewingKey.CreateReceiver(System.Numerics.BigInteger)"/>
-			public OrchardAddress DefaultAddress => new(this.FullViewingKey.CreateDefaultReceiver(), this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
+			public OrchardAddress DefaultAddress => new(this.FullViewingKey.CreateDefaultReceiver(), this.Network);
 
 			/// <summary>
 			/// Gets the spending key itself.
@@ -101,7 +104,7 @@ public partial class Zip32HDWallet
 					parentFullViewingKeyTag: GetFingerprint(this.FullViewingKey).Tag,
 					depth: checked((byte)(this.Depth + 1)),
 					childIndex,
-					this.IsTestNet);
+					this.Network);
 			}
 
 			/// <inheritdoc/>
@@ -118,7 +121,7 @@ public partial class Zip32HDWallet
 					throw new ArgumentException(Strings.InvalidKey);
 				}
 
-				return new(fvk, this.IsTestNet);
+				return new(fvk, this.Network);
 			}
 		}
 	}

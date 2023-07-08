@@ -15,8 +15,8 @@ public class FullViewingKey : IKey
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 	/// </summary>
 	/// <param name="spendingKey">The spending key from which to derive this full viewing key.</param>
-	/// <param name="isTestNet">A value indicating whether this key is for use with testnet.</param>
-	internal FullViewingKey(in ExpandedSpendingKey spendingKey, bool isTestNet)
+	/// <param name="network">The network this key should be used with.</param>
+	internal FullViewingKey(in ExpandedSpendingKey spendingKey, ZcashNetwork network)
 	{
 		Span<byte> fvk_bytes = stackalloc byte[96];
 		if (NativeMethods.TryGetSaplingFullViewingKeyFromExpandedSpendingKey(spendingKey.ToBytes().Value, fvk_bytes) != 0)
@@ -26,7 +26,7 @@ public class FullViewingKey : IKey
 
 		this.ViewingKey = new(new(fvk_bytes[..32]), new(fvk_bytes[32..64]));
 		this.Ovk = new(fvk_bytes[64..96]);
-		this.IsTestNet = isTestNet;
+		this.Network = network;
 	}
 
 	/// <summary>
@@ -34,16 +34,21 @@ public class FullViewingKey : IKey
 	/// </summary>
 	/// <param name="viewingKey">The incoming viewing key.</param>
 	/// <param name="ovk">The outgoing viewing key.</param>
-	/// <param name="isTestNet">A value indicating whether this key is for use on the testnet.</param>
-	internal FullViewingKey(IncomingViewingKey viewingKey, OutgoingViewingKey ovk, bool isTestNet)
+	/// <param name="network">The network this key should be used with.</param>
+	internal FullViewingKey(IncomingViewingKey viewingKey, OutgoingViewingKey ovk, ZcashNetwork network)
 	{
 		this.ViewingKey = viewingKey;
 		this.Ovk = ovk;
-		this.IsTestNet = isTestNet;
+		this.Network = network;
 	}
 
+	/// <summary>
+	/// Gets the network this key should be used with.
+	/// </summary>
+	public ZcashNetwork Network { get; }
+
 	/// <inheritdoc/>
-	public bool IsTestNet { get; }
+	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
 	/// <summary>
 	/// Gets the viewing key.
@@ -70,14 +75,14 @@ public class FullViewingKey : IKey
 	/// by deserializing it from a buffer.
 	/// </summary>
 	/// <param name="buffer">The 96-byte buffer to read from.</param>
-	/// <param name="isTestNet">A value indicating whether this key is for use with testnet.</param>
+	/// <param name="network">The network this key should be used with.</param>
 	/// <returns>The deserialized key.</returns>
-	internal static FullViewingKey FromBytes(ReadOnlySpan<byte> buffer, bool isTestNet)
+	internal static FullViewingKey FromBytes(ReadOnlySpan<byte> buffer, ZcashNetwork network)
 	{
 		SubgroupPoint ak = new(buffer[0..32]);
 		NullifierDerivingKey nk = new(buffer[32..64]);
 		OutgoingViewingKey ovk = new(buffer[64..96]);
-		return new FullViewingKey(new IncomingViewingKey(ak, nk), ovk, isTestNet);
+		return new FullViewingKey(new IncomingViewingKey(ak, nk), ovk, network);
 	}
 
 	/// <summary>

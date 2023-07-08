@@ -11,6 +11,11 @@ public partial class Zip32HDWallet
 	public interface IExtendedKey : Cryptocurrencies.IExtendedKey
 	{
 		/// <summary>
+		/// Gets the network this key should be used with.
+		/// </summary>
+		ZcashNetwork Network { get; }
+
+		/// <summary>
 		/// Gets the key's fingerprint.
 		/// </summary>
 		FullViewingKeyFingerprint Fingerprint { get; }

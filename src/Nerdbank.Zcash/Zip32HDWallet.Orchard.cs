@@ -12,18 +12,18 @@ public partial class Zip32HDWallet
 	/// </summary>
 	public static partial class Orchard
 	{
-		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, bool)"/>
+		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)"/>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
-		/// <param name="testNet"><inheritdoc cref="Create(ReadOnlySpan{byte}, bool)" path="/param[@name='testNet']"/></param>
-		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, bool testNet = false) => Create(Requires.NotNull(mnemonic).Seed, testNet);
+		/// <param name="network"><inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)" path="/param[@name='network']"/></param>
+		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network) => Create(Requires.NotNull(mnemonic).Seed, network);
 
 		/// <summary>
 		/// Creates a master key for the Orchard pool.
 		/// </summary>
 		/// <param name="seed">The seed for use to generate the master key. A given seed will always produce the same master key.</param>
-		/// <param name="testNet"><see langword="true" /> to create a key for use on the Zcash testnet; <see langword="false"/> otherwise.</param>
+		/// <param name="network">The network this key should be used with.</param>
 		/// <returns>A master extended spending key.</returns>
-		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, bool testNet = false)
+		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, ZcashNetwork network)
 		{
 			// Rust: assert!(seed.len() >= 32 && seed.len() <= 252);
 			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
@@ -38,7 +38,7 @@ public partial class Zip32HDWallet
 				parentFullViewingKeyTag: default,
 				depth: 0,
 				childIndex: 0,
-				testNet);
+				network);
 		}
 
 		/// <summary>

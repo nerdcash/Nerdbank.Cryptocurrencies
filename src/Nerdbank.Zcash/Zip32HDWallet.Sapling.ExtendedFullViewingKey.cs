@@ -21,7 +21,7 @@ public partial class Zip32HDWallet
 			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
 			internal ExtendedFullViewingKey(ExtendedSpendingKey spendingKey)
 			{
-				this.Key = new(spendingKey.ExpandedSpendingKey, spendingKey.Dk, spendingKey.IsTestNet);
+				this.Key = new(spendingKey.ExpandedSpendingKey, spendingKey.Dk, spendingKey.Network);
 				this.ParentFullViewingKeyTag = spendingKey.ParentFullViewingKeyTag;
 				this.ChainCode = spendingKey.ChainCode;
 				this.ChildIndex = spendingKey.ChildIndex;
@@ -61,7 +61,10 @@ public partial class Zip32HDWallet
 			public byte Depth { get; }
 
 			/// <inheritdoc/>
-			public bool IsTestNet => this.Key.IsTestNet;
+			public ZcashNetwork Network => this.Key.Network;
+
+			/// <inheritdoc/>
+			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
 			/// <summary>
 			/// Gets the full viewing key.
@@ -85,21 +88,21 @@ public partial class Zip32HDWallet
 					throw new InvalidKeyException();
 				}
 
-				return Decode(childAsBytes, this.IsTestNet);
+				return Decode(childAsBytes, this.Network);
 			}
 
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
-			private static ExtendedFullViewingKey Decode(ReadOnlySpan<byte> encoded, bool isTestNet)
+			private static ExtendedFullViewingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
 			{
 				byte depth = encoded[0];
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
 				uint childIndex = BitUtilities.ReadUInt32LE(encoded[5..9]);
 				ChainCode chainCode = new(encoded[9..41]);
-				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137], isTestNet);
+				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137], network);
 				DiversifierKey dk = new(encoded[137..169]);
-				DiversifiableFullViewingKey dfvk = new(fvk, dk, isTestNet);
+				DiversifiableFullViewingKey dfvk = new(fvk, dk, network);
 				return new(dfvk, chainCode, parentFullViewingKeyTag, depth, childIndex);
 			}
 

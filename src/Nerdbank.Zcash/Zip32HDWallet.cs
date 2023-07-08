@@ -41,9 +41,9 @@ public partial class Zip32HDWallet
 	/// Initializes a new instance of the <see cref="Zip32HDWallet"/> class.
 	/// </summary>
 	/// <param name="mnemonic">The BIP-39 mnemonic used to generate this HD wallet.</param>
-	/// <param name="isTestNet">A value indicating whether this wallet is to be used on the testnet.</param>
-	public Zip32HDWallet(Bip39Mnemonic mnemonic, bool isTestNet = false)
-		: this(Requires.NotNull(mnemonic).Seed, isTestNet)
+	/// <param name="network">The network this key should be used with.</param>
+	public Zip32HDWallet(Bip39Mnemonic mnemonic, ZcashNetwork network = ZcashNetwork.MainNet)
+		: this(Requires.NotNull(mnemonic).Seed, network)
 	{
 		this.Mnemonic = mnemonic;
 	}
@@ -52,13 +52,13 @@ public partial class Zip32HDWallet
 	/// Initializes a new instance of the <see cref="Zip32HDWallet"/> class.
 	/// </summary>
 	/// <param name="seed">The seed used for master keys created within this wallet.</param>
-	/// <param name="isTestNet">A value indicating whether this wallet is to be used on the testnet.</param>
-	public Zip32HDWallet(ReadOnlySpan<byte> seed, bool isTestNet = false)
+	/// <param name="network">The network this key should be used with.</param>
+	public Zip32HDWallet(ReadOnlySpan<byte> seed, ZcashNetwork network = ZcashNetwork.MainNet)
 	{
-		this.IsTestNet = isTestNet;
+		this.Network = network;
 		this.Seed = seed.ToArray();
-		this.masterOrchardKey = Orchard.Create(this.Seed.Span, this.IsTestNet);
-		this.masterSaplingKey = Sapling.Create(this.Seed.Span, this.IsTestNet);
+		this.masterOrchardKey = Orchard.Create(this.Seed.Span, this.Network);
+		this.masterSaplingKey = Sapling.Create(this.Seed.Span, this.Network);
 	}
 
 	private enum PrfExpandCodes : byte
@@ -85,9 +85,9 @@ public partial class Zip32HDWallet
 	}
 
 	/// <summary>
-	/// Gets a value indicating whether this wallet is meant for use on the testnet.
+	/// Gets the network this wallet is meant to be used with.
 	/// </summary>
-	public bool IsTestNet { get; }
+	public ZcashNetwork Network { get; }
 
 	/// <summary>
 	/// Gets the mnemonic that was used to create this wallet, if applicable.

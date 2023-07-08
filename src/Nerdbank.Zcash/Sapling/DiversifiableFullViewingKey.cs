@@ -16,9 +16,9 @@ public class DiversifiableFullViewingKey : FullViewingKey
 	/// </summary>
 	/// <param name="spendingKey">The expanded spending key.</param>
 	/// <param name="dk">The diversifier key, which allows for generating many addresses that send funds to the same spending authority.</param>
-	/// <param name="isTestNet">A value indicating whether this key is for use on the testnet.</param>
-	internal DiversifiableFullViewingKey(in ExpandedSpendingKey spendingKey, DiversifierKey dk, bool isTestNet)
-		: base(spendingKey, isTestNet)
+	/// <param name="network">The network this key should be used with.</param>
+	internal DiversifiableFullViewingKey(in ExpandedSpendingKey spendingKey, DiversifierKey dk, ZcashNetwork network)
+		: base(spendingKey, network)
 	{
 		this.Dk = dk;
 	}
@@ -28,9 +28,9 @@ public class DiversifiableFullViewingKey : FullViewingKey
 	/// </summary>
 	/// <param name="fullViewingKey">The full viewing key.</param>
 	/// <param name="dk">The diversifier key.</param>
-	/// <param name="isTestNet">A value indicating whether this key is for use on the testnet.</param>
-	internal DiversifiableFullViewingKey(FullViewingKey fullViewingKey, DiversifierKey dk, bool isTestNet)
-		: base(fullViewingKey.ViewingKey, fullViewingKey.Ovk, isTestNet)
+	/// <param name="network">The network this key should be used with.</param>
+	internal DiversifiableFullViewingKey(FullViewingKey fullViewingKey, DiversifierKey dk, ZcashNetwork network)
+		: base(fullViewingKey.ViewingKey, fullViewingKey.Ovk, network)
 	{
 		this.Dk = dk;
 	}
