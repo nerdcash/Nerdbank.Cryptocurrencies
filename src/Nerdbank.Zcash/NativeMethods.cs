@@ -22,7 +22,7 @@ internal static unsafe class NativeMethods
 		{
 			fixed (byte* fvk = fullViewingKey)
 			{
-				return NativeMethods.get_orchard_fvk_bytes_from_sk_bytes(sk, fvk);
+				return get_orchard_fvk_bytes_from_sk_bytes(sk, fvk);
 			}
 		}
 	}
@@ -48,7 +48,7 @@ internal static unsafe class NativeMethods
 			{
 				fixed (byte* p = rawPaymentAddress)
 				{
-					return NativeMethods.get_orchard_raw_payment_address_from_fvk(fvk, pd, p);
+					return get_orchard_raw_payment_address_from_fvk(fvk, pd, p);
 				}
 			}
 		}
