@@ -166,6 +166,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bs58"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5353f36341f7451062466f0b755b96ac3a9547e4d7f6b70d603fc721a7d7896"
+dependencies = [
+ "sha2 0.10.7",
+ "tinyvec",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -714,7 +724,7 @@ version = "0.1.0"
 dependencies = [
  "orchard 0.5.0",
  "zcash_client_backend",
- "zcash_primitives",
+ "zcash_primitives 0.12.0",
 ]
 
 [[package]]
@@ -1702,7 +1712,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52be35a205369d480378646bff9c9fedafd8efe8af1e0e54bb858f405883f2b2"
 dependencies = [
  "bech32",
- "bs58",
+ "bs58 0.4.0",
+ "f4jumble",
+ "zcash_encoding",
+]
+
+[[package]]
+name = "zcash_address"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8944af5c206cf2e37020ad54618e1825501b98548d35a638b73e0ec5762df8d5"
+dependencies = [
+ "bech32",
+ "bs58 0.5.0",
  "f4jumble",
  "zcash_encoding",
 ]
@@ -1716,7 +1738,7 @@ dependencies = [
  "base64",
  "bech32",
  "bls12_381",
- "bs58",
+ "bs58 0.4.0",
  "crossbeam-channel",
  "group",
  "memuse",
@@ -1731,10 +1753,10 @@ dependencies = [
  "tonic-build",
  "tracing",
  "which",
- "zcash_address",
+ "zcash_address 0.2.1",
  "zcash_encoding",
  "zcash_note_encryption 0.3.0",
- "zcash_primitives",
+ "zcash_primitives 0.11.0",
 ]
 
 [[package]]
@@ -1801,9 +1823,42 @@ dependencies = [
  "rand_core",
  "sha2 0.10.7",
  "subtle",
- "zcash_address",
+ "zcash_address 0.2.1",
  "zcash_encoding",
  "zcash_note_encryption 0.3.0",
+]
+
+[[package]]
+name = "zcash_primitives"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de1a231e6a58d3dcdd6e21d229db33d7c10f9b54d8c170e122b267f6826bb48f"
+dependencies = [
+ "aes",
+ "bip0039",
+ "bitvec",
+ "blake2b_simd",
+ "blake2s_simd",
+ "bls12_381",
+ "byteorder",
+ "equihash",
+ "ff",
+ "fpe",
+ "group",
+ "hex",
+ "incrementalmerkletree 0.4.0",
+ "jubjub",
+ "lazy_static",
+ "memuse",
+ "nonempty",
+ "orchard 0.5.0",
+ "rand",
+ "rand_core",
+ "sha2 0.10.7",
+ "subtle",
+ "zcash_address 0.3.0",
+ "zcash_encoding",
+ "zcash_note_encryption 0.4.0",
 ]
 
 [[package]]
