@@ -4,11 +4,33 @@ use zcash_client_backend::encoding::encode_payment_address;
 use zcash_primitives::{
     consensus::{MainNetwork, Parameters},
     sapling::keys::{ExpandedSpendingKey, FullViewingKey},
-    zip32::{ChildIndex, DiversifiableFullViewingKey, DiversifierIndex, ExtendedSpendingKey},
+    zip32::{ChildIndex, DiversifiableFullViewingKey, DiversifierIndex, ExtendedSpendingKey, ExtendedFullViewingKey},
 };
 
 const PURPOSE: u32 = 32;
 const COIN_TYPE: u32 = 133;
+
+#[no_mangle]
+pub extern "C" fn derive_sapling_child_fvk(
+	ext_fvk: *const [u8; 169],
+	child_index: u32,
+	child: *mut [u8; 169],
+) -> i32 {
+	let ext_fvk = unsafe { &*ext_fvk };
+	let child_index = ChildIndex::from_index(child_index);
+	let child_bytes = unsafe { &mut *child };
+
+	// Do the same thing as derive_child, but write the result to the child variable and return an error code when it fails.
+	if let Ok(fvk) =  ExtendedFullViewingKey::read(&ext_fvk[..]) {
+		if let Ok(derived_child) = fvk.derive_child(child_index) {
+			if derived_child.write(&mut child_bytes[..]).is_ok() {
+				return 0
+			}
+		}
+	}
+
+	return -1;
+}
 
 #[no_mangle]
 pub extern "C" fn derive_sapling_child(

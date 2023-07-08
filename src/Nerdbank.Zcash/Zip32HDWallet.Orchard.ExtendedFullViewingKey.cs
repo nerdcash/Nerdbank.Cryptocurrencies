@@ -59,7 +59,8 @@ public partial class Zip32HDWallet
 			/// <inheritdoc/>
 			public override ExtendedKeyBase Derive(uint childNumber)
 			{
-				throw new NotImplementedException();
+				// Orchard does not define child key derivation based on full viewing keys.
+				throw new NotSupportedException();
 			}
 		}
 	}

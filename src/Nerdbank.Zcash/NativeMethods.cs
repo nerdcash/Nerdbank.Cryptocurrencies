@@ -153,6 +153,29 @@ internal static unsafe class NativeMethods
 	}
 
 	/// <summary>
+	/// Derives a child full viewing key from an existing one.
+	/// </summary>
+	/// <param name="extendedFullViewingKey">The 169-byte form of an extended full viewing key.</param>
+	/// <param name="childIndex">The index of the child key to derive.</param>
+	/// <param name="childExtendedFVK">The 169-byte buffer that will receive the child extended full viewing key.</param>
+	/// <returns>0 on success; otherwise a negative error code.</returns>
+	internal static int DeriveSaplingChildFullViewingKey(ReadOnlySpan<byte> extendedFullViewingKey, uint childIndex, Span<byte> childExtendedFVK)
+	{
+		if (extendedFullViewingKey.Length != 169 || childExtendedFVK.Length != 169)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* pParentFVK = extendedFullViewingKey)
+		{
+			fixed (byte* pChildFVK = childExtendedFVK)
+			{
+				return derive_sapling_child_fvk(pParentFVK, childIndex, pChildFVK);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="sk">A pointer to a 32-byte buffer containing the spending key.</param>
@@ -182,4 +205,7 @@ internal static unsafe class NativeMethods
 
 	[DllImport(LibraryName)]
 	private static extern int derive_sapling_child(byte* extSK, uint child_index, byte* childSK);
+
+	[DllImport(LibraryName)]
+	private static extern int derive_sapling_child_fvk(byte* ext_fvk, uint child_index, byte* child_ext_fvk);
 }

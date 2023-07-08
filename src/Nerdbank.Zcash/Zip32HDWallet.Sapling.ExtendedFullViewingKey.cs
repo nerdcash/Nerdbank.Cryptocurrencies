@@ -26,6 +26,23 @@ public partial class Zip32HDWallet
 			}
 
 			/// <summary>
+			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
+			/// </summary>
+			/// <param name="key">The full viewing key.</param>
+			/// <param name="dk">The diversifier key.</param>
+			/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
+			/// <param name="parentFullViewingKeyTag"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='parentFullViewingKeyTag']"/></param>
+			/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='depth']"/></param>
+			/// <param name="childNumber"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='childNumber']"/></param>
+			/// <param name="isTestNet"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in FullViewingKeyTag, byte, uint, bool)" path="/param[@name='isTestNet']"/></param>
+			internal ExtendedFullViewingKey(FullViewingKey key, DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childNumber, bool isTestNet = false)
+				: base(chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet)
+			{
+				this.Key = key;
+				this.Dk = dk;
+			}
+
+			/// <summary>
 			/// Gets the fingerprint for this key.
 			/// </summary>
 			/// <remarks>
@@ -50,7 +67,15 @@ public partial class Zip32HDWallet
 			/// <inheritdoc/>
 			public override ExtendedFullViewingKey Derive(uint childNumber)
 			{
-				throw new NotImplementedException();
+				Span<byte> selfAsBytes = stackalloc byte[169];
+				Span<byte> childAsBytes = stackalloc byte[169];
+				this.Encode(selfAsBytes);
+				if (NativeMethods.DeriveSaplingChildFullViewingKey(selfAsBytes, childNumber, childAsBytes) != 0)
+				{
+					throw new InvalidKeyException();
+				}
+
+				return Decode(childAsBytes, this.IsTestNet);
 			}
 
 			/// <summary>
@@ -79,7 +104,7 @@ public partial class Zip32HDWallet
 				}
 
 				Span<byte> fvk = stackalloc byte[96];
-				this.Key.GetRawEncoding(fvk);
+				this.Key.ToBytes(fvk);
 
 				Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
 				if (NativeMethods.TryGetSaplingReceiver(fvk, this.Dk.Value, indexBytes, receiverBytes) != 0)
@@ -107,6 +132,38 @@ public partial class Zip32HDWallet
 				length += this.Key.Nk.Value.CopyToRetLength(result[length..]);
 				length += this.Key.Ovk.Value.CopyToRetLength(result[length..]);
 				length += this.Dk.Value.CopyToRetLength(result[length..]);
+				return length;
+			}
+
+			private static ExtendedFullViewingKey Decode(ReadOnlySpan<byte> encoded, bool isTestNet)
+			{
+				byte depth = encoded[0];
+				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
+				uint childNumber = BitUtilities.ReadUInt32LE(encoded[5..9]);
+				ChainCode chainCode = new(encoded[9..41]);
+				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137]);
+				DiversifierKey dk = new(encoded[137..169]);
+				return new(fvk, dk, chainCode, parentFullViewingKeyTag, depth, childNumber, isTestNet);
+			}
+
+			/// <summary>
+			/// Encodes the entire extended spending key.
+			/// </summary>
+			/// <param name="result">A buffer of at least 169 bytes in length.</param>
+			/// <returns>The number of bytes written. Always 169.</returns>
+			/// <remarks>
+			/// This is designed to exactly match how rust encodes the extended full viewing key so we can exchange the data.
+			/// </remarks>
+			private int Encode(Span<byte> result)
+			{
+				int length = 0;
+				result[length++] = this.Depth;
+				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
+				length += BitUtilities.WriteLE(this.ChildNumber, result[length..]);
+				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
+				length += this.Key.ToBytes(result[length..]);
+				length += this.Dk.Value.CopyToRetLength(result[length..]);
+				Assumes.True(length == 169);
 				return length;
 			}
 		}

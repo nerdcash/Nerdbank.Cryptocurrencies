@@ -32,13 +32,25 @@ public partial class Zip32HDWallet
 				this.Ovk = new(fvk_bytes[64..96]);
 			}
 
+			private FullViewingKey(ViewingKey viewingKey, OutgoingViewingKey ovk)
+			{
+				this.ViewingKey = viewingKey;
+				this.Ovk = ovk;
+			}
+
 			/// <summary>
 			/// Gets the viewing key.
 			/// </summary>
 			internal ViewingKey ViewingKey { get; }
 
+			/// <summary>
+			/// Gets the Ak element.
+			/// </summary>
 			internal SubgroupPoint Ak => this.ViewingKey.Ak;
 
+			/// <summary>
+			/// Gets the Nk element.
+			/// </summary>
 			internal NullifierDerivingKey Nk => this.ViewingKey.Nk;
 
 			/// <summary>
@@ -55,7 +67,7 @@ public partial class Zip32HDWallet
 				{
 					Span<byte> fingerprint = stackalloc byte[32];
 					Span<byte> fvk = stackalloc byte[96];
-					this.GetRawEncoding(fvk);
+					this.ToBytes(fvk);
 					Blake2B.ComputeHash(fvk, fingerprint, new Blake2B.Config { Personalization = "ZcashSaplingFVFP"u8, OutputSizeInBytes = 32 });
 					return new(fingerprint);
 				}
@@ -67,6 +79,20 @@ public partial class Zip32HDWallet
 			internal FullViewingKeyTag Tag => new(this.Fingerprint.Value[..4]);
 
 			/// <summary>
+			/// Initializes a new instance of the <see cref="FullViewingKey"/> class
+			/// by deserializing it from a buffer.
+			/// </summary>
+			/// <param name="buffer">The 96-byte buffer to read from.</param>
+			/// <returns>The deserialized key.</returns>
+			internal static FullViewingKey FromBytes(ReadOnlySpan<byte> buffer)
+			{
+				SubgroupPoint ak = new(buffer[0..32]);
+				NullifierDerivingKey nk = new(buffer[32..64]);
+				OutgoingViewingKey ovk = new(buffer[64..96]);
+				return new FullViewingKey(new ViewingKey(ak, nk), ovk);
+			}
+
+			/// <summary>
 			/// Gets the raw encoding.
 			/// </summary>
 			/// <param name="rawEncoding">Receives the raw encoding. Must be at least 96 bytes in length.</param>
@@ -74,7 +100,7 @@ public partial class Zip32HDWallet
 			/// <remarks>
 			/// As specified in the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol spec section 5.6.3.3</see>.
 			/// </remarks>
-			internal int GetRawEncoding(Span<byte> rawEncoding)
+			internal int ToBytes(Span<byte> rawEncoding)
 			{
 				int written = 0;
 				written += this.Ak.Value.CopyToRetLength(rawEncoding[written..]);

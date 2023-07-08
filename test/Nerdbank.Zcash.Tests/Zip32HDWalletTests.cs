@@ -67,4 +67,18 @@ public class Zip32HDWalletTests : TestBase
 		this.logger.WriteLine(address);
 		Assert.Equal("zs1duqpcc2ql7zfjttdm2gpawe8t5ecek5k834u9vdg4mqhw7j8j39sgjy8xguvk2semyd4ujeyj28", address.Address);
 	}
+
+	[Fact]
+	public void CreateSaplingAddressFromSeed_ViaFVK()
+	{
+		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
+		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(mnemonic).FullViewingKey;
+		Zip32HDWallet.Sapling.ExtendedFullViewingKey childFVK = masterFullViewingKey.Derive(3);
+		BigInteger diversifierIndex = 0;
+		Assert.True(childFVK.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
+		Assert.Equal(3, diversifierIndex); // indexes 0-2 were invalid in this case.
+		SaplingAddress address = new(receiver);
+		this.logger.WriteLine(address);
+		Assert.Equal("zs134p2zqc6lnrywwdrrm522f5745ctlvc0lnuvlpauwrrjydjrkkq7f4v98wkg669uf5zm54zlc8g", address.Address);
+	}
 }
