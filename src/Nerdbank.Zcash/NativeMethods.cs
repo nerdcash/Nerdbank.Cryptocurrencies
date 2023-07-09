@@ -225,6 +225,40 @@ internal static unsafe class NativeMethods
 	}
 
 	/// <summary>
+	/// Tries to decrypt a <see cref="SaplingReceiver"/>'s diversifier back into the diversifier index used to create it.
+	/// </summary>
+	/// <param name="fullViewingKey">The 96-byte encoding of a <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
+	/// <param name="diversifierKey">The 32-byte diversifier key.</param>
+	/// <param name="saplingReceiver">The 43-byte encoding of the <see cref="SaplingReceiver"/>.</param>
+	/// <param name="diversifierIndex">The 11-byte buffer that will receive the decrypted diversifier index, if successful.</param>
+	/// <param name="scope">Receives 0 for an externally scoped diversifier; 1 for an internally scoped diversifier.</param>
+	/// <returns>0 if successful; 1 if the receiver was not created with this incoming viewing key; a negative number for other errors (e.g. invalid data.)</returns>
+	internal static int DecryptSaplingDiversifier(ReadOnlySpan<byte> fullViewingKey, ReadOnlySpan<byte> diversifierKey, ReadOnlySpan<byte> saplingReceiver, Span<byte> diversifierIndex, out byte scope)
+	{
+		if (fullViewingKey.Length != 96 || diversifierKey.Length != 32 || saplingReceiver.Length != 43 || diversifierIndex.Length != 11)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* fvk = fullViewingKey)
+		{
+			fixed (byte* dk = diversifierKey)
+			{
+				fixed (byte* receiver = saplingReceiver)
+				{
+					fixed (byte* di = diversifierIndex)
+					{
+						fixed (byte* pScope = &scope)
+						{
+							return decrypt_sapling_diversifier(fvk, dk, receiver, di, pScope);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="sk">A pointer to a 32-byte buffer containing the spending key.</param>
@@ -263,4 +297,7 @@ internal static unsafe class NativeMethods
 
 	[DllImport(LibraryName)]
 	private static extern int decrypt_orchard_diversifier(byte* ivk, byte* receiver, byte* diversifier_index);
+
+	[DllImport(LibraryName)]
+	private static extern int decrypt_sapling_diversifier(byte* fvk, byte* dk, byte* receiver, byte* diversifier_index, byte* scope);
 }

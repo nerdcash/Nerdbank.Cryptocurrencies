@@ -36,9 +36,12 @@ Nerdbank.Zcash.Pool.Sapling = 2 -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Pool.Sprout = 1 -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Pool.Transparent = 0 -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey
+Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.CheckReceiver(Nerdbank.Zcash.SaplingReceiver receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.SaplingReceiver
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryCreateReceiver(ref System.Numerics.BigInteger index, out Nerdbank.Zcash.SaplingReceiver receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryCreateReceiver(System.Span<byte> diversifierIndex, out Nerdbank.Zcash.SaplingReceiver receiver) -> bool
+Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.SaplingReceiver receiver, out System.Numerics.BigInteger? diversifierIndex) -> bool
+Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.SaplingReceiver receiver, System.Span<byte> diversifierIndex) -> bool
 Nerdbank.Zcash.Sapling.FullViewingKey
 Nerdbank.Zcash.Sapling.FullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.SaplingAddress
