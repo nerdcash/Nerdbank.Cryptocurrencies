@@ -3,7 +3,7 @@
 
 using Nerdbank.Zcash.FixedLengthStructs;
 
-namespace Nerdbank.Zcash.Orchard;
+namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A nullifier deriving key.
