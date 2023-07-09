@@ -2,6 +2,7 @@
 
 ***.NET libraries for interacting with Zcash and other cryptocurrencies***
 
+[![CI](https://github.com/AArnott/Nerdbank.Cryptocurrencies/actions/workflows/build.yml/badge.svg)](https://github.com/AArnott/Nerdbank.Cryptocurrencies/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/AArnott/Nerdbank.Cryptocurrencies/branch/main/graph/badge.svg?token=ATCC7NEXTC)](https://codecov.io/gh/AArnott/Nerdbank.Cryptocurrencies)
 
 Check out [our docs](doc/index.md) and our features below.
