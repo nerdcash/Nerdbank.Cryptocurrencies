@@ -19,6 +19,6 @@
     <PackageReference Include="xunit.combinatorial" />
   </ItemGroup>
 
-  <Import Project="..\..\src\Nerdbank.Zcash\NativeBindings.targets"/>
+  <Import Project="..\..\src\Nerdbank.Zcash\NativeBindings.targets" />
 
 </Project>

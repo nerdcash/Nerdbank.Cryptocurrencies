@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Runtime.InteropServices;
+using Nerdbank.Zcash;
 
 /// <summary>
 /// The functions and data types imported from rust.
@@ -176,6 +177,88 @@ internal static unsafe class NativeMethods
 	}
 
 	/// <summary>
+	/// Derives a full viewing key into an incoming viewing key.
+	/// </summary>
+	/// <param name="fullViewingKey">The 96-byte encoding of the full viewing key.</param>
+	/// <param name="incomingViewingKey">The 64-byte buffer that will receive the incoming viewing key.</param>
+	/// <returns>0 if successful; otherwise a negative error code.</returns>
+	internal static int GetOrchardIncomingViewingKeyFromFullViewingKey(ReadOnlySpan<byte> fullViewingKey, Span<byte> incomingViewingKey)
+	{
+		if (fullViewingKey.Length != 96 || incomingViewingKey.Length != 64)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* fvk = fullViewingKey)
+		{
+			fixed (byte* ivk = incomingViewingKey)
+			{
+				return get_orchard_ivk_from_fvk(fvk, ivk);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Tries to decrypt an <see cref="OrchardReceiver"/>'s diversifier back into the diversifier index used to create it.
+	/// </summary>
+	/// <param name="incomingViewingKey">The 64-byte encoding of the <see cref="Nerdbank.Zcash.Orchard.IncomingViewingKey"/>.</param>
+	/// <param name="orchardReceiver">The 43-byte encoding of the <see cref="OrchardReceiver"/>.</param>
+	/// <param name="diversifierIndex">The 11-byte buffer that will receive the decrypted diversifier index, if successful.</param>
+	/// <returns>0 if successful; 1 if the receiver was not created with this incoming viewing key; a negative number for other errors (e.g. invalid data.)</returns>
+	internal static int DecryptOrchardDiversifier(ReadOnlySpan<byte> incomingViewingKey, ReadOnlySpan<byte> orchardReceiver, Span<byte> diversifierIndex)
+	{
+		if (incomingViewingKey.Length != 64 || orchardReceiver.Length != 43 || diversifierIndex.Length != 11)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* ivk = incomingViewingKey)
+		{
+			fixed (byte* receiver = orchardReceiver)
+			{
+				fixed (byte* dI = diversifierIndex)
+				{
+					return decrypt_orchard_diversifier(ivk, receiver, dI);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Tries to decrypt a <see cref="SaplingReceiver"/>'s diversifier back into the diversifier index used to create it.
+	/// </summary>
+	/// <param name="fullViewingKey">The 96-byte encoding of a <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
+	/// <param name="diversifierKey">The 32-byte diversifier key.</param>
+	/// <param name="saplingReceiver">The 43-byte encoding of the <see cref="SaplingReceiver"/>.</param>
+	/// <param name="diversifierIndex">The 11-byte buffer that will receive the decrypted diversifier index, if successful.</param>
+	/// <param name="scope">Receives 0 for an externally scoped diversifier; 1 for an internally scoped diversifier.</param>
+	/// <returns>0 if successful; 1 if the receiver was not created with this incoming viewing key; a negative number for other errors (e.g. invalid data.)</returns>
+	internal static int DecryptSaplingDiversifier(ReadOnlySpan<byte> fullViewingKey, ReadOnlySpan<byte> diversifierKey, ReadOnlySpan<byte> saplingReceiver, Span<byte> diversifierIndex, out byte scope)
+	{
+		if (fullViewingKey.Length != 96 || diversifierKey.Length != 32 || saplingReceiver.Length != 43 || diversifierIndex.Length != 11)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* fvk = fullViewingKey)
+		{
+			fixed (byte* dk = diversifierKey)
+			{
+				fixed (byte* receiver = saplingReceiver)
+				{
+					fixed (byte* di = diversifierIndex)
+					{
+						fixed (byte* pScope = &scope)
+						{
+							return decrypt_sapling_diversifier(fvk, dk, receiver, di, pScope);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="sk">A pointer to a 32-byte buffer containing the spending key.</param>
@@ -208,4 +291,13 @@ internal static unsafe class NativeMethods
 
 	[DllImport(LibraryName)]
 	private static extern int derive_sapling_child_fvk(byte* ext_fvk, uint child_index, byte* child_ext_fvk);
+
+	[DllImport(LibraryName)]
+	private static extern int get_orchard_ivk_from_fvk(byte* fvk, byte* ivk);
+
+	[DllImport(LibraryName)]
+	private static extern int decrypt_orchard_diversifier(byte* ivk, byte* receiver, byte* diversifier_index);
+
+	[DllImport(LibraryName)]
+	private static extern int decrypt_sapling_diversifier(byte* fvk, byte* dk, byte* receiver, byte* diversifier_index, byte* scope);
 }
