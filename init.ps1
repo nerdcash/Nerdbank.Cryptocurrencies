@@ -79,6 +79,9 @@ if (!$NoPrerequisites) {
     if (!$NoRust) {
         $rustTargets = @(& "$PSScriptRoot\azure-pipelines\Get-RustTargets.ps1")
         rustup target add @rustTargets
+
+        # Nightly toolchain required for building wasm32-unknown-unknown
+        rustup toolchain install nightly
     }
 
     # The procdump tool and env var is required for dotnet test to collect hang/crash dumps of tests.

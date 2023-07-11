@@ -74,6 +74,9 @@ zeroize = "1.7.0"
 zip32 = "0.1.1"
 tokio-shared-rt = "0.1.0"
 
+[target.'cfg(target_family = "wasm")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+
 [dev-dependencies]
 testdir = "0.9.1"
 matches = "0.1"

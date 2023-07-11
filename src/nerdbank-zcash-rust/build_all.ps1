@@ -77,10 +77,26 @@ else {
     Write-Host "cargo $buildVerb $buildArgs"
 }
 
-cargo $buildVerb @buildArgs
+if ($env:BUILD_BUILDID) {
+    Write-Host "##[command]cargo build @buildArgs"
+}
+cargo build @buildArgs
 
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
+}
+
+# Special handling for building the wasm32-unknown-unknown target as it requires the nightly build of rust.
+if ($env:BUILD_BUILDID) {
+    Write-Host "##[command]cargo +nightly build -Zbuild-std --target=wasm32-unknown-unknown"
+}
+cargo +nightly build -Zbuild-std --target=wasm32-unknown-unknown
+
+$configPathSegment = 'debug'
+if ($Release) { $configPathSegment = 'release' }
+$rustTargets | % {
+    New-Item -ItemType Directory -Path "..\..\obj\src\nerdbank-zcash-rust\$configPathSegment\$_" -Force | Out-Null
+    Copy-Item "target/$_/$configPathSegment/*nerdbank_zcash_rust*" "..\..\obj\src\nerdbank-zcash-rust\$configPathSegment\$_"
 }
 
 Pop-Location
