@@ -31,9 +31,10 @@ jobs:
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
-    # - uses: Swatinem/rust-cache@v2
-    #   with:
-    #     shared-key: ${{ matrix.os }}
+    - uses: Swatinem/rust-cache@v2
+      with:
+        shared-key: ${{ matrix.os }}
+        workspaces: src/nerdbank-zcash-rust
 
     - name: ⚙ Install prerequisites
       run: |
