@@ -140,6 +140,8 @@ Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.ChildIndex.get -> uint
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Depth.get -> byte
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Encoded.get -> string!
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Equals(Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey? other) -> bool
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Fingerprint.get -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.FullViewingKey.get -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
@@ -178,3 +180,4 @@ static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(Nerdbank.Cryptocurrencies.Bip
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Sapling.Create(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Sapling.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
+static Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
