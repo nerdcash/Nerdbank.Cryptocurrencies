@@ -10,6 +10,9 @@ namespace Nerdbank.Zcash.Sapling;
 /// </summary>
 public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 {
+	private const string Bech32MainNetworkHRP = "zviews";
+	private const string Bech32TestNetworkHRP = "zviewtestsapling";
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 	/// </summary>
@@ -50,6 +53,27 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
 	/// <summary>
+	/// Gets the Bech32 encoding of the full viewing key.
+	/// </summary>
+	public string Encoded
+	{
+		get
+		{
+			Span<byte> encodedBytes = stackalloc byte[96];
+			Span<char> encodedChars = stackalloc char[512];
+			int byteLength = this.ToBytes(encodedBytes);
+			string hrp = this.Network switch
+			{
+				ZcashNetwork.MainNet => Bech32MainNetworkHRP,
+				ZcashNetwork.TestNet => Bech32TestNetworkHRP,
+				_ => throw new NotSupportedException(),
+			};
+			int charLength = Bech32.Original.Encode(hrp, encodedBytes[..byteLength], encodedChars);
+			return new string(encodedChars[..charLength]);
+		}
+	}
+
+	/// <summary>
 	/// Gets the viewing key.
 	/// </summary>
 	internal IncomingViewingKey ViewingKey { get; }
@@ -68,6 +92,30 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	/// Gets the outgoing viewing key.
 	/// </summary>
 	internal OutgoingViewingKey Ovk { get; }
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FullViewingKey"/> class
+	/// from the bech32 encoding of an full viewing key as specified in ZIP-32.
+	/// </summary>
+	/// <param name="encoding">The bech32-encoded key.</param>
+	/// <returns>An initialized <see cref="FullViewingKey"/>.</returns>
+	/// <remarks>
+	/// This method can parse the output of the <see cref="Encoded"/> property.
+	/// </remarks>
+	public static FullViewingKey FromEncoded(ReadOnlySpan<char> encoding)
+	{
+		Span<char> hrp = stackalloc char[50];
+		Span<byte> data = stackalloc byte[96];
+		(int tagLength, int dataLength) = Bech32.Original.Decode(encoding, hrp, data);
+		hrp = hrp[..tagLength];
+		ZcashNetwork network = hrp switch
+		{
+			Bech32MainNetworkHRP => ZcashNetwork.MainNet,
+			Bech32TestNetworkHRP => ZcashNetwork.TestNet,
+			_ => throw new InvalidKeyException($"Unexpected bech32 tag: {hrp}"),
+		};
+		return FromBytes(data[..dataLength], network);
+	}
 
 	/// <inheritdoc/>
 	public bool Equals(FullViewingKey? other)
