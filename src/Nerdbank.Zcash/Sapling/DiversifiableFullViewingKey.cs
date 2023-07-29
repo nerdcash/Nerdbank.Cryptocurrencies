@@ -28,9 +28,8 @@ public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<Diversifia
 	/// </summary>
 	/// <param name="fullViewingKey">The full viewing key.</param>
 	/// <param name="dk">The diversifier key.</param>
-	/// <param name="network">The network this key should be used with.</param>
-	internal DiversifiableFullViewingKey(FullViewingKey fullViewingKey, DiversifierKey dk, ZcashNetwork network)
-		: base(fullViewingKey.ViewingKey, fullViewingKey.Ovk, network)
+	internal DiversifiableFullViewingKey(FullViewingKey fullViewingKey, DiversifierKey dk)
+		: base(fullViewingKey.Ak, fullViewingKey.Nk, fullViewingKey.IncomingViewingKey, fullViewingKey.Ovk)
 	{
 		this.Dk = dk;
 	}

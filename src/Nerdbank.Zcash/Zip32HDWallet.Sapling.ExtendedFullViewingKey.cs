@@ -161,7 +161,7 @@ public partial class Zip32HDWallet
 				ChainCode chainCode = new(encoded[9..41]);
 				FullViewingKey fvk = FullViewingKey.Decode(encoded[41..137], network);
 				DiversifierKey dk = new(encoded[137..169]);
-				DiversifiableFullViewingKey dfvk = new(fvk, dk, network);
+				DiversifiableFullViewingKey dfvk = new(fvk, dk);
 				return new(dfvk, chainCode, parentFullViewingKeyTag, depth, childIndex);
 			}
 

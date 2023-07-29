@@ -26,28 +26,33 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 			throw new ArgumentException();
 		}
 
-		this.ViewingKey = new(new(fvk_bytes[..32]), new(fvk_bytes[32..64]));
+		ReadOnlySpan<byte> ak = fvk_bytes[..32];
+		ReadOnlySpan<byte> nk = fvk_bytes[32..64];
+		this.Ak = new(ak);
+		this.Nk = new(nk);
+		this.IncomingViewingKey = IncomingViewingKey.FromFullViewingKey(ak, nk, network);
 		this.Ovk = new(fvk_bytes[64..96]);
-		this.Network = network;
 	}
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 	/// </summary>
+	/// <param name="ak">The Ak subgroup point.</param>
+	/// <param name="nk">The nullifier deriving key.</param>
 	/// <param name="viewingKey">The incoming viewing key.</param>
 	/// <param name="ovk">The outgoing viewing key.</param>
-	/// <param name="network">The network this key should be used with.</param>
-	internal FullViewingKey(IncomingViewingKey viewingKey, OutgoingViewingKey ovk, ZcashNetwork network)
+	internal FullViewingKey(SubgroupPoint ak, NullifierDerivingKey nk, IncomingViewingKey viewingKey, OutgoingViewingKey ovk)
 	{
-		this.ViewingKey = viewingKey;
+		this.Ak = ak;
+		this.Nk = nk;
+		this.IncomingViewingKey = viewingKey;
 		this.Ovk = ovk;
-		this.Network = network;
 	}
 
 	/// <summary>
 	/// Gets the network this key should be used with.
 	/// </summary>
-	public ZcashNetwork Network { get; }
+	public ZcashNetwork Network => this.IncomingViewingKey.Network;
 
 	/// <inheritdoc/>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
@@ -76,17 +81,17 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	/// <summary>
 	/// Gets the viewing key.
 	/// </summary>
-	internal IncomingViewingKey ViewingKey { get; }
+	public IncomingViewingKey IncomingViewingKey { get; }
 
 	/// <summary>
-	/// Gets the Ak element.
+	/// Gets the Ak subgroup point.
 	/// </summary>
-	internal SubgroupPoint Ak => this.ViewingKey.Ak;
+	internal SubgroupPoint Ak { get; }
 
 	/// <summary>
-	/// Gets the Nk element.
+	/// Gets the nullifier deriving key.
 	/// </summary>
-	internal NullifierDerivingKey Nk => this.ViewingKey.Nk;
+	internal NullifierDerivingKey Nk { get; }
 
 	/// <summary>
 	/// Gets the outgoing viewing key.
@@ -121,9 +126,10 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	public bool Equals(FullViewingKey? other)
 	{
 		return other is not null
-			&& this.ViewingKey.Equals(other.ViewingKey)
-			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value)
-			&& this.Network == other.Network;
+			&& this.Ak.Value.SequenceEqual(other.Ak.Value)
+			&& this.Nk.Value.SequenceEqual(other.Nk.Value)
+			&& this.IncomingViewingKey.Equals(other.IncomingViewingKey)
+			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value);
 	}
 
 	/// <summary>
@@ -135,10 +141,15 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	/// <returns>The deserialized key.</returns>
 	internal static FullViewingKey Decode(ReadOnlySpan<byte> buffer, ZcashNetwork network)
 	{
-		SubgroupPoint ak = new(buffer[0..32]);
-		NullifierDerivingKey nk = new(buffer[32..64]);
-		OutgoingViewingKey ovk = new(buffer[64..96]);
-		return new FullViewingKey(new IncomingViewingKey(ak, nk), ovk, network);
+		ReadOnlySpan<byte> ak = buffer[0..32];
+		ReadOnlySpan<byte> nk = buffer[32..64];
+		ReadOnlySpan<byte> ovk = buffer[64..96];
+
+		return new FullViewingKey(
+			new SubgroupPoint(ak),
+			new NullifierDerivingKey(nk),
+			IncomingViewingKey.FromFullViewingKey(ak, nk, network),
+			new OutgoingViewingKey(ovk));
 	}
 
 	/// <summary>

@@ -509,6 +509,8 @@ dependencies = [
 name = "nerdbank-zcash-rust"
 version = "0.1.0"
 dependencies = [
+ "group",
+ "jubjub",
  "orchard",
  "zcash_primitives",
 ]
