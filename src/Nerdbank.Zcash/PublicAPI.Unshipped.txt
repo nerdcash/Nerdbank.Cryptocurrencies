@@ -15,6 +15,7 @@ Nerdbank.Zcash.Orchard.FullViewingKey.CheckReceiver(Nerdbank.Zcash.OrchardReceiv
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateReceiver(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateReceiver(System.ReadOnlySpan<byte> diversifierIndex) -> Nerdbank.Zcash.OrchardReceiver
+Nerdbank.Zcash.Orchard.FullViewingKey.DefaultAddress.get -> Nerdbank.Zcash.OrchardAddress!
 Nerdbank.Zcash.Orchard.FullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Orchard.FullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.OrchardReceiver receiver, out System.Numerics.BigInteger? diversifierIndex) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.OrchardReceiver receiver, System.Span<byte> diversifierIndex) -> bool
@@ -38,6 +39,7 @@ Nerdbank.Zcash.Pool.Transparent = 0 -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.CheckReceiver(Nerdbank.Zcash.SaplingReceiver receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.SaplingReceiver
+Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.Equals(Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey? other) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryCreateReceiver(ref System.Numerics.BigInteger index, out Nerdbank.Zcash.SaplingReceiver receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryCreateReceiver(System.Span<byte> diversifierIndex, out Nerdbank.Zcash.SaplingReceiver receiver) -> bool
@@ -138,6 +140,7 @@ Nerdbank.Zcash.Zip32HDWallet.Sapling
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.ChainCode.get -> Nerdbank.Zcash.Zip32HDWallet.ChainCode
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.ChildIndex.get -> uint
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Depth.get -> byte
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Encoded.get -> string!

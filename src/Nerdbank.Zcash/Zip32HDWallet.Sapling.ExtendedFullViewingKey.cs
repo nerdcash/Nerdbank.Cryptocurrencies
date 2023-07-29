@@ -13,6 +13,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
+		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
 		public class ExtendedFullViewingKey : IExtendedKey, IEquatable<ExtendedFullViewingKey>
 		{
 			private const string Bech32MainNetworkHRP = "zxviews";
@@ -94,6 +95,15 @@ public partial class Zip32HDWallet
 					return new string(encodedChars[..charLength]);
 				}
 			}
+
+			/// <summary>
+			/// Gets the default address for this spending key.
+			/// </summary>
+			/// <remarks>
+			/// Create additional diversified addresses using <see cref="DiversifiableFullViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
+			/// found on the <see cref="Key"/>.
+			/// </remarks>
+			public SaplingAddress DefaultAddress => this.Key.DefaultAddress;
 
 			/// <summary>
 			/// Gets the diversifier key.

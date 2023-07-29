@@ -9,6 +9,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// A viewing key that can decrypt incoming and outgoing transactions
 /// and generate addresses.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
 public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<DiversifiableFullViewingKey>
 {
 	/// <summary>
@@ -33,6 +34,14 @@ public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<Diversifia
 	{
 		this.Dk = dk;
 	}
+
+	/// <summary>
+	/// Gets the default address for this spending key.
+	/// </summary>
+	/// <remarks>
+	/// Create additional diversified addresses using <see cref="TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>.
+	/// </remarks>
+	public SaplingAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <summary>
 	/// Gets the diversifier key.

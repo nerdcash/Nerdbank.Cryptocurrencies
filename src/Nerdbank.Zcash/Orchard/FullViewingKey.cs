@@ -9,6 +9,7 @@ namespace Nerdbank.Zcash.Orchard;
 /// <summary>
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
 public class FullViewingKey : IKey
 {
 	private readonly Bytes96 rawEncoding;
@@ -31,6 +32,16 @@ public class FullViewingKey : IKey
 
 	/// <inheritdoc/>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+
+	/// <summary>
+	/// Gets the default address for this spending key.
+	/// </summary>
+	/// <remarks>
+	/// Create additional diversified addresses using <see cref="CreateReceiver(BigInteger)"/>.
+	/// </remarks>
+	/// <seealso cref="CreateDefaultReceiver"/>
+	/// <seealso cref="CreateReceiver(BigInteger)"/>
+	public OrchardAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <summary>
 	/// Gets the spend validating key.

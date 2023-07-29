@@ -83,9 +83,9 @@ public partial class Zip32HDWallet
 			/// </summary>
 			/// <remarks>
 			/// Create additional diversified addresses using <see cref="DiversifiableFullViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
-			/// found on the <see cref="ExtendedFullViewingKey"/> property's <see cref="ExtendedFullViewingKey.Key"/> property.
+			/// found on the <see cref="FullViewingKey"/>.
 			/// </remarks>
-			public SaplingAddress DefaultAddress => new(this.FullViewingKey.CreateDefaultReceiver(), this.Network);
+			public SaplingAddress DefaultAddress => this.FullViewingKey.DefaultAddress;
 
 			/// <summary>
 			/// Gets the Bech32 encoding of the spending key.
