@@ -135,4 +135,20 @@ public class Zip32HDWalletTests : TestBase
 		var decoded = Zip32HDWallet.Sapling.ExtendedSpendingKey.FromEncoded(actual);
 		Assert.Equal(account, decoded);
 	}
+
+	[Theory, PairwiseData]
+	public void ExtendedSpendingKey_Orchard_Encoded_FromEncoded(bool testNet)
+	{
+		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
+		string expected = testNet
+			? "secret-orchard-extsk-test1qwx8hu3mqqqqpqzr5shlv8gv794seyh4247z7htmgfq7weu7fsk55mxy79uvecdqcd08m73ahd2n4yquhr7uudf9wxhl39qeyjdlam82ue3jusfyxye8ym5n6us"
+			: "secret-orchard-extsk-main1qwx8hu3mqqqqpqzr5shlv8gv794seyh4247z7htmgfq7weu7fsk55mxy79uvecdqcd08m73ahd2n4yquhr7uudf9wxhl39qeyjdlam82ue3jusfyxye8y3x62h0";
+		Zip32HDWallet wallet = new(Mnemonic, network);
+		Zip32HDWallet.Orchard.ExtendedSpendingKey account = wallet.CreateOrchardAccount(0);
+		string actual = account.Encoded;
+		Assert.Equal(expected, actual);
+
+		var decoded = Zip32HDWallet.Orchard.ExtendedSpendingKey.FromEncoded(actual);
+		Assert.Equal(account, decoded);
+	}
 }

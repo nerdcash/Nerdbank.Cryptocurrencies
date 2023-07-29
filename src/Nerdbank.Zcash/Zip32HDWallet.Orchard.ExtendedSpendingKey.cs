@@ -13,8 +13,11 @@ public partial class Zip32HDWallet
 		/// A key capable of spending, extended so it can be used to derive child keys.
 		/// </summary>
 		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-		public class ExtendedSpendingKey : IExtendedKey
+		public class ExtendedSpendingKey : IExtendedKey, IEquatable<ExtendedSpendingKey>
 		{
+			private const string Bech32MainNetworkHRP = "secret-orchard-extsk-main";
+			private const string Bech32TestNetworkHRP = "secret-orchard-extsk-test";
+
 			private FullViewingKey? fullViewingKey;
 
 			/// <summary>
@@ -61,6 +64,27 @@ public partial class Zip32HDWallet
 			/// <inheritdoc/>
 			public ZcashNetwork Network { get; }
 
+			/// <summary>
+			/// Gets the Bech32 encoding of the full viewing key.
+			/// </summary>
+			public string Encoded
+			{
+				get
+				{
+					Span<byte> encodedBytes = stackalloc byte[169];
+					Span<char> encodedChars = stackalloc char[512];
+					int byteLength = this.Encode(encodedBytes);
+					string hrp = this.Network switch
+					{
+						ZcashNetwork.MainNet => Bech32MainNetworkHRP,
+						ZcashNetwork.TestNet => Bech32TestNetworkHRP,
+						_ => throw new NotSupportedException(),
+					};
+					int charLength = Bech32.Original.Encode(hrp, encodedBytes[..byteLength], encodedChars);
+					return new string(encodedChars[..charLength]);
+				}
+			}
+
 			/// <inheritdoc/>
 			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
@@ -78,6 +102,42 @@ public partial class Zip32HDWallet
 			/// Gets the spending key itself.
 			/// </summary>
 			internal SpendingKey SpendingKey { get; }
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class
+			/// from the bech32 encoding of an extended spending key as specified in ZIP-32.
+			/// </summary>
+			/// <param name="encoding">The bech32-encoded key.</param>
+			/// <returns>An initialized <see cref="ExtendedSpendingKey"/>.</returns>
+			/// <remarks>
+			/// This method can parse the output of the <see cref="Encoded"/> property.
+			/// </remarks>
+			public static ExtendedSpendingKey FromEncoded(ReadOnlySpan<char> encoding)
+			{
+				Span<char> hrp = stackalloc char[50];
+				Span<byte> data = stackalloc byte[169];
+				(int tagLength, int dataLength) = Bech32.Original.Decode(encoding, hrp, data);
+				hrp = hrp[..tagLength];
+				ZcashNetwork network = hrp switch
+				{
+					Bech32MainNetworkHRP => ZcashNetwork.MainNet,
+					Bech32TestNetworkHRP => ZcashNetwork.TestNet,
+					_ => throw new InvalidKeyException($"Unexpected bech32 tag: {hrp}"),
+				};
+				return Decode(data[..dataLength], network);
+			}
+
+			/// <inheritdoc/>
+			public bool Equals(ExtendedSpendingKey? other)
+			{
+				return other is not null
+					&& this.SpendingKey.Value.SequenceEqual(other.SpendingKey.Value)
+					&& this.ChainCode.Value.SequenceEqual(other.ChainCode.Value)
+					&& this.ParentFullViewingKeyTag.Value.SequenceEqual(other.ParentFullViewingKeyTag.Value)
+					&& this.Depth == other.Depth
+					&& this.ChildIndex == other.ChildIndex
+					&& this.Network == other.Network;
+			}
 
 			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
 			public ExtendedSpendingKey Derive(uint childIndex)
@@ -110,6 +170,22 @@ public partial class Zip32HDWallet
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
+			private static ExtendedSpendingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
+			{
+				byte depth = (byte)LEOS2IP(encoded[0..1]);
+				ReadOnlySpan<byte> parentFvkTag = encoded[1..5];
+				uint childIndex = (uint)LEOS2IP(encoded[5..9]);
+				ReadOnlySpan<byte> chainCode = encoded[9..41];
+				ReadOnlySpan<byte> spendingKey = encoded[41..73];
+				return new ExtendedSpendingKey(
+					new SpendingKey(spendingKey),
+					new ChainCode(chainCode),
+					new FullViewingKeyTag(parentFvkTag),
+					depth,
+					childIndex,
+					network);
+			}
+
 			/// <summary>
 			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 			/// </summary>
@@ -122,6 +198,23 @@ public partial class Zip32HDWallet
 				}
 
 				return new(fvk, this.Network);
+			}
+
+			/// <summary>
+			/// Writes the raw encoding of the extended spending key to a given buffer.
+			/// </summary>
+			/// <param name="result">The buffer to write to, which must be at least 73 bytes.</param>
+			/// <returns>The number of bytes written. Always 73.</returns>
+			private int Encode(Span<byte> result)
+			{
+				int length = 0;
+				length += I2LEOSP(this.Depth, result[length..]);
+				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
+				length += I2LEOSP(this.ChildIndex, result[length..]);
+				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
+				length += this.SpendingKey.Value.CopyToRetLength(result[length..]);
+				Assumes.True(length == 73);
+				return length;
 			}
 		}
 	}
