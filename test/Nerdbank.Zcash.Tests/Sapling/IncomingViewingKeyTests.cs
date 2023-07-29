@@ -16,10 +16,10 @@ public class IncomingViewingKeyTests : TestBase
 			: "zivks184h858g2g87ucf4jp3vqr0legsts34cn60xptenyz72rdrwvlvzsfwkpqh";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
-		string actual = account.FullViewingKey.Key.IncomingViewingKey.Encoded;
+		string actual = account.FullViewingKey.IncomingViewingKey.Encoded;
 		Assert.Equal(expected, actual);
 
 		var decoded = IncomingViewingKey.FromEncoded(actual);
-		Assert.Equal(account.FullViewingKey.Key.IncomingViewingKey, decoded);
+		Assert.Equal(account.FullViewingKey.IncomingViewingKey, decoded);
 	}
 }

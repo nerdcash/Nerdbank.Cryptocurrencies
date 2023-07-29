@@ -45,15 +45,20 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the extended full viewing key.
 			/// </summary>
-			public ExtendedFullViewingKey FullViewingKey => this.fullViewingKey ??= new(this);
+			public ExtendedFullViewingKey ExtendedFullViewingKey => this.fullViewingKey ??= new(this);
+
+			/// <summary>
+			/// Gets the full viewing key.
+			/// </summary>
+			public DiversifiableFullViewingKey FullViewingKey => this.ExtendedFullViewingKey.Key;
 
 			/// <summary>
 			/// Gets the incoming viewing key.
 			/// </summary>
-			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.Key.IncomingViewingKey;
+			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
 
 			/// <inheritdoc/>
-			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey.Key);
+			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey);
 
 			/// <inheritdoc/>
 			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
@@ -78,9 +83,9 @@ public partial class Zip32HDWallet
 			/// </summary>
 			/// <remarks>
 			/// Create additional diversified addresses using <see cref="DiversifiableFullViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
-			/// found on the <see cref="FullViewingKey"/> property's <see cref="ExtendedFullViewingKey.Key"/> property.
+			/// found on the <see cref="ExtendedFullViewingKey"/> property's <see cref="ExtendedFullViewingKey.Key"/> property.
 			/// </remarks>
-			public SaplingAddress DefaultAddress => new(this.FullViewingKey.Key.CreateDefaultReceiver(), this.Network);
+			public SaplingAddress DefaultAddress => new(this.FullViewingKey.CreateDefaultReceiver(), this.Network);
 
 			/// <summary>
 			/// Gets the Bech32 encoding of the spending key.

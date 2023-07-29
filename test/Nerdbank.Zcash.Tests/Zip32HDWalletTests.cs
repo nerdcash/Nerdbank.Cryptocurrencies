@@ -21,8 +21,8 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(0, spendingKey.Depth);
 		Assert.Equal(0u, spendingKey.ChildIndex);
 		Assert.Equal(network, spendingKey.Network);
-		Assert.NotNull(spendingKey.FullViewingKey);
-		Assert.NotEqual(default, spendingKey.FullViewingKey.Fingerprint);
+		Assert.NotNull(spendingKey.ExtendedFullViewingKey);
+		Assert.NotEqual(default, spendingKey.ExtendedFullViewingKey.Fingerprint);
 	}
 
 	[Theory, PairwiseData]
@@ -60,7 +60,7 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet.Sapling.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Sapling.Create(mnemonic, ZcashNetwork.MainNet);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
 		BigInteger diversifierIndex = 0;
-		Assert.True(accountSpendingKey.FullViewingKey.Key.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
+		Assert.True(accountSpendingKey.FullViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
 		Assert.Equal(1, diversifierIndex); // index 0 was invalid in this case.
 		SaplingAddress address = new(receiver);
 		this.logger.WriteLine(address);
@@ -70,7 +70,7 @@ public class Zip32HDWalletTests : TestBase
 	[Fact]
 	public void CreateSaplingAddressFromSeed_ViaFVK()
 	{
-		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).FullViewingKey;
+		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey childFVK = masterFullViewingKey.Derive(3);
 		BigInteger diversifierIndex = 0;
 		Assert.True(childFVK.Key.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
@@ -116,7 +116,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(1u | Bip32HDWallet.HardenedBit, account.ChildIndex);
 
 		BigInteger diversifier = BigInteger.Zero;
-		Assert.True(account.FullViewingKey.Key.TryCreateReceiver(ref diversifier, out SaplingReceiver receiver));
+		Assert.True(account.FullViewingKey.TryCreateReceiver(ref diversifier, out SaplingReceiver receiver));
 		Assert.Equal(new SaplingAddress(receiver, ZcashNetwork.TestNet), account.DefaultAddress);
 	}
 
