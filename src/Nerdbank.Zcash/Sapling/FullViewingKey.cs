@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
-public class FullViewingKey : IKey
+public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
@@ -68,6 +68,15 @@ public class FullViewingKey : IKey
 	/// Gets the outgoing viewing key.
 	/// </summary>
 	internal OutgoingViewingKey Ovk { get; }
+
+	/// <inheritdoc/>
+	public bool Equals(FullViewingKey? other)
+	{
+		return other is not null
+			&& this.ViewingKey.Equals(other.ViewingKey)
+			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value)
+			&& this.Network == other.Network;
+	}
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class

@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// A viewing key that can decrypt incoming and outgoing transactions
 /// and generate addresses.
 /// </summary>
-public class DiversifiableFullViewingKey : FullViewingKey
+public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<DiversifiableFullViewingKey>
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class.
@@ -169,5 +169,13 @@ public class DiversifiableFullViewingKey : FullViewingKey
 			diversifierIndex = null;
 			return false;
 		}
+	}
+
+	/// <inheritdoc/>
+	public bool Equals(DiversifiableFullViewingKey? other)
+	{
+		return other is not null
+			&& base.Equals(other)
+			&& this.Dk.Value.SequenceEqual(other.Dk.Value);
 	}
 }

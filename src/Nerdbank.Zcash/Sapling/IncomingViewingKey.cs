@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key for incoming transactions.
 /// </summary>
-internal readonly struct IncomingViewingKey
+internal readonly struct IncomingViewingKey : IEquatable<IncomingViewingKey>
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> struct.
@@ -30,4 +30,11 @@ internal readonly struct IncomingViewingKey
 	/// Gets the nullifier deriving key.
 	/// </summary>
 	internal NullifierDerivingKey Nk { get; }
+
+	/// <inheritdoc/>
+	public bool Equals(IncomingViewingKey other)
+	{
+		return this.Ak.Value.SequenceEqual(other.Ak.Value)
+			&& this.Nk.Value.SequenceEqual(other.Nk.Value);
+	}
 }

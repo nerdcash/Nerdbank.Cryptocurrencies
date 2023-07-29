@@ -24,4 +24,20 @@ public class DiversifiableFullViewingKeyTests : TestBase
 		Assert.False(account2.FullViewingKey.Key.TryGetDiversifierIndex(receiver, out idx));
 		Assert.Null(idx);
 	}
+
+	[Theory, PairwiseData]
+	public void Encoded_FromEncoded(bool testNet)
+	{
+		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
+		string expected = testNet
+			? "zxviewtestsapling1qvqlw6pjqqqqpqrcxxrqd2acqcurzx7wat9gk7jv3wee36rj970d9h47fpg6fddwurue4vmrpg7g6hkdsw5hvuqtgd43ngt39x54nrej29rvc2cpajl7m0p3hdnt47rdgc5d949tgmqwx5mjujckqe8pvlgnupecd8fmgt6y5t6662jk4lkv8kjughx6x8vrn97pqcqn04wduse3n5hhlkf6qc5ah08udx9g0wpkf6rausju7yamzl6z4gdyrtmqs9ak93w0z222vgs2h9a8j"
+			: "zxviews1qvqlw6pjqqqqpqrcxxrqd2acqcurzx7wat9gk7jv3wee36rj970d9h47fpg6fddwurue4vmrpg7g6hkdsw5hvuqtgd43ngt39x54nrej29rvc2cpajl7m0p3hdnt47rdgc5d949tgmqwx5mjujckqe8pvlgnupecd8fmgt6y5t6662jk4lkv8kjughx6x8vrn97pqcqn04wduse3n5hhlkf6qc5ah08udx9g0wpkf6rausju7yamzl6z4gdyrtmqs9ak93w0z222vgst458pe";
+		Zip32HDWallet wallet = new(Mnemonic, network);
+		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
+		string actual = account.FullViewingKey.Encoded;
+		Assert.Equal(expected, actual);
+
+		var decoded = Zip32HDWallet.Sapling.ExtendedFullViewingKey.FromEncoded(actual);
+		Assert.Equal(account.FullViewingKey, decoded);
+	}
 }
