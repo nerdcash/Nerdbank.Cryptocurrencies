@@ -61,7 +61,7 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 		{
 			Span<byte> encodedBytes = stackalloc byte[96];
 			Span<char> encodedChars = stackalloc char[512];
-			int byteLength = this.ToBytes(encodedBytes);
+			int byteLength = this.Encode(encodedBytes);
 			string hrp = this.Network switch
 			{
 				ZcashNetwork.MainNet => Bech32MainNetworkHRP,
@@ -114,7 +114,7 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 			Bech32TestNetworkHRP => ZcashNetwork.TestNet,
 			_ => throw new InvalidKeyException($"Unexpected bech32 tag: {hrp}"),
 		};
-		return FromBytes(data[..dataLength], network);
+		return Decode(data[..dataLength], network);
 	}
 
 	/// <inheritdoc/>
@@ -133,7 +133,7 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	/// <param name="buffer">The 96-byte buffer to read from.</param>
 	/// <param name="network">The network this key should be used with.</param>
 	/// <returns>The deserialized key.</returns>
-	internal static FullViewingKey FromBytes(ReadOnlySpan<byte> buffer, ZcashNetwork network)
+	internal static FullViewingKey Decode(ReadOnlySpan<byte> buffer, ZcashNetwork network)
 	{
 		SubgroupPoint ak = new(buffer[0..32]);
 		NullifierDerivingKey nk = new(buffer[32..64]);
@@ -149,7 +149,7 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	/// <remarks>
 	/// As specified in the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol spec section 5.6.3.3</see>.
 	/// </remarks>
-	internal int ToBytes(Span<byte> rawEncoding)
+	internal int Encode(Span<byte> rawEncoding)
 	{
 		int written = 0;
 		written += this.Ak.Value.CopyToRetLength(rawEncoding[written..]);
@@ -168,7 +168,7 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	internal Bytes96 ToBytes()
 	{
 		Span<byte> result = stackalloc byte[96];
-		this.ToBytes(result);
+		this.Encode(result);
 		return new(result);
 	}
 }

@@ -159,7 +159,7 @@ public partial class Zip32HDWallet
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
 				uint childIndex = BitUtilities.ReadUInt32LE(encoded[5..9]);
 				ChainCode chainCode = new(encoded[9..41]);
-				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137], network);
+				FullViewingKey fvk = FullViewingKey.Decode(encoded[41..137], network);
 				DiversifierKey dk = new(encoded[137..169]);
 				DiversifiableFullViewingKey dfvk = new(fvk, dk, network);
 				return new(dfvk, chainCode, parentFullViewingKeyTag, depth, childIndex);
@@ -180,7 +180,7 @@ public partial class Zip32HDWallet
 				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
 				length += BitUtilities.WriteLE(this.ChildIndex, result[length..]);
 				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
-				length += this.Key.ToBytes(result[length..]);
+				length += this.Key.Encode(result[length..]);
 				length += this.Dk.Value.CopyToRetLength(result[length..]);
 				Assumes.True(length == 169);
 				return length;

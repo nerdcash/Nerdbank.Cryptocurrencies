@@ -95,7 +95,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<Diversifia
 	public bool TryCreateReceiver(Span<byte> diversifierIndex, out SaplingReceiver receiver)
 	{
 		Span<byte> fvk = stackalloc byte[96];
-		this.ToBytes(fvk);
+		this.Encode(fvk);
 
 		Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
 		if (NativeMethods.TryGetSaplingReceiver(fvk, this.Dk.Value, diversifierIndex, receiverBytes) != 0)
