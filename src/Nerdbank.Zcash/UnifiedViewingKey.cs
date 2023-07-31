@@ -70,7 +70,7 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 		Requires.Argument(viewingKeys.Count > 0, nameof(viewingKeys), "Cannot create a unified viewing key with no viewing keys.");
 
 		SortedDictionary<byte, IUnifiedEncodableViewingKey> sortedKeysByTypeCode = new();
-		int totalLength = UnifiedAddress.PaddingLength;
+		int totalLength = UnifiedEncoding.PaddingLength;
 		IViewingKey firstKey = viewingKeys.First();
 
 		ZcashNetwork network = firstKey.Network;
@@ -115,11 +115,11 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 			uvkBytesWritten += typeCodeAndKey.Value.WriteUnifiedViewingKeyContribution(uvk[uvkBytesWritten..]);
 		}
 
-		uvkBytesWritten += UnifiedAddress.InitializePadding(humanReadablePart, uvk.Slice(uvkBytesWritten, UnifiedAddress.PaddingLength));
+		uvkBytesWritten += UnifiedEncoding.InitializePadding(humanReadablePart, uvk.Slice(uvkBytesWritten, UnifiedEncoding.PaddingLength));
 
 		Assumes.True(uvkBytesWritten == uvk.Length);
 
-		UnifiedAddress.F4Jumble(uvk);
+		UnifiedEncoding.F4Jumble(uvk);
 
 		Span<char> result = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, uvk.Length)];
 		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, uvk, result);
@@ -221,7 +221,7 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 			return false;
 		}
 
-		if (length.Value.Data is < UnifiedAddress.MinF4JumbleInputLength or > UnifiedAddress.MaxF4JumbleInputLength)
+		if (length.Value.Data is < UnifiedEncoding.MinF4JumbleInputLength or > UnifiedEncoding.MaxF4JumbleInputLength)
 		{
 			errorCode = ParseError.InvalidAddress;
 			errorMessage = Strings.InvalidAddressLength;
@@ -229,11 +229,11 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 			return false;
 		}
 
-		UnifiedAddress.F4Jumble(data, inverted: true);
+		UnifiedEncoding.F4Jumble(data, inverted: true);
 
 		// Verify the 16-byte padding is as expected.
-		Span<byte> padding = stackalloc byte[UnifiedAddress.PaddingLength];
-		UnifiedAddress.InitializePadding(humanReadablePart, padding);
+		Span<byte> padding = stackalloc byte[UnifiedEncoding.PaddingLength];
+		UnifiedEncoding.InitializePadding(humanReadablePart, padding);
 		if (!data[^padding.Length..].SequenceEqual(padding))
 		{
 			errorCode = ParseError.InvalidAddress;
