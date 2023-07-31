@@ -82,7 +82,7 @@ public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
 	}
 
 	/// <summary>
-	/// Gets or sets the viewing key.
+	/// Gets or sets the incoming viewing key.
 	/// </summary>
 	public IncomingViewingKey IncomingViewingKey { get; protected set; }
 

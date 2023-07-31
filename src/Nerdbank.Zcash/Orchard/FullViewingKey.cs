@@ -22,13 +22,18 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 	internal FullViewingKey(ReadOnlySpan<byte> rawEncoding, ZcashNetwork network)
 	{
 		this.rawEncoding = new(rawEncoding);
-		this.Network = network;
+		this.IncomingViewingKey = IncomingViewingKey.FromFullViewingKey(rawEncoding, network);
 	}
 
 	/// <summary>
 	/// Gets the network this key should be used with.
 	/// </summary>
-	public ZcashNetwork Network { get; }
+	public ZcashNetwork Network => this.IncomingViewingKey.Network;
+
+	/// <summary>
+	/// Gets the incoming viewing key.
+	/// </summary>
+	public IncomingViewingKey IncomingViewingKey { get; }
 
 	/// <inheritdoc/>
 	bool IViewingKey.IsFullViewingKey => true;
@@ -142,13 +147,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 	/// </remarks>
 	public bool TryGetDiversifierIndex(OrchardReceiver receiver, Span<byte> diversifierIndex)
 	{
-		Span<byte> ivk = stackalloc byte[64];
-		if (NativeMethods.GetOrchardIncomingViewingKeyFromFullViewingKey(this.RawEncoding, ivk) != 0)
-		{
-			throw new InvalidKeyException();
-		}
-
-		return NativeMethods.DecryptOrchardDiversifier(ivk, receiver.Span, diversifierIndex) switch
+		return NativeMethods.DecryptOrchardDiversifier(this.IncomingViewingKey.RawEncoding, receiver.Span, diversifierIndex) switch
 		{
 			0 => true,
 			1 => false,

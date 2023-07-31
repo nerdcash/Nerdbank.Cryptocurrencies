@@ -4,7 +4,6 @@
 using OrchardFVK = Nerdbank.Zcash.Orchard.FullViewingKey;
 using OrchardSK = Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey;
 using SaplingFVK = Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey;
-using SaplingIVK = Nerdbank.Zcash.Sapling.IncomingViewingKey;
 using SaplingSK = Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey;
 
 public class UnifiedViewingKeyTests : TestBase
@@ -71,7 +70,7 @@ public class UnifiedViewingKeyTests : TestBase
 	}
 
 	[Fact]
-	public void Create_Orchard()
+	public void Create_Orchard_FVK()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
@@ -79,6 +78,18 @@ public class UnifiedViewingKeyTests : TestBase
 
 		Assert.Equal(
 			"uview12z0pgg2u7q5ky5wzas8mmgcs4zy8cmdyt62tn3ecpdurnqqnlldx6j73600qe4xkz7jp4w37elr2d48jm5ktuvlm5x8z5ke6cg3x8m6sk5sruh4xnjk93h86fls0uyhhtaj8vu0mw0t7cr74vc8ra2360yhamnskk7a7ahsasndmagsmuhs27lqdyjsz9",
+			uvk.ViewingKey);
+	}
+
+	[Fact]
+	public void Create_Orchard_IVK()
+	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		OrchardSK orchard = wallet.CreateOrchardAccount(0);
+		UnifiedViewingKey uvk = UnifiedViewingKey.Create(orchard.IncomingViewingKey);
+
+		Assert.Equal(
+			"uivk1zz6k7d37rldq7mk0n4uegyvesggreucz8h48nnrvlzznhvv3kqm4zp7wngksclaptu8hfqc6l57takh5x6jypygqp5m7d36gmxlxakgzqkp3luqrdgnk97k556wezjydjkmqkvkvf6",
 			uvk.ViewingKey);
 	}
 
@@ -153,6 +164,15 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.TryParse(null!, out result));
 		Assert.Null(result);
 		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Parse(null!));
+	}
+
+	[Theory, PairwiseData]
+	public void OrchardRoundtrip(ZcashNetwork network, bool isFullViewingKey)
+	{
+		Zip32HDWallet wallet = new(Mnemonic, network);
+		OrchardSK account = wallet.CreateOrchardAccount();
+		UnifiedViewingKey uvk = UnifiedViewingKey.Create(isFullViewingKey ? account.FullViewingKey : account.IncomingViewingKey);
+		AssertRoundtrip(uvk);
 	}
 
 	[Theory, PairwiseData]

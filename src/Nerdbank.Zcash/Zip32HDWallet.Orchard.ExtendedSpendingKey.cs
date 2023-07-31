@@ -45,6 +45,11 @@ public partial class Zip32HDWallet
 			public FullViewingKey FullViewingKey => this.fullViewingKey ??= this.CreateFullViewingKey();
 
 			/// <summary>
+			/// Gets the incoming viewing key.
+			/// </summary>
+			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
+			/// <summary>
 			/// Gets the fingerprint for this key.
 			/// </summary>
 			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey);

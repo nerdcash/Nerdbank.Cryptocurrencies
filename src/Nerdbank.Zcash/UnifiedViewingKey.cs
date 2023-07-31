@@ -189,7 +189,7 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 						: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
 				0x03 => isFullViewingKey
 						? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-						: throw new NotImplementedException(),
+						: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
 				_ => element,
 			};
 
