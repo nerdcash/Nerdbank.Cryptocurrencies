@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key for incoming transactions.
 /// </summary>
-public class IncomingViewingKey : IUnifiedEncodableViewingKey, IEquatable<IncomingViewingKey>
+public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<IncomingViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zivks";
 	private const string Bech32TestNetworkHRP = "zivktestsapling";
@@ -38,10 +38,10 @@ public class IncomingViewingKey : IUnifiedEncodableViewingKey, IEquatable<Incomi
 	bool IViewingKey.IsFullViewingKey => false;
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodableViewingKey.UnifiedTypeCode => 0x02;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x02;
 
 	/// <inheritdoc/>
-	int IUnifiedEncodableViewingKey.UnifiedKeyContributionLength => 32 * 2;
+	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 2;
 
 	/// <summary>
 	/// Gets the Bech32 encoding of the incoming viewing key.
@@ -107,7 +107,7 @@ public class IncomingViewingKey : IUnifiedEncodableViewingKey, IEquatable<Incomi
 	}
 
 	/// <inheritdoc/>
-	int IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span<byte> destination)
+	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
 	{
 		Verify.Operation(this.Dk.HasValue, "Cannot write this IVK because its dk value is unknown.");
 		int written = 0;
@@ -147,7 +147,7 @@ public class IncomingViewingKey : IUnifiedEncodableViewingKey, IEquatable<Incomi
 	}
 
 	/// <inheritdoc cref="Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
-	internal static IUnifiedEncodableViewingKey DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
 	{
 		Requires.Argument(keyContribution.Length == 64, nameof(keyContribution), "Unexpected length.");
 		ReadOnlySpan<byte> dk = keyContribution[0..32];

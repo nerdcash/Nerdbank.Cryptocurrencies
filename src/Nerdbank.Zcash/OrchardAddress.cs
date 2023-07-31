@@ -43,7 +43,7 @@ public class OrchardAddress : UnifiedAddress
 	public override IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= new ReadOnlyCollection<ZcashAddress>(new[] { this });
 
 	/// <inheritdoc/>
-	internal override byte UnifiedAddressTypeCode => 0x03;
+	internal override byte UnifiedTypeCode => 0x03;
 
 	/// <inheritdoc/>
 	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
@@ -69,14 +69,14 @@ public class OrchardAddress : UnifiedAddress
 		};
 
 		Span<byte> padding = stackalloc byte[16];
-		InitializePadding(humanReadablePart, padding);
+		UnifiedEncoding.InitializePadding(humanReadablePart, padding);
 		Span<byte> buffer = stackalloc byte[GetUAContributionLength<OrchardReceiver>() + padding.Length];
 		int written = 0;
 		written += WriteUAContribution(receiver, buffer);
 		padding.CopyTo(buffer[written..]);
 		written += padding.Length;
 
-		F4Jumble(buffer);
+		UnifiedEncoding.F4Jumble(buffer);
 
 		Span<char> address = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, buffer.Length)];
 		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, buffer, address);

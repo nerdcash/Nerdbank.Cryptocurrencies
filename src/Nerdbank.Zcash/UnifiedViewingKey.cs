@@ -16,9 +16,9 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 	private const string HumanReadablePartMainNetIVK = "uivk";
 	private const string HumanReadablePartTestNetIVK = "uivktest";
 
-	private readonly IReadOnlyCollection<IUnifiedEncodableViewingKey> viewingKeys;
+	private readonly IReadOnlyCollection<IUnifiedEncodingElement> viewingKeys;
 
-	private UnifiedViewingKey(string viewingKey, bool isFullViewingKey, ZcashNetwork network, IReadOnlyCollection<IUnifiedEncodableViewingKey> viewingKeys)
+	private UnifiedViewingKey(string viewingKey, bool isFullViewingKey, ZcashNetwork network, IReadOnlyCollection<IUnifiedEncodingElement> viewingKeys)
 	{
 		this.ViewingKey = viewingKey;
 		this.viewingKeys = viewingKeys;
@@ -69,10 +69,7 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 		Requires.NotNull(viewingKeys);
 		Requires.Argument(viewingKeys.Count > 0, nameof(viewingKeys), "Cannot create a unified viewing key with no viewing keys.");
 
-		SortedDictionary<byte, IUnifiedEncodableViewingKey> sortedKeysByTypeCode = new();
-		int totalLength = UnifiedEncoding.PaddingLength;
 		IViewingKey firstKey = viewingKeys.First();
-
 		ZcashNetwork network = firstKey.Network;
 		bool isFullViewingKey = firstKey.IsFullViewingKey;
 
@@ -80,18 +77,7 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 		{
 			Requires.Argument(network == key.Network, nameof(viewingKeys), "All viewing keys must belong to the same network.");
 			Requires.Argument(isFullViewingKey == key.IsFullViewingKey, nameof(viewingKeys), "All viewing keys must be full or all must be incoming viewing keys. A mix of these types is not supported.");
-
-			if (key is IUnifiedEncodableViewingKey unifiableKey)
-			{
-				byte typeCode = unifiableKey.UnifiedTypeCode;
-				Requires.Argument(!sortedKeysByTypeCode.ContainsKey(typeCode), nameof(viewingKeys), $"Only one viewing key per pool is allowed, but two with typecode {typeCode} were included.");
-				sortedKeysByTypeCode.Add(typeCode, unifiableKey);
-
-				totalLength += 1; // type code
-				totalLength += CompactSize.GetEncodedLength((ulong)unifiableKey.UnifiedKeyContributionLength);
-				totalLength += unifiableKey.UnifiedKeyContributionLength;
-			}
-			else
+			if (key is not IUnifiedEncodingElement)
 			{
 				throw new NotSupportedException($"Key {key.GetType()} is not supported in a unified viewing key.");
 			}
@@ -106,26 +92,9 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 			_ => throw new NotSupportedException("Unrecognized Zcash network."),
 		};
 
-		Span<byte> uvk = stackalloc byte[totalLength];
-		int uvkBytesWritten = 0;
-		foreach (KeyValuePair<byte, IUnifiedEncodableViewingKey> typeCodeAndKey in sortedKeysByTypeCode)
-		{
-			uvk[uvkBytesWritten++] = typeCodeAndKey.Key;
-			uvkBytesWritten += CompactSize.Encode((ulong)typeCodeAndKey.Value.UnifiedKeyContributionLength, uvk[uvkBytesWritten..]);
-			uvkBytesWritten += typeCodeAndKey.Value.WriteUnifiedViewingKeyContribution(uvk[uvkBytesWritten..]);
-		}
+		string unifiedEncoding = UnifiedEncoding.Encode(humanReadablePart, viewingKeys.Cast<IUnifiedEncodingElement>());
 
-		uvkBytesWritten += UnifiedEncoding.InitializePadding(humanReadablePart, uvk.Slice(uvkBytesWritten, UnifiedEncoding.PaddingLength));
-
-		Assumes.True(uvkBytesWritten == uvk.Length);
-
-		UnifiedEncoding.F4Jumble(uvk);
-
-		Span<char> result = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, uvk.Length)];
-		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, uvk, result);
-		Assumes.True(result.Length == finalLength);
-
-		return new UnifiedViewingKey(result.ToString(), isFullViewingKey, network, viewingKeys.Cast<IUnifiedEncodableViewingKey>().ToArray());
+		return new UnifiedViewingKey(unifiedEncoding, isFullViewingKey, network, viewingKeys.Cast<IUnifiedEncodingElement>().ToArray());
 	}
 
 	/// <summary>
@@ -136,6 +105,7 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 	/// <exception cref="InvalidKeyException">Thrown if any of the viewing keys fail to deserialize.</exception>
 	public static UnifiedViewingKey Parse(string unifiedViewingKey)
 	{
+		Requires.NotNull(unifiedViewingKey);
 		return TryParse(unifiedViewingKey, out UnifiedViewingKey? result, out ParseError? errorCode, out string? errorMessage)
 			? result
 			: throw new InvalidKeyException(errorMessage);
@@ -147,7 +117,11 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 	/// <param name="unifiedViewingKey">The string encoding of the unified viewing key.</param>
 	/// <param name="result">Receives the parsed viewing key, if successful.</param>
 	/// <returns>A value indicating whether parsing was successful.</returns>
-	public static bool TryParse(string unifiedViewingKey, [NotNullWhen(true)] out UnifiedViewingKey? result) => TryParse(unifiedViewingKey, out result, out _, out _);
+	public static bool TryParse(string unifiedViewingKey, [NotNullWhen(true)] out UnifiedViewingKey? result)
+	{
+		Requires.NotNull(unifiedViewingKey);
+		return TryParse(unifiedViewingKey, out result, out _, out _);
+	}
 
 	/// <summary>
 	/// Gets the viewing key of a given type, if included in this key.
@@ -164,124 +138,62 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 	public override string ToString() => this.ViewingKey;
 
 	/// <inheritdoc/>
-	public IEnumerator<IViewingKey> GetEnumerator() => this.viewingKeys.GetEnumerator();
+	public IEnumerator<IViewingKey> GetEnumerator() => this.viewingKeys.Cast<IViewingKey>().GetEnumerator();
 
 	/// <inheritdoc/>
 	IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
 	private static bool TryParse(string unifiedViewingKey, [NotNullWhen(true)] out UnifiedViewingKey? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
 	{
-		Requires.NotNull(unifiedViewingKey);
-
-		(int Tag, int Data)? length = Bech32.GetDecodedLength(unifiedViewingKey);
-		if (length is null)
+		if (!UnifiedEncoding.TryDecode(unifiedViewingKey, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? unknownElements, out errorCode, out errorMessage))
 		{
-			errorCode = ParseError.UnrecognizedAddressType;
-			errorMessage = Strings.UnrecognizedAddress;
-			result = null;
-			return false;
-		}
-
-		Span<char> humanReadablePart = stackalloc char[length.Value.Tag];
-		Span<byte> data = stackalloc byte[length.Value.Data];
-		if (!Bech32.Bech32m.TryDecode(unifiedViewingKey, humanReadablePart, data, out DecodeError? decodeError, out errorMessage, out _))
-		{
-			errorCode = ZcashAddress.DecodeToParseError(decodeError);
 			result = null;
 			return false;
 		}
 
 		bool isFullViewingKey;
 		ZcashNetwork network;
-		if (humanReadablePart.SequenceEqual(HumanReadablePartMainNetFVK))
+		switch (humanReadablePart)
 		{
-			isFullViewingKey = true;
-			network = ZcashNetwork.MainNet;
-		}
-		else if (humanReadablePart.SequenceEqual(HumanReadablePartMainNetIVK))
-		{
-			isFullViewingKey = false;
-			network = ZcashNetwork.MainNet;
-		}
-		else if (humanReadablePart.SequenceEqual(HumanReadablePartTestNetFVK))
-		{
-			isFullViewingKey = true;
-			network = ZcashNetwork.TestNet;
-		}
-		else if (humanReadablePart.SequenceEqual(HumanReadablePartTestNetIVK))
-		{
-			isFullViewingKey = false;
-			network = ZcashNetwork.TestNet;
-		}
-		else
-		{
-			errorCode = ParseError.UnrecognizedAddressType;
-			errorMessage = Strings.UnrecognizedAddress;
-			result = null;
-			return false;
-		}
-
-		if (length.Value.Data is < UnifiedEncoding.MinF4JumbleInputLength or > UnifiedEncoding.MaxF4JumbleInputLength)
-		{
-			errorCode = ParseError.InvalidAddress;
-			errorMessage = Strings.InvalidAddressLength;
-			result = null;
-			return false;
-		}
-
-		UnifiedEncoding.F4Jumble(data, inverted: true);
-
-		// Verify the 16-byte padding is as expected.
-		Span<byte> padding = stackalloc byte[UnifiedEncoding.PaddingLength];
-		UnifiedEncoding.InitializePadding(humanReadablePart, padding);
-		if (!data[^padding.Length..].SequenceEqual(padding))
-		{
-			errorCode = ParseError.InvalidAddress;
-			errorMessage = Strings.InvalidPadding;
-			result = null;
-			return false;
-		}
-
-		// Strip the padding.
-		data = data[..^padding.Length];
-
-		// Walk over each viewing key.
-		List<IUnifiedEncodableViewingKey> viewingKeys = new();
-		while (data.Length > 0)
-		{
-			byte typeCode = data[0];
-			data = data[1..];
-			data = data[CompactSize.Decode(data, out ulong keyLengthUL)..];
-			int keyLength = checked((int)keyLengthUL);
-
-			// Process each receiver type we support, and quietly ignore any we don't.
-			if (data.Length < keyLength)
-			{
-				errorCode = ParseError.InvalidAddress;
-				errorMessage = $"Expected data length {keyLength} but remaining data had only {data.Length} bytes left.";
+			case HumanReadablePartMainNetFVK:
+				isFullViewingKey = true;
+				network = ZcashNetwork.MainNet;
+				break;
+			case HumanReadablePartMainNetIVK:
+				isFullViewingKey = false;
+				network = ZcashNetwork.MainNet;
+				break;
+			case HumanReadablePartTestNetFVK:
+				isFullViewingKey = true;
+				network = ZcashNetwork.TestNet;
+				break;
+			case HumanReadablePartTestNetIVK:
+				isFullViewingKey = false;
+				network = ZcashNetwork.TestNet;
+				break;
+			default:
+				errorCode = ParseError.UnrecognizedAddressType;
+				errorMessage = Strings.UnrecognizedAddress;
 				result = null;
 				return false;
-			}
+		}
 
-			ReadOnlySpan<byte> viewingKeyData = data[..keyLength];
-			IUnifiedEncodableViewingKey? viewingKey = typeCode switch
+		// Walk over each viewing key.
+		List<IUnifiedEncodingElement> viewingKeys = new(unknownElements.Count);
+		foreach (UnifiedEncoding.UnknownElement element in unknownElements)
+		{
+			IUnifiedEncodingElement? viewingKey = element.UnifiedTypeCode switch
 			{
 				0x02 => isFullViewingKey
-						? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(viewingKeyData, network)
-						: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(viewingKeyData, network),
+						? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
+						: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
 				0x03 => isFullViewingKey
-						? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(viewingKeyData, network)
+						? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
 						: throw new NotImplementedException(),
-				_ => null,
+				_ => element,
 			};
 
-			if (viewingKey is not null)
-			{
-				viewingKeys.Add(viewingKey);
-			}
-
-			// Move on to the next receiver.
-			data = data[keyLength..];
+			viewingKeys.Add(viewingKey);
 		}
 
 		result = new UnifiedViewingKey(unifiedViewingKey, isFullViewingKey, network, viewingKeys);

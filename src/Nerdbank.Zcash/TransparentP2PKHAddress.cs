@@ -38,7 +38,7 @@ public class TransparentP2PKHAddress : TransparentAddress
 	public override ZcashNetwork Network => this.network;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedAddressTypeCode => 0x00;
+	internal override byte UnifiedTypeCode => 0x00;
 
 	/// <inheritdoc/>
 	internal override int ReceiverEncodingLength => this.receiver.Span.Length;

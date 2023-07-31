@@ -10,7 +10,7 @@ namespace Nerdbank.Zcash.Orchard;
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-public class FullViewingKey : IUnifiedEncodableViewingKey, IEquatable<FullViewingKey>
+public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<FullViewingKey>
 {
 	private readonly Bytes96 rawEncoding;
 
@@ -34,10 +34,10 @@ public class FullViewingKey : IUnifiedEncodableViewingKey, IEquatable<FullViewin
 	bool IViewingKey.IsFullViewingKey => true;
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodableViewingKey.UnifiedTypeCode => 0x03;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x03;
 
 	/// <inheritdoc/>
-	int IUnifiedEncodableViewingKey.UnifiedKeyContributionLength => 32 * 3;
+	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 3;
 
 	/// <inheritdoc/>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
@@ -181,7 +181,7 @@ public class FullViewingKey : IUnifiedEncodableViewingKey, IEquatable<FullViewin
 	}
 
 	/// <inheritdoc/>
-	int IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span<byte> destination)
+	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
 	{
 		int written = 0;
 		written += this.rawEncoding.Value.CopyToRetLength(destination[written..]);
@@ -191,10 +191,10 @@ public class FullViewingKey : IUnifiedEncodableViewingKey, IEquatable<FullViewin
 	/// <summary>
 	/// Reads the viewing key from its representation in a unified viewing key.
 	/// </summary>
-	/// <param name="keyContribution">The data that would have been written by <see cref="IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span{byte})"/>.</param>
+	/// <param name="keyContribution">The data that would have been written by <see cref="IUnifiedEncodingElement.WriteUnifiedData(Span{byte})"/>.</param>
 	/// <param name="network">The network the key should be used with.</param>
 	/// <returns>The deserialized key.</returns>
-	internal static IUnifiedEncodableViewingKey DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
 	{
 		return new FullViewingKey(keyContribution, network);
 	}

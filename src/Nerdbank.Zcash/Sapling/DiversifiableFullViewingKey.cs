@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// and generate addresses.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodableViewingKey, IEquatable<DiversifiableFullViewingKey>
+public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingElement, IEquatable<DiversifiableFullViewingKey>
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class.
@@ -40,10 +40,10 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodableView
 	}
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodableViewingKey.UnifiedTypeCode => 0x02;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x02;
 
 	/// <inheritdoc/>
-	int IUnifiedEncodableViewingKey.UnifiedKeyContributionLength => this.Ak.Value.Length + this.Nk.Value.Length + this.Ovk.Value.Length + this.Dk.Value.Length;
+	int IUnifiedEncodingElement.UnifiedDataLength => this.Ak.Value.Length + this.Nk.Value.Length + this.Ovk.Value.Length + this.Dk.Value.Length;
 
 	/// <summary>
 	/// Gets the default address for this spending key.
@@ -60,7 +60,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodableView
 	internal DiversifierKey Dk { get; }
 
 	/// <inheritdoc/>
-	int IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span<byte> destination)
+	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
 	{
 		int written = 0;
 		written += this.Ak.Value.CopyToRetLength(destination[written..]);
@@ -209,7 +209,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodableView
 	}
 
 	/// <inheritdoc cref="Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
-	internal static IUnifiedEncodableViewingKey DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
 	{
 		ReadOnlySpan<byte> ak = keyContribution[..32];
 		ReadOnlySpan<byte> nk = keyContribution[32..64];

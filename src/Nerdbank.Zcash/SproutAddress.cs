@@ -39,7 +39,7 @@ public class SproutAddress : ZcashAddress
 	public override ZcashNetwork Network => this.network;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedAddressTypeCode => throw new NotSupportedException();
+	internal override byte UnifiedTypeCode => throw new NotSupportedException();
 
 	/// <inheritdoc/>
 	[ExcludeFromCodeCoverage]

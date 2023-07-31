@@ -38,12 +38,12 @@ internal class CompoundUnifiedAddress : UnifiedAddress
 	}
 
 	/// <inheritdoc/>
-	internal override byte UnifiedAddressTypeCode
+	internal override byte UnifiedTypeCode
 	{
 		get
 		{
 			return this.receivers.Count == 1
-				? this.receivers[0].UnifiedAddressTypeCode
+				? this.receivers[0].UnifiedTypeCode
 				: throw new NotSupportedException("This unified address is not a raw receiver address and cannot be embedded into another unified address.");
 		}
 	}

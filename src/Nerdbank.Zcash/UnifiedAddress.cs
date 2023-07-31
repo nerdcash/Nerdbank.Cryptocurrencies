@@ -61,9 +61,6 @@ public abstract class UnifiedAddress : ZcashAddress
 			return existingUnifiedAddress;
 		}
 
-		SortedDictionary<byte, ZcashAddress> sortedReceiversByTypeCode = new();
-		int totalLength = UnifiedEncoding.PaddingLength;
-
 		bool hasShieldedAddress = false;
 		bool hasTransparentAddress = false;
 		ZcashNetwork? network = null;
@@ -71,7 +68,7 @@ public abstract class UnifiedAddress : ZcashAddress
 		{
 			try
 			{
-				hasShieldedAddress |= receiver.UnifiedAddressTypeCode > 0x01;
+				hasShieldedAddress |= receiver.UnifiedTypeCode > 0x01;
 			}
 			catch (NotSupportedException ex)
 			{
@@ -88,11 +85,6 @@ public abstract class UnifiedAddress : ZcashAddress
 				hasTransparentAddress = true;
 			}
 
-			if (!sortedReceiversByTypeCode.TryAdd(receiver.UnifiedAddressTypeCode, receiver))
-			{
-				throw new ArgumentException($"Only one of each type of address is allowed, but more than one {receiver.GetType().Name} was specified.", nameof(receivers));
-			}
-
 			if (network is null)
 			{
 				network = receiver.Network;
@@ -101,8 +93,6 @@ public abstract class UnifiedAddress : ZcashAddress
 			{
 				throw new ArgumentException(Strings.MixingNetworksInUANotAllowed, nameof(receivers));
 			}
-
-			totalLength += receiver.UAContributionLength;
 		}
 
 		Requires.Argument(hasShieldedAddress, nameof(receivers), "At least one shielded address is required.");
@@ -114,124 +104,55 @@ public abstract class UnifiedAddress : ZcashAddress
 			_ => throw new NotSupportedException(),
 		};
 
-		Span<byte> ua = stackalloc byte[totalLength];
-		int uaBytesWritten = 0;
-		foreach (ZcashAddress receiver in sortedReceiversByTypeCode.Values)
-		{
-			uaBytesWritten += receiver.WriteUAContribution(ua[uaBytesWritten..]);
-		}
+		string unifiedChars = UnifiedEncoding.Encode(humanReadablePart, receivers.Cast<IUnifiedEncodingElement>());
 
-		uaBytesWritten += UnifiedEncoding.InitializePadding(humanReadablePart, ua[uaBytesWritten..]);
-		Assumes.True(uaBytesWritten == ua.Length);
-
-		UnifiedEncoding.F4Jumble(ua);
-
-		Span<char> result = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, ua.Length)];
-		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, ua, result);
-		Assumes.True(result.Length == finalLength);
-
-		return new CompoundUnifiedAddress(result[..finalLength].ToString(), new(GetReceiversInPreferredOrder(sortedReceiversByTypeCode.Values)));
+		return new CompoundUnifiedAddress(unifiedChars, new(GetReceiversInPreferredOrder(receivers)));
 	}
 
 	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
 	internal static bool TryParse(string address, [NotNullWhen(true)] out UnifiedAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
 	{
-		if (!address.StartsWith("u1", StringComparison.Ordinal) && !address.StartsWith("utest1", StringComparison.Ordinal))
+		if (!UnifiedEncoding.TryDecode(address, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? unknownElements, out errorCode, out errorMessage))
 		{
-			errorCode = ParseError.UnrecognizedAddressType;
-			errorMessage = Strings.UnrecognizedAddress;
-			result = null;
-			return false;
-		}
-
-		(int Tag, int Data)? length = Bech32.GetDecodedLength(address);
-		if (length is null)
-		{
-			errorCode = ParseError.UnrecognizedAddressType;
-			errorMessage = Strings.UnrecognizedAddress;
-			result = null;
-			return false;
-		}
-
-		Span<char> humanReadablePart = stackalloc char[length.Value.Tag];
-		Span<byte> data = stackalloc byte[length.Value.Data];
-		if (!Bech32.Bech32m.TryDecode(address, humanReadablePart, data, out DecodeError? decodeError, out errorMessage, out _))
-		{
-			errorCode = DecodeToParseError(decodeError);
 			result = null;
 			return false;
 		}
 
 		ZcashNetwork network;
-		if (humanReadablePart.SequenceEqual(HumanReadablePartMainNet))
+		switch (humanReadablePart)
 		{
-			network = ZcashNetwork.MainNet;
+			case HumanReadablePartMainNet:
+				network = ZcashNetwork.MainNet;
+				break;
+			case HumanReadablePartTestNet:
+				network = ZcashNetwork.TestNet;
+				break;
+			default:
+				errorCode = ParseError.UnrecognizedAddressType;
+				errorMessage = Strings.UnrecognizedAddress;
+				result = null;
+				return false;
 		}
-		else if (humanReadablePart.SequenceEqual(HumanReadablePartTestNet))
-		{
-			network = ZcashNetwork.TestNet;
-		}
-		else
-		{
-			errorCode = ParseError.UnrecognizedAddressType;
-			errorMessage = Strings.UnrecognizedAddress;
-			result = null;
-			return false;
-		}
-
-		if (length.Value.Data is < UnifiedEncoding.MinF4JumbleInputLength or > UnifiedEncoding.MaxF4JumbleInputLength)
-		{
-			errorCode = ParseError.InvalidAddress;
-			errorMessage = Strings.InvalidAddressLength;
-			result = null;
-			return false;
-		}
-
-		UnifiedEncoding.F4Jumble(data, inverted: true);
-
-		// Verify the 16-byte padding is as expected.
-		Span<byte> padding = stackalloc byte[UnifiedEncoding.PaddingLength];
-		UnifiedEncoding.InitializePadding(humanReadablePart, padding);
-		if (!data[^padding.Length..].SequenceEqual(padding))
-		{
-			errorCode = ParseError.InvalidAddress;
-			errorMessage = Strings.InvalidPadding;
-			result = null;
-			return false;
-		}
-
-		// Strip the padding.
-		data = data[..^padding.Length];
 
 		// Walk over each receiver.
-		List<ZcashAddress> receiverAddresses = new();
-		while (data.Length > 0)
+		List<ZcashAddress> receiverAddresses = new(unknownElements.Count);
+		foreach (UnifiedEncoding.UnknownElement element in unknownElements)
 		{
-			byte typeCode = data[0];
-			data = data[1..];
-			data = data[CompactSize.Decode(data, out ulong receiverLengthUL)..];
-			int receiverLength = checked((int)receiverLengthUL);
-
-			// Process each receiver type we support, and quietly ignore any we don't.
-			ReadOnlySpan<byte> receiverData = data[..receiverLength];
-			switch (typeCode)
+			switch (element.UnifiedTypeCode)
 			{
 				case 0x00:
-					receiverAddresses.Add(new TransparentP2PKHAddress(new TransparentP2PKHReceiver(receiverData), network));
+					receiverAddresses.Add(new TransparentP2PKHAddress(new TransparentP2PKHReceiver(element.Content.Span), network));
 					break;
 				case 0x01:
-					receiverAddresses.Add(new TransparentP2SHAddress(new TransparentP2SHReceiver(receiverData), network));
+					receiverAddresses.Add(new TransparentP2SHAddress(new TransparentP2SHReceiver(element.Content.Span), network));
 					break;
 				case 0x02:
-					receiverAddresses.Add(new SaplingAddress(new SaplingReceiver(receiverData), network));
+					receiverAddresses.Add(new SaplingAddress(new SaplingReceiver(element.Content.Span), network));
 					break;
 				case 0x03:
-					receiverAddresses.Add(new OrchardAddress(new OrchardReceiver(receiverData), network));
+					receiverAddresses.Add(new OrchardAddress(new OrchardReceiver(element.Content.Span), network));
 					break;
 			}
-
-			// Move on to the next receiver.
-			data = data[receiverLength..];
 		}
 
 		// If we parsed exactly one Orchard receiver, just return it as its own address.
@@ -248,7 +169,7 @@ public abstract class UnifiedAddress : ZcashAddress
 		// Although the UA encoding requires the receivers to be sorted in ascending Type Code order,
 		// we want to list receivers in order of preference, which is the opposite.
 		List<ZcashAddress> sortedAddresses = addresses.ToList();
-		sortedAddresses.Sort((a, b) => -a.UnifiedAddressTypeCode.CompareTo(b.UnifiedAddressTypeCode));
+		sortedAddresses.Sort((a, b) => -a.UnifiedTypeCode.CompareTo(b.UnifiedTypeCode));
 		return new(sortedAddresses);
 	}
 }
