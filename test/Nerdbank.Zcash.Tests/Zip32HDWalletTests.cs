@@ -21,8 +21,8 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(0, spendingKey.Depth);
 		Assert.Equal(0u, spendingKey.ChildIndex);
 		Assert.Equal(network, spendingKey.Network);
-		Assert.NotNull(spendingKey.FullViewingKey);
-		Assert.NotEqual(default, spendingKey.FullViewingKey.Fingerprint);
+		Assert.NotNull(spendingKey.ExtendedFullViewingKey);
+		Assert.NotEqual(default, spendingKey.ExtendedFullViewingKey.Fingerprint);
 	}
 
 	[Theory, PairwiseData]
@@ -60,7 +60,7 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet.Sapling.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Sapling.Create(mnemonic, ZcashNetwork.MainNet);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
 		BigInteger diversifierIndex = 0;
-		Assert.True(accountSpendingKey.FullViewingKey.Key.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
+		Assert.True(accountSpendingKey.FullViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
 		Assert.Equal(1, diversifierIndex); // index 0 was invalid in this case.
 		SaplingAddress address = new(receiver);
 		this.logger.WriteLine(address);
@@ -70,7 +70,7 @@ public class Zip32HDWalletTests : TestBase
 	[Fact]
 	public void CreateSaplingAddressFromSeed_ViaFVK()
 	{
-		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).FullViewingKey;
+		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey childFVK = masterFullViewingKey.Derive(3);
 		BigInteger diversifierIndex = 0;
 		Assert.True(childFVK.Key.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
@@ -116,7 +116,39 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(1u | Bip32HDWallet.HardenedBit, account.ChildIndex);
 
 		BigInteger diversifier = BigInteger.Zero;
-		Assert.True(account.FullViewingKey.Key.TryCreateReceiver(ref diversifier, out SaplingReceiver receiver));
+		Assert.True(account.FullViewingKey.TryCreateReceiver(ref diversifier, out SaplingReceiver receiver));
 		Assert.Equal(new SaplingAddress(receiver, ZcashNetwork.TestNet), account.DefaultAddress);
+	}
+
+	[Theory, PairwiseData]
+	public void ExtendedSpendingKey_Sapling_Encoded_FromEncoded(bool testNet)
+	{
+		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
+		string expected = testNet
+			? "secret-extended-key-test1qvqlw6pjqqqqpqrcxxrqd2acqcurzx7wat9gk7jv3wee36rj970d9h47fpg6fddwupcaun2z7rkqh4hdkkw2y6a2w4x32vg908tpyr63z4akzq4sz5fsm92zmal0puqq9ye7afkkakvg7aurtlrex03dahp7zgfay3dwdkc85t6662jk4lkv8kjughx6x8vrn97pqcqn04wduse3n5hhlkf6qc5ah08udx9g0wpkf6rausju7yamzl6z4gdyrtmqs9ak93w0z222vgsz4a38f"
+			: "secret-extended-key-main1qvqlw6pjqqqqpqrcxxrqd2acqcurzx7wat9gk7jv3wee36rj970d9h47fpg6fddwupcaun2z7rkqh4hdkkw2y6a2w4x32vg908tpyr63z4akzq4sz5fsm92zmal0puqq9ye7afkkakvg7aurtlrex03dahp7zgfay3dwdkc85t6662jk4lkv8kjughx6x8vrn97pqcqn04wduse3n5hhlkf6qc5ah08udx9g0wpkf6rausju7yamzl6z4gdyrtmqs9ak93w0z222vgsffenlf";
+		Zip32HDWallet wallet = new(Mnemonic, network);
+		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
+		string actual = account.Encoded;
+		Assert.Equal(expected, actual);
+
+		var decoded = Zip32HDWallet.Sapling.ExtendedSpendingKey.FromEncoded(actual);
+		Assert.Equal(account, decoded);
+	}
+
+	[Theory, PairwiseData]
+	public void ExtendedSpendingKey_Orchard_Encoded_FromEncoded(bool testNet)
+	{
+		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
+		string expected = testNet
+			? "secret-orchard-extsk-test1qwx8hu3mqqqqpqzr5shlv8gv794seyh4247z7htmgfq7weu7fsk55mxy79uvecdqcd08m73ahd2n4yquhr7uudf9wxhl39qeyjdlam82ue3jusfyxye8ym5n6us"
+			: "secret-orchard-extsk-main1qwx8hu3mqqqqpqzr5shlv8gv794seyh4247z7htmgfq7weu7fsk55mxy79uvecdqcd08m73ahd2n4yquhr7uudf9wxhl39qeyjdlam82ue3jusfyxye8y3x62h0";
+		Zip32HDWallet wallet = new(Mnemonic, network);
+		Zip32HDWallet.Orchard.ExtendedSpendingKey account = wallet.CreateOrchardAccount(0);
+		string actual = account.Encoded;
+		Assert.Equal(expected, actual);
+
+		var decoded = Zip32HDWallet.Orchard.ExtendedSpendingKey.FromEncoded(actual);
+		Assert.Equal(account, decoded);
 	}
 }

@@ -1,13 +1,42 @@
+use group::GroupEncoding;
 use zcash_primitives::{
     sapling::{
         keys::{ExpandedSpendingKey, FullViewingKey},
-        PaymentAddress,
+        NullifierDerivingKey, PaymentAddress, ViewingKey,
     },
     zip32::{
         ChildIndex, DiversifiableFullViewingKey, DiversifierIndex, ExtendedFullViewingKey,
         ExtendedSpendingKey, Scope,
     },
 };
+
+#[no_mangle]
+pub extern "C" fn derive_sapling_ivk_from_fvk(
+    ak: *const [u8; 32],
+    nk: *const [u8; 32],
+    ivk: *mut [u8; 32],
+) -> i32 {
+    let ak = unsafe { &*ak };
+    let nk = unsafe { &*nk };
+    let ivk = unsafe { &mut *ivk };
+
+    let ak = jubjub::SubgroupPoint::from_bytes(ak);
+    if ak.is_none().into() {
+        return -1;
+    }
+
+    let ak = ak.unwrap();
+    let nk = jubjub::SubgroupPoint::from_bytes(nk);
+    if nk.is_none().into() {
+        return -2;
+    }
+
+    let nk = NullifierDerivingKey(nk.unwrap());
+
+    ivk.copy_from_slice(&ViewingKey { ak, nk }.ivk().to_repr());
+
+    0
+}
 
 #[no_mangle]
 pub extern "C" fn decrypt_sapling_diversifier(

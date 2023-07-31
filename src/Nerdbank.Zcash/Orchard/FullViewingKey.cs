@@ -9,7 +9,8 @@ namespace Nerdbank.Zcash.Orchard;
 /// <summary>
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
-public class FullViewingKey : IKey
+[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
+public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<FullViewingKey>
 {
 	private readonly Bytes96 rawEncoding;
 
@@ -21,16 +22,40 @@ public class FullViewingKey : IKey
 	internal FullViewingKey(ReadOnlySpan<byte> rawEncoding, ZcashNetwork network)
 	{
 		this.rawEncoding = new(rawEncoding);
-		this.Network = network;
+		this.IncomingViewingKey = IncomingViewingKey.FromFullViewingKey(rawEncoding, network);
 	}
 
 	/// <summary>
 	/// Gets the network this key should be used with.
 	/// </summary>
-	public ZcashNetwork Network { get; }
+	public ZcashNetwork Network => this.IncomingViewingKey.Network;
+
+	/// <summary>
+	/// Gets the incoming viewing key.
+	/// </summary>
+	public IncomingViewingKey IncomingViewingKey { get; }
+
+	/// <inheritdoc/>
+	bool IViewingKey.IsFullViewingKey => true;
+
+	/// <inheritdoc/>
+	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x03;
+
+	/// <inheritdoc/>
+	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 3;
 
 	/// <inheritdoc/>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+
+	/// <summary>
+	/// Gets the default address for this spending key.
+	/// </summary>
+	/// <remarks>
+	/// Create additional diversified addresses using <see cref="CreateReceiver(BigInteger)"/>.
+	/// </remarks>
+	/// <seealso cref="CreateDefaultReceiver"/>
+	/// <seealso cref="CreateReceiver(BigInteger)"/>
+	public OrchardAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <summary>
 	/// Gets the spend validating key.
@@ -122,13 +147,7 @@ public class FullViewingKey : IKey
 	/// </remarks>
 	public bool TryGetDiversifierIndex(OrchardReceiver receiver, Span<byte> diversifierIndex)
 	{
-		Span<byte> ivk = stackalloc byte[64];
-		if (NativeMethods.GetOrchardIncomingViewingKeyFromFullViewingKey(this.RawEncoding, ivk) != 0)
-		{
-			throw new InvalidKeyException();
-		}
-
-		return NativeMethods.DecryptOrchardDiversifier(ivk, receiver.Span, diversifierIndex) switch
+		return NativeMethods.DecryptOrchardDiversifier(this.IncomingViewingKey.RawEncoding, receiver.Span, diversifierIndex) switch
 		{
 			0 => true,
 			1 => false,
@@ -150,5 +169,32 @@ public class FullViewingKey : IKey
 			diversifierIndex = null;
 			return false;
 		}
+	}
+
+	/// <inheritdoc/>
+	public bool Equals(FullViewingKey? other)
+	{
+		return other is not null
+			&& this.rawEncoding.Value.SequenceEqual(other.rawEncoding.Value)
+			&& this.Network == other.Network;
+	}
+
+	/// <inheritdoc/>
+	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
+	{
+		int written = 0;
+		written += this.rawEncoding.Value.CopyToRetLength(destination[written..]);
+		return written;
+	}
+
+	/// <summary>
+	/// Reads the viewing key from its representation in a unified viewing key.
+	/// </summary>
+	/// <param name="keyContribution">The data that would have been written by <see cref="IUnifiedEncodingElement.WriteUnifiedData(Span{byte})"/>.</param>
+	/// <param name="network">The network the key should be used with.</param>
+	/// <returns>The deserialized key.</returns>
+	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	{
+		return new FullViewingKey(keyContribution, network);
 	}
 }

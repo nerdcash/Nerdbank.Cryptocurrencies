@@ -3,6 +3,7 @@
 
 using System.Runtime.InteropServices;
 using Nerdbank.Zcash;
+using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 /// <summary>
 /// The functions and data types imported from rust.
@@ -259,6 +260,33 @@ internal static unsafe class NativeMethods
 	}
 
 	/// <summary>
+	/// Derives the ivk value for a sapling incoming viewing key from elements of the full viewing key.
+	/// </summary>
+	/// <param name="ak">The <see cref="Nerdbank.Zcash.Sapling.FullViewingKey.Ak"/> value.</param>
+	/// <param name="nk">The <see cref="Nerdbank.Zcash.Sapling.FullViewingKey.Nk"/> value.</param>
+	/// <param name="ivk">Receives the computed value for <see cref="Nerdbank.Zcash.Sapling.IncomingViewingKey.Ivk"/>.</param>
+	/// <returns>0 on success, or a negative error code.</returns>
+	/// <exception cref="ArgumentException">Thrown if the provided buffers are not of expected length.</exception>
+	internal static int DeriveSaplingIncomingViewingKeyFromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, Span<byte> ivk)
+	{
+		if (ak.Length != 32 || nk.Length != 32 || ivk.Length != 32)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* pAk = ak)
+		{
+			fixed (byte* pNk = nk)
+			{
+				fixed (byte* pIvk = ivk)
+				{
+					return derive_sapling_ivk_from_fvk(pAk, pNk, pIvk);
+				}
+			}
+		}
+	}
+
+	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="sk">A pointer to a 32-byte buffer containing the spending key.</param>
@@ -300,4 +328,7 @@ internal static unsafe class NativeMethods
 
 	[DllImport(LibraryName)]
 	private static extern int decrypt_sapling_diversifier(byte* fvk, byte* dk, byte* receiver, byte* diversifier_index, byte* scope);
+
+	[DllImport(LibraryName)]
+	private static extern int derive_sapling_ivk_from_fvk(byte* ak, byte* nk, byte* ivk);
 }

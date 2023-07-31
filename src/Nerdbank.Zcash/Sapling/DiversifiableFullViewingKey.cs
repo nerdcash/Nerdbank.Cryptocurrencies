@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Numerics;
+using Nerdbank.Zcash.Orchard;
 
 namespace Nerdbank.Zcash.Sapling;
 
@@ -9,7 +10,8 @@ namespace Nerdbank.Zcash.Sapling;
 /// A viewing key that can decrypt incoming and outgoing transactions
 /// and generate addresses.
 /// </summary>
-public class DiversifiableFullViewingKey : FullViewingKey
+[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
+public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingElement, IEquatable<DiversifiableFullViewingKey>
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class.
@@ -21,6 +23,9 @@ public class DiversifiableFullViewingKey : FullViewingKey
 		: base(spendingKey, network)
 	{
 		this.Dk = dk;
+
+		// Replace the base class's value with our own that includes the Dk value.
+		this.IncomingViewingKey = new IncomingViewingKey(this.IncomingViewingKey.Ivk.Value, dk.Value, network);
 	}
 
 	/// <summary>
@@ -28,18 +33,42 @@ public class DiversifiableFullViewingKey : FullViewingKey
 	/// </summary>
 	/// <param name="fullViewingKey">The full viewing key.</param>
 	/// <param name="dk">The diversifier key.</param>
-	/// <param name="network">The network this key should be used with.</param>
-	internal DiversifiableFullViewingKey(FullViewingKey fullViewingKey, DiversifierKey dk, ZcashNetwork network)
-		: base(fullViewingKey.ViewingKey, fullViewingKey.Ovk, network)
+	internal DiversifiableFullViewingKey(FullViewingKey fullViewingKey, DiversifierKey dk)
+		: base(fullViewingKey.Ak, fullViewingKey.Nk, fullViewingKey.IncomingViewingKey, fullViewingKey.Ovk)
 	{
 		this.Dk = dk;
 	}
+
+	/// <inheritdoc/>
+	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x02;
+
+	/// <inheritdoc/>
+	int IUnifiedEncodingElement.UnifiedDataLength => this.Ak.Value.Length + this.Nk.Value.Length + this.Ovk.Value.Length + this.Dk.Value.Length;
+
+	/// <summary>
+	/// Gets the default address for this spending key.
+	/// </summary>
+	/// <remarks>
+	/// Create additional diversified addresses using <see cref="TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>.
+	/// </remarks>
+	public SaplingAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <summary>
 	/// Gets the diversifier key.
 	/// </summary>
 	/// <value>A 32-byte buffer.</value>
 	internal DiversifierKey Dk { get; }
+
+	/// <inheritdoc/>
+	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
+	{
+		int written = 0;
+		written += this.Ak.Value.CopyToRetLength(destination[written..]);
+		written += this.Nk.Value.CopyToRetLength(destination[written..]);
+		written += this.Ovk.Value.CopyToRetLength(destination[written..]);
+		written += this.Dk.Value.CopyToRetLength(destination[written..]);
+		return written;
+	}
 
 	/// <summary>
 	/// Creates a sapling receiver using this key and a given diversifier.
@@ -95,7 +124,7 @@ public class DiversifiableFullViewingKey : FullViewingKey
 	public bool TryCreateReceiver(Span<byte> diversifierIndex, out SaplingReceiver receiver)
 	{
 		Span<byte> fvk = stackalloc byte[96];
-		this.ToBytes(fvk);
+		this.Encode(fvk);
 
 		Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
 		if (NativeMethods.TryGetSaplingReceiver(fvk, this.Dk.Value, diversifierIndex, receiverBytes) != 0)
@@ -169,5 +198,25 @@ public class DiversifiableFullViewingKey : FullViewingKey
 			diversifierIndex = null;
 			return false;
 		}
+	}
+
+	/// <inheritdoc/>
+	public bool Equals(DiversifiableFullViewingKey? other)
+	{
+		return other is not null
+			&& base.Equals(other)
+			&& this.Dk.Value.SequenceEqual(other.Dk.Value);
+	}
+
+	/// <inheritdoc cref="Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
+	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	{
+		ReadOnlySpan<byte> ak = keyContribution[..32];
+		ReadOnlySpan<byte> nk = keyContribution[32..64];
+		ReadOnlySpan<byte> ovk = keyContribution[64..96];
+		ReadOnlySpan<byte> dk = keyContribution[96..];
+		IncomingViewingKey ivk = IncomingViewingKey.FromFullViewingKey(ak, nk, dk, network);
+		FullViewingKey fvk = new(new(ak), new(nk), ivk, new(ovk));
+		return new DiversifiableFullViewingKey(fvk, new(dk));
 	}
 }

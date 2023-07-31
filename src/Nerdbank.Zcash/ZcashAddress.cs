@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A Zcash address.
 /// </summary>
-public abstract class ZcashAddress : IEquatable<ZcashAddress>
+public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingElement
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ZcashAddress"/> class.
@@ -35,13 +35,16 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	/// Gets the total length of this address's contribution to a unified address.
 	/// </summary>
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	internal int UAContributionLength => 1 + CompactSize.GetEncodedLength((ulong)this.ReceiverEncodingLength) + this.ReceiverEncodingLength;
+	int IUnifiedEncodingElement.UnifiedDataLength => this.ReceiverEncodingLength;
 
 	/// <summary>
 	/// Gets the type code to use when embedded in a unified address.
 	/// </summary>
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	internal abstract byte UnifiedAddressTypeCode { get; }
+	byte IUnifiedEncodingElement.UnifiedTypeCode => this.UnifiedTypeCode;
+
+	/// <inheritdoc cref="IUnifiedEncodingElement.UnifiedTypeCode"/>
+	internal abstract byte UnifiedTypeCode { get; }
 
 	/// <summary>
 	/// Gets the length of the receiver encoding in a unified address.
@@ -64,12 +67,9 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	/// <exception type="InvalidAddressException">Thrown if the address is invalid.</exception>
 	public static ZcashAddress Parse(string address)
 	{
-		if (!TryParse(address, out ZcashAddress? result, out _, out string? errorMessage))
-		{
-			throw new InvalidAddressException(errorMessage);
-		}
-
-		return result;
+		return TryParse(address, out ZcashAddress? result, out _, out string? errorMessage)
+			? result
+			: throw new InvalidAddressException(errorMessage);
 	}
 
 	/// <inheritdoc cref="TryParse(string, out ZcashAddress?, out ParseError?, out string?)"/>
@@ -177,28 +177,34 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 		where TPoolReceiver : unmanaged, IPoolReceiver;
 
 	/// <summary>
+	/// Writes this address's contribution to a unified address.
+	/// </summary>
+	/// <param name="destination">The buffer to receive the UA contribution.</param>
+	/// <returns>The number of bytes actually written to the buffer.</returns>
+	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination) => this.GetReceiverEncoding(destination);
+
+	/// <summary>
+	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.
+	/// </summary>
+	/// <param name="decodeError">The decode error.</param>
+	/// <returns>The parse error to report to the user.</returns>
+	[return: NotNullIfNotNull(nameof(decodeError))]
+	internal static ParseError? DecodeToParseError(DecodeError? decodeError)
+	{
+		return decodeError switch
+		{
+			null => null,
+			DecodeError.BufferTooSmall => throw Assumes.Fail("An internal error occurred: the buffer was too small."),
+			_ => ParseError.InvalidAddress,
+		};
+	}
+
+	/// <summary>
 	/// Writes out the encoded receiver for this address.
 	/// </summary>
 	/// <param name="output">The buffer to receive the encoded receiver.</param>
 	/// <returns>The number of bytes written to <paramref name="output"/>.</returns>
 	internal abstract int GetReceiverEncoding(Span<byte> output);
-
-	/// <summary>
-	/// Writes this address's contribution to a unified address.
-	/// </summary>
-	/// <param name="destination">The buffer to receive the UA contribution.</param>
-	/// <returns>The number of bytes actually written to the buffer.</returns>
-	internal int WriteUAContribution(Span<byte> destination)
-	{
-		int bytesWritten = 0;
-		destination[bytesWritten++] = this.UnifiedAddressTypeCode;
-		int predictedEncodingLength = this.ReceiverEncodingLength;
-		bytesWritten += CompactSize.Encode((ulong)predictedEncodingLength, destination[bytesWritten..]);
-		int actualEncodingLength = this.GetReceiverEncoding(destination[bytesWritten..]);
-		Assumes.True(predictedEncodingLength == actualEncodingLength); // If this is wrong, we encoded the wrong length in the compact size.
-		bytesWritten += actualEncodingLength;
-		return bytesWritten;
-	}
 
 	/// <summary>
 	/// Gets the length of the buffer required to call <see cref="WriteUAContribution{TReceiver}(in TReceiver, Span{byte})"/>.
@@ -242,21 +248,5 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 		where TTarget : unmanaged, IPoolReceiver
 	{
 		return typeof(TNative) == typeof(TTarget) ? Unsafe.As<TNative, TTarget>(ref Unsafe.AsRef(in receiver)) : null;
-	}
-
-	/// <summary>
-	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.
-	/// </summary>
-	/// <param name="decodeError">The decode error.</param>
-	/// <returns>The parse error to report to the user.</returns>
-	[return: NotNullIfNotNull(nameof(decodeError))]
-	private protected static ParseError? DecodeToParseError(DecodeError? decodeError)
-	{
-		return decodeError switch
-		{
-			null => null,
-			DecodeError.BufferTooSmall => throw Assumes.Fail("An internal error occurred: the buffer was too small."),
-			_ => ParseError.InvalidAddress,
-		};
 	}
 }

@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// Gets the spending key, broken out into 3 derived components.
 /// </summary>
-internal readonly struct ExpandedSpendingKey
+internal readonly struct ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ExpandedSpendingKey"/> struct.
@@ -37,6 +37,14 @@ internal readonly struct ExpandedSpendingKey
 	/// Gets the outgoing viewing key.
 	/// </summary>
 	internal OutgoingViewingKey Ovk { get; }
+
+	/// <inheritdoc/>
+	public bool Equals(ExpandedSpendingKey other)
+	{
+		return this.Ask.Value.SequenceEqual(other.Ask.Value)
+			&& this.Nsk.Value.SequenceEqual(other.Nsk.Value)
+			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value);
+	}
 
 	/// <summary>
 	/// Decodes an <see cref="ExpandedSpendingKey"/> from its binary representation.

@@ -13,8 +13,12 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
-		public class ExtendedFullViewingKey : IExtendedKey
+		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
+		public class ExtendedFullViewingKey : IExtendedKey, IEquatable<ExtendedFullViewingKey>
 		{
+			private const string Bech32MainNetworkHRP = "zxviews";
+			private const string Bech32TestNetworkHRP = "zxviewtestsapling";
+
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
 			/// </summary>
@@ -72,10 +76,64 @@ public partial class Zip32HDWallet
 			public DiversifiableFullViewingKey Key { get; }
 
 			/// <summary>
+			/// Gets the Bech32 encoding of the full viewing key.
+			/// </summary>
+			public string Encoded
+			{
+				get
+				{
+					Span<byte> encodedBytes = stackalloc byte[169];
+					Span<char> encodedChars = stackalloc char[512];
+					int byteLength = this.Encode(encodedBytes);
+					string hrp = this.Network switch
+					{
+						ZcashNetwork.MainNet => Bech32MainNetworkHRP,
+						ZcashNetwork.TestNet => Bech32TestNetworkHRP,
+						_ => throw new NotSupportedException(),
+					};
+					int charLength = Bech32.Original.Encode(hrp, encodedBytes[..byteLength], encodedChars);
+					return new string(encodedChars[..charLength]);
+				}
+			}
+
+			/// <summary>
+			/// Gets the default address for this spending key.
+			/// </summary>
+			/// <remarks>
+			/// Create additional diversified addresses using <see cref="DiversifiableFullViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
+			/// found on the <see cref="Key"/>.
+			/// </remarks>
+			public SaplingAddress DefaultAddress => this.Key.DefaultAddress;
+
+			/// <summary>
 			/// Gets the diversifier key.
 			/// </summary>
 			/// <value>A 32-byte buffer.</value>
 			internal DiversifierKey Dk => this.Key.Dk;
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class
+			/// from the bech32 encoding of an extended full viewing key as specified in ZIP-32.
+			/// </summary>
+			/// <param name="encoding">The bech32-encoded key.</param>
+			/// <returns>An initialized <see cref="ExtendedFullViewingKey"/>.</returns>
+			/// <remarks>
+			/// This method can parse the output of the <see cref="Encoded"/> property.
+			/// </remarks>
+			public static ExtendedFullViewingKey FromEncoded(ReadOnlySpan<char> encoding)
+			{
+				Span<char> hrp = stackalloc char[50];
+				Span<byte> data = stackalloc byte[169];
+				(int tagLength, int dataLength) = Bech32.Original.Decode(encoding, hrp, data);
+				hrp = hrp[..tagLength];
+				ZcashNetwork network = hrp switch
+				{
+					Bech32MainNetworkHRP => ZcashNetwork.MainNet,
+					Bech32TestNetworkHRP => ZcashNetwork.TestNet,
+					_ => throw new InvalidKeyException($"Unexpected bech32 tag: {hrp}"),
+				};
+				return Decode(data[..dataLength], network);
+			}
 
 			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
 			public ExtendedFullViewingKey Derive(uint childIndex)
@@ -92,6 +150,17 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
+			public bool Equals(ExtendedFullViewingKey? other)
+			{
+				return other is not null
+					&& this.Key.Equals(other.Key)
+					&& this.ChainCode.Value.SequenceEqual(other.ChainCode.Value)
+					&& this.ParentFullViewingKeyTag.Value.SequenceEqual(other.ParentFullViewingKeyTag.Value)
+					&& this.Depth == other.Depth
+					&& this.ChildIndex == other.ChildIndex;
+			}
+
+			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			private static ExtendedFullViewingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
@@ -100,9 +169,9 @@ public partial class Zip32HDWallet
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
 				uint childIndex = BitUtilities.ReadUInt32LE(encoded[5..9]);
 				ChainCode chainCode = new(encoded[9..41]);
-				FullViewingKey fvk = FullViewingKey.FromBytes(encoded[41..137], network);
+				FullViewingKey fvk = FullViewingKey.Decode(encoded[41..137], network);
 				DiversifierKey dk = new(encoded[137..169]);
-				DiversifiableFullViewingKey dfvk = new(fvk, dk, network);
+				DiversifiableFullViewingKey dfvk = new(fvk, dk);
 				return new(dfvk, chainCode, parentFullViewingKeyTag, depth, childIndex);
 			}
 
@@ -121,7 +190,7 @@ public partial class Zip32HDWallet
 				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
 				length += BitUtilities.WriteLE(this.ChildIndex, result[length..]);
 				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
-				length += this.Key.ToBytes(result[length..]);
+				length += this.Key.Encode(result[length..]);
 				length += this.Dk.Value.CopyToRetLength(result[length..]);
 				Assumes.True(length == 169);
 				return length;
