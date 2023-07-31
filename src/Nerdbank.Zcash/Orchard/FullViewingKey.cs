@@ -10,7 +10,7 @@ namespace Nerdbank.Zcash.Orchard;
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-public class FullViewingKey : IKey
+public class FullViewingKey : IUnifiedEncodableViewingKey, IEquatable<FullViewingKey>
 {
 	private readonly Bytes96 rawEncoding;
 
@@ -29,6 +29,15 @@ public class FullViewingKey : IKey
 	/// Gets the network this key should be used with.
 	/// </summary>
 	public ZcashNetwork Network { get; }
+
+	/// <inheritdoc/>
+	bool IViewingKey.IsFullViewingKey => true;
+
+	/// <inheritdoc/>
+	byte IUnifiedEncodableViewingKey.UnifiedTypeCode => 0x03;
+
+	/// <inheritdoc/>
+	int IUnifiedEncodableViewingKey.UnifiedKeyContributionLength => 32 * 3;
 
 	/// <inheritdoc/>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
@@ -161,5 +170,32 @@ public class FullViewingKey : IKey
 			diversifierIndex = null;
 			return false;
 		}
+	}
+
+	/// <inheritdoc/>
+	public bool Equals(FullViewingKey? other)
+	{
+		return other is not null
+			&& this.rawEncoding.Value.SequenceEqual(other.rawEncoding.Value)
+			&& this.Network == other.Network;
+	}
+
+	/// <inheritdoc/>
+	int IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span<byte> destination)
+	{
+		int written = 0;
+		written += this.rawEncoding.Value.CopyToRetLength(destination[written..]);
+		return written;
+	}
+
+	/// <summary>
+	/// Reads the viewing key from its representation in a unified viewing key.
+	/// </summary>
+	/// <param name="keyContribution">The data that would have been written by <see cref="IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span{byte})"/>.</param>
+	/// <param name="network">The network the key should be used with.</param>
+	/// <returns>The deserialized key.</returns>
+	internal static IUnifiedEncodableViewingKey DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	{
+		return new FullViewingKey(keyContribution, network);
 	}
 }

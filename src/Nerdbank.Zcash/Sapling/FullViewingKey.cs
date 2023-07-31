@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
-public class FullViewingKey : IKey, IEquatable<FullViewingKey>
+public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zviews";
 	private const string Bech32TestNetworkHRP = "zviewtestsapling";
@@ -30,7 +30,7 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 		ReadOnlySpan<byte> nk = fvk_bytes[32..64];
 		this.Ak = new(ak);
 		this.Nk = new(nk);
-		this.IncomingViewingKey = IncomingViewingKey.FromFullViewingKey(ak, nk, network);
+		this.IncomingViewingKey = IncomingViewingKey.FromFullViewingKey(ak, nk, default, network);
 		this.Ovk = new(fvk_bytes[64..96]);
 	}
 
@@ -53,6 +53,9 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	/// Gets the network this key should be used with.
 	/// </summary>
 	public ZcashNetwork Network => this.IncomingViewingKey.Network;
+
+	/// <inheritdoc/>
+	bool IViewingKey.IsFullViewingKey => true;
 
 	/// <inheritdoc/>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
@@ -79,9 +82,9 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 	}
 
 	/// <summary>
-	/// Gets the viewing key.
+	/// Gets or sets the viewing key.
 	/// </summary>
-	public IncomingViewingKey IncomingViewingKey { get; }
+	public IncomingViewingKey IncomingViewingKey { get; protected set; }
 
 	/// <summary>
 	/// Gets the Ak subgroup point.
@@ -148,7 +151,7 @@ public class FullViewingKey : IKey, IEquatable<FullViewingKey>
 		return new FullViewingKey(
 			new SubgroupPoint(ak),
 			new NullifierDerivingKey(nk),
-			IncomingViewingKey.FromFullViewingKey(ak, nk, network),
+			IncomingViewingKey.FromFullViewingKey(ak, nk, dk: default, network),
 			new OutgoingViewingKey(ovk));
 	}
 

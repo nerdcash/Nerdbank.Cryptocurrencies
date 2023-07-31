@@ -64,12 +64,9 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 	/// <exception type="InvalidAddressException">Thrown if the address is invalid.</exception>
 	public static ZcashAddress Parse(string address)
 	{
-		if (!TryParse(address, out ZcashAddress? result, out _, out string? errorMessage))
-		{
-			throw new InvalidAddressException(errorMessage);
-		}
-
-		return result;
+		return TryParse(address, out ZcashAddress? result, out _, out string? errorMessage)
+			? result
+			: throw new InvalidAddressException(errorMessage);
 	}
 
 	/// <inheritdoc cref="TryParse(string, out ZcashAddress?, out ParseError?, out string?)"/>
@@ -177,6 +174,22 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 		where TPoolReceiver : unmanaged, IPoolReceiver;
 
 	/// <summary>
+	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.
+	/// </summary>
+	/// <param name="decodeError">The decode error.</param>
+	/// <returns>The parse error to report to the user.</returns>
+	[return: NotNullIfNotNull(nameof(decodeError))]
+	internal static ParseError? DecodeToParseError(DecodeError? decodeError)
+	{
+		return decodeError switch
+		{
+			null => null,
+			DecodeError.BufferTooSmall => throw Assumes.Fail("An internal error occurred: the buffer was too small."),
+			_ => ParseError.InvalidAddress,
+		};
+	}
+
+	/// <summary>
 	/// Writes out the encoded receiver for this address.
 	/// </summary>
 	/// <param name="output">The buffer to receive the encoded receiver.</param>
@@ -242,21 +255,5 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>
 		where TTarget : unmanaged, IPoolReceiver
 	{
 		return typeof(TNative) == typeof(TTarget) ? Unsafe.As<TNative, TTarget>(ref Unsafe.AsRef(in receiver)) : null;
-	}
-
-	/// <summary>
-	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.
-	/// </summary>
-	/// <param name="decodeError">The decode error.</param>
-	/// <returns>The parse error to report to the user.</returns>
-	[return: NotNullIfNotNull(nameof(decodeError))]
-	private protected static ParseError? DecodeToParseError(DecodeError? decodeError)
-	{
-		return decodeError switch
-		{
-			null => null,
-			DecodeError.BufferTooSmall => throw Assumes.Fail("An internal error occurred: the buffer was too small."),
-			_ => ParseError.InvalidAddress,
-		};
 	}
 }

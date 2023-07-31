@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Text;
+
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -8,6 +10,21 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public abstract class UnifiedAddress : ZcashAddress
 {
+	/// <summary>
+	/// The length of the padding in a unified address.
+	/// </summary>
+	internal const int PaddingLength = 16;
+
+	/// <summary>
+	/// The shortest allowed length of the input to the <see cref="F4Jumble"/> function.
+	/// </summary>
+	internal const int MinF4JumbleInputLength = 48;
+
+	/// <summary>
+	/// The longest allowed length of the input to the <see cref="F4Jumble"/> function.
+	/// </summary>
+	internal const int MaxF4JumbleInputLength = 4194368;
+
 	/// <summary>
 	/// The human-readable part of a Unified Address on mainnet.
 	/// </summary>
@@ -17,16 +34,6 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// The human-readable part of a Unified Address on testnet.
 	/// </summary>
 	private protected const string HumanReadablePartTestNet = "utest";
-
-	/// <summary>
-	/// The shortest allowed length of the input to the <see cref="F4Jumble"/> function.
-	/// </summary>
-	private protected const int MinF4JumbleInputLength = 48;
-
-	/// <summary>
-	/// The longest allowed length of the input to the <see cref="F4Jumble"/> function.
-	/// </summary>
-	private protected const int MaxF4JumbleInputLength = 4194368;
 
 	private const int F4OutputLength = 64; // known in the spec as ℒᵢ
 
@@ -76,7 +83,7 @@ public abstract class UnifiedAddress : ZcashAddress
 		}
 
 		SortedDictionary<byte, ZcashAddress> sortedReceiversByTypeCode = new();
-		int totalLength = 0;
+		int totalLength = PaddingLength;
 
 		bool hasShieldedAddress = false;
 		bool hasTransparentAddress = false;
@@ -128,9 +135,6 @@ public abstract class UnifiedAddress : ZcashAddress
 			_ => throw new NotSupportedException(),
 		};
 
-		Span<byte> padding = stackalloc byte[16];
-		InitializePadding(network.Value, padding);
-		totalLength += padding.Length;
 		Span<byte> ua = stackalloc byte[totalLength];
 		int uaBytesWritten = 0;
 		foreach (ZcashAddress receiver in sortedReceiversByTypeCode.Values)
@@ -138,11 +142,10 @@ public abstract class UnifiedAddress : ZcashAddress
 			uaBytesWritten += receiver.WriteUAContribution(ua[uaBytesWritten..]);
 		}
 
-		padding.CopyTo(ua[uaBytesWritten..]);
-		uaBytesWritten += padding.Length;
-		F4Jumble(ua);
-
+		uaBytesWritten += InitializePadding(humanReadablePart, ua[uaBytesWritten..]);
 		Assumes.True(uaBytesWritten == ua.Length);
+
+		F4Jumble(ua);
 
 		Span<char> result = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, ua.Length)];
 		int finalLength = Bech32.Bech32m.Encode(humanReadablePart, ua, result);
@@ -208,8 +211,8 @@ public abstract class UnifiedAddress : ZcashAddress
 		F4Jumble(data, inverted: true);
 
 		// Verify the 16-byte padding is as expected.
-		Span<byte> padding = stackalloc byte[16];
-		InitializePadding(network, padding);
+		Span<byte> padding = stackalloc byte[PaddingLength];
+		InitializePadding(humanReadablePart, padding);
 		if (!data[^padding.Length..].SequenceEqual(padding))
 		{
 			errorCode = ParseError.InvalidAddress;
@@ -262,6 +265,19 @@ public abstract class UnifiedAddress : ZcashAddress
 	}
 
 	/// <summary>
+	/// Initializes the padding buffer.
+	/// </summary>
+	/// <param name="humanReadablePart">The human readable part for the encoding.</param>
+	/// <param name="padding">The buffer to write to. It must be at least 16 bytes.</param>
+	/// <returns>The number of bytes written to <paramref name="padding"/>. Always 16.</returns>
+	internal static int InitializePadding(ReadOnlySpan<char> humanReadablePart, Span<byte> padding)
+	{
+		int written = Encoding.UTF8.GetBytes(humanReadablePart, padding[0..PaddingLength]);
+		padding[written..PaddingLength].Clear();
+		return PaddingLength;
+	}
+
+	/// <summary>
 	/// Applies the F4Jumble function to the specified buffer.
 	/// </summary>
 	/// <param name="ua">The buffer to mutate.</param>
@@ -270,7 +286,7 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// <devremarks>
 	/// <see href="https://docs.rs/f4jumble/latest/src/f4jumble/lib.rs.html#208">Some source for inspiration</see> while interpreting the spec.
 	/// </devremarks>
-	private protected static void F4Jumble(Span<byte> ua, bool inverted = false)
+	internal static void F4Jumble(Span<byte> ua, bool inverted = false)
 	{
 		if (ua.Length is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
 		{
@@ -343,29 +359,6 @@ public abstract class UnifiedAddress : ZcashAddress
 			{
 				left[i] ^= right[i];
 			}
-		}
-	}
-
-	/// <summary>
-	/// Initializes the padding buffer.
-	/// </summary>
-	/// <param name="network">The network the address is for.</param>
-	/// <param name="padding">The buffer to write to. This <em>must</em> be cleared before passing in.</param>
-	private protected static void InitializePadding(ZcashNetwork network, Span<byte> padding)
-	{
-		Assumes.True(padding.Length == 16);
-		switch (network)
-		{
-			case ZcashNetwork.MainNet:
-				ReadOnlySpan<byte> mainNetHRP = "u"u8;
-				mainNetHRP.CopyTo(padding);
-				break;
-			case ZcashNetwork.TestNet:
-				ReadOnlySpan<byte> testNetHRP = "utest"u8;
-				testNetHRP.CopyTo(padding);
-				break;
-			default:
-				throw new NotSupportedException();
 		}
 	}
 

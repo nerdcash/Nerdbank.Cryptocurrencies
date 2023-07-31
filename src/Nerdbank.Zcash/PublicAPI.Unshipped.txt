@@ -10,12 +10,16 @@ Nerdbank.Zcash.IPoolReceiver
 Nerdbank.Zcash.IPoolReceiver.Pool.get -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.IPoolReceiver.Span.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.IPoolReceiver.UnifiedReceiverTypeCode.get -> byte
+Nerdbank.Zcash.IViewingKey
+Nerdbank.Zcash.IViewingKey.IsFullViewingKey.get -> bool
+Nerdbank.Zcash.IViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Orchard.FullViewingKey
 Nerdbank.Zcash.Orchard.FullViewingKey.CheckReceiver(Nerdbank.Zcash.OrchardReceiver receiver) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateReceiver(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateReceiver(System.ReadOnlySpan<byte> diversifierIndex) -> Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.Orchard.FullViewingKey.DefaultAddress.get -> Nerdbank.Zcash.OrchardAddress!
+Nerdbank.Zcash.Orchard.FullViewingKey.Equals(Nerdbank.Zcash.Orchard.FullViewingKey? other) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Orchard.FullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.OrchardReceiver receiver, out System.Numerics.BigInteger? diversifierIndex) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.OrchardReceiver receiver, System.Span<byte> diversifierIndex) -> bool
@@ -93,6 +97,12 @@ Nerdbank.Zcash.TransparentP2SHReceiver.TransparentP2SHReceiver() -> void
 Nerdbank.Zcash.TransparentP2SHReceiver.TransparentP2SHReceiver(System.ReadOnlySpan<byte> p2sh) -> void
 Nerdbank.Zcash.UnifiedAddress
 Nerdbank.Zcash.UnifiedAddress.UnifiedAddress(string! address) -> void
+Nerdbank.Zcash.UnifiedViewingKey
+Nerdbank.Zcash.UnifiedViewingKey.GetEnumerator() -> System.Collections.Generic.IEnumerator<Nerdbank.Zcash.IViewingKey!>!
+Nerdbank.Zcash.UnifiedViewingKey.GetViewingKey<T>() -> T?
+Nerdbank.Zcash.UnifiedViewingKey.IsFullViewingKey.get -> bool
+Nerdbank.Zcash.UnifiedViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.UnifiedViewingKey.ViewingKey.get -> string!
 Nerdbank.Zcash.ZcashAddress
 Nerdbank.Zcash.ZcashAddress.Address.get -> string!
 Nerdbank.Zcash.ZcashAddress.Equals(Nerdbank.Zcash.ZcashAddress? other) -> bool
@@ -178,6 +188,7 @@ override Nerdbank.Zcash.TransparentP2PKHAddress.Network.get -> Nerdbank.Zcash.Zc
 override Nerdbank.Zcash.TransparentP2SHAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.TransparentP2SHAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.UnifiedAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.UnifiedViewingKey.ToString() -> string!
 override Nerdbank.Zcash.ZcashAddress.Equals(object? obj) -> bool
 override Nerdbank.Zcash.ZcashAddress.GetHashCode() -> int
 override Nerdbank.Zcash.ZcashAddress.ToString() -> string!
@@ -189,6 +200,11 @@ static Nerdbank.Zcash.SproutReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2PKHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2SHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.UnifiedAddress.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.ZcashAddress!>! receivers) -> Nerdbank.Zcash.UnifiedAddress!
+static Nerdbank.Zcash.UnifiedViewingKey.Create(params Nerdbank.Zcash.IViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey!
+static Nerdbank.Zcash.UnifiedViewingKey.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.IViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey!
+static Nerdbank.Zcash.UnifiedViewingKey.implicit operator string?(Nerdbank.Zcash.UnifiedViewingKey? viewingKey) -> string?
+static Nerdbank.Zcash.UnifiedViewingKey.Parse(string! unifiedViewingKey) -> Nerdbank.Zcash.UnifiedViewingKey!
+static Nerdbank.Zcash.UnifiedViewingKey.TryParse(string! unifiedViewingKey, out Nerdbank.Zcash.UnifiedViewingKey? result) -> bool
 static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?
 static Nerdbank.Zcash.ZcashAddress.Parse(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.TryParse(string! address, out Nerdbank.Zcash.ZcashAddress? result) -> bool

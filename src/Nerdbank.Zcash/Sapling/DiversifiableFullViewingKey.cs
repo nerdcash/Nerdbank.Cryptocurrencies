@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Numerics;
+using Nerdbank.Zcash.Orchard;
 
 namespace Nerdbank.Zcash.Sapling;
 
@@ -10,7 +11,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// and generate addresses.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<DiversifiableFullViewingKey>
+public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodableViewingKey, IEquatable<DiversifiableFullViewingKey>
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class.
@@ -22,6 +23,9 @@ public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<Diversifia
 		: base(spendingKey, network)
 	{
 		this.Dk = dk;
+
+		// Replace the base class's value with our own that includes the Dk value.
+		this.IncomingViewingKey = new IncomingViewingKey(this.IncomingViewingKey.Ivk.Value, dk.Value, network);
 	}
 
 	/// <summary>
@@ -34,6 +38,12 @@ public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<Diversifia
 	{
 		this.Dk = dk;
 	}
+
+	/// <inheritdoc/>
+	byte IUnifiedEncodableViewingKey.UnifiedTypeCode => 0x02;
+
+	/// <inheritdoc/>
+	int IUnifiedEncodableViewingKey.UnifiedKeyContributionLength => this.Ak.Value.Length + this.Nk.Value.Length + this.Ovk.Value.Length + this.Dk.Value.Length;
 
 	/// <summary>
 	/// Gets the default address for this spending key.
@@ -48,6 +58,17 @@ public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<Diversifia
 	/// </summary>
 	/// <value>A 32-byte buffer.</value>
 	internal DiversifierKey Dk { get; }
+
+	/// <inheritdoc/>
+	int IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span<byte> destination)
+	{
+		int written = 0;
+		written += this.Ak.Value.CopyToRetLength(destination[written..]);
+		written += this.Nk.Value.CopyToRetLength(destination[written..]);
+		written += this.Ovk.Value.CopyToRetLength(destination[written..]);
+		written += this.Dk.Value.CopyToRetLength(destination[written..]);
+		return written;
+	}
 
 	/// <summary>
 	/// Creates a sapling receiver using this key and a given diversifier.
@@ -185,5 +206,17 @@ public class DiversifiableFullViewingKey : FullViewingKey, IEquatable<Diversifia
 		return other is not null
 			&& base.Equals(other)
 			&& this.Dk.Value.SequenceEqual(other.Dk.Value);
+	}
+
+	/// <inheritdoc cref="Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
+	internal static IUnifiedEncodableViewingKey DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	{
+		ReadOnlySpan<byte> ak = keyContribution[..32];
+		ReadOnlySpan<byte> nk = keyContribution[32..64];
+		ReadOnlySpan<byte> ovk = keyContribution[64..96];
+		ReadOnlySpan<byte> dk = keyContribution[96..];
+		IncomingViewingKey ivk = IncomingViewingKey.FromFullViewingKey(ak, nk, dk, network);
+		FullViewingKey fvk = new(new(ak), new(nk), ivk, new(ovk));
+		return new DiversifiableFullViewingKey(fvk, new(dk));
 	}
 }

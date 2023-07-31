@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key for incoming transactions.
 /// </summary>
-public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
+public class IncomingViewingKey : IUnifiedEncodableViewingKey, IEquatable<IncomingViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zivks";
 	private const string Bech32TestNetworkHRP = "zivktestsapling";
@@ -17,10 +17,12 @@ public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class.
 	/// </summary>
 	/// <param name="ivk">The 32-byte ivk value.</param>
+	/// <param name="dk">The 11-byte diversification key.</param>
 	/// <param name="network">The network this key should be used with.</param>
-	internal IncomingViewingKey(ReadOnlySpan<byte> ivk, ZcashNetwork network)
+	internal IncomingViewingKey(ReadOnlySpan<byte> ivk, ReadOnlySpan<byte> dk, ZcashNetwork network)
 	{
 		this.Ivk = new(ivk);
+		this.Dk = dk.Length > 0 ? new(dk) : null;
 		this.Network = network;
 	}
 
@@ -31,6 +33,15 @@ public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
 
 	/// <inheritdoc/>
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+
+	/// <inheritdoc/>
+	bool IViewingKey.IsFullViewingKey => false;
+
+	/// <inheritdoc/>
+	byte IUnifiedEncodableViewingKey.UnifiedTypeCode => 0x02;
+
+	/// <inheritdoc/>
+	int IUnifiedEncodableViewingKey.UnifiedKeyContributionLength => 32 * 2;
 
 	/// <summary>
 	/// Gets the Bech32 encoding of the incoming viewing key.
@@ -57,6 +68,11 @@ public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
 	/// Gets the ivk value.
 	/// </summary>
 	internal Bytes32 Ivk { get; }
+
+	/// <summary>
+	/// Gets the diversification key.
+	/// </summary>
+	internal DiversifierKey? Dk { get; }
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class
@@ -90,6 +106,16 @@ public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
 			&& this.Network == other.Network;
 	}
 
+	/// <inheritdoc/>
+	int IUnifiedEncodableViewingKey.WriteUnifiedViewingKeyContribution(Span<byte> destination)
+	{
+		Verify.Operation(this.Dk.HasValue, "Cannot write this IVK because its dk value is unknown.");
+		int written = 0;
+		written += this.Dk.Value.Value.CopyToRetLength(destination[written..]);
+		written += this.Ivk.Value.CopyToRetLength(destination[written..]);
+		return written;
+	}
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class
 	/// by deserializing it from a buffer.
@@ -97,7 +123,7 @@ public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
 	/// <param name="buffer">The 32-byte buffer to read from.</param>
 	/// <param name="network">The network this key should be used with.</param>
 	/// <returns>The deserialized key.</returns>
-	internal static IncomingViewingKey Decode(ReadOnlySpan<byte> buffer, ZcashNetwork network) => new(buffer[..32], network);
+	internal static IncomingViewingKey Decode(ReadOnlySpan<byte> buffer, ZcashNetwork network) => new(buffer[..32], default, network);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class
@@ -105,10 +131,11 @@ public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
 	/// </summary>
 	/// <param name="ak">The Ak subgroup point.</param>
 	/// <param name="nk">The nullifier deriving key.</param>
+	/// <param name="dk">The diversification key. May be default. Required for inclusion in a unified viewing key.</param>
 	/// <param name="network">The network on which this key should operate.</param>
 	/// <returns>The constructed incoming viewing key.</returns>
 	/// <exception cref="InvalidKeyException">Thrown if an error occurs while parsing the inputs.</exception>
-	internal static IncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, ZcashNetwork network)
+	internal static IncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, ReadOnlySpan<byte> dk, ZcashNetwork network)
 	{
 		Span<byte> ivk = stackalloc byte[32];
 		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(ak, nk, ivk) != 0)
@@ -116,7 +143,16 @@ public class IncomingViewingKey : IKey, IEquatable<IncomingViewingKey>
 			throw new InvalidKeyException();
 		}
 
-		return new(ivk, network);
+		return new(ivk, dk, network);
+	}
+
+	/// <inheritdoc cref="Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
+	internal static IUnifiedEncodableViewingKey DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+	{
+		Requires.Argument(keyContribution.Length == 64, nameof(keyContribution), "Unexpected length.");
+		ReadOnlySpan<byte> dk = keyContribution[0..32];
+		ReadOnlySpan<byte> ivk = keyContribution[32..64];
+		return new IncomingViewingKey(ivk, dk, network);
 	}
 
 	/// <summary>
