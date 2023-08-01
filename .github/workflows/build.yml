@@ -6,6 +6,7 @@ on:
       - main
       - validate/*
   pull_request:
+  workflow_dispatch:
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -146,6 +147,23 @@ jobs:
       run: azure-pipelines/artifacts/_stage_all.ps1
       shell: pwsh
       if: always()
+
+    - name: 🔏 Code sign
+      run: >
+        dotnet tool install --tool-path obj SignClient
+
+        obj/SignClient sign
+        --baseDirectory '${{ runner.temp }}/_artifacts/deployables'
+        --input '**/*'
+        --config '${{ github.workspace }}/azure-pipelines/SignClient.json'
+        --filelist '${{ github.workspace }}/azure-pipelines/signfiles.txt'
+        --user '${{ secrets.CODESIGN_USERNAME }}'
+        --secret '${{ secrets.CODESIGN_SECRET }}'
+        --name 'Nerdbank.Streams'
+        --descriptionUrl 'https://github.com/dotnet/Nerdbank.Cryptocurrencies'
+      if: success() && github.event_name != 'pull_request'
+      shell: pwsh
+
     - name: 📢 Upload build_logs
       if: always()
       uses: actions/upload-artifact@v1
