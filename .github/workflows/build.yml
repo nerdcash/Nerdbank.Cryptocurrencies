@@ -3,8 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - main
-      - validate/*
+    - main
+    - validate/*
+    tags:
+    - 'v*.*'
   pull_request:
   workflow_dispatch:
 
@@ -183,3 +185,7 @@ jobs:
         name: deployables
         path: ${{ runner.temp }}/_artifacts/deployables
       if: always()
+
+    - name: 🚀 Push NuGet packages
+      if: startsWith(github.ref, 'refs/tags/')
+      run: dotnet nuget push ${{ runner.temp }}/_artifacts/deployables/*.nupkg --source https://api.nuget.org/v3/index.json -k '${{ secrets.NUGET_API_KEY }}'
