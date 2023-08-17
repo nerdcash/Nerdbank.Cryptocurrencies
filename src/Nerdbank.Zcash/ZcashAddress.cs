@@ -32,6 +32,16 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 	public string Address { get; }
 
 	/// <summary>
+	/// Gets a value indicating whether funds sent to this address may be shielded.
+	/// </summary>
+	/// <remarks>
+	/// This property being <see langword="true" /> may not guarantee funds will be shielded.
+	/// For example if this is a unified address carrying both shielded and unshielded receivers,
+	/// unshielded funds could be transmitted.
+	/// </remarks>
+	public abstract bool HasShieldedReceiver { get; }
+
+	/// <summary>
 	/// Gets the total length of this address's contribution to a unified address.
 	/// </summary>
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]

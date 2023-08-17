@@ -147,6 +147,9 @@
   <data name="InvalidXAddress" xml:space="preserve">
     <value>This {addressType} address does to conform to expected requirements.</value>
   </data>
+  <data name="LengthOutsideExpectedRange" xml:space="preserve">
+    <value>The collection was expected to have a length within {minimum}-{maximum} but was {actual}.</value>
+  </data>
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>
@@ -161,5 +164,8 @@
   </data>
   <data name="UnrecognizedNetwork" xml:space="preserve">
     <value>Unrecognized network.</value>
+  </data>
+  <data name="UnrecognizedScheme" xml:space="preserve">
+    <value>Expected '{expected}' scheme but found '{actual}' instead.</value>
   </data>
 </root>

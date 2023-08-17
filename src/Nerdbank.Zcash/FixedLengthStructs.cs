@@ -83,3 +83,18 @@ internal unsafe struct Bytes96
 
 	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }
+
+internal unsafe struct Bytes512
+{
+	private const int Length = 512;
+	private fixed byte value[Length];
+
+	internal Bytes512(ReadOnlySpan<byte> value, bool allowShorterInput = false)
+	{
+		value.CopyToWithLengthCheck(this.ValueWritable, allowShorterInput: allowShorterInput);
+	}
+
+	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
+
+	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
+}

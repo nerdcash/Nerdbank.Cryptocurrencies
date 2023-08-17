@@ -41,6 +41,9 @@ public class SaplingAddress : ZcashAddress
 	public override ZcashNetwork Network => this.network;
 
 	/// <inheritdoc/>
+	public override bool HasShieldedReceiver => true;
+
+	/// <inheritdoc/>
 	internal override byte UnifiedTypeCode => 0x02;
 
 	/// <inheritdoc/>

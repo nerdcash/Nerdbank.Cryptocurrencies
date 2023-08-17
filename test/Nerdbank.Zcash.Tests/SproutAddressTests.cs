@@ -17,6 +17,9 @@ public class SproutAddressTests : TestBase
 		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SproutAddress>(ZcashAddress.Parse(ValidSproutAddress)).Network);
 	}
 
+	[Fact]
+	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Parse(ValidSproutAddress).HasShieldedReceiver);
+
 	[Theory, MemberData(nameof(InvalidAddresses))]
 	public void TryParse_Invalid(string address)
 	{

@@ -24,6 +24,9 @@ internal class CompoundUnifiedAddress : UnifiedAddress
 	}
 
 	/// <inheritdoc/>
+	public override bool HasShieldedReceiver => this.receivers.Any(r => r.HasShieldedReceiver);
+
+	/// <inheritdoc/>
 	public override IReadOnlyList<ZcashAddress> Receivers => this.receivers;
 
 	/// <inheritdoc/>
