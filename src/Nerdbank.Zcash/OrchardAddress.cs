@@ -40,6 +40,9 @@ public class OrchardAddress : UnifiedAddress
 	public override ZcashNetwork Network => this.network;
 
 	/// <inheritdoc/>
+	public override bool HasShieldedReceiver => true;
+
+	/// <inheritdoc/>
 	public override IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= new ReadOnlyCollection<ZcashAddress>(new[] { this });
 
 	/// <inheritdoc/>

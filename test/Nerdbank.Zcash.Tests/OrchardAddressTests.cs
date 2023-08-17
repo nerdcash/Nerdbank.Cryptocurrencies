@@ -17,6 +17,9 @@ public class OrchardAddressTests : TestBase
 	}
 
 	[Fact]
+	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Parse(ValidUnifiedAddressOrchard).HasShieldedReceiver);
+
+	[Fact]
 	public void Ctor_Receiver_TestNet()
 	{
 		var receiver = new OrchardReceiver(new byte[88 / 8], new byte[256 / 8]);

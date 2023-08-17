@@ -38,6 +38,9 @@ public class TransparentP2SHAddress : TransparentAddress
 	public override ZcashNetwork Network => this.network;
 
 	/// <inheritdoc/>
+	public override bool HasShieldedReceiver => false;
+
+	/// <inheritdoc/>
 	internal override byte UnifiedTypeCode => 0x01;
 
 	/// <inheritdoc/>

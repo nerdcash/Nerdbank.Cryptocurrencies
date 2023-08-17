@@ -22,6 +22,9 @@ public class SaplingAddressTests : TestBase
 		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SaplingAddress>(ZcashAddress.Parse(ValidSaplingAddress)).Network);
 	}
 
+	[Fact]
+	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Parse(ValidSaplingAddress).HasShieldedReceiver);
+
 	[Theory, MemberData(nameof(InvalidAddresses))]
 	public void TryParse_Invalid(string address)
 	{

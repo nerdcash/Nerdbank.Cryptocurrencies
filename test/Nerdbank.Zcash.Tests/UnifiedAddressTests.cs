@@ -60,6 +60,13 @@ public class UnifiedAddressTests : TestBase
 	}
 
 	[Fact]
+	public void HasShieldedReceiver()
+	{
+		Assert.True(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH).HasShieldedReceiver);
+		Assert.True(ZcashAddress.Parse(ValidUnifiedAddressSapling).HasShieldedReceiver);
+	}
+
+	[Fact]
 	public void Create_RejectsEmptyInputs()
 	{
 		Assert.Throws<ArgumentNullException>(() => UnifiedAddress.Create(null!));

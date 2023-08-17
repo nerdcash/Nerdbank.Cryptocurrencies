@@ -41,18 +41,25 @@ internal static class ZcashUtilities
 	/// <param name="source">The source buffer.</param>
 	/// <param name="destination">The target buffer.</param>
 	/// <param name="parameterName">Omit this optional parameter, or specify the name of the parameter whose argument is passed in as the <paramref name="source"/>.</param>
+	/// <param name="allowShorterInput"><see langword="true" /> to allow for less bytes as input.</param>
 	/// <exception cref="ArgumentException">
 	/// Thrown when the length of the <paramref name="source"/> and <paramref name="destination"/> spans do not equal.
 	/// In the exception message the length of the <paramref name="destination"/> buffer will be described as the expected length.
 	/// </exception>
-	internal static void CopyToWithLengthCheck(this ReadOnlySpan<byte> source, Span<byte> destination, [CallerArgumentExpression(nameof(source))] string? parameterName = null)
+	internal static void CopyToWithLengthCheck(this ReadOnlySpan<byte> source, Span<byte> destination, [CallerArgumentExpression(nameof(source))] string? parameterName = null, bool allowShorterInput = false)
 	{
-		if (source.Length != destination.Length)
+		if (!(source.Length == destination.Length || (allowShorterInput && source.Length < destination.Length)))
 		{
 			throw new ArgumentException(Strings.FormatUnexpectedLength(destination.Length, source.Length), parameterName);
 		}
 
 		source.CopyTo(destination);
+
+		if (source.Length < destination.Length)
+		{
+			// Ensure the slack space in the target area is cleared.
+			destination[source.Length..].Clear();
+		}
 	}
 
 	/// <inheritdoc cref="ReadOnlySpan{T}.CopyTo(Span{T})"/>

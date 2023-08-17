@@ -39,6 +39,9 @@ public class SproutAddress : ZcashAddress
 	public override ZcashNetwork Network => this.network;
 
 	/// <inheritdoc/>
+	public override bool HasShieldedReceiver => true;
+
+	/// <inheritdoc/>
 	internal override byte UnifiedTypeCode => throw new NotSupportedException();
 
 	/// <inheritdoc/>
