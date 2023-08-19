@@ -8,7 +8,7 @@ using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 /// <summary>
 /// The functions and data types imported from rust.
 /// </summary>
-internal static unsafe class NativeMethods
+internal static unsafe partial class NativeMethods
 {
 	private const string LibraryName = "nerdbank_zcash_rust";
 
@@ -285,6 +285,20 @@ internal static unsafe class NativeMethods
 			}
 		}
 	}
+
+	/// <summary>
+	/// Destroys native resources associated with lightwallet functions.
+	/// </summary>
+	[LibraryImport(LibraryName)]
+	internal static partial void lightwallet_deinitialize();
+
+	/// <summary>
+	/// Gets the height of the blockchain (independent of what may have been sync'd thus far.)
+	/// </summary>
+	/// <param name="litewallet_server_uri">The URI to the lightwallet server to get the answer from.</param>
+	/// <returns>The block height, or a negative error code.</returns>
+	[LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
+	internal static partial long lightwallet_get_block_height(string litewallet_server_uri);
 
 	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.

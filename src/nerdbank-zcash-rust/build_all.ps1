@@ -19,10 +19,31 @@ if ($Release) {
 
 Push-Location $PSScriptRoot
 
+$buildArgsNoTargets = $buildArgs
 $rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
-$rustTargets | % { $buildArgs += "--target=$_" }
+$winArm64Required = $false
+$rustTargets | % { 
+    if ($_ -eq 'aarch64-pc-windows-msvc') {
+        $winArm64Required = $true
+    }
+    else {
+        $buildArgs += "--target=$_"
+    }
+}
 
+if ($winArm64Required) {
+    Copy-Item cargoTomlTargets/win-arm64/* -Force
+    cargo build @buildArgsNoTargets --target aarch64-pc-windows-msvc
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+}
+
+Copy-Item cargoTomlTargets/others/Cargo.toml -Force
 cargo build @buildArgs
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
 
 $configPathSegment = 'debug'
 if ($Release) { $configPathSegment = 'release' }

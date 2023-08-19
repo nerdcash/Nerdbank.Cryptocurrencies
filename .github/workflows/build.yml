@@ -33,6 +33,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: recursive
 
     - uses: Swatinem/rust-cache@v2
       with:
@@ -119,6 +120,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: recursive # workaround https://github.com/dotnet/sourcelink/issues/1071
     - name: ⚙ Install prerequisites
       run: |
         ./init.ps1 -UpgradePrerequisites -NoRust
