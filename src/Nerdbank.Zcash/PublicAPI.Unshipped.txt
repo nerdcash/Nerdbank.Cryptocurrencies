@@ -147,6 +147,7 @@ Nerdbank.Zcash.Zip32HDWallet.ChainCode.Value.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.Zip32HDWallet.CreateOrchardAccount(uint account = 0) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 Nerdbank.Zcash.Zip32HDWallet.CreateSaplingAccount(uint account = 0) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint
+Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.Equals(Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint other) -> bool
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.FullViewingKeyFingerprint() -> void
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.FullViewingKeyFingerprint(System.ReadOnlySpan<byte> value) -> void
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.Tag.get -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag
