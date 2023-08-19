@@ -10,7 +10,7 @@ public partial class Zip32HDWallet
 	/// <summary>
 	/// The fingerprint for a full viewing key. Guaranteed to be unique.
 	/// </summary>
-	public readonly struct FullViewingKeyFingerprint
+	public readonly struct FullViewingKeyFingerprint : IEquatable<FullViewingKeyFingerprint>
 	{
 		private readonly Bytes32 value;
 
@@ -32,5 +32,8 @@ public partial class Zip32HDWallet
 		/// Gets the first 4 bytes of the fingerprint.
 		/// </summary>
 		public readonly FullViewingKeyTag Tag => new(this.value.Value[..4]);
+
+		/// <inheritdoc/>
+		public bool Equals(FullViewingKeyFingerprint other) => this.Value.SequenceEqual(other.Value);
 	}
 }
