@@ -5,16 +5,30 @@ public class LightWalletTests : TestBase, IDisposable
 {
 	private static readonly Uri TestLightWalletServer = new("https://zcash.mysideoftheweb.com:9067/");
 	private readonly ITestOutputHelper logger;
-	private readonly LightWallet wallet = new(TestLightWalletServer, ZcashNetwork.MainNet);
+	private readonly LightWallet wallet;
+	private readonly string testDir;
 
 	public LightWalletTests(ITestOutputHelper logger)
 	{
 		this.logger = logger;
+
+		this.testDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+		Directory.CreateDirectory(this.testDir);
+		this.logger.WriteLine($"Test directory: \"{this.testDir}\"");
+
+		this.wallet = new(
+			TestLightWalletServer,
+			ZcashNetwork.MainNet,
+			this.testDir,
+			"zcash-test.wallet",
+			"zcash-test.log",
+			watchMemPool: false);
 	}
 
 	public void Dispose()
 	{
 		this.wallet.Dispose();
+		Directory.Delete(this.testDir, recursive: true);
 	}
 
 	[Fact]

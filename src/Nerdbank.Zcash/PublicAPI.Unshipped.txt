@@ -17,7 +17,7 @@ Nerdbank.Zcash.IViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.LightWallet
 Nerdbank.Zcash.LightWallet.Dispose() -> void
 Nerdbank.Zcash.LightWallet.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
-Nerdbank.Zcash.LightWallet.LightWallet(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network) -> void
+Nerdbank.Zcash.LightWallet.LightWallet(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void
 Nerdbank.Zcash.Orchard.FullViewingKey
 Nerdbank.Zcash.Orchard.FullViewingKey.CheckReceiver(Nerdbank.Zcash.OrchardReceiver receiver) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.OrchardReceiver

@@ -287,10 +287,31 @@ internal static unsafe partial class NativeMethods
 	}
 
 	/// <summary>
+	/// Initializes a lightwallet client.
+	/// </summary>
+	/// <param name="server_uri">The URL to the lightwallet server to use.</param>
+	/// <param name="network">The network served by the lightwallet server specified by <paramref name="server_uri"/>.</param>
+	/// <param name="data_dir">The absolute path to the directory where the wallet and log will be written.</param>
+	/// <param name="wallet_name">The filename of the wallet (without a path).</param>
+	/// <param name="log_name">The filename of the log file (without a path).</param>
+	/// <param name="monitor_mempool">A value indicating whether the mempool will be monitored.</param>
+	/// <returns></returns>
+	[LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
+	internal static partial nint lightwallet_initialize(
+		string server_uri,
+		ZcashNetwork network,
+		string data_dir,
+		string wallet_name,
+		string log_name,
+		[MarshalAs(UnmanagedType.U1)] bool monitor_mempool);
+
+	/// <summary>
 	/// Destroys native resources associated with lightwallet functions.
 	/// </summary>
+	/// <param name="handle">A handle previously obtained from <see cref="lightwallet_initialize"/>.</param>
+	/// <returns>0 if successful; a negative error code otherwise.</returns>
 	[LibraryImport(LibraryName)]
-	internal static partial void lightwallet_deinitialize();
+	internal static partial int lightwallet_deinitialize(nint handle);
 
 	/// <summary>
 	/// Gets the height of the blockchain (independent of what may have been sync'd thus far.)
