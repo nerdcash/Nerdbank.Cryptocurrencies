@@ -42,15 +42,22 @@ fn remove_lightclient(handle: isize) -> bool {
     clients.remove(&handle).is_some()
 }
 
-pub fn lightwallet_get_block_height(server_uri: String) -> i64 {
-    let lightwalletd_uri = Uri::try_from(server_uri);
-    match lightwalletd_uri {
-        Err(_) => -1,
-        Ok(uri) => match zingolib::get_latest_block_height(uri) {
-            Err(_) => -2,
-            Ok(height) => height as i64,
-        },
-    }
+#[derive(Debug, thiserror::Error)]
+pub enum LightWalletError {
+    #[error("Invalid URI")]
+    InvalidUri,
+
+    #[error("{message}")]
+    Other { message: String },
+}
+
+pub fn lightwallet_get_block_height(server_uri: String) -> Result<u64, LightWalletError> {
+    let server_uri = Uri::try_from(server_uri).map_err(|_| LightWalletError::InvalidUri)?;
+    Ok(
+        zingolib::get_latest_block_height(server_uri).map_err(|err| LightWalletError::Other {
+            message: err.to_string(),
+        })?,
+    )
 }
 
 /// Translates the C# ZcashNetwork enum into the rust equivalent.

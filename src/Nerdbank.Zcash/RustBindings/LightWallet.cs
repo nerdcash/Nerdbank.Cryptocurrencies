@@ -19,7 +19,7 @@ internal struct RustBuffer {
 
     public static RustBuffer Alloc(int size) {
         return _UniffiHelpers.RustCall((ref RustCallStatus status) => {
-            var buffer = _UniFFILib.ffi_LightWallet_61a3_rustbuffer_alloc(size, ref status);
+            var buffer = _UniFFILib.ffi_LightWallet_3f30_rustbuffer_alloc(size, ref status);
             if (buffer.data == IntPtr.Zero) {
                 throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
             }
@@ -29,7 +29,7 @@ internal struct RustBuffer {
 
     public static void Free(RustBuffer buffer) {
         _UniffiHelpers.RustCall((ref RustCallStatus status) => {
-            _UniFFILib.ffi_LightWallet_61a3_rustbuffer_free(buffer, ref status);
+            _UniFFILib.ffi_LightWallet_3f30_rustbuffer_free(buffer, ref status);
         });
     }
 
@@ -396,27 +396,27 @@ static class _UniFFILib {
         }
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern long LightWallet_61a3_lightwallet_get_block_height(RustBuffer @serverUri,
+    public static extern ulong LightWallet_3f30_lightwallet_get_block_height(RustBuffer @serverUri,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_61a3_rustbuffer_alloc(int @size,
+    public static extern RustBuffer ffi_LightWallet_3f30_rustbuffer_alloc(int @size,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_61a3_rustbuffer_from_bytes(ForeignBytes @bytes,
+    public static extern RustBuffer ffi_LightWallet_3f30_rustbuffer_from_bytes(ForeignBytes @bytes,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern void ffi_LightWallet_61a3_rustbuffer_free(RustBuffer @buf,
+    public static extern void ffi_LightWallet_3f30_rustbuffer_free(RustBuffer @buf,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_61a3_rustbuffer_reserve(RustBuffer @buf,int @additional,
+    public static extern RustBuffer ffi_LightWallet_3f30_rustbuffer_reserve(RustBuffer @buf,int @additional,
     ref RustCallStatus _uniffi_out_err
     );
 
@@ -430,27 +430,27 @@ static class _UniFFILib {
 
 
 
-class FfiConverterLong: FfiConverter<long, long> {
-    public static FfiConverterLong INSTANCE = new FfiConverterLong();
+class FfiConverterULong: FfiConverter<ulong, ulong> {
+    public static FfiConverterULong INSTANCE = new FfiConverterULong();
 
-    public override long Lift(long value) {
+    public override ulong Lift(ulong value) {
         return value;
     }
 
-    public override long Read(BigEndianStream stream) {
-        return stream.ReadLong();
+    public override ulong Read(BigEndianStream stream) {
+        return stream.ReadULong();
     }
 
-    public override long Lower(long value) {
+    public override ulong Lower(ulong value) {
         return value;
     }
 
-    public override int AllocationSize(long value) {
+    public override int AllocationSize(ulong value) {
         return 8;
     }
 
-    public override void Write(long value, BigEndianStream stream) {
-        stream.WriteLong(value);
+    public override void Write(ulong value, BigEndianStream stream) {
+        stream.WriteULong(value);
     }
 }
 
@@ -500,13 +500,67 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
         stream.WriteBytes(bytes);
     }
 }
+
+
+
+
+
+public class LightWalletException: UniffiException {
+    LightWalletException(string message): base(message) {}
+
+    // Each variant is a nested class
+    // Flat enums carries a string error message, so no special implementation is necessary.
+    
+    public class InvalidUri: LightWalletException {
+        public InvalidUri(string message): base(message) {}
+    }
+    
+    public class Other: LightWalletException {
+        public Other(string message): base(message) {}
+    }
+    
+}
+
+class FfiConverterTypeLightWalletError : FfiConverterRustBuffer<LightWalletException>, CallStatusErrorHandler<LightWalletException> {
+    public static FfiConverterTypeLightWalletError INSTANCE = new FfiConverterTypeLightWalletError();
+
+    public override LightWalletException Read(BigEndianStream stream) {
+        var value = stream.ReadInt();
+        switch (value) {
+            case 1: return new LightWalletException.InvalidUri(FfiConverterString.INSTANCE.Read(stream));
+            case 2: return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
+            default:
+                throw new InternalException(String.Format("invalid enum value '{}' in FfiConverterTypeLightWalletError.Read()", value));
+        }
+    }
+
+    public override int AllocationSize(LightWalletException value) {
+        return 4 + FfiConverterString.INSTANCE.AllocationSize(value.Message);
+    }
+
+    public override void Write(LightWalletException value, BigEndianStream stream) {
+        switch (value) {
+            case LightWalletException.InvalidUri:
+                stream.WriteInt(1);
+                FfiConverterString.INSTANCE.Write(value.Message, stream);
+                break;
+            case LightWalletException.Other:
+                stream.WriteInt(2);
+                FfiConverterString.INSTANCE.Write(value.Message, stream);
+                break;
+            default:
+                throw new InternalException(String.Format("invalid enum value '{}' in FfiConverterTypeLightWalletError.Write()", value));
+        }
+    }
+}
 #pragma warning restore 8625
 
 public static class LightWalletMethods {
-    public static Int64 LightwalletGetBlockHeight(String @serverUri) {
-        return FfiConverterLong.INSTANCE.Lift(
-    _UniffiHelpers.RustCall( (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_61a3_lightwallet_get_block_height(FfiConverterString.INSTANCE.Lower(@serverUri), ref _status)
+    /// <exception cref="LightWalletException"></exception>
+    public static UInt64 LightwalletGetBlockHeight(String @serverUri) {
+        return FfiConverterULong.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.LightWallet_3f30_lightwallet_get_block_height(FfiConverterString.INSTANCE.Lower(@serverUri), ref _status)
 ));
     }
 

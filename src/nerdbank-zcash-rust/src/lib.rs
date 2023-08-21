@@ -7,4 +7,4 @@ mod lightwallet;
 mod orchard;
 mod sapling;
 
-use lightwallet::lightwallet_get_block_height;
+use lightwallet::{lightwallet_get_block_height, LightWalletError};

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using uniffi.LightWallet;
+
 public class LightWalletTests : TestBase, IDisposable
 {
 	private static readonly Uri TestLightWalletServer = new("https://zcash.mysideoftheweb.com:9067/");
@@ -43,5 +45,12 @@ public class LightWalletTests : TestBase, IDisposable
 		ulong height = await this.wallet.GetLatestBlockHeightAsync(CancellationToken.None);
 		this.logger.WriteLine($"Height: {height}");
 		Assert.NotEqual(0u, height);
+	}
+
+	[Fact]
+	public async Task GetLatestBlockHeight_NoServerAtUrl()
+	{
+		LightWalletException ex = await Assert.ThrowsAnyAsync<LightWalletException>(async () => await LightWallet.GetLatestBlockHeightAsync(new Uri("https://doesnotexist.mysideoftheweb.com/"), CancellationToken.None));
+		this.logger.WriteLine(ex.ToString());
 	}
 }

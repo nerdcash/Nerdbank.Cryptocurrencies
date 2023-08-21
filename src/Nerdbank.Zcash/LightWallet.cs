@@ -51,20 +51,11 @@ public class LightWallet : IDisposableObservable
 	/// <param name="lightWalletServerUrl">The URL of the lightwallet server to query.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The height of the blockchain.</returns>
-	/// <exception cref="InvalidOperationException">Thrown if any error occurs.</exception>
+	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
 	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
 		return new(Task.Run(
-			delegate
-			{
-				long result = LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri);
-				if (result < 0)
-				{
-					throw new InvalidOperationException();
-				}
-
-				return (ulong)result;
-			},
+			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
 			cancellationToken));
 	}
 
