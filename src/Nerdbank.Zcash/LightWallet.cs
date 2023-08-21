@@ -21,24 +21,26 @@ public class LightWallet : IDisposableObservable
 	/// </summary>
 	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
 	/// <param name="network">The Zcash network served by the server specified by <paramref name="serverUrl"/>.</param>
-	/// <param name="walletPath"><inheritdoc cref="NativeMethods.lightwallet_initialize(string, ZcashNetwork, string, string, string, bool)" path="/param[@name='data_dir']"/></param>
-	/// <param name="walletName"><inheritdoc cref="NativeMethods.lightwallet_initialize(string, ZcashNetwork, string, string, string, bool)" path="/param[@name='wallet_name']"/></param>
-	/// <param name="logName"><inheritdoc cref="NativeMethods.lightwallet_initialize(string, ZcashNetwork, string, string, string, bool)" path="/param[@name='log_name']"/></param>
-	/// <param name="watchMemPool"><inheritdoc cref="NativeMethods.lightwallet_initialize(string, ZcashNetwork, string, string, string, bool)" path="/param[@name='monitor_mempool']"/></param>
+	/// <param name="walletPath">The absolute path to the directory where the wallet and log will be written.</param>
+	/// <param name="walletName">The filename of the wallet (without a path).</param>
+	/// <param name="logName">The filename of the log file (without a path).</param>
+	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
 	public LightWallet(Uri serverUrl, ZcashNetwork network, string walletPath, string walletName, string logName, bool watchMemPool)
 	{
 		Requires.NotNull(serverUrl);
 
 		this.serverUrl = serverUrl;
 		this.network = network;
+
 		this.handle = new LightWalletSafeHandle(
-			NativeMethods.lightwallet_initialize(
+			unchecked((nint)LightWalletMethods.LightwalletInitialize(
+				new Config(
 				serverUrl.AbsoluteUri,
-				network,
+				ToNetwork(network),
 				walletPath,
 				walletName,
 				logName,
-				watchMemPool),
+				watchMemPool))),
 			ownsHandle: true);
 	}
 
@@ -69,6 +71,16 @@ public class LightWallet : IDisposableObservable
 		this.handle.Dispose();
 	}
 
+	private static Network ToNetwork(ZcashNetwork network)
+	{
+		return network switch
+		{
+			ZcashNetwork.MainNet => Network.MAIN_NET,
+			ZcashNetwork.TestNet => Network.TEST_NET,
+			_ => throw new ArgumentException(),
+		};
+	}
+
 	private class LightWalletSafeHandle : SafeHandle
 	{
 		public LightWalletSafeHandle(nint invalidHandleValue, bool ownsHandle)
@@ -78,6 +90,6 @@ public class LightWallet : IDisposableObservable
 
 		public override bool IsInvalid => this.handle <= 0;
 
-		protected override bool ReleaseHandle() => NativeMethods.lightwallet_deinitialize(this.handle) == 0;
+		protected override bool ReleaseHandle() => LightWalletMethods.LightwalletDeinitialize((ulong)this.handle);
 	}
 }

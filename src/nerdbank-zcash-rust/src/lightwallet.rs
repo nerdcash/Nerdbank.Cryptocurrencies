@@ -4,29 +4,26 @@ use zingolib::lightclient::LightClient;
 use zingolib::load_clientconfig;
 
 use std::collections::HashMap;
-use std::ffi::{c_char, CStr};
-use std::io::ErrorKind;
-use std::path::PathBuf;
-use std::sync::atomic::{AtomicIsize, Ordering};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::{cell::RefCell, sync::Arc, sync::Mutex};
 
 // We'll use a MUTEX to store global lightclient instances, by handle,
 // so we don't have to keep creating it. We need to store it here, in rust
 // because we can't return such a complex structure back to our client.
 lazy_static! {
-    static ref LIGHTCLIENTS: Mutex<HashMap<isize, RefCell<Option<Arc<LightClient>>>>> =
+    static ref LIGHTCLIENTS: Mutex<HashMap<u64, RefCell<Option<Arc<LightClient>>>>> =
         Mutex::new(HashMap::new());
-    static ref LC_COUNTER: AtomicIsize = AtomicIsize::new(1);
+    static ref LC_COUNTER: AtomicU64 = AtomicU64::new(1);
 }
 
-fn add_lightclient(lightclient: Arc<LightClient>) -> isize {
+fn add_lightclient(lightclient: Arc<LightClient>) -> u64 {
     let mut clients = LIGHTCLIENTS.lock().unwrap();
     let handle = LC_COUNTER.fetch_add(1, Ordering::SeqCst);
     clients.insert(handle, RefCell::new(Some(lightclient)));
     handle
 }
 
-fn get_lightclient(handle: isize) -> Option<Arc<LightClient>> {
+fn get_lightclient(handle: u64) -> Option<Arc<LightClient>> {
     let clients = LIGHTCLIENTS.lock().unwrap();
     if let Some(client) = clients.get(&handle) {
         let client_ref = client.borrow();
@@ -37,7 +34,7 @@ fn get_lightclient(handle: isize) -> Option<Arc<LightClient>> {
     None
 }
 
-fn remove_lightclient(handle: isize) -> bool {
+fn remove_lightclient(handle: u64) -> bool {
     let mut clients = LIGHTCLIENTS.lock().unwrap();
     clients.remove(&handle).is_some()
 }
@@ -60,69 +57,49 @@ pub fn lightwallet_get_block_height(server_uri: String) -> Result<u64, LightWall
     )
 }
 
-/// Translates the C# ZcashNetwork enum into the rust equivalent.
-fn from_zcash_network(network: i32) -> Result<ChainType, ErrorKind> {
-    match network {
-        0 => Ok(ChainType::Mainnet),
-        1 => Ok(ChainType::Testnet),
-        _ => Err(ErrorKind::InvalidInput),
+pub enum Network {
+    MainNet,
+    TestNet,
+}
+
+impl From<Network> for ChainType {
+    fn from(network: Network) -> Self {
+        match network {
+            Network::MainNet => ChainType::Mainnet,
+            Network::TestNet => ChainType::Testnet,
+        }
     }
 }
 
-#[no_mangle]
-pub extern "C" fn lightwallet_initialize(
-    server_uri: *const c_char,
-    network: i32,
-    data_dir: *const c_char,
-    wallet_name: *const c_char,
-    log_name: *const c_char,
-    monitor_mempool: u8,
-) -> isize {
-    let server_uri = unsafe { CStr::from_ptr(server_uri) };
-    let server_uri = match Uri::try_from(server_uri.to_str().unwrap()) {
-        Ok(uri) => uri,
-        Err(_) => return -1,
-    };
+pub struct Config {
+    pub server_uri: String,
+    pub network: Network,
+    pub data_dir: String,
+    pub wallet_name: String,
+    pub log_name: String,
+    pub monitor_mempool: bool,
+}
 
-    let chain = match from_zcash_network(network) {
-        Ok(n) => n,
-        Err(_) => return -2,
-    };
+pub fn lightwallet_initialize(config: Config) -> Result<u64, LightWalletError> {
+    let server_uri = Uri::try_from(config.server_uri).map_err(|e| LightWalletError::Other {
+        message: e.to_string(),
+    })?;
 
-    let data_dir = unsafe { CStr::from_ptr(data_dir) };
-    let data_dir = PathBuf::from(data_dir.to_str().unwrap());
-
-    let wallet_name = unsafe { CStr::from_ptr(wallet_name) };
-
-    let log_name = unsafe { CStr::from_ptr(log_name) };
-
-    let monitor_mempool = monitor_mempool != 0;
-
-    let mut config = match load_clientconfig(server_uri, Some(data_dir), chain, monitor_mempool) {
-        Ok(c) => c,
-        Err(_) => return -3,
-    };
-    config.wallet_name = wallet_name.to_str().unwrap().into();
-    config.logfile_name = log_name.to_str().unwrap().into();
+    let mut zingo_config = load_clientconfig(
+        server_uri,
+        Some(config.data_dir.into()),
+        config.network.into(),
+        config.monitor_mempool,
+    ).map_err(|e| LightWalletError::Other { message: e.to_string() })?;
+    zingo_config.wallet_name = config.wallet_name.into();
+    zingo_config.logfile_name = config.log_name.into();
 
     // Initialize logging
-    if LightClient::init_logging().is_err() {
-        return -4;
-    }
+    LightClient::init_logging().map_err(|e| LightWalletError::Other { message: e.to_string() })?;
 
-    let lightclient = match config.wallet_exists() {
-        true => match LightClient::read_wallet_from_disk(&config) {
-            Ok(l) => l,
-            Err(_) => {
-                return -5;
-            }
-        },
-        false => match LightClient::new(&config, 0) {
-            Ok(l) => l,
-            Err(_) => {
-                return -5;
-            }
-        },
+    let lightclient = match zingo_config.wallet_exists() {
+        true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| LightWalletError::Other { message: e.to_string() })?,
+        false => LightClient::new(&zingo_config, 0).map_err(|e| LightWalletError::Other { message: e.to_string() })?,
     };
 
     let lc = Arc::new(lightclient);
@@ -131,15 +108,11 @@ pub extern "C" fn lightwallet_initialize(
     // this method itself no-op's if that value is false.
     LightClient::start_mempool_monitor(lc.clone());
 
-    add_lightclient(lc)
+    Ok(add_lightclient(lc))
 }
 
-#[no_mangle]
-pub extern "C" fn lightwallet_deinitialize(handle: isize) -> i32 {
-    match remove_lightclient(handle) {
-        true => 0,
-        false => -1,
-    }
+pub fn lightwallet_deinitialize(handle: u64) -> bool {
+    remove_lightclient(handle)
 }
 
 // pub fn exec(cmd: String, args_list: String) -> String {

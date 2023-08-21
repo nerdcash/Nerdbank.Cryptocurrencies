@@ -4,7 +4,26 @@ enum LightWalletError {
 	"Other",
 };
 
+enum Network {
+	"MainNet",
+	"TestNet",
+};
+
+dictionary Config {
+	string server_uri;
+	Network network;
+	string data_dir;
+	string wallet_name;
+	string log_name;
+	boolean monitor_mempool;
+};
+
 namespace LightWallet {
 	[Throws=LightWalletError]
 	u64 lightwallet_get_block_height(string server_uri);
+
+	[Throws=LightWalletError]
+	u64 lightwallet_initialize(Config config);
+
+	boolean lightwallet_deinitialize(u64 handle);
 };
