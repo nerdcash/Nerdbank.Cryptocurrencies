@@ -314,14 +314,6 @@ internal static unsafe partial class NativeMethods
 	internal static partial int lightwallet_deinitialize(nint handle);
 
 	/// <summary>
-	/// Gets the height of the blockchain (independent of what may have been sync'd thus far.)
-	/// </summary>
-	/// <param name="litewallet_server_uri">The URI to the lightwallet server to get the answer from.</param>
-	/// <returns>The block height, or a negative error code.</returns>
-	[LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
-	internal static partial long lightwallet_get_block_height(string litewallet_server_uri);
-
-	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="sk">A pointer to a 32-byte buffer containing the spending key.</param>

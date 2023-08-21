@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::ffi::{c_char, CStr};
 use std::io::ErrorKind;
 use std::path::PathBuf;
-use std::sync::atomic::{Ordering, AtomicIsize};
+use std::sync::atomic::{AtomicIsize, Ordering};
 use std::{cell::RefCell, sync::Arc, sync::Mutex};
 
 // We'll use a MUTEX to store global lightclient instances, by handle,
@@ -42,21 +42,14 @@ fn remove_lightclient(handle: isize) -> bool {
     clients.remove(&handle).is_some()
 }
 
-#[no_mangle]
-pub extern "C" fn lightwallet_get_block_height(server_uri: *const c_char) -> i64 {
-    let server_uri = unsafe { CStr::from_ptr(server_uri) };
-    match server_uri.to_str() {
+pub fn lightwallet_get_block_height(server_uri: String) -> i64 {
+    let lightwalletd_uri = Uri::try_from(server_uri);
+    match lightwalletd_uri {
         Err(_) => -1,
-        Ok(uri) => {
-            let lightwalletd_uri = Uri::try_from(uri);
-            match lightwalletd_uri {
-                Err(_) => -2,
-                Ok(uri) => match zingolib::get_latest_block_height(uri) {
-                    Err(_) => -3,
-                    Ok(height) => height as i64,
-                },
-            }
-        }
+        Ok(uri) => match zingolib::get_latest_block_height(uri) {
+            Err(_) => -2,
+            Ok(height) => height as i64,
+        },
     }
 }
 

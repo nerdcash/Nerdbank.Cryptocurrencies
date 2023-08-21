@@ -34,6 +34,7 @@ $rustTargets | % {
 if ($winArm64Required) {
     Copy-Item cargoTomlTargets/win-arm64/* -Force
     cargo build @buildArgsNoTargets --target aarch64-pc-windows-msvc
+    Copy-Item .\Cargo.toml,.\Cargo.lock .\cargoTomlTargets\win-arm64 -Force
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
@@ -41,6 +42,7 @@ if ($winArm64Required) {
 
 Copy-Item cargoTomlTargets/others/Cargo.toml -Force
 cargo build @buildArgs
+Copy-Item .\Cargo.toml,.\Cargo.lock .\cargoTomlTargets\others -Force
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }

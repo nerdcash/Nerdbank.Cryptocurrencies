@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Runtime.InteropServices;
+using uniffi.LightWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -56,7 +57,7 @@ public class LightWallet : IDisposableObservable
 		return new(Task.Run(
 			delegate
 			{
-				long result = NativeMethods.lightwallet_get_block_height(lightWalletServerUrl.AbsoluteUri);
+				long result = LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri);
 				if (result < 0)
 				{
 					throw new InvalidOperationException();
