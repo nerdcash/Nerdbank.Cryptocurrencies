@@ -8,11 +8,12 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Exposes functionality of a lightwallet client.
 /// </summary>
-public class LightWallet : IDisposable
+public class LightWallet : IDisposableObservable
 {
 	private readonly Uri serverUrl;
 	private readonly ZcashNetwork network;
 	private readonly LightWalletSafeHandle handle;
+	private bool disposed;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWallet"/> class.
@@ -40,18 +41,22 @@ public class LightWallet : IDisposable
 			ownsHandle: true);
 	}
 
+	/// <inheritdoc/>
+	bool IDisposableObservable.IsDisposed => this.disposed;
+
 	/// <summary>
 	/// Gets the height of the blockchain (independent of what may have been sync'd thus far.)
 	/// </summary>
+	/// <param name="lightWalletServerUrl">The URL of the lightwallet server to query.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The height of the blockchain.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if any error occurs.</exception>
-	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken)
+	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
 		return new(Task.Run(
 			delegate
 			{
-				long result = NativeMethods.lightwallet_get_block_height(this.serverUrl.AbsoluteUri);
+				long result = NativeMethods.lightwallet_get_block_height(lightWalletServerUrl.AbsoluteUri);
 				if (result < 0)
 				{
 					throw new InvalidOperationException();
@@ -62,9 +67,13 @@ public class LightWallet : IDisposable
 			cancellationToken));
 	}
 
+	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
+	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
+
 	/// <inheritdoc/>
 	public void Dispose()
 	{
+		this.disposed = true;
 		this.handle.Dispose();
 	}
 

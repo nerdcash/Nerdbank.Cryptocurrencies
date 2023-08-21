@@ -234,6 +234,7 @@ override Nerdbank.Zcash.ZcashAddress.GetHashCode() -> int
 override Nerdbank.Zcash.ZcashAddress.ToString() -> string!
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.GetHashCode() -> int
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.ToString() -> string!
+static Nerdbank.Zcash.LightWallet.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
 static Nerdbank.Zcash.OrchardReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.Sapling.FullViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.FullViewingKey!
 static Nerdbank.Zcash.Sapling.IncomingViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
