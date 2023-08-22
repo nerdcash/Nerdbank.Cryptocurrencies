@@ -1,4 +1,5 @@
 use http::Uri;
+use tokio::runtime::Runtime;
 use zingoconfig::ChainType;
 use zingolib::lightclient::LightClient;
 use zingolib::load_clientconfig;
@@ -16,6 +17,10 @@ lazy_static! {
     static ref LC_COUNTER: AtomicU64 = AtomicU64::new(1);
 }
 
+lazy_static! {
+    static ref RT: Runtime = tokio::runtime::Runtime::new().unwrap();
+}
+
 fn add_lightclient(lightclient: Arc<LightClient>) -> u64 {
     let mut clients = LIGHTCLIENTS.lock().unwrap();
     let handle = LC_COUNTER.fetch_add(1, Ordering::SeqCst);
@@ -23,15 +28,15 @@ fn add_lightclient(lightclient: Arc<LightClient>) -> u64 {
     handle
 }
 
-fn get_lightclient(handle: u64) -> Option<Arc<LightClient>> {
+fn get_lightclient(handle: u64) -> Result<Arc<LightClient>, LightWalletError> {
     let clients = LIGHTCLIENTS.lock().unwrap();
     if let Some(client) = clients.get(&handle) {
         let client_ref = client.borrow();
         if let Some(client) = &*client_ref {
-            return Some(client.clone());
+            return Ok(client.clone());
         }
     }
-    None
+    Err(LightWalletError::InvalidHandle)
 }
 
 fn remove_lightclient(handle: u64) -> bool {
@@ -43,6 +48,9 @@ fn remove_lightclient(handle: u64) -> bool {
 pub enum LightWalletError {
     #[error("Invalid URI")]
     InvalidUri,
+
+    #[error("Invalid handle")]
+    InvalidHandle,
 
     #[error("{message}")]
     Other { message: String },
@@ -86,20 +94,40 @@ pub fn lightwallet_initialize(config: Config) -> Result<u64, LightWalletError> {
     })?;
 
     let mut zingo_config = load_clientconfig(
-        server_uri,
+        server_uri.clone(),
         Some(config.data_dir.into()),
         config.network.into(),
         config.monitor_mempool,
-    ).map_err(|e| LightWalletError::Other { message: e.to_string() })?;
+    )
+    .map_err(|e| LightWalletError::Other {
+        message: e.to_string(),
+    })?;
     zingo_config.wallet_name = config.wallet_name.into();
     zingo_config.logfile_name = config.log_name.into();
 
     // Initialize logging
-    LightClient::init_logging().map_err(|e| LightWalletError::Other { message: e.to_string() })?;
+    LightClient::init_logging().map_err(|e| LightWalletError::Other {
+        message: e.to_string(),
+    })?;
+
+    // A new wallet has a birthday height matching the current blockchain height.
+    let blockchain_height = zingolib::get_latest_block_height(server_uri.clone()).map_err(|e| {
+        LightWalletError::Other {
+            message: e.to_string(),
+        }
+    })?;
 
     let lightclient = match zingo_config.wallet_exists() {
-        true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| LightWalletError::Other { message: e.to_string() })?,
-        false => LightClient::new(&zingo_config, 0).map_err(|e| LightWalletError::Other { message: e.to_string() })?,
+        true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| {
+            LightWalletError::Other {
+                message: e.to_string(),
+            }
+        })?,
+        false => LightClient::new(&zingo_config, blockchain_height).map_err(|e| {
+            LightWalletError::Other {
+                message: e.to_string(),
+            }
+        })?,
     };
 
     let lc = Arc::new(lightclient);
@@ -115,31 +143,68 @@ pub fn lightwallet_deinitialize(handle: u64) -> bool {
     remove_lightclient(handle)
 }
 
-// pub fn exec(cmd: String, args_list: String) -> String {
-//     let lightclient: Arc<LightClient>;
-//     {
-//         let lc = LIGHTCLIENT.lock().unwrap();
+pub fn lightwallet_get_birthday_height(handle: u64) -> Result<u64, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    RT.block_on(async move { Ok(lightclient.wallet.get_birthday().await) })
+}
 
-//         if lc.borrow().is_none() {
-//             return format!("Error: Light Client is not initialized");
-//         }
+pub fn lightwallet_sync(handle: u64) -> Result<String, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
 
-//         lightclient = lc.borrow().as_ref().unwrap().clone();
-//     };
+    RT.block_on(async move {
+        let json = lightclient
+            .do_sync(false)
+            .await
+            .map_err(|e| LightWalletError::Other {
+                message: e.to_string(),
+            })?;
+        Ok(json.pretty(2))
+    })
+}
 
-//     if cmd == "sync" || cmd == "rescan" || cmd == "import" {
-//         thread::spawn(move || {
-//             let args = vec![&args_list[..]];
-//             commands::do_user_command(&cmd, &args, lightclient.as_ref());
-//         });
+pub fn lightwallet_sync_interrupt(handle: u64) -> Result<(), LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    RT.block_on(async move {
+        lightclient.interrupt_sync_after_batch(true).await;
+    });
+    Ok(())
+}
 
-//         "OK".to_string()
-//     } else {
-//         let args = if args_list.is_empty() {
-//             vec![]
-//         } else {
-//             vec![&args_list[..]]
-//         };
-//         commands::do_user_command(&cmd, &args, lightclient.as_ref()).clone()
-//     }
-// }
+#[derive(Clone, Debug, Default)]
+pub struct SyncStatus {
+    pub in_progress: bool,
+    pub last_error: Option<String>,
+
+    pub sync_id: u64,
+    pub start_block: u64,
+    pub end_block: u64,
+
+    pub blocks_done: u64,
+    pub trial_dec_done: u64,
+    pub txn_scan_done: u64,
+
+    pub blocks_total: u64,
+
+    pub batch_num: u64,
+    pub batch_total: u64,
+}
+
+pub fn lightwallet_sync_status(handle: u64) -> Result<SyncStatus, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    Ok(RT.block_on(async move {
+        let status = lightclient.do_sync_status().await;
+        SyncStatus {
+            batch_num: status.batch_num as u64,
+            batch_total: status.batch_total as u64,
+            blocks_done: status.blocks_done,
+            trial_dec_done: status.trial_dec_done,
+            txn_scan_done: status.txn_scan_done,
+            blocks_total: status.blocks_total,
+            in_progress: status.in_progress,
+            last_error: status.last_error,
+            sync_id: status.sync_id,
+            start_block: status.start_block,
+            end_block: status.end_block,
+        }
+    }))
+}

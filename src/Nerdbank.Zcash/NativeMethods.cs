@@ -3,7 +3,6 @@
 
 using System.Runtime.InteropServices;
 using Nerdbank.Zcash;
-using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 /// <summary>
 /// The functions and data types imported from rust.

@@ -42,7 +42,7 @@ public class LightWalletTests : TestBase, IDisposable
 	[Fact]
 	public async Task GetLatestBlockHeight()
 	{
-		ulong height = await this.wallet.GetLatestBlockHeightAsync(CancellationToken.None);
+		ulong height = await this.wallet.GetLatestBlockHeightAsync(this.TimeoutToken);
 		this.logger.WriteLine($"Height: {height}");
 		Assert.NotEqual(0u, height);
 	}
@@ -50,7 +50,27 @@ public class LightWalletTests : TestBase, IDisposable
 	[Fact]
 	public async Task GetLatestBlockHeight_NoServerAtUrl()
 	{
-		LightWalletException ex = await Assert.ThrowsAnyAsync<LightWalletException>(async () => await LightWallet.GetLatestBlockHeightAsync(new Uri("https://doesnotexist.mysideoftheweb.com/"), CancellationToken.None));
+		LightWalletException ex = await Assert.ThrowsAnyAsync<LightWalletException>(async () => await LightWallet.GetLatestBlockHeightAsync(new Uri("https://doesnotexist.mysideoftheweb.com/"), this.TimeoutToken));
 		this.logger.WriteLine(ex.ToString());
+	}
+
+	[Fact]
+	public void BirthdayHeight()
+	{
+		ulong birthdayHeight =  this.wallet.BirthdayHeight;
+		this.logger.WriteLine($"Birthday height: {birthdayHeight}");
+	}
+
+	[Fact]
+	public async Task DownloadTransactionsAsync()
+	{
+		string result = await this.wallet.DownloadTransactionsAsync(
+			new Progress<LightWallet.SyncProgress>(p =>
+			{
+				this.logger.WriteLine($"Sync progress update: {p}");
+			}),
+			TimeSpan.FromSeconds(1),
+			this.TimeoutToken);
+		this.logger.WriteLine(result);
 	}
 }

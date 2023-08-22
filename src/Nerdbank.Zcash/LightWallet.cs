@@ -64,6 +64,111 @@ public class LightWallet : IDisposableObservable
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
+	public ulong BirthdayHeight => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeight);
+
+	public async Task<string> DownloadTransactionsAsync(IProgress<SyncProgress> progress, TimeSpan updateFrequency, CancellationToken cancellationToken)
+	{
+		using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
+		{
+			this.Interop(h => LightWalletMethods.LightwalletSyncInterrupt(h));
+		});
+
+		// Set up a timer by which we will check on progress and report back.
+		bool inProgress = true;
+		_ = Task.Run(async delegate
+		{
+			while (inProgress)
+			{
+				await Task.Delay(updateFrequency, cancellationToken);
+				SyncStatus status = this.Interop(h => LightWalletMethods.LightwalletSyncStatus(h));
+				progress.Report(new SyncProgress(status));
+				if (!status.inProgress)
+				{
+					// Another indicator that there is nothing more to check on occurred.
+					// Theoretically we should break from inProgress,
+					// but might as well make sure we don't loop around do to timing,
+					// and update our caller after progress has stopped.
+					break;
+				}
+			}
+		});
+
+		try
+		{
+			string result = await this.InteropAsync(LightWalletMethods.LightwalletSync, cancellationToken);
+
+			// TODO: Consider throwing OCE if canceled, and we haven't reach the tip of the blockchain yet,
+			// suggesting that we did indeed cancel mid-sync.
+			return result;
+		}
+		finally
+		{
+			inProgress = false;
+		}
+	}
+
+	private ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
+	{
+		bool refAdded = false;
+		try
+		{
+			this.handle.DangerousAddRef(ref refAdded);
+			return new(Task.Run(
+				delegate
+				{
+					return func((ulong)this.handle.DangerousGetHandle());
+				},
+				cancellationToken));
+		}
+		finally
+		{
+			if (refAdded)
+			{
+				this.handle.DangerousRelease();
+			}
+		}
+	}
+
+	private T Interop<T>(Func<ulong, T> func)
+	{
+		bool refAdded = false;
+		try
+		{
+			this.handle.DangerousAddRef(ref refAdded);
+			return func((ulong)this.handle.DangerousGetHandle());
+		}
+		finally
+		{
+			if (refAdded)
+			{
+				this.handle.DangerousRelease();
+			}
+		}
+	}
+
+	private void Interop(Action<ulong> func)
+	{
+		bool refAdded = false;
+		try
+		{
+			this.handle.DangerousAddRef(ref refAdded);
+			func((ulong)this.handle.DangerousGetHandle());
+		}
+		finally
+		{
+			if (refAdded)
+			{
+				this.handle.DangerousRelease();
+			}
+		}
+	}
+
+	public void StopSync()
+	{
+		// interrupt_sync_after_batch is available to request stopping at a convenient point.
+		throw new NotImplementedException();
+	}
+
 	/// <inheritdoc/>
 	public void Dispose()
 	{
@@ -81,7 +186,26 @@ public class LightWallet : IDisposableObservable
 		};
 	}
 
-	private class LightWalletSafeHandle : SafeHandle
+	public record SyncProgress(
+		bool InProgress,
+		string? LastError,
+		ulong SyncId,
+		ulong StartBlock,
+		ulong EndBlock,
+		ulong BlocksDone,
+		ulong TrialDecDone,
+		ulong TxnScanDone,
+		ulong BlocksTotal,
+		ulong BatchNum,
+		ulong BatchTotal)
+	{
+		internal SyncProgress(SyncStatus copyFrom)
+			: this(copyFrom.inProgress, copyFrom.lastError, copyFrom.syncId, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.trialDecDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal)
+		{
+		}
+	}
+
+	internal class LightWalletSafeHandle : SafeHandle
 	{
 		public LightWalletSafeHandle(nint invalidHandleValue, bool ownsHandle)
 			: base(invalidHandleValue, ownsHandle)

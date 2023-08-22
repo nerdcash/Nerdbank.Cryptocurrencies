@@ -1,6 +1,7 @@
 [Error]
 enum LightWalletError {
 	"InvalidUri",
+	"InvalidHandle",
 	"Other",
 };
 
@@ -18,6 +19,24 @@ dictionary Config {
 	boolean monitor_mempool;
 };
 
+dictionary SyncStatus {
+    boolean in_progress;
+    string? last_error;
+
+    u64 sync_id;
+    u64 start_block;
+    u64 end_block;
+
+    u64 blocks_done;
+    u64 trial_dec_done;
+    u64 txn_scan_done;
+
+    u64 blocks_total;
+
+    u64 batch_num;
+    u64 batch_total;
+};
+
 namespace LightWallet {
 	[Throws=LightWalletError]
 	u64 lightwallet_get_block_height(string server_uri);
@@ -26,4 +45,16 @@ namespace LightWallet {
 	u64 lightwallet_initialize(Config config);
 
 	boolean lightwallet_deinitialize(u64 handle);
+
+	[Throws=LightWalletError]
+	string lightwallet_sync(u64 handle);
+
+	[Throws=LightWalletError]
+	void lightwallet_sync_interrupt(u64 handle);
+
+	[Throws=LightWalletError]
+	SyncStatus lightwallet_sync_status(u64 handle);
+
+	[Throws=LightWalletError]
+	u64 lightwallet_get_birthday_height(u64 handle);
 };
