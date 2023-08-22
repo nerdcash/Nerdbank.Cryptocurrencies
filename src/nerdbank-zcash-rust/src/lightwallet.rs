@@ -1,7 +1,7 @@
 use http::Uri;
 use tokio::runtime::Runtime;
 use zingoconfig::ChainType;
-use zingolib::lightclient::LightClient;
+use zingolib::lightclient::{LightClient, SyncResult};
 use zingolib::load_clientconfig;
 
 use std::collections::HashMap;
@@ -65,23 +65,9 @@ pub fn lightwallet_get_block_height(server_uri: String) -> Result<u64, LightWall
     )
 }
 
-pub enum Network {
-    MainNet,
-    TestNet,
-}
-
-impl From<Network> for ChainType {
-    fn from(network: Network) -> Self {
-        match network {
-            Network::MainNet => ChainType::Mainnet,
-            Network::TestNet => ChainType::Testnet,
-        }
-    }
-}
-
 pub struct Config {
     pub server_uri: String,
-    pub network: Network,
+    pub chain_type: ChainType,
     pub data_dir: String,
     pub wallet_name: String,
     pub log_name: String,
@@ -96,7 +82,7 @@ pub fn lightwallet_initialize(config: Config) -> Result<u64, LightWalletError> {
     let mut zingo_config = load_clientconfig(
         server_uri.clone(),
         Some(config.data_dir.into()),
-        config.network.into(),
+        config.chain_type,
         config.monitor_mempool,
     )
     .map_err(|e| LightWalletError::Other {
@@ -151,17 +137,18 @@ pub fn lightwallet_get_birthday_height(handle: u64) -> Result<u64, LightWalletEr
     RT.block_on(async move { Ok(lightclient.wallet.get_birthday().await) })
 }
 
-pub fn lightwallet_sync(handle: u64) -> Result<String, LightWalletError> {
+pub fn lightwallet_sync(handle: u64) -> Result<SyncResult, LightWalletError> {
     let lightclient = get_lightclient(handle)?;
 
     RT.block_on(async move {
-        let json = lightclient
-            .do_sync(false)
-            .await
-            .map_err(|e| LightWalletError::Other {
-                message: e.to_string(),
-            })?;
-        Ok(json.pretty(2))
+        let sync_result =
+            lightclient
+                .do_sync(false)
+                .await
+                .map_err(|e| LightWalletError::Other {
+                    message: e.to_string(),
+                })?;
+        Ok(sync_result)
     })
 }
 

@@ -5,18 +5,26 @@ enum LightWalletError {
 	"Other",
 };
 
-enum Network {
-	"MainNet",
-	"TestNet",
+enum ChainType {
+	"Testnet",
+	"Regtest",
+	"Mainnet",
+	"FakeMainnet",
 };
 
 dictionary Config {
 	string server_uri;
-	Network network;
+	ChainType chain_type;
 	string data_dir;
 	string wallet_name;
 	string log_name;
 	boolean monitor_mempool;
+};
+
+dictionary SyncResult {
+	boolean success;
+	u64 latest_block;
+	u64 total_blocks_synced;
 };
 
 dictionary SyncStatus {
@@ -47,7 +55,7 @@ namespace LightWallet {
 	boolean lightwallet_deinitialize(u64 handle);
 
 	[Throws=LightWalletError]
-	string lightwallet_sync(u64 handle);
+	SyncResult lightwallet_sync(u64 handle);
 
 	[Throws=LightWalletError]
 	void lightwallet_sync_interrupt(u64 handle);

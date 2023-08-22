@@ -20,6 +20,10 @@ orchard = "0.5.0"
 thiserror = "1.0.47"
 tokio = "1.32.0"
 uniffi = "0.23.0"
-zcash_primitives = "0.12.0"
+zcash_primitives = { git = "https://github.com/zingolabs/librustzcash", features = ["transparent-inputs", "test-dependencies"], rev = "8e582109cad9af14b461f76429f9f0437e860115"  }
 zingoconfig = { path = "../../external/zingolib/zingoconfig", default-features = true }
 zingolib = { path = "../../external/zingolib/zingolib", default-features = true }
+
+[patch.crates-io]
+incrementalmerkletree = { git = "https://github.com/zcash/incrementalmerkletree", rev = "bae25ad89c0c192bee625252d2d419bd56638e48" }
+shardtree = { git = "https://github.com/zcash/incrementalmerkletree", rev = "bae25ad89c0c192bee625252d2d419bd56638e48" }

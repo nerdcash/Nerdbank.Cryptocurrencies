@@ -10,5 +10,7 @@ mod sapling;
 use lightwallet::{
     lightwallet_deinitialize, lightwallet_get_birthday_height, lightwallet_get_block_height,
     lightwallet_initialize, lightwallet_sync, lightwallet_sync_interrupt, lightwallet_sync_status,
-    Config, LightWalletError, Network, SyncStatus,
+    Config, LightWalletError, SyncStatus
 };
+use zingolib::lightclient::SyncResult;
+use zingoconfig::ChainType;

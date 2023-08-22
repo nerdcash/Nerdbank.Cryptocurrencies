@@ -64,13 +64,13 @@ public class LightWalletTests : TestBase, IDisposable
 	[Fact]
 	public async Task DownloadTransactionsAsync()
 	{
-		string result = await this.wallet.DownloadTransactionsAsync(
+		LightWallet.SyncResult result = await this.wallet.DownloadTransactionsAsync(
 			new Progress<LightWallet.SyncProgress>(p =>
 			{
 				this.logger.WriteLine($"Sync progress update: {p}");
 			}),
 			TimeSpan.FromMilliseconds(100),
 			this.TimeoutToken);
-		this.logger.WriteLine(result);
+		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned {result.TotalBlocksScanned} blocks to reach block {result.LatestBlock}.");
 	}
 }

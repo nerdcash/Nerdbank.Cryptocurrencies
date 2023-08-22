@@ -74,7 +74,7 @@ public class LightWallet : IDisposableObservable
 	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
 	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, TimeSpan?, CancellationToken)"/>
-	public Task<string> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, null, cancellationToken);
+	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, null, cancellationToken);
 
 	/// <summary>
 	/// Scans the blockchain for new transactions related to this account.
@@ -95,7 +95,7 @@ public class LightWallet : IDisposableObservable
 	/// but rather concludes the operation early with an indication of the last block that was scanned.
 	/// </param>
 	/// <returns>A task with the result of the scan.</returns>
-	public async Task<string> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, TimeSpan? updateFrequency, CancellationToken cancellationToken)
+	public async Task<SyncResult> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, TimeSpan? updateFrequency, CancellationToken cancellationToken)
 	{
 		using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
 		{
@@ -128,8 +128,8 @@ public class LightWallet : IDisposableObservable
 
 		try
 		{
-			string result = await this.InteropAsync(LightWalletMethods.LightwalletSync, cancellationToken);
-			return result;
+			uniffi.LightWallet.SyncResult result = await this.InteropAsync(LightWalletMethods.LightwalletSync, cancellationToken);
+			return new SyncResult(result);
 		}
 		finally
 		{
@@ -144,12 +144,12 @@ public class LightWallet : IDisposableObservable
 		this.handle.Dispose();
 	}
 
-	private static Network ToNetwork(ZcashNetwork network)
+	private static ChainType ToNetwork(ZcashNetwork network)
 	{
 		return network switch
 		{
-			ZcashNetwork.MainNet => Network.MAIN_NET,
-			ZcashNetwork.TestNet => Network.TEST_NET,
+			ZcashNetwork.MainNet => ChainType.MAINNET,
+			ZcashNetwork.TestNet => ChainType.TESTNET,
 			_ => throw new ArgumentException(),
 		};
 	}
@@ -207,6 +207,28 @@ public class LightWallet : IDisposableObservable
 			{
 				this.handle.DangerousRelease();
 			}
+		}
+	}
+
+	/// <summary>
+	/// Describes the final result of a blockchain scan.
+	/// </summary>
+	/// <param name="Success">Indicates overall success of the operation.</param>
+	/// <param name="LatestBlock">The last blocked scanned.</param>
+	/// <param name="TotalBlocksScanned">The number of blocks scanned.</param>
+	public record SyncResult(
+		bool Success,
+		ulong LatestBlock,
+		ulong TotalBlocksScanned)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SyncResult"/> class
+		/// based on data coming from the native code.
+		/// </summary>
+		/// <param name="copyFrom">The native data to copy from.</param>
+		internal SyncResult(uniffi.LightWallet.SyncResult copyFrom)
+			: this(copyFrom.success, copyFrom.latestBlock, copyFrom.totalBlocksSynced)
+		{
 		}
 	}
 
