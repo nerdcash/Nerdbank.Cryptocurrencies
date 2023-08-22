@@ -48,6 +48,15 @@ public class LightWallet : IDisposableObservable
 	bool IDisposableObservable.IsDisposed => this.disposed;
 
 	/// <summary>
+	/// Gets the birthday height of the account.
+	/// </summary>
+	/// <remarks>
+	/// The birthday height is the length of the blockchain when the account was created.
+	/// It serves to reduce initial sync times when this account is imported into another wallet.
+	/// </remarks>
+	public ulong BirthdayHeight => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeight);
+
+	/// <summary>
 	/// Gets the height of the blockchain (independent of what may have been sync'd thus far.)
 	/// </summary>
 	/// <param name="lightWalletServerUrl">The URL of the lightwallet server to query.</param>
@@ -64,47 +73,85 @@ public class LightWallet : IDisposableObservable
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
-	public ulong BirthdayHeight => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeight);
+	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, TimeSpan?, CancellationToken)"/>
+	public Task<string> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, null, cancellationToken);
 
-	public async Task<string> DownloadTransactionsAsync(IProgress<SyncProgress> progress, TimeSpan updateFrequency, CancellationToken cancellationToken)
+	/// <summary>
+	/// Scans the blockchain for new transactions related to this account.
+	/// </summary>
+	/// <param name="progress">
+	/// An optional receiver of updates that report on progress toward the tip of the blockchain.
+	/// Because scanning the blockchain may take a <em>very</em> long time, reporting progress to the user is <em>highly</em> recommended.
+	/// </param>
+	/// <param name="updateFrequency">
+	/// The interval between each <paramref name="progress"/> update.
+	/// If <see langword="null"/>, a reasonable default will be used.
+	/// Irrelevant if <paramref name="progress"/> is <see langword="null" />.
+	/// </param>
+	/// <param name="cancellationToken">
+	/// A cancellation token.
+	/// There may be a substantial delay between cancellation and when the blockchain scan is suspended in order to conclude work on the current 'batch'.
+	/// Cancellation does <em>not</em> result in an <see cref="OperationCanceledException"/> being thrown,
+	/// but rather concludes the operation early with an indication of the last block that was scanned.
+	/// </param>
+	/// <returns>A task with the result of the scan.</returns>
+	public async Task<string> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, TimeSpan? updateFrequency, CancellationToken cancellationToken)
 	{
 		using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
 		{
 			this.Interop(h => LightWalletMethods.LightwalletSyncInterrupt(h));
 		});
 
-		// Set up a timer by which we will check on progress and report back.
 		bool inProgress = true;
-		_ = Task.Run(async delegate
+		if (progress is not null)
 		{
-			while (inProgress)
+			// Set up a timer by which we will check on progress and report back.
+			_ = Task.Run(async delegate
 			{
-				await Task.Delay(updateFrequency, cancellationToken);
-				SyncStatus status = this.Interop(h => LightWalletMethods.LightwalletSyncStatus(h));
-				progress.Report(new SyncProgress(status));
-				if (!status.inProgress)
+				updateFrequency ??= TimeSpan.FromSeconds(1);
+				while (inProgress)
 				{
-					// Another indicator that there is nothing more to check on occurred.
-					// Theoretically we should break from inProgress,
-					// but might as well make sure we don't loop around do to timing,
-					// and update our caller after progress has stopped.
-					break;
+					await Task.Delay(updateFrequency.Value, cancellationToken);
+					SyncStatus status = this.Interop(h => LightWalletMethods.LightwalletSyncStatus(h));
+					progress.Report(new SyncProgress(status));
+					if (!status.inProgress)
+					{
+						// Another indicator that there is nothing more to check on occurred.
+						// Theoretically we should break from inProgress,
+						// but might as well make sure we don't loop around do to timing,
+						// and update our caller after progress has stopped.
+						break;
+					}
 				}
-			}
-		});
+			});
+		}
 
 		try
 		{
 			string result = await this.InteropAsync(LightWalletMethods.LightwalletSync, cancellationToken);
-
-			// TODO: Consider throwing OCE if canceled, and we haven't reach the tip of the blockchain yet,
-			// suggesting that we did indeed cancel mid-sync.
 			return result;
 		}
 		finally
 		{
 			inProgress = false;
 		}
+	}
+
+	/// <inheritdoc/>
+	public void Dispose()
+	{
+		this.disposed = true;
+		this.handle.Dispose();
+	}
+
+	private static Network ToNetwork(ZcashNetwork network)
+	{
+		return network switch
+		{
+			ZcashNetwork.MainNet => Network.MAIN_NET,
+			ZcashNetwork.TestNet => Network.TEST_NET,
+			_ => throw new ArgumentException(),
+		};
 	}
 
 	private ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
@@ -163,51 +210,45 @@ public class LightWallet : IDisposableObservable
 		}
 	}
 
-	public void StopSync()
-	{
-		// interrupt_sync_after_batch is available to request stopping at a convenient point.
-		throw new NotImplementedException();
-	}
-
-	/// <inheritdoc/>
-	public void Dispose()
-	{
-		this.disposed = true;
-		this.handle.Dispose();
-	}
-
-	private static Network ToNetwork(ZcashNetwork network)
-	{
-		return network switch
-		{
-			ZcashNetwork.MainNet => Network.MAIN_NET,
-			ZcashNetwork.TestNet => Network.TEST_NET,
-			_ => throw new ArgumentException(),
-		};
-	}
-
+	/// <summary>
+	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, TimeSpan?, CancellationToken)"/> operation.
+	/// </summary>
+	/// <param name="LastError">The last error encountered during the scan.</param>
+	/// <param name="StartBlock">The number of the first block in the current batch.</param>
+	/// <param name="EndBlock">The number of the last block in the current batch.</param>
+	/// <param name="BlocksDone">The number of blocks scanned.</param>
+	/// <param name="TxnScanDone">The number of transactions scanned.</param>
+	/// <param name="BlocksTotal">The total number of blocks.</param>
+	/// <param name="BatchNum">The batch number currently being scanned.</param>
+	/// <param name="BatchTotal">The number of batches that the current scan operation is divided into.</param>
 	public record SyncProgress(
-		bool InProgress,
 		string? LastError,
-		ulong SyncId,
 		ulong StartBlock,
 		ulong EndBlock,
 		ulong BlocksDone,
-		ulong TrialDecDone,
 		ulong TxnScanDone,
 		ulong BlocksTotal,
 		ulong BatchNum,
 		ulong BatchTotal)
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SyncProgress"/> class
+		/// based on data coming from the native code.
+		/// </summary>
+		/// <param name="copyFrom">The data to copy from.</param>
 		internal SyncProgress(SyncStatus copyFrom)
-			: this(copyFrom.inProgress, copyFrom.lastError, copyFrom.syncId, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.trialDecDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal)
+			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal)
 		{
 		}
 	}
 
-	internal class LightWalletSafeHandle : SafeHandle
+	/// <summary>
+	/// A <see cref="SafeHandle"/> that contains the handle to the native lightwallet used by
+	/// an instance of <see cref="LightWallet"/>.
+	/// </summary>
+	private class LightWalletSafeHandle : SafeHandle
 	{
-		public LightWalletSafeHandle(nint invalidHandleValue, bool ownsHandle)
+		internal LightWalletSafeHandle(nint invalidHandleValue, bool ownsHandle)
 			: base(invalidHandleValue, ownsHandle)
 		{
 		}

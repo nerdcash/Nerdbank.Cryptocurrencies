@@ -57,7 +57,7 @@ public class LightWalletTests : TestBase, IDisposable
 	[Fact]
 	public void BirthdayHeight()
 	{
-		ulong birthdayHeight =  this.wallet.BirthdayHeight;
+		ulong birthdayHeight = this.wallet.BirthdayHeight;
 		this.logger.WriteLine($"Birthday height: {birthdayHeight}");
 	}
 
@@ -69,7 +69,7 @@ public class LightWalletTests : TestBase, IDisposable
 			{
 				this.logger.WriteLine($"Sync progress update: {p}");
 			}),
-			TimeSpan.FromSeconds(1),
+			TimeSpan.FromMilliseconds(100),
 			this.TimeoutToken);
 		this.logger.WriteLine(result);
 	}
