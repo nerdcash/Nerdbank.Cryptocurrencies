@@ -137,6 +137,11 @@ pub fn lightwallet_get_birthday_height(handle: u64) -> Result<u64, LightWalletEr
     RT.block_on(async move { Ok(lightclient.wallet.get_birthday().await) })
 }
 
+pub fn last_synced_height(handle: u64) -> Result<u64, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    RT.block_on(async move { Ok(lightclient.wallet.last_synced_height().await) })
+}
+
 pub fn lightwallet_sync(handle: u64) -> Result<SyncResult, LightWalletError> {
     let lightclient = get_lightclient(handle)?;
 

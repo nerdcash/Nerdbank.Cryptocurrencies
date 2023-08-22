@@ -62,6 +62,13 @@ public class LightWalletTests : TestBase, IDisposable
 	}
 
 	[Fact]
+	public void LastDownloadHeight()
+	{
+		ulong lastDownloadHeight = this.wallet.LastDownloadHeight;
+		this.logger.WriteLine($"Last sync height: {lastDownloadHeight}");
+	}
+
+	[Fact]
 	public async Task DownloadTransactionsAsync()
 	{
 		LightWallet.SyncResult result = await this.wallet.DownloadTransactionsAsync(

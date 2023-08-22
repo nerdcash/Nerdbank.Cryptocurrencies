@@ -65,4 +65,7 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	u64 lightwallet_get_birthday_height(u64 handle);
+
+	[Throws=LightWalletError]
+	u64 last_synced_height(u64 handle);
 };

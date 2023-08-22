@@ -57,6 +57,11 @@ public class LightWallet : IDisposableObservable
 	public ulong BirthdayHeight => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeight);
 
 	/// <summary>
+	/// Gets the block last downloaded from the blockchain.
+	/// </summary>
+	public ulong LastDownloadHeight => this.Interop(LightWalletMethods.LastSyncedHeight);
+
+	/// <summary>
 	/// Gets the height of the blockchain (independent of what may have been sync'd thus far.)
 	/// </summary>
 	/// <param name="lightWalletServerUrl">The URL of the lightwallet server to query.</param>

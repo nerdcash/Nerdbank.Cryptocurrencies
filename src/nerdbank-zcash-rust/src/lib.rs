@@ -8,9 +8,9 @@ mod orchard;
 mod sapling;
 
 use lightwallet::{
-    lightwallet_deinitialize, lightwallet_get_birthday_height, lightwallet_get_block_height,
-    lightwallet_initialize, lightwallet_sync, lightwallet_sync_interrupt, lightwallet_sync_status,
-    Config, LightWalletError, SyncStatus
+    last_synced_height, lightwallet_deinitialize, lightwallet_get_birthday_height,
+    lightwallet_get_block_height, lightwallet_initialize, lightwallet_sync,
+    lightwallet_sync_interrupt, lightwallet_sync_status, Config, LightWalletError, SyncStatus,
 };
-use zingolib::lightclient::SyncResult;
 use zingoconfig::ChainType;
+use zingolib::lightclient::SyncResult;
