@@ -20,21 +20,21 @@ dictionary Config {
 };
 
 dictionary SyncStatus {
-    boolean in_progress;
-    string? last_error;
+	boolean in_progress;
+	string? last_error;
 
-    u64 sync_id;
-    u64 start_block;
-    u64 end_block;
+	u64 sync_id;
+	u64 start_block;
+	u64 end_block;
 
-    u64 blocks_done;
-    u64 trial_dec_done;
-    u64 txn_scan_done;
+	u64 blocks_done;
+	u64 trial_dec_done;
+	u64 txn_scan_done;
 
-    u64 blocks_total;
+	u64 blocks_total;
 
-    u64 batch_num;
-    u64 batch_total;
+	u64 batch_num;
+	u64 batch_total;
 };
 
 namespace LightWallet {

@@ -117,18 +117,21 @@ pub fn lightwallet_initialize(config: Config) -> Result<u64, LightWalletError> {
         }
     })?;
 
-    let lightclient = match zingo_config.wallet_exists() {
-        true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| {
-            LightWalletError::Other {
-                message: e.to_string(),
-            }
-        })?,
-        false => LightClient::new(&zingo_config, blockchain_height).map_err(|e| {
-            LightWalletError::Other {
-                message: e.to_string(),
-            }
-        })?,
-    };
+    let lightclient =
+        match zingo_config.wallet_exists() {
+            true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| {
+                LightWalletError::Other {
+                    message: e.to_string(),
+                }
+            })?,
+            // Use a birthday height that is somewhat less than the current blockchain length
+            // to protect against re-orgs (?? why? a re-org cannot possibly reduce the chain length,
+            // but sync malfunctions if the birthday height is within 100 blocks of the chain length).
+            false => LightClient::new(&zingo_config, blockchain_height.saturating_sub(100))
+                .map_err(|e| LightWalletError::Other {
+                    message: e.to_string(),
+                })?,
+        };
 
     let lc = Arc::new(lightclient);
 
