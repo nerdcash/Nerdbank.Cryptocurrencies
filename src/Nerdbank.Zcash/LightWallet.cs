@@ -142,6 +142,16 @@ public class LightWallet : IDisposableObservable
 		}
 	}
 
+	/// <summary>
+	/// Gets all the downloaded transactions for this account included in a given block or later.
+	/// </summary>
+	/// <param name="startingBlock">The minimum block number to return transactions for.</param>
+	/// <returns>A list of transactions.</returns>
+	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
+	{
+		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock));
+	}
+
 	/// <inheritdoc/>
 	public void Dispose()
 	{

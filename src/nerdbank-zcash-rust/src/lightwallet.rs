@@ -1,5 +1,6 @@
 use http::Uri;
 use tokio::runtime::Runtime;
+use zcash_primitives::consensus::BlockHeight;
 use zingoconfig::ChainType;
 use zingolib::lightclient::{LightClient, SyncResult};
 use zingolib::load_clientconfig;
@@ -201,5 +202,40 @@ pub fn lightwallet_sync_status(handle: u64) -> Result<SyncStatus, LightWalletErr
             start_block: status.start_block,
             end_block: status.end_block,
         }
+    }))
+}
+
+pub struct Transaction {
+    pub txid: String,
+    pub block_height: u32,
+    pub is_incoming: bool,
+}
+
+pub fn lightwallet_get_transactions(
+    handle: u64,
+    starting_block: u32,
+) -> Result<Vec<Transaction>, LightWalletError> {
+    let lightclient = get_lightclient(handle).unwrap();
+    Ok(RT.block_on(async move {
+        lightclient
+            .wallet
+            .transactions()
+            .read()
+            .await
+            .current
+            .iter()
+            .filter_map(|(txid, tx)| {
+                println!("Transaction ID: {:?} {:?}", txid, tx);
+                if tx.block_height >= BlockHeight::from_u32(starting_block) {
+                    Some(Transaction {
+                        txid: txid.to_string(),
+                        block_height: tx.block_height.into(),
+                        is_incoming: tx.is_incoming_transaction(),
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect()
     }))
 }

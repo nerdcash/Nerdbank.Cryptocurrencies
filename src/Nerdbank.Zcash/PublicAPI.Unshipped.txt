@@ -19,6 +19,7 @@ Nerdbank.Zcash.LightWallet.BirthdayHeight.get -> ulong
 Nerdbank.Zcash.LightWallet.Dispose() -> void
 Nerdbank.Zcash.LightWallet.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWallet.SyncProgress!>? progress, System.TimeSpan? updateFrequency, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWallet.SyncResult!>!
 Nerdbank.Zcash.LightWallet.DownloadTransactionsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWallet.SyncResult!>!
+Nerdbank.Zcash.LightWallet.GetDownloadedTransactions(uint startingBlock = 0) -> System.Collections.Generic.List<uniffi.LightWallet.Transaction!>!
 Nerdbank.Zcash.LightWallet.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
 Nerdbank.Zcash.LightWallet.LastDownloadHeight.get -> ulong
 Nerdbank.Zcash.LightWallet.LightWallet(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void

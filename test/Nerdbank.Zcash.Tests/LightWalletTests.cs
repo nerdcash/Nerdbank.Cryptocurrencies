@@ -80,4 +80,11 @@ public class LightWalletTests : TestBase, IDisposable
 			this.TimeoutToken);
 		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned {result.TotalBlocksScanned} blocks to reach block {result.LatestBlock}.");
 	}
+
+	[Fact]
+	public void GetDownloadedTransactions_Empty()
+	{
+		List<Transaction> transactions = this.wallet.GetDownloadedTransactions(0);
+		Assert.Empty(transactions);
+	}
 }
