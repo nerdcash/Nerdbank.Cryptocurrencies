@@ -23,16 +23,6 @@ public partial class Zip32HDWallet
 	/// </summary>
 	private const uint Purpose = 32;
 
-	/// <summary>
-	/// The "Randomness Beacon".
-	/// </summary>
-	/// <remarks>
-	/// The value for this is defined in <see href="https://zips.z.cash/protocol/protocol.pdf">the Zcash protocol</see> §5.9.
-	/// </remarks>
-	private static readonly BigInteger URS = BigInteger.Parse("096b36a5804bfacef1691e173c366a47ff5ba84a44f26ddd7e8d9f79d5b42df0", System.Globalization.NumberStyles.HexNumber);
-
-	private static readonly BigInteger MaxDiversifierIndex = BigInteger.Pow(2, 88) - 1;
-
 	private Orchard.ExtendedSpendingKey masterOrchardKey;
 
 	private Sapling.ExtendedSpendingKey masterSaplingKey;
