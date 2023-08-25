@@ -33,7 +33,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x03;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => this.Dk.Value.Length + this.Ivk.Value.Length;

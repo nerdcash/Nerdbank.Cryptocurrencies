@@ -46,7 +46,7 @@ public class OrchardAddress : UnifiedAddress
 	public override IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= new ReadOnlyCollection<ZcashAddress>(new[] { this });
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => 0x03;
+	internal override byte UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
 	internal override int ReceiverEncodingLength => this.receiver.Span.Length;

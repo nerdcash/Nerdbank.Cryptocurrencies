@@ -44,7 +44,7 @@ public class SaplingAddress : ZcashAddress
 	public override bool HasShieldedReceiver => true;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => 0x02;
+	internal override byte UnifiedTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	internal override int ReceiverEncodingLength => this.receiver.Span.Length;

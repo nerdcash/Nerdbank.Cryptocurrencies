@@ -184,10 +184,10 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 		{
 			IUnifiedEncodingElement? viewingKey = element.UnifiedTypeCode switch
 			{
-				0x02 => isFullViewingKey
+				UnifiedTypeCodes.Sapling => isFullViewingKey
 						? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
 						: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
-				0x03 => isFullViewingKey
+				UnifiedTypeCodes.Orchard => isFullViewingKey
 						? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
 						: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
 				_ => element,

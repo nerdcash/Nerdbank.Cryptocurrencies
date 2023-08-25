@@ -41,7 +41,7 @@ public class TransparentP2SHAddress : TransparentAddress
 	public override bool HasShieldedReceiver => false;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => 0x01;
+	internal override byte UnifiedTypeCode => UnifiedTypeCodes.TransparentP2SH;
 
 	/// <inheritdoc/>
 	internal override int ReceiverEncodingLength => this.receiver.Span.Length;

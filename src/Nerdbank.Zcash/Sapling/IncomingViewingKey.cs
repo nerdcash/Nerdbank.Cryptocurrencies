@@ -38,7 +38,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	bool IViewingKey.IsFullViewingKey => false;
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x02;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 2;

@@ -39,7 +39,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 	bool IViewingKey.IsFullViewingKey => true;
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x03;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 3;

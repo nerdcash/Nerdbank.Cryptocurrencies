@@ -40,7 +40,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 	}
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x02;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => this.Ak.Value.Length + this.Nk.Value.Length + this.Ovk.Value.Length + this.Dk.Value.Length;

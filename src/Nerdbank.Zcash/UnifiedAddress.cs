@@ -68,7 +68,7 @@ public abstract class UnifiedAddress : ZcashAddress
 		{
 			try
 			{
-				hasShieldedAddress |= receiver.UnifiedTypeCode > 0x01;
+				hasShieldedAddress |= receiver.UnifiedTypeCode > UnifiedTypeCodes.TransparentP2SH;
 			}
 			catch (NotSupportedException ex)
 			{
@@ -140,16 +140,16 @@ public abstract class UnifiedAddress : ZcashAddress
 		{
 			switch (element.UnifiedTypeCode)
 			{
-				case 0x00:
+				case UnifiedTypeCodes.TransparentP2PKH:
 					receiverAddresses.Add(new TransparentP2PKHAddress(new TransparentP2PKHReceiver(element.Content.Span), network));
 					break;
-				case 0x01:
+				case UnifiedTypeCodes.TransparentP2SH:
 					receiverAddresses.Add(new TransparentP2SHAddress(new TransparentP2SHReceiver(element.Content.Span), network));
 					break;
-				case 0x02:
+				case UnifiedTypeCodes.Sapling:
 					receiverAddresses.Add(new SaplingAddress(new SaplingReceiver(element.Content.Span), network));
 					break;
-				case 0x03:
+				case UnifiedTypeCodes.Orchard:
 					receiverAddresses.Add(new OrchardAddress(new OrchardReceiver(element.Content.Span), network));
 					break;
 			}

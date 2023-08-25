@@ -54,7 +54,7 @@ public unsafe struct OrchardReceiver : IPoolReceiver
 	}
 
 	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-	public static byte UnifiedReceiverTypeCode => 0x03;
+	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Orchard;

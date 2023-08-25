@@ -59,7 +59,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 	}
 
 	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-	public static byte UnifiedReceiverTypeCode => 0x02;
+	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;

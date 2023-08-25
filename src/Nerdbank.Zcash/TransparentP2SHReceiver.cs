@@ -35,7 +35,7 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
 	/// Gets a span over the whole receiver.
 	/// </summary>
 	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-	public static byte UnifiedReceiverTypeCode => 0x01;
+	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.TransparentP2SH;
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;
