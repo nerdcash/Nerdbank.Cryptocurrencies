@@ -101,7 +101,7 @@ public partial class Zip32HDWallet
 			/// Gets the diversifier key.
 			/// </summary>
 			/// <value>A 32-byte buffer.</value>
-			internal DiversifierKey Dk => this.FullViewingKey.Dk;
+			internal ref readonly DiversifierKey Dk => ref this.FullViewingKey.Dk;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class
