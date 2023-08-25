@@ -3,6 +3,7 @@
 
 using uniffi.LightWallet;
 
+[Trait("RequiresNetwork", "true")]
 public class LightWalletTests : TestBase, IDisposable
 {
 	private static readonly Uri TestLightWalletServer = new("https://zcash.mysideoftheweb.com:9067/");
