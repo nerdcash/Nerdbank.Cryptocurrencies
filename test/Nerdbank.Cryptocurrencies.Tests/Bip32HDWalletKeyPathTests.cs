@@ -289,4 +289,12 @@ public class Bip32HDWalletKeyPathTests
 		Assert.Equal(new uint[] { 1 }, KeyPath.Parse("/1").Steps.Select(kp => kp.Index));
 		Assert.Equal(new uint[] { 1, 3, 5 }, KeyPath.Parse("/1/3/5").Steps.Select(kp => kp.Index));
 	}
+
+	[Fact]
+	public void Append()
+	{
+		KeyPath original = KeyPath.Parse("m/1");
+		Assert.Equal(KeyPath.Parse("m/1/3"), original.Append(3));
+		Assert.Equal("m/1", original.ToString());
+	}
 }

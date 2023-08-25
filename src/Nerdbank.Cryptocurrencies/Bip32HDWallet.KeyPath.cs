@@ -218,6 +218,14 @@ public partial class Bip32HDWallet
 			return result is not null;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="KeyPath"/> class
+		/// based on this one, but with one derivation step added to the end.
+		/// </summary>
+		/// <param name="index">The derivation step to add.</param>
+		/// <returns>The new key path.</returns>
+		public KeyPath Append(uint index) => new(index, this);
+
 		/// <inheritdoc/>
 		public int CompareTo(KeyPath? other)
 		{
