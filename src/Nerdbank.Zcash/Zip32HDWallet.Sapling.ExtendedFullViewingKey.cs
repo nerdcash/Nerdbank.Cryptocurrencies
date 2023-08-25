@@ -14,7 +14,7 @@ public partial class Zip32HDWallet
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
 		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-		public class ExtendedFullViewingKey : IExtendedKey, IEquatable<ExtendedFullViewingKey>
+		public class ExtendedFullViewingKey : IExtendedKey, IViewingKey, IEquatable<ExtendedFullViewingKey>
 		{
 			private const string Bech32MainNetworkHRP = "zxviews";
 			private const string Bech32TestNetworkHRP = "zxviewtestsapling";
@@ -68,7 +68,7 @@ public partial class Zip32HDWallet
 			public ZcashNetwork Network => this.Key.Network;
 
 			/// <inheritdoc/>
-			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+			bool IViewingKey.IsFullViewingKey => true;
 
 			/// <summary>
 			/// Gets the full viewing key.

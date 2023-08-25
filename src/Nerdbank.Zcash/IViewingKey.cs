@@ -17,4 +17,7 @@ public interface IViewingKey : IKey
 	/// Gets a value indicating whether this viewing key can see both incoming and outgoing transactions.
 	/// </summary>
 	bool IsFullViewingKey { get; }
+
+	/// <inheritdoc/>
+	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
 }

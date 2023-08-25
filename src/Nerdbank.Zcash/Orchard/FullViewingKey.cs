@@ -44,9 +44,6 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 3;
 
-	/// <inheritdoc/>
-	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
-
 	/// <summary>
 	/// Gets the default address for this spending key.
 	/// </summary>

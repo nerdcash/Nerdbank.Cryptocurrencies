@@ -30,9 +30,6 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	bool IViewingKey.IsFullViewingKey => false;
 
 	/// <inheritdoc/>
-	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
-
-	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>

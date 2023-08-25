@@ -57,9 +57,6 @@ public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
 	/// <inheritdoc/>
 	bool IViewingKey.IsFullViewingKey => true;
 
-	/// <inheritdoc/>
-	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
-
 	/// <summary>
 	/// Gets the Bech32 encoding of the full viewing key.
 	/// </summary>

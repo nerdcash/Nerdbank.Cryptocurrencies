@@ -26,6 +26,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the buffer. Always 32 bytes in length.
 		/// </summary>
+		[UnscopedRef]
 		public readonly ReadOnlySpan<byte> Value => this.value.Value;
 
 		/// <summary>
