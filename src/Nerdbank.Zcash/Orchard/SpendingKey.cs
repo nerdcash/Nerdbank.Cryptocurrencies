@@ -32,6 +32,12 @@ public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 	/// </summary>
 	public FullViewingKey FullViewingKey { get; }
 
+	/// <inheritdoc/>
+	IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
+	/// <inheritdoc/>
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
 	/// <summary>
 	/// Gets the Zcash network this key operates on.
 	/// </summary>

@@ -8,19 +8,19 @@ namespace Nerdbank.Zcash.Transparent;
 /// <summary>
 /// A private (spending) key for the transparent pool.
 /// </summary>
-public class P2PKHPrivateKey : ISpendingKey, IUnifiedEncodingElement
+public class P2PKHSpendingKey : ISpendingKey, IUnifiedEncodingElement
 {
 	/// <summary>
-	/// Initializes a new instance of the <see cref="P2PKHPrivateKey"/> class.
+	/// Initializes a new instance of the <see cref="P2PKHSpendingKey"/> class.
 	/// </summary>
 	/// <param name="key">The underlying cryptographic key.</param>
 	/// <param name="network">The network this key should be used with.</param>
-	public P2PKHPrivateKey(ECPrivKey key, ZcashNetwork network)
+	public P2PKHSpendingKey(ECPrivKey key, ZcashNetwork network)
 	{
 		Requires.NotNull(key);
 
 		this.CryptographicKey = key;
-		this.PublicKey = new(key.CreatePubKey(), network);
+		this.FullViewingKey = new(key.CreatePubKey(), network);
 	}
 
 	/// <summary>
@@ -29,12 +29,15 @@ public class P2PKHPrivateKey : ISpendingKey, IUnifiedEncodingElement
 	public ECPrivKey CryptographicKey { get; }
 
 	/// <inheritdoc/>
-	public ZcashNetwork Network => this.PublicKey.Network;
+	public ZcashNetwork Network => this.FullViewingKey.Network;
 
 	/// <summary>
 	/// Gets the public key.
 	/// </summary>
-	public P2PKHPublicKey PublicKey { get; }
+	public P2PKHFullViewingKey FullViewingKey { get; }
+
+	/// <inheritdoc/>
+	IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.TransparentP2PKH;
@@ -52,6 +55,6 @@ public class P2PKHPrivateKey : ISpendingKey, IUnifiedEncodingElement
 	/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
 	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
 	{
-		return new P2PKHPrivateKey(ECPrivKey.Create(keyContribution), network);
+		return new P2PKHSpendingKey(ECPrivKey.Create(keyContribution), network);
 	}
 }

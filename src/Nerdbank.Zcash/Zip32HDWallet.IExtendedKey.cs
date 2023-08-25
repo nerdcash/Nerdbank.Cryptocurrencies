@@ -8,13 +8,8 @@ public partial class Zip32HDWallet
 	/// <summary>
 	/// A base class for all extended keys.
 	/// </summary>
-	public interface IExtendedKey : Cryptocurrencies.IExtendedKey
+	public interface IExtendedKey : Cryptocurrencies.IExtendedKey, IZcashKey
 	{
-		/// <summary>
-		/// Gets the network this key should be used with.
-		/// </summary>
-		ZcashNetwork Network { get; }
-
 		/// <summary>
 		/// Gets the key's fingerprint.
 		/// </summary>
@@ -29,5 +24,8 @@ public partial class Zip32HDWallet
 		/// Gets the chain code for this key.
 		/// </summary>
 		ChainCode ChainCode { get; }
+
+		/// <inheritdoc cref="Cryptocurrencies.IExtendedKey"/>
+		new IExtendedKey Derive(uint childIndex);
 	}
 }

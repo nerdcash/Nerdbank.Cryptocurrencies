@@ -39,7 +39,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 	/// Initializes a new instance of the <see cref="TransparentP2PKHReceiver"/> struct.
 	/// </summary>
 	/// <param name="publicKey">The EC public key to create a receiver for.</param>
-	public TransparentP2PKHReceiver(P2PKHPublicKey publicKey)
+	public TransparentP2PKHReceiver(P2PKHFullViewingKey publicKey)
 	{
 		Requires.NotNull(publicKey);
 

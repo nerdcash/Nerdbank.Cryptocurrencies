@@ -56,10 +56,16 @@ public partial class Zip32HDWallet
 			/// </summary>
 			public DiversifiableFullViewingKey FullViewingKey { get; }
 
+			/// <inheritdoc/>
+			IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
 			/// <summary>
 			/// Gets the incoming viewing key.
 			/// </summary>
 			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
+			/// <inheritdoc/>
+			IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 			/// <inheritdoc/>
 			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey);
@@ -168,6 +174,9 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
+
+			/// <inheritdoc/>
+			IExtendedKey IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			/// <inheritdoc/>
 			public bool Equals(ExtendedSpendingKey? other)

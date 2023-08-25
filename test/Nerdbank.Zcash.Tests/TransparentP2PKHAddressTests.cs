@@ -51,7 +51,7 @@ public class TransparentP2PKHAddressTests : TestBase
 			this.logger.WriteLine($"{new Bip32HDWallet.KeyPath(i, addrKeyPath)}");
 			Bip32HDWallet.ExtendedPublicKey addrExtendedPublicKey = accountPublicKey.Derive(addrKeyPath);
 
-			TransparentP2PKHReceiver receiver = new(new P2PKHPublicKey(addrExtendedPublicKey.CryptographicKey, ZcashNetwork.TestNet));
+			TransparentP2PKHReceiver receiver = new(new P2PKHFullViewingKey(addrExtendedPublicKey.CryptographicKey, ZcashNetwork.TestNet));
 			TransparentP2PKHAddress addr = new(receiver);
 
 			this.logger.WriteLine($"{addr}");

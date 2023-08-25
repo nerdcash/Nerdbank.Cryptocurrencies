@@ -64,6 +64,17 @@ public class ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>, ISpendingKey
 	/// <inheritdoc/>
 	public ZcashNetwork Network => this.FullViewingKey.Network;
 
+	/// <inheritdoc/>
+	IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
+	/// <summary>
+	/// Gets the incoming viewing key.
+	/// </summary>
+	public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
+	/// <inheritdoc/>
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+
 	/// <summary>
 	/// Gets the ask component of the spending key.
 	/// </summary>

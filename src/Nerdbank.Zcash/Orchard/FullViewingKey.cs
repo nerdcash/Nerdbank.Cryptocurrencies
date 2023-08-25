@@ -10,7 +10,7 @@ namespace Nerdbank.Zcash.Orchard;
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<FullViewingKey>
+public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatable<FullViewingKey>
 {
 	private readonly Bytes96 rawEncoding;
 
@@ -36,7 +36,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 	public IncomingViewingKey IncomingViewingKey { get; }
 
 	/// <inheritdoc/>
-	bool IViewingKey.IsFullViewingKey => true;
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;

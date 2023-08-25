@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key for incoming transactions.
 /// </summary>
-public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<IncomingViewingKey>
+public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zivks";
 	private const string Bech32TestNetworkHRP = "zivktestsapling";
@@ -33,9 +33,6 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	/// Gets the network this key should be used with.
 	/// </summary>
 	public ZcashNetwork Network { get; }
-
-	/// <inheritdoc/>
-	bool IViewingKey.IsFullViewingKey => false;
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;

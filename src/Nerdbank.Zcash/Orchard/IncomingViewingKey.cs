@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Orchard;
 /// <summary>
 /// The incoming viewing key for the Orchard pool.
 /// </summary>
-public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<IncomingViewingKey>
+public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>
 {
 	private readonly Bytes64 rawEncoding;
 
@@ -25,9 +25,6 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 
 	/// <inheritdoc/>
 	public ZcashNetwork Network { get; }
-
-	/// <inheritdoc/>
-	bool IViewingKey.IsFullViewingKey => false;
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;

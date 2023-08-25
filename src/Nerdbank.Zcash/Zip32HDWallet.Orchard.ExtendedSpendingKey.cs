@@ -40,10 +40,16 @@ public partial class Zip32HDWallet
 			/// </summary>
 			public FullViewingKey FullViewingKey => this.SpendingKey.FullViewingKey;
 
+			/// <inheritdoc/>
+			IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
 			/// <summary>
 			/// Gets the incoming viewing key.
 			/// </summary>
 			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
+			/// <inheritdoc/>
+			IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 			/// <summary>
 			/// Gets the fingerprint for this key.
@@ -166,6 +172,9 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
+
+			/// <inheritdoc/>
+			IExtendedKey IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			private static ExtendedSpendingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
 			{

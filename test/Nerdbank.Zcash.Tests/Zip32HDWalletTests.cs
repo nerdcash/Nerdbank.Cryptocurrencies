@@ -73,7 +73,7 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey childFVK = masterFullViewingKey.Derive(3);
 		BigInteger diversifierIndex = 0;
-		Assert.True(childFVK.Key.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
+		Assert.True(childFVK.FullViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
 		Assert.Equal(3, diversifierIndex); // indexes 0-2 were invalid in this case.
 		SaplingAddress address = new(receiver);
 		this.logger.WriteLine(address);

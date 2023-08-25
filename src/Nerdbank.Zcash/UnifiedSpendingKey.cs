@@ -32,6 +32,22 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 	/// <inheritdoc/>
 	public ZcashNetwork Network { get; }
 
+	/// <summary>
+	/// Gets the unified full viewing key.
+	/// </summary>
+	public UnifiedViewingKey.Full FullViewingKey => throw new NotImplementedException();
+
+	/// <inheritdoc/>
+	IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
+	/// <summary>
+	/// Gets the unified incoming viewing key.
+	/// </summary>
+	public UnifiedViewingKey.Incoming IncomingViewingKeys => this.FullViewingKey.IncomingViewingKey;
+
+	/// <inheritdoc/>
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKeys;
+
 	////internal UnifiedViewingKey UnifiedFullViewingKey { get; }
 
 	////internal UnifiedViewingKey UnifiedIncomingViewingKey { get; }
@@ -53,7 +69,7 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 	/// <list type="bullet">
 	/// <item><see cref="Orchard.SpendingKey"/></item>
 	/// <item><see cref="Zip32HDWallet.Sapling.ExtendedSpendingKey"/></item>
-	/// <item><see cref="Transparent.P2PKHPrivateKey"/></item>
+	/// <item><see cref="Transparent.P2PKHSpendingKey"/></item>
 	/// </list>
 	/// </para>
 	/// </param>
@@ -119,7 +135,7 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 			{
 				UnifiedTypeCodes.Orchard => Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
 				UnifiedTypeCodes.Sapling => Zip32HDWallet.Sapling.ExtendedSpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
-				UnifiedTypeCodes.TransparentP2PKH => Transparent.P2PKHPrivateKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
+				UnifiedTypeCodes.TransparentP2PKH => Transparent.P2PKHSpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
 				_ => null,
 			};
 

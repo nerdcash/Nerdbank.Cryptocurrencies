@@ -74,7 +74,7 @@ public class UnifiedViewingKeyTests : TestBase
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
-		UnifiedViewingKey uvk = UnifiedViewingKey.Create(orchard.FullViewingKey);
+		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Create(orchard.FullViewingKey);
 
 		Assert.Equal(
 			"uview12z0pgg2u7q5ky5wzas8mmgcs4zy8cmdyt62tn3ecpdurnqqnlldx6j73600qe4xkz7jp4w37elr2d48jm5ktuvlm5x8z5ke6cg3x8m6sk5sruh4xnjk93h86fls0uyhhtaj8vu0mw0t7cr74vc8ra2360yhamnskk7a7ahsasndmagsmuhs27lqdyjsz9",
@@ -86,7 +86,7 @@ public class UnifiedViewingKeyTests : TestBase
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
-		UnifiedViewingKey uvk = UnifiedViewingKey.Create(orchard.IncomingViewingKey);
+		UnifiedViewingKey.Incoming uvk = Assert.IsType<UnifiedViewingKey.Incoming>(UnifiedViewingKey.Create(orchard.IncomingViewingKey));
 
 		Assert.Equal(
 			"uivk1zz6k7d37rldq7mk0n4uegyvesggreucz8h48nnrvlzznhvv3kqm4zp7wngksclaptu8hfqc6l57takh5x6jypygqp5m7d36gmxlxakgzqkp3luqrdgnk97k556wezjydjkmqkvkvf6",
@@ -98,7 +98,7 @@ public class UnifiedViewingKeyTests : TestBase
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		SaplingSK sapling = wallet.CreateSaplingAccount(0);
-		UnifiedViewingKey uvk = UnifiedViewingKey.Create(sapling.FullViewingKey);
+		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Create(sapling.FullViewingKey);
 
 		Assert.Equal(
 			"uview17x4ug5kp5shmrywnsadcce6dmyj54ey9hgu4yek25zfw5vnhrghectdsdgsgc099jj99amrxkl5afvyv50jxpwg3u53rq4hzhtln8gurtu5vey602wp0q6xcyxnjtat0a5hn4z82am7fygd42u4h3n27ndtpkx9w6p8nv20k7f5swak7g4wvhte39sasxm9rxea3y7q3c537csxlut9jaf8g3j3ddl02x4j0j7zg0qglvx55",
@@ -110,7 +110,7 @@ public class UnifiedViewingKeyTests : TestBase
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		SaplingSK sapling = wallet.CreateSaplingAccount(0);
-		UnifiedViewingKey uvk = UnifiedViewingKey.Create(sapling.IncomingViewingKey);
+		UnifiedViewingKey.Incoming uvk = Assert.IsType<UnifiedViewingKey.Incoming>(UnifiedViewingKey.Create(sapling.IncomingViewingKey));
 
 		Assert.Equal(
 			"uivk1fahcymtzgy7kza5nvvq9s0wjxsgjhwt5aunczjeg2sszfrutf0gdrfue9en54ecmlzfxr7hsfwyaqzygzf8f35ng6za3jzxfceh2t093asl04t299wca03ezeuchn4h2cf5s66zdzr",
@@ -123,7 +123,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
 		SaplingSK sapling = wallet.CreateSaplingAccount(0);
-		UnifiedViewingKey uvk = UnifiedViewingKey.Create(orchard.FullViewingKey, sapling.FullViewingKey);
+		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Create(orchard.FullViewingKey, sapling.FullViewingKey);
 
 		// This expected value came from YWallet when generated with the test seed phrase.
 		Assert.Equal(
@@ -131,18 +131,42 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.ViewingKey);
 	}
 
-	[Fact]
-	public void Create_Empty()
+	[Fact(Skip = "Not yet implemented.")]
+	public void Create_Transparent()
 	{
-		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Create((IReadOnlyCollection<IViewingKey>)Array.Empty<IViewingKey>()));
-		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Create(Array.Empty<IViewingKey>()));
+	}
+
+	[Fact(Skip = "Not yet implemented.")]
+	public void Create_Orchard_Sapling_Transparent()
+	{
 	}
 
 	[Fact]
-	public void Create_Null()
+	public void Create_IVK_Empty()
 	{
-		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Create((IReadOnlyCollection<IViewingKey>)null!));
-		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Create((IViewingKey[])null!));
+		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Create((IReadOnlyCollection<IIncomingViewingKey>)Array.Empty<IIncomingViewingKey>()));
+		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Create(Array.Empty<IIncomingViewingKey>()));
+	}
+
+	[Fact]
+	public void Create_FVK_Empty()
+	{
+		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Create((IReadOnlyCollection<IFullViewingKey>)Array.Empty<IFullViewingKey>()));
+		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Create(Array.Empty<IFullViewingKey>()));
+	}
+
+	[Fact]
+	public void Create_IVK_Null()
+	{
+		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Create((IReadOnlyCollection<IIncomingViewingKey>)null!));
+		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Create((IIncomingViewingKey[])null!));
+	}
+
+	[Fact]
+	public void Create_FVK_Null()
+	{
+		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Create((IReadOnlyCollection<IFullViewingKey>)null!));
+		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Create((IFullViewingKey[])null!));
 	}
 
 	[Theory]
@@ -225,9 +249,9 @@ public class UnifiedViewingKeyTests : TestBase
 	{
 		UnifiedViewingKey reparsed = UnifiedViewingKey.Parse(uvk);
 		Assert.Equal(uvk.Network, reparsed.Network);
-		Assert.Equal(uvk.IsFullViewingKey, reparsed.IsFullViewingKey);
+		Assert.Equal(uvk.GetType(), reparsed.GetType());
 		Assert.Equal(uvk.ViewingKey, reparsed.ViewingKey);
 
-		Assert.Equal<IViewingKey>((IViewingKey)uvk, reparsed);
+		Assert.Equal(uvk, reparsed);
 	}
 }

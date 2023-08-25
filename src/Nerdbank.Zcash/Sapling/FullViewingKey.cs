@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
-public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
+public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zviews";
 	private const string Bech32TestNetworkHRP = "zviewtestsapling";
@@ -32,9 +32,6 @@ public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
 	/// Gets the network this key should be used with.
 	/// </summary>
 	public ZcashNetwork Network => this.IncomingViewingKey.Network;
-
-	/// <inheritdoc/>
-	bool IViewingKey.IsFullViewingKey => true;
 
 	/// <summary>
 	/// Gets the Bech32 encoding of the full viewing key.
@@ -61,6 +58,9 @@ public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
 	/// Gets or sets the incoming viewing key.
 	/// </summary>
 	public IncomingViewingKey IncomingViewingKey { get; protected set; }
+
+	/// <inheritdoc/>
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 	/// <summary>
 	/// Gets the Ak subgroup point.

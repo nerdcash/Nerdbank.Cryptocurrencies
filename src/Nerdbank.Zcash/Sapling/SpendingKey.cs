@@ -30,6 +30,22 @@ public class SpendingKey : ISpendingKey
 	public ZcashNetwork Network { get; }
 
 	/// <summary>
+	/// Gets the diversifiable full viewing key.
+	/// </summary>
+	public DiversifiableFullViewingKey FullViewingKey => throw new NotImplementedException();
+
+	/// <inheritdoc/>
+	IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
+	/// <summary>
+	/// Gets the incoming viewing key.
+	/// </summary>
+	public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
+	/// <inheritdoc/>
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+
+	/// <summary>
 	/// Gets the buffer. Always 32 bytes in length.
 	/// </summary>
 	internal ReadOnlySpan<byte> Secret => this.secret.Value;

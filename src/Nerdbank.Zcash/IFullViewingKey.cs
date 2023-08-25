@@ -4,18 +4,18 @@
 namespace Nerdbank.Zcash;
 
 /// <summary>
-/// An interface implemented by Zcash spending keys.
+/// An interface implemented by full viewing keys (i.e. viewing keys that can read incoming and outgoing transactions).
 /// </summary>
-public interface ISpendingKey : IFullViewingKey
+public interface IFullViewingKey : IIncomingViewingKey
 {
 	/// <summary>
-	/// Gets a key that can only view transactions (as opposed to being able to spend them).
+	/// Gets a key that can only read incoming transactions (as opposed to also being able to read outgoing transactions.)
 	/// </summary>
 	/// <remarks>
 	/// Implementations should <em>not</em> return <c>this</c>, but rather a key that actually has fewer capabilities than the original object.
 	/// </remarks>
-	IFullViewingKey FullViewingKey { get; }
+	IIncomingViewingKey IncomingViewingKey { get; }
 
 	/// <inheritdoc/>
-	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+	ZcashNetwork IZcashKey.Network => this.IncomingViewingKey.Network;
 }
