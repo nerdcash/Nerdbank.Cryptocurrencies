@@ -228,6 +228,6 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(uvk.IsFullViewingKey, reparsed.IsFullViewingKey);
 		Assert.Equal(uvk.ViewingKey, reparsed.ViewingKey);
 
-		Assert.Equal<IViewingKey>(uvk, reparsed);
+		Assert.Equal<IViewingKey>((IViewingKey)uvk, reparsed);
 	}
 }

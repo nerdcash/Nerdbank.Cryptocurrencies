@@ -2,14 +2,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections;
-using System.Security.Cryptography;
 
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// Represents the encoding of one or more viewing keys for a single logical account.
 /// </summary>
-public class UnifiedViewingKey : IEnumerable<IViewingKey>
+public class UnifiedViewingKey : IEnumerable<IViewingKey>, IViewingKey
 {
 	private const string HumanReadablePartMainNetFVK = "uview";
 	private const string HumanReadablePartTestNetFVK = "uviewtest";
@@ -134,7 +133,7 @@ public class UnifiedViewingKey : IEnumerable<IViewingKey>
 		return this.viewingKeys.OfType<T>().FirstOrDefault();
 	}
 
-	/// <inheritdoc/>
+	/// <inheritdoc cref="ViewingKey"/>
 	public override string ToString() => this.ViewingKey;
 
 	/// <inheritdoc/>

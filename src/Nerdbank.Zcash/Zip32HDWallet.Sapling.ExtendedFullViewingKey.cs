@@ -22,19 +22,6 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
 			/// </summary>
-			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
-			internal ExtendedFullViewingKey(ExtendedSpendingKey spendingKey)
-			{
-				this.Key = new(spendingKey.ExpandedSpendingKey, spendingKey.Dk, spendingKey.Network);
-				this.ParentFullViewingKeyTag = spendingKey.ParentFullViewingKeyTag;
-				this.ChainCode = spendingKey.ChainCode;
-				this.ChildIndex = spendingKey.ChildIndex;
-				this.Depth = spendingKey.Depth;
-			}
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
-			/// </summary>
 			/// <param name="key">The full viewing key.</param>
 			/// <param name="chainCode">The chain code.</param>
 			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>

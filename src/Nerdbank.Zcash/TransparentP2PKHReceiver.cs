@@ -4,6 +4,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using Nerdbank.Zcash.Transparent;
 using Org.BouncyCastle.Crypto.Digests;
 using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
 
@@ -38,7 +39,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 	/// Initializes a new instance of the <see cref="TransparentP2PKHReceiver"/> struct.
 	/// </summary>
 	/// <param name="publicKey">The EC public key to create a receiver for.</param>
-	public TransparentP2PKHReceiver(PublicKey publicKey)
+	public TransparentP2PKHReceiver(P2PKHPublicKey publicKey)
 	{
 		Requires.NotNull(publicKey);
 
@@ -46,7 +47,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 		Span<byte> publicKeyHash1 = stackalloc byte[256 / 8];
 		Span<byte> publicKeyHash2 = stackalloc byte[Length];
 
-		publicKey.Key.WriteToSpan(compressed: true, serializedPublicKey, out int length);
+		publicKey.CryptographicKey.WriteToSpan(compressed: true, serializedPublicKey, out int length);
 		serializedPublicKey = serializedPublicKey[..length];
 
 		SHA256.HashData(serializedPublicKey, publicKeyHash1);

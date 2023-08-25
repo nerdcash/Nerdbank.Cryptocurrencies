@@ -13,6 +13,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
 
+    <!-- It's OK to reference assemblies without a strong name, because .NET doesn't care. -->
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
+
     <!-- https://github.com/dotnet/msbuild/blob/main/documentation/ProjectReference-Protocol.md#setplatform-negotiation -->
     <EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
 

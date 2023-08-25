@@ -9,6 +9,12 @@ Check out [our docs](doc/index.md) and our features below.
 
 See this library [running live via Blazor in your web browser](https://zcash.nerdbank.net/).
 
+Please be advised of the following:
+
+- 🚫🕵🏻 This code currently is not audited by an external security auditor, use it at your own risk.
+- 🚫🕵🏻 The code has not been subjected to thorough review by engineers at the Electric Coin Company or anywhere else.
+- 🚧 We are actively changing the codebase and adding features where/when needed.
+
 ## Nerdbank.Cryptocurrencies
 
 [![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Cryptocurrencies.svg)](https://nuget.org/packages/Nerdbank.Cryptocurrencies)

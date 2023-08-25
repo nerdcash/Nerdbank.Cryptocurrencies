@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- It's OK to reference assemblies without a strong name, because .NET doesn't care. -->
-    <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,5 +11,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
     <PackageReference Include="NBitcoin.Secp256k1" />
   </ItemGroup>
+
+  <Import Project="..\SharedSource\SharedSource.projitems" Label="Shared" />
 
 </Project>

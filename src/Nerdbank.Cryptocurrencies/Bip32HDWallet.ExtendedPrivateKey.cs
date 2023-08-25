@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Security.Cryptography;
+using NBitcoin.Secp256k1;
+using Nerdbank.Cryptocurrencies.Bitcoin;
 
 namespace Nerdbank.Cryptocurrencies;
 
@@ -40,9 +42,9 @@ public static partial class Bip32HDWallet
 		}
 
 		/// <summary>
-		/// Gets the underlying private key that this object extends.
+		/// Gets the EC private key.
 		/// </summary>
-		public PrivateKey Key { get; }
+		public ECPrivKey CryptographicKey => this.Key.CryptographicKey;
 
 		/// <summary>
 		/// Gets the public extended key counterpart to this private key.
@@ -61,6 +63,11 @@ public static partial class Bip32HDWallet
 		/// Gets the version header for private keys on testnet.
 		/// </summary>
 		internal static ReadOnlySpan<byte> TestNet => new byte[] { 0x04, 0x35, 0x83, 0x94 };
+
+		/// <summary>
+		/// Gets the underlying private key that this object extends.
+		/// </summary>
+		internal PrivateKey Key { get; }
 
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
@@ -87,7 +94,7 @@ public static partial class Bip32HDWallet
 			ReadOnlySpan<byte> masterKey = hmac[..32];
 			ReadOnlySpan<byte> chainCode = hmac[32..];
 
-			return new ExtendedPrivateKey(new PrivateKey(NBitcoin.Secp256k1.ECPrivKey.Create(masterKey)), chainCode, testNet);
+			return new ExtendedPrivateKey(new PrivateKey(NBitcoin.Secp256k1.ECPrivKey.Create(masterKey), testNet), chainCode, testNet);
 		}
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -98,11 +105,11 @@ public static partial class Bip32HDWallet
 			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
 			if ((childIndex & HardenedBit) != 0)
 			{
-				this.Key.Key.WriteToSpan(hashInput[1..]);
+				this.Key.CryptographicKey.WriteToSpan(hashInput[1..]);
 			}
 			else
 			{
-				this.PublicKey.Key.Key.WriteToSpan(true, hashInput, out _);
+				this.PublicKey.Key.CryptographicKey.WriteToSpan(true, hashInput, out _);
 			}
 
 			Span<byte> hashOutput = stackalloc byte[512 / 8];
@@ -114,7 +121,7 @@ public static partial class Bip32HDWallet
 			// In case parse256(IL) ≥ n or ki = 0, the resulting key is invalid,
 			// and one should proceed with the next value for i.
 			// (Note: this has probability lower than 1 in 2^127.)
-			if (!this.Key.Key.TryTweakAdd(childKeyAdd, out NBitcoin.Secp256k1.ECPrivKey? pvk))
+			if (!this.Key.CryptographicKey.TryTweakAdd(childKeyAdd, out NBitcoin.Secp256k1.ECPrivKey? pvk))
 			{
 				throw new InvalidKeyException(Strings.VeryUnlikelyInvalidChildKey);
 			}
@@ -122,7 +129,7 @@ public static partial class Bip32HDWallet
 			byte childDepth = checked((byte)(this.Depth + 1));
 
 			Assumes.NotNull(pvk); // bad null ref annotation in the Secp256k1 library.
-			return new ExtendedPrivateKey(new(pvk), childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet);
+			return new ExtendedPrivateKey(new(pvk, this.IsTestNet), childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet);
 		}
 
 		/// <inheritdoc/>
@@ -132,7 +139,7 @@ public static partial class Bip32HDWallet
 		protected override int WriteKeyMaterial(Span<byte> destination)
 		{
 			destination[0] = 0;
-			this.Key.Key.WriteToSpan(destination[1..]);
+			this.Key.CryptographicKey.WriteToSpan(destination[1..]);
 			return 33;
 		}
 	}

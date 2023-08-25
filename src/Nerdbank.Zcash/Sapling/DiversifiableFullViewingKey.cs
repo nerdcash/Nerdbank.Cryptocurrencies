@@ -13,20 +13,7 @@ namespace Nerdbank.Zcash.Sapling;
 [DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
 public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingElement, IEquatable<DiversifiableFullViewingKey>
 {
-	/// <summary>
-	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class.
-	/// </summary>
-	/// <param name="spendingKey">The expanded spending key.</param>
-	/// <param name="dk">The diversifier key, which allows for generating many addresses that send funds to the same spending authority.</param>
-	/// <param name="network">The network this key should be used with.</param>
-	internal DiversifiableFullViewingKey(in ExpandedSpendingKey spendingKey, DiversifierKey dk, ZcashNetwork network)
-		: base(spendingKey, network)
-	{
-		this.Dk = dk;
-
-		// Replace the base class's value with our own that includes the Dk value.
-		this.IncomingViewingKey = new IncomingViewingKey(this.IncomingViewingKey.Ivk.Value, dk.Value, network);
-	}
+	private readonly DiversifierKey dk;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class.
@@ -36,7 +23,10 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 	internal DiversifiableFullViewingKey(FullViewingKey fullViewingKey, DiversifierKey dk)
 		: base(fullViewingKey.Ak, fullViewingKey.Nk, fullViewingKey.IncomingViewingKey, fullViewingKey.Ovk)
 	{
-		this.Dk = dk;
+		this.dk = dk;
+
+		// Replace the base class's value with our own that includes the Dk value.
+		this.IncomingViewingKey = new IncomingViewingKey(this.IncomingViewingKey.Ivk.Value, this.Dk.Value, fullViewingKey.Network);
 	}
 
 	/// <inheritdoc/>
@@ -57,7 +47,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 	/// Gets the diversifier key.
 	/// </summary>
 	/// <value>A 32-byte buffer.</value>
-	internal DiversifierKey Dk { get; }
+	internal ref readonly DiversifierKey Dk => ref this.dk;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)

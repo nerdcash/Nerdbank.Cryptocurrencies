@@ -63,29 +63,6 @@ public partial class Zip32HDWallet
 		this.masterSaplingKey = Sapling.Create(this.Seed.Span, this.Network);
 	}
 
-	private enum PrfExpandCodes : byte
-	{
-		SaplingAsk = 0x0,
-		SaplingNsk = 0x1,
-		SaplingOvk = 0x2,
-		Esk = 0x4,
-		Rcm = 0x5,
-		OrchardAsk = 0x6,
-		OrchardNk = 0x7,
-		OrchardRivk = 0x8,
-		Psi = 0x9,
-		SaplingDk = 0x10,
-		SaplingExtSK = 0x11,
-		SaplingExtFVK = 0x12,
-		SaplingAskDerive = 0x13,
-		SaplingNskDerive = 0x14,
-		SaplingOvkDerive = 0x15,
-		SaplingDkDerive = 0x16,
-		OrchardZip32Child = 0x81,
-		OrchardDkOvk = 0x82,
-		OrchardRivkInternal = 0x83,
-	}
-
 	/// <summary>
 	/// Gets the network this wallet is meant to be used with.
 	/// </summary>
@@ -185,27 +162,4 @@ public partial class Zip32HDWallet
 	/// <param name="input">A little-endian ordered encoding of an integer.</param>
 	/// <remarks>This is the inverse operation to <see cref="I2LEOSP(BigInteger, Span{byte})"/>.</remarks>
 	private static BigInteger LEOS2IP(ReadOnlySpan<byte> input) => new(input, isUnsigned: true);
-
-	/// <summary>
-	/// Applies a Blake2b_512 hash to the concatenation of a pair of buffers.
-	/// </summary>
-	/// <param name="sk">The first input buffer.</param>
-	/// <param name="domainSpecifier">The byte that is unique for the caller's purpose.</param>
-	/// <param name="t">The second input buffer.</param>
-	/// <param name="output">The buffer to receive the hash. Must be at least 64 bytes in length.</param>
-	/// <returns>The number of bytes written to <paramref name="output"/>. Always 64.</returns>
-	private static int PRFexpand(ReadOnlySpan<byte> sk, PrfExpandCodes domainSpecifier, ReadOnlySpan<byte> t, Span<byte> output)
-	{
-		Requires.Argument(output.Length >= 64, nameof(output), Strings.FormatUnexpectedLength(64, output.Length));
-
-		// Rather than copy the input data into a single buffer, we could use an instance of Blake2B and call Update on it once for each input buffer.
-		Span<byte> buffer = stackalloc byte[sk.Length + 1 + t.Length];
-		sk.CopyTo(buffer);
-		buffer[sk.Length] = (byte)domainSpecifier;
-		t.CopyTo(buffer[(sk.Length + 1)..]);
-		return Blake2B.ComputeHash(buffer, output, new Blake2B.Config { Personalization = "Zcash_ExpandSeed"u8, OutputSizeInBytes = 512 / 8 });
-	}
-
-	/// <inheritdoc cref="PRFexpand(ReadOnlySpan{byte}, PrfExpandCodes, ReadOnlySpan{byte}, Span{byte})"/>
-	private static int PRFexpand(ReadOnlySpan<byte> sk, PrfExpandCodes domainSpecifier, Span<byte> output) => PRFexpand(sk, domainSpecifier, default, output);
 }

@@ -4,6 +4,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using Nerdbank.Cryptocurrencies.Bitcoin;
 using Org.BouncyCastle.Crypto.Digests;
 
 namespace Nerdbank.Cryptocurrencies;
@@ -33,7 +34,7 @@ public static partial class Bip32HDWallet
 			this.key = key;
 
 			Span<byte> publicKey = stackalloc byte[33];
-			key.Key.WriteToSpan(true, publicKey, out int publicKeyLength);
+			key.CryptographicKey.WriteToSpan(true, publicKey, out int publicKeyLength);
 
 			Span<byte> sha256Hash = stackalloc byte[256 / 8];
 			int firstHashLength = SHA256.HashData(publicKey[..publicKeyLength], sha256Hash);
@@ -50,9 +51,9 @@ public static partial class Bip32HDWallet
 		public override ReadOnlySpan<byte> Identifier => this.fixedArrays.Identifier;
 
 		/// <summary>
-		/// Gets the key.
+		/// Gets the EC public key.
 		/// </summary>
-		public PublicKey Key => this.key;
+		public NBitcoin.Secp256k1.ECPubKey CryptographicKey => this.key.CryptographicKey;
 
 		/// <summary>
 		/// Gets the version header for public keys on mainnet.
@@ -63,6 +64,11 @@ public static partial class Bip32HDWallet
 		/// Gets the version header for public keys on testnet.
 		/// </summary>
 		internal static ReadOnlySpan<byte> TestNet => new byte[] { 0x04, 0x35, 0x87, 0xCF };
+
+		/// <summary>
+		/// Gets the key.
+		/// </summary>
+		internal PublicKey Key => this.key;
 
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
@@ -76,7 +82,7 @@ public static partial class Bip32HDWallet
 			}
 
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
-			this.Key.Key.WriteToSpan(true, hashInput, out _);
+			this.Key.CryptographicKey.WriteToSpan(true, hashInput, out _);
 			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
 
 			Span<byte> hashOutput = stackalloc byte[512 / 8];
@@ -87,7 +93,7 @@ public static partial class Bip32HDWallet
 			// From the spec:
 			// In case parse256(IL) ≥ n or Ki is the point at infinity, the resulting key is invalid,
 			// and one should proceed with the next value for i.
-			if (!this.key.Key.TryAddTweak(childKeyAdd, out NBitcoin.Secp256k1.ECPubKey? pubKey))
+			if (!this.key.CryptographicKey.TryAddTweak(childKeyAdd, out NBitcoin.Secp256k1.ECPubKey? pubKey))
 			{
 				throw new InvalidKeyException(Strings.VeryUnlikelyInvalidChildKey);
 			}
@@ -100,7 +106,7 @@ public static partial class Bip32HDWallet
 		/// <inheritdoc/>
 		protected override int WriteKeyMaterial(Span<byte> destination)
 		{
-			this.key.Key.WriteToSpan(compressed: true, destination, out int written);
+			this.key.CryptographicKey.WriteToSpan(compressed: true, destination, out int written);
 			return written;
 		}
 

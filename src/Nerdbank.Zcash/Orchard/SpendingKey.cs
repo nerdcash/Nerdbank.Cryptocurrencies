@@ -8,22 +8,68 @@ namespace Nerdbank.Zcash.Orchard;
 /// <summary>
 /// A spending key.
 /// </summary>
-internal readonly struct SpendingKey
+public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 {
+	private const string Bech32mMainNetworkHRP = "secret-orchard-sk-main";
+	private const string Bech32mTestNetworkHRP = "secret-orchard-sk-test";
+
 	private readonly Bytes32 value;
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="SpendingKey"/> struct.
+	/// Initializes a new instance of the <see cref="SpendingKey"/> class.
 	/// </summary>
 	/// <param name="value">The 32-byte secret.</param>
-	internal SpendingKey(ReadOnlySpan<byte> value)
+	/// <param name="network">The network this key should be used with.</param>
+	internal SpendingKey(ReadOnlySpan<byte> value, ZcashNetwork network)
 	{
 		this.value = new(value);
+		this.Network = network;
+		this.FullViewingKey = this.CreateFullViewingKey();
 	}
+
+	/// <summary>
+	/// Gets the full viewing key.
+	/// </summary>
+	public FullViewingKey FullViewingKey { get; }
+
+	/// <summary>
+	/// Gets the Zcash network this key operates on.
+	/// </summary>
+	public ZcashNetwork Network { get; }
+
+	/// <inheritdoc/>
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
+
+	/// <inheritdoc/>
+	int IUnifiedEncodingElement.UnifiedDataLength => this.Value.Length;
 
 	/// <summary>
 	/// Gets the buffer. Always 32 bytes in length.
 	/// </summary>
-	[UnscopedRef]
-	internal readonly ReadOnlySpan<byte> Value => this.value.Value;
+	internal ReadOnlySpan<byte> Value => this.value.Value;
+
+	/// <inheritdoc/>
+	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination) => this.Value.CopyToRetLength(destination);
+
+	/// <summary>
+	/// Reads the key from its representation in a unified key.
+	/// </summary>
+	/// <param name="keyContribution">The data that would have been written by <see cref="IUnifiedEncodingElement.WriteUnifiedData(Span{byte})"/>.</param>
+	/// <param name="network">The network the key should be used with.</param>
+	/// <returns>The deserialized key.</returns>
+	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network) => new SpendingKey(keyContribution, network);
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
+	/// </summary>
+	private FullViewingKey CreateFullViewingKey()
+	{
+		Span<byte> fvk = stackalloc byte[96];
+		if (NativeMethods.TryDeriveOrchardFullViewingKeyFromSpendingKey(this.Value, fvk) != 0)
+		{
+			throw new ArgumentException(Strings.InvalidKey);
+		}
+
+		return new(fvk, this.Network);
+	}
 }

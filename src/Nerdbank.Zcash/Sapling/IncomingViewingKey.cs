@@ -13,6 +13,9 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	private const string Bech32MainNetworkHRP = "zivks";
 	private const string Bech32TestNetworkHRP = "zivktestsapling";
 
+	private readonly Bytes32 ivk;
+	private readonly DiversifierKey? dk;
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class.
 	/// </summary>
@@ -21,8 +24,8 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	/// <param name="network">The network this key should be used with.</param>
 	internal IncomingViewingKey(ReadOnlySpan<byte> ivk, ReadOnlySpan<byte> dk, ZcashNetwork network)
 	{
-		this.Ivk = new(ivk);
-		this.Dk = dk.Length > 0 ? new(dk) : null;
+		this.ivk = new(ivk);
+		this.dk = dk.Length > 0 ? new(dk) : null;
 		this.Network = network;
 	}
 
@@ -64,12 +67,12 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	/// <summary>
 	/// Gets the ivk value.
 	/// </summary>
-	internal Bytes32 Ivk { get; }
+	internal ref readonly Bytes32 Ivk => ref this.ivk;
 
 	/// <summary>
 	/// Gets the diversification key.
 	/// </summary>
-	internal DiversifierKey? Dk { get; }
+	internal ref readonly DiversifierKey? Dk => ref this.dk;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class

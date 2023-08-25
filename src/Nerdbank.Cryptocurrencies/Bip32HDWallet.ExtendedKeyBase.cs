@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Nerdbank.Cryptocurrencies.Bitcoin;
 using Secp = NBitcoin.Secp256k1;
 
 namespace Nerdbank.Cryptocurrencies;
@@ -187,7 +188,7 @@ public static partial class Bip32HDWallet
 					return false;
 				}
 
-				result = new ExtendedPrivateKey(new PrivateKey(ecKey), chainCode, parentFingerprint, depth, childIndex, isTestNet);
+				result = new ExtendedPrivateKey(new PrivateKey(ecKey, isTestNet), chainCode, parentFingerprint, depth, childIndex, isTestNet);
 			}
 			else
 			{

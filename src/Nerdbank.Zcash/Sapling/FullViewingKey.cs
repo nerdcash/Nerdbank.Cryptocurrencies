@@ -16,27 +16,6 @@ public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
 	/// </summary>
-	/// <param name="spendingKey">The spending key from which to derive this full viewing key.</param>
-	/// <param name="network">The network this key should be used with.</param>
-	internal FullViewingKey(in ExpandedSpendingKey spendingKey, ZcashNetwork network)
-	{
-		Span<byte> fvk_bytes = stackalloc byte[96];
-		if (NativeMethods.TryGetSaplingFullViewingKeyFromExpandedSpendingKey(spendingKey.ToBytes().Value, fvk_bytes) != 0)
-		{
-			throw new ArgumentException();
-		}
-
-		ReadOnlySpan<byte> ak = fvk_bytes[..32];
-		ReadOnlySpan<byte> nk = fvk_bytes[32..64];
-		this.Ak = new(ak);
-		this.Nk = new(nk);
-		this.IncomingViewingKey = IncomingViewingKey.FromFullViewingKey(ak, nk, default, network);
-		this.Ovk = new(fvk_bytes[64..96]);
-	}
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
-	/// </summary>
 	/// <param name="ak">The Ak subgroup point.</param>
 	/// <param name="nk">The nullifier deriving key.</param>
 	/// <param name="viewingKey">The incoming viewing key.</param>
@@ -130,6 +109,37 @@ public class FullViewingKey : IViewingKey, IEquatable<FullViewingKey>
 			&& this.Nk.Value.SequenceEqual(other.Nk.Value)
 			&& this.IncomingViewingKey.Equals(other.IncomingViewingKey)
 			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value);
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FullViewingKey"/> class
+	/// from expanded spending key data.
+	/// </summary>
+	/// <param name="ask">The ask value.</param>
+	/// <param name="nsk">The nsk value.</param>
+	/// <param name="ovk">The outgoing viewing key.</param>
+	/// <param name="network">The network this key should be used with.</param>
+	/// <returns>The initialized <see cref="FullViewingKey"/>.</returns>
+	internal static FullViewingKey Create(ReadOnlySpan<byte> ask, ReadOnlySpan<byte> nsk, ReadOnlySpan<byte> ovk, ZcashNetwork network)
+	{
+		Span<byte> sk_bytes = stackalloc byte[96];
+		ask.CopyToWithLengthCheck(sk_bytes[..32]);
+		nsk.CopyToWithLengthCheck(sk_bytes[32..64]);
+		ovk.CopyToWithLengthCheck(sk_bytes[64..96]);
+
+		Span<byte> fvk_bytes = stackalloc byte[96];
+		if (NativeMethods.TryGetSaplingFullViewingKeyFromExpandedSpendingKey(sk_bytes, fvk_bytes) != 0)
+		{
+			throw new ArgumentException();
+		}
+
+		ReadOnlySpan<byte> ak = fvk_bytes[..32];
+		ReadOnlySpan<byte> nk = fvk_bytes[32..64];
+		return new FullViewingKey(
+			new(ak),
+			new(nk),
+			IncomingViewingKey.FromFullViewingKey(ak, nk, default, network),
+			new(ovk));
 	}
 
 	/// <summary>

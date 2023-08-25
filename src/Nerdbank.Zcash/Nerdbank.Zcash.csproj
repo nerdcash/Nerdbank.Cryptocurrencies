@@ -2,8 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- Blake2 isn't strong-named. But as we target .NET, it doesn't matter. -->
-    <NoWarn>$(NoWarn);CS8002</NoWarn>
+    <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" PrivateAssets="compile" />
@@ -13,5 +12,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" PrivateAssets="compile" />
   </ItemGroup>
+  <Import Project="..\SharedSource\SharedSource.projitems" Label="Shared" />
   <Import Project="NativeBindings.targets" />
 </Project>

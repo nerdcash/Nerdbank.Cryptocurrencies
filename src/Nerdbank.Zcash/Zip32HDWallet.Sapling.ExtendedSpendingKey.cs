@@ -14,43 +14,47 @@ public partial class Zip32HDWallet
 		/// The extended spending key.
 		/// </summary>
 		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-		public class ExtendedSpendingKey : IExtendedKey, IEquatable<ExtendedSpendingKey>
+		public class ExtendedSpendingKey : IExtendedKey, ISpendingKey, IUnifiedEncodingElement, IEquatable<ExtendedSpendingKey>
 		{
 			private const string Bech32MainNetworkHRP = "secret-extended-key-main";
 			private const string Bech32TestNetworkHRP = "secret-extended-key-test";
-
-			private ExtendedFullViewingKey? fullViewingKey;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class.
 			/// </summary>
 			/// <param name="key">The spending key's ask, nsk and ovk components.</param>
-			/// <param name="dk">The diversifier key.</param>
 			/// <param name="chainCode">The chain code.</param>
 			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
 			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
 			/// <param name="childIndex">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
-			/// <param name="network">The network this key should be used with.</param>
-			internal ExtendedSpendingKey(in ExpandedSpendingKey key, in DiversifierKey dk, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, ZcashNetwork network = ZcashNetwork.MainNet)
+			internal ExtendedSpendingKey(in ExpandedSpendingKey key, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex)
 			{
 				this.ExpandedSpendingKey = key;
-				this.Dk = dk;
 				this.ChainCode = chainCode;
 				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.Depth = depth;
 				this.ChildIndex = childIndex;
-				this.Network = network;
+
+				this.FullViewingKey = new(
+					Zcash.Sapling.FullViewingKey.Create(key.Ask.Value, key.Nsk.Value, key.Ovk.Value, key.Network),
+					key.Dk);
+				this.ExtendedFullViewingKey = new ExtendedFullViewingKey(
+					this.FullViewingKey,
+					this.ChainCode,
+					this.ParentFullViewingKeyTag,
+					this.Depth,
+					this.ChildIndex);
 			}
 
 			/// <summary>
 			/// Gets the extended full viewing key.
 			/// </summary>
-			public ExtendedFullViewingKey ExtendedFullViewingKey => this.fullViewingKey ??= new(this);
+			public ExtendedFullViewingKey ExtendedFullViewingKey { get; }
 
 			/// <summary>
 			/// Gets the full viewing key.
 			/// </summary>
-			public DiversifiableFullViewingKey FullViewingKey => this.ExtendedFullViewingKey.Key;
+			public DiversifiableFullViewingKey FullViewingKey { get; }
 
 			/// <summary>
 			/// Gets the incoming viewing key.
@@ -73,10 +77,7 @@ public partial class Zip32HDWallet
 			public byte Depth { get; }
 
 			/// <inheritdoc/>
-			public ZcashNetwork Network { get; }
-
-			/// <inheritdoc/>
-			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+			public ZcashNetwork Network => this.ExpandedSpendingKey.Network;
 
 			/// <summary>
 			/// Gets the default address for this spending key.
@@ -111,6 +112,12 @@ public partial class Zip32HDWallet
 				}
 			}
 
+			/// <inheritdoc/>
+			byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;
+
+			/// <inheritdoc/>
+			int IUnifiedEncodingElement.UnifiedDataLength => 169;
+
 			/// <summary>
 			/// Gets the expanded spending key (one that has ask, nsk, and ovk derived from the raw 32-byte spending key).
 			/// </summary>
@@ -119,7 +126,7 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the diversifier key.
 			/// </summary>
-			internal DiversifierKey Dk { get; }
+			internal DiversifierKey Dk => this.ExpandedSpendingKey.Dk;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class
@@ -175,15 +182,21 @@ public partial class Zip32HDWallet
 					&& this.Network == other.Network;
 			}
 
+			/// <inheritdoc/>
+			int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination) => this.Encode(destination);
+
+			/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
+			internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network) => Decode(keyContribution, network);
+
 			private static ExtendedSpendingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
 			{
 				byte depth = encoded[0];
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
 				uint childIndex = BitUtilities.ReadUInt32LE(encoded[5..9]);
 				ChainCode chainCode = new(encoded[9..41]);
-				ExpandedSpendingKey expsk = ExpandedSpendingKey.FromBytes(encoded[41..137]);
 				DiversifierKey dk = new(encoded[137..169]);
-				return new(expsk, dk, chainCode, parentFullViewingKeyTag, depth, childIndex, network);
+				ExpandedSpendingKey expsk = ExpandedSpendingKey.FromBytes(encoded[41..137], dk, network);
+				return new(expsk, chainCode, parentFullViewingKeyTag, depth, childIndex);
 			}
 
 			/// <summary>
