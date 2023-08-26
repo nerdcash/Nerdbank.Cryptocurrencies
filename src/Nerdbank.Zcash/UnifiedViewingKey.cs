@@ -35,6 +35,9 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// </summary>
 	public string ViewingKey { get; }
 
+	/// <inheritdoc/>
+	public string DefaultAddress => throw new NotImplementedException(); // TODO: construct a unified address with the viewing keys
+
 	/// <summary>
 	/// Gets the network that the keys in this unified viewing key should be used on.
 	/// </summary>

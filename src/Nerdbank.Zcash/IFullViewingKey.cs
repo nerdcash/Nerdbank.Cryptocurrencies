@@ -18,4 +18,7 @@ public interface IFullViewingKey : IIncomingViewingKey
 
 	/// <inheritdoc/>
 	ZcashNetwork IZcashKey.Network => this.IncomingViewingKey.Network;
+
+	/// <inheritdoc/>
+	string IIncomingViewingKey.DefaultAddress => this.IncomingViewingKey.DefaultAddress;
 }

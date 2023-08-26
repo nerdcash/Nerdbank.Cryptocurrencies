@@ -14,7 +14,7 @@ public class DiversifiableFullViewingKeyTests : TestBase
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account1 = wallet.CreateSaplingAccount(0);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account2 = wallet.CreateSaplingAccount(1);
 		BigInteger expectedIndex = 3;
-		Assert.True(account1.FullViewingKey.TryCreateReceiver(ref expectedIndex, out SaplingReceiver receiver));
+		Assert.True(account1.IncomingViewingKey.TryCreateReceiver(ref expectedIndex, out SaplingReceiver receiver));
 
 		Assert.True(account1.FullViewingKey.CheckReceiver(receiver));
 		Assert.True(account1.FullViewingKey.TryGetDiversifierIndex(receiver, out BigInteger? idx));

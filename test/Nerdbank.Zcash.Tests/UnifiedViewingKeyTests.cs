@@ -218,13 +218,13 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.NotNull(sapling.IncomingViewingKey);
 		Assert.Equal(
 			"zs1duqpcc2ql7zfjttdm2gpawe8t5ecek5k834u9vdg4mqhw7j8j39sgjy8xguvk2semyd4ujeyj28",
-			sapling.DefaultAddress);
+			sapling.IncomingViewingKey.DefaultAddress);
 
 		OrchardFVK? orchard = uvk.GetViewingKey<OrchardFVK>();
 		Assert.NotNull(orchard);
 		Assert.Equal(
 			"u1zpfqm4r0cc5ttvt4mft6nvyqe3uwsdcgx65s44sd3ar42rnkz7v9az0ez7dpyxvjcyj9x0sd89yy7635vn8fplwvg6vn4tr6wqpyxqaw",
-			orchard.DefaultAddress);
+			orchard.IncomingViewingKey.DefaultAddress);
 	}
 
 	[Fact]

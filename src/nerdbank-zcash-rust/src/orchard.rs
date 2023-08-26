@@ -75,16 +75,16 @@ pub extern "C" fn get_orchard_fvk_bytes_from_sk_bytes(
     }
 }
 
-fn get_raw_payment_address_from_fvk(
-    fvk: &[u8; 96],
+fn get_raw_payment_address_from_ivk(
+    ivk: &[u8; 64],
     diversifier_index: impl Into<DiversifierIndex>,
 ) -> Option<[u8; 43]> {
-    let fvk = FullViewingKey::from_bytes(fvk);
-    match fvk.is_some().into() {
+    let ivk = IncomingViewingKey::from_bytes(ivk);
+    match ivk.is_some().into() {
         true => {
-            let fvk = fvk.unwrap();
+            let ivk = ivk.unwrap();
             Some(
-                fvk.address_at(diversifier_index, Scope::External)
+                ivk.address_at(diversifier_index)
                     .to_raw_address_bytes(),
             )
         }
@@ -93,16 +93,16 @@ fn get_raw_payment_address_from_fvk(
 }
 
 #[no_mangle]
-pub extern "C" fn get_orchard_raw_payment_address_from_fvk(
-    fvk: *const [u8; 96],
+pub extern "C" fn get_orchard_raw_payment_address_from_ivk(
+    ivk: *const [u8; 64],
     diversifier_index: *const [u8; 11],
     raw_payment_address: *mut [u8; 43],
 ) -> i32 {
-    let fvk = unsafe { &*fvk };
+    let ivk = unsafe { &*ivk };
     let diversifier_index = unsafe { &*diversifier_index };
     let raw_payment_address = unsafe { &mut *raw_payment_address };
 
-    match get_raw_payment_address_from_fvk(fvk, diversifier_index.clone()) {
+    match get_raw_payment_address_from_ivk(ivk, diversifier_index.clone()) {
         Some(raw_payment_address_bytes) => {
             raw_payment_address.copy_from_slice(&raw_payment_address_bytes);
             0

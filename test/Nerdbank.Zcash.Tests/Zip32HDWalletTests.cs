@@ -47,7 +47,7 @@ public class Zip32HDWalletTests : TestBase
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
 		Zip32HDWallet.Orchard.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Orchard.Create(mnemonic, ZcashNetwork.MainNet);
 		Zip32HDWallet.Orchard.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
-		OrchardReceiver receiver = accountSpendingKey.FullViewingKey.CreateReceiver(0);
+		OrchardReceiver receiver = accountSpendingKey.IncomingViewingKey.CreateReceiver(0);
 		OrchardAddress address = new(receiver);
 		this.logger.WriteLine(address);
 		Assert.Equal("u1zpfqm4r0cc5ttvt4mft6nvyqe3uwsdcgx65s44sd3ar42rnkz7v9az0ez7dpyxvjcyj9x0sd89yy7635vn8fplwvg6vn4tr6wqpyxqaw", address.Address);
@@ -60,7 +60,7 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet.Sapling.ExtendedSpendingKey masterSpendingKey = Zip32HDWallet.Sapling.Create(mnemonic, ZcashNetwork.MainNet);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey accountSpendingKey = masterSpendingKey.Derive(Zip32HDWallet.CreateKeyPath(0));
 		BigInteger diversifierIndex = 0;
-		Assert.True(accountSpendingKey.FullViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
+		Assert.True(accountSpendingKey.IncomingViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
 		Assert.Equal(1, diversifierIndex); // index 0 was invalid in this case.
 		SaplingAddress address = new(receiver);
 		this.logger.WriteLine(address);
@@ -73,7 +73,7 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey childFVK = masterFullViewingKey.Derive(3);
 		BigInteger diversifierIndex = 0;
-		Assert.True(childFVK.FullViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
+		Assert.True(childFVK.IncomingViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver receiver));
 		Assert.Equal(3, diversifierIndex); // indexes 0-2 were invalid in this case.
 		SaplingAddress address = new(receiver);
 		this.logger.WriteLine(address);
@@ -105,7 +105,7 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet.Orchard.ExtendedSpendingKey account = wallet.CreateOrchardAccount(1);
 		Assert.Equal(1u | Bip32HDWallet.HardenedBit, account.ChildIndex);
 
-		Assert.Equal(new OrchardAddress(account.FullViewingKey.CreateReceiver(0), ZcashNetwork.TestNet), account.DefaultAddress);
+		Assert.Equal(new OrchardAddress(account.IncomingViewingKey.CreateReceiver(0), ZcashNetwork.TestNet), account.DefaultAddress);
 	}
 
 	[Fact]
@@ -116,7 +116,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(1u | Bip32HDWallet.HardenedBit, account.ChildIndex);
 
 		BigInteger diversifier = BigInteger.Zero;
-		Assert.True(account.FullViewingKey.TryCreateReceiver(ref diversifier, out SaplingReceiver receiver));
+		Assert.True(account.IncomingViewingKey.TryCreateReceiver(ref diversifier, out SaplingReceiver receiver));
 		Assert.Equal(new SaplingAddress(receiver, ZcashNetwork.TestNet), account.DefaultAddress);
 	}
 

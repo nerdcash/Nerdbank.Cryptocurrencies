@@ -1,12 +1,12 @@
 use group::GroupEncoding;
 use zcash_primitives::{
     sapling::{
-        keys::{ExpandedSpendingKey, FullViewingKey},
-        NullifierDerivingKey, PaymentAddress, ViewingKey,
+        keys::{ExpandedSpendingKey, FullViewingKey, ViewingKey},
+        NullifierDerivingKey, PaymentAddress, SaplingIvk,
     },
     zip32::{
-        ChildIndex, DiversifiableFullViewingKey, DiversifierIndex, ExtendedFullViewingKey,
-        ExtendedSpendingKey, Scope,
+        sapling::DiversifierKey, ChildIndex, DiversifiableFullViewingKey, DiversifierIndex,
+        ExtendedFullViewingKey, ExtendedSpendingKey, Scope,
     },
 };
 
@@ -151,12 +151,12 @@ pub extern "C" fn get_sapling_fvk_from_expanded_sk(
 
 #[no_mangle]
 pub extern "C" fn get_sapling_receiver(
-    fvk: *const [u8; 96],
+    ivk: *const [u8; 32],
     dk: *const [u8; 32],
     diversifier_index: *mut [u8; 11],
     receiver: *mut [u8; 43],
 ) -> i32 {
-    let fvk = unsafe { &*fvk };
+    let ivk = unsafe { &*ivk };
     let dk = unsafe { &*dk };
     let diversifier_index = unsafe { &mut *diversifier_index };
     let j = DiversifierIndex {
@@ -164,18 +164,22 @@ pub extern "C" fn get_sapling_receiver(
     };
     let receiver = unsafe { &mut *receiver };
 
-    let mut fvk_dk = [0u8; 128];
-    fvk_dk[..96].copy_from_slice(fvk);
-    fvk_dk[96..].copy_from_slice(dk);
-    if let Some(dfvk) = DiversifiableFullViewingKey::from_bytes(&fvk_dk) {
-        if let Some((index, recv)) = dfvk.find_address(j) {
-            receiver.copy_from_slice(&recv.to_bytes());
+    let fr = jubjub::Fr::from_bytes(ivk);
+    if fr.is_some().into() {
+        let ivk = SaplingIvk(fr.unwrap());
+        let dk = DiversifierKey::from_bytes(*dk);
+        if let Some((index, d)) = dk.find_diversifier(j) {
             diversifier_index.copy_from_slice(&index.0);
-            return 0;
+            if let Some(addr) = ivk.to_payment_address(d) {
+                receiver.copy_from_slice(&addr.to_bytes());
+                return 0;
+            } else {
+                -3
+            }
+        } else {
+            -2
         }
-
-        return -2;
+    } else {
+        -1
     }
-
-    -1
 }
