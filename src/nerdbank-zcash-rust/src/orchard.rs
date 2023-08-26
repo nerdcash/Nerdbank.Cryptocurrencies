@@ -11,21 +11,22 @@ pub extern "C" fn decrypt_orchard_diversifier(
 ) -> i32 {
     let ivk = unsafe { &*ivk };
     let receiver = unsafe { &*receiver };
+    let diversifier_index = unsafe { &mut *diversifier_index };
+
     let ivk = IncomingViewingKey::from_bytes(ivk);
     if ivk.is_none().into() {
         return -1;
     }
-
     let ivk = ivk.unwrap();
-    let address = Address::from_raw_address_bytes(receiver);
+
+	let address = Address::from_raw_address_bytes(receiver);
     if address.is_none().into() {
         return -2;
     }
-
     let address = address.unwrap();
-    if let Some(index) = ivk.diversifier_index(&address) {
-        let diversifier = unsafe { &mut *diversifier_index };
-        diversifier.copy_from_slice(index.to_bytes());
+
+	if let Some(index) = ivk.diversifier_index(&address) {
+        diversifier_index.copy_from_slice(index.to_bytes());
         0
     } else {
         1
@@ -83,10 +84,7 @@ fn get_raw_payment_address_from_ivk(
     match ivk.is_some().into() {
         true => {
             let ivk = ivk.unwrap();
-            Some(
-                ivk.address_at(diversifier_index)
-                    .to_raw_address_bytes(),
-            )
+            Some(ivk.address_at(diversifier_index).to_raw_address_bytes())
         }
         false => None,
     }

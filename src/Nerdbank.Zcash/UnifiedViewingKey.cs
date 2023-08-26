@@ -36,6 +36,9 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	public string ViewingKey { get; }
 
 	/// <inheritdoc/>
+	/// <remarks>
+	/// Implemented as described <see href="https://zips.z.cash/zip-0316#deriving-a-unified-address-from-a-uivk">in ZIP-316</see>.
+	/// </remarks>
 	public string DefaultAddress => throw new NotImplementedException(); // TODO: construct a unified address with the viewing keys
 
 	/// <summary>
@@ -255,6 +258,9 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// <summary>
 		/// Gets the unified incoming viewing key.
 		/// </summary>
+		/// <remarks>
+		/// Implemented as described <see href="https://zips.z.cash/zip-0316#deriving-a-uivk-from-a-ufvk">in ZIP-316</see>.
+		/// </remarks>
 		public Incoming IncomingViewingKey => throw new NotImplementedException();
 
 		/// <inheritdoc/>

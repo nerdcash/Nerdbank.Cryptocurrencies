@@ -78,6 +78,51 @@ pub extern "C" fn decrypt_sapling_diversifier(
 }
 
 #[no_mangle]
+pub extern "C" fn decrypt_sapling_diversifier_with_ivk(
+    ivk: *const [u8; 32],
+    dk: *const [u8; 32],
+    receiver: *const [u8; 43],
+    diversifier_index: *mut [u8; 11],
+) -> i32 {
+    let ivk = unsafe { &*ivk };
+    let dk = unsafe { &*dk };
+    let receiver = unsafe { &*receiver };
+    let diversifier_index = unsafe { &mut *diversifier_index };
+
+    let fr = jubjub::Fr::from_bytes(ivk);
+    if fr.is_none().into() {
+        return -1;
+    }
+    let ivk = SaplingIvk(fr.unwrap());
+
+    let dk = DiversifierKey::from_bytes(*dk);
+
+    let address = PaymentAddress::from_bytes(receiver);
+    if address.is_none().into() {
+        return -2;
+    }
+    let address = address.unwrap();
+
+    let j = dk.diversifier_index(address.diversifier());
+
+    // Now use the ivk to generate a receiver with this diversifier index.
+    // If the receiver matches the one that came in, then this ivk produced the given receiver.
+    // If it doesn't match, then this ivk did not produce the given receiver so no index is correct.
+    let regenerated_diversifier = dk.diversifier(j);
+    if regenerated_diversifier.is_none() {
+        return -3;
+    }
+    let regenerated_address = ivk.to_payment_address(regenerated_diversifier.unwrap());
+    if regenerated_address == Some(address) {
+        diversifier_index.copy_from_slice(&j.0);
+        0
+    } else {
+        // Everything was valid. But the receiver did *not* come from this key.
+        1
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn derive_sapling_child_fvk(
     ext_fvk: *const [u8; 169],
     child_index: u32,
@@ -159,15 +204,16 @@ pub extern "C" fn get_sapling_receiver(
     let ivk = unsafe { &*ivk };
     let dk = unsafe { &*dk };
     let diversifier_index = unsafe { &mut *diversifier_index };
+    let receiver = unsafe { &mut *receiver };
+    let dk = DiversifierKey::from_bytes(*dk);
+
     let j = DiversifierIndex {
         0: diversifier_index.clone(),
     };
-    let receiver = unsafe { &mut *receiver };
 
     let fr = jubjub::Fr::from_bytes(ivk);
     if fr.is_some().into() {
         let ivk = SaplingIvk(fr.unwrap());
-        let dk = DiversifierKey::from_bytes(*dk);
         if let Some((index, d)) = dk.find_diversifier(j) {
             diversifier_index.copy_from_slice(&index.0);
             if let Some(addr) = ivk.to_payment_address(d) {

@@ -248,10 +248,40 @@ internal static unsafe partial class NativeMethods
 				{
 					fixed (byte* di = diversifierIndex)
 					{
-						fixed (byte* pScope = &scope)
-						{
-							return decrypt_sapling_diversifier(fvk, dk, receiver, di, pScope);
-						}
+						return decrypt_sapling_diversifier(fvk, dk, receiver, di, out scope);
+					}
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Tries to decrypt a <see cref="SaplingReceiver"/>'s diversifier back into the diversifier index used to create it.
+	/// </summary>
+	/// <param name="incomingViewingKey">The 96-byte encoding of a <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
+	/// <param name="diversifierKey">The 32-byte diversifier key.</param>
+	/// <param name="saplingReceiver">The 43-byte encoding of the <see cref="SaplingReceiver"/>.</param>
+	/// <param name="diversifierIndex">The 11-byte buffer that will receive the decrypted diversifier index, if successful.</param>
+	/// <returns>0 if successful; 1 if the receiver was not created with this incoming viewing key; a negative number for other errors (e.g. invalid data.)</returns>
+	/// <remarks>
+	/// Only matches with external-derived keys will be found with an IVK. To match on internal-derived keys, use <see cref="DecryptSaplingDiversifier"/>.
+	/// </remarks>
+	internal static int DecryptSaplingDiversifierWithIvk(ReadOnlySpan<byte> incomingViewingKey, ReadOnlySpan<byte> diversifierKey, ReadOnlySpan<byte> saplingReceiver, Span<byte> diversifierIndex)
+	{
+		if (incomingViewingKey.Length != 32 || diversifierKey.Length != 32 || saplingReceiver.Length != 43 || diversifierIndex.Length != 11)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* ivk = incomingViewingKey)
+		{
+			fixed (byte* dk = diversifierKey)
+			{
+				fixed (byte* receiver = saplingReceiver)
+				{
+					fixed (byte* di = diversifierIndex)
+					{
+						return decrypt_sapling_diversifier_with_ivk(ivk, dk, receiver, di);
 					}
 				}
 			}
@@ -326,7 +356,10 @@ internal static unsafe partial class NativeMethods
 	private static extern int decrypt_orchard_diversifier(byte* ivk, byte* receiver, byte* diversifier_index);
 
 	[DllImport(LibraryName)]
-	private static extern int decrypt_sapling_diversifier(byte* fvk, byte* dk, byte* receiver, byte* diversifier_index, byte* scope);
+	private static extern int decrypt_sapling_diversifier(byte* fvk, byte* dk, byte* receiver, byte* diversifier_index, out byte scope);
+
+	[DllImport(LibraryName)]
+	private static extern int decrypt_sapling_diversifier_with_ivk(byte* ivk, byte* dk, byte* receiver, byte* diversifier_index);
 
 	[DllImport(LibraryName)]
 	private static extern int derive_sapling_ivk_from_fvk(byte* ak, byte* nk, byte* ivk);
