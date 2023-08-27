@@ -54,4 +54,42 @@ internal static class ZcashUtilities
 		t.CopyTo(buffer[(sk.Length + 1)..]);
 		return Blake2B.ComputeHash(buffer, output, new Blake2B.Config { Personalization = "Zcash_ExpandSeed"u8, OutputSizeInBytes = 512 / 8 });
 	}
+
+	/// <summary>
+	/// Strips any key material in excess of incoming viewing keys.
+	/// </summary>
+	/// <param name="ivk">The key.</param>
+	/// <returns>The key that is <em>only</em> an incoming viewing key.</returns>
+	internal static IIncomingViewingKey ReduceToOnlyIVK(this IIncomingViewingKey ivk)
+	{
+		if (ivk is IFullViewingKey fvk)
+		{
+			ivk = fvk.IncomingViewingKey;
+
+			// The property we called MUST return an object that is not still a full viewing key,
+			// but we'll assert it here because our caller wants to make sure the we don't leak data.
+			Assumes.False(ivk is IFullViewingKey);
+		}
+
+		return ivk;
+	}
+
+	/// <summary>
+	/// Strips any key material in excess of full viewing keys.
+	/// </summary>
+	/// <param name="fvk">The key.</param>
+	/// <returns>The key that is <em>only</em> a full viewing key.</returns>
+	internal static IFullViewingKey ReduceToOnlyFVK(this IFullViewingKey fvk)
+	{
+		if (fvk is ISpendingKey sk)
+		{
+			fvk = sk.FullViewingKey;
+
+			// The property we called MUST return an object that is not still a spending key,
+			// but we'll assert it here because our caller wants to make sure the we don't leak data.
+			Assumes.False(fvk is ISpendingKey);
+		}
+
+		return fvk;
+	}
 }

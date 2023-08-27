@@ -40,6 +40,9 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// </remarks>
 	public abstract IReadOnlyList<ZcashAddress> Receivers { get; }
 
+	/// <inheritdoc cref="Create(IReadOnlyCollection{ZcashAddress})"/>
+	public static UnifiedAddress Create(params ZcashAddress[] receivers) => Create((IReadOnlyCollection<ZcashAddress>)receivers);
+
 	/// <summary>
 	/// Creates a unified address from a list of receiver addresses.
 	/// </summary>

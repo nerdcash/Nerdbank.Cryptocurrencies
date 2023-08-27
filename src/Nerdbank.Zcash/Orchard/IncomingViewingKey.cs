@@ -35,7 +35,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	public OrchardAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <inheritdoc/>
-	string IIncomingViewingKey.DefaultAddress => this.DefaultAddress.ToString();
+	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
 
 	/// <inheritdoc/>
 	public ZcashNetwork Network { get; }

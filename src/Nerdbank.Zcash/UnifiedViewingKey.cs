@@ -23,10 +23,10 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// <param name="encoding">The string encoding of this viewing key.</param>
 	/// <param name="viewingKeys">The viewing keys contained in this unified key.</param>
 	/// <param name="network">The network this key operates on.</param>
-	internal UnifiedViewingKey(string encoding, IReadOnlyCollection<IUnifiedEncodingElement> viewingKeys, ZcashNetwork network)
+	private protected UnifiedViewingKey(string encoding, IEnumerable<IIncomingViewingKey> viewingKeys, ZcashNetwork network)
 	{
 		this.ViewingKey = encoding;
-		this.viewingKeys = viewingKeys;
+		this.viewingKeys = viewingKeys.Cast<IUnifiedEncodingElement>().ToArray();
 		this.Network = network;
 	}
 
@@ -35,11 +35,14 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// </summary>
 	public string ViewingKey { get; }
 
-	/// <inheritdoc/>
+	/// <inheritdoc cref="IIncomingViewingKey.DefaultAddress"/>
 	/// <remarks>
 	/// Implemented as described <see href="https://zips.z.cash/zip-0316#deriving-a-unified-address-from-a-uivk">in ZIP-316</see>.
 	/// </remarks>
-	public string DefaultAddress => throw new NotImplementedException(); // TODO: construct a unified address with the viewing keys
+	public UnifiedAddress DefaultAddress => UnifiedAddress.Create(this.viewingKeys.Select(vk => ((IIncomingViewingKey)vk).DefaultAddress).ToArray());
+
+	/// <inheritdoc/>
+	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
 
 	/// <summary>
 	/// Gets the network that the keys in this unified viewing key should be used on.
@@ -52,67 +55,6 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// <param name="viewingKey">The viewing key to convert.</param>
 	[return: NotNullIfNotNull(nameof(viewingKey))]
 	public static implicit operator string?(UnifiedViewingKey? viewingKey) => viewingKey?.ViewingKey;
-
-	/// <inheritdoc cref="Create(IReadOnlyCollection{IIncomingViewingKey})"/>
-	public static UnifiedViewingKey Create(params IIncomingViewingKey[] viewingKeys) => Create((IReadOnlyCollection<IIncomingViewingKey>)viewingKeys);
-
-	/// <summary>
-	/// Constructs a unified viewing key from a set of viewing keys.
-	/// </summary>
-	/// <param name="viewingKeys">
-	/// The viewing keys to include in the unified viewing key.
-	/// This must not be empty.
-	/// This must not include more than one viewing key for a given pool.
-	/// The set of keys must be of a consistent viewing type (e.g. all full viewing keys or all incoming viewing keys).
-	/// </param>
-	/// <returns>The unified viewing key.</returns>
-	public static UnifiedViewingKey Create(IReadOnlyCollection<IIncomingViewingKey> viewingKeys)
-	{
-		Requires.NotNull(viewingKeys);
-		Requires.Argument(viewingKeys.Count > 0, nameof(viewingKeys), "Cannot create a unified viewing key with no viewing keys.");
-
-		IIncomingViewingKey firstKey = viewingKeys.First();
-		ZcashNetwork network = firstKey.Network;
-		bool isFullViewingKey = firstKey is IFullViewingKey;
-
-		foreach (IIncomingViewingKey key in viewingKeys)
-		{
-			Requires.Argument(network == key.Network, nameof(viewingKeys), "All viewing keys must belong to the same network.");
-			Requires.Argument(isFullViewingKey == key is IFullViewingKey, nameof(viewingKeys), "All viewing keys must be full or all must be incoming viewing keys. A mix of these types is not supported.");
-			if (key is not IUnifiedEncodingElement)
-			{
-				throw new NotSupportedException($"Key {key.GetType()} is not supported in a unified viewing key.");
-			}
-		}
-
-		string humanReadablePart = (network, isFullViewingKey) switch
-		{
-			(ZcashNetwork.MainNet, true) => HumanReadablePartMainNetFVK,
-			(ZcashNetwork.TestNet, true) => HumanReadablePartTestNetFVK,
-			(ZcashNetwork.MainNet, false) => HumanReadablePartMainNetIVK,
-			(ZcashNetwork.TestNet, false) => HumanReadablePartTestNetIVK,
-			_ => throw new NotSupportedException("Unrecognized Zcash network."),
-		};
-
-		string unifiedEncoding = UnifiedEncoding.Encode(humanReadablePart, viewingKeys.Cast<IUnifiedEncodingElement>());
-
-		IUnifiedEncodingElement[] elements = viewingKeys.Cast<IUnifiedEncodingElement>().ToArray();
-		return Create(isFullViewingKey, unifiedEncoding, elements, network);
-	}
-
-	/// <inheritdoc cref="Create(IReadOnlyCollection{IFullViewingKey})"/>
-	public static Full Create(params IFullViewingKey[] viewingKeys) => Create((IReadOnlyCollection<IFullViewingKey>)viewingKeys);
-
-	/// <summary>
-	/// Constructs a unified viewing key from a set of viewing keys.
-	/// </summary>
-	/// <param name="viewingKeys">
-	/// The viewing keys to include in the unified viewing key.
-	/// This must not be empty.
-	/// This must not include more than one viewing key for a given pool.
-	/// </param>
-	/// <returns>The unified viewing key.</returns>
-	public static Full Create(IReadOnlyCollection<IFullViewingKey> viewingKeys) => (Full)Create((IReadOnlyCollection<IIncomingViewingKey>)viewingKeys);
 
 	/// <summary>
 	/// Parses a unified viewing key into its component viewing keys.
@@ -159,6 +101,53 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 
 	/// <inheritdoc/>
 	IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+	/// <summary>
+	/// Encodes the specified viewing keys.
+	/// </summary>
+	/// <param name="viewingKeys">The viewing keys to encode.</param>
+	/// <param name="isFullViewingKey">
+	/// <see langword="true" /> to produce a full viewing key; <see langword="false" /> to produce an incoming viewing key.
+	/// The caller is responsible to ensure that all <paramref name="viewingKeys"/> are all consistently
+	/// the same kind (full or incoming).
+	/// </param>
+	/// <returns>The encoded unified viewing key, and the network it operates on.</returns>
+	/// <exception cref="NotSupportedException">Thrown if any of the viewing keys do not implement <see cref="IUnifiedEncodingElement"/>.</exception>
+	private protected static (string Encoding, ZcashNetwork Network) Prepare(IEnumerable<IIncomingViewingKey> viewingKeys, bool isFullViewingKey)
+	{
+		ZcashNetwork? network = null;
+		foreach (IIncomingViewingKey key in viewingKeys)
+		{
+			if (network is null)
+			{
+				network = key.Network;
+			}
+			else
+			{
+				Requires.Argument(network == key.Network, nameof(viewingKeys), "All viewing keys must belong to the same network.");
+			}
+
+			if (key is not IUnifiedEncodingElement)
+			{
+				throw new NotSupportedException($"Key {key.GetType()} is not supported in a unified viewing key.");
+			}
+		}
+
+		Requires.Argument(network is not null, nameof(viewingKeys), "Cannot create a unified viewing key with no viewing keys.");
+
+		string humanReadablePart = (network, isFullViewingKey) switch
+		{
+			(ZcashNetwork.MainNet, true) => HumanReadablePartMainNetFVK,
+			(ZcashNetwork.TestNet, true) => HumanReadablePartTestNetFVK,
+			(ZcashNetwork.MainNet, false) => HumanReadablePartMainNetIVK,
+			(ZcashNetwork.TestNet, false) => HumanReadablePartTestNetIVK,
+			_ => throw new NotSupportedException("Unrecognized Zcash network."),
+		};
+
+		string unifiedEncoding = UnifiedEncoding.Encode(humanReadablePart, viewingKeys.Cast<IUnifiedEncodingElement>());
+
+		return (unifiedEncoding, network.Value);
+	}
 
 	private static bool TryParse(string unifiedViewingKey, [NotNullWhen(true)] out UnifiedViewingKey? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
 	{
@@ -213,17 +202,12 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 			viewingKeys.Add(viewingKey);
 		}
 
-		result = Create(isFullViewingKey, unifiedViewingKey, viewingKeys, network);
+		result = isFullViewingKey
+			? new Full(unifiedViewingKey, viewingKeys.Cast<IFullViewingKey>(), network)
+			: new Incoming(unifiedViewingKey, viewingKeys.Cast<IIncomingViewingKey>(), network);
 		errorCode = null;
 		errorMessage = null;
 		return true;
-	}
-
-	private static UnifiedViewingKey Create(bool isFullViewingKey, string encoding, IReadOnlyCollection<IUnifiedEncodingElement> viewingKeys, ZcashNetwork network)
-	{
-		return isFullViewingKey
-			? new Full(encoding, viewingKeys, network)
-			: new Incoming(encoding, viewingKeys, network);
 	}
 
 	/// <summary>
@@ -234,10 +218,34 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Incoming"/> class.
 		/// </summary>
-		/// <inheritdoc cref="UnifiedViewingKey(string, IReadOnlyCollection{IUnifiedEncodingElement}, ZcashNetwork)"/>
-		internal Incoming(string encoding, IReadOnlyCollection<IUnifiedEncodingElement> viewingKeys, ZcashNetwork network)
+		/// <inheritdoc cref="UnifiedViewingKey(string, IEnumerable{IIncomingViewingKey}, ZcashNetwork)"/>
+		internal Incoming(string encoding, IEnumerable<IIncomingViewingKey> viewingKeys, ZcashNetwork network)
 			: base(encoding, viewingKeys, network)
 		{
+		}
+
+		/// <inheritdoc cref="Create(IEnumerable{IIncomingViewingKey})"/>
+		public static Incoming Create(params IIncomingViewingKey[] viewingKeys) => Create((IEnumerable<IIncomingViewingKey>)viewingKeys);
+
+		/// <summary>
+		/// Constructs a unified viewing key from a set of viewing keys.
+		/// </summary>
+		/// <param name="viewingKeys">
+		/// The viewing keys to include in the unified viewing key.
+		/// This must not be empty.
+		/// This must not include more than one viewing key for a given pool.
+		/// The set of keys must be of a consistent viewing type (e.g. all full viewing keys or all incoming viewing keys).
+		/// </param>
+		/// <returns>The unified viewing key.</returns>
+		public static Incoming Create(IEnumerable<IIncomingViewingKey> viewingKeys)
+		{
+			Requires.NotNull(viewingKeys);
+
+			IEnumerable<IIncomingViewingKey> ivks = viewingKeys
+				.Select(vk => vk.ReduceToOnlyIVK());
+
+			(string encoding, ZcashNetwork network) = Prepare(ivks, isFullViewingKey: false);
+			return new(encoding, ivks, network);
 		}
 	}
 
@@ -249,8 +257,8 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Full"/> class.
 		/// </summary>
-		/// <inheritdoc cref="UnifiedViewingKey(string, IReadOnlyCollection{IUnifiedEncodingElement}, ZcashNetwork)"/>
-		internal Full(string encoding, IReadOnlyCollection<IUnifiedEncodingElement> viewingKeys, ZcashNetwork network)
+		/// <inheritdoc cref="UnifiedViewingKey(string, IEnumerable{IIncomingViewingKey}, ZcashNetwork)"/>
+		internal Full(string encoding, IEnumerable<IFullViewingKey> viewingKeys, ZcashNetwork network)
 			: base(encoding, viewingKeys, network)
 		{
 		}
@@ -261,10 +269,33 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// <remarks>
 		/// Implemented as described <see href="https://zips.z.cash/zip-0316#deriving-a-uivk-from-a-ufvk">in ZIP-316</see>.
 		/// </remarks>
-		public Incoming IncomingViewingKey => throw new NotImplementedException();
+		public Incoming IncomingViewingKey => Incoming.Create(this.viewingKeys.Cast<IIncomingViewingKey>());
 
 		/// <inheritdoc/>
 		IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+
+		/// <inheritdoc cref="Create(IEnumerable{IFullViewingKey})"/>
+		public static Full Create(params IFullViewingKey[] viewingKeys) => Create((IEnumerable<IFullViewingKey>)viewingKeys);
+
+		/// <summary>
+		/// Constructs a unified viewing key from a set of viewing keys.
+		/// </summary>
+		/// <param name="viewingKeys">
+		/// The viewing keys to include in the unified viewing key.
+		/// This must not be empty.
+		/// This must not include more than one viewing key for a given pool.
+		/// </param>
+		/// <returns>The unified viewing key.</returns>
+		public static Full Create(IEnumerable<IFullViewingKey> viewingKeys)
+		{
+			Requires.NotNull(viewingKeys);
+
+			IEnumerable<IFullViewingKey> fvks = viewingKeys
+				.Select(vk => vk.ReduceToOnlyFVK());
+
+			(string encoding, ZcashNetwork network) = Prepare(fvks, isFullViewingKey: true);
+			return new(encoding, fvks, network);
+		}
 
 		/// <summary>
 		/// Gets the viewing key of a given type, if included in this key.

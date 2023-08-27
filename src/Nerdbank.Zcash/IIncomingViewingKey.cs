@@ -11,5 +11,5 @@ public interface IIncomingViewingKey : IZcashKey
 	/// <summary>
 	/// Gets the default receiving address associated with this key.
 	/// </summary>
-	string DefaultAddress { get; }
+	ZcashAddress DefaultAddress { get; }
 }

@@ -6,7 +6,7 @@ abstract Nerdbank.Zcash.ZcashAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.IFullViewingKey
 Nerdbank.Zcash.IFullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.IIncomingViewingKey!
 Nerdbank.Zcash.IIncomingViewingKey
-Nerdbank.Zcash.IIncomingViewingKey.DefaultAddress.get -> string!
+Nerdbank.Zcash.IIncomingViewingKey.DefaultAddress.get -> Nerdbank.Zcash.ZcashAddress!
 Nerdbank.Zcash.InvalidAddressException
 Nerdbank.Zcash.InvalidAddressException.InvalidAddressException() -> void
 Nerdbank.Zcash.InvalidAddressException.InvalidAddressException(string? message) -> void
@@ -171,7 +171,7 @@ Nerdbank.Zcash.TransparentP2SHReceiver.TransparentP2SHReceiver(System.ReadOnlySp
 Nerdbank.Zcash.UnifiedAddress
 Nerdbank.Zcash.UnifiedAddress.UnifiedAddress(string! address) -> void
 Nerdbank.Zcash.UnifiedViewingKey
-Nerdbank.Zcash.UnifiedViewingKey.DefaultAddress.get -> string!
+Nerdbank.Zcash.UnifiedViewingKey.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.UnifiedViewingKey.Full
 Nerdbank.Zcash.UnifiedViewingKey.Full.GetEnumerator() -> System.Collections.Generic.IEnumerator<Nerdbank.Zcash.IFullViewingKey!>!
 Nerdbank.Zcash.UnifiedViewingKey.Full.GetViewingKey<T>() -> T?
@@ -308,12 +308,13 @@ static Nerdbank.Zcash.SaplingReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.SproutReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2PKHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2SHReceiver.UnifiedReceiverTypeCode.get -> byte
+static Nerdbank.Zcash.UnifiedAddress.Create(params Nerdbank.Zcash.ZcashAddress![]! receivers) -> Nerdbank.Zcash.UnifiedAddress!
 static Nerdbank.Zcash.UnifiedAddress.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.ZcashAddress!>! receivers) -> Nerdbank.Zcash.UnifiedAddress!
-static Nerdbank.Zcash.UnifiedViewingKey.Create(params Nerdbank.Zcash.IFullViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
-static Nerdbank.Zcash.UnifiedViewingKey.Create(params Nerdbank.Zcash.IIncomingViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey!
-static Nerdbank.Zcash.UnifiedViewingKey.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.IFullViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
-static Nerdbank.Zcash.UnifiedViewingKey.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.IIncomingViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey!
+static Nerdbank.Zcash.UnifiedViewingKey.Full.Create(params Nerdbank.Zcash.IFullViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
+static Nerdbank.Zcash.UnifiedViewingKey.Full.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IFullViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
 static Nerdbank.Zcash.UnifiedViewingKey.implicit operator string?(Nerdbank.Zcash.UnifiedViewingKey? viewingKey) -> string?
+static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(params Nerdbank.Zcash.IIncomingViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
+static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 static Nerdbank.Zcash.UnifiedViewingKey.Parse(string! unifiedViewingKey) -> Nerdbank.Zcash.UnifiedViewingKey!
 static Nerdbank.Zcash.UnifiedViewingKey.TryParse(string! unifiedViewingKey, out Nerdbank.Zcash.UnifiedViewingKey? result) -> bool
 static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?

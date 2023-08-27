@@ -44,7 +44,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	public SaplingAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <inheritdoc/>
-	string IIncomingViewingKey.DefaultAddress => this.DefaultAddress.ToString();
+	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;
