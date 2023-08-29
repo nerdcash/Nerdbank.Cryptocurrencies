@@ -16,6 +16,7 @@ public partial class Bip32HDWallet
 
 	/// <summary>
 	/// Represents a step in a path to a key.
+	/// Each step links to its parent, forming a path.
 	/// </summary>
 	public record KeyPath : IComparable<KeyPath>
 	{

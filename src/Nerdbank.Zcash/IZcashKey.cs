@@ -14,5 +14,5 @@ public interface IZcashKey : IKey
 	ZcashNetwork Network { get; }
 
 	/// <inheritdoc/>
-	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+	bool IKey.IsTestNet => this.Network.IsTestNet();
 }

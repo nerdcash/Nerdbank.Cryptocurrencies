@@ -30,7 +30,10 @@ public partial class Zip32HDWallet
 			ReadOnlySpan<byte> spendingKey = blakeOutput[..32];
 			ChainCode chainCode = new(blakeOutput[32..]);
 
-			return new ExtendedSpendingKey(new(spendingKey, network), chainCode, default, 0, 0);
+			return new ExtendedSpendingKey(new(spendingKey, network), chainCode, default, 0, 0)
+			{
+				DerivationPath = Bip32HDWallet.KeyPath.Root,
+			};
 		}
 
 		/// <summary>

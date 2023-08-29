@@ -12,7 +12,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// A key capable of spending, extended so it can be used to derive child keys.
 		/// </summary>
-		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
+		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 		public class ExtendedSpendingKey : IExtendedKey, ISpendingKey, IEquatable<ExtendedSpendingKey>
 		{
 			private const string Bech32MainNetworkHRP = "secret-orchard-extsk-main";
@@ -34,6 +34,9 @@ public partial class Zip32HDWallet
 				this.Depth = depth;
 				this.ChildIndex = childIndex;
 			}
+
+			/// <inheritdoc/>
+			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
 
 			/// <summary>
 			/// Gets the full viewing key.
@@ -107,6 +110,8 @@ public partial class Zip32HDWallet
 			/// </summary>
 			public SpendingKey SpendingKey { get; }
 
+			private string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
+
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class
 			/// from the bech32 encoding of an extended spending key as specified in ZIP-32.
@@ -167,7 +172,10 @@ public partial class Zip32HDWallet
 					chainCode,
 					parentFullViewingKeyTag: GetFingerprint(this.FullViewingKey).Tag,
 					depth: checked((byte)(this.Depth + 1)),
-					childIndex);
+					childIndex)
+				{
+					DerivationPath = this.DerivationPath?.Append(childIndex),
+				};
 			}
 
 			/// <inheritdoc/>

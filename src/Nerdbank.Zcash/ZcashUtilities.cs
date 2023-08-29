@@ -92,4 +92,11 @@ internal static class ZcashUtilities
 
 		return fvk;
 	}
+
+	/// <summary>
+	/// Checks whether a given Zcash network is one of its test nets.
+	/// </summary>
+	/// <param name="network">The Zcash network.</param>
+	/// <returns>A boolean value.</returns>
+	internal static bool IsTestNet(this ZcashNetwork network) => network != ZcashNetwork.MainNet;
 }

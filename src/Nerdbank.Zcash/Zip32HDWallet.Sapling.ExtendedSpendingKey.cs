@@ -13,11 +13,16 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The extended spending key.
 		/// </summary>
-		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
+		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 		public class ExtendedSpendingKey : IExtendedKey, ISpendingKey, IUnifiedEncodingElement, IEquatable<ExtendedSpendingKey>
 		{
 			private const string Bech32MainNetworkHRP = "secret-extended-key-main";
 			private const string Bech32TestNetworkHRP = "secret-extended-key-test";
+
+			/// <summary>
+			/// Backing field for the <see cref="ExtendedFullViewingKey"/> property.
+			/// </summary>
+			private ExtendedFullViewingKey? extendedFullViewingKey;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class.
@@ -38,18 +43,15 @@ public partial class Zip32HDWallet
 				this.FullViewingKey = new(
 					Zcash.Sapling.FullViewingKey.Create(key.Ask.Value, key.Nsk.Value, key.Ovk.Value, key.Network),
 					key.Dk);
-				this.ExtendedFullViewingKey = new ExtendedFullViewingKey(
-					this.FullViewingKey,
-					this.ChainCode,
-					this.ParentFullViewingKeyTag,
-					this.Depth,
-					this.ChildIndex);
 			}
+
+			/// <inheritdoc/>
+			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
 
 			/// <summary>
 			/// Gets the extended full viewing key.
 			/// </summary>
-			public ExtendedFullViewingKey ExtendedFullViewingKey { get; }
+			public ExtendedFullViewingKey ExtendedFullViewingKey => this.extendedFullViewingKey ??= new ExtendedFullViewingKey(this.FullViewingKey, this.ChainCode, this.ParentFullViewingKeyTag, this.Depth, this.ChildIndex) { DerivationPath = this.DerivationPath };
 
 			/// <summary>
 			/// Gets the full viewing key.
@@ -133,6 +135,8 @@ public partial class Zip32HDWallet
 			/// Gets the diversifier key.
 			/// </summary>
 			internal ref readonly DiversifierKey Dk => ref this.ExpandedSpendingKey.Dk;
+
+			private string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class

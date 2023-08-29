@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Nerdbank.Cryptocurrencies.Bitcoin;
 using Org.BouncyCastle.Crypto.Digests;
+using ECPubKey = NBitcoin.Secp256k1.ECPubKey;
 
 namespace Nerdbank.Cryptocurrencies;
 
@@ -14,6 +16,7 @@ public static partial class Bip32HDWallet
 	/// <summary>
 	/// A BIP-39 extended public key.
 	/// </summary>
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public class ExtendedPublicKey : ExtendedKeyBase
 	{
 		private readonly PublicKey key;
@@ -28,23 +31,24 @@ public static partial class Bip32HDWallet
 		/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='depth']"/></param>
 		/// <param name="childIndex"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childIndex']"/></param>
 		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
-		internal ExtendedPublicKey(PublicKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet = false)
+		protected internal ExtendedPublicKey(ECPubKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet)
 			: base(chainCode, parentFingerprint, depth, childIndex, testNet)
 		{
-			this.key = key;
+			Requires.NotNull(key);
 
-			Span<byte> publicKey = stackalloc byte[33];
-			key.CryptographicKey.WriteToSpan(true, publicKey, out int publicKeyLength);
+			this.key = new(key, testNet);
+			this.fixedArrays = CreateFixedArrays(key);
+		}
 
-			Span<byte> sha256Hash = stackalloc byte[256 / 8];
-			int firstHashLength = SHA256.HashData(publicKey[..publicKeyLength], sha256Hash);
-
-			RipeMD160Digest digest160 = new();
-			Span<byte> identifier = stackalloc byte[digest160.GetDigestSize()];
-			digest160.BlockUpdate(sha256Hash[..firstHashLength]);
-			int finalHashLength = digest160.DoFinal(identifier);
-
-			this.fixedArrays = new(identifier[..finalHashLength]);
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ExtendedPublicKey"/> class.
+		/// </summary>
+		/// <param name="copyFrom">The instance to copy from.</param>
+		protected ExtendedPublicKey(ExtendedPublicKey copyFrom)
+			: base(copyFrom)
+		{
+			this.key = copyFrom.key;
+			this.fixedArrays = CreateFixedArrays(this.Key.CryptographicKey);
 		}
 
 		/// <inheritdoc/>
@@ -53,7 +57,7 @@ public static partial class Bip32HDWallet
 		/// <summary>
 		/// Gets the EC public key.
 		/// </summary>
-		public NBitcoin.Secp256k1.ECPubKey CryptographicKey => this.key.CryptographicKey;
+		public ECPubKey CryptographicKey => this.key.CryptographicKey;
 
 		/// <summary>
 		/// Gets the version header for public keys on mainnet.
@@ -100,7 +104,10 @@ public static partial class Bip32HDWallet
 
 			byte childDepth = checked((byte)(this.Depth + 1));
 
-			return new ExtendedPublicKey(new(pubKey), childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet);
+			return new ExtendedPublicKey(pubKey, childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet)
+			{
+				DerivationPath = this.DerivationPath?.Append(childIndex),
+			};
 		}
 
 		/// <inheritdoc/>
@@ -108,6 +115,22 @@ public static partial class Bip32HDWallet
 		{
 			this.key.CryptographicKey.WriteToSpan(compressed: true, destination, out int written);
 			return written;
+		}
+
+		private static FixedArrays CreateFixedArrays(ECPubKey key)
+		{
+			Span<byte> publicKey = stackalloc byte[33];
+			key.WriteToSpan(true, publicKey, out int publicKeyLength);
+
+			Span<byte> sha256Hash = stackalloc byte[256 / 8];
+			int firstHashLength = SHA256.HashData(publicKey[..publicKeyLength], sha256Hash);
+
+			RipeMD160Digest digest160 = new();
+			Span<byte> identifier = stackalloc byte[digest160.GetDigestSize()];
+			digest160.BlockUpdate(sha256Hash[..firstHashLength]);
+			int finalHashLength = digest160.DoFinal(identifier);
+
+			return new(identifier[..finalHashLength]);
 		}
 
 		private unsafe struct FixedArrays

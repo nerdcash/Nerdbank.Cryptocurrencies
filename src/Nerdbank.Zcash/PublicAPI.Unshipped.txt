@@ -237,6 +237,8 @@ Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.ChainCode.get -> Nerdba
 Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.ChildIndex.get -> uint
 Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.DefaultAddress.get -> Nerdbank.Zcash.OrchardAddress!
 Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.Depth.get -> byte
+Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.DerivationPath.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
+Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.DerivationPath.init -> void
 Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.Encoded.get -> string!
 Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.Equals(Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey? other) -> bool
@@ -252,6 +254,8 @@ Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.ChainCode.get -> Ner
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.ChildIndex.get -> uint
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Depth.get -> byte
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.DerivationPath.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.DerivationPath.init -> void
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Encoded.get -> string!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Equals(Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey? other) -> bool
@@ -265,6 +269,8 @@ Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.ChainCode.get -> Nerdba
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.ChildIndex.get -> uint
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Depth.get -> byte
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.DerivationPath.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.DerivationPath.init -> void
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Encoded.get -> string!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Equals(Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey? other) -> bool

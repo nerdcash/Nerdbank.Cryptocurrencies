@@ -8,16 +8,21 @@ namespace Nerdbank.Cryptocurrencies.Bitcoin;
 /// <summary>
 /// An elliptic curve public key.
 /// </summary>
-internal class PublicKey
+internal class PublicKey : IKey
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="PublicKey" /> class.
 	/// </summary>
 	/// <param name="key">The underlying cryptographic key.</param>
-	internal PublicKey(ECPubKey key)
+	/// <param name="isTestNet">A value indicating whether this key operates on the testnet.</param>
+	internal PublicKey(ECPubKey key, bool isTestNet)
 	{
 		this.CryptographicKey = key;
+		this.IsTestNet = isTestNet;
 	}
+
+	/// <inheritdoc/>
+	public bool IsTestNet { get; }
 
 	/// <summary>
 	/// Gets the underlying cryptographic key.

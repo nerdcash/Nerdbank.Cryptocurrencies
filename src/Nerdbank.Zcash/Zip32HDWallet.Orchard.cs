@@ -37,7 +37,10 @@ public partial class Zip32HDWallet
 				chainCode,
 				parentFullViewingKeyTag: default,
 				depth: 0,
-				childIndex: 0);
+				childIndex: 0)
+			{
+				DerivationPath = Bip32HDWallet.KeyPath.Root,
+			};
 		}
 
 		/// <summary>

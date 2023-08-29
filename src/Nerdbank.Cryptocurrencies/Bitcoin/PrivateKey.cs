@@ -18,12 +18,11 @@ internal class PrivateKey : IDisposable, IKey
 	internal PrivateKey(ECPrivKey key, bool isTestNet)
 	{
 		this.CryptographicKey = key;
-		this.PublicKey = new(this.CryptographicKey.CreatePubKey());
-		this.IsTestNet = isTestNet;
+		this.PublicKey = new(this.CryptographicKey.CreatePubKey(), isTestNet);
 	}
 
 	/// <inheritdoc/>
-	public bool IsTestNet { get; }
+	public bool IsTestNet => this.PublicKey.IsTestNet;
 
 	/// <summary>
 	/// Gets the underlying cryptographic key.

@@ -13,7 +13,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
-		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
+		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 		public class ExtendedFullViewingKey : IExtendedKey, IFullViewingKey, IEquatable<ExtendedFullViewingKey>
 		{
 			private const string Bech32MainNetworkHRP = "zxviews";
@@ -50,6 +50,9 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			public byte Depth { get; }
+
+			/// <inheritdoc/>
+			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
 
 			/// <inheritdoc/>
 			public ZcashNetwork Network => this.FullViewingKey.Network;
@@ -103,6 +106,8 @@ public partial class Zip32HDWallet
 			/// <value>A 32-byte buffer.</value>
 			internal ref readonly DiversifierKey Dk => ref this.FullViewingKey.Dk;
 
+			private string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
+
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class
 			/// from the bech32 encoding of an extended full viewing key as specified in ZIP-32.
@@ -149,7 +154,8 @@ public partial class Zip32HDWallet
 					&& this.ChainCode.Value.SequenceEqual(other.ChainCode.Value)
 					&& this.ParentFullViewingKeyTag.Value.SequenceEqual(other.ParentFullViewingKeyTag.Value)
 					&& this.Depth == other.Depth
-					&& this.ChildIndex == other.ChildIndex;
+					&& this.ChildIndex == other.ChildIndex
+					&& this.Network == other.Network;
 			}
 
 			/// <inheritdoc/>
