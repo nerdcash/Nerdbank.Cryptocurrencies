@@ -34,7 +34,7 @@
 		var mnemonic = Bip39Mnemonic.Parse(generatedSeedPhrase, password.AsMemory());
 		using Bip32HDWallet.ExtendedPrivateKey masterKey = Bip32HDWallet.ExtendedPrivateKey.Create(mnemonic);
 		using Bip32HDWallet.ExtendedPrivateKey firstAddressKey = masterKey.Derive(Bip44MultiAccountHD.CreateKeyPath(133, 0, Bip44MultiAccountHD.Change.ReceivingAddressChain, 0));
-		var receiver = new TransparentP2PKHReceiver(new Transparent.P2PKHFullViewingKey(firstAddressKey.PublicKey.CryptographicKey, ZcashNetwork.TestNet));
+		var receiver = new TransparentP2PKHReceiver(new Zip32HDWallet.Transparent.ExtendedViewingKey(firstAddressKey.PublicKey, ZcashNetwork.TestNet));
 		var address = new TransparentP2PKHAddress(receiver);
 		tAddr = address;
 	}

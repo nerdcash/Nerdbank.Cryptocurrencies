@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.Transparent;
-
 public class TransparentP2PKHAddressTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
@@ -34,7 +32,7 @@ public class TransparentP2PKHAddressTests : TestBase
 	public void AddressDerivation()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("diary slender airport");
-		using Bip32HDWallet.ExtendedPrivateKey masterKey = Bip32HDWallet.ExtendedPrivateKey.Create(mnemonic);
+		using Bip32HDWallet.ExtendedPrivateKey masterKey = Bip32HDWallet.ExtendedPrivateKey.Create(mnemonic, testNet: true);
 		using Bip32HDWallet.ExtendedPrivateKey accountKey = masterKey.Derive(Bip44MultiAccountHD.CreateKeyPath(133, 0));
 		Bip32HDWallet.ExtendedPublicKey accountPublicKey = accountKey.PublicKey;
 
@@ -51,7 +49,7 @@ public class TransparentP2PKHAddressTests : TestBase
 			this.logger.WriteLine($"{new Bip32HDWallet.KeyPath(i, addrKeyPath)}");
 			Bip32HDWallet.ExtendedPublicKey addrExtendedPublicKey = accountPublicKey.Derive(addrKeyPath);
 
-			TransparentP2PKHReceiver receiver = new(new P2PKHFullViewingKey(addrExtendedPublicKey.CryptographicKey, ZcashNetwork.TestNet));
+			TransparentP2PKHReceiver receiver = new(new Zip32HDWallet.Transparent.ExtendedViewingKey(addrExtendedPublicKey, ZcashNetwork.TestNet));
 			TransparentP2PKHAddress addr = new(receiver);
 
 			this.logger.WriteLine($"{addr}");

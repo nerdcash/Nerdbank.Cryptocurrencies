@@ -69,7 +69,7 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 	/// <list type="bullet">
 	/// <item><see cref="Orchard.SpendingKey"/></item>
 	/// <item><see cref="Zip32HDWallet.Sapling.ExtendedSpendingKey"/></item>
-	/// <item><see cref="Transparent.P2PKHSpendingKey"/></item>
+	/// <item><see cref="Zip32HDWallet.Transparent.ExtendedSpendingKey"/></item>
 	/// </list>
 	/// </para>
 	/// </param>
@@ -135,7 +135,7 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 			{
 				UnifiedTypeCodes.Orchard => Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
 				UnifiedTypeCodes.Sapling => Zip32HDWallet.Sapling.ExtendedSpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
-				UnifiedTypeCodes.TransparentP2PKH => Transparent.P2PKHSpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
+				UnifiedTypeCodes.TransparentP2PKH => Zip32HDWallet.Transparent.ExtendedSpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
 				_ => null,
 			};
 

@@ -27,6 +27,8 @@ public partial class Zip32HDWallet
 
 	private Sapling.ExtendedSpendingKey masterSaplingKey;
 
+	private Transparent.ExtendedSpendingKey masterTransparentKey;
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Zip32HDWallet"/> class.
 	/// </summary>
@@ -51,6 +53,7 @@ public partial class Zip32HDWallet
 		this.Seed = seed.ToArray();
 		this.masterOrchardKey = Orchard.Create(this.Seed.Span, this.Network);
 		this.masterSaplingKey = Sapling.Create(this.Seed.Span, this.Network);
+		this.masterTransparentKey = Transparent.Create(this.Seed.Span, this.Network);
 	}
 
 	/// <summary>
@@ -124,6 +127,13 @@ public partial class Zip32HDWallet
 	/// <param name="account">The account index. Use 0 for the first account and increment by one only after completing a transaction in the previous account so that account discovery can find all accounts.</param>
 	/// <returns>The account spending key.</returns>
 	public Sapling.ExtendedSpendingKey CreateSaplingAccount(uint account = 0) => this.masterSaplingKey.Derive(CreateKeyPath(account));
+
+	/// <summary>
+	/// Creates a new transparent account.
+	/// </summary>
+	/// <param name="account">The account index. Use 0 for the first account and increment by one only after completing a transaction in the previous account so that account discovery can find all accounts.</param>
+	/// <returns>The account spending key.</returns>
+	public Transparent.ExtendedSpendingKey CreateTransparentAccount(uint account = 0) => this.masterTransparentKey.Derive(CreateKeyPath(account));
 
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.

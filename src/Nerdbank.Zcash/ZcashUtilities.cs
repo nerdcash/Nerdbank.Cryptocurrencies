@@ -68,7 +68,7 @@ internal static class ZcashUtilities
 
 			// The property we called MUST return an object that is not still a full viewing key,
 			// but we'll assert it here because our caller wants to make sure the we don't leak data.
-			Assumes.False(ivk is IFullViewingKey);
+			Assumes.True(ivk is not IFullViewingKey || ivk is IFullOrIncomingViewingKey { IsFullViewingKey: false });
 		}
 
 		return ivk;

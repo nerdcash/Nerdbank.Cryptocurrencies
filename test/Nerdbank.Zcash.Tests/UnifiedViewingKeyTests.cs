@@ -7,6 +7,8 @@ using OrchardSK = Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey;
 using SaplingFVK = Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey;
 using SaplingIVK = Nerdbank.Zcash.Sapling.IncomingViewingKey;
 using SaplingSK = Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey;
+using TransparentFVK = Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey;
+using TransparentSK = Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey;
 
 public class UnifiedViewingKeyTests : TestBase
 {
@@ -189,14 +191,43 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.ViewingKey);
 	}
 
-	[Fact(Skip = "Not yet implemented.")]
-	public void Create_Transparent()
+	[Fact]
+	public void Create_Transparent_FVK()
 	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		TransparentSK transparent = wallet.CreateTransparentAccount(0);
+		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Full.Create(transparent);
+
+		Assert.Equal(
+			"uview19mqx3hxxhjemtr73tacw3dqmnanweuvf62qpcxj7hy0frt32tjr230een4q6tlvw9tgcgnfpva9954d64jgr2vaypm6p8x5xlept87kzkzwu3yt2l47624ftxdzcemfg9grp6rus90m",
+			uvk.ViewingKey);
 	}
 
-	[Fact(Skip = "Not yet implemented.")]
-	public void Create_Orchard_Sapling_Transparent()
+	[Fact]
+	public void Create_Transparent_IVK()
 	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		TransparentFVK transparent = wallet.CreateTransparentAccount(0).FullViewingKey;
+		UnifiedViewingKey.Incoming uvk = UnifiedViewingKey.Incoming.Create(transparent);
+
+		this.logger.WriteLine(uvk);
+		Assert.Equal(
+			"uivk1y32cpthqwwzupwrckny9njde8qrh9ayplqvs7p89gfuwa857k9zhr99y0fedze9j0nqz2dq63ad8ez37t6aqdlfmk3f64a2u48cqs7w8zdx8fpax4rl9z8qcq984c0kmn43wwlcdstq",
+			uvk.ViewingKey);
+	}
+
+	[Fact]
+	public void Create_FVK_Orchard_Sapling_Transparent()
+	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		OrchardSK orchard = wallet.CreateOrchardAccount(0);
+		SaplingSK sapling = wallet.CreateSaplingAccount(0);
+		TransparentSK transparent = wallet.CreateTransparentAccount(0);
+		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Full.Create(orchard.FullViewingKey, sapling.FullViewingKey);
+
+		Assert.Equal(
+			"uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z",
+			uvk.ViewingKey);
 	}
 
 	/// <summary>
