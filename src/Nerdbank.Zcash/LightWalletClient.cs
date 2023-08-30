@@ -9,34 +9,35 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Exposes functionality of a lightwallet client.
 /// </summary>
-public class LightWallet : IDisposableObservable
+public class LightWalletClient : IDisposableObservable
 {
 	private readonly Uri serverUrl;
-	private readonly ZcashNetwork network;
+	private readonly ZcashWallet.Account account;
 	private readonly LightWalletSafeHandle handle;
 	private bool disposed;
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="LightWallet"/> class.
+	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
 	/// </summary>
 	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
-	/// <param name="network">The Zcash network served by the server specified by <paramref name="serverUrl"/>.</param>
+	/// <param name="account">The account whose keys will be used with this server.</param>
 	/// <param name="walletPath">The absolute path to the directory where the wallet and log will be written.</param>
 	/// <param name="walletName">The filename of the wallet (without a path).</param>
 	/// <param name="logName">The filename of the log file (without a path).</param>
 	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
-	public LightWallet(Uri serverUrl, ZcashNetwork network, string walletPath, string walletName, string logName, bool watchMemPool)
+	public LightWalletClient(Uri serverUrl, ZcashWallet.Account account, string walletPath, string walletName, string logName, bool watchMemPool)
 	{
 		Requires.NotNull(serverUrl);
+		Requires.NotNull(account);
 
 		this.serverUrl = serverUrl;
-		this.network = network;
+		this.account = account;
 
 		this.handle = new LightWalletSafeHandle(
 			unchecked((nint)LightWalletMethods.LightwalletInitialize(
 				new Config(
 				serverUrl.AbsoluteUri,
-				ToNetwork(network),
+				ToNetwork(account.Network),
 				walletPath,
 				walletName,
 				logName,
@@ -281,7 +282,7 @@ public class LightWallet : IDisposableObservable
 
 	/// <summary>
 	/// A <see cref="SafeHandle"/> that contains the handle to the native lightwallet used by
-	/// an instance of <see cref="LightWallet"/>.
+	/// an instance of <see cref="LightWalletClient"/>.
 	/// </summary>
 	private class LightWalletSafeHandle : SafeHandle
 	{

@@ -138,6 +138,11 @@ public class ZcashWallet
 		public uint Index { get; }
 
 		/// <summary>
+		/// Gets the network this account should be used with.
+		/// </summary>
+		public ZcashNetwork Network => this.owner.Network;
+
+		/// <summary>
 		/// Gets the spending key for the transparent pool (<c>m/44'/133'/account'</c>).
 		/// </summary>
 		public Transparent.ExtendedSpendingKey Transparent { get; }

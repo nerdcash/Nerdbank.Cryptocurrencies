@@ -28,41 +28,41 @@ Nerdbank.Zcash.ISpendingKey
 Nerdbank.Zcash.ISpendingKey.FullViewingKey.get -> Nerdbank.Zcash.IFullViewingKey!
 Nerdbank.Zcash.IZcashKey
 Nerdbank.Zcash.IZcashKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
-Nerdbank.Zcash.LightWallet
-Nerdbank.Zcash.LightWallet.BirthdayHeight.get -> ulong
-Nerdbank.Zcash.LightWallet.Dispose() -> void
-Nerdbank.Zcash.LightWallet.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWallet.SyncProgress!>? progress, System.TimeSpan? updateFrequency, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWallet.SyncResult!>!
-Nerdbank.Zcash.LightWallet.DownloadTransactionsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWallet.SyncResult!>!
-Nerdbank.Zcash.LightWallet.GetDownloadedTransactions(uint startingBlock = 0) -> System.Collections.Generic.List<uniffi.LightWallet.Transaction!>!
-Nerdbank.Zcash.LightWallet.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
-Nerdbank.Zcash.LightWallet.LastDownloadHeight.get -> ulong
-Nerdbank.Zcash.LightWallet.LightWallet(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void
-Nerdbank.Zcash.LightWallet.SyncProgress
-Nerdbank.Zcash.LightWallet.SyncProgress.BatchNum.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncProgress.BatchNum.init -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.BatchTotal.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncProgress.BatchTotal.init -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.BlocksDone.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncProgress.BlocksDone.init -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.BlocksTotal.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncProgress.BlocksTotal.init -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.EndBlock.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncProgress.EndBlock.init -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.LastError.get -> string?
-Nerdbank.Zcash.LightWallet.SyncProgress.LastError.init -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.StartBlock.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncProgress.StartBlock.init -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.SyncProgress(string? LastError, ulong StartBlock, ulong EndBlock, ulong BlocksDone, ulong TxnScanDone, ulong BlocksTotal, ulong BatchNum, ulong BatchTotal) -> void
-Nerdbank.Zcash.LightWallet.SyncProgress.TxnScanDone.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncProgress.TxnScanDone.init -> void
-Nerdbank.Zcash.LightWallet.SyncResult
-Nerdbank.Zcash.LightWallet.SyncResult.LatestBlock.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncResult.LatestBlock.init -> void
-Nerdbank.Zcash.LightWallet.SyncResult.Success.get -> bool
-Nerdbank.Zcash.LightWallet.SyncResult.Success.init -> void
-Nerdbank.Zcash.LightWallet.SyncResult.SyncResult(bool Success, ulong LatestBlock, ulong TotalBlocksScanned) -> void
-Nerdbank.Zcash.LightWallet.SyncResult.TotalBlocksScanned.get -> ulong
-Nerdbank.Zcash.LightWallet.SyncResult.TotalBlocksScanned.init -> void
+Nerdbank.Zcash.LightWalletClient
+Nerdbank.Zcash.LightWalletClient.BirthdayHeight.get -> ulong
+Nerdbank.Zcash.LightWalletClient.Dispose() -> void
+Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWalletClient.SyncProgress!>? progress, System.TimeSpan? updateFrequency, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncResult!>!
+Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncResult!>!
+Nerdbank.Zcash.LightWalletClient.GetDownloadedTransactions(uint startingBlock = 0) -> System.Collections.Generic.List<uniffi.LightWallet.Transaction!>!
+Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+Nerdbank.Zcash.LightWalletClient.LastDownloadHeight.get -> ulong
+Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashWallet.Account! account, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BatchNum.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BatchNum.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BatchTotal.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BatchTotal.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksDone.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksDone.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksTotal.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksTotal.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.EndBlock.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncProgress.EndBlock.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.LastError.get -> string?
+Nerdbank.Zcash.LightWalletClient.SyncProgress.LastError.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.StartBlock.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncProgress.StartBlock.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.SyncProgress(string? LastError, ulong StartBlock, ulong EndBlock, ulong BlocksDone, ulong TxnScanDone, ulong BlocksTotal, ulong BatchNum, ulong BatchTotal) -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.TxnScanDone.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncProgress.TxnScanDone.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncResult
+Nerdbank.Zcash.LightWalletClient.SyncResult.LatestBlock.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncResult.LatestBlock.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncResult.Success.get -> bool
+Nerdbank.Zcash.LightWalletClient.SyncResult.Success.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncResult.SyncResult(bool Success, ulong LatestBlock, ulong TotalBlocksScanned) -> void
+Nerdbank.Zcash.LightWalletClient.SyncResult.TotalBlocksScanned.get -> ulong
+Nerdbank.Zcash.LightWalletClient.SyncResult.TotalBlocksScanned.init -> void
 Nerdbank.Zcash.Orchard.FullViewingKey
 Nerdbank.Zcash.Orchard.FullViewingKey.Equals(Nerdbank.Zcash.Orchard.FullViewingKey? other) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Orchard.IncomingViewingKey!
@@ -203,6 +203,7 @@ Nerdbank.Zcash.ZcashWallet.Account.GetDiversifiedAddress() -> Nerdbank.Zcash.Uni
 Nerdbank.Zcash.ZcashWallet.Account.GetDiversifiedAddress(ref Nerdbank.Zcash.DiversifierIndex diversifierIndex) -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashWallet.Account.IncomingViewingKey.get -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 Nerdbank.Zcash.ZcashWallet.Account.Index.get -> uint
+Nerdbank.Zcash.ZcashWallet.Account.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashWallet.Account.Orchard.get -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 Nerdbank.Zcash.ZcashWallet.Account.Sapling.get -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
 Nerdbank.Zcash.ZcashWallet.Account.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
@@ -361,7 +362,7 @@ override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.Derive(uin
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey!
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(ulong diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
-static Nerdbank.Zcash.LightWallet.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+static Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
 static Nerdbank.Zcash.OrchardReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.Sapling.FullViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.FullViewingKey!
 static Nerdbank.Zcash.Sapling.IncomingViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
