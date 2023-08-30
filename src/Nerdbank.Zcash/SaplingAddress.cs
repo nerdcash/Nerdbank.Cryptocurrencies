@@ -47,7 +47,7 @@ public class SaplingAddress : ZcashAddress
 	internal override byte UnifiedTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
+	internal override int ReceiverEncodingLength => this.receiver.EncodingLength;
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SaplingReceiver, TPoolReceiver>(this.receiver);
@@ -91,12 +91,7 @@ public class SaplingAddress : ZcashAddress
 	}
 
 	/// <inheritdoc/>
-	internal override int GetReceiverEncoding(Span<byte> output)
-	{
-		ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
-		receiverSpan.CopyTo(output);
-		return receiverSpan.Length;
-	}
+	internal override int GetReceiverEncoding(Span<byte> output) => this.receiver.Encode(output);
 
 	private static string CreateAddress(in SaplingReceiver receiver, ZcashNetwork network)
 	{

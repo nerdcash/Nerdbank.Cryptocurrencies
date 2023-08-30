@@ -16,8 +16,8 @@ public class IncomingViewingKeyTests : TestBase
 		OrchardReceiver receiver = account1.IncomingViewingKey.CreateReceiver(3);
 
 		Assert.True(account1.IncomingViewingKey.CheckReceiver(receiver));
-		Assert.True(account1.IncomingViewingKey.TryGetDiversifierIndex(receiver, out BigInteger? idx));
-		Assert.Equal(3, idx);
+		Assert.True(account1.IncomingViewingKey.TryGetDiversifierIndex(receiver, out DiversifierIndex? idx));
+		Assert.Equal(3, idx.Value.ToBigInteger());
 
 		Assert.False(account2.IncomingViewingKey.CheckReceiver(receiver));
 		Assert.False(account2.IncomingViewingKey.TryGetDiversifierIndex(receiver, out idx));

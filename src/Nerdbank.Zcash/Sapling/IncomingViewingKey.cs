@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Numerics;
 using Nerdbank.Zcash.FixedLengthStructs;
 
 namespace Nerdbank.Zcash.Sapling;
@@ -39,7 +38,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// Gets the default address for this spending key.
 	/// </summary>
 	/// <remarks>
-	/// Create additional diversified addresses using <see cref="TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>.
+	/// Create additional diversified addresses using <see cref="TryCreateReceiver"/>.
 	/// </remarks>
 	public SaplingAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
@@ -118,42 +117,6 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <summary>
 	/// Creates a sapling receiver using this key and a given diversifier.
 	/// </summary>
-	/// <param name="index">
-	/// The diversifier index to start searching at, in the range of 0..(2^88 - 1).
-	/// Not every index will produce a valid diversifier. About half will fail.
-	/// The default diversifier is defined as the smallest non-negative index that produces a valid diversifier.
-	/// This value will be incremented until a diversifier can be found.
-	/// </param>
-	/// <param name="receiver">Receives the sapling receiver, if successful.</param>
-	/// <returns>
-	/// <see langword="true"/> if a valid diversifier could be produced at or above the initial value given by <paramref name="index"/>.
-	/// <see langword="false"/> if no valid diversifier could be found at or above <paramref name="index"/>.
-	/// </returns>
-	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative.</exception>
-	public bool TryCreateReceiver(ref BigInteger index, out SaplingReceiver receiver)
-	{
-		Requires.Range(index >= 0, nameof(index));
-
-		Span<byte> indexBytes = stackalloc byte[11];
-		if (!index.TryWriteBytes(indexBytes, out _, isUnsigned: true))
-		{
-			throw new ArgumentException("Index must fit within 11 bytes.");
-		}
-
-		bool result = this.TryCreateReceiver(indexBytes, out receiver);
-
-		if (result)
-		{
-			// The index may have been changed. Apply that change to our ref parameter.
-			index = new BigInteger(indexBytes, isUnsigned: true);
-		}
-
-		return result;
-	}
-
-	/// <summary>
-	/// Creates a sapling receiver using this key and a given diversifier.
-	/// </summary>
 	/// <param name="diversifierIndex">
 	/// The diversifier index to start searching at, in the range of 0..(2^88 - 1).
 	/// Not every index will produce a valid diversifier. About half will fail.
@@ -166,15 +129,19 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <see langword="false"/> if no valid diversifier could be found at or above <paramref name="diversifierIndex"/>.
 	/// </returns>
 	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="diversifierIndex"/> is negative.</exception>
-	public bool TryCreateReceiver(Span<byte> diversifierIndex, out SaplingReceiver receiver)
+	public bool TryCreateReceiver(ref DiversifierIndex diversifierIndex, [NotNullWhen(true)] out SaplingReceiver? receiver)
 	{
 		Verify.Operation(this.Dk.HasValue, "This IVK was not created with a diversifier key.");
 		Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
-		if (NativeMethods.TryGetSaplingReceiver(this.ivk.Value, this.Dk.Value.Value, diversifierIndex, receiverBytes) != 0)
+		Span<byte> diversifierIndexSpan = stackalloc byte[11];
+		diversifierIndex.Value.CopyTo(diversifierIndexSpan);
+		if (NativeMethods.TryGetSaplingReceiver(this.ivk.Value, this.Dk.Value.Value, diversifierIndexSpan, receiverBytes) != 0)
 		{
+			receiver = null;
 			return false;
 		}
 
+		diversifierIndex = new(diversifierIndexSpan);
 		receiver = new(receiverBytes);
 		return true;
 	}
@@ -185,9 +152,9 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <returns>The receiver.</returns>
 	public SaplingReceiver CreateDefaultReceiver()
 	{
-		Span<byte> diversifier = stackalloc byte[11];
-		Assumes.True(this.TryCreateReceiver(diversifier, out SaplingReceiver receiver));
-		return receiver;
+		DiversifierIndex diversifierIndex = default;
+		Assumes.True(this.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver? receiver));
+		return receiver.Value;
 	}
 
 	/// <summary>
@@ -197,14 +164,10 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <param name="receiver">The receiver to test.</param>
 	/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
 	/// <remarks>
-	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex(SaplingReceiver, Span{byte})"/> method,
+	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex"/> method,
 	/// which runs a similar test but also provides the decrypted diversifier index.</para>
 	/// </remarks>
-	public bool CheckReceiver(SaplingReceiver receiver)
-	{
-		Span<byte> diversifier = stackalloc byte[11];
-		return this.TryGetDiversifierIndex(receiver, diversifier);
-	}
+	public bool CheckReceiver(SaplingReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
 
 	/// <summary>
 	/// Checks whether a given sapling receiver was derived from the same spending authority as this key
@@ -217,31 +180,20 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <remarks>
 	/// <para>Use <see cref="CheckReceiver(SaplingReceiver)"/> for a simpler API if the diversifier index is not required.</para>
 	/// </remarks>
-	public bool TryGetDiversifierIndex(SaplingReceiver receiver, Span<byte> diversifierIndex)
+	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
 	{
 		Verify.Operation(this.Dk.HasValue, "This IVK was not created with a diversifier key.");
 
-		return NativeMethods.DecryptSaplingDiversifierWithIvk(this.Ivk.Value, this.Dk.Value.Value, receiver.Span, diversifierIndex) switch
+		Span<byte> diversifierSpan = stackalloc byte[11];
+		switch (NativeMethods.DecryptSaplingDiversifierWithIvk(this.Ivk.Value, this.Dk.Value.Value, receiver.Span, diversifierSpan))
 		{
-			0 => true,
-			1 => false,
-			_ => throw new ArgumentException(),
-		};
-	}
-
-	/// <inheritdoc cref="TryGetDiversifierIndex(SaplingReceiver, Span{byte})"/>
-	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out BigInteger? diversifierIndex)
-	{
-		Span<byte> diversifierIndexBytes = stackalloc byte[11];
-		if (this.TryGetDiversifierIndex(receiver, diversifierIndexBytes))
-		{
-			diversifierIndex = new BigInteger(diversifierIndexBytes, isUnsigned: true);
-			return true;
-		}
-		else
-		{
-			diversifierIndex = null;
-			return false;
+			case 0:
+				diversifierIndex = new(diversifierSpan);
+				return true;
+			case 1:
+				diversifierIndex = null;
+				return false;
+			default: throw new ArgumentException();
 		}
 	}
 

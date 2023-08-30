@@ -99,10 +99,10 @@ public partial class Zip32HDWallet
 			/// Gets the default address for this spending key.
 			/// </summary>
 			/// <remarks>
-			/// Create additional diversified addresses using <see cref="IncomingViewingKey.CreateReceiver(System.Numerics.BigInteger)"/> found on the <see cref="IncomingViewingKey"/> property.
+			/// Create additional diversified addresses using <see cref="IncomingViewingKey.CreateReceiver"/> found on the <see cref="IncomingViewingKey"/> property.
 			/// </remarks>
 			/// <seealso cref="IncomingViewingKey.CreateDefaultReceiver"/>
-			/// <seealso cref="IncomingViewingKey.CreateReceiver(System.Numerics.BigInteger)"/>
+			/// <seealso cref="IncomingViewingKey.CreateReceiver"/>
 			public OrchardAddress DefaultAddress => new(this.IncomingViewingKey.CreateDefaultReceiver(), this.Network);
 
 			/// <summary>

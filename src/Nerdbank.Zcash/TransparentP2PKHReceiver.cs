@@ -13,7 +13,7 @@ namespace Nerdbank.Zcash;
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Transparent"/> pool
 /// by way of a Pay to Public Key Hash method.
 /// </summary>
-public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
+public unsafe struct TransparentP2PKHReceiver : IPoolReceiver, IEquatable<TransparentP2PKHReceiver>
 {
 	private const int Length = 160 / 8;
 
@@ -65,15 +65,29 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 	public readonly Pool Pool => Pool.Transparent;
 
 	/// <summary>
-	/// Gets the validating key hash.
+	/// Gets the encoded representation of the entire receiver.
 	/// </summary>
-	public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
 
 	/// <inheritdoc />
-	public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
+	public readonly int EncodingLength => this.Span.Length;
 
 	/// <summary>
 	/// Gets the validating key hash.
 	/// </summary>
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
+
+	/// <summary>
+	/// Gets the validating key hash.
+	/// </summary>
+	[UnscopedRef]
 	private Span<byte> ValidatingKeyHashWritable => MemoryMarshal.CreateSpan(ref this.validatingKeyHash[0], Length);
+
+	/// <inheritdoc/>
+	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+
+	/// <inheritdoc/>
+	public bool Equals(TransparentP2PKHReceiver other) => this.ValidatingKeyHash.SequenceEqual(other.ValidatingKeyHash);
 }

@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Numerics;
-using Nerdbank.Zcash.Orchard;
-
 namespace Nerdbank.Zcash.Sapling;
 
 /// <summary>
@@ -61,14 +58,10 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 	/// <param name="receiver">The receiver to test.</param>
 	/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
 	/// <remarks>
-	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex(SaplingReceiver, Span{byte})"/> method,
+	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex"/> method,
 	/// which runs a similar test but also provides the decrypted diversifier index.</para>
 	/// </remarks>
-	public bool CheckReceiver(SaplingReceiver receiver)
-	{
-		Span<byte> diversifier = stackalloc byte[11];
-		return this.TryGetDiversifierIndex(receiver, diversifier);
-	}
+	public bool CheckReceiver(SaplingReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
 
 	/// <summary>
 	/// Checks whether a given sapling receiver was derived from the same spending authority as this key
@@ -81,29 +74,18 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 	/// <remarks>
 	/// <para>Use <see cref="CheckReceiver(SaplingReceiver)"/> for a simpler API if the diversifier index is not required.</para>
 	/// </remarks>
-	public bool TryGetDiversifierIndex(SaplingReceiver receiver, Span<byte> diversifierIndex)
+	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
 	{
-		return NativeMethods.DecryptSaplingDiversifier(this.ToBytes().Value, this.Dk.Value, receiver.Span, diversifierIndex, out _) switch
+		Span<byte> diversifierSpan = stackalloc byte[11];
+		switch (NativeMethods.DecryptSaplingDiversifier(this.ToBytes().Value, this.Dk.Value, receiver.Span, diversifierSpan, out _))
 		{
-			0 => true,
-			1 => false,
-			_ => throw new ArgumentException(),
-		};
-	}
-
-	/// <inheritdoc cref="TryGetDiversifierIndex(SaplingReceiver, Span{byte})"/>
-	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out BigInteger? diversifierIndex)
-	{
-		Span<byte> diversifierIndexBytes = stackalloc byte[11];
-		if (this.TryGetDiversifierIndex(receiver, diversifierIndexBytes))
-		{
-			diversifierIndex = new BigInteger(diversifierIndexBytes, isUnsigned: true);
-			return true;
-		}
-		else
-		{
-			diversifierIndex = null;
-			return false;
+			case 0:
+				diversifierIndex = new(diversifierSpan);
+				return true;
+			case 1:
+				diversifierIndex = null;
+				return false;
+			default: throw new ArgumentException();
 		}
 	}
 

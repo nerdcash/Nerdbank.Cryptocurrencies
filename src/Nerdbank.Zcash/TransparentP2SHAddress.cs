@@ -19,6 +19,7 @@ public class TransparentP2SHAddress : TransparentAddress
 		: base(CreateAddress(receiver, network))
 	{
 		this.receiver = receiver;
+		this.network = network;
 	}
 
 	/// <summary>
@@ -44,18 +45,13 @@ public class TransparentP2SHAddress : TransparentAddress
 	internal override byte UnifiedTypeCode => UnifiedTypeCodes.TransparentP2SH;
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
+	internal override int ReceiverEncodingLength => this.receiver.EncodingLength;
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2SHReceiver, TPoolReceiver>(this.receiver);
 
 	/// <inheritdoc/>
-	internal override int GetReceiverEncoding(Span<byte> output)
-	{
-		ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
-		receiverSpan.CopyTo(output);
-		return receiverSpan.Length;
-	}
+	internal override int GetReceiverEncoding(Span<byte> output) => this.receiver.Encode(output);
 
 	private static string CreateAddress(in TransparentP2SHReceiver receiver, ZcashNetwork network)
 	{

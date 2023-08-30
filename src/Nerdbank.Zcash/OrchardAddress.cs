@@ -55,12 +55,7 @@ public class OrchardAddress : UnifiedAddress
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);
 
 	/// <inheritdoc/>
-	internal override int GetReceiverEncoding(Span<byte> output)
-	{
-		ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
-		receiverSpan.CopyTo(output);
-		return receiverSpan.Length;
-	}
+	internal override int GetReceiverEncoding(Span<byte> output) => this.receiver.Encode(output);
 
 	private static unsafe string CreateAddress(in OrchardReceiver receiver, ZcashNetwork network)
 	{

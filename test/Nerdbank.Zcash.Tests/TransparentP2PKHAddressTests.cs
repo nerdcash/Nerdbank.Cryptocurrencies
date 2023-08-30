@@ -16,8 +16,20 @@ public class TransparentP2PKHAddressTests : TestBase
 		byte[] hash = new byte[20];
 		hash[1] = 2;
 		TransparentP2PKHReceiver receiver = new(hash);
-		TransparentP2PKHAddress addr = new(receiver);
+		TransparentP2PKHAddress addr = new(receiver, ZcashNetwork.MainNet);
 		Assert.Equal("t1HseQJEmpT7jcnTGoJVsKg5fuTzhfNXu9v", addr.Address);
+		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
+	}
+
+	[Fact]
+	public void Ctor_Receiver_TestNet()
+	{
+		byte[] hash = new byte[20];
+		hash[1] = 2;
+		TransparentP2PKHReceiver receiver = new(hash);
+		TransparentP2PKHAddress addr = new(receiver, ZcashNetwork.TestNet);
+		Assert.Equal("tm9iPj8jBD7dEm2eiU2ocBLkRWT5XBEXDQA", addr.Address);
+		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
 	}
 
 	[Fact]

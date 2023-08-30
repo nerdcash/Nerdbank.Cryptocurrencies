@@ -41,15 +41,26 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
 	public readonly Pool Pool => Pool.Transparent;
 
 	/// <summary>
-	/// Gets the script hash.
+	/// Gets the encoded representation of the entire receiver.
 	/// </summary>
-	public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
 
 	/// <inheritdoc />
-	public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
+	public readonly int EncodingLength => this.Span.Length;
 
 	/// <summary>
 	/// Gets the script hash.
 	/// </summary>
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
+
+	/// <summary>
+	/// Gets the script hash.
+	/// </summary>
+	[UnscopedRef]
 	private Span<byte> ScriptHashWritable => MemoryMarshal.CreateSpan(ref this.scriptHash[0], Length);
+
+	/// <inheritdoc/>
+	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
 }

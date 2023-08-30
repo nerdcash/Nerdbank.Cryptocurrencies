@@ -91,7 +91,7 @@ public partial class Zip32HDWallet
 			/// Gets the default address for this spending key.
 			/// </summary>
 			/// <remarks>
-			/// Create additional diversified addresses using <see cref="IncomingViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
+			/// Create additional diversified addresses using <see cref="IncomingViewingKey.TryCreateReceiver"/>
 			/// found on the <see cref="FullViewingKey"/>.
 			/// </remarks>
 			public SaplingAddress DefaultAddress => this.IncomingViewingKey.DefaultAddress;

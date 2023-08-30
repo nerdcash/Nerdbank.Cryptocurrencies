@@ -70,18 +70,30 @@ public unsafe struct SproutReceiver : IPoolReceiver
 	public readonly ReadOnlySpan<byte> PkEnc => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[FieldLength]), FieldLength);
 
 	/// <inheritdoc />
+	public readonly int EncodingLength => Length;
+
+	/// <summary>
+	/// Gets the encoded representation of the entire receiver.
+	/// </summary>
+	[UnscopedRef]
 	public readonly ReadOnlySpan<byte> Span => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), Length);
 
 	/// <inheritdoc cref="Span" />
+	[UnscopedRef]
 	private Span<byte> SpanWritable => MemoryMarshal.CreateSpan(ref this.backing[0], Length);
 
 	/// <summary>
 	/// Gets the a{pk} on the receiver.
 	/// </summary>
+	[UnscopedRef]
 	private Span<byte> ApkWritable => MemoryMarshal.CreateSpan(ref this.backing[0], FieldLength);
 
 	/// <summary>
 	/// Gets the pk{enc} on the receiver.
 	/// </summary>
+	[UnscopedRef]
 	private Span<byte> PkEncWritable => MemoryMarshal.CreateSpan(ref this.backing[FieldLength], FieldLength);
+
+	/// <inheritdoc/>
+	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
 }
