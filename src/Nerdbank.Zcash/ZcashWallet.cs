@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Numerics;
 using static Nerdbank.Zcash.Zip32HDWallet;
 
 namespace Nerdbank.Zcash;
@@ -111,22 +110,13 @@ public class ZcashWallet
 			this.owner = owner;
 			this.Index = index;
 
-			this.Transparent = owner.zip32.CreateTransparentAccount(index);
-			this.Sapling = owner.zip32.CreateSaplingAccount(index);
-			this.Orchard = owner.zip32.CreateOrchardAccount(index);
+			Transparent.ExtendedSpendingKey transparent = owner.zip32.CreateTransparentAccount(index);
+			Zip32HDWallet.Sapling.ExtendedSpendingKey sapling = owner.zip32.CreateSaplingAccount(index);
+			Zip32HDWallet.Orchard.ExtendedSpendingKey orchard = owner.zip32.CreateOrchardAccount(index);
 
-			this.DefaultAddress = UnifiedAddress.Create(
-				this.Transparent.DefaultAddress,
-				this.Sapling.DefaultAddress,
-				this.Orchard.DefaultAddress);
-			this.FullViewingKey = UnifiedViewingKey.Full.Create(
-				this.Transparent.FullViewingKey,
-				this.Sapling.FullViewingKey,
-				this.Orchard.FullViewingKey);
-			this.SpendingKey = UnifiedSpendingKey.Create(
-				this.Transparent,
-				this.Sapling,
-				this.Orchard.SpendingKey);
+			this.Spending = new SpendingKeys(transparent, sapling, orchard);
+			this.FullViewing = this.Spending.FullViewingKey;
+			this.IncomingViewing = this.FullViewing.IncomingViewingKey;
 		}
 
 		/// <summary>
@@ -143,39 +133,24 @@ public class ZcashWallet
 		public ZcashNetwork Network => this.owner.Network;
 
 		/// <summary>
-		/// Gets the spending key for the transparent pool (<c>m/44'/133'/account'</c>).
+		/// Gets the spending keys, if this account has access to them.
 		/// </summary>
-		public Transparent.ExtendedSpendingKey Transparent { get; }
+		public SpendingKeys? Spending { get; }
 
 		/// <summary>
-		/// Gets the spending key for the sapling pool.
+		/// Gets the full viewing keys, if this account has access to them.
 		/// </summary>
-		public Zip32HDWallet.Sapling.ExtendedSpendingKey Sapling { get; }
+		public FullViewingKeys? FullViewing { get; }
 
 		/// <summary>
-		/// Gets the spending key for the orchard pool.
+		/// Gets the incoming viewing keys.
 		/// </summary>
-		public Zip32HDWallet.Orchard.ExtendedSpendingKey Orchard { get; }
+		public IncomingViewingKeys IncomingViewing { get; }
 
 		/// <summary>
 		/// Gets the default unified address for this account.
 		/// </summary>
-		public UnifiedAddress DefaultAddress { get; }
-
-		/// <summary>
-		/// Gets the full viewing key for this account.
-		/// </summary>
-		public UnifiedViewingKey.Full FullViewingKey { get; }
-
-		/// <summary>
-		/// Gets the incoming viewing key for this account.
-		/// </summary>
-		public UnifiedViewingKey.Incoming IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
-
-		/// <summary>
-		/// Gets the unified spending key for this account.
-		/// </summary>
-		internal UnifiedSpendingKey SpendingKey { get; }
+		public UnifiedAddress DefaultAddress => this.IncomingViewing.UnifiedKey.DefaultAddress;
 
 		private string DebuggerDisplay => $"{this.Index}: {this.DefaultAddress}";
 
@@ -195,7 +170,7 @@ public class ZcashWallet
 
 		/// <summary>
 		/// Gets a unique address that sends ZEC to this account but cannot be correlated with other addresses
-		/// except using the <see cref="IncomingViewingKey"/>.
+		/// except using the <see cref="IncomingViewing"/> key.
 		/// </summary>
 		/// <param name="diversifierIndex">
 		/// The 11-byte diversifier index to start searching at, in the range of 0..(2^88 - 1).
@@ -213,15 +188,25 @@ public class ZcashWallet
 		/// </remarks>
 		public UnifiedAddress GetDiversifiedAddress(ref DiversifierIndex diversifierIndex)
 		{
+			List<ZcashAddress> componentAddresses = new(2);
+
 			// Now get the closest matching Sapling diversifier we can.
-			Verify.Operation(this.Sapling.IncomingViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver? sapling), "No sapling diversifier could be found at or above that index.");
+			if (this.IncomingViewing.Sapling is not null)
+			{
+				Verify.Operation(this.IncomingViewing.Sapling.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver? sapling), "No sapling diversifier could be found at or above that index.");
+				componentAddresses.Add(new SaplingAddress(sapling.Value, this.owner.Network));
+			}
 
 			// The orchard diversifier always works.
-			OrchardReceiver orchard = this.Orchard.SpendingKey.FullViewingKey.IncomingViewingKey.CreateReceiver(diversifierIndex);
+			if (this.IncomingViewing.Orchard is not null)
+			{
+				OrchardReceiver orchard = this.IncomingViewing.Orchard.CreateReceiver(diversifierIndex);
+				componentAddresses.Add(new OrchardAddress(orchard, this.owner.Network));
+			}
 
-			return UnifiedAddress.Create(
-				new SaplingAddress(sapling.Value, this.owner.Network),
-				new OrchardAddress(orchard, this.owner.Network));
+			Verify.Operation(componentAddresses.Count > 0, "This account doesn't include any diversifiable keys.");
+
+			return UnifiedAddress.Create(componentAddresses);
 		}
 
 		/// <summary>
@@ -263,12 +248,181 @@ public class ZcashWallet
 
 			bool TestAddress(ZcashAddress individualAddress)
 			{
-				return
-					(individualAddress.GetPoolReceiver<OrchardReceiver>() is { } orchardReceiver && this.Orchard.IncomingViewingKey.CheckReceiver(orchardReceiver)) ||
-					(individualAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver && this.Sapling.IncomingViewingKey.CheckReceiver(saplingReceiver)) ||
-					(individualAddress.GetPoolReceiver<TransparentP2PKHReceiver>() is { } p2pkhReceiver && this.Transparent.FullViewingKey.CheckReceiver(p2pkhReceiver, this.transparentAddressesToScanAsync)) ||
-					(individualAddress.GetPoolReceiver<TransparentP2SHReceiver>() is { } p2shReceiver && this.Transparent.FullViewingKey.CheckReceiver(p2shReceiver, this.transparentAddressesToScanAsync));
+				if (this.IncomingViewing.Orchard is not null && individualAddress.GetPoolReceiver<OrchardReceiver>() is { } orchardReceiver && this.IncomingViewing.Orchard.CheckReceiver(orchardReceiver))
+				{
+					return true;
+				}
+
+				if (this.IncomingViewing.Sapling is not null && individualAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver && this.IncomingViewing.Sapling.CheckReceiver(saplingReceiver))
+				{
+					return true;
+				}
+
+				Transparent.ExtendedViewingKey? transparentViewing = this.FullViewing?.Transparent ?? this.IncomingViewing.Transparent;
+				if (transparentViewing is not null)
+				{
+					if (individualAddress.GetPoolReceiver<TransparentP2PKHReceiver>() is { } p2pkhReceiver && transparentViewing.CheckReceiver(p2pkhReceiver, this.transparentAddressesToScanAsync))
+					{
+						return true;
+					}
+
+					if (individualAddress.GetPoolReceiver<TransparentP2SHReceiver>() is { } p2shReceiver && transparentViewing.CheckReceiver(p2shReceiver, this.transparentAddressesToScanAsync))
+					{
+						return true;
+					}
+				}
+
+				return false;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Spending keys for each pool.
+	/// </summary>
+	public record SpendingKeys : ISpendingKey
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SpendingKeys"/> class.
+		/// </summary>
+		/// <param name="transparent">A key for the transparent pool.</param>
+		/// <param name="sapling">A key for the sapling pool.</param>
+		/// <param name="orchard">A key for the orchard pool.</param>
+		internal SpendingKeys(
+			Transparent.ExtendedSpendingKey transparent,
+			Zip32HDWallet.Sapling.ExtendedSpendingKey sapling,
+			Zip32HDWallet.Orchard.ExtendedSpendingKey orchard)
+		{
+			this.Transparent = transparent;
+			this.Sapling = sapling;
+			this.Orchard = orchard;
+			this.UnifiedKey = UnifiedSpendingKey.Create(transparent, sapling, orchard.SpendingKey);
+
+			this.FullViewingKey = new FullViewingKeys(transparent.FullViewingKey, sapling.FullViewingKey, orchard.FullViewingKey);
+		}
+
+		/// <summary>
+		/// Gets the unified spending key for this account.
+		/// </summary>
+		internal UnifiedSpendingKey UnifiedKey { get; }
+
+		/// <summary>
+		/// Gets the spending key for the transparent pool (<c>m/44'/133'/account'</c>).
+		/// </summary>
+		public Transparent.ExtendedSpendingKey? Transparent { get; }
+
+		/// <summary>
+		/// Gets the spending key for the sapling pool.
+		/// </summary>
+		public Zip32HDWallet.Sapling.ExtendedSpendingKey? Sapling { get; }
+
+		/// <summary>
+		/// Gets the spending key for the orchard pool.
+		/// </summary>
+		public Zip32HDWallet.Orchard.ExtendedSpendingKey? Orchard { get; }
+
+		/// <summary>
+		/// Gets the full viewing key.
+		/// </summary>
+		internal FullViewingKeys FullViewingKey { get; }
+
+		/// <inheritdoc/>
+		IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+	}
+
+	/// <summary>
+	/// Full viewing keys for each pool.
+	/// </summary>
+	public record FullViewingKeys : IFullViewingKey
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FullViewingKeys"/> class.
+		/// </summary>
+		/// <param name="transparent">A key for the transparent pool.</param>
+		/// <param name="sapling">A key for the sapling pool.</param>
+		/// <param name="orchard">A key for the orchard pool.</param>
+		internal FullViewingKeys(Transparent.ExtendedViewingKey transparent, Sapling.DiversifiableFullViewingKey sapling, Orchard.FullViewingKey orchard)
+		{
+			this.Transparent = transparent;
+			this.Sapling = sapling;
+			this.Orchard = orchard;
+			this.UnifiedKey = UnifiedViewingKey.Full.Create(transparent, sapling, orchard);
+
+			this.IncomingViewingKey = new IncomingViewingKeys(transparent.IncomingViewingKey, sapling.IncomingViewingKey, orchard.IncomingViewingKey);
+		}
+
+		/// <summary>
+		/// Gets the unified full viewing key for this account.
+		/// </summary>
+		public UnifiedViewingKey.Full UnifiedKey { get; }
+
+		/// <summary>
+		/// Gets the full viewing key for the transparent pool (<c>m/44'/133'/account'</c>).
+		/// </summary>
+		public Transparent.ExtendedViewingKey? Transparent { get; }
+
+		/// <summary>
+		/// Gets the full viewing key for the sapling pool.
+		/// </summary>
+		public Sapling.DiversifiableFullViewingKey? Sapling { get; }
+
+		/// <summary>
+		/// Gets the full viewing key for the orchard pool.
+		/// </summary>
+		public Orchard.FullViewingKey? Orchard { get; }
+
+		/// <summary>
+		/// Gets the incoming viewing key.
+		/// </summary>
+		internal IncomingViewingKeys IncomingViewingKey { get; }
+
+		/// <inheritdoc/>
+		IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+	}
+
+	/// <summary>
+	/// Incoming viewing keys for each pool.
+	/// </summary>
+	public record IncomingViewingKeys : IIncomingViewingKey
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="IncomingViewingKeys"/> class.
+		/// </summary>
+		/// <param name="transparent">A key for the transparent pool.</param>
+		/// <param name="sapling">A key for the sapling pool.</param>
+		/// <param name="orchard">A key for the orchard pool.</param>
+		public IncomingViewingKeys(Transparent.ExtendedViewingKey transparent, Sapling.IncomingViewingKey sapling, Orchard.IncomingViewingKey orchard)
+		{
+			this.Transparent = transparent;
+			this.Sapling = sapling;
+			this.Orchard = orchard;
+			this.UnifiedKey = UnifiedViewingKey.Incoming.Create(transparent, sapling, orchard);
+		}
+
+		/// <summary>
+		/// Gets the unified incoming viewing key for this account.
+		/// </summary>
+		public UnifiedViewingKey.Incoming UnifiedKey { get; }
+
+		/// <summary>
+		/// Gets the incoming viewing key for the transparent pool (<c>m/44'/133'/account'</c>).
+		/// </summary>
+		public Transparent.ExtendedViewingKey? Transparent { get; }
+
+		/// <summary>
+		/// Gets the incoming viewing key for the sapling pool.
+		/// </summary>
+		public Sapling.IncomingViewingKey? Sapling { get; }
+
+		/// <summary>
+		/// Gets the incoming viewing key for the orchard pool.
+		/// </summary>
+		public Orchard.IncomingViewingKey? Orchard { get; }
+
+		/// <inheritdoc/>
+		ZcashAddress IIncomingViewingKey.DefaultAddress => this.UnifiedKey.DefaultAddress;
+
+		/// <inheritdoc/>
+		ZcashNetwork IZcashKey.Network => this.UnifiedKey.Network;
 	}
 }

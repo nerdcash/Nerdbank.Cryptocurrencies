@@ -67,6 +67,9 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
+			ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
+
+			/// <inheritdoc/>
 			public FullViewingKeyFingerprint Fingerprint => throw new NotSupportedException();
 
 			/// <inheritdoc/>

@@ -198,20 +198,33 @@ Nerdbank.Zcash.ZcashWallet
 Nerdbank.Zcash.ZcashWallet.Account
 Nerdbank.Zcash.ZcashWallet.Account.AddressSendsToThisAcount(Nerdbank.Zcash.ZcashAddress! address) -> bool
 Nerdbank.Zcash.ZcashWallet.Account.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
-Nerdbank.Zcash.ZcashWallet.Account.FullViewingKey.get -> Nerdbank.Zcash.UnifiedViewingKey.Full!
+Nerdbank.Zcash.ZcashWallet.Account.FullViewing.get -> Nerdbank.Zcash.ZcashWallet.FullViewingKeys?
 Nerdbank.Zcash.ZcashWallet.Account.GetDiversifiedAddress() -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashWallet.Account.GetDiversifiedAddress(ref Nerdbank.Zcash.DiversifierIndex diversifierIndex) -> Nerdbank.Zcash.UnifiedAddress!
-Nerdbank.Zcash.ZcashWallet.Account.IncomingViewingKey.get -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
+Nerdbank.Zcash.ZcashWallet.Account.IncomingViewing.get -> Nerdbank.Zcash.ZcashWallet.IncomingViewingKeys!
 Nerdbank.Zcash.ZcashWallet.Account.Index.get -> uint
 Nerdbank.Zcash.ZcashWallet.Account.Network.get -> Nerdbank.Zcash.ZcashNetwork
-Nerdbank.Zcash.ZcashWallet.Account.Orchard.get -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
-Nerdbank.Zcash.ZcashWallet.Account.Sapling.get -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
-Nerdbank.Zcash.ZcashWallet.Account.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
+Nerdbank.Zcash.ZcashWallet.Account.Spending.get -> Nerdbank.Zcash.ZcashWallet.SpendingKeys?
 Nerdbank.Zcash.ZcashWallet.Accounts.get -> System.Collections.Generic.IReadOnlyDictionary<uint, Nerdbank.Zcash.ZcashWallet.Account!>!
 Nerdbank.Zcash.ZcashWallet.AddAccount(uint? index = null) -> Nerdbank.Zcash.ZcashWallet.Account!
+Nerdbank.Zcash.ZcashWallet.FullViewingKeys
+Nerdbank.Zcash.ZcashWallet.FullViewingKeys.Orchard.get -> Nerdbank.Zcash.Orchard.FullViewingKey?
+Nerdbank.Zcash.ZcashWallet.FullViewingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey?
+Nerdbank.Zcash.ZcashWallet.FullViewingKeys.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey?
+Nerdbank.Zcash.ZcashWallet.FullViewingKeys.UnifiedKey.get -> Nerdbank.Zcash.UnifiedViewingKey.Full!
+Nerdbank.Zcash.ZcashWallet.IncomingViewingKeys
+Nerdbank.Zcash.ZcashWallet.IncomingViewingKeys.IncomingViewingKeys(Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey! transparent, Nerdbank.Zcash.Sapling.IncomingViewingKey! sapling, Nerdbank.Zcash.Orchard.IncomingViewingKey! orchard) -> void
+Nerdbank.Zcash.ZcashWallet.IncomingViewingKeys.Orchard.get -> Nerdbank.Zcash.Orchard.IncomingViewingKey?
+Nerdbank.Zcash.ZcashWallet.IncomingViewingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey?
+Nerdbank.Zcash.ZcashWallet.IncomingViewingKeys.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey?
+Nerdbank.Zcash.ZcashWallet.IncomingViewingKeys.UnifiedKey.get -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 Nerdbank.Zcash.ZcashWallet.Mnemonic.get -> Nerdbank.Cryptocurrencies.Bip39Mnemonic?
 Nerdbank.Zcash.ZcashWallet.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashWallet.Seed.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.ZcashWallet.SpendingKeys
+Nerdbank.Zcash.ZcashWallet.SpendingKeys.Orchard.get -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey?
+Nerdbank.Zcash.ZcashWallet.SpendingKeys.Sapling.get -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey?
+Nerdbank.Zcash.ZcashWallet.SpendingKeys.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey?
 Nerdbank.Zcash.ZcashWallet.ZcashWallet(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network) -> void
 Nerdbank.Zcash.ZcashWallet.ZcashWallet(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris
