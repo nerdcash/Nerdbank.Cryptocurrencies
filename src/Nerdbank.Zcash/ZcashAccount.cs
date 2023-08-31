@@ -92,13 +92,6 @@ public class ZcashAccount
 
 	private string DebuggerDisplay => $"{this.DefaultAddress}";
 
-	/// <summary>
-	/// Gets a diversifier index that is unique to this moment in time,
-	/// for use as an input to the <see cref="GetDiversifiedAddress(ref DiversifierIndex)"/> method.
-	/// </summary>
-	/// <returns>The diversifier index.</returns>
-	public static DiversifierIndex GetTimeBasedDiversifier() => new(DateTime.UtcNow.Ticks);
-
 	/// <inheritdoc cref="GetDiversifiedAddress(ref DiversifierIndex)"/>
 	public UnifiedAddress GetDiversifiedAddress()
 	{
@@ -213,6 +206,13 @@ public class ZcashAccount
 			return false;
 		}
 	}
+
+	/// <summary>
+	/// Gets a diversifier index that is unique to this moment in time,
+	/// for use as an input to the <see cref="GetDiversifiedAddress(ref DiversifierIndex)"/> method.
+	/// </summary>
+	/// <returns>The diversifier index.</returns>
+	private static DiversifierIndex GetTimeBasedDiversifier() => new(DateTime.UtcNow.Ticks);
 
 	/// <summary>
 	/// Spending keys for each pool.

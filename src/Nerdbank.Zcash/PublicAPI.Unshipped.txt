@@ -384,7 +384,6 @@ static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(params Nerdbank.Zcash.II
 static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 static Nerdbank.Zcash.UnifiedViewingKey.Parse(string! unifiedViewingKey) -> Nerdbank.Zcash.UnifiedViewingKey!
 static Nerdbank.Zcash.UnifiedViewingKey.TryParse(string! unifiedViewingKey, out Nerdbank.Zcash.UnifiedViewingKey? result) -> bool
-static Nerdbank.Zcash.ZcashAccount.GetTimeBasedDiversifier() -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?
 static Nerdbank.Zcash.ZcashAddress.Parse(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.TryParse(string! address, out Nerdbank.Zcash.ZcashAddress? result) -> bool
