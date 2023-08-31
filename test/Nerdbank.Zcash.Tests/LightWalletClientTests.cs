@@ -7,8 +7,8 @@ using uniffi.LightWallet;
 public class LightWalletClientTests : TestBase, IDisposable
 {
 	private static readonly Uri TestLightWalletServer = new("https://zcash.mysideoftheweb.com:9067/");
+	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
 	private readonly ITestOutputHelper logger;
-	private readonly ZcashWallet wallet = new ZcashWallet(Mnemonic, ZcashNetwork.MainNet);
 	private readonly LightWalletClient client;
 	private readonly string testDir;
 
@@ -22,7 +22,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 
 		this.client = new(
 			TestLightWalletServer,
-			this.wallet.Accounts[0],
+			DefaultAccount,
 			this.testDir,
 			"zcash-test.wallet",
 			"zcash-test.log",

@@ -12,7 +12,7 @@ namespace Nerdbank.Zcash;
 public class LightWalletClient : IDisposableObservable
 {
 	private readonly Uri serverUrl;
-	private readonly ZcashWallet.Account account;
+	private readonly ZcashAccount account;
 	private readonly LightWalletSafeHandle handle;
 	private bool disposed;
 
@@ -25,7 +25,7 @@ public class LightWalletClient : IDisposableObservable
 	/// <param name="walletName">The filename of the wallet (without a path).</param>
 	/// <param name="logName">The filename of the log file (without a path).</param>
 	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
-	public LightWalletClient(Uri serverUrl, ZcashWallet.Account account, string walletPath, string walletName, string logName, bool watchMemPool)
+	public LightWalletClient(Uri serverUrl, ZcashAccount account, string walletPath, string walletName, string logName, bool watchMemPool)
 	{
 		Requires.NotNull(serverUrl);
 		Requires.NotNull(account);
