@@ -99,4 +99,16 @@ internal static class ZcashUtilities
 	/// <param name="network">The Zcash network.</param>
 	/// <returns>A boolean value.</returns>
 	internal static bool IsTestNet(this ZcashNetwork network) => network != ZcashNetwork.MainNet;
+
+	/// <summary>
+	/// Filter nulls out of a list.
+	/// </summary>
+	/// <typeparam name="T">The type of values in the list.</typeparam>
+	/// <param name="values">The values.</param>
+	/// <returns>An array of non-null values.</returns>
+	internal static T[] RemoveNulls<T>(params T?[] values)
+		where T : class
+	{
+		return values.Where(v => v is not null).ToArray()!;
+	}
 }

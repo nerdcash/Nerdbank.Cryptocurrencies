@@ -29,8 +29,6 @@ public class ZcashAccount
 	{
 		Requires.NotNull(zip32);
 
-		this.Index = index;
-
 		Transparent.ExtendedSpendingKey transparent = zip32.CreateTransparentAccount(index);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey sapling = zip32.CreateSaplingAccount(index);
 		Zip32HDWallet.Orchard.ExtendedSpendingKey orchard = zip32.CreateOrchardAccount(index);
@@ -41,12 +39,31 @@ public class ZcashAccount
 	}
 
 	/// <summary>
-	/// Gets the derivation index of this account.
+	/// Initializes a new instance of the <see cref="ZcashAccount"/> class
+	/// that can view but not create transactions.
 	/// </summary>
-	/// <remarks>
-	/// This is typically 0 for the first account, with increasing indexes for each additional account created from the same wallet/mnemonic.
-	/// </remarks>
-	public uint Index { get; }
+	/// <param name="viewingKey">The viewing key. This may be a full or incoming viewing key.</param>
+	public ZcashAccount(UnifiedViewingKey viewingKey)
+	{
+		Requires.NotNull(viewingKey);
+
+		if (viewingKey is UnifiedViewingKey.Full)
+		{
+			this.FullViewing = new FullViewingKeys(
+				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
+				viewingKey.GetViewingKey<Sapling.DiversifiableFullViewingKey>(),
+				viewingKey.GetViewingKey<Orchard.FullViewingKey>());
+
+			this.IncomingViewing = this.FullViewing.IncomingViewingKey;
+		}
+		else
+		{
+			this.IncomingViewing = new IncomingViewingKeys(
+				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
+				viewingKey.GetViewingKey<Sapling.IncomingViewingKey>(),
+				viewingKey.GetViewingKey<Orchard.IncomingViewingKey>());
+		}
+	}
 
 	/// <summary>
 	/// Gets the network this account should be used with.
@@ -73,7 +90,7 @@ public class ZcashAccount
 	/// </summary>
 	public UnifiedAddress DefaultAddress => this.IncomingViewing.UnifiedKey.DefaultAddress;
 
-	private string DebuggerDisplay => $"{this.Index}: {this.DefaultAddress}";
+	private string DebuggerDisplay => $"{this.DefaultAddress}";
 
 	/// <summary>
 	/// Gets a diversifier index that is unique to this moment in time,
@@ -209,16 +226,22 @@ public class ZcashAccount
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
 		internal SpendingKeys(
-			Transparent.ExtendedSpendingKey transparent,
-			Zip32HDWallet.Sapling.ExtendedSpendingKey sapling,
-			Zip32HDWallet.Orchard.ExtendedSpendingKey orchard)
+			Transparent.ExtendedSpendingKey? transparent,
+			Zip32HDWallet.Sapling.ExtendedSpendingKey? sapling,
+			Zip32HDWallet.Orchard.ExtendedSpendingKey? orchard)
 		{
 			this.Transparent = transparent;
 			this.Sapling = sapling;
 			this.Orchard = orchard;
-			this.UnifiedKey = UnifiedSpendingKey.Create(transparent, sapling, orchard.SpendingKey);
+			this.UnifiedKey = UnifiedSpendingKey.Create(ZcashUtilities.RemoveNulls<ISpendingKey>(
+				transparent,
+				sapling,
+				orchard?.SpendingKey));
 
-			this.FullViewingKey = new FullViewingKeys(transparent.FullViewingKey, sapling.FullViewingKey, orchard.FullViewingKey);
+			this.FullViewingKey = new FullViewingKeys(
+				transparent?.FullViewingKey,
+				sapling?.FullViewingKey,
+				orchard?.FullViewingKey);
 		}
 
 		/// <summary>
@@ -261,14 +284,21 @@ public class ZcashAccount
 		/// <param name="transparent">A key for the transparent pool.</param>
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
-		internal FullViewingKeys(Transparent.ExtendedViewingKey transparent, Sapling.DiversifiableFullViewingKey sapling, Orchard.FullViewingKey orchard)
+		internal FullViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.DiversifiableFullViewingKey? sapling, Orchard.FullViewingKey? orchard)
 		{
 			this.Transparent = transparent;
 			this.Sapling = sapling;
 			this.Orchard = orchard;
-			this.UnifiedKey = UnifiedViewingKey.Full.Create(transparent, sapling, orchard);
 
-			this.IncomingViewingKey = new IncomingViewingKeys(transparent.IncomingViewingKey, sapling.IncomingViewingKey, orchard.IncomingViewingKey);
+			this.UnifiedKey = UnifiedViewingKey.Full.Create(ZcashUtilities.RemoveNulls<IFullViewingKey>(
+				transparent,
+				sapling,
+				orchard));
+
+			this.IncomingViewingKey = new IncomingViewingKeys(
+				transparent?.IncomingViewingKey,
+				sapling?.IncomingViewingKey,
+				orchard?.IncomingViewingKey);
 		}
 
 		/// <summary>
@@ -311,12 +341,15 @@ public class ZcashAccount
 		/// <param name="transparent">A key for the transparent pool.</param>
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
-		public IncomingViewingKeys(Transparent.ExtendedViewingKey transparent, Sapling.IncomingViewingKey sapling, Orchard.IncomingViewingKey orchard)
+		internal IncomingViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.IncomingViewingKey? sapling, Orchard.IncomingViewingKey? orchard)
 		{
 			this.Transparent = transparent;
 			this.Sapling = sapling;
 			this.Orchard = orchard;
-			this.UnifiedKey = UnifiedViewingKey.Incoming.Create(transparent, sapling, orchard);
+			this.UnifiedKey = UnifiedViewingKey.Incoming.Create(ZcashUtilities.RemoveNulls<IIncomingViewingKey>(
+				transparent,
+				sapling,
+				orchard));
 		}
 
 		/// <summary>

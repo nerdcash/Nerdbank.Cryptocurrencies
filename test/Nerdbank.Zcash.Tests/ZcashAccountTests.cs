@@ -18,7 +18,6 @@ public class ZcashAccountTests : TestBase
 	[Fact]
 	public void DefaultAccountProperties()
 	{
-		Assert.Equal(0u, DefaultAccount.Index);
 		Assert.NotNull(DefaultAccount.Spending?.Orchard);
 		Assert.NotNull(DefaultAccount.Spending?.Sapling);
 		Assert.NotNull(DefaultAccount.Spending?.Transparent);
@@ -96,5 +95,30 @@ public class ZcashAccountTests : TestBase
 			DefaultAccount.IncomingViewing.Orchard!.DefaultAddress,
 			AlternateAccount.IncomingViewing.Sapling!.DefaultAddress);
 		Assert.False(DefaultAccount.AddressSendsToThisAcount(unfriendly));
+	}
+
+	[Fact]
+	public void FullViewingAccount()
+	{
+		ZcashAccount fullViewAccount = new(DefaultAccount.FullViewing!.UnifiedKey);
+
+		Assert.Null(fullViewAccount.Spending);
+		Assert.NotNull(fullViewAccount.FullViewing?.Transparent);
+		Assert.NotNull(fullViewAccount.FullViewing?.Sapling);
+		Assert.NotNull(fullViewAccount.FullViewing?.Orchard);
+		Assert.Equal(DefaultAccount.FullViewing!.UnifiedKey, fullViewAccount.FullViewing?.UnifiedKey);
+	}
+
+	[Fact]
+	public void IncomingViewingAccount()
+	{
+		ZcashAccount incomingViewAccount = new(DefaultAccount.IncomingViewing.UnifiedKey);
+
+		Assert.Null(incomingViewAccount.Spending);
+		Assert.Null(incomingViewAccount.FullViewing);
+		Assert.NotNull(incomingViewAccount.IncomingViewing?.Transparent);
+		Assert.NotNull(incomingViewAccount.IncomingViewing?.Sapling);
+		Assert.NotNull(incomingViewAccount.IncomingViewing?.Orchard);
+		Assert.Equal(DefaultAccount.IncomingViewing!.UnifiedKey, incomingViewAccount.IncomingViewing?.UnifiedKey);
 	}
 }
