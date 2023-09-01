@@ -29,6 +29,11 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 		Orchard = 6,
 	}
 
+	private enum BranchId : uint
+	{
+		Nu5 = 0xc2d6_d0b4,
+	}
+
 	/// <inheritdoc/>
 	public ZcashNetwork Network { get; }
 
@@ -113,7 +118,8 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 	/// </remarks>
 	internal static UnifiedSpendingKey FromBytes(ReadOnlySpan<byte> buffer, ZcashNetwork network)
 	{
-		Era era = (Era)BitUtilities.ReadUInt32LE(buffer);
+		BranchId branchId = (BranchId)BitUtilities.ReadUInt32LE(buffer);
+		Era era = EraFrom(branchId);
 		buffer = buffer.Slice(4);
 
 		if (era != CurrentEra)
@@ -164,7 +170,7 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 	internal int ToBytes(Span<byte> buffer)
 	{
 		int written = 0;
-		written += BitUtilities.WriteLE((uint)CurrentEra, buffer[written..]);
+		written += BitUtilities.WriteLE((uint)BranchFrom(CurrentEra), buffer[written..]);
 
 		foreach (IUnifiedEncodingElement key in this.spendingKeys)
 		{
@@ -174,5 +180,23 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 		}
 
 		return written;
+	}
+
+	private static Era EraFrom(BranchId branchId)
+	{
+		return branchId switch
+		{
+			BranchId.Nu5 => Era.Orchard,
+			_ => throw new NotSupportedException(),
+		};
+	}
+
+	private static BranchId BranchFrom(Era era)
+	{
+		return era switch
+		{
+			Era.Orchard => BranchId.Nu5,
+			_ => throw new NotSupportedException(),
+		};
 	}
 }

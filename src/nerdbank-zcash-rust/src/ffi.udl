@@ -22,7 +22,8 @@ dictionary Config {
 };
 
 dictionary WalletInfo {
-	string ufvk;
+	string? ufvk;
+	sequence<u8>? unified_spending_key;
 	u64 birthday_height;
 };
 

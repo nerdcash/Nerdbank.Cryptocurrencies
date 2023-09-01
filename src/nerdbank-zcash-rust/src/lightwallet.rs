@@ -3,8 +3,8 @@ use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
 use zingoconfig::ChainType;
 use zingolib::lightclient::{LightClient, SyncResult};
-use zingolib::load_clientconfig;
 use zingolib::wallet::WalletBase;
+use zingolib::load_clientconfig;
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -77,7 +77,8 @@ pub struct Config {
 }
 
 pub struct WalletInfo {
-    pub ufvk: String,
+    pub ufvk: Option<String>,
+    pub unified_spending_key: Option<Vec<u8>>,
     pub birthday_height: u64,
 }
 
@@ -114,7 +115,15 @@ pub fn lightwallet_initialize(
         })?,
         false => RT.block_on(async move {
             LightClient::create_from_wallet_base_async(
-                WalletBase::Ufvk(wallet_info.ufvk),
+                if wallet_info.unified_spending_key.is_some() {
+                    WalletBase::Usk(wallet_info.unified_spending_key.unwrap())
+                } else if wallet_info.ufvk.is_some() {
+                    WalletBase::Ufvk(wallet_info.ufvk.unwrap())
+                } else {
+                    return Err(LightWalletError::Other {
+                        message: "No wallet info provided".to_string(),
+                    });
+                },
                 &zingo_config,
                 wallet_info.birthday_height,
                 false,

@@ -39,6 +39,15 @@ public class LightWalletClient : IDisposableObservable
 		this.serverUrl = serverUrl;
 		this.account = account;
 
+		Span<byte> uskBytes = stackalloc byte[500];
+		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
+		List<byte>? uskBytesList = uskBytesLength == 0 ? null : ToByteList(uskBytes[..uskBytesLength]);
+
+		WalletInfo walletInfo = new(
+			account.Spending is null ? account.FullViewing.UnifiedKey : null,
+			uskBytesList,
+			account.BirthdayHeight ?? 0);
+
 		this.handle = new LightWalletSafeHandle(
 			unchecked((nint)LightWalletMethods.LightwalletInitialize(
 				new Config(
@@ -48,7 +57,7 @@ public class LightWalletClient : IDisposableObservable
 				walletName,
 				logName,
 				watchMemPool),
-				new WalletInfo(account.FullViewing.UnifiedKey, account.BirthdayHeight ?? 0))),
+				walletInfo)),
 			ownsHandle: true);
 	}
 
@@ -168,6 +177,17 @@ public class LightWalletClient : IDisposableObservable
 			ZcashNetwork.TestNet => ChainType.TESTNET,
 			_ => throw new ArgumentException(),
 		};
+	}
+
+	private static List<byte> ToByteList(ReadOnlySpan<byte> buffer)
+	{
+		List<byte> list = new(buffer.Length);
+		for (int i = 0; i < buffer.Length; i++)
+		{
+			list.Add(buffer[i]);
+		}
+
+		return list;
 	}
 
 	private ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
