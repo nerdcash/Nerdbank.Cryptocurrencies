@@ -4,6 +4,7 @@ use zcash_primitives::consensus::BlockHeight;
 use zingoconfig::ChainType;
 use zingolib::lightclient::{LightClient, SyncResult};
 use zingolib::load_clientconfig;
+use zingolib::wallet::WalletBase;
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -75,7 +76,15 @@ pub struct Config {
     pub monitor_mempool: bool,
 }
 
-pub fn lightwallet_initialize(config: Config) -> Result<u64, LightWalletError> {
+pub struct WalletInfo {
+    pub ufvk: String,
+    pub birthday_height: u64,
+}
+
+pub fn lightwallet_initialize(
+    config: Config,
+    wallet_info: WalletInfo,
+) -> Result<u64, LightWalletError> {
     let server_uri = Uri::try_from(config.server_uri).map_err(|e| LightWalletError::Other {
         message: e.to_string(),
     })?;
@@ -97,28 +106,25 @@ pub fn lightwallet_initialize(config: Config) -> Result<u64, LightWalletError> {
         message: e.to_string(),
     })?;
 
-    // A new wallet has a birthday height matching the current blockchain height.
-    let blockchain_height = zingolib::get_latest_block_height(server_uri.clone()).map_err(|e| {
-        LightWalletError::Other {
-            message: e.to_string(),
-        }
-    })?;
-
-    let lightclient =
-        match zingo_config.wallet_exists() {
-            true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| {
-                LightWalletError::Other {
-                    message: e.to_string(),
-                }
-            })?,
-            // Use a birthday height that is somewhat less than the current blockchain length
-            // to protect against re-orgs (?? why? a re-org cannot possibly reduce the chain length,
-            // but sync malfunctions if the birthday height is within 100 blocks of the chain length).
-            false => LightClient::new(&zingo_config, blockchain_height.saturating_sub(100))
-                .map_err(|e| LightWalletError::Other {
-                    message: e.to_string(),
-                })?,
-        };
+    let lightclient = match zingo_config.wallet_exists() {
+        true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| {
+            LightWalletError::Other {
+                message: e.to_string(),
+            }
+        })?,
+        false => RT.block_on(async move {
+            LightClient::create_from_wallet_base_async(
+                WalletBase::Ufvk(wallet_info.ufvk),
+                &zingo_config,
+                wallet_info.birthday_height,
+                false,
+            )
+            .await
+            .map_err(|e| LightWalletError::Other {
+                message: e.to_string(),
+            })
+        })?,
+    };
 
     let lc = Arc::new(lightclient);
 
@@ -207,8 +213,21 @@ pub fn lightwallet_sync_status(handle: u64) -> Result<SyncStatus, LightWalletErr
 
 pub struct Transaction {
     pub txid: String,
+    pub datetime: u64,
     pub block_height: u32,
     pub is_incoming: bool,
+    pub spent: u64,
+    pub received: u64,
+    pub price: Option<f64>,
+    pub unconfirmed: bool,
+    pub sends: Vec<TransactionSendDetail>,
+}
+
+#[derive(Debug)]
+pub struct TransactionSendDetail {
+    pub to_address: String,
+    pub value: u64,
+    pub recipient_ua: Option<String>,
 }
 
 pub fn lightwallet_get_transactions(
@@ -225,12 +244,25 @@ pub fn lightwallet_get_transactions(
             .current
             .iter()
             .filter_map(|(txid, tx)| {
-                println!("Transaction ID: {:?} {:?}", txid, tx);
                 if tx.block_height >= BlockHeight::from_u32(starting_block) {
                     Some(Transaction {
                         txid: txid.to_string(),
+                        datetime: tx.datetime,
                         block_height: tx.block_height.into(),
                         is_incoming: tx.is_incoming_transaction(),
+                        spent: tx.total_value_spent(),
+                        received: tx.total_value_received(),
+                        price: tx.price,
+                        unconfirmed: tx.unconfirmed,
+                        sends: tx
+                            .outgoing_tx_data
+                            .iter()
+                            .map(|o| TransactionSendDetail {
+                                to_address: o.to_address.to_string(),
+                                value: o.value,
+                                recipient_ua: o.recipient_ua.clone(),
+                            })
+                            .collect(),
                     })
                 } else {
                     None

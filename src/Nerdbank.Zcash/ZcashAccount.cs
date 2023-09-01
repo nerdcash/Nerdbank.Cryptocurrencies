@@ -25,7 +25,7 @@ public class ZcashAccount
 	/// </summary>
 	/// <param name="zip32">The master keys by which to derive the various pool keys.</param>
 	/// <param name="index">The account index within the wallet.</param>
-	public ZcashAccount(Zip32HDWallet zip32, uint index)
+	public ZcashAccount(Zip32HDWallet zip32, uint index = 0)
 	{
 		Requires.NotNull(zip32);
 
@@ -84,6 +84,11 @@ public class ZcashAccount
 	/// Gets the incoming viewing keys.
 	/// </summary>
 	public IncomingViewingKeys IncomingViewing { get; }
+
+	/// <summary>
+	/// Gets the birthday height on this account.
+	/// </summary>
+	public ulong? BirthdayHeight { get; init; }
 
 	/// <summary>
 	/// Gets the default unified address for this account.

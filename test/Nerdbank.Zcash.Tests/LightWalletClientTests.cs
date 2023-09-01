@@ -86,7 +86,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 	[Fact]
 	public void GetDownloadedTransactions_Empty()
 	{
-		List<Transaction> transactions = this.client.GetDownloadedTransactions(0);
+		List<LightWalletClient.Transaction> transactions = this.client.GetDownloadedTransactions(0);
 		Assert.Empty(transactions);
 	}
 }

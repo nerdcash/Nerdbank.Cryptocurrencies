@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using uniffi.LightWallet;
 
@@ -30,6 +31,11 @@ public class LightWalletClient : IDisposableObservable
 		Requires.NotNull(serverUrl);
 		Requires.NotNull(account);
 
+		if (account.FullViewing is null)
+		{
+			throw new NotSupportedException("This lightwallet client does not support wallets with only incoming viewing keys.");
+		}
+
 		this.serverUrl = serverUrl;
 		this.account = account;
 
@@ -41,7 +47,8 @@ public class LightWalletClient : IDisposableObservable
 				walletPath,
 				walletName,
 				logName,
-				watchMemPool))),
+				watchMemPool),
+				new WalletInfo(account.FullViewing.UnifiedKey, account.BirthdayHeight ?? 0))),
 			ownsHandle: true);
 	}
 
@@ -120,14 +127,6 @@ public class LightWalletClient : IDisposableObservable
 					await Task.Delay(updateFrequency.Value, cancellationToken);
 					SyncStatus status = this.Interop(h => LightWalletMethods.LightwalletSyncStatus(h));
 					progress.Report(new SyncProgress(status));
-					if (!status.inProgress)
-					{
-						// Another indicator that there is nothing more to check on occurred.
-						// Theoretically we should break from inProgress,
-						// but might as well make sure we don't loop around do to timing,
-						// and update our caller after progress has stopped.
-						break;
-					}
 				}
 			});
 		}
@@ -150,7 +149,8 @@ public class LightWalletClient : IDisposableObservable
 	/// <returns>A list of transactions.</returns>
 	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
 	{
-		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock));
+		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock))
+			.Select(t => new Transaction(t)).ToList();
 	}
 
 	/// <inheritdoc/>
@@ -276,6 +276,24 @@ public class LightWalletClient : IDisposableObservable
 		/// <param name="copyFrom">The data to copy from.</param>
 		internal SyncProgress(SyncStatus copyFrom)
 			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal)
+		{
+		}
+	}
+
+	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, ulong ZatsSpent, ulong ZatsReceived, ImmutableArray<TransactionSendItem> Sends)
+	{
+		internal Transaction(uniffi.LightWallet.Transaction t)
+			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, t.spent, t.received, t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray())
+		{
+		}
+
+		public ulong NetChangeZats => this.ZatsReceived - this.ZatsSpent;
+	}
+
+	public record struct TransactionSendItem(ulong Zats, ZcashAddress ToAddress, UnifiedAddress? RecipientUA)
+	{
+		internal TransactionSendItem(TransactionSendDetail d)
+			: this(d.value, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
 		{
 		}
 	}

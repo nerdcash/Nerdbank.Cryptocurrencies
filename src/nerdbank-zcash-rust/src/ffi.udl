@@ -21,6 +21,11 @@ dictionary Config {
 	boolean monitor_mempool;
 };
 
+dictionary WalletInfo {
+	string ufvk;
+	u64 birthday_height;
+};
+
 dictionary SyncResult {
 	boolean success;
 	u64 latest_block;
@@ -47,8 +52,20 @@ dictionary SyncStatus {
 
 dictionary Transaction {
 	string txid;
+	u64 datetime;
 	u32 block_height;
 	boolean is_incoming;
+	u64 spent;
+	u64 received;
+	f64? price;
+	boolean unconfirmed;
+	sequence<TransactionSendDetail> sends;
+};
+
+dictionary TransactionSendDetail {
+	string to_address;
+	u64 value;
+	string? recipient_ua;
 };
 
 namespace LightWallet {
@@ -56,7 +73,7 @@ namespace LightWallet {
 	u64 lightwallet_get_block_height(string server_uri);
 
 	[Throws=LightWalletError]
-	u64 lightwallet_initialize(Config config);
+	u64 lightwallet_initialize(Config config, WalletInfo wallet_info);
 
 	boolean lightwallet_deinitialize(u64 handle);
 
