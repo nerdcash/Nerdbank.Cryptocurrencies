@@ -114,6 +114,18 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 			&& this.Network == other.Network;
 	}
 
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is IncomingViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(this.Network);
+		result.AddBytes(this.Ivk.Value);
+		return result.ToHashCode();
+	}
+
 	/// <summary>
 	/// Creates a sapling receiver using this key and a given diversifier.
 	/// </summary>

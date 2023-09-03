@@ -90,6 +90,18 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
+			public override bool Equals(object? obj) => obj is ExtendedSpendingKey other && this.Equals(other);
+
+			/// <inheritdoc/>
+			public override int GetHashCode()
+			{
+				HashCode result = default;
+				result.Add(this.Network);
+				result.AddBytes(this.Identifier);
+				return result.ToHashCode();
+			}
+
+			/// <inheritdoc/>
 			int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
 			{
 				int written = 0;

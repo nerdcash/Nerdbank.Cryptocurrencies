@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Represents the encoding of one or more viewing keys for a single logical account.
 /// </summary>
-public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IIncomingViewingKey
+public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IIncomingViewingKey, IEquatable<UnifiedViewingKey>
 {
 	private const string HumanReadablePartMainNetFVK = "uview";
 	private const string HumanReadablePartTestNetFVK = "uviewtest";
@@ -95,6 +95,62 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 
 	/// <inheritdoc cref="ViewingKey"/>
 	public override string ToString() => this.ViewingKey;
+
+	/// <inheritdoc/>
+	public bool Equals(UnifiedViewingKey? other)
+	{
+		if (other is null)
+		{
+			return false;
+		}
+
+		if (this.viewingKeys.Count != other.viewingKeys.Count)
+		{
+			return false;
+		}
+
+		foreach (IUnifiedEncodingElement element in this.viewingKeys)
+		{
+			IUnifiedEncodingElement? otherElement = other.viewingKeys.FirstOrDefault(vk => element.UnifiedTypeCode == vk.UnifiedTypeCode);
+			if (otherElement is null)
+			{
+				return false;
+			}
+
+			// Because unified encoding can be lossy, allow for these elements to compare themselves
+			// with this lossiness in mind, if they wish.
+			if (element is IUnifiedEncodingElementEqualityComparer comparer)
+			{
+				if (!comparer.Equals(otherElement as IUnifiedEncodingElementEqualityComparer))
+				{
+					return false;
+				}
+			}
+			else if (!element.Equals(otherElement))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => this.Equals(obj as UnifiedViewingKey);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+
+		result.Add(this.viewingKeys.Count);
+		foreach (IUnifiedEncodingElement element in this.viewingKeys)
+		{
+			result.Add(element is IUnifiedEncodingElementEqualityComparer comparer ? comparer.GetHashCode() : element.GetHashCode());
+		}
+
+		return result.ToHashCode();
+	}
 
 	/// <inheritdoc/>
 	public IEnumerator<IIncomingViewingKey> GetEnumerator() => this.viewingKeys.Cast<IIncomingViewingKey>().GetEnumerator();
@@ -191,11 +247,12 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 			IUnifiedEncodingElement? viewingKey = element.UnifiedTypeCode switch
 			{
 				UnifiedTypeCodes.Sapling => isFullViewingKey
-						? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-						: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
+					? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
+					: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
 				UnifiedTypeCodes.Orchard => isFullViewingKey
-						? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-						: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
+					? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
+					: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
+				UnifiedTypeCodes.TransparentP2PKH => Zip32HDWallet.Transparent.ExtendedViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network, isFullViewingKey),
 				_ => element,
 			};
 

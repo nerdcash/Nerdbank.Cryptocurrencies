@@ -132,6 +132,18 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	}
 
 	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is IncomingViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(this.Network);
+		result.AddBytes(this.rawEncoding.Value);
+		return result.ToHashCode();
+	}
+
+	/// <inheritdoc/>
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination) => this.Encode(destination);
 
 	/// <summary>

@@ -178,6 +178,7 @@ Nerdbank.Zcash.UnifiedAddress
 Nerdbank.Zcash.UnifiedAddress.UnifiedAddress(string! address) -> void
 Nerdbank.Zcash.UnifiedViewingKey
 Nerdbank.Zcash.UnifiedViewingKey.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
+Nerdbank.Zcash.UnifiedViewingKey.Equals(Nerdbank.Zcash.UnifiedViewingKey? other) -> bool
 Nerdbank.Zcash.UnifiedViewingKey.Full
 Nerdbank.Zcash.UnifiedViewingKey.Full.GetEnumerator() -> System.Collections.Generic.IEnumerator<Nerdbank.Zcash.IFullViewingKey!>!
 Nerdbank.Zcash.UnifiedViewingKey.Full.GetViewingKey<T>() -> T?
@@ -340,10 +341,20 @@ Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(N
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(Nerdbank.Zcash.TransparentP2SHReceiver receiver, uint maxAddressIndex, out Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change? change, out uint? addressIndex) -> bool
 Nerdbank.Zcash.Zip32HDWallet.Zip32HDWallet(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
 Nerdbank.Zcash.Zip32HDWallet.Zip32HDWallet(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> void
+override Nerdbank.Zcash.Orchard.FullViewingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Orchard.FullViewingKey.GetHashCode() -> int
+override Nerdbank.Zcash.Orchard.IncomingViewingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Orchard.IncomingViewingKey.GetHashCode() -> int
 override Nerdbank.Zcash.OrchardAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.OrchardAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.OrchardAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.OrchardAddress.Receivers.get -> System.Collections.Generic.IReadOnlyList<Nerdbank.Zcash.ZcashAddress!>!
+override Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.GetHashCode() -> int
+override Nerdbank.Zcash.Sapling.FullViewingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Sapling.FullViewingKey.GetHashCode() -> int
+override Nerdbank.Zcash.Sapling.IncomingViewingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Sapling.IncomingViewingKey.GetHashCode() -> int
 override Nerdbank.Zcash.SaplingAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.SaplingAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.SaplingAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
@@ -357,6 +368,8 @@ override Nerdbank.Zcash.TransparentP2SHAddress.GetPoolReceiver<TPoolReceiver>() 
 override Nerdbank.Zcash.TransparentP2SHAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.TransparentP2SHAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.UnifiedAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.UnifiedViewingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.UnifiedViewingKey.GetHashCode() -> int
 override Nerdbank.Zcash.UnifiedViewingKey.ToString() -> string!
 override Nerdbank.Zcash.ZcashAddress.Equals(object? obj) -> bool
 override Nerdbank.Zcash.ZcashAddress.GetHashCode() -> int
@@ -364,7 +377,11 @@ override Nerdbank.Zcash.ZcashAddress.ToString() -> string!
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.GetHashCode() -> int
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.ToString() -> string!
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
+override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.GetHashCode() -> int
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey!
+override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.GetHashCode() -> int
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(ulong diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>

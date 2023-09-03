@@ -97,6 +97,18 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 			&& this.Dk.Value.SequenceEqual(other.Dk.Value);
 	}
 
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is DiversifiableFullViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(base.GetHashCode());
+		result.AddBytes(this.Dk.Value);
+		return result.ToHashCode();
+	}
+
 	/// <inheritdoc cref="Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
 	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
 	{

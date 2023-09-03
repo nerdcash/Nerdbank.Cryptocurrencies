@@ -111,6 +111,21 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>
 			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value);
 	}
 
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is FullViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(this.Network);
+		result.AddBytes(this.Ak.Value);
+		result.AddBytes(this.Nk.Value);
+		result.AddBytes(this.Ovk.Value);
+		result.Add(this.IncomingViewingKey);
+		return result.ToHashCode();
+	}
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class
 	/// from expanded spending key data.

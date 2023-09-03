@@ -14,7 +14,7 @@ public partial class Zip32HDWallet
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
 		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-		public class ExtendedViewingKey : ExtendedPublicKey, IExtendedKey, IFullOrIncomingViewingKey, IUnifiedEncodingElement, IEquatable<ExtendedViewingKey>
+		public class ExtendedViewingKey : ExtendedPublicKey, IExtendedKey, IFullOrIncomingViewingKey, IUnifiedEncodingElement, IEquatable<ExtendedViewingKey>, IUnifiedEncodingElementEqualityComparer
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedViewingKey"/> class.
@@ -211,6 +211,25 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
+			bool IUnifiedEncodingElementEqualityComparer.Equals(IUnifiedEncodingElementEqualityComparer? other)
+			{
+				return other is ExtendedViewingKey otherKey
+					&& this.ChainCode.Value.SequenceEqual(otherKey.ChainCode.Value)
+					&& this.CryptographicKey.Equals(otherKey.CryptographicKey)
+					&& this.Depth == otherKey.Depth;
+			}
+
+			/// <inheritdoc/>
+			int IUnifiedEncodingElementEqualityComparer.GetHashCode()
+			{
+				HashCode result = default;
+				result.AddBytes(this.ChainCode.Value);
+				result.Add(this.CryptographicKey);
+				result.Add(this.Depth);
+				return result.ToHashCode();
+			}
+
+			/// <inheritdoc/>
 			public bool Equals(ExtendedViewingKey? other)
 			{
 				return other is not null
@@ -220,6 +239,18 @@ public partial class Zip32HDWallet
 					&& this.Depth == other.Depth
 					&& this.ChildIndex == other.ChildIndex
 					&& this.Network == other.Network;
+			}
+
+			/// <inheritdoc/>
+			public override bool Equals(object? obj) => obj is ExtendedViewingKey other && this.Equals(other);
+
+			/// <inheritdoc/>
+			public override int GetHashCode()
+			{
+				HashCode result = default;
+				result.Add(this.Network);
+				result.AddBytes(this.Identifier);
+				return result.ToHashCode();
 			}
 
 			/// <inheritdoc/>
@@ -234,15 +265,15 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
-			internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+			internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network, bool isFullViewingKey)
 			{
 				ReadOnlySpan<byte> chainCode = keyContribution[..32];
-				ReadOnlySpan<byte> publicKeyData = keyContribution[33..];
+				ReadOnlySpan<byte> publicKeyData = keyContribution[32..];
 
 				// We have to assume or bluff on some of these values, since they aren't preserved by the encoding.
 				// The values don't actually matter as they don't impact the generated cryptographic key.
 				FullViewingKeyTag parentFingerprintTag = default; // we don't know it, but that's OK.
-				byte depth = 3; // A full viewing key always has a depth of 3.
+				byte depth = isFullViewingKey ? (byte)3 : (byte)4; // A full viewing key always has a depth of 3.
 				uint childIndex = 0; // We don't know it, but that's OK.
 
 				return new ExtendedViewingKey(

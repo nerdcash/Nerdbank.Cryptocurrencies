@@ -345,6 +345,17 @@ public class UnifiedViewingKeyTests : TestBase
 		AssertRoundtrip(uvk);
 	}
 
+	[Theory, PairwiseData]
+	public void TransparentRoundtrip(ZcashNetwork network, bool isFullViewingKey)
+	{
+		Zip32HDWallet wallet = new(Mnemonic, network);
+		TransparentSK account = wallet.CreateTransparentAccount();
+		UnifiedViewingKey uvk = isFullViewingKey
+			? UnifiedViewingKey.Full.Create(account.FullViewingKey)
+			: UnifiedViewingKey.Incoming.Create(account.FullViewingKey);
+		AssertRoundtrip(uvk);
+	}
+
 	[Fact]
 	public void Parse_GetViewingKey()
 	{

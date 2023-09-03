@@ -75,6 +75,18 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	}
 
 	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is FullViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(this.Network);
+		result.AddBytes(this.rawEncoding.Value);
+		return result.ToHashCode();
+	}
+
+	/// <inheritdoc/>
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
 	{
 		int written = 0;
