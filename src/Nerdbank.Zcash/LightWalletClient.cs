@@ -159,7 +159,9 @@ public class LightWalletClient : IDisposableObservable
 	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
 	{
 		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock))
-			.Select(t => new Transaction(t)).ToList();
+			.Select(t => new Transaction(t))
+			.OrderBy(t => t.When)
+			.ToList();
 	}
 
 	/// <inheritdoc/>
@@ -300,20 +302,22 @@ public class LightWalletClient : IDisposableObservable
 		}
 	}
 
-	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, ulong ZatsSpent, ulong ZatsReceived, ImmutableArray<TransactionSendItem> Sends)
+	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, ImmutableArray<TransactionSendItem> Sends)
 	{
+		internal const uint ZatsPerZEC = 100_000_000;
+
 		internal Transaction(uniffi.LightWallet.Transaction t)
-			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, t.spent, t.received, t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray())
+			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, (decimal)t.spent / ZatsPerZEC, (decimal)t.received / ZatsPerZEC, t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray())
 		{
 		}
 
-		public ulong NetChangeZats => this.ZatsReceived - this.ZatsSpent;
+		public decimal NetChange => this.Received - this.Spent;
 	}
 
-	public record struct TransactionSendItem(ulong Zats, ZcashAddress ToAddress, UnifiedAddress? RecipientUA)
+	public record struct TransactionSendItem(decimal Amount, ZcashAddress ToAddress, UnifiedAddress? RecipientUA)
 	{
 		internal TransactionSendItem(TransactionSendDetail d)
-			: this(d.value, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
+			: this((decimal)d.value / Transaction.ZatsPerZEC, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
 		{
 		}
 	}
