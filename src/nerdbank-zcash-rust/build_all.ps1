@@ -19,6 +19,10 @@ if ($Release) {
 
 Push-Location $PSScriptRoot
 
+if (!$env:CI) {
+    .\generate_cs_bindings.ps1
+}
+
 $buildArgsNoTargets = $buildArgs
 $rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
 $winArm64Required = $false
@@ -52,6 +56,12 @@ if ($Release) { $configPathSegment = 'release' }
 $rustTargets | % {
     New-Item -ItemType Directory -Path "..\..\obj\src\nerdbank-zcash-rust\$configPathSegment\$_" -Force | Out-Null
     Copy-Item "target/$_/$configPathSegment/*nerdbank_zcash_rust*" "..\..\obj\src\nerdbank-zcash-rust\$configPathSegment\$_"
+}
+
+if (!$env:CI -and $env:PROCESSOR_ARCHITECTURE -eq 'ARM64') {
+    # We're on a personal machine and we're building for ARM64.
+    # Copy the ARM64 Cargo.toml back to the root so that the next manually written `cargo check` will use it.
+    copy-item .\cargoTomlTargets\win-arm64\* -force
 }
 
 Pop-Location
