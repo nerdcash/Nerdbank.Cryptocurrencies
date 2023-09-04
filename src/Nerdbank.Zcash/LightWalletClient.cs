@@ -249,6 +249,24 @@ public class LightWalletClient : IDisposableObservable
 	}
 
 	/// <summary>
+	/// Describes an individual spend in a transaction.
+	/// </summary>
+	/// <param name="Amount">The amount spent.</param>
+	/// <param name="ToAddress">The receiver of this ZEC.</param>
+	/// <param name="RecipientUA">The full UA that was used when spending this, as recorded in the private change memo.</param>
+	public record struct TransactionSendItem(decimal Amount, ZcashAddress ToAddress, UnifiedAddress? RecipientUA)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TransactionSendItem"/> class.
+		/// </summary>
+		/// <param name="d">The uniffi data to copy from.</param>
+		internal TransactionSendItem(TransactionSendDetail d)
+			: this((decimal)d.value / Transaction.ZatsPerZEC, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
+		{
+		}
+	}
+
+	/// <summary>
 	/// Describes the final result of a blockchain scan.
 	/// </summary>
 	/// <param name="Success">Indicates overall success of the operation.</param>
@@ -302,24 +320,36 @@ public class LightWalletClient : IDisposableObservable
 		}
 	}
 
+	/// <summary>
+	/// Describes a Zcash transaction.
+	/// </summary>
+	/// <param name="TransactionId">The transaction ID.</param>
+	/// <param name="BlockNumber">The block that mined this transaction.</param>
+	/// <param name="When">The timestamp on this transaction.</param>
+	/// <param name="IsUnconfirmed">A value indicating whether this transaction is stil waiting in the mempool, unmined.</param>
+	/// <param name="Spent">The amount of ZEC that was spent in this transaction.</param>
+	/// <param name="Received">The amount of ZEC that was received in this transaction.</param>
+	/// <param name="Sends">A collection of individual spend details with amounts and recipients belonging to this transaction.</param>
 	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, ImmutableArray<TransactionSendItem> Sends)
 	{
+		/// <summary>
+		/// The number of ZATs in a ZEC.
+		/// </summary>
 		internal const uint ZatsPerZEC = 100_000_000;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Transaction"/> class.
+		/// </summary>
+		/// <param name="t">The uniffi transaction to copy data from.</param>
 		internal Transaction(uniffi.LightWallet.Transaction t)
 			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, (decimal)t.spent / ZatsPerZEC, (decimal)t.received / ZatsPerZEC, t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray())
 		{
 		}
 
+		/// <summary>
+		/// Gets the net balance change applied by this transaction.
+		/// </summary>
 		public decimal NetChange => this.Received - this.Spent;
-	}
-
-	public record struct TransactionSendItem(decimal Amount, ZcashAddress ToAddress, UnifiedAddress? RecipientUA)
-	{
-		internal TransactionSendItem(TransactionSendDetail d)
-			: this((decimal)d.value / Transaction.ZatsPerZEC, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
-		{
-		}
 	}
 
 	/// <summary>
