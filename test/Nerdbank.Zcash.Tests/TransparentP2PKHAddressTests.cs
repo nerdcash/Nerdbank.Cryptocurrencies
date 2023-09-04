@@ -16,8 +16,20 @@ public class TransparentP2PKHAddressTests : TestBase
 		byte[] hash = new byte[20];
 		hash[1] = 2;
 		TransparentP2PKHReceiver receiver = new(hash);
-		TransparentP2PKHAddress addr = new(receiver);
+		TransparentP2PKHAddress addr = new(receiver, ZcashNetwork.MainNet);
 		Assert.Equal("t1HseQJEmpT7jcnTGoJVsKg5fuTzhfNXu9v", addr.Address);
+		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
+	}
+
+	[Fact]
+	public void Ctor_Receiver_TestNet()
+	{
+		byte[] hash = new byte[20];
+		hash[1] = 2;
+		TransparentP2PKHReceiver receiver = new(hash);
+		TransparentP2PKHAddress addr = new(receiver, ZcashNetwork.TestNet);
+		Assert.Equal("tm9iPj8jBD7dEm2eiU2ocBLkRWT5XBEXDQA", addr.Address);
+		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
 	}
 
 	[Fact]
@@ -32,7 +44,7 @@ public class TransparentP2PKHAddressTests : TestBase
 	public void AddressDerivation()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("diary slender airport");
-		using Bip32HDWallet.ExtendedPrivateKey masterKey = Bip32HDWallet.ExtendedPrivateKey.Create(mnemonic);
+		using Bip32HDWallet.ExtendedPrivateKey masterKey = Bip32HDWallet.ExtendedPrivateKey.Create(mnemonic, testNet: true);
 		using Bip32HDWallet.ExtendedPrivateKey accountKey = masterKey.Derive(Bip44MultiAccountHD.CreateKeyPath(133, 0));
 		Bip32HDWallet.ExtendedPublicKey accountPublicKey = accountKey.PublicKey;
 
@@ -49,7 +61,7 @@ public class TransparentP2PKHAddressTests : TestBase
 			this.logger.WriteLine($"{new Bip32HDWallet.KeyPath(i, addrKeyPath)}");
 			Bip32HDWallet.ExtendedPublicKey addrExtendedPublicKey = accountPublicKey.Derive(addrKeyPath);
 
-			TransparentP2PKHReceiver receiver = new(addrExtendedPublicKey.Key);
+			TransparentP2PKHReceiver receiver = new(new Zip32HDWallet.Transparent.ExtendedViewingKey(addrExtendedPublicKey, ZcashNetwork.TestNet));
 			TransparentP2PKHAddress addr = new(receiver);
 
 			this.logger.WriteLine($"{addr}");

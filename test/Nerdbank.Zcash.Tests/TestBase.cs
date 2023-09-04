@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
+
 public abstract class TestBase
 {
 	// Some of these addresses are real. Others are made up. Don't send ZEC to any of these addresses.
@@ -22,4 +24,28 @@ public abstract class TestBase
 	protected const string ValidTransparentP2SHAddress = "t3JZcvsuaXE6ygokL4XUiZSTrQBUoPYFnXJ";
 
 	protected static readonly Bip39Mnemonic Mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
+
+	/// <summary>
+	/// The maximum length of time to wait for something that we expect will happen
+	/// within the timeout.
+	/// </summary>
+	protected static readonly TimeSpan UnexpectedTimeout = Debugger.IsAttached ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(10);
+
+	/// <summary>
+	/// The maximum length of time to wait for something that we do not expect will happen
+	/// within the timeout.
+	/// </summary>
+	protected static readonly TimeSpan ExpectedTimeout = TimeSpan.FromSeconds(2);
+
+	/// <summary>
+	/// Gets or sets the source of <see cref="TimeoutToken"/> that influences
+	/// when tests consider themselves to be timed out.
+	/// </summary>
+	protected CancellationTokenSource TimeoutTokenSource { get; set; } = new CancellationTokenSource(UnexpectedTimeout);
+
+	/// <summary>
+	/// Gets a token that is canceled when the test times out,
+	/// per the policy set by <see cref="TimeoutTokenSource"/>.
+	/// </summary>
+	protected CancellationToken TimeoutToken => this.TimeoutTokenSource.Token;
 }

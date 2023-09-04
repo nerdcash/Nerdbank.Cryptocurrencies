@@ -239,10 +239,9 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 	{
 		int bytesWritten = 0;
 		destination[bytesWritten++] = TReceiver.UnifiedReceiverTypeCode;
-		bytesWritten += CompactSize.Encode((ulong)receiver.Span.Length, destination[bytesWritten..]);
-		ReadOnlySpan<byte> receiverSpan = receiver.Span;
-		receiverSpan.CopyTo(destination[bytesWritten..]);
-		bytesWritten += receiverSpan.Length;
+		bytesWritten += CompactSize.Encode((ulong)receiver.EncodingLength, destination[bytesWritten..]);
+		receiver.Encode(destination[bytesWritten..]);
+		bytesWritten += receiver.EncodingLength;
 		return bytesWritten;
 	}
 

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Nerdbank.Cryptocurrencies.Bitcoin;
 using Secp = NBitcoin.Secp256k1;
 
 namespace Nerdbank.Cryptocurrencies;
@@ -32,12 +33,22 @@ public static partial class Bip32HDWallet
 		/// <param name="depth">The depth of the parent key, plus 1.</param>
 		/// <param name="childIndex">The index used when deriving this key.</param>
 		/// <param name="testNet"><see langword="true" /> if this key is for use on a testnet; <see langword="false" /> otherwise.</param>
-		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet = false)
+		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet)
 		{
 			this.fixedArrays = new(chainCode, parentFingerprint);
 			this.Depth = depth;
 			this.ChildIndex = childIndex;
 			this.IsTestNet = testNet;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ExtendedKeyBase"/> class.
+		/// </summary>
+		/// <param name="copyFrom">The key to copy from.</param>
+		protected ExtendedKeyBase(ExtendedKeyBase copyFrom)
+			: this(Requires.NotNull(copyFrom).ChainCode, copyFrom.ParentFingerprint, copyFrom.Depth, copyFrom.ChildIndex, copyFrom.IsTestNet)
+		{
+			this.DerivationPath = copyFrom.DerivationPath;
 		}
 
 		/// <summary>
@@ -64,6 +75,9 @@ public static partial class Bip32HDWallet
 		/// <inheritdoc/>
 		public uint ChildIndex { get; }
 
+		/// <inheritdoc/>
+		public KeyPath? DerivationPath { get; init; }
+
 		/// <summary>
 		/// Gets the first 32-bits of the <see cref="Identifier"/> of the parent key.
 		/// </summary>
@@ -78,6 +92,11 @@ public static partial class Bip32HDWallet
 		/// Gets a 4-byte version used in the binary representation of this extended key.
 		/// </summary>
 		protected abstract ReadOnlySpan<byte> Version { get; }
+
+		/// <summary>
+		/// Gets a suggested string for use in the <see cref="DebuggerDisplayAttribute"/>.
+		/// </summary>
+		protected string DebuggerDisplay => $"{this.GetType().Name} {this.DerivationPath}";
 
 		/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, out ExtendedKeyBase?, out DecodeError?, out string?)"/>
 		/// <returns>The decoded extended key. An instance of either <see cref="ExtendedPrivateKey"/> or <see cref="ExtendedPublicKey"/>.</returns>
@@ -187,7 +206,7 @@ public static partial class Bip32HDWallet
 					return false;
 				}
 
-				result = new ExtendedPrivateKey(new PrivateKey(ecKey), chainCode, parentFingerprint, depth, childIndex, isTestNet);
+				result = new ExtendedPrivateKey(ecKey, chainCode, parentFingerprint, depth, childIndex, isTestNet);
 			}
 			else
 			{
@@ -198,7 +217,7 @@ public static partial class Bip32HDWallet
 					return false;
 				}
 
-				result = new ExtendedPublicKey(new PublicKey(ecKey), chainCode, parentFingerprint, depth, childIndex, isTestNet);
+				result = new ExtendedPublicKey(ecKey, chainCode, parentFingerprint, depth, childIndex, isTestNet);
 			}
 
 			return true;
@@ -263,12 +282,16 @@ public static partial class Bip32HDWallet
 				parentFingerprint.CopyTo(this.ParentFingerprintWritable);
 			}
 
+			[UnscopedRef]
 			internal readonly ReadOnlySpan<byte> ChainCode => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.chainCode[0]), ChainCodeLength);
 
+			[UnscopedRef]
 			internal readonly ReadOnlySpan<byte> ParentFingerprint => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.parentFingerprint[0]), ParentFingerprintLength);
 
+			[UnscopedRef]
 			private Span<byte> ChainCodeWritable => MemoryMarshal.CreateSpan(ref this.chainCode[0], ChainCodeLength);
 
+			[UnscopedRef]
 			private Span<byte> ParentFingerprintWritable => MemoryMarshal.CreateSpan(ref this.parentFingerprint[0], ParentFingerprintLength);
 		}
 	}

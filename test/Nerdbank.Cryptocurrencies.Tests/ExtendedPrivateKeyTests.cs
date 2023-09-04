@@ -115,4 +115,12 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		using ExtendedPrivateKey pvkDerived2 = Assert.IsType<ExtendedPrivateKey>(ExtendedKeyBase.Parse(pvkDerived.ToString()));
 		AssertEqual(pvkDerivedAsString, pvkDerived2);
 	}
+
+	[Fact]
+	public void DerivationPath()
+	{
+		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
+		Assert.Equal(KeyPath.Root, master.DerivationPath);
+		Assert.Equal("m/2", master.Derive(2).DerivationPath?.ToString());
+	}
 }

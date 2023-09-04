@@ -4,17 +4,15 @@
 namespace Nerdbank.Zcash;
 
 /// <summary>
-/// An interface implemented by viewing keys.
+/// A Zcash key.
 /// </summary>
-public interface IViewingKey : IKey
+public interface IZcashKey : IKey
 {
 	/// <summary>
 	/// Gets the network that this key operates on.
 	/// </summary>
 	ZcashNetwork Network { get; }
 
-	/// <summary>
-	/// Gets a value indicating whether this viewing key can see both incoming and outgoing transactions.
-	/// </summary>
-	bool IsFullViewingKey { get; }
+	/// <inheritdoc/>
+	bool IKey.IsTestNet => this.Network.IsTestNet();
 }

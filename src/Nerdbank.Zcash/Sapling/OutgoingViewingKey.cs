@@ -24,5 +24,6 @@ internal readonly struct OutgoingViewingKey
 	/// <summary>
 	/// Gets the buffer. Always 32 bytes in length.
 	/// </summary>
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => this.value.Value;
 }

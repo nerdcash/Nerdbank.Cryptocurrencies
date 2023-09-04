@@ -13,24 +13,11 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
-		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-		public class ExtendedFullViewingKey : IExtendedKey, IEquatable<ExtendedFullViewingKey>
+		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+		public class ExtendedFullViewingKey : IExtendedKey, IFullViewingKey, IEquatable<ExtendedFullViewingKey>
 		{
 			private const string Bech32MainNetworkHRP = "zxviews";
 			private const string Bech32TestNetworkHRP = "zxviewtestsapling";
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
-			/// </summary>
-			/// <param name="spendingKey">The spending key from which to derive the full viewing key.</param>
-			internal ExtendedFullViewingKey(ExtendedSpendingKey spendingKey)
-			{
-				this.Key = new(spendingKey.ExpandedSpendingKey, spendingKey.Dk, spendingKey.Network);
-				this.ParentFullViewingKeyTag = spendingKey.ParentFullViewingKeyTag;
-				this.ChainCode = spendingKey.ChainCode;
-				this.ChildIndex = spendingKey.ChildIndex;
-				this.Depth = spendingKey.Depth;
-			}
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class.
@@ -42,7 +29,7 @@ public partial class Zip32HDWallet
 			/// <param name="childIndex">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
 			internal ExtendedFullViewingKey(DiversifiableFullViewingKey key, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex)
 			{
-				this.Key = key;
+				this.FullViewingKey = key;
 				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.ChainCode = chainCode;
 				this.ChildIndex = childIndex;
@@ -50,7 +37,7 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
-			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.Key);
+			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey);
 
 			/// <inheritdoc/>
 			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
@@ -65,15 +52,23 @@ public partial class Zip32HDWallet
 			public byte Depth { get; }
 
 			/// <inheritdoc/>
-			public ZcashNetwork Network => this.Key.Network;
+			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
 
 			/// <inheritdoc/>
-			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+			public ZcashNetwork Network => this.FullViewingKey.Network;
 
 			/// <summary>
 			/// Gets the full viewing key.
 			/// </summary>
-			public DiversifiableFullViewingKey Key { get; }
+			public DiversifiableFullViewingKey FullViewingKey { get; }
+
+			/// <summary>
+			/// Gets the incoming viewing key.
+			/// </summary>
+			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
+			/// <inheritdoc/>
+			IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 			/// <summary>
 			/// Gets the Bech32 encoding of the full viewing key.
@@ -100,16 +95,18 @@ public partial class Zip32HDWallet
 			/// Gets the default address for this spending key.
 			/// </summary>
 			/// <remarks>
-			/// Create additional diversified addresses using <see cref="DiversifiableFullViewingKey.TryCreateReceiver(ref BigInteger, out SaplingReceiver)"/>
-			/// found on the <see cref="Key"/>.
+			/// Create additional diversified addresses using <see cref="IncomingViewingKey.TryCreateReceiver"/>
+			/// found on the <see cref="FullViewingKey"/>.
 			/// </remarks>
-			public SaplingAddress DefaultAddress => this.Key.DefaultAddress;
+			public SaplingAddress DefaultAddress => this.IncomingViewingKey.DefaultAddress;
 
 			/// <summary>
 			/// Gets the diversifier key.
 			/// </summary>
 			/// <value>A 32-byte buffer.</value>
-			internal DiversifierKey Dk => this.Key.Dk;
+			internal ref readonly DiversifierKey Dk => ref this.FullViewingKey.Dk;
+
+			private string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedFullViewingKey"/> class
@@ -153,15 +150,19 @@ public partial class Zip32HDWallet
 			public bool Equals(ExtendedFullViewingKey? other)
 			{
 				return other is not null
-					&& this.Key.Equals(other.Key)
+					&& this.FullViewingKey.Equals(other.FullViewingKey)
 					&& this.ChainCode.Value.SequenceEqual(other.ChainCode.Value)
 					&& this.ParentFullViewingKeyTag.Value.SequenceEqual(other.ParentFullViewingKeyTag.Value)
 					&& this.Depth == other.Depth
-					&& this.ChildIndex == other.ChildIndex;
+					&& this.ChildIndex == other.ChildIndex
+					&& this.Network == other.Network;
 			}
 
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
+
+			/// <inheritdoc/>
+			IExtendedKey IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			private static ExtendedFullViewingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
 			{
@@ -169,7 +170,7 @@ public partial class Zip32HDWallet
 				FullViewingKeyTag parentFullViewingKeyTag = new(encoded[1..5]);
 				uint childIndex = BitUtilities.ReadUInt32LE(encoded[5..9]);
 				ChainCode chainCode = new(encoded[9..41]);
-				FullViewingKey fvk = FullViewingKey.Decode(encoded[41..137], network);
+				FullViewingKey fvk = Zcash.Sapling.FullViewingKey.Decode(encoded[41..137], network);
 				DiversifierKey dk = new(encoded[137..169]);
 				DiversifiableFullViewingKey dfvk = new(fvk, dk);
 				return new(dfvk, chainCode, parentFullViewingKeyTag, depth, childIndex);
@@ -190,7 +191,7 @@ public partial class Zip32HDWallet
 				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
 				length += BitUtilities.WriteLE(this.ChildIndex, result[length..]);
 				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
-				length += this.Key.Encode(result[length..]);
+				length += this.FullViewingKey.Encode(result[length..]);
 				length += this.Dk.Value.CopyToRetLength(result[length..]);
 				Assumes.True(length == 169);
 				return length;

@@ -12,13 +12,11 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// A key capable of spending, extended so it can be used to derive child keys.
 		/// </summary>
-		[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-		public class ExtendedSpendingKey : IExtendedKey, IEquatable<ExtendedSpendingKey>
+		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+		public class ExtendedSpendingKey : IExtendedKey, ISpendingKey, IEquatable<ExtendedSpendingKey>
 		{
 			private const string Bech32MainNetworkHRP = "secret-orchard-extsk-main";
 			private const string Bech32TestNetworkHRP = "secret-orchard-extsk-test";
-
-			private FullViewingKey? fullViewingKey;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class.
@@ -28,26 +26,33 @@ public partial class Zip32HDWallet
 			/// <param name="parentFullViewingKeyTag">The tag from the full viewing key. Use the default value if not derived.</param>
 			/// <param name="depth">The derivation depth of this key. Use 0 if there is no parent.</param>
 			/// <param name="childIndex">The derivation number used to derive this key from its parent. Use 0 if there is no parent.</param>
-			/// <param name="network">The network this key should be used with.</param>
-			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex, ZcashNetwork network = ZcashNetwork.MainNet)
+			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex)
 			{
 				this.SpendingKey = spendingKey;
 				this.ChainCode = chainCode;
 				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.Depth = depth;
 				this.ChildIndex = childIndex;
-				this.Network = network;
 			}
+
+			/// <inheritdoc/>
+			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
 
 			/// <summary>
 			/// Gets the full viewing key.
 			/// </summary>
-			public FullViewingKey FullViewingKey => this.fullViewingKey ??= this.CreateFullViewingKey();
+			public FullViewingKey FullViewingKey => this.SpendingKey.FullViewingKey;
+
+			/// <inheritdoc/>
+			IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
 
 			/// <summary>
 			/// Gets the incoming viewing key.
 			/// </summary>
 			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
+			/// <inheritdoc/>
+			IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 			/// <summary>
 			/// Gets the fingerprint for this key.
@@ -67,10 +72,10 @@ public partial class Zip32HDWallet
 			public byte Depth { get; }
 
 			/// <inheritdoc/>
-			public ZcashNetwork Network { get; }
+			public ZcashNetwork Network => this.SpendingKey.Network;
 
 			/// <summary>
-			/// Gets the Bech32 encoding of the full viewing key.
+			/// Gets the Bech32 encoding of the spending key.
 			/// </summary>
 			public string Encoded
 			{
@@ -90,23 +95,22 @@ public partial class Zip32HDWallet
 				}
 			}
 
-			/// <inheritdoc/>
-			bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
-
 			/// <summary>
 			/// Gets the default address for this spending key.
 			/// </summary>
 			/// <remarks>
-			/// Create additional diversified addresses using <see cref="FullViewingKey.CreateReceiver(System.Numerics.BigInteger)"/> found on the <see cref="FullViewingKey"/> property.
+			/// Create additional diversified addresses using <see cref="IncomingViewingKey.CreateReceiver"/> found on the <see cref="IncomingViewingKey"/> property.
 			/// </remarks>
-			/// <seealso cref="FullViewingKey.CreateDefaultReceiver"/>
-			/// <seealso cref="FullViewingKey.CreateReceiver(System.Numerics.BigInteger)"/>
-			public OrchardAddress DefaultAddress => new(this.FullViewingKey.CreateDefaultReceiver(), this.Network);
+			/// <seealso cref="IncomingViewingKey.CreateDefaultReceiver"/>
+			/// <seealso cref="IncomingViewingKey.CreateReceiver"/>
+			public OrchardAddress DefaultAddress => new(this.IncomingViewingKey.CreateDefaultReceiver(), this.Network);
 
 			/// <summary>
 			/// Gets the spending key itself.
 			/// </summary>
-			internal SpendingKey SpendingKey { get; }
+			public SpendingKey SpendingKey { get; }
+
+			private string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class
@@ -158,22 +162,27 @@ public partial class Zip32HDWallet
 				bytesWritten += this.SpendingKey.Value.CopyToRetLength(bytes);
 				bytesWritten += I2LEOSP(childIndex, bytes.Slice(bytesWritten, 4));
 				Span<byte> i = stackalloc byte[64];
-				PRFexpand(this.ChainCode.Value, PrfExpandCodes.OrchardZip32Child, bytes, i);
+				ZcashUtilities.PRFexpand(this.ChainCode.Value, PrfExpandCodes.OrchardZip32Child, bytes, i);
 				Span<byte> spendingKey = i[0..32];
 				ChainCode chainCode = new(i[32..]);
 
-				SpendingKey key = new(spendingKey);
+				SpendingKey key = new(spendingKey, this.Network);
 				return new ExtendedSpendingKey(
 					key,
 					chainCode,
 					parentFullViewingKeyTag: GetFingerprint(this.FullViewingKey).Tag,
 					depth: checked((byte)(this.Depth + 1)),
-					childIndex,
-					this.Network);
+					childIndex)
+				{
+					DerivationPath = this.DerivationPath?.Append(childIndex),
+				};
 			}
 
 			/// <inheritdoc/>
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
+
+			/// <inheritdoc/>
+			IExtendedKey IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			private static ExtendedSpendingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
 			{
@@ -183,26 +192,11 @@ public partial class Zip32HDWallet
 				ReadOnlySpan<byte> chainCode = encoded[9..41];
 				ReadOnlySpan<byte> spendingKey = encoded[41..73];
 				return new ExtendedSpendingKey(
-					new SpendingKey(spendingKey),
+					new SpendingKey(spendingKey, network),
 					new ChainCode(chainCode),
 					new FullViewingKeyTag(parentFvkTag),
 					depth,
-					childIndex,
-					network);
-			}
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
-			/// </summary>
-			private FullViewingKey CreateFullViewingKey()
-			{
-				Span<byte> fvk = stackalloc byte[96];
-				if (NativeMethods.TryDeriveOrchardFullViewingKeyFromSpendingKey(this.SpendingKey.Value, fvk) != 0)
-				{
-					throw new ArgumentException(Strings.InvalidKey);
-				}
-
-				return new(fvk, this.Network);
+					childIndex);
 			}
 
 			/// <summary>

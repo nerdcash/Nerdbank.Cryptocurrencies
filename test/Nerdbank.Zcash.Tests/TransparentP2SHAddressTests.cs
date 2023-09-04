@@ -13,6 +13,16 @@ public class TransparentP2SHAddressTests : TestBase
 	}
 
 	[Fact]
+	public void Ctor_Receiver_TestNet()
+	{
+		byte[] hash = new byte[20];
+		TransparentP2SHReceiver receiver = new(hash);
+		TransparentP2SHAddress addr = new(receiver, ZcashNetwork.TestNet);
+		Assert.Equal("t26YoyZ1iPgiMEWL4zGUm74eVWfhyDMXzY2", addr.Address);
+		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
+	}
+
+	[Fact]
 	public void GetPoolReceiver()
 	{
 		Assert.NotNull(ZcashAddress.Parse(ValidTransparentP2SHAddress).GetPoolReceiver<TransparentP2SHReceiver>());

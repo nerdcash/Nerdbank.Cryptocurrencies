@@ -156,9 +156,6 @@
   <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
     <value>Only hardened keys are supported.</value>
   </data>
-  <data name="UnexpectedLength" xml:space="preserve">
-    <value>Length must be exactly {expected}, but was {actual}.</value>
-  </data>
   <data name="UnrecognizedAddress" xml:space="preserve">
     <value>This address does not conform to any known format.</value>
   </data>

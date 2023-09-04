@@ -19,8 +19,10 @@ internal unsafe struct Bytes4
 		value.CopyToWithLengthCheck(this.ValueWritable);
 	}
 
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
 
+	[UnscopedRef]
 	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }
 
@@ -34,9 +36,11 @@ internal unsafe struct Bytes11
 		value.CopyToWithLengthCheck(this.ValueWritable);
 	}
 
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
 
-	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
+	[UnscopedRef]
+	internal Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }
 
 internal unsafe struct Bytes32
@@ -49,8 +53,10 @@ internal unsafe struct Bytes32
 		value.CopyToWithLengthCheck(this.ValueWritable);
 	}
 
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
 
+	[UnscopedRef]
 	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }
 
@@ -64,8 +70,10 @@ internal unsafe struct Bytes64
 		value.CopyToWithLengthCheck(this.ValueWritable);
 	}
 
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
 
+	[UnscopedRef]
 	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }
 
@@ -79,8 +87,10 @@ internal unsafe struct Bytes96
 		value.CopyToWithLengthCheck(this.ValueWritable);
 	}
 
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
 
+	[UnscopedRef]
 	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }
 
@@ -94,7 +104,9 @@ internal unsafe struct Bytes512
 		value.CopyToWithLengthCheck(this.ValueWritable, allowShorterInput: allowShorterInput);
 	}
 
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
 
+	[UnscopedRef]
 	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }

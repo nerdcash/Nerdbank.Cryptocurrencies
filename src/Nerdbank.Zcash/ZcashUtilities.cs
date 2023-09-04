@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.CompilerServices;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -34,39 +32,83 @@ internal static class ZcashUtilities
 		return new(bytes, isUnsigned: false, isBigEndian: true);
 	}
 
+	/// <inheritdoc cref="PRFexpand(ReadOnlySpan{byte}, PrfExpandCodes, ReadOnlySpan{byte}, Span{byte})"/>
+	internal static int PRFexpand(ReadOnlySpan<byte> sk, PrfExpandCodes domainSpecifier, Span<byte> output) => PRFexpand(sk, domainSpecifier, default, output);
+
 	/// <summary>
-	/// Copies the contents of one buffer to another,
-	/// after verifying that the lengths of the two buffers are equal.
+	/// Applies a Blake2b_512 hash to the concatenation of a pair of buffers.
 	/// </summary>
-	/// <param name="source">The source buffer.</param>
-	/// <param name="destination">The target buffer.</param>
-	/// <param name="parameterName">Omit this optional parameter, or specify the name of the parameter whose argument is passed in as the <paramref name="source"/>.</param>
-	/// <param name="allowShorterInput"><see langword="true" /> to allow for less bytes as input.</param>
-	/// <exception cref="ArgumentException">
-	/// Thrown when the length of the <paramref name="source"/> and <paramref name="destination"/> spans do not equal.
-	/// In the exception message the length of the <paramref name="destination"/> buffer will be described as the expected length.
-	/// </exception>
-	internal static void CopyToWithLengthCheck(this ReadOnlySpan<byte> source, Span<byte> destination, [CallerArgumentExpression(nameof(source))] string? parameterName = null, bool allowShorterInput = false)
+	/// <param name="sk">The first input buffer.</param>
+	/// <param name="domainSpecifier">The byte that is unique for the caller's purpose.</param>
+	/// <param name="t">The second input buffer.</param>
+	/// <param name="output">The buffer to receive the hash. Must be at least 64 bytes in length.</param>
+	/// <returns>The number of bytes written to <paramref name="output"/>. Always 64.</returns>
+	internal static int PRFexpand(ReadOnlySpan<byte> sk, PrfExpandCodes domainSpecifier, ReadOnlySpan<byte> t, Span<byte> output)
 	{
-		if (!(source.Length == destination.Length || (allowShorterInput && source.Length < destination.Length)))
-		{
-			throw new ArgumentException(Strings.FormatUnexpectedLength(destination.Length, source.Length), parameterName);
-		}
+		Requires.Argument(output.Length >= 64, nameof(output), SharedStrings.FormatUnexpectedLength(64, output.Length));
 
-		source.CopyTo(destination);
-
-		if (source.Length < destination.Length)
-		{
-			// Ensure the slack space in the target area is cleared.
-			destination[source.Length..].Clear();
-		}
+		// Rather than copy the input data into a single buffer, we could use an instance of Blake2B and call Update on it once for each input buffer.
+		Span<byte> buffer = stackalloc byte[sk.Length + 1 + t.Length];
+		sk.CopyTo(buffer);
+		buffer[sk.Length] = (byte)domainSpecifier;
+		t.CopyTo(buffer[(sk.Length + 1)..]);
+		return Blake2B.ComputeHash(buffer, output, new Blake2B.Config { Personalization = "Zcash_ExpandSeed"u8, OutputSizeInBytes = 512 / 8 });
 	}
 
-	/// <inheritdoc cref="ReadOnlySpan{T}.CopyTo(Span{T})"/>
-	/// <returns>The number of elements copied.</returns>
-	internal static int CopyToRetLength<T>(this ReadOnlySpan<T> source, Span<T> destination)
+	/// <summary>
+	/// Strips any key material in excess of incoming viewing keys.
+	/// </summary>
+	/// <param name="ivk">The key.</param>
+	/// <returns>The key that is <em>only</em> an incoming viewing key.</returns>
+	internal static IIncomingViewingKey ReduceToOnlyIVK(this IIncomingViewingKey ivk)
 	{
-		source.CopyTo(destination);
-		return source.Length;
+		if (ivk is IFullViewingKey fvk)
+		{
+			ivk = fvk.IncomingViewingKey;
+
+			// The property we called MUST return an object that is not still a full viewing key,
+			// but we'll assert it here because our caller wants to make sure the we don't leak data.
+			Assumes.True(ivk is not IFullViewingKey || ivk is IFullOrIncomingViewingKey { IsFullViewingKey: false });
+		}
+
+		return ivk;
+	}
+
+	/// <summary>
+	/// Strips any key material in excess of full viewing keys.
+	/// </summary>
+	/// <param name="fvk">The key.</param>
+	/// <returns>The key that is <em>only</em> a full viewing key.</returns>
+	internal static IFullViewingKey ReduceToOnlyFVK(this IFullViewingKey fvk)
+	{
+		if (fvk is ISpendingKey sk)
+		{
+			fvk = sk.FullViewingKey;
+
+			// The property we called MUST return an object that is not still a spending key,
+			// but we'll assert it here because our caller wants to make sure the we don't leak data.
+			Assumes.False(fvk is ISpendingKey);
+		}
+
+		return fvk;
+	}
+
+	/// <summary>
+	/// Checks whether a given Zcash network is one of its test nets.
+	/// </summary>
+	/// <param name="network">The Zcash network.</param>
+	/// <returns>A boolean value.</returns>
+	internal static bool IsTestNet(this ZcashNetwork network) => network != ZcashNetwork.MainNet;
+
+	/// <summary>
+	/// Filter nulls out of a list.
+	/// </summary>
+	/// <typeparam name="T">The type of values in the list.</typeparam>
+	/// <param name="values">The values.</param>
+	/// <returns>An array of non-null values.</returns>
+	internal static T[] RemoveNulls<T>(params T?[] values)
+		where T : class
+	{
+		return values.Where(v => v is not null).ToArray()!;
 	}
 }

@@ -13,7 +13,7 @@ namespace Nerdbank.Zcash;
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Transparent"/> pool
 /// by way of a Pay to Public Key Hash method.
 /// </summary>
-public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
+public unsafe struct TransparentP2PKHReceiver : IPoolReceiver, IEquatable<TransparentP2PKHReceiver>
 {
 	private const int Length = 160 / 8;
 
@@ -38,7 +38,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 	/// Initializes a new instance of the <see cref="TransparentP2PKHReceiver"/> struct.
 	/// </summary>
 	/// <param name="publicKey">The EC public key to create a receiver for.</param>
-	public TransparentP2PKHReceiver(PublicKey publicKey)
+	public TransparentP2PKHReceiver(Zip32HDWallet.Transparent.ExtendedViewingKey publicKey)
 	{
 		Requires.NotNull(publicKey);
 
@@ -46,7 +46,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 		Span<byte> publicKeyHash1 = stackalloc byte[256 / 8];
 		Span<byte> publicKeyHash2 = stackalloc byte[Length];
 
-		publicKey.Key.WriteToSpan(compressed: true, serializedPublicKey, out int length);
+		publicKey.CryptographicKey.WriteToSpan(compressed: true, serializedPublicKey, out int length);
 		serializedPublicKey = serializedPublicKey[..length];
 
 		SHA256.HashData(serializedPublicKey, publicKeyHash1);
@@ -59,21 +59,35 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver
 	}
 
 	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-	public static byte UnifiedReceiverTypeCode => 0x02;
+	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;
 
 	/// <summary>
-	/// Gets the validating key hash.
+	/// Gets the encoded representation of the entire receiver.
 	/// </summary>
-	public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
 
 	/// <inheritdoc />
-	public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
+	public readonly int EncodingLength => this.Span.Length;
 
 	/// <summary>
 	/// Gets the validating key hash.
 	/// </summary>
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
+
+	/// <summary>
+	/// Gets the validating key hash.
+	/// </summary>
+	[UnscopedRef]
 	private Span<byte> ValidatingKeyHashWritable => MemoryMarshal.CreateSpan(ref this.validatingKeyHash[0], Length);
+
+	/// <inheritdoc/>
+	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+
+	/// <inheritdoc/>
+	public bool Equals(TransparentP2PKHReceiver other) => this.ValidatingKeyHash.SequenceEqual(other.ValidatingKeyHash);
 }

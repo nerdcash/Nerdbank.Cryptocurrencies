@@ -103,4 +103,12 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		ExtendedPublicKey pubDerived2 = Assert.IsType<ExtendedPublicKey>(ExtendedKeyBase.Parse(pubDerived.ToString()));
 		AssertEqual(pubDerivedAsString, pubDerived2);
 	}
+
+	[Fact]
+	public void DerivationPath()
+	{
+		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
+		Assert.Equal(KeyPath.Root, master.DerivationPath);
+		Assert.Equal("m/2", master.Derive(2).DerivationPath?.ToString());
+	}
 }

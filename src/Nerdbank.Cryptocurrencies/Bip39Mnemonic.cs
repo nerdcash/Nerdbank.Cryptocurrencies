@@ -232,6 +232,13 @@ public partial class Bip39Mnemonic
 	public override string ToString() => this.SeedPhrase;
 
 	/// <summary>
+	/// Returns the first n words of the seed phrase.
+	/// </summary>
+	/// <param name="words">The number of words to include.</param>
+	/// <returns>A shortened seed phrase.</returns>
+	public string ToString(int words) => string.Join(' ', this.SeedPhrase.Split(' ').Take(words));
+
+	/// <summary>
 	/// Appends bits to a buffer.
 	/// </summary>
 	/// <param name="buffer">The buffer to append to.</param>
@@ -445,12 +452,16 @@ public partial class Bip39Mnemonic
 			this.entropyLength = (byte)entropyLength;
 		}
 
+		[UnscopedRef]
 		internal readonly ReadOnlySpan<byte> Entropy => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.entropy[0]), this.entropyLength);
 
+		[UnscopedRef]
 		internal readonly ReadOnlySpan<byte> Seed => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.seed[0]), SeedLengthInBytes);
 
+		[UnscopedRef]
 		internal Span<byte> EntropyWritable => MemoryMarshal.CreateSpan(ref this.entropy[0], this.entropyLength);
 
+		[UnscopedRef]
 		internal Span<byte> SeedWritable => MemoryMarshal.CreateSpan(ref this.seed[0], SeedLengthInBytes);
 	}
 }

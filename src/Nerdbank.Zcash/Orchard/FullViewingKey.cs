@@ -9,8 +9,8 @@ namespace Nerdbank.Zcash.Orchard;
 /// <summary>
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
-[DebuggerDisplay($"{{{nameof(DefaultAddress)},nq}}")]
-public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<FullViewingKey>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatable<FullViewingKey>
 {
 	private readonly Bytes96 rawEncoding;
 
@@ -36,26 +36,13 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 	public IncomingViewingKey IncomingViewingKey { get; }
 
 	/// <inheritdoc/>
-	bool IViewingKey.IsFullViewingKey => true;
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x03;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 3;
-
-	/// <inheritdoc/>
-	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
-
-	/// <summary>
-	/// Gets the default address for this spending key.
-	/// </summary>
-	/// <remarks>
-	/// Create additional diversified addresses using <see cref="CreateReceiver(BigInteger)"/>.
-	/// </remarks>
-	/// <seealso cref="CreateDefaultReceiver"/>
-	/// <seealso cref="CreateReceiver(BigInteger)"/>
-	public OrchardAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <summary>
 	/// Gets the spend validating key.
@@ -77,99 +64,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 	/// </summary>
 	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding.Value;
 
-	/// <inheritdoc cref="CreateReceiver(ReadOnlySpan{byte})"/>
-	public OrchardReceiver CreateReceiver(BigInteger diversifierIndex)
-	{
-		Span<byte> diversifierSpan = stackalloc byte[11];
-		if (!diversifierIndex.TryWriteBytes(diversifierSpan, out _, isUnsigned: true))
-		{
-			throw new ArgumentOutOfRangeException(nameof(diversifierIndex), "Integer must be representable in 11 bytes.");
-		}
-
-		return this.CreateReceiver(diversifierSpan);
-	}
-
-	/// <summary>
-	/// Creates an orchard receiver using this key and a given diversifier.
-	/// </summary>
-	/// <param name="diversifierIndex">An 11-byte deterministic diversifier.</param>
-	/// <returns>The orchard receiver.</returns>
-	public OrchardReceiver CreateReceiver(ReadOnlySpan<byte> diversifierIndex)
-	{
-		Span<byte> rawReceiver = stackalloc byte[43];
-		if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex, rawReceiver) != 0)
-		{
-			throw new InvalidKeyException(Strings.InvalidKey);
-		}
-
-		return new(rawReceiver);
-	}
-
-	/// <summary>
-	/// Creates the default orchard receiver for this key.
-	/// </summary>
-	/// <returns>A receiver suitable for creating an address.</returns>
-	/// <remarks>
-	/// The default receiver is created using with a zero-filled diversifier.
-	/// </remarks>
-	public OrchardReceiver CreateDefaultReceiver()
-	{
-		Span<byte> diversifier = stackalloc byte[11];
-		return this.CreateReceiver(diversifier);
-	}
-
-	/// <summary>
-	/// Checks whether a given orchard receiver was derived from the same spending authority as this key
-	/// (in other words: would ZEC sent to this receiver arrive in this account?).
-	/// </summary>
-	/// <param name="receiver">The receiver to test.</param>
-	/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
-	/// <remarks>
-	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex(OrchardReceiver, Span{byte})"/> method,
-	/// which runs a similar test but also provides the decrypted diversifier index.</para>
-	/// </remarks>
-	public bool CheckReceiver(OrchardReceiver receiver)
-	{
-		Span<byte> diversifier = stackalloc byte[11];
-		return this.TryGetDiversifierIndex(receiver, diversifier);
-	}
-
-	/// <summary>
-	/// Checks whether a given orchard receiver was derived from the same spending authority as this key
-	/// (in other words: would ZEC sent to this receiver arrive in this account?).
-	/// If so, the diversifier that was used to create it is decrypted back into its original index.
-	/// </summary>
-	/// <param name="receiver">The receiver to decrypt.</param>
-	/// <param name="diversifierIndex">Receives the original diversifier index, if successful.</param>
-	/// <returns>A value indicating whether the receiver could be decrypted successfully (i.e. the receiver came from this key).</returns>
-	/// <remarks>
-	/// <para>Use <see cref="CheckReceiver(OrchardReceiver)"/> for a simpler API if the diversifier index is not required.</para>
-	/// </remarks>
-	public bool TryGetDiversifierIndex(OrchardReceiver receiver, Span<byte> diversifierIndex)
-	{
-		return NativeMethods.DecryptOrchardDiversifier(this.IncomingViewingKey.RawEncoding, receiver.Span, diversifierIndex) switch
-		{
-			0 => true,
-			1 => false,
-			_ => throw new ArgumentException(),
-		};
-	}
-
-	/// <inheritdoc cref="TryGetDiversifierIndex(OrchardReceiver, Span{byte})"/>
-	public bool TryGetDiversifierIndex(OrchardReceiver receiver, [NotNullWhen(true)] out BigInteger? diversifierIndex)
-	{
-		Span<byte> diversifierIndexBytes = stackalloc byte[11];
-		if (this.TryGetDiversifierIndex(receiver, diversifierIndexBytes))
-		{
-			diversifierIndex = new BigInteger(diversifierIndexBytes, isUnsigned: true);
-			return true;
-		}
-		else
-		{
-			diversifierIndex = null;
-			return false;
-		}
-	}
+	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress.ToString();
 
 	/// <inheritdoc/>
 	public bool Equals(FullViewingKey? other)
@@ -177,6 +72,18 @@ public class FullViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<F
 		return other is not null
 			&& this.rawEncoding.Value.SequenceEqual(other.rawEncoding.Value)
 			&& this.Network == other.Network;
+	}
+
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is FullViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(this.Network);
+		result.AddBytes(this.rawEncoding.Value);
+		return result.ToHashCode();
 	}
 
 	/// <inheritdoc/>

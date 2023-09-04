@@ -24,5 +24,6 @@ internal readonly struct Diversifier
 	/// <summary>
 	/// Gets the buffer. Always 11 bytes in length.
 	/// </summary>
+	[UnscopedRef]
 	internal readonly ReadOnlySpan<byte> Value => this.value.Value;
 }

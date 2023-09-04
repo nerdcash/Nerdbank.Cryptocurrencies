@@ -3,12 +3,11 @@
 
 using System.Runtime.InteropServices;
 using Nerdbank.Zcash;
-using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 /// <summary>
 /// The functions and data types imported from rust.
 /// </summary>
-internal static unsafe class NativeMethods
+internal static unsafe partial class NativeMethods
 {
 	private const string LibraryName = "nerdbank_zcash_rust";
 
@@ -30,27 +29,27 @@ internal static unsafe class NativeMethods
 	}
 
 	/// <summary>
-	/// Constructs an Orchard raw payment address from a full viewing key and diversifier.
+	/// Constructs an Orchard raw payment address from an incoming viewing key and diversifier.
 	/// </summary>
-	/// <param name="fullViewingKey">The 96-byte full viewing key.</param>
+	/// <param name="incomingViewingKey">The 64-byte incoming viewing key.</param>
 	/// <param name="diversifier_index">The 11-byte diversifier.</param>
 	/// <param name="rawPaymentAddress">The 43-byte buffer that will receive the raw payment address.</param>
 	/// <returns>0 if successful; negative for an error code.</returns>
 	/// <exception cref="ArgumentException">Thrown if any of the arguments are not of the required lengths.</exception>
-	internal static int TryGetOrchardRawPaymentAddress(ReadOnlySpan<byte> fullViewingKey, ReadOnlySpan<byte> diversifier_index, Span<byte> rawPaymentAddress)
+	internal static int TryGetOrchardRawPaymentAddress(ReadOnlySpan<byte> incomingViewingKey, ReadOnlySpan<byte> diversifier_index, Span<byte> rawPaymentAddress)
 	{
-		if (fullViewingKey.Length != 96 || rawPaymentAddress.Length != 43)
+		if (incomingViewingKey.Length != 64 || rawPaymentAddress.Length != 43)
 		{
 			throw new ArgumentException();
 		}
 
-		fixed (byte* fvk = fullViewingKey)
+		fixed (byte* fvk = incomingViewingKey)
 		{
 			fixed (byte* pd = diversifier_index)
 			{
 				fixed (byte* p = rawPaymentAddress)
 				{
-					return get_orchard_raw_payment_address_from_fvk(fvk, pd, p);
+					return get_orchard_raw_payment_address_from_ivk(fvk, pd, p);
 				}
 			}
 		}
@@ -80,21 +79,21 @@ internal static unsafe class NativeMethods
 	}
 
 	/// <summary>
-	/// Gets the sapling receiver given a full viewing key.
+	/// Gets the sapling receiver given an incoming viewing key.
 	/// </summary>
-	/// <param name="fullViewingKey">The 96-byte representation of the full viewing key.</param>
+	/// <param name="incomingViewingKey">The 32-byte representation of the incoming viewing key.</param>
 	/// <param name="diversifierKey">The 32-byte representation of the diversifier key.</param>
 	/// <param name="diversifierIndex">The 11-byte buffer representing the diversifier index.</param>
 	/// <param name="receiver">The 43-byte buffer that will be initialized with the receiver.</param>
 	/// <returns>0 if successful; otherwise a negative error code.</returns>
-	internal static int TryGetSaplingReceiver(ReadOnlySpan<byte> fullViewingKey, ReadOnlySpan<byte> diversifierKey, Span<byte> diversifierIndex, Span<byte> receiver)
+	internal static int TryGetSaplingReceiver(ReadOnlySpan<byte> incomingViewingKey, ReadOnlySpan<byte> diversifierKey, Span<byte> diversifierIndex, Span<byte> receiver)
 	{
-		if (fullViewingKey.Length != 96 || diversifierKey.Length != 32 || diversifierIndex.Length != 11 || receiver.Length != 43)
+		if (incomingViewingKey.Length != 32 || diversifierKey.Length != 32 || diversifierIndex.Length != 11 || receiver.Length != 43)
 		{
 			throw new ArgumentException();
 		}
 
-		fixed (byte* fvk = fullViewingKey)
+		fixed (byte* ivk = incomingViewingKey)
 		{
 			fixed (byte* dk = diversifierKey)
 			{
@@ -102,7 +101,7 @@ internal static unsafe class NativeMethods
 				{
 					fixed (byte* r = receiver)
 					{
-						return get_sapling_receiver(fvk, dk, di, r);
+						return get_sapling_receiver(ivk, dk, di, r);
 					}
 				}
 			}
@@ -249,10 +248,40 @@ internal static unsafe class NativeMethods
 				{
 					fixed (byte* di = diversifierIndex)
 					{
-						fixed (byte* pScope = &scope)
-						{
-							return decrypt_sapling_diversifier(fvk, dk, receiver, di, pScope);
-						}
+						return decrypt_sapling_diversifier(fvk, dk, receiver, di, out scope);
+					}
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Tries to decrypt a <see cref="SaplingReceiver"/>'s diversifier back into the diversifier index used to create it.
+	/// </summary>
+	/// <param name="incomingViewingKey">The 96-byte encoding of a <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
+	/// <param name="diversifierKey">The 32-byte diversifier key.</param>
+	/// <param name="saplingReceiver">The 43-byte encoding of the <see cref="SaplingReceiver"/>.</param>
+	/// <param name="diversifierIndex">The 11-byte buffer that will receive the decrypted diversifier index, if successful.</param>
+	/// <returns>0 if successful; 1 if the receiver was not created with this incoming viewing key; a negative number for other errors (e.g. invalid data.)</returns>
+	/// <remarks>
+	/// Only matches with external-derived keys will be found with an IVK. To match on internal-derived keys, use <see cref="DecryptSaplingDiversifier"/>.
+	/// </remarks>
+	internal static int DecryptSaplingDiversifierWithIvk(ReadOnlySpan<byte> incomingViewingKey, ReadOnlySpan<byte> diversifierKey, ReadOnlySpan<byte> saplingReceiver, Span<byte> diversifierIndex)
+	{
+		if (incomingViewingKey.Length != 32 || diversifierKey.Length != 32 || saplingReceiver.Length != 43 || diversifierIndex.Length != 11)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* ivk = incomingViewingKey)
+		{
+			fixed (byte* dk = diversifierKey)
+			{
+				fixed (byte* receiver = saplingReceiver)
+				{
+					fixed (byte* di = diversifierIndex)
+					{
+						return decrypt_sapling_diversifier_with_ivk(ivk, dk, receiver, di);
 					}
 				}
 			}
@@ -296,20 +325,20 @@ internal static unsafe class NativeMethods
 	private static extern int get_orchard_fvk_bytes_from_sk_bytes(byte* sk, byte* fvk);
 
 	/// <summary>
-	/// Constructs an Orchard raw payment address from a full viewing key and diversifier.
+	/// Constructs an Orchard raw payment address from an incoming viewing key and diversifier.
 	/// </summary>
-	/// <param name="fvk">A pointer to the buffer containing the 96-byte full viewing key.</param>
+	/// <param name="ivk">A pointer to the buffer containing the 64-byte incoming viewing key.</param>
 	/// <param name="diversifier_index">A pointer to an 11-byte diversifier.</param>
 	/// <param name="raw_payment_address">A pointer to the 43 byte buffer that will receive the raw payment address.</param>
 	/// <returns>0 if successful; negative for an error code.</returns>
 	[DllImport(LibraryName)]
-	private static extern int get_orchard_raw_payment_address_from_fvk(byte* fvk, byte* diversifier_index, byte* raw_payment_address);
+	private static extern int get_orchard_raw_payment_address_from_ivk(byte* ivk, byte* diversifier_index, byte* raw_payment_address);
 
 	[DllImport(LibraryName)]
 	private static extern int get_sapling_fvk_from_expanded_sk(byte* expsk, byte* fvk);
 
 	[DllImport(LibraryName)]
-	private static extern int get_sapling_receiver(byte* fullViewingKey, byte* diversifierKey, byte* diversifierIndex, byte* receiver);
+	private static extern int get_sapling_receiver(byte* incomingViewingKey, byte* diversifierKey, byte* diversifierIndex, byte* receiver);
 
 	[DllImport(LibraryName)]
 	private static extern void get_sapling_expanded_sk(byte* sk, byte* expsk);
@@ -327,7 +356,10 @@ internal static unsafe class NativeMethods
 	private static extern int decrypt_orchard_diversifier(byte* ivk, byte* receiver, byte* diversifier_index);
 
 	[DllImport(LibraryName)]
-	private static extern int decrypt_sapling_diversifier(byte* fvk, byte* dk, byte* receiver, byte* diversifier_index, byte* scope);
+	private static extern int decrypt_sapling_diversifier(byte* fvk, byte* dk, byte* receiver, byte* diversifier_index, out byte scope);
+
+	[DllImport(LibraryName)]
+	private static extern int decrypt_sapling_diversifier_with_ivk(byte* ivk, byte* dk, byte* receiver, byte* diversifier_index);
 
 	[DllImport(LibraryName)]
 	private static extern int derive_sapling_ivk_from_fvk(byte* ak, byte* nk, byte* ivk);

@@ -46,7 +46,7 @@ public class OrchardAddress : UnifiedAddress
 	public override IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= new ReadOnlyCollection<ZcashAddress>(new[] { this });
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => 0x03;
+	internal override byte UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
 	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
@@ -55,12 +55,7 @@ public class OrchardAddress : UnifiedAddress
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);
 
 	/// <inheritdoc/>
-	internal override int GetReceiverEncoding(Span<byte> output)
-	{
-		ReadOnlySpan<byte> receiverSpan = this.receiver.Span;
-		receiverSpan.CopyTo(output);
-		return receiverSpan.Length;
-	}
+	internal override int GetReceiverEncoding(Span<byte> output) => this.receiver.Encode(output);
 
 	private static unsafe string CreateAddress(in OrchardReceiver receiver, ZcashNetwork network)
 	{

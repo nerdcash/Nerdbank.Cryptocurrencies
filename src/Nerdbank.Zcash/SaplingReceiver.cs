@@ -57,7 +57,7 @@ public unsafe struct SaplingReceiver : IPoolReceiver
 	}
 
 	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-	public static byte UnifiedReceiverTypeCode => 0x02;
+	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Sapling;
@@ -65,26 +65,40 @@ public unsafe struct SaplingReceiver : IPoolReceiver
 	/// <summary>
 	/// Gets the LEBS2OSP(d) on the receiver.
 	/// </summary>
+	[UnscopedRef]
 	public readonly ReadOnlySpan<byte> D => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), DLength);
 
 	/// <summary>
 	/// Gets the LEBS2OSP(repr(pkd)) on the receiver.
 	/// </summary>
+	[UnscopedRef]
 	public readonly ReadOnlySpan<byte> Pkd => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[DLength]), PkdLength);
 
 	/// <inheritdoc />
+	public readonly int EncodingLength => Length;
+
+	/// <summary>
+	/// Gets the encoded representation of the entire receiver.
+	/// </summary>
+	[UnscopedRef]
 	public readonly ReadOnlySpan<byte> Span => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), Length);
 
 	/// <inheritdoc cref="Span" />
+	[UnscopedRef]
 	private Span<byte> SpanWritable => MemoryMarshal.CreateSpan(ref this.backing[0], Length);
 
 	/// <summary>
 	/// Gets the LEBS2OSP(d) on the receiver.
 	/// </summary>
+	[UnscopedRef]
 	private Span<byte> DWritable => MemoryMarshal.CreateSpan(ref this.backing[0], DLength);
 
 	/// <summary>
 	/// Gets the LEBS2OSP(repr(pkd)) on the receiver.
 	/// </summary>
+	[UnscopedRef]
 	private Span<byte> PkdWritable => MemoryMarshal.CreateSpan(ref this.backing[DLength], PkdLength);
+
+	/// <inheritdoc/>
+	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
 }

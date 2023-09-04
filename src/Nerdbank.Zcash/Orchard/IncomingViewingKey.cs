@@ -8,7 +8,8 @@ namespace Nerdbank.Zcash.Orchard;
 /// <summary>
 /// The incoming viewing key for the Orchard pool.
 /// </summary>
-public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<IncomingViewingKey>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>
 {
 	private readonly Bytes64 rawEncoding;
 
@@ -23,17 +24,24 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 		this.rawEncoding = new(rawEncoding);
 	}
 
+	/// <summary>
+	/// Gets the default address for this key.
+	/// </summary>
+	/// <remarks>
+	/// Create additional diversified addresses using <see cref="CreateReceiver"/>.
+	/// </remarks>
+	/// <seealso cref="CreateDefaultReceiver"/>
+	/// <seealso cref="CreateReceiver"/>
+	public OrchardAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
+
+	/// <inheritdoc/>
+	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
+
 	/// <inheritdoc/>
 	public ZcashNetwork Network { get; }
 
 	/// <inheritdoc/>
-	bool IViewingKey.IsFullViewingKey => false;
-
-	/// <inheritdoc/>
-	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
-
-	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x03;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => this.Dk.Value.Length + this.Ivk.Value.Length;
@@ -53,12 +61,89 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	/// </summary>
 	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding.Value;
 
+	private string DebuggerDisplay => this.DefaultAddress;
+
+	/// <summary>
+	/// Creates an orchard receiver using this key and a given diversifier.
+	/// </summary>
+	/// <param name="diversifierIndex">An 11-byte deterministic diversifier.</param>
+	/// <returns>The orchard receiver.</returns>
+	public OrchardReceiver CreateReceiver(DiversifierIndex diversifierIndex)
+	{
+		Span<byte> rawReceiver = stackalloc byte[43];
+		if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex.Value, rawReceiver) != 0)
+		{
+			throw new InvalidKeyException(Strings.InvalidKey);
+		}
+
+		return new(rawReceiver);
+	}
+
+	/// <summary>
+	/// Creates the default orchard receiver for this key.
+	/// </summary>
+	/// <returns>A receiver suitable for creating an address.</returns>
+	/// <remarks>
+	/// The default receiver is created using with a zero-filled diversifier.
+	/// </remarks>
+	public OrchardReceiver CreateDefaultReceiver() => this.CreateReceiver(default);
+
+	/// <summary>
+	/// Checks whether a given orchard receiver was derived from the same spending authority as this key
+	/// (in other words: would ZEC sent to this receiver arrive in this account?).
+	/// </summary>
+	/// <param name="receiver">The receiver to test.</param>
+	/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
+	/// <remarks>
+	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex"/> method,
+	/// which runs a similar test but also provides the decrypted diversifier index.</para>
+	/// </remarks>
+	public bool CheckReceiver(OrchardReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
+
+	/// <summary>
+	/// Checks whether a given orchard receiver was derived from the same spending authority as this key
+	/// (in other words: would ZEC sent to this receiver arrive in this account?).
+	/// If so, the diversifier that was used to create it is decrypted back into its original index.
+	/// </summary>
+	/// <param name="receiver">The receiver to decrypt.</param>
+	/// <param name="diversifierIndex">Receives the original diversifier index, if successful.</param>
+	/// <returns>A value indicating whether the receiver could be decrypted successfully (i.e. the receiver came from this key).</returns>
+	/// <remarks>
+	/// <para>Use <see cref="CheckReceiver(OrchardReceiver)"/> for a simpler API if the diversifier index is not required.</para>
+	/// </remarks>
+	public bool TryGetDiversifierIndex(OrchardReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
+	{
+		Span<byte> diversifierSpan = stackalloc byte[11];
+		switch (NativeMethods.DecryptOrchardDiversifier(this.RawEncoding, receiver.Span, diversifierSpan))
+		{
+			case 0:
+				diversifierIndex = new(diversifierSpan);
+				return true;
+			case 1:
+				diversifierIndex = null;
+				return false;
+			default: throw new ArgumentException();
+		}
+	}
+
 	/// <inheritdoc/>
 	public bool Equals(IncomingViewingKey? other)
 	{
 		return other is not null
 			&& this.Network == other.Network
 			&& this.rawEncoding.Value.SequenceEqual(other.rawEncoding.Value);
+	}
+
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is IncomingViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(this.Network);
+		result.AddBytes(this.rawEncoding.Value);
+		return result.ToHashCode();
 	}
 
 	/// <inheritdoc/>

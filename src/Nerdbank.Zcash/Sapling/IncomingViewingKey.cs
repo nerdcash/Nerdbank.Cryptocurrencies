@@ -8,10 +8,14 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key for incoming transactions.
 /// </summary>
-public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatable<IncomingViewingKey>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
+public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zivks";
 	private const string Bech32TestNetworkHRP = "zivktestsapling";
+
+	private readonly Bytes32 ivk;
+	private readonly DiversifierKey? dk;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class.
@@ -21,8 +25,8 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	/// <param name="network">The network this key should be used with.</param>
 	internal IncomingViewingKey(ReadOnlySpan<byte> ivk, ReadOnlySpan<byte> dk, ZcashNetwork network)
 	{
-		this.Ivk = new(ivk);
-		this.Dk = dk.Length > 0 ? new(dk) : null;
+		this.ivk = new(ivk);
+		this.dk = dk.Length > 0 ? new(dk) : null;
 		this.Network = network;
 	}
 
@@ -31,14 +35,19 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	/// </summary>
 	public ZcashNetwork Network { get; }
 
-	/// <inheritdoc/>
-	bool IKey.IsTestNet => this.Network != ZcashNetwork.MainNet;
+	/// <summary>
+	/// Gets the default address for this spending key.
+	/// </summary>
+	/// <remarks>
+	/// Create additional diversified addresses using <see cref="TryCreateReceiver"/>.
+	/// </remarks>
+	public SaplingAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
 
 	/// <inheritdoc/>
-	bool IViewingKey.IsFullViewingKey => false;
+	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
 
 	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => 0x02;
+	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 2;
@@ -67,12 +76,14 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 	/// <summary>
 	/// Gets the ivk value.
 	/// </summary>
-	internal Bytes32 Ivk { get; }
+	internal ref readonly Bytes32 Ivk => ref this.ivk;
 
 	/// <summary>
 	/// Gets the diversification key.
 	/// </summary>
-	internal DiversifierKey? Dk { get; }
+	internal ref readonly DiversifierKey? Dk => ref this.dk;
+
+	private string DebuggerDisplay => this.DefaultAddress;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class
@@ -104,6 +115,101 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IViewingKey, IEquatab
 		return other is not null
 			&& this.Ivk.Value.SequenceEqual(other.Ivk.Value)
 			&& this.Network == other.Network;
+	}
+
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => obj is IncomingViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode result = default;
+		result.Add(this.Network);
+		result.AddBytes(this.Ivk.Value);
+		return result.ToHashCode();
+	}
+
+	/// <summary>
+	/// Creates a sapling receiver using this key and a given diversifier.
+	/// </summary>
+	/// <param name="diversifierIndex">
+	/// The diversifier index to start searching at, in the range of 0..(2^88 - 1).
+	/// Not every index will produce a valid diversifier. About half will fail.
+	/// The default diversifier is defined as the smallest non-negative index that produces a valid diversifier.
+	/// This value will be incremented until a diversifier can be found, considering the buffer to be a little-endian encoded integer.
+	/// </param>
+	/// <param name="receiver">Receives the sapling receiver, if successful.</param>
+	/// <returns>
+	/// <see langword="true"/> if a valid diversifier could be produced at or above the initial value given by <paramref name="diversifierIndex"/>.
+	/// <see langword="false"/> if no valid diversifier could be found at or above <paramref name="diversifierIndex"/>.
+	/// </returns>
+	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="diversifierIndex"/> is negative.</exception>
+	public bool TryCreateReceiver(ref DiversifierIndex diversifierIndex, [NotNullWhen(true)] out SaplingReceiver? receiver)
+	{
+		Verify.Operation(this.Dk.HasValue, "This IVK was not created with a diversifier key.");
+		Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
+		Span<byte> diversifierIndexSpan = stackalloc byte[11];
+		diversifierIndex.Value.CopyTo(diversifierIndexSpan);
+		if (NativeMethods.TryGetSaplingReceiver(this.ivk.Value, this.Dk.Value.Value, diversifierIndexSpan, receiverBytes) != 0)
+		{
+			receiver = null;
+			return false;
+		}
+
+		diversifierIndex = new(diversifierIndexSpan);
+		receiver = new(receiverBytes);
+		return true;
+	}
+
+	/// <summary>
+	/// Creates the default sapling receiver for this key.
+	/// </summary>
+	/// <returns>The receiver.</returns>
+	public SaplingReceiver CreateDefaultReceiver()
+	{
+		DiversifierIndex diversifierIndex = default;
+		Assumes.True(this.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver? receiver));
+		return receiver.Value;
+	}
+
+	/// <summary>
+	/// Checks whether a given sapling receiver was derived from the same spending authority as this key
+	/// (in other words: would ZEC sent to this receiver arrive in this account?).
+	/// </summary>
+	/// <param name="receiver">The receiver to test.</param>
+	/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
+	/// <remarks>
+	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex"/> method,
+	/// which runs a similar test but also provides the decrypted diversifier index.</para>
+	/// </remarks>
+	public bool CheckReceiver(SaplingReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
+
+	/// <summary>
+	/// Checks whether a given sapling receiver was derived from the same spending authority as this key
+	/// (in other words: would ZEC sent to this receiver arrive in this account?).
+	/// If so, the diversifier that was used to create it is decrypted back into its original index.
+	/// </summary>
+	/// <param name="receiver">The receiver to decrypt.</param>
+	/// <param name="diversifierIndex">Receives the original diversifier index, if successful.</param>
+	/// <returns>A value indicating whether the receiver could be decrypted successfully (i.e. the receiver came from this key).</returns>
+	/// <remarks>
+	/// <para>Use <see cref="CheckReceiver(SaplingReceiver)"/> for a simpler API if the diversifier index is not required.</para>
+	/// </remarks>
+	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
+	{
+		Verify.Operation(this.Dk.HasValue, "This IVK was not created with a diversifier key.");
+
+		Span<byte> diversifierSpan = stackalloc byte[11];
+		switch (NativeMethods.DecryptSaplingDiversifierWithIvk(this.Ivk.Value, this.Dk.Value.Value, receiver.Span, diversifierSpan))
+		{
+			case 0:
+				diversifierIndex = new(diversifierSpan);
+				return true;
+			case 1:
+				diversifierIndex = null;
+				return false;
+			default: throw new ArgumentException();
+		}
 	}
 
 	/// <inheritdoc/>

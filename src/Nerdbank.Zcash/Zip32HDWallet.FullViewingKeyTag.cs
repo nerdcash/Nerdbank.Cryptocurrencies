@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash;
 public partial class Zip32HDWallet
 {
 	/// <summary>
-	/// The tag for a full viewing key. May not be unique.
+	/// The tag for a full viewing key (the first four bytes from its fingerprint). May not be unique.
 	/// </summary>
 	public readonly struct FullViewingKeyTag
 	{
@@ -26,6 +26,7 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the buffer. Always 4 bytes in length.
 		/// </summary>
+		[UnscopedRef]
 		public readonly ReadOnlySpan<byte> Value => this.value.Value;
 	}
 }

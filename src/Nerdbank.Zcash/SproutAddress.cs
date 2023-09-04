@@ -99,15 +99,14 @@ public class SproutAddress : ZcashAddress
 
 	private static string CreateAddress(in SproutReceiver receiver, ZcashNetwork network)
 	{
-		ReadOnlySpan<byte> receiverSpan = receiver.Span;
-		Span<byte> input = stackalloc byte[2 + receiverSpan.Length];
+		Span<byte> input = stackalloc byte[2 + receiver.EncodingLength];
 		(input[0], input[1]) = network switch
 		{
 			ZcashNetwork.MainNet => ((byte)0x16, (byte)0x9a),
 			ZcashNetwork.TestNet => ((byte)0x16, (byte)0xb6),
 			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
 		};
-		receiverSpan.CopyTo(input[2..]);
+		receiver.Encode(input[2..]);
 		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
 		int charsLength = Base58Check.Encode(input, addressChars);
 		return addressChars[..charsLength].ToString();

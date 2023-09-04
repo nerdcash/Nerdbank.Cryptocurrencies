@@ -19,6 +19,14 @@ public interface IExtendedKey : IKey
 	byte Depth { get; }
 
 	/// <summary>
+	/// Gets the derivation path for this key, if known.
+	/// </summary>
+	/// <remarks>
+	/// A key that was deserialized from its text representation will not have a known derivation path.
+	/// </remarks>
+	Bip32HDWallet.KeyPath? DerivationPath { get; }
+
+	/// <summary>
 	/// Derives a new extended private key that is a direct child of this one.
 	/// </summary>
 	/// <param name="childIndex">The child key number to derive. This may include the <see cref="Bip32HDWallet.HardenedBit"/> to derive a hardened key.</param>

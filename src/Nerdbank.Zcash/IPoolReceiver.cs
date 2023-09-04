@@ -19,7 +19,14 @@ public interface IPoolReceiver
 	Pool Pool { get; }
 
 	/// <summary>
-	/// Gets a span encompassing the entire receiver.
+	/// Gets the length of the receiver's byte encoding.
 	/// </summary>
-	ReadOnlySpan<byte> Span { get; }
+	int EncodingLength { get; }
+
+	/// <summary>
+	/// Writes the entire receiver to the given buffer.
+	/// </summary>
+	/// <param name="buffer">The buffer to write to. Must be at least <see cref="EncodingLength"/> in length.</param>
+	/// <returns>The number of bytes written to the buffer. This should always equal <see cref="EncodingLength"/>.</returns>
+	int Encode(Span<byte> buffer);
 }

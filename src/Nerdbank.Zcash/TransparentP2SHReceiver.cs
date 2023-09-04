@@ -35,21 +35,32 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
 	/// Gets a span over the whole receiver.
 	/// </summary>
 	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-	public static byte UnifiedReceiverTypeCode => 0x01;
+	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.TransparentP2SH;
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;
 
 	/// <summary>
-	/// Gets the script hash.
+	/// Gets the encoded representation of the entire receiver.
 	/// </summary>
-	public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
 
 	/// <inheritdoc />
-	public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
+	public readonly int EncodingLength => this.Span.Length;
 
 	/// <summary>
 	/// Gets the script hash.
 	/// </summary>
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
+
+	/// <summary>
+	/// Gets the script hash.
+	/// </summary>
+	[UnscopedRef]
 	private Span<byte> ScriptHashWritable => MemoryMarshal.CreateSpan(ref this.scriptHash[0], Length);
+
+	/// <inheritdoc/>
+	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
 }
