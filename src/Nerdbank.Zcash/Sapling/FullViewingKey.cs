@@ -8,6 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zviews";
@@ -76,6 +77,8 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>
 	/// Gets the outgoing viewing key.
 	/// </summary>
 	internal OutgoingViewingKey Ovk { get; }
+
+	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress.ToString();
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class

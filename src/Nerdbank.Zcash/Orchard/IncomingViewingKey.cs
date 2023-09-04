@@ -8,6 +8,7 @@ namespace Nerdbank.Zcash.Orchard;
 /// <summary>
 /// The incoming viewing key for the Orchard pool.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>
 {
 	private readonly Bytes64 rawEncoding;
@@ -59,6 +60,8 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// Gets the raw encoding of this incoming viewing key.
 	/// </summary>
 	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding.Value;
+
+	private string DebuggerDisplay => this.DefaultAddress;
 
 	/// <summary>
 	/// Creates an orchard receiver using this key and a given diversifier.

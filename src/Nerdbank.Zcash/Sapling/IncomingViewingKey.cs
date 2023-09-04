@@ -8,6 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// <summary>
 /// A viewing key for incoming transactions.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>
 {
 	private const string Bech32MainNetworkHRP = "zivks";
@@ -81,6 +82,8 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// Gets the diversification key.
 	/// </summary>
 	internal ref readonly DiversifierKey? Dk => ref this.dk;
+
+	private string DebuggerDisplay => this.DefaultAddress;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class
