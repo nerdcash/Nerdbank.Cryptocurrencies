@@ -108,5 +108,5 @@ internal unsafe struct Bytes512
 	internal readonly ReadOnlySpan<byte> Value => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.value[0]), Length);
 
 	[UnscopedRef]
-	private Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
+	internal Span<byte> ValueWritable => MemoryMarshal.CreateSpan(ref this.value[0], Length);
 }

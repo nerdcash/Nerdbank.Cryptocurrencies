@@ -3,8 +3,9 @@ use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
 use zingoconfig::ChainType;
 use zingolib::lightclient::{LightClient, SyncResult};
-use zingolib::wallet::WalletBase;
 use zingolib::load_clientconfig;
+use zingolib::wallet::traits::ToBytes;
+use zingolib::wallet::WalletBase;
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -237,6 +238,7 @@ pub struct TransactionSendDetail {
     pub to_address: String,
     pub value: u64,
     pub recipient_ua: Option<String>,
+    pub memo: Vec<u8>,
 }
 
 pub fn lightwallet_get_transactions(
@@ -270,6 +272,7 @@ pub fn lightwallet_get_transactions(
                                 to_address: o.to_address.to_string(),
                                 value: o.value,
                                 recipient_ua: o.recipient_ua.clone(),
+                                memo: o.memo.to_bytes().into(),
                             })
                             .collect(),
                     })
