@@ -198,8 +198,9 @@ public class UnifiedViewingKeyTests : TestBase
 		TransparentSK transparent = wallet.CreateTransparentAccount(0);
 		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Full.Create(transparent);
 
+		this.logger.WriteLine(uvk);
 		Assert.Equal(
-			"uview19mqx3hxxhjemtr73tacw3dqmnanweuvf62qpcxj7hy0frt32tjr230een4q6tlvw9tgcgnfpva9954d64jgr2vaypm6p8x5xlept87kzkzwu3yt2l47624ftxdzcemfg9grp6rus90m",
+			"uview1ntk3zd44nje0tz4x6ml8vxxse88dnsts9c3mdppgu3qk8gny27qrvjk38y9htmv0f5my8qp0nwpcepdpmqeat7gg9kux8jtkzl7nap73sptf4vcg03vgj94qd9kafm2q2mss69kpqy2",
 			uvk.ViewingKey);
 	}
 
@@ -212,7 +213,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		this.logger.WriteLine(uvk);
 		Assert.Equal(
-			"uivk1y32cpthqwwzupwrckny9njde8qrh9ayplqvs7p89gfuwa857k9zhr99y0fedze9j0nqz2dq63ad8ez37t6aqdlfmk3f64a2u48cqs7w8zdx8fpax4rl9z8qcq984c0kmn43wwlcdstq",
+			"uivk1rc6aa5kgpfgltsd2ds9gxggs3rpfayed6rr8mwnjk3hces69cgdv7p5nqvfe95fwy7kdfvs58z7er8kyyznezgnaky8jk9tx57zk4qzudm06tq9pglzfja4phcs7mu407m595ucetr2",
 			uvk.ViewingKey);
 	}
 

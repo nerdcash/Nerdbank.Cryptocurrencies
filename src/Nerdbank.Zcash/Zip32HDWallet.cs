@@ -76,7 +76,7 @@ public partial class Zip32HDWallet
 
 	/// <summary>
 	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
-	/// of <c>m / purpose' / coin_type' / account'</c>.
+	/// of <c>m / purpose' / coin_type' / account'</c> <em>for shielded accounts</em>.
 	/// </summary>
 	/// <inheritdoc cref="CreateKeyPath(uint, uint)"/>
 	/// <remarks>
@@ -88,7 +88,7 @@ public partial class Zip32HDWallet
 
 	/// <summary>
 	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
-	/// of <c>m / purpose' / coin_type' / account' / address_index</c>.
+	/// of <c>m / purpose' / coin_type' / account' / address_index</c> <em>for shielded accounts</em>.
 	/// </summary>
 	/// <param name="account">
 	/// <para>This level splits the key space into independent user identities, so the wallet never mixes the coins across different accounts.</para>
@@ -115,6 +115,26 @@ public partial class Zip32HDWallet
 	public static KeyPath CreateKeyPath(uint account, uint addressIndex) => new(addressIndex, CreateKeyPath(account));
 
 	/// <summary>
+	/// Creates a key derivation path that conforms to the <see href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP-44</see> specification
+	/// of <c>m / purpose' / coin_type' / account'</c> <em>for transparent accounts</em>.
+	/// The <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification suggests transparent accounts be created using BIP-44 rules.
+	/// </summary>
+	/// <param name="account"><inheritdoc cref="Bip44MultiAccountHD.CreateKeyPath(uint, uint, Bip44MultiAccountHD.Change, uint)" path="/param[@name='account']"/></param>
+	/// <returns><inheritdoc cref="Bip44MultiAccountHD.CreateKeyPath(uint, uint, Bip44MultiAccountHD.Change, uint)" path="/returns"/></returns>
+	public static KeyPath CreateTransparentKeyPath(uint account) => Bip44MultiAccountHD.CreateKeyPath(CoinType | HardenedBit, account);
+
+	/// <summary>
+	/// Creates a key derivation path that conforms to the <see href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP-44</see> specification
+	/// of <c>m / purpose' / coin_type' / account' / change / address_index</c> <em>for transparent accounts</em>.
+	/// The <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification suggests transparent accounts be created using BIP-44 rules.
+	/// </summary>
+	/// <param name="account"><inheritdoc cref="Bip44MultiAccountHD.CreateKeyPath(uint, uint, Bip44MultiAccountHD.Change, uint)" path="/param[@name='account']"/></param>
+	/// <param name="change"><inheritdoc cref="Bip44MultiAccountHD.CreateKeyPath(uint, uint, Bip44MultiAccountHD.Change, uint)" path="/param[@name='change']"/></param>
+	/// <param name="addressIndex"><inheritdoc cref="Bip44MultiAccountHD.CreateKeyPath(uint, uint, Bip44MultiAccountHD.Change, uint)" path="/param[@name='addressIndex']"/></param>
+	/// <returns><inheritdoc cref="Bip44MultiAccountHD.CreateKeyPath(uint, uint, Bip44MultiAccountHD.Change, uint)" path="/returns"/></returns>
+	public static KeyPath CreateTransparentKeyPath(uint account, Bip44MultiAccountHD.Change change, uint addressIndex) => Bip44MultiAccountHD.CreateKeyPath(CoinType | HardenedBit, account, change, addressIndex);
+
+	/// <summary>
 	/// Creates a new orchard account.
 	/// </summary>
 	/// <param name="account">The account index. Use 0 for the first account and increment by one only after completing a transaction in the previous account so that account discovery can find all accounts.</param>
@@ -133,7 +153,7 @@ public partial class Zip32HDWallet
 	/// </summary>
 	/// <param name="account">The account index. Use 0 for the first account and increment by one only after completing a transaction in the previous account so that account discovery can find all accounts.</param>
 	/// <returns>The account spending key.</returns>
-	public Transparent.ExtendedSpendingKey CreateTransparentAccount(uint account = 0) => this.masterTransparentKey.Derive(CreateKeyPath(account));
+	public Transparent.ExtendedSpendingKey CreateTransparentAccount(uint account = 0) => this.masterTransparentKey.Derive(CreateTransparentKeyPath(account));
 
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.
