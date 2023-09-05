@@ -35,13 +35,37 @@ public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 	/// <inheritdoc/>
 	IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
 
+	/// <summary>
+	/// Gets the incoming viewing key.
+	/// </summary>
+	public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+
 	/// <inheritdoc/>
-	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 	/// <summary>
 	/// Gets the Zcash network this key operates on.
 	/// </summary>
 	public ZcashNetwork Network { get; }
+
+	/// <summary>
+	/// Gets the Bech32m encoding of the spending key.
+	/// </summary>
+	public string Encoded
+	{
+		get
+		{
+			Span<char> encodedChars = stackalloc char[512];
+			string hrp = this.Network switch
+			{
+				ZcashNetwork.MainNet => Bech32mMainNetworkHRP,
+				ZcashNetwork.TestNet => Bech32mTestNetworkHRP,
+				_ => throw new NotSupportedException(),
+			};
+			int charLength = Bech32.Bech32m.Encode(hrp, this.value.Value, encodedChars);
+			return new string(encodedChars[..charLength]);
+		}
+	}
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
