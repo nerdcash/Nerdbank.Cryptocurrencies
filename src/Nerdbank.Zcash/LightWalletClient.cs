@@ -254,14 +254,15 @@ public class LightWalletClient : IDisposableObservable
 	/// <param name="Amount">The amount spent.</param>
 	/// <param name="ToAddress">The receiver of this ZEC.</param>
 	/// <param name="RecipientUA">The full UA that was used when spending this, as recorded in the private change memo.</param>
-	public record struct TransactionSendItem(decimal Amount, ZcashAddress ToAddress, UnifiedAddress? RecipientUA)
+	/// <param name="Memo">The memo included for this recipient.</param>
+	public record struct TransactionSendItem(decimal Amount, ZcashAddress ToAddress, UnifiedAddress? RecipientUA, in Memo Memo)
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionSendItem"/> class.
 		/// </summary>
 		/// <param name="d">The uniffi data to copy from.</param>
 		internal TransactionSendItem(TransactionSendDetail d)
-			: this((decimal)d.value / Transaction.ZatsPerZEC, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
+			: this((decimal)d.value / Transaction.ZatsPerZEC, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa), new Memo(d.memo.ToArray()))
 		{
 		}
 	}

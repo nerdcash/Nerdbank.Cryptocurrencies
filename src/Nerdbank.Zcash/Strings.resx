@@ -150,6 +150,9 @@
   <data name="LengthOutsideExpectedRange" xml:space="preserve">
     <value>The collection was expected to have a length within {minimum}-{maximum} but was {actual}.</value>
   </data>
+  <data name="MemoDataTooLarge" xml:space="preserve">
+    <value>The data provided is too large to fit into the memo field.</value>
+  </data>
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>
