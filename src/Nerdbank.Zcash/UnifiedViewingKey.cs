@@ -8,6 +8,9 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Represents the encoding of one or more viewing keys for a single logical account.
 /// </summary>
+/// <remarks>
+/// This implements the Unified Viewing Keys part of the <see href="https://zips.z.cash/zip-0316">ZIP-316</see> specification.
+/// </remarks>
 public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IIncomingViewingKey, IEquatable<UnifiedViewingKey>
 {
 	private const string HumanReadablePartMainNetFVK = "uview";
