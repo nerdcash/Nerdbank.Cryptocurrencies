@@ -88,7 +88,7 @@ public sealed class Bech32
 	/// <returns>The number of characters written to <paramref name="output"/>.</returns>
 	public int Encode(ReadOnlySpan<char> tag, ReadOnlySpan<byte> data, Span<char> output)
 	{
-		Requires.Argument(!tag.IsEmpty, nameof(tag), "An empty human-readable part is not allowed.");
+		Requires.Argument(!tag.IsEmpty, nameof(tag), Strings.HumanReadablePartRequired);
 
 		// The encoding always starts with the tag and the separator.
 		// The tag itself may contain a '1', so when decoding, the separator is the *last* 1 in the string.
