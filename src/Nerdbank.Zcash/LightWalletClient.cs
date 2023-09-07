@@ -65,6 +65,11 @@ public class LightWalletClient : IDisposableObservable
 	bool IDisposableObservable.IsDisposed => this.disposed;
 
 	/// <summary>
+	/// Gets or sets the interval to report progress for long-running tasks.
+	/// </summary>
+	public TimeSpan UpdateFrequency { get; set; } = TimeSpan.FromSeconds(1);
+
+	/// <summary>
 	/// Gets the birthday height of the account.
 	/// </summary>
 	/// <remarks>
@@ -95,8 +100,8 @@ public class LightWalletClient : IDisposableObservable
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
-	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, TimeSpan?, CancellationToken)"/>
-	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, null, cancellationToken);
+	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/>
+	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, cancellationToken);
 
 	/// <summary>
 	/// Scans the blockchain for new transactions related to this account.
@@ -105,11 +110,6 @@ public class LightWalletClient : IDisposableObservable
 	/// An optional receiver of updates that report on progress toward the tip of the blockchain.
 	/// Because scanning the blockchain may take a <em>very</em> long time, reporting progress to the user is <em>highly</em> recommended.
 	/// </param>
-	/// <param name="updateFrequency">
-	/// The interval between each <paramref name="progress"/> update.
-	/// If <see langword="null"/>, a reasonable default will be used.
-	/// Irrelevant if <paramref name="progress"/> is <see langword="null" />.
-	/// </param>
 	/// <param name="cancellationToken">
 	/// A cancellation token.
 	/// There may be a substantial delay between cancellation and when the blockchain scan is suspended in order to conclude work on the current 'batch'.
@@ -117,38 +117,20 @@ public class LightWalletClient : IDisposableObservable
 	/// but rather concludes the operation early with an indication of the last block that was scanned.
 	/// </param>
 	/// <returns>A task with the result of the scan.</returns>
-	public async Task<SyncResult> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, TimeSpan? updateFrequency, CancellationToken cancellationToken)
+	public async Task<SyncResult> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, CancellationToken cancellationToken)
 	{
 		using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
 		{
 			this.Interop(h => LightWalletMethods.LightwalletSyncInterrupt(h));
 		});
 
-		bool inProgress = true;
-		if (progress is not null)
-		{
-			// Set up a timer by which we will check on progress and report back.
-			_ = Task.Run(async delegate
-			{
-				updateFrequency ??= TimeSpan.FromSeconds(1);
-				while (inProgress)
-				{
-					await Task.Delay(updateFrequency.Value, cancellationToken);
-					SyncStatus status = this.Interop(h => LightWalletMethods.LightwalletSyncStatus(h));
-					progress.Report(new SyncProgress(status));
-				}
-			});
-		}
+		uniffi.LightWallet.SyncResult result = await this.InteropAsync(
+			LightWalletMethods.LightwalletSync,
+			progress,
+			h => new SyncProgress(LightWalletMethods.LightwalletSyncStatus(h)),
+			cancellationToken);
 
-		try
-		{
-			uniffi.LightWallet.SyncResult result = await this.InteropAsync(LightWalletMethods.LightwalletSync, cancellationToken);
-			return new SyncResult(result);
-		}
-		finally
-		{
-			inProgress = false;
-		}
+		return new SyncResult(result);
 	}
 
 	/// <summary>
@@ -190,6 +172,14 @@ public class LightWalletClient : IDisposableObservable
 		}
 
 		return list;
+	}
+
+	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
+	{
+		using (this.TrackProgress(progress, checkProgress))
+		{
+			return await this.InteropAsync(func, cancellationToken);
+		}
 	}
 
 	private ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
@@ -248,6 +238,34 @@ public class LightWalletClient : IDisposableObservable
 		}
 	}
 
+	private IDisposable? TrackProgress<T>(IProgress<T>? progress, Func<ulong, T> fetchProgress)
+	{
+		if (progress is null)
+		{
+			return null;
+		}
+
+		CancellationTokenSource cts = new();
+		bool inProgress = true;
+
+		// Set up a timer by which we will check on progress and report back.
+		_ = Task.Run(async delegate
+		{
+			while (inProgress)
+			{
+				await Task.Delay(this.UpdateFrequency, cts.Token);
+				T status = this.Interop(fetchProgress);
+				progress.Report(status);
+			}
+		});
+
+		return new DisposableAction(delegate
+		{
+			inProgress = false;
+			cts.Cancel();
+		});
+	}
+
 	/// <summary>
 	/// Describes an individual spend in a transaction.
 	/// </summary>
@@ -255,14 +273,14 @@ public class LightWalletClient : IDisposableObservable
 	/// <param name="ToAddress">The receiver of this ZEC.</param>
 	/// <param name="RecipientUA">The full UA that was used when spending this, as recorded in the private change memo.</param>
 	/// <param name="Memo">The memo included for this recipient.</param>
-	public record struct TransactionSendItem(decimal Amount, ZcashAddress ToAddress, UnifiedAddress? RecipientUA, in Memo Memo)
+	public record struct TransactionSendItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo, UnifiedAddress? RecipientUA)
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionSendItem"/> class.
 		/// </summary>
 		/// <param name="d">The uniffi data to copy from.</param>
 		internal TransactionSendItem(TransactionSendDetail d)
-			: this((decimal)d.value / Transaction.ZatsPerZEC, ZcashAddress.Parse(d.toAddress), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa), new Memo(d.memo.ToArray()))
+			: this(ZcashAddress.Parse(d.toAddress), (decimal)d.value / Transaction.ZatsPerZEC, new Memo(d.memo.ToArray()), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
 		{
 		}
 	}
@@ -290,7 +308,7 @@ public class LightWalletClient : IDisposableObservable
 	}
 
 	/// <summary>
-	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, TimeSpan?, CancellationToken)"/> operation.
+	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/> operation.
 	/// </summary>
 	/// <param name="LastError">The last error encountered during the scan.</param>
 	/// <param name="StartBlock">The number of the first block in the current batch.</param>

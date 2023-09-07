@@ -31,7 +31,7 @@ Nerdbank.Zcash.IZcashKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.LightWalletClient
 Nerdbank.Zcash.LightWalletClient.BirthdayHeight.get -> ulong
 Nerdbank.Zcash.LightWalletClient.Dispose() -> void
-Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWalletClient.SyncProgress!>? progress, System.TimeSpan? updateFrequency, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncResult!>!
+Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWalletClient.SyncProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncResult!>!
 Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncResult!>!
 Nerdbank.Zcash.LightWalletClient.GetDownloadedTransactions(uint startingBlock = 0) -> System.Collections.Generic.List<Nerdbank.Zcash.LightWalletClient.Transaction!>!
 Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
@@ -90,7 +90,9 @@ Nerdbank.Zcash.LightWalletClient.TransactionSendItem.RecipientUA.set -> void
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.ToAddress.get -> Nerdbank.Zcash.ZcashAddress!
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.ToAddress.set -> void
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.TransactionSendItem() -> void
-Nerdbank.Zcash.LightWalletClient.TransactionSendItem.TransactionSendItem(decimal Amount, Nerdbank.Zcash.ZcashAddress! ToAddress, Nerdbank.Zcash.UnifiedAddress? RecipientUA, in Nerdbank.Zcash.Memo Memo) -> void
+Nerdbank.Zcash.LightWalletClient.TransactionSendItem.TransactionSendItem(Nerdbank.Zcash.ZcashAddress! ToAddress, decimal Amount, in Nerdbank.Zcash.Memo Memo, Nerdbank.Zcash.UnifiedAddress? RecipientUA) -> void
+Nerdbank.Zcash.LightWalletClient.UpdateFrequency.get -> System.TimeSpan
+Nerdbank.Zcash.LightWalletClient.UpdateFrequency.set -> void
 Nerdbank.Zcash.Memo
 Nerdbank.Zcash.Memo.Clear() -> void
 Nerdbank.Zcash.Memo.Equals(Nerdbank.Zcash.Memo other) -> bool
