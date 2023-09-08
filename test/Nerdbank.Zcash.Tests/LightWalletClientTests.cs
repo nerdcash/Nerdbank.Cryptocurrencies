@@ -71,14 +71,15 @@ public class LightWalletClientTests : TestBase, IDisposable
 	}
 
 	[Fact]
+	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
 	public async Task DownloadTransactionsAsync()
 	{
+		this.client.UpdateFrequency = TimeSpan.FromMilliseconds(100);
 		LightWalletClient.SyncResult result = await this.client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
 				this.logger.WriteLine($"Sync progress update: {p}");
 			}),
-			TimeSpan.FromMilliseconds(100),
 			this.TimeoutToken);
 		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned {result.TotalBlocksScanned} blocks to reach block {result.LatestBlock}.");
 	}
@@ -88,5 +89,35 @@ public class LightWalletClientTests : TestBase, IDisposable
 	{
 		List<LightWalletClient.Transaction> transactions = this.client.GetDownloadedTransactions(0);
 		Assert.Empty(transactions);
+	}
+
+	[Fact]
+	public async Task SendAsync_ValidatesNullPayments()
+	{
+		await Assert.ThrowsAsync<ArgumentNullException>("payments", () => this.client.SendAsync(null!, null, this.TimeoutToken));
+	}
+
+	[Fact]
+	public async Task SendAsync_EmptySendsList()
+	{
+		List<LightWalletClient.TransactionSendItem> sends = new();
+		ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => this.client.SendAsync(sends, null, this.TimeoutToken));
+		this.logger.WriteLine(ex.ToString());
+	}
+
+	[Fact]
+	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
+	public async Task SendAsync_InsufficientFunds()
+	{
+		List<LightWalletClient.TransactionSendItem> sends = new()
+		{
+			new LightWalletClient.TransactionSendItem(DefaultAccount.DefaultAddress, 1.0m, default),
+		};
+		LightWalletException.Other ex = await Assert.ThrowsAsync<LightWalletException.Other>(() =>
+		this.client.SendAsync(
+			sends,
+			new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
+			this.TimeoutToken));
+		this.logger.WriteLine(ex.Message);
 	}
 }

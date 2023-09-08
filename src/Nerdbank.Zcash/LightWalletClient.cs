@@ -146,6 +146,28 @@ public class LightWalletClient : IDisposableObservable
 			.ToList();
 	}
 
+	/// <summary>
+	/// Creates and broadcasts a transaction that sends Zcash to one or more recipients.
+	/// </summary>
+	/// <param name="payments">The payments to be made.</param>
+	/// <param name="progress">An optional receiver for progress updates.</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>The transaction ID.</returns>
+	public async Task<string> SendAsync(IReadOnlyCollection<TransactionSendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
+	{
+		Requires.NotNullOrEmpty(payments);
+
+		List<TransactionSendDetail> details = payments
+			.Select(p => new TransactionSendDetail(p.ToAddress, (ulong)(p.Amount * Transaction.ZatsPerZEC), null, p.Memo.RawBytes.ToArray().ToList()))
+			.ToList();
+
+		return await this.InteropAsync(
+			h => LightWalletMethods.LightwalletSendToAddress(h, details),
+			progress,
+			h => new SendProgress(LightWalletMethods.LightwalletSendCheckStatus(h)),
+			cancellationToken);
+	}
+
 	/// <inheritdoc/>
 	public void Dispose()
 	{
@@ -273,7 +295,7 @@ public class LightWalletClient : IDisposableObservable
 	/// <param name="ToAddress">The receiver of this ZEC.</param>
 	/// <param name="RecipientUA">The full UA that was used when spending this, as recorded in the private change memo.</param>
 	/// <param name="Memo">The memo included for this recipient.</param>
-	public record struct TransactionSendItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo, UnifiedAddress? RecipientUA)
+	public record struct TransactionSendItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo, UnifiedAddress? RecipientUA = null)
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionSendItem"/> class.
@@ -281,6 +303,33 @@ public class LightWalletClient : IDisposableObservable
 		/// <param name="d">The uniffi data to copy from.</param>
 		internal TransactionSendItem(TransactionSendDetail d)
 			: this(ZcashAddress.Parse(d.toAddress), (decimal)d.value / Transaction.ZatsPerZEC, new Memo(d.memo.ToArray()), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
+		{
+		}
+	}
+
+	/// <summary>
+	/// Carries details of a progress update on a send operation.
+	/// </summary>
+	/// <param name="Id">An id for the operation.</param>
+	/// <param name="IsSendInProgress">A value indicating whether the send is in progress.</param>
+	/// <param name="Progress">A value that is some proportion of the <paramref name="Total"/> value.</param>
+	/// <param name="Total">Some value that <paramref name="Progress"/> is reaching for.</param>
+	/// <param name="LastError">The last error to have occurred.</param>
+	/// <param name="LastTransactionId">The ID of the last transaction to be created.</param>
+	public record SendProgress(
+		uint Id,
+		bool IsSendInProgress,
+		uint Progress,
+		uint Total,
+		string? LastError,
+		string? LastTransactionId)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SendProgress"/> class.
+		/// </summary>
+		/// <param name="update">The FFI data to copy from.</param>
+		internal SendProgress(SendUpdate update)
+			: this(update.id, update.isSendInProgress, update.progress, update.total, update.lastError, update.lastTransactionId)
 		{
 		}
 	}

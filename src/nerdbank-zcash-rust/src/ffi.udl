@@ -70,6 +70,15 @@ dictionary TransactionSendDetail {
 	sequence<u8> memo;
 };
 
+dictionary SendUpdate {
+	u32 id;
+	boolean is_send_in_progress;
+	u32 progress;
+	u32 total;
+	string? last_error;
+	string? last_transaction_id;
+};
+
 namespace LightWallet {
 	[Throws=LightWalletError]
 	u64 lightwallet_get_block_height(string server_uri);
@@ -96,4 +105,10 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	sequence<Transaction> lightwallet_get_transactions(u64 handle, u32 starting_block);
+
+	[Throws=LightWalletError]
+	string lightwallet_send_to_address(u64 handle, sequence<TransactionSendDetail> send_details);
+
+	[Throws=LightWalletError]
+	SendUpdate lightwallet_send_check_status(u64 handle);
 };

@@ -1,6 +1,7 @@
 use http::Uri;
 use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
+use zcash_primitives::memo::MemoBytes;
 use zingoconfig::ChainType;
 use zingolib::lightclient::{LightClient, SyncResult};
 use zingolib::load_clientconfig;
@@ -102,6 +103,7 @@ pub fn lightwallet_initialize(
     })?;
     zingo_config.wallet_name = config.wallet_name.into();
     zingo_config.logfile_name = config.log_name.into();
+    zingo_config.reorg_buffer_offset = 2; // 2+1=3 confirmations before notes can be spent.
 
     // Initialize logging
     LightClient::init_logging().map_err(|e| LightWalletError::Other {
@@ -245,7 +247,7 @@ pub fn lightwallet_get_transactions(
     handle: u64,
     starting_block: u32,
 ) -> Result<Vec<Transaction>, LightWalletError> {
-    let lightclient = get_lightclient(handle).unwrap();
+    let lightclient = get_lightclient(handle)?;
     Ok(RT.block_on(async move {
         lightclient
             .wallet
@@ -282,4 +284,68 @@ pub fn lightwallet_get_transactions(
             })
             .collect()
     }))
+}
+
+pub fn lightwallet_send_to_address(
+    handle: u64,
+    address_amount_memo_tuples: Vec<TransactionSendDetail>,
+) -> Result<String, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    let mut error = None;
+    let address_amount_memo_tuples = address_amount_memo_tuples
+        .iter()
+        .map(|f| {
+            let memo = match MemoBytes::from_bytes(f.memo.as_slice()) {
+                Ok(m) => Some(m),
+                Err(e) => {
+                    error = Some(e);
+                    None
+                }
+            };
+            (&f.to_address[..], f.value, memo)
+        })
+        .collect();
+    if error.is_some() {
+        return Err(LightWalletError::Other {
+            message: error.unwrap().to_string(),
+        });
+    }
+
+    RT.block_on(async move {
+        lightclient
+            .do_send(address_amount_memo_tuples)
+            .await
+            .map_err(|o| LightWalletError::Other {
+                message: o.to_string(),
+            })
+    })
+}
+
+pub struct SendUpdate {
+    pub id: u32,
+    pub is_send_in_progress: bool,
+    pub progress: u32,
+    pub total: u32,
+    pub last_error: Option<String>,
+    pub last_transaction_id: Option<String>,
+}
+
+pub fn lightwallet_send_check_status(handle: u64) -> Result<SendUpdate, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    RT.block_on(async move {
+        let update = lightclient
+            .do_send_progress()
+            .await
+            .map_err(|o| LightWalletError::Other {
+                message: o.to_string(),
+            })?;
+        Ok(SendUpdate {
+            progress: update.progress.progress,
+            total: update.progress.total,
+            id: update.progress.id,
+            is_send_in_progress: update.progress.is_send_in_progress,
+            last_error: update.progress.last_error,
+            last_transaction_id: update.progress.last_transaction_id,
+        })
+    })
 }

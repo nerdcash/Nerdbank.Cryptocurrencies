@@ -51,6 +51,12 @@ public struct Memo : IEquatable<Memo>
 	}
 
 	/// <summary>
+	/// Gets the raw 512 byte memo.
+	/// </summary>
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> RawBytes => this.bytes.Value;
+
+	/// <summary>
 	/// Gets a value indicating whether this memo is empty.
 	/// </summary>
 	public readonly bool IsEmpty => Zip302MemoFormat.DetectMemoFormat(this.bytes.Value) == Zip302MemoFormat.MemoFormat.NoMemo;
