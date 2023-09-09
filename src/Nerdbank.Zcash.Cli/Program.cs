@@ -10,6 +10,7 @@ using Nerdbank.Zcash.Cli;
 Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strings.RootCommandDescription)
 {
 	NewAccountCommand.BuildCommand(),
+	UACommand.BuildCommand(),
 };
 
 await new CommandLineBuilder(rootCommand)

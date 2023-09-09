@@ -159,4 +159,25 @@
   <data name="RootCommandDescription" xml:space="preserve">
     <value>Realiza operaciones con Zcash.</value>
   </data>
+  <data name="UACommandDescription" xml:space="preserve">
+    <value>Codifica o decodifica direcciones UA.</value>
+  </data>
+  <data name="UAParseArgumentDescription" xml:space="preserve">
+    <value>La dirección unificada a decodificar.</value>
+  </data>
+  <data name="UAParseCommandDescription" xml:space="preserve">
+    <value>Analiza un UA en sus direcciones de receptor de componentes.</value>
+  </data>
+  <data name="NotAUnifiedAddress" xml:space="preserve">
+    <value>Esta no es una dirección unificada.</value>
+  </data>
+  <data name="UAConstructCommandDescription" xml:space="preserve">
+    <value>Construye una dirección unificada a partir de un conjunto de receptores.</value>
+  </data>
+  <data name="UAConstructReceiversArgumentDescription" xml:space="preserve">
+    <value>Receptores a incluir en la dirección unificada.</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>Error al analizar la dirección: "{address}". {error}</value>
+  </data>
 </root>
