@@ -79,11 +79,11 @@ public class LightWalletClient : IDisposableObservable
 	public ulong LastDownloadHeight => this.Interop(LightWalletMethods.LastSyncedHeight);
 
 	/// <summary>
-	/// Gets the height of the blockchain (independent of what may have been sync'd thus far.)
+	/// Gets the length of the blockchain (independent of what may have been sync'd thus far.)
 	/// </summary>
 	/// <param name="lightWalletServerUrl">The URL of the lightwallet server to query.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
-	/// <returns>The height of the blockchain.</returns>
+	/// <returns>The length of the blockchain.</returns>
 	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
 	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
