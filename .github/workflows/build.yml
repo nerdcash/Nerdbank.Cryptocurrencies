@@ -40,6 +40,14 @@ jobs:
         shared-key: ${{ matrix.os }}
         workspaces: src/nerdbank-zcash-rust
 
+    - name: Cache target directory
+      uses: actions/cache@v2
+      with:
+        path: src/nerdbank-zcash-rust/target
+        key: ${{ runner.os }}-target-${{ hashFiles('src/nerdbank-zcash-rust/Cargo.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-target-
+
     - name: ⚙ Install prerequisites
       run: |
         ./init.ps1 -UpgradePrerequisites
