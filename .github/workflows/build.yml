@@ -41,7 +41,7 @@ jobs:
         workspaces: src/nerdbank-zcash-rust
 
     - name: Cache target directory
-      uses: actions/cache@v2
+      uses: actions/cache@v3.3.2
       with:
         path: src/nerdbank-zcash-rust/target
         key: ${{ runner.os }}-target-${{ hashFiles('src/nerdbank-zcash-rust/Cargo.toml') }}
