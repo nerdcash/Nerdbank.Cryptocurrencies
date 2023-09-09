@@ -65,7 +65,7 @@ public class Bip39MnemonicTests
 	public void TryParse_NormalizesCapitalization()
 	{
 		const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
-		Assert.True(Bip39Mnemonic.TryParse(SeedPhrase.ToUpperInvariant(), password: default, out Bip39Mnemonic? mnemonic, out _, out _));
+		Assert.True(Bip39Mnemonic.TryParse(SeedPhrase.ToUpperInvariant(), out Bip39Mnemonic? mnemonic, out _, out _));
 		Assert.Equal("5E29A6C2EF223A851C2FF239B0026271", Convert.ToHexString(mnemonic.Entropy));
 		Assert.Equal(SeedPhrase, mnemonic.SeedPhrase);
 	}
@@ -116,7 +116,7 @@ public class Bip39MnemonicTests
 	[InlineData("funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco", "5E29A6C2EF223A851C2FF239B0026271", "12a5497088826d8ba3a1320606507fdc551720936d46e2afa213148f6269422dace2c5218611e1acde2d7f392977f33393fa9181865ae5c7d756b28597a63d7a")]
 	public void TryParse(string seedPhrase, string entropyAsHex, string seedAsHex)
 	{
-		Assert.True(Bip39Mnemonic.TryParse(seedPhrase, password: default, out Bip39Mnemonic? mnemonic, out _, out _));
+		Assert.True(Bip39Mnemonic.TryParse(seedPhrase, out Bip39Mnemonic? mnemonic, out _, out _));
 		Assert.Equal(entropyAsHex, Convert.ToHexString(mnemonic.Entropy));
 		Assert.Equal(seedAsHex, Convert.ToHexString(mnemonic.Seed), ignoreCase: true);
 	}

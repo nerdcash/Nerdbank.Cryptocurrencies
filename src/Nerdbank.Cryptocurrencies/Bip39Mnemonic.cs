@@ -73,6 +73,12 @@ public partial class Bip39Mnemonic
 	/// </summary>
 	public ReadOnlySpan<byte> Seed => this.fixedArrays.Seed;
 
+	/// <inheritdoc cref="Create(int, ReadOnlyMemory{char})"/>
+	public static Bip39Mnemonic Create(int entropyLengthInBits) => Create(entropyLengthInBits, default(ReadOnlyMemory<char>));
+
+	/// <inheritdoc cref="Create(int, ReadOnlyMemory{char})"/>
+	public static Bip39Mnemonic Create(int entropyLengthInBits, string? password) => Create(entropyLengthInBits, password?.AsMemory() ?? default);
+
 	/// <summary>
 	/// Generates a seed phrase for a newly generated secret.
 	/// </summary>
@@ -84,7 +90,7 @@ public partial class Bip39Mnemonic
 	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed.</param>
 	/// <returns>The seed phrase.</returns>
 	/// <exception cref="ArgumentException">Throw if <paramref name="entropyLengthInBits"/> is not a multiple of 32.</exception>
-	public static Bip39Mnemonic Create(int entropyLengthInBits, ReadOnlyMemory<char> password = default)
+	public static Bip39Mnemonic Create(int entropyLengthInBits, ReadOnlyMemory<char> password)
 	{
 		Requires.Argument(entropyLengthInBits % 32 == 0, nameof(entropyLengthInBits), Strings.MustBeNonZeroMultipleOf32);
 		Span<byte> entropy = stackalloc byte[entropyLengthInBits / 8];
@@ -104,6 +110,9 @@ public partial class Bip39Mnemonic
 
 		return result;
 	}
+
+	/// <inheritdoc cref="Parse(ReadOnlySpan{char}, ReadOnlyMemory{char})"/>
+	public static Bip39Mnemonic Parse(ReadOnlySpan<char> seedPhrase, string? password) => Parse(seedPhrase, password?.AsMemory() ?? default);
 
 	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, ReadOnlyMemory{char}, out Bip39Mnemonic?, out DecodeError?, out string?)"/>
 	/// <returns>The mnemonic.</returns>
@@ -148,6 +157,10 @@ public partial class Bip39Mnemonic
 
 		return TryParse(seedPhrase, password, out mnemonic, out decodeError, out errorMessage);
 	}
+
+	/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, ReadOnlyMemory{char}, out Bip39Mnemonic?, out DecodeError?, out string?)"/>
+	public static bool TryParse(ReadOnlySpan<char> seedPhrase, string? password, [NotNullWhen(true)] out Bip39Mnemonic? mnemonic, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage)
+		=> TryParse(seedPhrase, password?.AsMemory() ?? default, out mnemonic, out decodeError, out errorMessage);
 
 	/// <summary>
 	/// Decodes a seed phrase to the entropy data it represents.
