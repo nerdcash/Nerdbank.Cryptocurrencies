@@ -33,7 +33,7 @@ internal class NewAccountCommand
 
 	internal bool OfflineMode { get; set; }
 
-	private Uri? DefaultLightWalletUrl => this.TestNet ? null : new Uri("https://zcash.mysideoftheweb.com:9067/");
+	private Uri? DefaultLightWalletUrl => this.TestNet ? new Uri("https://zcash.mysideoftheweb.com:19067/") : new Uri("https://zcash.mysideoftheweb.com:9067/");
 
 	internal static Command BuildCommand()
 	{
