@@ -102,11 +102,6 @@ fn prepare_config(config: Config) -> Result<ZingoConfig, LightWalletError> {
     zingo_config.logfile_name = config.log_name.into();
     zingo_config.reorg_buffer_offset = 2; // 2+1=3 confirmations before notes can be spent.
 
-    // Initialize logging
-    LightClient::init_logging().map_err(|e| LightWalletError::Other {
-        message: e.to_string(),
-    })?;
-
     Ok(zingo_config)
 }
 pub fn lightwallet_initialize(
@@ -371,3 +366,8 @@ pub fn lightwallet_send_check_status(handle: u64) -> Result<SendUpdate, LightWal
         })
     })
 }
+
+// pub fn lightwallet_get_balances(handle: u64) -> Result<PoolBalances, LightWalletError> {
+// 	let lightclient = get_lightclient(handle)?;
+// 	Ok(RT.block_on(async move { lightclient.do_balance().await }))
+// }
