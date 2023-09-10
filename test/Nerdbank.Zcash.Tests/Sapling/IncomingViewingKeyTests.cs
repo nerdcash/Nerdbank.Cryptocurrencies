@@ -8,16 +8,24 @@ namespace Sapling;
 
 public class IncomingViewingKeyTests : TestBase
 {
+	private readonly ITestOutputHelper logger;
+
+	public IncomingViewingKeyTests(ITestOutputHelper logger)
+	{
+		this.logger = logger;
+	}
+
 	[Theory, PairwiseData]
 	public void Encoded_FromEncoded(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 		string expected = testNet
-			? "zivktestsapling184h858g2g87ucf4jp3vqr0legsts34cn60xptenyz72rdrwvlvzs6eatnc"
+			? "zivktestsapling1yugfl5hmjt5wk4xx5atkculk54c630mu099sdthnemvzmfjemczqjt4zz2"
 			: "zivks184h858g2g87ucf4jp3vqr0legsts34cn60xptenyz72rdrwvlvzsfwkpqh";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
 		string actual = account.FullViewingKey.IncomingViewingKey.Encoded;
+		this.logger.WriteLine(actual);
 		Assert.Equal(expected, actual);
 
 		var decoded = IncomingViewingKey.FromEncoded(actual);
