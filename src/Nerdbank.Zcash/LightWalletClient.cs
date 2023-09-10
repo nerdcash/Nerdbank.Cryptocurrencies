@@ -10,12 +10,11 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Exposes functionality of a lightwallet client.
 /// </summary>
-public class LightWalletClient : IDisposableObservable
+public class LightWalletClient : IDisposable
 {
 	private readonly Uri serverUrl;
-	private readonly ZcashAccount account;
+	private readonly ZcashAccount? account;
 	private readonly LightWalletSafeHandle handle;
-	private bool disposed;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -51,18 +50,43 @@ public class LightWalletClient : IDisposableObservable
 		this.handle = new LightWalletSafeHandle(
 			unchecked((nint)LightWalletMethods.LightwalletInitialize(
 				new Config(
-				serverUrl.AbsoluteUri,
-				ToNetwork(account.Network),
-				walletPath,
-				walletName,
-				logName,
-				watchMemPool),
+					serverUrl.AbsoluteUri,
+					ToChainType(account.Network),
+					walletPath,
+					walletName,
+					logName,
+					watchMemPool),
 				walletInfo)),
 			ownsHandle: true);
 	}
 
-	/// <inheritdoc/>
-	bool IDisposableObservable.IsDisposed => this.disposed;
+	/// <summary>
+	/// Initializes a new instance of the <see cref="LightWalletClient"/> class
+	/// from an existing wallet file.
+	/// </summary>
+	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
+	/// <param name="network">The network the wallet operates on.</param>
+	/// <param name="walletPath">The absolute path to the directory where the wallet and log will be written.</param>
+	/// <param name="walletName">The filename of the wallet (without a path).</param>
+	/// <param name="logName">The filename of the log file (without a path).</param>
+	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
+	public LightWalletClient(Uri serverUrl, ZcashNetwork network, string walletPath, string walletName, string logName, bool watchMemPool)
+	{
+		Requires.NotNull(serverUrl);
+
+		this.serverUrl = serverUrl;
+
+		this.handle = new LightWalletSafeHandle(
+			unchecked((nint)LightWalletMethods.LightwalletInitializeFromDisk(
+				new Config(
+					serverUrl.AbsoluteUri,
+					ToChainType(network),
+					walletPath,
+					walletName,
+					logName,
+					watchMemPool))),
+			ownsHandle: true);
+	}
 
 	/// <summary>
 	/// Gets or sets the interval to report progress for long-running tasks.
@@ -171,11 +195,10 @@ public class LightWalletClient : IDisposableObservable
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		this.disposed = true;
 		this.handle.Dispose();
 	}
 
-	private static ChainType ToNetwork(ZcashNetwork network)
+	private static ChainType ToChainType(ZcashNetwork network)
 	{
 		return network switch
 		{

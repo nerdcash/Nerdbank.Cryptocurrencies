@@ -31,9 +31,11 @@ internal class NewAccountCommand
 
 	internal Uri? LightWalletServerUrl { get; set; }
 
+	internal ulong? BirthdayHeight { get; set; }
+
 	internal bool OfflineMode { get; set; }
 
-	private Uri? DefaultLightWalletUrl => this.TestNet ? new Uri("https://zcash.mysideoftheweb.com:19067/") : new Uri("https://zcash.mysideoftheweb.com:9067/");
+	internal string? WalletPath { get; set; }
 
 	internal static Command BuildCommand()
 	{
@@ -59,6 +61,11 @@ internal class NewAccountCommand
 
 		Option<bool> offlineModeOption = new("--offline", Strings.OfflineOptionDescription);
 
+		Option<string> walletPathOption = new Option<string>("--wallet", Strings.NewAccountWalletPathOptionDescription)
+			.LegalFilePathsOnly();
+
+		Option<ulong> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
+
 		Command command = new("NewAccount", Strings.NewAccountCommandDescription)
 		{
 			seedPhraseWordLengthOption,
@@ -68,6 +75,8 @@ internal class NewAccountCommand
 			accountIndexOption,
 			lightServerUriOption,
 			offlineModeOption,
+			walletPathOption,
+			birthdayHeightOption,
 		};
 
 		command.AddValidator(v =>
@@ -91,6 +100,8 @@ internal class NewAccountCommand
 				AccountIndex = ctxt.ParseResult.GetValueForOption(accountIndexOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(lightServerUriOption),
 				OfflineMode = ctxt.ParseResult.GetValueForOption(offlineModeOption),
+				WalletPath = ctxt.ParseResult.GetValueForOption(walletPathOption),
+				BirthdayHeight = ctxt.ParseResult.GetValueForOption(birthdayHeightOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
@@ -127,8 +138,28 @@ internal class NewAccountCommand
 		this.Console.WriteLine($"Seed phrase:     {mnemonic}");
 		this.Console.WriteLine($"Password:        {this.Password}");
 
-		ZcashAccount account = new(zip32, this.AccountIndex);
-		await this.PrintBirthdayHeightAsync(network, cancellationToken);
+		this.BirthdayHeight ??= await this.ComputeBirthdayHeightAsync(network, cancellationToken);
+		if (this.BirthdayHeight is not null)
+		{
+			this.Console.WriteLine($"Birthday height: {this.BirthdayHeight}");
+		}
+
+		ZcashAccount account = new(zip32, this.AccountIndex)
+		{
+			BirthdayHeight = this.BirthdayHeight,
+		};
+
+		Uri serverUrl = this.LightWalletServerUrl ?? Utilities.GetDefaultLightWalletUrl(this.TestNet);
+		if (this.WalletPath is not null)
+		{
+			using LightWalletClient client = Utilities.ConstructLightClient(
+				this.LightWalletServerUrl,
+				account,
+				this.WalletPath,
+				watchMemPool: false);
+			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
+		}
+
 		this.PrintAccountInfo(account);
 
 		this.Console.WriteLine(string.Empty);
@@ -162,21 +193,16 @@ internal class NewAccountCommand
 		return true;
 	}
 
-	private async Task PrintBirthdayHeightAsync(ZcashNetwork network, CancellationToken cancellationToken)
+	private async Task<ulong?> ComputeBirthdayHeightAsync(ZcashNetwork network, CancellationToken cancellationToken)
 	{
 		if (!this.OfflineMode)
 		{
-			Uri? serverUrl = this.LightWalletServerUrl ?? this.DefaultLightWalletUrl;
-			if (serverUrl is null)
-			{
-				this.Console.Error.WriteLine(Strings.FormatNoLightWalletServerKnown(network));
-			}
-			else
-			{
-				ulong height = await LightWalletClient.GetLatestBlockHeightAsync(serverUrl, cancellationToken);
-				this.Console.WriteLine($"Birthday height: {height}");
-			}
+			Uri serverUrl = this.LightWalletServerUrl ?? Utilities.GetDefaultLightWalletUrl(this.TestNet);
+			ulong height = await LightWalletClient.GetLatestBlockHeightAsync(serverUrl, cancellationToken);
+			return height;
 		}
+
+		return null;
 	}
 
 	private void PrintAccountInfo(ZcashAccount account)

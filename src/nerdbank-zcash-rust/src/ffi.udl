@@ -86,6 +86,9 @@ namespace LightWallet {
 	[Throws=LightWalletError]
 	u64 lightwallet_initialize(Config config, WalletInfo wallet_info);
 
+	[Throws=LightWalletError]
+	u64 lightwallet_initialize_from_disk(Config config);
+
 	boolean lightwallet_deinitialize(u64 handle);
 
 	[Throws=LightWalletError]

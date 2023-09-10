@@ -2,7 +2,7 @@ use http::Uri;
 use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
 use zcash_primitives::memo::MemoBytes;
-use zingoconfig::ChainType;
+use zingoconfig::{ChainType, ZingoConfig};
 use zingolib::lightclient::{LightClient, SyncResult};
 use zingolib::load_clientconfig;
 use zingolib::wallet::traits::ToBytes;
@@ -84,10 +84,7 @@ pub struct WalletInfo {
     pub birthday_height: u64,
 }
 
-pub fn lightwallet_initialize(
-    config: Config,
-    wallet_info: WalletInfo,
-) -> Result<u64, LightWalletError> {
+fn prepare_config(config: Config) -> Result<ZingoConfig, LightWalletError> {
     let server_uri = Uri::try_from(config.server_uri).map_err(|e| LightWalletError::Other {
         message: e.to_string(),
     })?;
@@ -109,6 +106,14 @@ pub fn lightwallet_initialize(
     LightClient::init_logging().map_err(|e| LightWalletError::Other {
         message: e.to_string(),
     })?;
+
+    Ok(zingo_config)
+}
+pub fn lightwallet_initialize(
+    config: Config,
+    wallet_info: WalletInfo,
+) -> Result<u64, LightWalletError> {
+    let zingo_config = prepare_config(config)?;
 
     let lightclient = match zingo_config.wallet_exists() {
         true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| {
@@ -137,6 +142,23 @@ pub fn lightwallet_initialize(
             })
         })?,
     };
+
+    let lc = Arc::new(lightclient);
+
+    // We start mempool monitoring regardless of the input parameter because
+    // this method itself no-op's if that value is false.
+    LightClient::start_mempool_monitor(lc.clone());
+
+    Ok(add_lightclient(lc))
+}
+
+pub fn lightwallet_initialize_from_disk(config: Config) -> Result<u64, LightWalletError> {
+    let zingo_config = prepare_config(config)?;
+
+    let lightclient =
+        LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| LightWalletError::Other {
+            message: e.to_string(),
+        })?;
 
     let lc = Arc::new(lightclient);
 

@@ -123,6 +123,9 @@
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>The seed phrase length must be positive and a multiple of 3.</value>
   </data>
+  <data name="BirthdayHeightOptionDescription" xml:space="preserve">
+    <value>Forces a particular birthday height to be recorded in the new account. By default this will be the current blockchain length if in online mode.</value>
+  </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>Error parsing address: "{address}". {error}</value>
   </data>
@@ -135,8 +138,8 @@
   <data name="NewAccountCommandDescription" xml:space="preserve">
     <value>Creates a new Zcash account.</value>
   </data>
-  <data name="NoLightWalletServerKnown" xml:space="preserve">
-    <value>No lightwallet server is known for {network}. Please specify one.</value>
+  <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
+    <value>The path to the wallet file to create.</value>
   </data>
   <data name="NotAUnifiedAddress" xml:space="preserve">
     <value>This is not a unified address.</value>
@@ -162,6 +165,9 @@
   <data name="SeedPhrasePrompt" xml:space="preserve">
     <value>Enter seed phrase:</value>
   </data>
+  <data name="SyncCommandDescription" xml:space="preserve">
+    <value>Downloads transactions from the blockchain.</value>
+  </data>
   <data name="TestNetOptionDescription" xml:space="preserve">
     <value>Indicates the account will be used on a testnet instead of mainnet.</value>
   </data>
@@ -179,5 +185,8 @@
   </data>
   <data name="UAParseCommandDescription" xml:space="preserve">
     <value>Parses a UA into its component receiver addresses.</value>
+  </data>
+  <data name="WalletPathArgumentDescription" xml:space="preserve">
+    <value>The path to the wallet file.</value>
   </data>
 </root>
