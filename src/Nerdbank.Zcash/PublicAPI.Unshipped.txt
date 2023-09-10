@@ -289,9 +289,13 @@ Nerdbank.Zcash.Zip32HDWallet.ChainCode
 Nerdbank.Zcash.Zip32HDWallet.ChainCode.ChainCode() -> void
 Nerdbank.Zcash.Zip32HDWallet.ChainCode.ChainCode(System.ReadOnlySpan<byte> value) -> void
 Nerdbank.Zcash.Zip32HDWallet.ChainCode.Value.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.Zip32HDWallet.CreateKeyPath(uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+Nerdbank.Zcash.Zip32HDWallet.CreateKeyPath(uint account, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 Nerdbank.Zcash.Zip32HDWallet.CreateOrchardAccount(uint account = 0) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 Nerdbank.Zcash.Zip32HDWallet.CreateSaplingAccount(uint account = 0) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
 Nerdbank.Zcash.Zip32HDWallet.CreateTransparentAccount(uint account = 0) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
+Nerdbank.Zcash.Zip32HDWallet.CreateTransparentKeyPath(uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+Nerdbank.Zcash.Zip32HDWallet.CreateTransparentKeyPath(uint account, Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.Equals(Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint other) -> bool
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.FullViewingKeyFingerprint() -> void
@@ -460,10 +464,6 @@ static Nerdbank.Zcash.Zip302MemoFormat.TryDecodeProprietaryData(System.ReadOnlyS
 static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.Parse(string! uri) -> Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest!
 static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.TryParse(string! uri, out Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? paymentRequest) -> bool
 static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.TryParse(string! uri, out Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? paymentRequest, out Nerdbank.Zcash.ParseError? errorCode, out string? errorMessage) -> bool
-static Nerdbank.Zcash.Zip32HDWallet.CreateKeyPath(uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-static Nerdbank.Zcash.Zip32HDWallet.CreateKeyPath(uint account, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-static Nerdbank.Zcash.Zip32HDWallet.CreateTransparentKeyPath(uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-static Nerdbank.Zcash.Zip32HDWallet.CreateTransparentKeyPath(uint account, Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!

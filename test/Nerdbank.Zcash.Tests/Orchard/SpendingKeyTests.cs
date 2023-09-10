@@ -19,7 +19,7 @@ public class SpendingKeyTests : TestBase
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet).CreateOrchardAccount().SpendingKey;
 		this.logger.WriteLine(key.Encoded);
-		Assert.Equal("secret-orchard-sk-test1te7l50dm25afq89clh8r2ft34lufgxfyn0lwe6hxvvhyzfp3xfeqz6u5r0", key.Encoded);
+		Assert.Equal("secret-orchard-sk-test1whlyqth636qgqpeh3mfy388yqyc5uqe6r6r7avmyau0wkut764zskqcut8", key.Encoded);
 	}
 
 	[Fact]
