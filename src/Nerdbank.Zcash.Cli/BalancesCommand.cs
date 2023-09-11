@@ -6,7 +6,7 @@ using System.CommandLine;
 
 namespace Nerdbank.Zcash.Cli;
 
-internal class BalancesCommand : WalletUserCommandBase
+internal class BalancesCommand : SyncFirstCommandBase
 {
 	internal static Command BuildCommand()
 	{
@@ -15,6 +15,7 @@ internal class BalancesCommand : WalletUserCommandBase
 			WalletPathArgument,
 			TestNetOption,
 			LightServerUriOption,
+			NoSyncOption,
 		};
 
 		command.SetHandler(async ctxt =>
@@ -25,14 +26,21 @@ internal class BalancesCommand : WalletUserCommandBase
 				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
 				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
+				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
 		return command;
 	}
 
-	internal override Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
+	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
+		int exitCode = await base.ExecuteAsync(client, cancellationToken);
+		if (exitCode != 0)
+		{
+			return exitCode;
+		}
+
 		LightWalletClient.PoolBalances poolBalances = client.GetPoolBalances();
 
 		if (poolBalances.TransparentBalance.HasValue)
@@ -63,6 +71,6 @@ internal class BalancesCommand : WalletUserCommandBase
 			this.Console.WriteLine($"{caption,-20} {amount,14:F8}");
 		}
 
-		return Task.FromResult(0);
+		return 0;
 	}
 }

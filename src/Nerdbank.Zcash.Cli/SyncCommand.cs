@@ -2,11 +2,22 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Nerdbank.Zcash.Cli;
 
 internal class SyncCommand : WalletUserCommandBase
 {
+	internal SyncCommand()
+	{
+	}
+
+	[SetsRequiredMembers]
+	internal SyncCommand(WalletUserCommandBase copyFrom)
+		: base(copyFrom)
+	{
+	}
+
 	internal static Command BuildCommand()
 	{
 		Command command = new("sync", Strings.SyncCommandDescription)
@@ -32,7 +43,7 @@ internal class SyncCommand : WalletUserCommandBase
 
 	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
-		await client.DownloadTransactionsAsync(
+		LightWalletClient.SyncResult syncResult = await client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
 				if (p.BatchTotal > 0)
@@ -42,7 +53,7 @@ internal class SyncCommand : WalletUserCommandBase
 			}),
 			cancellationToken);
 
-		this.Console.WriteLine("Sync 100% complete");
+		this.Console.WriteLine($"Sync 100% complete. Scanned {syncResult.TotalBlocksScanned} blocks to reach block {syncResult.LatestBlock}.");
 
 		return 0;
 	}

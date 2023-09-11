@@ -6,7 +6,7 @@ using System.CommandLine.Parsing;
 
 namespace Nerdbank.Zcash.Cli;
 
-internal class SendCommand : WalletUserCommandBase
+internal class SendCommand : SyncFirstCommandBase
 {
 	internal required ZcashAddress Recipient { get; init; }
 
@@ -28,6 +28,7 @@ internal class SendCommand : WalletUserCommandBase
 			memoOption,
 			TestNetOption,
 			LightServerUriOption,
+			NoSyncOption,
 		};
 
 		command.SetHandler(async ctxt =>
@@ -39,6 +40,7 @@ internal class SendCommand : WalletUserCommandBase
 				Recipient = ctxt.ParseResult.GetValueForArgument(recipientArgument),
 				Amount = ctxt.ParseResult.GetValueForArgument(amountArgument),
 				Memo = ctxt.ParseResult.GetValueForOption(memoOption),
+				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
 				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
@@ -49,6 +51,12 @@ internal class SendCommand : WalletUserCommandBase
 
 	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
+		int exitCode = await base.ExecuteAsync(client, cancellationToken);
+		if (exitCode != 0)
+		{
+			return exitCode;
+		}
+
 		LightWalletClient.TransactionSendItem item = new(this.Recipient, this.Amount, Zcash.Memo.FromMessage(this.Memo));
 		string txid = await client.SendAsync(
 			new[] { item },

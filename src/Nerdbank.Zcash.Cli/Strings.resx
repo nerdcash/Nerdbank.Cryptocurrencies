@@ -144,6 +144,9 @@
   <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
     <value>The path to the wallet file to create.</value>
   </data>
+  <data name="NoSyncOption" xml:space="preserve">
+    <value>Do not download the latest blocks in the blockchain first. This will speed up the command but may lead it to fail or report stale data.</value>
+  </data>
   <data name="NotAUnifiedAddress" xml:space="preserve">
     <value>This is not a unified address.</value>
   </data>

@@ -192,4 +192,19 @@
   <data name="BalancesCommandDescription" xml:space="preserve">
     <value>Informes de saldos para cada pool.</value>
   </data>
+  <data name="SendAmountArgumentDescription" xml:space="preserve">
+    <value>La cantidad a enviar (en ZEC).</value>
+  </data>
+  <data name="SendCommandDescription" xml:space="preserve">
+    <value>¡Envía Zcash a una dirección determinada.</value>
+  </data>
+  <data name="SendMemoOptionDescription" xml:space="preserve">
+    <value>El memo a incluir en la transacción.</value>
+  </data>
+  <data name="SendRecipientArgumentDescription" xml:space="preserve">
+    <value>La dirección para recibir fondos.</value>
+  </data>
+  <data name="NoSyncOption" xml:space="preserve">
+    <value>No descargues primero los últimos bloques de la cadena de bloques. Esto acelerará el comando, pero puede llevarlo a fallar o reportar datos obsoletos.</value>
+  </data>
 </root>

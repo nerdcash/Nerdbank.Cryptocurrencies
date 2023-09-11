@@ -3,11 +3,25 @@
 
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Nerdbank.Zcash.Cli;
 
 internal abstract class WalletUserCommandBase
 {
+	internal WalletUserCommandBase()
+	{
+	}
+
+	[SetsRequiredMembers]
+	internal WalletUserCommandBase(WalletUserCommandBase copyFrom)
+	{
+		this.Console = copyFrom.Console;
+		this.WalletPath = copyFrom.WalletPath;
+		this.TestNet = copyFrom.TestNet;
+		this.LightWalletServerUrl = copyFrom.LightWalletServerUrl;
+	}
+
 	internal required IConsole Console { get; init; }
 
 	internal required string WalletPath { get; init; }
