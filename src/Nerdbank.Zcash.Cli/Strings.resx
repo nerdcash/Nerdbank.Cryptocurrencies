@@ -168,6 +168,18 @@
   <data name="SeedPhrasePrompt" xml:space="preserve">
     <value>Enter seed phrase:</value>
   </data>
+  <data name="SendAmountArgumentDescription" xml:space="preserve">
+    <value>The amount to send (in ZEC).</value>
+  </data>
+  <data name="SendCommandDescription" xml:space="preserve">
+    <value>Sends Zcash to a given address.</value>
+  </data>
+  <data name="SendMemoOptionDescription" xml:space="preserve">
+    <value>The memo to include in the transaction.</value>
+  </data>
+  <data name="SendRecipientArgumentDescription" xml:space="preserve">
+    <value>The address to receive funds.</value>
+  </data>
   <data name="SyncCommandDescription" xml:space="preserve">
     <value>Downloads transactions from the blockchain.</value>
   </data>

@@ -13,6 +13,7 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	UACommand.BuildCommand(),
 	SyncCommand.BuildCommand(),
 	BalancesCommand.BuildCommand(),
+	SendCommand.BuildCommand(),
 };
 
 await new CommandLineBuilder(rootCommand)

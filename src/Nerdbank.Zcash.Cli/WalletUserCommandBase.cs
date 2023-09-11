@@ -1,4 +1,8 @@
-﻿using System.CommandLine;
+﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.CommandLine;
+using System.CommandLine.Parsing;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -32,4 +36,15 @@ internal abstract class WalletUserCommandBase
 	}
 
 	internal abstract Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken);
+
+	protected static ZcashAddress AddressParser(ArgumentResult result)
+	{
+		if (ZcashAddress.TryParse(result.Tokens[0].Value, out ZcashAddress? addr, out _, out string? errorMessage))
+		{
+			return addr;
+		}
+
+		result.ErrorMessage = errorMessage;
+		return null!;
+	}
 }
