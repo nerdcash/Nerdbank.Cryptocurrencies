@@ -474,6 +474,8 @@ override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.GetHashCode
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(ulong diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+static Nerdbank.Zcash.Memo.FromMessage(string? message) -> Nerdbank.Zcash.Memo
+static Nerdbank.Zcash.Memo.NoMemo.get -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.OrchardReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.Sapling.FullViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.FullViewingKey!
 static Nerdbank.Zcash.Sapling.IncomingViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
