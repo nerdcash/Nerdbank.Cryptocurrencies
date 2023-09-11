@@ -189,4 +189,7 @@
   <data name="BirthdayHeightOptionDescription" xml:space="preserve">
     <value>Obliga a que se registre una altura de cumpleaños en particular en la nueva cuenta. De forma predeterminada, esta será la longitud actual de la cadena de bloques si está en modo en línea.</value>
   </data>
+  <data name="BalancesCommandDescription" xml:space="preserve">
+    <value>Informes de saldos para cada pool.</value>
+  </data>
 </root>

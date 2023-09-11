@@ -79,6 +79,20 @@ dictionary SendUpdate {
 	string? last_transaction_id;
 };
 
+dictionary PoolBalances {
+	u64? sapling_balance;
+	u64? verified_sapling_balance;
+	u64? spendable_sapling_balance;
+	u64? unverified_sapling_balance;
+
+	u64? orchard_balance;
+	u64? verified_orchard_balance;
+	u64? unverified_orchard_balance;
+	u64? spendable_orchard_balance;
+
+	u64? transparent_balance;
+};
+
 namespace LightWallet {
 	[Throws=LightWalletError]
 	u64 lightwallet_get_block_height(string server_uri);
@@ -114,4 +128,7 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	SendUpdate lightwallet_send_check_status(u64 handle);
+
+	[Throws=LightWalletError]
+	PoolBalances lightwallet_get_balances(u64 handle);
 };

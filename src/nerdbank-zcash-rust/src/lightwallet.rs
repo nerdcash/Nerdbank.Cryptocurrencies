@@ -3,7 +3,7 @@ use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
 use zcash_primitives::memo::MemoBytes;
 use zingoconfig::{ChainType, ZingoConfig};
-use zingolib::lightclient::{LightClient, SyncResult};
+use zingolib::lightclient::{LightClient, PoolBalances, SyncResult};
 use zingolib::load_clientconfig;
 use zingolib::wallet::traits::ToBytes;
 use zingolib::wallet::WalletBase;
@@ -367,7 +367,7 @@ pub fn lightwallet_send_check_status(handle: u64) -> Result<SendUpdate, LightWal
     })
 }
 
-// pub fn lightwallet_get_balances(handle: u64) -> Result<PoolBalances, LightWalletError> {
-// 	let lightclient = get_lightclient(handle)?;
-// 	Ok(RT.block_on(async move { lightclient.do_balance().await }))
-// }
+pub fn lightwallet_get_balances(handle: u64) -> Result<PoolBalances, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    Ok(RT.block_on(async move { lightclient.do_balance().await }))
+}

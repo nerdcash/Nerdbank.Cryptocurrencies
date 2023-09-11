@@ -35,9 +35,18 @@ Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.IProgress<Nerd
 Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncResult!>!
 Nerdbank.Zcash.LightWalletClient.GetDownloadedTransactions(uint startingBlock = 0) -> System.Collections.Generic.List<Nerdbank.Zcash.LightWalletClient.Transaction!>!
 Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+Nerdbank.Zcash.LightWalletClient.GetPoolBalances() -> Nerdbank.Zcash.LightWalletClient.PoolBalances!
 Nerdbank.Zcash.LightWalletClient.LastDownloadHeight.get -> ulong
 Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashAccount! account, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void
 Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void
+Nerdbank.Zcash.LightWalletClient.PoolBalances
+Nerdbank.Zcash.LightWalletClient.PoolBalances.Orchard.get -> Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance?
+Nerdbank.Zcash.LightWalletClient.PoolBalances.Orchard.init -> void
+Nerdbank.Zcash.LightWalletClient.PoolBalances.PoolBalances(decimal? TransparentBalance, Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance? Sapling, Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance? Orchard) -> void
+Nerdbank.Zcash.LightWalletClient.PoolBalances.Sapling.get -> Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance?
+Nerdbank.Zcash.LightWalletClient.PoolBalances.Sapling.init -> void
+Nerdbank.Zcash.LightWalletClient.PoolBalances.TransparentBalance.get -> decimal?
+Nerdbank.Zcash.LightWalletClient.PoolBalances.TransparentBalance.init -> void
 Nerdbank.Zcash.LightWalletClient.SendAsync(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.LightWalletClient.TransactionSendItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<string!>!
 Nerdbank.Zcash.LightWalletClient.SendProgress
 Nerdbank.Zcash.LightWalletClient.SendProgress.Id.get -> uint
@@ -53,6 +62,17 @@ Nerdbank.Zcash.LightWalletClient.SendProgress.Progress.init -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.SendProgress(uint Id, bool IsSendInProgress, uint Progress, uint Total, string? LastError, string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.get -> uint
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.init -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Balance.get -> decimal
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Balance.init -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance) -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable) -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.SpendableBalance.get -> decimal
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.SpendableBalance.init -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.UnverifiedBalance.get -> decimal
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.UnverifiedBalance.init -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.VerifiedBalance.get -> decimal
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.VerifiedBalance.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BatchNum.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BatchNum.init -> void

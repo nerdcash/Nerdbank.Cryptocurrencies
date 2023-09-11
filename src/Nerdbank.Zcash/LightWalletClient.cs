@@ -12,6 +12,11 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public class LightWalletClient : IDisposable
 {
+	/// <summary>
+	/// The number of ZATs in a ZEC.
+	/// </summary>
+	internal const uint ZatsPerZEC = 100_000_000;
+
 	private readonly Uri serverUrl;
 	private readonly ZcashAccount? account;
 	private readonly LightWalletSafeHandle handle;
@@ -182,7 +187,7 @@ public class LightWalletClient : IDisposable
 		Requires.NotNullOrEmpty(payments);
 
 		List<TransactionSendDetail> details = payments
-			.Select(p => new TransactionSendDetail(p.ToAddress, (ulong)(p.Amount * Transaction.ZatsPerZEC), null, p.Memo.RawBytes.ToArray().ToList()))
+			.Select(p => new TransactionSendDetail(p.ToAddress, (ulong)(p.Amount * ZatsPerZEC), null, p.Memo.RawBytes.ToArray().ToList()))
 			.ToList();
 
 		return await this.InteropAsync(
@@ -192,11 +197,19 @@ public class LightWalletClient : IDisposable
 			cancellationToken);
 	}
 
+	/// <summary>
+	/// Gets pool balances.
+	/// </summary>
+	/// <returns>Pool balances.</returns>
+	public PoolBalances GetPoolBalances() => new(this.Interop(LightWalletMethods.LightwalletGetBalances));
+
 	/// <inheritdoc/>
 	public void Dispose()
 	{
 		this.handle.Dispose();
 	}
+
+	private static decimal ZatsToZEC(ulong zats) => (decimal)zats / ZatsPerZEC;
 
 	private static ChainType ToChainType(ZcashNetwork network)
 	{
@@ -325,7 +338,7 @@ public class LightWalletClient : IDisposable
 		/// </summary>
 		/// <param name="d">The uniffi data to copy from.</param>
 		internal TransactionSendItem(TransactionSendDetail d)
-			: this(ZcashAddress.Parse(d.toAddress), (decimal)d.value / Transaction.ZatsPerZEC, new Memo(d.memo.ToArray()), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
+			: this(ZcashAddress.Parse(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
 		{
 		}
 	}
@@ -424,16 +437,11 @@ public class LightWalletClient : IDisposable
 	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, ImmutableArray<TransactionSendItem> Sends)
 	{
 		/// <summary>
-		/// The number of ZATs in a ZEC.
-		/// </summary>
-		internal const uint ZatsPerZEC = 100_000_000;
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="Transaction"/> class.
 		/// </summary>
 		/// <param name="t">The uniffi transaction to copy data from.</param>
 		internal Transaction(uniffi.LightWallet.Transaction t)
-			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, (decimal)t.spent / ZatsPerZEC, (decimal)t.received / ZatsPerZEC, t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray())
+			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray())
 		{
 		}
 
@@ -441,6 +449,50 @@ public class LightWalletClient : IDisposable
 		/// Gets the net balance change applied by this transaction.
 		/// </summary>
 		public decimal NetChange => this.Received - this.Spent;
+	}
+
+	/// <summary>
+	/// The balances that apply to a single shielded pool.
+	/// </summary>
+	/// <param name="Balance">The pool balance.</param>
+	/// <param name="VerifiedBalance">The verified balance.</param>
+	/// <param name="UnverifiedBalance">The unverified balance.</param>
+	/// <param name="SpendableBalance">The spendable balance.</param>
+	public record ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> class
+		/// with balances given in ZATs.
+		/// </summary>
+		/// <param name="balance"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='Balance']"/></param>
+		/// <param name="verified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='VerifiedBalance']"/></param>
+		/// <param name="unverified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='UnverifiedBalance']"/></param>
+		/// <param name="spendable"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='SpendableBalance']"/></param>
+		public ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable)
+			: this(ZatsToZEC(balance), ZatsToZEC(verified), ZatsToZEC(unverified), ZatsToZEC(spendable))
+		{
+		}
+	}
+
+	/// <summary>
+	/// The balance across all pools for a Zcash account.
+	/// </summary>
+	/// <param name="TransparentBalance">The transparent balance, in ZEC.</param>
+	/// <param name="Sapling">The sapling balance.</param>
+	/// <param name="Orchard">The orchard balance.</param>
+	public record PoolBalances(decimal? TransparentBalance, ShieldedPoolBalance? Sapling, ShieldedPoolBalance? Orchard)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PoolBalances"/> class.
+		/// </summary>
+		/// <param name="balances">The balances as they come from the interop layer.</param>
+		internal PoolBalances(uniffi.LightWallet.PoolBalances balances)
+			: this(
+				Requires.NotNull(balances).transparentBalance.HasValue ? ZatsToZEC(balances.transparentBalance!.Value) : null,
+				balances.saplingBalance.HasValue ? new(balances.saplingBalance.Value, balances.verifiedSaplingBalance!.Value, balances.unverifiedSaplingBalance!.Value, balances.spendableSaplingBalance!.Value) : null,
+				balances.orchardBalance.HasValue ? new(balances.orchardBalance.Value, balances.verifiedOrchardBalance!.Value, balances.unverifiedOrchardBalance!.Value, balances.spendableOrchardBalance!.Value) : null)
+		{
+		}
 	}
 
 	/// <summary>

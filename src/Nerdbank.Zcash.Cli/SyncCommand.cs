@@ -5,30 +5,15 @@ using System.CommandLine;
 
 namespace Nerdbank.Zcash.Cli;
 
-internal class SyncCommand
+internal class SyncCommand : WalletUserCommandBase
 {
-	internal required IConsole Console { get; init; }
-
-	internal required string WalletPath { get; init; }
-
-	internal bool TestNet { get; set; }
-
-	internal Uri? LightWalletServerUrl { get; set; }
-
 	internal static Command BuildCommand()
 	{
-		Argument<string> walletPathArgument = new Argument<string>("wallet path", Strings.WalletPathArgumentDescription)
-			.LegalFilePathsOnly();
-
-		Option<bool> testNetOption = new("--testnet", Strings.TestNetOptionDescription);
-
-		Option<Uri> lightServerUriOption = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
-
 		Command command = new("sync", Strings.SyncCommandDescription)
 		{
-			walletPathArgument,
-			testNetOption,
-			lightServerUriOption,
+			WalletPathArgument,
+			TestNetOption,
+			LightServerUriOption,
 		};
 
 		command.SetHandler(async ctxt =>
@@ -36,25 +21,17 @@ internal class SyncCommand
 			ctxt.ExitCode = await new SyncCommand
 			{
 				Console = ctxt.Console,
-				WalletPath = ctxt.ParseResult.GetValueForArgument(walletPathArgument),
-				TestNet = ctxt.ParseResult.GetValueForOption(testNetOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(lightServerUriOption),
+				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
+				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
+				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
 		return command;
 	}
 
-	internal async Task<int> ExecuteAsync(CancellationToken cancellationToken)
+	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
-		using LightWalletClient client = Utilities.ConstructLightClient(
-			this.LightWalletServerUrl,
-			this.WalletPath,
-			this.TestNet,
-			watchMemPool: false);
-
-		client.UpdateFrequency = TimeSpan.FromSeconds(3);
-
 		await client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
