@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.CommandLine;
 
 namespace Nerdbank.Zcash.Cli;
 
-internal class BalancesCommand : SyncFirstCommandBase
+internal class BalanceCommand : SyncFirstCommandBase
 {
 	internal static Command BuildCommand()
 	{
-		Command command = new("balances", Strings.BalancesCommandDescription)
+		Command command = new("balance", Strings.BalanceCommandDescription)
 		{
 			WalletPathArgument,
 			TestNetOption,
@@ -20,7 +19,7 @@ internal class BalancesCommand : SyncFirstCommandBase
 
 		command.SetHandler(async ctxt =>
 		{
-			ctxt.ExitCode = await new BalancesCommand
+			ctxt.ExitCode = await new BalanceCommand
 			{
 				Console = ctxt.Console,
 				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),

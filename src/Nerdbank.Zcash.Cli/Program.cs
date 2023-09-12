@@ -12,7 +12,7 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	NewAccountCommand.BuildCommand(),
 	UACommand.BuildCommand(),
 	SyncCommand.BuildCommand(),
-	BalancesCommand.BuildCommand(),
+	BalanceCommand.BuildCommand(),
 	SendCommand.BuildCommand(),
 };
 

@@ -123,7 +123,7 @@
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>The seed phrase length must be positive and a multiple of 3.</value>
   </data>
-  <data name="BalancesCommandDescription" xml:space="preserve">
+  <data name="BalanceCommandDescription" xml:space="preserve">
     <value>Reports on balances for each pool.</value>
   </data>
   <data name="BirthdayHeightOptionDescription" xml:space="preserve">
@@ -176,6 +176,9 @@
   </data>
   <data name="SendCommandDescription" xml:space="preserve">
     <value>Sends Zcash to a given address.</value>
+  </data>
+  <data name="SendFeeOptionDescription" xml:space="preserve">
+    <value>Overrides the default fee calculation with a specific value (in ZEC).</value>
   </data>
   <data name="SendMemoOptionDescription" xml:space="preserve">
     <value>The memo to include in the transaction.</value>
