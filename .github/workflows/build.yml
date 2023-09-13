@@ -40,13 +40,23 @@ jobs:
         shared-key: ${{ matrix.os }}
         workspaces: src/nerdbank-zcash-rust
 
-    - name: Cache target directory
-      uses: actions/cache@v3.3.2
+    - name: Cargo cache
+      id: cargo-cache
+      uses: actions/cache@v3
       with:
-        path: src/nerdbank-zcash-rust/target
-        key: ${{ runner.os }}-target-${{ hashFiles('src/nerdbank-zcash-rust/Cargo.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-target-
+        # Following cargo cache recommendations:
+        # https://doc.rust-lang.org/cargo/guide/cargo-home.html
+        # added 'target' directory to skip compiling dependencies
+        path: |
+          /root/.cargo/.crates.toml
+          /root/.cargo/.crates2.json
+          /root/.cargo/bin/
+          /root/.cargo/registry/index/
+          /root/.cargo/registry/cache/
+          /root/.cargo/registry/git/db/
+          src/nerdbank-zcash-rust/target/
+        key: cargo-${{ runner.os }}-${{ hashFiles('src/nerdbank-zcash-rust/**/Cargo.lock') }}
+        restore-keys: cargo-${{ runner.os }}
 
     - name: ⚙ Install prerequisites
       run: |
