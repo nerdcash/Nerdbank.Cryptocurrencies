@@ -3,8 +3,6 @@
 
 using System.CommandLine;
 using System.CommandLine.IO;
-using System.Net.Http.Headers;
-using Microsoft.VisualBasic;
 
 namespace Nerdbank.Zcash.Cli;
 

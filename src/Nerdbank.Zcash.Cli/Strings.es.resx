@@ -120,9 +120,6 @@
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>La longitud de la frase semilla debe ser positiva y un múltiplo de 3.</value>
   </data>
-  <data name="NoLightWalletServerKnown" xml:space="preserve">
-    <value>No se conoce ningún servidor lightwallet para {network}. Por favor, especifique uno.</value>
-  </data>
   <data name="SeedPhrasePrompt" xml:space="preserve">
     <value>Introduzca la frase semilla:</value>
   </data>
@@ -179,5 +176,38 @@
   </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>Error al analizar la dirección: "{address}". {error}</value>
+  </data>
+  <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
+    <value>La ruta al archivo del monedero para crear.</value>
+  </data>
+  <data name="SyncCommandDescription" xml:space="preserve">
+    <value>Descarga transacciones desde la cadena de bloques.</value>
+  </data>
+  <data name="WalletPathArgumentDescription" xml:space="preserve">
+    <value>La ruta al archivo del monedero.</value>
+  </data>
+  <data name="BirthdayHeightOptionDescription" xml:space="preserve">
+    <value>Obliga a que se registre una altura de cumpleaños en particular en la nueva cuenta. De forma predeterminada, esta será la longitud actual de la cadena de bloques si está en modo en línea.</value>
+  </data>
+  <data name="BalanceCommandDescription" xml:space="preserve">
+    <value>Informes de saldos para cada pool.</value>
+  </data>
+  <data name="SendAmountArgumentDescription" xml:space="preserve">
+    <value>La cantidad a enviar (en ZEC).</value>
+  </data>
+  <data name="SendCommandDescription" xml:space="preserve">
+    <value>¡Envía Zcash a una dirección determinada.</value>
+  </data>
+  <data name="SendMemoOptionDescription" xml:space="preserve">
+    <value>El memo a incluir en la transacción.</value>
+  </data>
+  <data name="SendRecipientArgumentDescription" xml:space="preserve">
+    <value>La dirección para recibir fondos.</value>
+  </data>
+  <data name="NoSyncOption" xml:space="preserve">
+    <value>No descargues primero los últimos bloques de la cadena de bloques. Esto acelerará el comando, pero puede llevarlo a fallar o reportar datos obsoletos.</value>
+  </data>
+  <data name="SendFeeOptionDescription" xml:space="preserve">
+    <value>Anula el cálculo de la tarifa predeterminada con un valor específico (en ZEC).</value>
   </data>
 </root>

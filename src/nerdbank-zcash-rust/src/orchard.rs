@@ -19,13 +19,13 @@ pub extern "C" fn decrypt_orchard_diversifier(
     }
     let ivk = ivk.unwrap();
 
-	let address = Address::from_raw_address_bytes(receiver);
+    let address = Address::from_raw_address_bytes(receiver);
     if address.is_none().into() {
         return -2;
     }
     let address = address.unwrap();
 
-	if let Some(index) = ivk.diversifier_index(&address) {
+    if let Some(index) = ivk.diversifier_index(&address) {
         diversifier_index.copy_from_slice(index.to_bytes());
         0
     } else {

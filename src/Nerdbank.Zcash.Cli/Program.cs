@@ -11,6 +11,9 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 {
 	NewAccountCommand.BuildCommand(),
 	UACommand.BuildCommand(),
+	SyncCommand.BuildCommand(),
+	BalanceCommand.BuildCommand(),
+	SendCommand.BuildCommand(),
 };
 
 await new CommandLineBuilder(rootCommand)

@@ -26,6 +26,19 @@ public struct Memo : IEquatable<Memo>
 	}
 
 	/// <summary>
+	/// Gets a memo that explicitly communicates no memo was given.
+	/// </summary>
+	public static Memo NoMemo
+	{
+		get
+		{
+			Memo memo = default;
+			memo.Clear();
+			return memo;
+		}
+	}
+
+	/// <summary>
 	/// Gets or sets a human readable message in the memo.
 	/// </summary>
 	/// <remarks>
@@ -51,6 +64,12 @@ public struct Memo : IEquatable<Memo>
 	}
 
 	/// <summary>
+	/// Gets the raw 512 byte memo.
+	/// </summary>
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> RawBytes => this.bytes.Value;
+
+	/// <summary>
 	/// Gets a value indicating whether this memo is empty.
 	/// </summary>
 	public readonly bool IsEmpty => Zip302MemoFormat.DetectMemoFormat(this.bytes.Value) == Zip302MemoFormat.MemoFormat.NoMemo;
@@ -59,6 +78,13 @@ public struct Memo : IEquatable<Memo>
 	public readonly Zip302MemoFormat.MemoFormat MemoFormat => Zip302MemoFormat.DetectMemoFormat(this.bytes.Value);
 
 	private readonly string DebuggerDisplay => this.ToString(useQuotesAroundMessage: true);
+
+	/// <summary>
+	/// Creates a memo based on a user-supplied message.
+	/// </summary>
+	/// <param name="message">The user-supplied message.</param>
+	/// <returns>The initialized memo.</returns>
+	public static Memo FromMessage(string? message) => message is null ? NoMemo : new Memo() { Message = message };
 
 	/// <inheritdoc cref="Zip302MemoFormat.EncodeNoMemo"/>
 	public void Clear() => Zip302MemoFormat.EncodeNoMemo(this.bytes.ValueWritable);
