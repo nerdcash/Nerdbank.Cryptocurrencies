@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Grpc.Net.Client;
+using Lightwalletd;
 using uniffi.LightWallet;
 
 namespace Nerdbank.Zcash;
@@ -135,6 +136,22 @@ public class LightWalletClient : IDisposable
 		return GetLatestBlockHeightAsync(this.grpcChannel, cancellationToken);
 	}
 
+	/// <summary>
+	/// Gets the network that the given lightserver operates on.
+	/// </summary>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>The network this server operates on, or <see langword="null" /> if the server operates on an unrecognized network.</returns>
+	public async ValueTask<ZcashNetwork?> GetServerNetworkAsync(CancellationToken cancellationToken)
+	{
+		LightdInfo info = await this.GetClient().GetLightdInfoAsync(new Empty(), cancellationToken: cancellationToken);
+		return info.ChainName switch
+		{
+			"main" => ZcashNetwork.MainNet,
+			"test" => ZcashNetwork.TestNet,
+			_ => null,
+		};
+	}
+
 	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/>
 	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, cancellationToken);
 
@@ -252,6 +269,8 @@ public class LightWalletClient : IDisposable
 			throw new LightWalletException(Strings.GetLatestBlockHeightError, ex);
 		}
 	}
+
+	private Lightwalletd.CompactTxStreamer.CompactTxStreamerClient GetClient() => new(this.grpcChannel);
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{

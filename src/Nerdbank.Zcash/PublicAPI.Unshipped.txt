@@ -36,6 +36,7 @@ Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.Threading.Canc
 Nerdbank.Zcash.LightWalletClient.GetDownloadedTransactions(uint startingBlock = 0) -> System.Collections.Generic.List<Nerdbank.Zcash.LightWalletClient.Transaction!>!
 Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
 Nerdbank.Zcash.LightWalletClient.GetPoolBalances() -> Nerdbank.Zcash.LightWalletClient.PoolBalances!
+Nerdbank.Zcash.LightWalletClient.GetServerNetworkAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Zcash.ZcashNetwork?>
 Nerdbank.Zcash.LightWalletClient.LastDownloadHeight.get -> ulong
 Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashAccount! account, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void
 Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void

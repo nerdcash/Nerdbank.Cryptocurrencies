@@ -9,6 +9,7 @@ using UniException = uniffi.LightWallet.LightWalletException;
 public class LightWalletClientTests : TestBase, IDisposable
 {
 	private static readonly Uri TestLightWalletServer = new("https://zcash.mysideoftheweb.com:9067/");
+	private static readonly Uri TestLightWalletServerTestNet = new("https://zcash.mysideoftheweb.com:19067/");
 	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
 	private readonly ITestOutputHelper logger;
 	private readonly LightWalletClient client;
@@ -64,6 +65,21 @@ public class LightWalletClientTests : TestBase, IDisposable
 	{
 		LightWalletException ex = await Assert.ThrowsAnyAsync<LightWalletException>(async () => await LightWalletClient.GetLatestBlockHeightAsync(new Uri("https://doesnotexist.mysideoftheweb.com/"), this.TimeoutToken));
 		this.logger.WriteLine(ex.ToString());
+	}
+
+	[Fact]
+	public async Task GetServerNetworkAsync()
+	{
+		Assert.Equal(ZcashNetwork.MainNet, await this.client.GetServerNetworkAsync(this.TimeoutToken));
+
+		using LightWalletClient testNetClient = new(
+			TestLightWalletServerTestNet,
+			DefaultAccount,
+			this.testDir,
+			"zcash-testnet.wallet",
+			"zcash-testnet.log",
+			watchMemPool: false);
+		Assert.Equal(ZcashNetwork.TestNet, await testNetClient.GetServerNetworkAsync(this.TimeoutToken));
 	}
 
 	[Fact]
