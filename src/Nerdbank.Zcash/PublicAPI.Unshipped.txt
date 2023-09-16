@@ -129,6 +129,9 @@ Nerdbank.Zcash.LightWalletClient.TransactionSendItem.TransactionSendItem() -> vo
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.TransactionSendItem(Nerdbank.Zcash.ZcashAddress! ToAddress, decimal Amount, in Nerdbank.Zcash.Memo Memo, Nerdbank.Zcash.UnifiedAddress? RecipientUA = null) -> void
 Nerdbank.Zcash.LightWalletClient.UpdateFrequency.get -> System.TimeSpan
 Nerdbank.Zcash.LightWalletClient.UpdateFrequency.set -> void
+Nerdbank.Zcash.LightWalletException
+Nerdbank.Zcash.LightWalletException.LightWalletException(string? message) -> void
+Nerdbank.Zcash.LightWalletException.LightWalletException(string? message, System.Exception? innerException) -> void
 Nerdbank.Zcash.Memo
 Nerdbank.Zcash.Memo.Clear() -> void
 Nerdbank.Zcash.Memo.Equals(Nerdbank.Zcash.Memo other) -> bool

@@ -168,4 +168,7 @@
   <data name="UnrecognizedScheme" xml:space="preserve">
     <value>Se esperaba el esquema '{expected}' pero se encontró '{actual}' en su lugar.</value>
   </data>
+  <data name="GetLatestBlockHeightError" xml:space="preserve">
+    <value>Se ha producido un error al obtener la última altura de bloque.</value>
+  </data>
 </root>
