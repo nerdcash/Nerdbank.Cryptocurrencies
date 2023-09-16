@@ -120,6 +120,9 @@
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
   </data>
+  <data name="GetLatestBlockHeightError" xml:space="preserve">
+    <value>An error occurred while fetching the latest block height.</value>
+  </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>This address is invalid or unrecognized.</value>
   </data>

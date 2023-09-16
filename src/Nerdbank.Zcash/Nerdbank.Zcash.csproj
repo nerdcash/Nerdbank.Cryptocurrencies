@@ -5,7 +5,17 @@
     <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Protobuf Include="Protos\*.proto" GrpcServices="Client" Access="internal" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Workaround gRPC generating a totally empty source file: https://github.com/protocolbuffers/protobuf/issues/7880#issuecomment-1722294889 -->
+    <EditorConfigFiles Include="..\..\obj\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" PrivateAssets="compile" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
   </ItemGroup>

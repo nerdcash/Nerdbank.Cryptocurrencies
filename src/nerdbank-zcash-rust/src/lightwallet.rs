@@ -60,15 +60,6 @@ pub enum LightWalletError {
     Other { message: String },
 }
 
-pub fn lightwallet_get_block_height(server_uri: String) -> Result<u64, LightWalletError> {
-    let server_uri = Uri::try_from(server_uri).map_err(|_| LightWalletError::InvalidUri)?;
-    Ok(
-        zingolib::get_latest_block_height(server_uri).map_err(|err| LightWalletError::Other {
-            message: err.to_string(),
-        })?,
-    )
-}
-
 pub struct Config {
     pub server_uri: String,
     pub chain_type: ChainType,

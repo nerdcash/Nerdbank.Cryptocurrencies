@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using Grpc.Net.Client;
 using uniffi.LightWallet;
 
 namespace Nerdbank.Zcash;
@@ -20,6 +21,7 @@ public class LightWalletClient : IDisposable
 	private readonly Uri serverUrl;
 	private readonly ZcashAccount? account;
 	private readonly LightWalletSafeHandle handle;
+	private readonly GrpcChannel grpcChannel;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -40,6 +42,7 @@ public class LightWalletClient : IDisposable
 			throw new NotSupportedException("This lightwallet client does not support wallets with only incoming viewing keys.");
 		}
 
+		this.grpcChannel = GrpcChannel.ForAddress(serverUrl);
 		this.serverUrl = serverUrl;
 		this.account = account;
 
@@ -79,6 +82,7 @@ public class LightWalletClient : IDisposable
 	{
 		Requires.NotNull(serverUrl);
 
+		this.grpcChannel = GrpcChannel.ForAddress(serverUrl);
 		this.serverUrl = serverUrl;
 
 		this.handle = new LightWalletSafeHandle(
@@ -119,15 +123,17 @@ public class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The length of the blockchain.</returns>
 	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
-	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
+	public static async ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
-		return new(Task.Run(
-			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
-			cancellationToken));
+		using GrpcChannel channel = GrpcChannel.ForAddress(lightWalletServerUrl);
+		return await GetLatestBlockHeightAsync(channel, cancellationToken);
 	}
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
-	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
+	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken)
+	{
+		return GetLatestBlockHeightAsync(this.grpcChannel, cancellationToken);
+	}
 
 	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/>
 	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, cancellationToken);
@@ -206,6 +212,7 @@ public class LightWalletClient : IDisposable
 	/// <inheritdoc/>
 	public void Dispose()
 	{
+		this.grpcChannel.Dispose();
 		this.handle.Dispose();
 	}
 
@@ -230,6 +237,20 @@ public class LightWalletClient : IDisposable
 		}
 
 		return list;
+	}
+
+	private static async ValueTask<ulong> GetLatestBlockHeightAsync(GrpcChannel channel, CancellationToken cancellationToken)
+	{
+		try
+		{
+			Lightwalletd.CompactTxStreamer.CompactTxStreamerClient client = new(channel);
+			Lightwalletd.LightdInfo info = await client.GetLightdInfoAsync(new Lightwalletd.Empty(), cancellationToken: cancellationToken);
+			return info.BlockHeight;
+		}
+		catch (Grpc.Core.RpcException ex)
+		{
+			throw new LightWalletException(Strings.GetLatestBlockHeightError, ex);
+		}
 	}
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)

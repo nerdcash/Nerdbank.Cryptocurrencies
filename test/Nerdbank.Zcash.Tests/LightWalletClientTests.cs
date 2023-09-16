@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using uniffi.LightWallet;
+using LightWalletException = Nerdbank.Zcash.LightWalletException;
+using UniException = uniffi.LightWallet.LightWalletException;
 
 [Trait("RequiresNetwork", "true")]
 public class LightWalletClientTests : TestBase, IDisposable
@@ -45,6 +47,14 @@ public class LightWalletClientTests : TestBase, IDisposable
 	public async Task GetLatestBlockHeight()
 	{
 		ulong height = await this.client.GetLatestBlockHeightAsync(this.TimeoutToken);
+		this.logger.WriteLine($"Height: {height}");
+		Assert.NotEqual(0u, height);
+	}
+
+	[Fact]
+	public async Task GetLatestBlockHeight_Static()
+	{
+		ulong height = await LightWalletClient.GetLatestBlockHeightAsync(TestLightWalletServer, this.TimeoutToken);
 		this.logger.WriteLine($"Height: {height}");
 		Assert.NotEqual(0u, height);
 	}
@@ -113,7 +123,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 		{
 			new LightWalletClient.TransactionSendItem(DefaultAccount.DefaultAddress, 1.0m, default),
 		};
-		LightWalletException.Other ex = await Assert.ThrowsAsync<LightWalletException.Other>(() =>
+		UniException.Other ex = await Assert.ThrowsAsync<UniException.Other>(() =>
 		this.client.SendAsync(
 			sends,
 			new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
