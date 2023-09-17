@@ -2,13 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using uniffi.LightWallet;
-using LightWalletException = Nerdbank.Zcash.LightWalletException;
+using LightWalletException = uniffi.LightWallet.LightWalletException;
 using UniException = uniffi.LightWallet.LightWalletException;
 
 [Trait("RequiresNetwork", "true")]
 public class LightWalletClientTests : TestBase, IDisposable
 {
-	private static readonly Uri TestLightWalletServer = new("https://zcash.mysideoftheweb.com:9067/");
 	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
 	private readonly ITestOutputHelper logger;
 	private readonly LightWalletClient client;
@@ -23,7 +22,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 		this.logger.WriteLine($"Test directory: \"{this.testDir}\"");
 
 		this.client = new(
-			TestLightWalletServer,
+			LightWalletServerMainNet,
 			DefaultAccount,
 			this.testDir,
 			"zcash-test.wallet",
@@ -54,7 +53,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 	[Fact]
 	public async Task GetLatestBlockHeight_Static()
 	{
-		ulong height = await LightWalletClient.GetLatestBlockHeightAsync(TestLightWalletServer, this.TimeoutToken);
+		ulong height = await LightWalletClient.GetLatestBlockHeightAsync(LightWalletServerMainNet, this.TimeoutToken);
 		this.logger.WriteLine($"Height: {height}");
 		Assert.NotEqual(0u, height);
 	}

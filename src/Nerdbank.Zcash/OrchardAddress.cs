@@ -63,7 +63,7 @@ public class OrchardAddress : UnifiedAddress
 		{
 			ZcashNetwork.MainNet => HumanReadablePartMainNet,
 			ZcashNetwork.TestNet => HumanReadablePartTestNet,
-			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
+			_ => throw new NotSupportedException(Strings.FormatUnrecognizedNetwork(network)),
 		};
 
 		Span<byte> padding = stackalloc byte[16];

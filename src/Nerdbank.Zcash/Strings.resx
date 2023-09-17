@@ -120,8 +120,8 @@
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
   </data>
-  <data name="GetLatestBlockHeightError" xml:space="preserve">
-    <value>An error occurred while fetching the latest block height.</value>
+  <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
+    <value>An error occurred while fetching metadata from the lightwallet server.</value>
   </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>This address is invalid or unrecognized.</value>
@@ -166,7 +166,7 @@
     <value>This address does not conform to any known format.</value>
   </data>
   <data name="UnrecognizedNetwork" xml:space="preserve">
-    <value>Unrecognized network.</value>
+    <value>Unrecognized network '{network}'.</value>
   </data>
   <data name="UnrecognizedScheme" xml:space="preserve">
     <value>Expected '{expected}' scheme but found '{actual}' instead.</value>
