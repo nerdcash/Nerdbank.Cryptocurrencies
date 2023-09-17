@@ -60,7 +60,7 @@ public class TransparentP2SHAddress : TransparentAddress
 		{
 			ZcashNetwork.MainNet => ((byte)0x1c, (byte)0xbd),
 			ZcashNetwork.TestNet => ((byte)0x1c, (byte)0xba),
-			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
+			_ => throw new NotSupportedException(Strings.FormatUnrecognizedNetwork(network)),
 		};
 		receiver.ScriptHash.CopyTo(input[2..]);
 		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];

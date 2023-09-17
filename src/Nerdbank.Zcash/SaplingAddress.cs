@@ -99,7 +99,7 @@ public class SaplingAddress : ZcashAddress
 		{
 			ZcashNetwork.MainNet => MainNetHumanReadablePart,
 			ZcashNetwork.TestNet => TestNetHumanReadablePart,
-			_ => throw new NotSupportedException(Strings.UnrecognizedNetwork),
+			_ => throw new NotSupportedException(Strings.FormatUnrecognizedNetwork(network)),
 		};
 		ReadOnlySpan<byte> receiverSpan = receiver.Span;
 		Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, receiverSpan.Length)];

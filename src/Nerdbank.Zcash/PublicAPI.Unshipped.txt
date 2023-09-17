@@ -133,6 +133,10 @@ Nerdbank.Zcash.LightWalletClient.UpdateFrequency.set -> void
 Nerdbank.Zcash.LightWalletException
 Nerdbank.Zcash.LightWalletException.LightWalletException(string? message) -> void
 Nerdbank.Zcash.LightWalletException.LightWalletException(string? message, System.Exception? innerException) -> void
+Nerdbank.Zcash.ManagedLightWalletClient
+Nerdbank.Zcash.ManagedLightWalletClient.Dispose() -> void
+Nerdbank.Zcash.ManagedLightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+Nerdbank.Zcash.ManagedLightWalletClient.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Memo
 Nerdbank.Zcash.Memo.Clear() -> void
 Nerdbank.Zcash.Memo.Equals(Nerdbank.Zcash.Memo other) -> bool
@@ -478,6 +482,7 @@ override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.GetHashCode
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(ulong diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+static Nerdbank.Zcash.ManagedLightWalletClient.CreateAsync(System.Uri! serverUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Zcash.ManagedLightWalletClient!>
 static Nerdbank.Zcash.Memo.FromMessage(string? message) -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.Memo.NoMemo.get -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.OrchardReceiver.UnifiedReceiverTypeCode.get -> byte

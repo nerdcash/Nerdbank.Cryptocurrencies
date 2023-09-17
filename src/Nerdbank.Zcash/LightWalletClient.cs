@@ -266,11 +266,11 @@ public class LightWalletClient : IDisposable
 		}
 		catch (Grpc.Core.RpcException ex)
 		{
-			throw new LightWalletException(Strings.GetLatestBlockHeightError, ex);
+			throw new LightWalletException(Strings.ErrorInGetLightWalletServerInfo, ex);
 		}
 	}
 
-	private Lightwalletd.CompactTxStreamer.CompactTxStreamerClient GetClient() => new(this.grpcChannel);
+	private CompactTxStreamer.CompactTxStreamerClient GetClient() => new(this.grpcChannel);
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{
