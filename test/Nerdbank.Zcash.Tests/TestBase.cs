@@ -23,6 +23,10 @@ public abstract class TestBase
 	protected const string ValidTransparentP2PKHAddress = "t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF";
 	protected const string ValidTransparentP2SHAddress = "t3JZcvsuaXE6ygokL4XUiZSTrQBUoPYFnXJ";
 
+	protected static readonly Uri LightWalletServerMainNet = new("https://zcash.mysideoftheweb.com:9067/");
+
+	protected static readonly Uri LightWalletServerTestNet = new("https://zcash.mysideoftheweb.com:19067/");
+
 	protected static readonly Bip39Mnemonic Mnemonic = Bip39Mnemonic.Parse("badge bless baby bird anger wage memory extend word isolate equip faith");
 
 	/// <summary>

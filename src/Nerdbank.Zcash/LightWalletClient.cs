@@ -3,8 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using Grpc.Net.Client;
-using Lightwalletd;
 using uniffi.LightWallet;
 
 namespace Nerdbank.Zcash;
@@ -22,7 +20,6 @@ public class LightWalletClient : IDisposable
 	private readonly Uri serverUrl;
 	private readonly ZcashAccount? account;
 	private readonly LightWalletSafeHandle handle;
-	private readonly GrpcChannel grpcChannel;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -43,7 +40,6 @@ public class LightWalletClient : IDisposable
 			throw new NotSupportedException("This lightwallet client does not support wallets with only incoming viewing keys.");
 		}
 
-		this.grpcChannel = GrpcChannel.ForAddress(serverUrl);
 		this.serverUrl = serverUrl;
 		this.account = account;
 
@@ -83,7 +79,6 @@ public class LightWalletClient : IDisposable
 	{
 		Requires.NotNull(serverUrl);
 
-		this.grpcChannel = GrpcChannel.ForAddress(serverUrl);
 		this.serverUrl = serverUrl;
 
 		this.handle = new LightWalletSafeHandle(
@@ -124,33 +119,15 @@ public class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The length of the blockchain.</returns>
 	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
-	public static async ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
+	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
-		using GrpcChannel channel = GrpcChannel.ForAddress(lightWalletServerUrl);
-		return await GetLatestBlockHeightAsync(channel, cancellationToken);
+		return new(Task.Run(
+			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
+			cancellationToken));
 	}
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
-	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken)
-	{
-		return GetLatestBlockHeightAsync(this.grpcChannel, cancellationToken);
-	}
-
-	/// <summary>
-	/// Gets the network that the given lightserver operates on.
-	/// </summary>
-	/// <param name="cancellationToken">A cancellation token.</param>
-	/// <returns>The network this server operates on, or <see langword="null" /> if the server operates on an unrecognized network.</returns>
-	public async ValueTask<ZcashNetwork?> GetServerNetworkAsync(CancellationToken cancellationToken)
-	{
-		LightdInfo info = await this.GetClient().GetLightdInfoAsync(new Empty(), cancellationToken: cancellationToken);
-		return info.ChainName switch
-		{
-			"main" => ZcashNetwork.MainNet,
-			"test" => ZcashNetwork.TestNet,
-			_ => null,
-		};
-	}
+	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
 	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/>
 	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, cancellationToken);
@@ -229,7 +206,6 @@ public class LightWalletClient : IDisposable
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		this.grpcChannel.Dispose();
 		this.handle.Dispose();
 	}
 
@@ -255,22 +231,6 @@ public class LightWalletClient : IDisposable
 
 		return list;
 	}
-
-	private static async ValueTask<ulong> GetLatestBlockHeightAsync(GrpcChannel channel, CancellationToken cancellationToken)
-	{
-		try
-		{
-			Lightwalletd.CompactTxStreamer.CompactTxStreamerClient client = new(channel);
-			Lightwalletd.LightdInfo info = await client.GetLightdInfoAsync(new Lightwalletd.Empty(), cancellationToken: cancellationToken);
-			return info.BlockHeight;
-		}
-		catch (Grpc.Core.RpcException ex)
-		{
-			throw new LightWalletException(Strings.ErrorInGetLightWalletServerInfo, ex);
-		}
-	}
-
-	private CompactTxStreamer.CompactTxStreamerClient GetClient() => new(this.grpcChannel);
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{
