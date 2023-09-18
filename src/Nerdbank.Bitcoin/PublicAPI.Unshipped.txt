@@ -1,0 +1,25 @@
+﻿#nullable enable
+Nerdbank.Bitcoin.RawTransaction
+Nerdbank.Bitcoin.RawTransaction.Outpoint
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Index.get -> uint
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Index.init -> void
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Outpoint() -> void
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Outpoint(System.ReadOnlySpan<byte> txid, uint index) -> void
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Txid.get -> System.ReadOnlySpan<byte>
+Nerdbank.Bitcoin.RawTransaction.TxIn
+Nerdbank.Bitcoin.RawTransaction.TxIn.PreviousOutput.get -> Nerdbank.Bitcoin.RawTransaction.Outpoint?
+Nerdbank.Bitcoin.RawTransaction.TxIn.PreviousOutput.init -> void
+Nerdbank.Bitcoin.RawTransaction.TxIn.Sequence.get -> uint
+Nerdbank.Bitcoin.RawTransaction.TxIn.Sequence.init -> void
+Nerdbank.Bitcoin.RawTransaction.TxIn.SignatureScript.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Bitcoin.RawTransaction.TxIn.SignatureScript.init -> void
+Nerdbank.Bitcoin.RawTransaction.TxIn.TxIn() -> void
+Nerdbank.Bitcoin.RawTransaction.TxOut
+Nerdbank.Bitcoin.RawTransaction.TxOut.Script.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Bitcoin.RawTransaction.TxOut.Script.init -> void
+Nerdbank.Bitcoin.RawTransaction.TxOut.TxOut() -> void
+Nerdbank.Bitcoin.RawTransaction.TxOut.Value.get -> long
+Nerdbank.Bitcoin.RawTransaction.TxOut.Value.init -> void
+static Nerdbank.Bitcoin.RawTransaction.Outpoint.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader) -> Nerdbank.Bitcoin.RawTransaction.Outpoint?
+static Nerdbank.Bitcoin.RawTransaction.TxIn.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader) -> Nerdbank.Bitcoin.RawTransaction.TxIn
+static Nerdbank.Bitcoin.RawTransaction.TxOut.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader) -> Nerdbank.Bitcoin.RawTransaction.TxOut

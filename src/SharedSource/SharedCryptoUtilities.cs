@@ -4,6 +4,8 @@
 using System.Runtime.CompilerServices;
 #if ZCASH
 using Nerdbank.Zcash;
+#elif BITCOIN
+using Nerdbank.Bitcoin;
 #endif
 
 namespace Nerdbank.Cryptocurrencies;

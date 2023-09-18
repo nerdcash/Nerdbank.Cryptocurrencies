@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net7.0</TargetFrameworks>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -20,6 +19,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj" />
     <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" PrivateAssets="compile" />
   </ItemGroup>
   <Import Project="..\SharedSource\SharedSource.projitems" Label="Shared" />

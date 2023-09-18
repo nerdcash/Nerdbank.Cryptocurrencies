@@ -189,6 +189,138 @@ Nerdbank.Zcash.Pool.Orchard = 3 -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Pool.Sapling = 2 -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Pool.Sprout = 1 -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Pool.Transparent = 0 -> Nerdbank.Zcash.Pool
+Nerdbank.Zcash.RawTransaction
+Nerdbank.Zcash.RawTransaction.ConsensusBranchId.get -> uint
+Nerdbank.Zcash.RawTransaction.ConsensusBranchId.init -> void
+Nerdbank.Zcash.RawTransaction.ExpiryHeight.get -> uint
+Nerdbank.Zcash.RawTransaction.ExpiryHeight.init -> void
+Nerdbank.Zcash.RawTransaction.Header.get -> uint
+Nerdbank.Zcash.RawTransaction.Header.init -> void
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Anchor.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Commitments.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.EncCiphertexts.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.EphemeralKey.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.JSDescriptionBCTV14() -> void
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.JSDescriptionBCTV14(ulong vpub_old, ulong vpub_new, System.ReadOnlySpan<byte> anchor, System.ReadOnlySpan<byte> nullifiers, System.ReadOnlySpan<byte> commitments, System.ReadOnlySpan<byte> ephemeralKey, System.ReadOnlySpan<byte> randomSeed, System.ReadOnlySpan<byte> vmacs, System.ReadOnlySpan<byte> zkproof, System.ReadOnlySpan<byte> encCiphertexts) -> void
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Nullifiers.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.RandomSeed.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Vmacs.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.VpubNew.get -> ulong
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.VpubOld.get -> ulong
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Zkproof.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Anchor.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Commitments.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.EncCiphertexts.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.EphemeralKey.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.JSDescriptionGroth16() -> void
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.JSDescriptionGroth16(ulong vpub_old, ulong vpub_new, System.ReadOnlySpan<byte> anchor, System.ReadOnlySpan<byte> nullifiers, System.ReadOnlySpan<byte> commitments, System.ReadOnlySpan<byte> ephemeralKey, System.ReadOnlySpan<byte> randomSeed, System.ReadOnlySpan<byte> vmacs, System.ReadOnlySpan<byte> zkproof, System.ReadOnlySpan<byte> encCiphertexts) -> void
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Nullifiers.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.RandomSeed.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Vmacs.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.VpubNew.get -> ulong
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.VpubOld.get -> ulong
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Zkproof.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.LockTime.get -> uint
+Nerdbank.Zcash.RawTransaction.LockTime.init -> void
+Nerdbank.Zcash.RawTransaction.Orchard.get -> Nerdbank.Zcash.RawTransaction.OrchardFields
+Nerdbank.Zcash.RawTransaction.Orchard.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardAction
+Nerdbank.Zcash.RawTransaction.OrchardAction.Cmx.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.OrchardAction.EncryptedCiphertext.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.OrchardAction.EphemeralKey.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.OrchardAction.Nullifier.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.OrchardAction.OrchardAction() -> void
+Nerdbank.Zcash.RawTransaction.OrchardAction.OrchardAction(System.ReadOnlySpan<byte> cv, System.ReadOnlySpan<byte> nullifier, System.ReadOnlySpan<byte> rk, System.ReadOnlySpan<byte> cmx, System.ReadOnlySpan<byte> ephemeralKey, System.ReadOnlySpan<byte> encCiphertext, System.ReadOnlySpan<byte> outCiphertext) -> void
+Nerdbank.Zcash.RawTransaction.OrchardAction.OutCiphertext.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.OrchardAction.Rk.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.OrchardAction.ValueCommitment.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.OrchardFields
+Nerdbank.Zcash.RawTransaction.OrchardFields.Actions.get -> System.ReadOnlyMemory<Nerdbank.Zcash.RawTransaction.OrchardAction>
+Nerdbank.Zcash.RawTransaction.OrchardFields.Actions.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.Anchor.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.OrchardFields.Anchor.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.BindingSig.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.OrchardFields.BindingSig.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.Flags.get -> Nerdbank.Zcash.RawTransaction.OrchardFlags
+Nerdbank.Zcash.RawTransaction.OrchardFields.Flags.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.OrchardFields() -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.Proofs.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.OrchardFields.Proofs.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.SpendAuthSigs.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.OrchardFields.SpendAuthSigs.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.ValueBalance.get -> long
+Nerdbank.Zcash.RawTransaction.OrchardFields.ValueBalance.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFlags
+Nerdbank.Zcash.RawTransaction.OrchardFlags.EnableOutputsOrchard = 2 -> Nerdbank.Zcash.RawTransaction.OrchardFlags
+Nerdbank.Zcash.RawTransaction.OrchardFlags.EnableSpendsOrchard = 1 -> Nerdbank.Zcash.RawTransaction.OrchardFlags
+Nerdbank.Zcash.RawTransaction.Overwintered.get -> bool
+Nerdbank.Zcash.RawTransaction.Sapling.get -> Nerdbank.Zcash.RawTransaction.SaplingFields
+Nerdbank.Zcash.RawTransaction.Sapling.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields
+Nerdbank.Zcash.RawTransaction.SaplingFields.Anchor.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SaplingFields.Anchor.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.BindingSig.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SaplingFields.BindingSig.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.OutputProofsS.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SaplingFields.OutputProofsS.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.Outputs.get -> System.ReadOnlyMemory<Nerdbank.Zcash.RawTransaction.SaplingOutputDescription>
+Nerdbank.Zcash.RawTransaction.SaplingFields.Outputs.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.SaplingFields() -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.SpendAuthSigs.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SaplingFields.SpendAuthSigs.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.SpendProofs.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SaplingFields.SpendProofs.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.Spends.get -> System.ReadOnlyMemory<Nerdbank.Zcash.RawTransaction.SaplingSpendDescription>
+Nerdbank.Zcash.RawTransaction.SaplingFields.Spends.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.ValueBalance.get -> long
+Nerdbank.Zcash.RawTransaction.SaplingFields.ValueBalance.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.EncryptedCiphertext.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.EphemeralKey.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.NoteCommitmentUCoord.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.OutCiphertext.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.SaplingOutputDescription() -> void
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.SaplingOutputDescription(System.ReadOnlySpan<byte> cv, System.ReadOnlySpan<byte> cmu, System.ReadOnlySpan<byte> ephemeralKey, System.ReadOnlySpan<byte> encCiphertext, System.ReadOnlySpan<byte> outCiphertext) -> void
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.SaplingOutputDescription(System.ReadOnlySpan<byte> cv, System.ReadOnlySpan<byte> cmu, System.ReadOnlySpan<byte> ephemeralKey, System.ReadOnlySpan<byte> encCiphertext, System.ReadOnlySpan<byte> outCiphertext, System.ReadOnlySpan<byte> zkproof) -> void
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.ValueCommitment.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.Version.get -> uint
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.ZkProof.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Anchor.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Nullifier.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.SaplingSpendDescription() -> void
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.SaplingSpendDescription(System.ReadOnlySpan<byte> cv, System.ReadOnlySpan<byte> anchor, System.ReadOnlySpan<byte> nullifier, System.ReadOnlySpan<byte> rk, System.ReadOnlySpan<byte> zkproof, System.ReadOnlySpan<byte> spendAuthSig) -> void
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.SaplingSpendDescription(System.ReadOnlySpan<byte> cv, System.ReadOnlySpan<byte> nullifier, System.ReadOnlySpan<byte> rk) -> void
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.SpendAuthSig.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.TransactionVersion.get -> uint
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.ValidatingKey.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.ValueCommitment.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.ZkProof.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.RawTransaction.Sprout.get -> Nerdbank.Zcash.RawTransaction.SproutFields
+Nerdbank.Zcash.RawTransaction.Sprout.init -> void
+Nerdbank.Zcash.RawTransaction.SproutFields
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitBCTV14.get -> System.ReadOnlyMemory<Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14>
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitBCTV14.init -> void
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitGroth16.get -> System.ReadOnlyMemory<Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16>
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitGroth16.init -> void
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitPublicKey.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitPublicKey.init -> void
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitSig.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitSig.init -> void
+Nerdbank.Zcash.RawTransaction.SproutFields.SproutFields() -> void
+Nerdbank.Zcash.RawTransaction.Transparent.get -> Nerdbank.Zcash.RawTransaction.TransparentFields
+Nerdbank.Zcash.RawTransaction.Transparent.init -> void
+Nerdbank.Zcash.RawTransaction.TransparentFields
+Nerdbank.Zcash.RawTransaction.TransparentFields.Inputs.get -> System.ReadOnlyMemory<Nerdbank.Bitcoin.RawTransaction.TxIn>
+Nerdbank.Zcash.RawTransaction.TransparentFields.Inputs.init -> void
+Nerdbank.Zcash.RawTransaction.TransparentFields.Outputs.get -> System.ReadOnlyMemory<Nerdbank.Bitcoin.RawTransaction.TxOut>
+Nerdbank.Zcash.RawTransaction.TransparentFields.Outputs.init -> void
+Nerdbank.Zcash.RawTransaction.TransparentFields.TransparentFields() -> void
+Nerdbank.Zcash.RawTransaction.Version.get -> uint
+Nerdbank.Zcash.RawTransaction.VersionGroupId.get -> uint
+Nerdbank.Zcash.RawTransaction.VersionGroupId.init -> void
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.CheckReceiver(Nerdbank.Zcash.SaplingReceiver receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.Equals(Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey? other) -> bool
@@ -485,6 +617,12 @@ static Nerdbank.Zcash.ManagedLightWalletClient.CreateAsync(System.Uri! serverUrl
 static Nerdbank.Zcash.Memo.FromMessage(string? message) -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.Memo.NoMemo.get -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.OrchardReceiver.UnifiedReceiverTypeCode.get -> byte
+static Nerdbank.Zcash.RawTransaction.Decode(System.ReadOnlySpan<byte> bytes) -> Nerdbank.Zcash.RawTransaction!
+static Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14
+static Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16
+static Nerdbank.Zcash.RawTransaction.OrchardAction.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.OrchardAction
+static Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.SaplingOutputDescription
+static Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.SaplingSpendDescription
 static Nerdbank.Zcash.Sapling.FullViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.FullViewingKey!
 static Nerdbank.Zcash.Sapling.IncomingViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
 static Nerdbank.Zcash.SaplingReceiver.UnifiedReceiverTypeCode.get -> byte
