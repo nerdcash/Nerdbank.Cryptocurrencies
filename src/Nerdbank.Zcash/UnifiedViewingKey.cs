@@ -107,6 +107,11 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 			return false;
 		}
 
+		if (this.GetType() != other.GetType())
+		{
+			return false;
+		}
+
 		if (this.viewingKeys.Count != other.viewingKeys.Count)
 		{
 			return false;
