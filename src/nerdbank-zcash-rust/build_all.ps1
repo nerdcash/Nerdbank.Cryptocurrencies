@@ -26,16 +26,19 @@ if (!$env:CI) {
 $buildArgsNoTargets = $buildArgs
 $rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
 $winArm64Required = $false
+$otherTargetsRequired = $false
 $rustTargets | % { 
     if ($_ -eq 'aarch64-pc-windows-msvc') {
         $winArm64Required = $true
     }
     else {
+        $otherTargetsRequired = $true
         $buildArgs += "--target=$_"
     }
 }
 
 if ($winArm64Required) {
+    Write-Host "Building for win-arm64"
     Copy-Item cargoTomlTargets/win-arm64/* -Force
     cargo build @buildArgsNoTargets --target aarch64-pc-windows-msvc
     Copy-Item .\Cargo.toml,.\Cargo.lock .\cargoTomlTargets\win-arm64 -Force
@@ -44,11 +47,14 @@ if ($winArm64Required) {
     }
 }
 
-Copy-Item cargoTomlTargets/others/Cargo.toml -Force
-cargo build @buildArgs
-Copy-Item .\Cargo.toml,.\Cargo.lock .\cargoTomlTargets\others -Force
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
+if ($otherTargetsRequired) {
+    Write-Host "Building for $buildArgs"
+    Copy-Item cargoTomlTargets/others/Cargo.toml -Force
+    cargo build @buildArgs
+    Copy-Item .\Cargo.toml, .\Cargo.lock .\cargoTomlTargets\others -Force
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
 }
 
 $configPathSegment = 'debug'
