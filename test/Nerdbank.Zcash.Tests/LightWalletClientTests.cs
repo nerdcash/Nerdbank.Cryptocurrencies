@@ -8,7 +8,11 @@ using UniException = uniffi.LightWallet.LightWalletException;
 [Trait("RequiresNetwork", "true")]
 public class LightWalletClientTests : TestBase, IDisposable
 {
-	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
+	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0)
+	{
+		BirthdayHeight = 2234000,
+	};
+
 	private readonly ITestOutputHelper logger;
 	private readonly LightWalletClient client;
 	private readonly string testDir;
