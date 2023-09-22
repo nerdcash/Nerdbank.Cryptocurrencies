@@ -88,6 +88,27 @@ public class Zip32HDWalletTests : TestBase
 	}
 
 	[Fact]
+	public void DeriveSaplingInternalSpendingKey()
+	{
+		Zip32HDWallet.Sapling.ExtendedSpendingKey sk = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet);
+		this.logger.WriteLine($"Public address: {sk.DefaultAddress}");
+		Zip32HDWallet.Sapling.ExtendedSpendingKey internalSk = sk.DeriveInternal();
+		this.logger.WriteLine($"Internal address: {internalSk.DefaultAddress}");
+		Assert.Equal("zs18uhw2dm7qwydasu5axkj9e38tygeqy36pep62nv83963z6l3fzdsg9kn2gqwtf6ckzk9khh4sxf", internalSk.DefaultAddress);
+		Assert.Equal(internalSk.DefaultAddress, internalSk.ExtendedFullViewingKey.DefaultAddress);
+	}
+
+	[Fact]
+	public void DeriveSaplingInternalFullViewingKey()
+	{
+		Zip32HDWallet.Sapling.ExtendedFullViewingKey fvk = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;
+		this.logger.WriteLine($"Public address: {fvk.DefaultAddress}");
+		Zip32HDWallet.Sapling.ExtendedFullViewingKey internalSk = fvk.DeriveInternal();
+		this.logger.WriteLine($"Internal address: {internalSk.DefaultAddress}");
+		Assert.Equal("zs18uhw2dm7qwydasu5axkj9e38tygeqy36pep62nv83963z6l3fzdsg9kn2gqwtf6ckzk9khh4sxf", internalSk.DefaultAddress);
+	}
+
+	[Fact]
 	public void MnemonicCtorInitializesProperties()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);

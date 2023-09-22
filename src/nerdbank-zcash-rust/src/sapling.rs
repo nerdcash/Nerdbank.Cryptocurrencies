@@ -5,8 +5,9 @@ use zcash_primitives::{
         NullifierDerivingKey, PaymentAddress, SaplingIvk,
     },
     zip32::{
-        sapling::DiversifierKey, ChildIndex, DiversifiableFullViewingKey, DiversifierIndex,
-        ExtendedFullViewingKey, ExtendedSpendingKey, Scope,
+        sapling::DiversifierKey, sapling_derive_internal_fvk, ChildIndex,
+        DiversifiableFullViewingKey, DiversifierIndex, ExtendedFullViewingKey, ExtendedSpendingKey,
+        Scope,
     },
 };
 
@@ -162,6 +163,50 @@ pub extern "C" fn derive_sapling_child(
             0
         }
         Err(_) => -1,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn derive_internal_fvk_sapling(
+    fvk: *const [u8; 96],
+    dk: *const [u8; 32],
+    internal_fvk: *mut [u8; 96],
+    internal_dk: *mut [u8; 32],
+) -> i32 {
+    let fvk = unsafe { &*fvk };
+    let dk = unsafe { &*dk };
+    let internal_fvk = unsafe { &mut *internal_fvk };
+    let internal_dk = unsafe { &mut *internal_dk };
+
+    if let Ok(fvk) = FullViewingKey::read(&fvk[..]) {
+        let dk = DiversifierKey::from_bytes(dk.to_owned());
+        let internal_key = sapling_derive_internal_fvk(&fvk, &dk);
+        internal_fvk.copy_from_slice(&internal_key.0.to_bytes()[..]);
+        internal_dk.copy_from_slice(&internal_key.1.as_bytes()[..]);
+        0
+    } else {
+        -1
+    }
+}
+
+// Technically all that *should* be required is the expanded spending key + dk
+// But the API offered by the crates we use only offer internal key derivation
+// for an extended spending key. We could rewrite the derivation easily enough
+// if needed.
+#[no_mangle]
+pub extern "C" fn derive_internal_sk_sapling(
+    ext_sk: *const [u8; 169],
+    internal_ext_sk: *mut [u8; 169],
+) -> i32 {
+    let ext_sk = unsafe { &*ext_sk };
+    let internal_ext_sk = unsafe { &mut *internal_ext_sk };
+
+    if let Ok(ext_sk) = ExtendedSpendingKey::from_bytes(ext_sk) {
+        let internal = ext_sk.derive_internal();
+        internal_ext_sk.copy_from_slice(&internal.to_bytes()[..]);
+        0
+    } else {
+        -1
     }
 }
 
