@@ -288,6 +288,10 @@ public class ZcashAccount
 	/// <summary>
 	/// Spending keys for the internal addresses.
 	/// </summary>
+	/// <remarks>
+	/// There is no orchard key in this class because for orchard, the public address spending key implicitly
+	/// has spending authority over the internal address.
+	/// </remarks>
 	public record InternalSpendingKeys
 	{
 		/// <summary>
@@ -381,12 +385,18 @@ public class ZcashAccount
 		internal InternalFullViewingKeys(FullViewingKeys fvk)
 		{
 			this.Sapling = fvk.Sapling?.DeriveInternal();
+			this.Orchard = fvk.Orchard?.DeriveInternal();
 		}
 
 		/// <summary>
 		/// Gets the sapling viewing key.
 		/// </summary>
 		public Sapling.DiversifiableFullViewingKey? Sapling { get; }
+
+		/// <summary>
+		/// Gets the orchard viewing key.
+		/// </summary>
+		public Orchard.FullViewingKey? Orchard { get; }
 	}
 
 	/// <summary>

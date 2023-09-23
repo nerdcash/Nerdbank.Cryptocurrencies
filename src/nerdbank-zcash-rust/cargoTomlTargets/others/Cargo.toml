@@ -12,11 +12,13 @@ crate-type = ["cdylib"]
 uniffi = { version = "0.23.0", features = [ "build" ] }
 
 [dependencies]
+ff = "0.13.0"
 group = "0.13.0"
 http = "0.2.9"
 jubjub = "0.10.0"
 lazy_static = "1.4.0"
 orchard = "0.5.0"
+pasta_curves = "0.5.1"
 thiserror = "1.0.47"
 tokio = "1.32.0"
 uniffi = "0.23.0"

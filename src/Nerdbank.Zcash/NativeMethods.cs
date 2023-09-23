@@ -12,6 +12,28 @@ internal static unsafe partial class NativeMethods
 	private const string LibraryName = "nerdbank_zcash_rust";
 
 	/// <summary>
+	/// Passes a byte buffer through the Orchard ToScalar method in the spec.
+	/// </summary>
+	/// <param name="uniformBytes">A 64-byte buffer.</param>
+	/// <param name="repr">A 32-byte buffer to receive the processed bytes.</param>
+	/// <returns>A return code.</returns>
+	internal static int OrchardToScalarToRepr(ReadOnlySpan<byte> uniformBytes, Span<byte> repr)
+	{
+		if (uniformBytes.Length != 64 || repr.Length != 32)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* pUniformBytes = uniformBytes)
+		{
+			fixed (byte* pRepr = repr)
+			{
+				return orchard_to_scalar_to_repr(pUniformBytes, pRepr);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="spendingKey">A 32-byte buffer containing the spending key.</param>
@@ -423,4 +445,7 @@ internal static unsafe partial class NativeMethods
 
 	[DllImport(LibraryName)]
 	private static extern int derive_internal_sk_sapling(byte* ext_sk, byte* internal_ext_sk);
+
+	[DllImport(LibraryName)]
+	private static extern int orchard_to_scalar_to_repr(byte* uniform_bytes, byte* repr);
 }

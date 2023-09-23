@@ -66,6 +66,29 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 
 	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress.ToString();
 
+	/// <summary>
+	/// Derives the internal full viewing key from this.
+	/// </summary>
+	/// <returns>The internal viewing key.</returns>
+	/// <remarks>
+	/// This method assumes that <em>this</em> viewing key is the public facing one.
+	/// The caller should take care to not call this method on what is already the internal key.
+	/// </remarks>
+	public FullViewingKey DeriveInternal()
+	{
+		Span<byte> internalFvk = stackalloc byte[(32 * 3) + 32];
+		this.Ak.Value.CopyTo(internalFvk[0..32]);
+		this.Nk.Value.CopyTo(internalFvk[32..64]);
+		ZcashUtilities.PRFexpand(this.Rivk.Value, PrfExpandCodes.OrchardRivkInternal, internalFvk[..64], internalFvk[64..]);
+		int result = NativeMethods.OrchardToScalarToRepr(internalFvk[64..], internalFvk[64..96]);
+		if (result != 0)
+		{
+			throw new InvalidKeyException($"Result code {result}.");
+		}
+
+		return new(internalFvk[..96], this.Network);
+	}
+
 	/// <inheritdoc/>
 	public bool Equals(FullViewingKey? other)
 	{
