@@ -89,6 +89,31 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 		}
 	}
 
+	/// <summary>
+	/// Derives the internal full viewing key from this.
+	/// </summary>
+	/// <returns>The internal viewing key.</returns>
+	/// <remarks>
+	/// This method assumes that <em>this</em> viewing key is the public facing one.
+	/// The caller should take care to not call this method on what is already the internal key.
+	/// </remarks>
+	public DiversifiableFullViewingKey DeriveInternal()
+	{
+		Span<byte> publicFvk = stackalloc byte[96];
+		this.Encode(publicFvk);
+
+		Span<byte> internalFvk = stackalloc byte[96];
+		Span<byte> internalDk = stackalloc byte[32];
+
+		int result = NativeMethods.DeriveSaplingInternalFullViewingKey(publicFvk, this.Dk.Value, internalFvk, internalDk);
+		if (result != 0)
+		{
+			throw new InvalidKeyException("Unable to derive internal full viewing key.");
+		}
+
+		return new(Decode(internalFvk, this.Network), new DiversifierKey(internalDk));
+	}
+
 	/// <inheritdoc/>
 	public bool Equals(DiversifiableFullViewingKey? other)
 	{

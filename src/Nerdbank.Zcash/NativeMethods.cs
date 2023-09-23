@@ -12,6 +12,28 @@ internal static unsafe partial class NativeMethods
 	private const string LibraryName = "nerdbank_zcash_rust";
 
 	/// <summary>
+	/// Passes a byte buffer through the Orchard ToScalar method in the spec.
+	/// </summary>
+	/// <param name="uniformBytes">A 64-byte buffer.</param>
+	/// <param name="repr">A 32-byte buffer to receive the processed bytes.</param>
+	/// <returns>A return code.</returns>
+	internal static int OrchardToScalarToRepr(ReadOnlySpan<byte> uniformBytes, Span<byte> repr)
+	{
+		if (uniformBytes.Length != 64 || repr.Length != 32)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* pUniformBytes = uniformBytes)
+		{
+			fixed (byte* pRepr = repr)
+			{
+				return orchard_to_scalar_to_repr(pUniformBytes, pRepr);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="spendingKey">A 32-byte buffer containing the spending key.</param>
@@ -316,6 +338,60 @@ internal static unsafe partial class NativeMethods
 	}
 
 	/// <summary>
+	/// Derives the ivk value for a sapling incoming viewing key from elements of the full viewing key.
+	/// </summary>
+	/// <param name="fvk">The encoding of the public facing <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
+	/// <param name="dk">The encoding of the public facing <see cref="Nerdbank.Zcash.DiversifierKey"/> associated with the public full viewing key.</param>
+	/// <param name="internalFvk">Receives the encoded internal <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
+	/// <param name="internalDk">Receives the encoded internal <see cref="Nerdbank.Zcash.DiversifierKey"/>.</param>
+	/// <returns>0 on success, or a negative error code.</returns>
+	/// <exception cref="ArgumentException">Thrown if the provided buffers are not of expected length.</exception>
+	internal static int DeriveSaplingInternalFullViewingKey(ReadOnlySpan<byte> fvk, ReadOnlySpan<byte> dk, Span<byte> internalFvk, Span<byte> internalDk)
+	{
+		if (fvk.Length != 96 || dk.Length != 32 || internalFvk.Length != 96 || internalDk.Length != 32)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* pFvk = fvk)
+		{
+			fixed (byte* pDk = dk)
+			{
+				fixed (byte* pInternalFvk = internalFvk)
+				{
+					fixed (byte* pInternalDk = internalDk)
+					{
+						return derive_internal_fvk_sapling(pFvk, pDk, pInternalFvk, pInternalDk);
+					}
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Derives the ivk value for a sapling incoming viewing key from elements of the full viewing key.
+	/// </summary>
+	/// <param name="extendedSpendingKey">The encoding of the public facing <see cref="Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey"/>.</param>
+	/// <param name="internalExtendedSpendingKey">Receives the encoded internal <see cref="Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey"/>.</param>
+	/// <returns>0 on success, or a negative error code.</returns>
+	/// <exception cref="ArgumentException">Thrown if the provided buffers are not of expected length.</exception>
+	internal static int DeriveSaplingInternalSpendingKey(ReadOnlySpan<byte> extendedSpendingKey, Span<byte> internalExtendedSpendingKey)
+	{
+		if (extendedSpendingKey.Length != 169 || internalExtendedSpendingKey.Length != 169)
+		{
+			throw new ArgumentException();
+		}
+
+		fixed (byte* pExtSK = extendedSpendingKey)
+		{
+			fixed (byte* pInternalExtSK = internalExtendedSpendingKey)
+			{
+				return derive_internal_sk_sapling(pExtSK, pInternalExtSK);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Derives an Orchard full viewing key from a spending key.
 	/// </summary>
 	/// <param name="sk">A pointer to a 32-byte buffer containing the spending key.</param>
@@ -363,4 +439,13 @@ internal static unsafe partial class NativeMethods
 
 	[DllImport(LibraryName)]
 	private static extern int derive_sapling_ivk_from_fvk(byte* ak, byte* nk, byte* ivk);
+
+	[DllImport(LibraryName)]
+	private static extern int derive_internal_fvk_sapling(byte* fvk, byte* dk, byte* internal_fvk, byte* internal_dk);
+
+	[DllImport(LibraryName)]
+	private static extern int derive_internal_sk_sapling(byte* ext_sk, byte* internal_ext_sk);
+
+	[DllImport(LibraryName)]
+	private static extern int orchard_to_scalar_to_repr(byte* uniform_bytes, byte* repr);
 }

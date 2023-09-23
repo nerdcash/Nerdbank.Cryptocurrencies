@@ -129,7 +129,7 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the expanded spending key (one that has ask, nsk, and ovk derived from the raw 32-byte spending key).
 			/// </summary>
-			internal ExpandedSpendingKey ExpandedSpendingKey { get; }
+			public ExpandedSpendingKey ExpandedSpendingKey { get; }
 
 			/// <summary>
 			/// Gets the diversifier key.
@@ -181,6 +181,29 @@ public partial class Zip32HDWallet
 
 			/// <inheritdoc/>
 			IExtendedKey IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
+
+			/// <summary>
+			/// Derives the internal address spending key from this.
+			/// </summary>
+			/// <returns>The extended spending key.</returns>
+			/// <remarks>
+			/// This method assumes that <em>this</em> spending key is the public facing one.
+			/// The caller should take care to not call this method on what is already the internal key.
+			/// </remarks>
+			public ExtendedSpendingKey DeriveInternal()
+			{
+				Span<byte> encoded = stackalloc byte[169];
+				int length = this.Encode(encoded);
+				Assumes.True(length == encoded.Length);
+				Span<byte> encodedInternal = stackalloc byte[169];
+				int result = NativeMethods.DeriveSaplingInternalSpendingKey(encoded, encodedInternal);
+				if (result != 0)
+				{
+					throw new InvalidKeyException($"Derivation failure: {result}");
+				}
+
+				return Decode(encodedInternal, this.Network);
+			}
 
 			/// <inheritdoc/>
 			public bool Equals(ExtendedSpendingKey? other)

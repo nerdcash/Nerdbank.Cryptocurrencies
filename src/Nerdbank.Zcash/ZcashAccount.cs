@@ -247,6 +247,8 @@ public class ZcashAccount
 				transparent?.FullViewingKey,
 				sapling?.FullViewingKey,
 				orchard?.FullViewingKey);
+
+			this.Internal = new(this);
 		}
 
 		/// <summary>
@@ -270,12 +272,41 @@ public class ZcashAccount
 		public Zip32HDWallet.Orchard.ExtendedSpendingKey? Orchard { get; }
 
 		/// <summary>
+		/// Gets the spending keys for the internal addresses used for change and shielding.
+		/// </summary>
+		public InternalSpendingKeys Internal { get; }
+
+		/// <summary>
 		/// Gets the full viewing key.
 		/// </summary>
 		internal FullViewingKeys FullViewingKey { get; }
 
 		/// <inheritdoc/>
 		IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+	}
+
+	/// <summary>
+	/// Spending keys for the internal addresses.
+	/// </summary>
+	/// <remarks>
+	/// There is no orchard key in this class because for orchard, the public address spending key implicitly
+	/// has spending authority over the internal address.
+	/// </remarks>
+	public record InternalSpendingKeys
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="InternalSpendingKeys"/> class.
+		/// </summary>
+		/// <param name="spendingKeys">The public spending keys from which to derive the internal keys.</param>
+		internal InternalSpendingKeys(SpendingKeys spendingKeys)
+		{
+			this.Sapling = spendingKeys.Sapling?.DeriveInternal().ExpandedSpendingKey;
+		}
+
+		/// <summary>
+		/// Gets the key for the sapling pool.
+		/// </summary>
+		public Sapling.ExpandedSpendingKey? Sapling { get; }
 	}
 
 	/// <summary>
@@ -304,6 +335,8 @@ public class ZcashAccount
 				transparent?.IncomingViewingKey,
 				sapling?.IncomingViewingKey,
 				orchard?.IncomingViewingKey);
+
+			this.Internal = new(this);
 		}
 
 		/// <summary>
@@ -327,12 +360,43 @@ public class ZcashAccount
 		public Orchard.FullViewingKey? Orchard { get; }
 
 		/// <summary>
+		/// Gets the full viewing keys for the internal addresses used for change and shielding.
+		/// </summary>
+		public InternalFullViewingKeys Internal { get; }
+
+		/// <summary>
 		/// Gets the incoming viewing key.
 		/// </summary>
 		internal IncomingViewingKeys IncomingViewingKey { get; }
 
 		/// <inheritdoc/>
 		IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+	}
+
+	/// <summary>
+	/// Full viewing keys for the internal (change and shielding) addresses.
+	/// </summary>
+	public record InternalFullViewingKeys
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="InternalFullViewingKeys"/> class.
+		/// </summary>
+		/// <param name="fvk">The public viewing keys from which to derive the internal ones.</param>
+		internal InternalFullViewingKeys(FullViewingKeys fvk)
+		{
+			this.Sapling = fvk.Sapling?.DeriveInternal();
+			this.Orchard = fvk.Orchard?.DeriveInternal();
+		}
+
+		/// <summary>
+		/// Gets the sapling viewing key.
+		/// </summary>
+		public Sapling.DiversifiableFullViewingKey? Sapling { get; }
+
+		/// <summary>
+		/// Gets the orchard viewing key.
+		/// </summary>
+		public Orchard.FullViewingKey? Orchard { get; }
 	}
 
 	/// <summary>

@@ -1,7 +1,9 @@
+use group::ff::{FromUniformBytes, PrimeField};
 use orchard::{
     keys::{DiversifierIndex, FullViewingKey, IncomingViewingKey, Scope, SpendingKey},
     Address,
 };
+use pasta_curves::pallas;
 
 #[no_mangle]
 pub extern "C" fn decrypt_orchard_diversifier(
@@ -107,4 +109,15 @@ pub extern "C" fn get_orchard_raw_payment_address_from_ivk(
         }
         None => -1,
     }
+}
+
+#[no_mangle]
+pub extern "C" fn orchard_to_scalar_to_repr(uniform_bytes: *const [u8; 64], repr: *mut [u8; 32]) -> i32 {
+    let uniform_bytes = unsafe { &*uniform_bytes };
+    let repr = unsafe { &mut *repr };
+
+    let repr_bytes = pallas::Scalar::from_uniform_bytes(uniform_bytes).to_repr();
+    repr.copy_from_slice(&repr_bytes);
+
+    0
 }

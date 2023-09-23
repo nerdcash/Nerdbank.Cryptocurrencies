@@ -1676,11 +1676,13 @@ dependencies = [
 name = "nerdbank-zcash-rust"
 version = "0.1.0"
 dependencies = [
+ "ff 0.13.0",
  "group 0.13.0",
  "http",
  "jubjub",
  "lazy_static",
  "orchard",
+ "pasta_curves",
  "thiserror",
  "tokio",
  "uniffi",

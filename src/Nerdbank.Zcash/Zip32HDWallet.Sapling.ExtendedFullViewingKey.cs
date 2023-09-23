@@ -146,6 +146,17 @@ public partial class Zip32HDWallet
 				return Decode(childAsBytes, this.Network);
 			}
 
+			/// <inheritdoc cref="DiversifiableFullViewingKey.DeriveInternal"/>
+			public ExtendedFullViewingKey DeriveInternal()
+			{
+				return new ExtendedFullViewingKey(
+					this.FullViewingKey.DeriveInternal(),
+					this.ChainCode,
+					this.ParentFullViewingKeyTag,
+					this.Depth,
+					this.ChildIndex);
+			}
+
 			/// <inheritdoc/>
 			public bool Equals(ExtendedFullViewingKey? other)
 			{

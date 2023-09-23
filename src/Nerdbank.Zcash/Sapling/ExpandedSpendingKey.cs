@@ -76,7 +76,7 @@ public class ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>, ISpendingKey
 	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 	/// <summary>
-	/// Gets the ask component of the spending key.
+	/// Gets the spend authorization key.
 	/// </summary>
 	internal ref readonly Bytes32 Ask => ref this.ask;
 
