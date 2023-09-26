@@ -5,11 +5,14 @@
     Builds the rust dynamic link library for all supported targets.
 .PARAMETER Release
     Build in release mode.
+.PARAMETER WinArm64Only
+    Build only the win-arm64 target.
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true)]
 Param(
-    [switch]$Release
+    [switch]$Release,
+    [switch]$WinArm64Only
 )
 
 $buildArgs = @()
@@ -25,6 +28,10 @@ if (!$env:CI) {
 
 $buildArgsNoTargets = $buildArgs
 $rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
+if ($WinArm64Only) {
+    $rustTargets = ,'aarch64-pc-windows-msvc'
+}
+
 $winArm64Required = $false
 $otherTargetsRequired = $false
 $rustTargets | % { 
