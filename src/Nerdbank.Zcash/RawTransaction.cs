@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Security.Cryptography;
-using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
-using NBitcoin.Secp256k1;
-using Nerdbank.Zcash.FixedLengthStructs;
+using System.Collections;
 using static Nerdbank.Bitcoin.RawTransaction;
-using static Nerdbank.Zcash.Zip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -18,11 +13,20 @@ namespace Nerdbank.Zcash;
 /// The encoding is as per <see href="https://zips.z.cash/zip-0225">ZIP-225</see> and
 /// section 7 of the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol</see>.
 /// </remarks>
-public record RawTransaction
+public readonly record struct RawTransaction
 {
 	private const uint HeaderVersionMask = 0x7fffffff;
 
 	private const uint HeaderOverwinteredMask = 0x80000000;
+
+	/// <summary>
+	/// A delegate that reads a single element from a sequence.
+	/// </summary>
+	/// <typeparam name="T">The element to be read.</typeparam>
+	/// <param name="reader">The reader to use to read one element.</param>
+	/// <param name="transactionVersion">The version of the transaction being read.</param>
+	/// <returns>The decoded element.</returns>
+	internal delegate T DescriptionReader<T>(ref DecodingReader reader, uint transactionVersion);
 
 	/// <summary>
 	/// Orchard pool related flags.
@@ -106,9 +110,12 @@ public record RawTransaction
 	/// Decodes a transaction from its raw encoded bytes.
 	/// </summary>
 	/// <param name="bytes">The buffer containing the transaction.</param>
-	/// <returns>The decoded transaction.</returns>
+	/// <returns>The decoded transaction. This relies on <paramref name="bytes"/> as its backing store for any buffers.</returns>
 	/// <exception cref="NotSupportedException">Thrown if the transaction version exceeds the supported version range.</exception>
-	public static RawTransaction Decode(ReadOnlySpan<byte> bytes)
+	/// <remarks>
+	/// This method does not allocate any memory, and will only be valid while the content of <paramref name="bytes"/> is unchanged.
+	/// </remarks>
+	public static RawTransaction Decode(ReadOnlyMemory<byte> bytes)
 	{
 		DecodingReader reader = new(bytes);
 
@@ -146,8 +153,8 @@ public record RawTransaction
 		}
 
 		long valueBalanceSapling = 0;
-		ReadOnlyMemory<SaplingSpendDescription> spendsSapling = default;
-		ReadOnlyMemory<SaplingOutputDescription> outputsSapling = default;
+		DescriptionEnumerator<SaplingSpendDescription> spendsSapling = default;
+		DescriptionEnumerator<SaplingOutputDescription> outputsSapling = default;
 		if (version == 4)
 		{
 			valueBalanceSapling = reader.ReadInt64LE();
@@ -155,33 +162,33 @@ public record RawTransaction
 
 		if (version >= 4)
 		{
-			spendsSapling = ReadSaplingSpendDescription(ref reader, reader.ReadUInt64Compact(), version);
-			outputsSapling = ReadSaplingOutputDescription(ref reader, reader.ReadUInt64Compact(), version);
+			spendsSapling = DescriptionEnumerator<SaplingSpendDescription>.Initialize(ref reader, SaplingSpendDescription.Decode, version);
+			outputsSapling = DescriptionEnumerator<SaplingOutputDescription>.Initialize(ref reader, SaplingOutputDescription.Decode, version);
 		}
 
-		if (version == 5 && spendsSapling.Length + outputsSapling.Length > 0)
+		if (version == 5 && spendsSapling.Count + outputsSapling.Count > 0)
 		{
 			valueBalanceSapling = reader.ReadInt64LE();
 		}
 
-		ReadOnlySpan<byte> anchorSapling = default;
-		ReadOnlySpan<byte> spendProofsSapling = default;
-		ReadOnlySpan<byte> spendAuthSigsSapling = default;
-		ReadOnlySpan<byte> outputProofsSapling = default;
+		ReadOnlyMemory<byte> anchorSapling = default;
+		ReadOnlyMemory<byte> spendProofsSapling = default;
+		ReadOnlyMemory<byte> spendAuthSigsSapling = default;
+		ReadOnlyMemory<byte> outputProofsSapling = default;
 		ReadOnlyMemory<JSDescriptionBCTV14> joinSplitsBCTV14 = default;
 		ReadOnlyMemory<JSDescriptionGroth16> joinSplitsGroth16 = default;
-		ReadOnlySpan<byte> joinSplitPubKey = default;
-		ReadOnlySpan<byte> joinSplitSig = default;
+		ReadOnlyMemory<byte> joinSplitPubKey = default;
+		ReadOnlyMemory<byte> joinSplitSig = default;
 		if (version == 5)
 		{
-			if (spendsSapling.Length > 0)
+			if (spendsSapling.Count > 0)
 			{
 				anchorSapling = reader.Read(32);
 			}
 
-			spendProofsSapling = reader.Read(192 * spendsSapling.Length);
-			spendAuthSigsSapling = reader.Read(64 * spendsSapling.Length);
-			outputProofsSapling = reader.Read(192 * outputsSapling.Length);
+			spendProofsSapling = reader.Read(192 * spendsSapling.Count);
+			spendAuthSigsSapling = reader.Read(64 * spendsSapling.Count);
+			outputProofsSapling = reader.Read(192 * outputsSapling.Count);
 		}
 		else if (version >= 2)
 		{
@@ -203,30 +210,30 @@ public record RawTransaction
 			}
 		}
 
-		ReadOnlySpan<byte> bindingSigSapling = default;
-		if (version >= 4 && spendsSapling.Length + outputsSapling.Length > 0)
+		ReadOnlyMemory<byte> bindingSigSapling = default;
+		if (version >= 4 && spendsSapling.Count + outputsSapling.Count > 0)
 		{
 			bindingSigSapling = reader.Read(64);
 		}
 
-		ReadOnlyMemory<OrchardAction> actionsOrchard = default;
+		DescriptionEnumerator<OrchardAction> actionsOrchard = default;
 		OrchardFlags flagsOrchard = default;
 		long valueBalanceOrchard = 0;
-		ReadOnlySpan<byte> anchorOrchard = default;
-		ReadOnlySpan<byte> proofsOrchard = default;
-		ReadOnlySpan<byte> spendAuthSigsOrchard = default;
-		ReadOnlySpan<byte> bindingSigOrchard = default;
+		ReadOnlyMemory<byte> anchorOrchard = default;
+		ReadOnlyMemory<byte> proofsOrchard = default;
+		ReadOnlyMemory<byte> spendAuthSigsOrchard = default;
+		ReadOnlyMemory<byte> bindingSigOrchard = default;
 		if (version == 5)
 		{
-			actionsOrchard = ReadOrchardAction(ref reader, reader.ReadUInt64Compact(), version);
-			if (actionsOrchard.Length > 0)
+			actionsOrchard = DescriptionEnumerator<OrchardAction>.Initialize(ref reader, OrchardAction.Decode, version);
+			if (actionsOrchard.Count > 0)
 			{
 				flagsOrchard = (OrchardFlags)reader.ReadByte();
 				valueBalanceOrchard = reader.ReadInt64LE();
 				anchorOrchard = reader.Read(32);
 				int sizeProofsOrchard = reader.ReadInt32Compact();
 				proofsOrchard = reader.Read(sizeProofsOrchard);
-				spendAuthSigsOrchard = reader.Read(64 * actionsOrchard.Length);
+				spendAuthSigsOrchard = reader.Read(64 * actionsOrchard.Count);
 				bindingSigOrchard = reader.Read(64);
 			}
 		}
@@ -340,58 +347,10 @@ public record RawTransaction
 		return result;
 	}
 
-	private static ReadOnlyMemory<SaplingSpendDescription> ReadSaplingSpendDescription(ref DecodingReader reader, ulong count, uint version)
-	{
-		if (count == 0)
-		{
-			return default;
-		}
-
-		SaplingSpendDescription[] array = new SaplingSpendDescription[count];
-		for (ulong i = 0; i < count; i++)
-		{
-			array[i] = SaplingSpendDescription.Decode(ref reader, version);
-		}
-
-		return array;
-	}
-
-	private static ReadOnlyMemory<SaplingOutputDescription> ReadSaplingOutputDescription(ref DecodingReader reader, ulong count, uint version)
-	{
-		if (count == 0)
-		{
-			return default;
-		}
-
-		SaplingOutputDescription[] array = new SaplingOutputDescription[count];
-		for (ulong i = 0; i < count; i++)
-		{
-			array[i] = SaplingOutputDescription.Decode(ref reader, version);
-		}
-
-		return array;
-	}
-
-	private static ReadOnlyMemory<OrchardAction> ReadOrchardAction(ref DecodingReader reader, ulong count, uint version)
-	{
-		if (count == 0)
-		{
-			return default;
-		}
-
-		OrchardAction[] array = new OrchardAction[count];
-		for (ulong i = 0; i < count; i++)
-		{
-			array[i] = OrchardAction.Decode(ref reader, version);
-		}
-
-		return array;
-	}
-
 	/// <summary>
 	/// The Transparent-related fields in a transaction.
 	/// </summary>
-	public record struct TransparentFields
+	public readonly record struct TransparentFields
 	{
 		/// <summary>
 		/// Gets the transparent inputs.
@@ -407,7 +366,7 @@ public record RawTransaction
 	/// <summary>
 	/// The Sprout-related fields in a transaction.
 	/// </summary>
-	public record struct SproutFields
+	public readonly record struct SproutFields
 	{
 		/// <summary>
 		/// Gets a sequence of JoinSplit descriptions using BCTV14 proofs.
@@ -433,7 +392,7 @@ public record RawTransaction
 	/// <summary>
 	/// The Sapling-related fields in a transaction.
 	/// </summary>
-	public record struct SaplingFields
+	public readonly record struct SaplingFields
 	{
 		/// <summary>
 		/// Gets the net value of Sapling spends minus outputs.
@@ -443,12 +402,12 @@ public record RawTransaction
 		/// <summary>
 		/// Gets a sequence of spend descriptions.
 		/// </summary>
-		public required ReadOnlyMemory<SaplingSpendDescription> Spends { get; init; }
+		public required DescriptionEnumerator<SaplingSpendDescription> Spends { get; init; }
 
 		/// <summary>
 		/// Gets a sequence of output descriptions.
 		/// </summary>
-		public required ReadOnlyMemory<SaplingOutputDescription> Outputs { get; init; }
+		public required DescriptionEnumerator<SaplingOutputDescription> Outputs { get; init; }
 
 		/// <summary>
 		/// Gets a root of the Sapling note commitment tree at some block height in the past.
@@ -479,12 +438,12 @@ public record RawTransaction
 	/// <summary>
 	/// The Orchard-related fields in a transaction.
 	/// </summary>
-	public record struct OrchardFields
+	public readonly record struct OrchardFields
 	{
 		/// <summary>
 		/// Gets a sequence of Orchard Action descriptions.
 		/// </summary>
-		public required ReadOnlyMemory<OrchardAction> Actions { get; init; }
+		public required DescriptionEnumerator<OrchardAction> Actions { get; init; }
 
 		/// <summary>
 		/// Gets flags related to orchard.
@@ -520,18 +479,18 @@ public record RawTransaction
 	/// <summary>
 	/// Describes a Sprout pool JoinSplit for transaction v2 and v3 formats (i.e. before Sapling).
 	/// </summary>
-	public record struct JSDescriptionBCTV14
+	public readonly record struct JSDescriptionBCTV14
 	{
 		private readonly ulong vpubOld;
 		private readonly ulong vpubNew;
-		private readonly Bytes32 anchor;
-		private readonly Bytes64 nullifiers;
-		private readonly Bytes64 commitments;
-		private readonly Bytes32 ephemeralKey;
-		private readonly Bytes32 randomSeed;
-		private readonly Bytes64 vmacs;
-		private readonly Bytes296 zkproof;
-		private readonly Bytes1202 encCiphertexts;
+		private readonly ReadOnlyMemory<byte> anchor;
+		private readonly ReadOnlyMemory<byte> nullifiers;
+		private readonly ReadOnlyMemory<byte> commitments;
+		private readonly ReadOnlyMemory<byte> ephemeralKey;
+		private readonly ReadOnlyMemory<byte> randomSeed;
+		private readonly ReadOnlyMemory<byte> vmacs;
+		private readonly ReadOnlyMemory<byte> zkproof;
+		private readonly ReadOnlyMemory<byte> encCiphertexts;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JSDescriptionBCTV14"/> class.
@@ -546,28 +505,40 @@ public record RawTransaction
 		/// <param name="vmacs">A sequence of message authentication tags h_sig 1..N old binding hSig to each ask of the JoinSplit description, computed as described in § 4.11.</param>
 		/// <param name="zkproof">An encoding of the zk-SNARK proof.</param>
 		/// <param name="encCiphertexts">A sequence of ciphertext components for the encrypted output notes.</param>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffers provided remain the same.
+		/// </remarks>
 		public JSDescriptionBCTV14(
 			ulong vpub_old,
 			ulong vpub_new,
-			ReadOnlySpan<byte> anchor,
-			ReadOnlySpan<byte> nullifiers,
-			ReadOnlySpan<byte> commitments,
-			ReadOnlySpan<byte> ephemeralKey,
-			ReadOnlySpan<byte> randomSeed,
-			ReadOnlySpan<byte> vmacs,
-			ReadOnlySpan<byte> zkproof,
-			ReadOnlySpan<byte> encCiphertexts)
+			ReadOnlyMemory<byte> anchor,
+			ReadOnlyMemory<byte> nullifiers,
+			ReadOnlyMemory<byte> commitments,
+			ReadOnlyMemory<byte> ephemeralKey,
+			ReadOnlyMemory<byte> randomSeed,
+			ReadOnlyMemory<byte> vmacs,
+			ReadOnlyMemory<byte> zkproof,
+			ReadOnlyMemory<byte> encCiphertexts)
 		{
+			SharedCryptoUtilities.CheckLength(anchor, 32);
+			SharedCryptoUtilities.CheckLength(nullifiers, 64);
+			SharedCryptoUtilities.CheckLength(commitments, 64);
+			SharedCryptoUtilities.CheckLength(ephemeralKey, 32);
+			SharedCryptoUtilities.CheckLength(randomSeed, 32);
+			SharedCryptoUtilities.CheckLength(vmacs, 64);
+			SharedCryptoUtilities.CheckLength(zkproof, 296);
+			SharedCryptoUtilities.CheckLength(encCiphertexts, 1202);
+
 			this.vpubOld = vpub_old;
 			this.vpubNew = vpub_new;
-			this.anchor = new(anchor);
-			this.nullifiers = new(nullifiers);
-			this.commitments = new(commitments);
-			this.ephemeralKey = new(ephemeralKey);
-			this.randomSeed = new(randomSeed);
-			this.vmacs = new(vmacs);
-			this.zkproof = new(zkproof);
-			this.encCiphertexts = new(encCiphertexts);
+			this.anchor = anchor;
+			this.nullifiers = nullifiers;
+			this.commitments = commitments;
+			this.ephemeralKey = ephemeralKey;
+			this.randomSeed = randomSeed;
+			this.vmacs = vmacs;
+			this.zkproof = zkproof;
+			this.encCiphertexts = encCiphertexts;
 		}
 
 		/// <summary>
@@ -583,50 +554,42 @@ public record RawTransaction
 		/// <summary>
 		/// Gets a root rtSprout of the Sprout note commitment tree at some block height in the past, or the root produced by a previous JoinSplit transfer in this transaction.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Anchor => this.anchor.Value;
+		public readonly ReadOnlyMemory<byte> Anchor => this.anchor;
 
 		/// <summary>
 		/// Gets a sequence of nullifiers of the input notes.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Nullifiers => this.nullifiers.Value;
+		public readonly ReadOnlyMemory<byte> Nullifiers => this.nullifiers;
 
 		/// <summary>
 		/// Gets a sequence of note commitments for the output notes.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Commitments => this.commitments.Value;
+		public readonly ReadOnlyMemory<byte> Commitments => this.commitments;
 
 		/// <summary>
 		/// Gets a Curve25519 public key.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EphemeralKey => this.ephemeralKey.Value;
+		public readonly ReadOnlyMemory<byte> EphemeralKey => this.ephemeralKey;
 
 		/// <summary>
 		/// Gets a 256-bit seed that must be chosen independently at random for each JoinSplit description.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> RandomSeed => this.randomSeed.Value;
+		public readonly ReadOnlyMemory<byte> RandomSeed => this.randomSeed;
 
 		/// <summary>
 		/// Gets a sequence of message authentication tags h_sig 1..N old binding hSig to each ask of the JoinSplit description.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Vmacs => this.vmacs.Value;
+		public readonly ReadOnlyMemory<byte> Vmacs => this.vmacs;
 
 		/// <summary>
 		/// Gets an encoding of the zk-SNARK proof.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Zkproof => this.zkproof.Value;
+		public readonly ReadOnlyMemory<byte> Zkproof => this.zkproof;
 
 		/// <summary>
 		/// Gets a sequence of ciphertext components for the encrypted output notes.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EncCiphertexts => this.encCiphertexts.Value;
+		public readonly ReadOnlyMemory<byte> EncCiphertexts => this.encCiphertexts;
 
 		/// <summary>
 		/// Decodes a <see cref="JSDescriptionBCTV14"/>.
@@ -635,6 +598,9 @@ public record RawTransaction
 		/// <param name="transactionVersion">The version of the transaction being decoded.</param>
 		/// <returns>The initialized value.</returns>
 		/// <exception cref="NotSupportedException">Throw if the transaction version doesn't support this value.</exception>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffer backing the <paramref name="reader"/> remains the same.
+		/// </remarks>
 		public static JSDescriptionBCTV14 Decode(ref DecodingReader reader, uint transactionVersion)
 		{
 			if (transactionVersion is not (2 or 3))
@@ -644,14 +610,14 @@ public record RawTransaction
 
 			ulong vpub_old = reader.ReadUInt64LE();
 			ulong vpub_new = reader.ReadUInt64LE();
-			ReadOnlySpan<byte> anchor = reader.Read(32);
-			ReadOnlySpan<byte> nullifiers = reader.Read(64);
-			ReadOnlySpan<byte> commitments = reader.Read(64);
-			ReadOnlySpan<byte> ephemeralKey = reader.Read(32);
-			ReadOnlySpan<byte> randomSeed = reader.Read(32);
-			ReadOnlySpan<byte> vmacs = reader.Read(64);
-			ReadOnlySpan<byte> zkproof = reader.Read(296);
-			ReadOnlySpan<byte> encCiphertexts = reader.Read(1202);
+			ReadOnlyMemory<byte> anchor = reader.Read(32);
+			ReadOnlyMemory<byte> nullifiers = reader.Read(64);
+			ReadOnlyMemory<byte> commitments = reader.Read(64);
+			ReadOnlyMemory<byte> ephemeralKey = reader.Read(32);
+			ReadOnlyMemory<byte> randomSeed = reader.Read(32);
+			ReadOnlyMemory<byte> vmacs = reader.Read(64);
+			ReadOnlyMemory<byte> zkproof = reader.Read(296);
+			ReadOnlyMemory<byte> encCiphertexts = reader.Read(1202);
 
 			return new(
 				vpub_old,
@@ -670,18 +636,18 @@ public record RawTransaction
 	/// <summary>
 	/// Describes a Sprout pool JoinSplit for transaction v4 formats (i.e. after Sapling).
 	/// </summary>
-	public record struct JSDescriptionGroth16
+	public readonly record struct JSDescriptionGroth16
 	{
 		private readonly ulong vpubOld;
 		private readonly ulong vpubNew;
-		private readonly Bytes32 anchor;
-		private readonly Bytes32 nullifiers;
-		private readonly Bytes32 commitments;
-		private readonly Bytes32 ephemeralKey;
-		private readonly Bytes32 randomSeed;
-		private readonly Bytes32 vmacs;
-		private readonly Bytes192 zkproof;
-		private readonly Bytes1202 encCiphertexts;
+		private readonly ReadOnlyMemory<byte> anchor;
+		private readonly ReadOnlyMemory<byte> nullifiers;
+		private readonly ReadOnlyMemory<byte> commitments;
+		private readonly ReadOnlyMemory<byte> ephemeralKey;
+		private readonly ReadOnlyMemory<byte> randomSeed;
+		private readonly ReadOnlyMemory<byte> vmacs;
+		private readonly ReadOnlyMemory<byte> zkproof;
+		private readonly ReadOnlyMemory<byte> encCiphertexts;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JSDescriptionGroth16"/> class.
@@ -699,25 +665,34 @@ public record RawTransaction
 		public JSDescriptionGroth16(
 			ulong vpub_old,
 			ulong vpub_new,
-			ReadOnlySpan<byte> anchor,
-			ReadOnlySpan<byte> nullifiers,
-			ReadOnlySpan<byte> commitments,
-			ReadOnlySpan<byte> ephemeralKey,
-			ReadOnlySpan<byte> randomSeed,
-			ReadOnlySpan<byte> vmacs,
-			ReadOnlySpan<byte> zkproof,
-			ReadOnlySpan<byte> encCiphertexts)
+			ReadOnlyMemory<byte> anchor,
+			ReadOnlyMemory<byte> nullifiers,
+			ReadOnlyMemory<byte> commitments,
+			ReadOnlyMemory<byte> ephemeralKey,
+			ReadOnlyMemory<byte> randomSeed,
+			ReadOnlyMemory<byte> vmacs,
+			ReadOnlyMemory<byte> zkproof,
+			ReadOnlyMemory<byte> encCiphertexts)
 		{
+			SharedCryptoUtilities.CheckLength(anchor, 32);
+			SharedCryptoUtilities.CheckLength(nullifiers, 32);
+			SharedCryptoUtilities.CheckLength(commitments, 32);
+			SharedCryptoUtilities.CheckLength(ephemeralKey, 32);
+			SharedCryptoUtilities.CheckLength(randomSeed, 32);
+			SharedCryptoUtilities.CheckLength(vmacs, 32);
+			SharedCryptoUtilities.CheckLength(zkproof, 192);
+			SharedCryptoUtilities.CheckLength(encCiphertexts, 1202);
+
 			this.vpubOld = vpub_old;
 			this.vpubNew = vpub_new;
-			this.anchor = new(anchor);
-			this.nullifiers = new(nullifiers);
-			this.commitments = new(commitments);
-			this.ephemeralKey = new(ephemeralKey);
-			this.randomSeed = new(randomSeed);
-			this.vmacs = new(vmacs);
-			this.zkproof = new(zkproof);
-			this.encCiphertexts = new(encCiphertexts);
+			this.anchor = anchor;
+			this.nullifiers = nullifiers;
+			this.commitments = commitments;
+			this.ephemeralKey = ephemeralKey;
+			this.randomSeed = randomSeed;
+			this.vmacs = vmacs;
+			this.zkproof = zkproof;
+			this.encCiphertexts = encCiphertexts;
 		}
 
 		/// <summary>
@@ -733,50 +708,42 @@ public record RawTransaction
 		/// <summary>
 		/// Gets a root rtSprout of the Sprout note commitment tree at some block height in the past, or the root produced by a previous JoinSplit transfer in this transaction.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Anchor => this.anchor.Value;
+		public readonly ReadOnlyMemory<byte> Anchor => this.anchor;
 
 		/// <summary>
 		/// Gets a sequence of nullifiers of the input notes.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Nullifiers => this.nullifiers.Value;
+		public readonly ReadOnlyMemory<byte> Nullifiers => this.nullifiers;
 
 		/// <summary>
 		/// Gets a sequence of note commitments for the output notes.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Commitments => this.commitments.Value;
+		public readonly ReadOnlyMemory<byte> Commitments => this.commitments;
 
 		/// <summary>
 		/// Gets a Curve25519 public key.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EphemeralKey => this.ephemeralKey.Value;
+		public readonly ReadOnlyMemory<byte> EphemeralKey => this.ephemeralKey;
 
 		/// <summary>
 		/// Gets a 256-bit seed that must be chosen independently at random for each JoinSplit description.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> RandomSeed => this.randomSeed.Value;
+		public readonly ReadOnlyMemory<byte> RandomSeed => this.randomSeed;
 
 		/// <summary>
 		/// Gets a sequence of message authentication tags h_sig 1..N old binding hSig to each ask of the JoinSplit description.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Vmacs => this.vmacs.Value;
+		public readonly ReadOnlyMemory<byte> Vmacs => this.vmacs;
 
 		/// <summary>
 		/// Gets an encoding of the zk-SNARK proof.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Zkproof => this.zkproof.Value;
+		public readonly ReadOnlyMemory<byte> Zkproof => this.zkproof;
 
 		/// <summary>
 		/// Gets a sequence of ciphertext components for the encrypted output notes.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EncCiphertexts => this.encCiphertexts.Value;
+		public readonly ReadOnlyMemory<byte> EncCiphertexts => this.encCiphertexts;
 
 		/// <summary>
 		/// Decodes a <see cref="JSDescriptionGroth16"/>.
@@ -785,6 +752,9 @@ public record RawTransaction
 		/// <param name="transactionVersion">The version of the transaction being decoded.</param>
 		/// <returns>The initialized value.</returns>
 		/// <exception cref="NotSupportedException">Throw if the transaction version doesn't support this value.</exception>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffer backing the <paramref name="reader"/> remains the same.
+		/// </remarks>
 		public static JSDescriptionGroth16 Decode(ref DecodingReader reader, uint transactionVersion)
 		{
 			if (transactionVersion != 4)
@@ -794,14 +764,14 @@ public record RawTransaction
 
 			ulong vpub_old = reader.ReadUInt64LE();
 			ulong vpub_new = reader.ReadUInt64LE();
-			ReadOnlySpan<byte> anchor = reader.Read(32);
-			ReadOnlySpan<byte> nullifiers = reader.Read(64);
-			ReadOnlySpan<byte> commitments = reader.Read(64);
-			ReadOnlySpan<byte> ephemeralKey = reader.Read(32);
-			ReadOnlySpan<byte> randomSeed = reader.Read(32);
-			ReadOnlySpan<byte> vmacs = reader.Read(64);
-			ReadOnlySpan<byte> zkproof = reader.Read(192);
-			ReadOnlySpan<byte> encCiphertexts = reader.Read(length: 1202);
+			ReadOnlyMemory<byte> anchor = reader.Read(32);
+			ReadOnlyMemory<byte> nullifiers = reader.Read(64);
+			ReadOnlyMemory<byte> commitments = reader.Read(64);
+			ReadOnlyMemory<byte> ephemeralKey = reader.Read(32);
+			ReadOnlyMemory<byte> randomSeed = reader.Read(32);
+			ReadOnlyMemory<byte> vmacs = reader.Read(64);
+			ReadOnlyMemory<byte> zkproof = reader.Read(192);
+			ReadOnlyMemory<byte> encCiphertexts = reader.Read(length: 1202);
 
 			return new(
 				vpub_old,
@@ -823,26 +793,33 @@ public record RawTransaction
 	/// <remarks>
 	/// As described in <see href="https://zips.z.cash/protocol/protocol.pdf">the Zcash protocol</see>, §7.3.
 	/// </remarks>
-	public record struct SaplingSpendDescription
+	public readonly record struct SaplingSpendDescription
 	{
-		private readonly Bytes32 cv;
-		private readonly Bytes32 anchor;
-		private readonly Bytes32 nullifier;
-		private readonly Bytes32 rk;
-		private readonly Bytes192 zkproof;
-		private readonly Bytes64 spendAuthSig;
+		private readonly ReadOnlyMemory<byte> cv;
+		private readonly ReadOnlyMemory<byte> anchor;
+		private readonly ReadOnlyMemory<byte> nullifier;
+		private readonly ReadOnlyMemory<byte> rk;
+		private readonly ReadOnlyMemory<byte> zkproof;
+		private readonly ReadOnlyMemory<byte> spendAuthSig;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SaplingSpendDescription"/> class
 		/// for a v5 transaction.
 		/// </summary>
-		/// <inheritdoc cref="SaplingSpendDescription(ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte})"/>
-		public SaplingSpendDescription(ReadOnlySpan<byte> cv, ReadOnlySpan<byte> nullifier, ReadOnlySpan<byte> rk)
+		/// <inheritdoc cref="SaplingSpendDescription(ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte})"/>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffers provided remain the same.
+		/// </remarks>
+		public SaplingSpendDescription(ReadOnlyMemory<byte> cv, ReadOnlyMemory<byte> nullifier, ReadOnlyMemory<byte> rk)
 		{
+			SharedCryptoUtilities.CheckLength(cv.Span, 32);
+			SharedCryptoUtilities.CheckLength(nullifier.Span, 32);
+			SharedCryptoUtilities.CheckLength(rk.Span, 32);
+
 			this.TransactionVersion = 5;
-			this.cv = new(cv);
-			this.nullifier = new(nullifier);
-			this.rk = new(rk);
+			this.cv = cv;
+			this.nullifier = nullifier;
+			this.rk = rk;
 		}
 
 		/// <summary>
@@ -855,15 +832,25 @@ public record RawTransaction
 		/// <param name="rk">The 32-byte validating key.</param>
 		/// <param name="zkproof">The 192-byte encoding of the zk-SNARK proof.</param>
 		/// <param name="spendAuthSig">The 64-byte signature authorizing this spend.</param>
-		public SaplingSpendDescription(ReadOnlySpan<byte> cv, ReadOnlySpan<byte> anchor, ReadOnlySpan<byte> nullifier, ReadOnlySpan<byte> rk, ReadOnlySpan<byte> zkproof, ReadOnlySpan<byte> spendAuthSig)
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffers provided remain the same.
+		/// </remarks>
+		public SaplingSpendDescription(ReadOnlyMemory<byte> cv, ReadOnlyMemory<byte> anchor, ReadOnlyMemory<byte> nullifier, ReadOnlyMemory<byte> rk, ReadOnlyMemory<byte> zkproof, ReadOnlyMemory<byte> spendAuthSig)
 		{
+			SharedCryptoUtilities.CheckLength(cv.Span, 32);
+			SharedCryptoUtilities.CheckLength(nullifier.Span, 32);
+			SharedCryptoUtilities.CheckLength(rk.Span, 32);
+			SharedCryptoUtilities.CheckLength(anchor.Span, 32);
+			SharedCryptoUtilities.CheckLength(zkproof.Span, 192);
+			SharedCryptoUtilities.CheckLength(spendAuthSig.Span, 64);
+
 			this.TransactionVersion = 4;
-			this.cv = new(cv);
-			this.anchor = new(anchor);
-			this.nullifier = new(nullifier);
-			this.rk = new(rk);
-			this.zkproof = new(zkproof);
-			this.spendAuthSig = new(spendAuthSig);
+			this.cv = cv;
+			this.anchor = anchor;
+			this.nullifier = nullifier;
+			this.rk = rk;
+			this.zkproof = zkproof;
+			this.spendAuthSig = spendAuthSig;
 		}
 
 		/// <summary>
@@ -874,20 +861,17 @@ public record RawTransaction
 		/// <summary>
 		/// Gets a value commitment to the value of the input note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> ValueCommitment => this.cv.Value;
+		public readonly ReadOnlyMemory<byte> ValueCommitment => this.cv;
 
 		/// <summary>
 		/// Gets the nullifier of the input note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Nullifier => this.nullifier.Value;
+		public readonly ReadOnlyMemory<byte> Nullifier => this.nullifier;
 
 		/// <summary>
 		/// Gets the randomized validating key for the element of <c>spendAuthSigsSapling</c> corresponding to this Spend.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> ValidatingKey => this.rk.Value;
+		public readonly ReadOnlyMemory<byte> ValidatingKey => this.rk;
 
 		/// <summary>
 		/// Gets the root of the Sapling note commitment tree at some block height in the past.
@@ -895,8 +879,7 @@ public record RawTransaction
 		/// <remarks>
 		/// Only applicable when <see cref="TransactionVersion"/> is 4.
 		/// </remarks>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Anchor => this.TransactionVersion == 4 ? this.anchor.Value : default;
+		public readonly ReadOnlyMemory<byte> Anchor => this.anchor;
 
 		/// <summary>
 		/// Gets an encoding of the zk-SNARK proof.
@@ -904,8 +887,7 @@ public record RawTransaction
 		/// <remarks>
 		/// Only applicable when <see cref="TransactionVersion"/> is 4.
 		/// </remarks>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> ZkProof => this.TransactionVersion == 4 ? this.zkproof.Value : default;
+		public readonly ReadOnlyMemory<byte> ZkProof => this.zkproof;
 
 		/// <summary>
 		/// Gets a signature authorizing this spend.
@@ -913,8 +895,7 @@ public record RawTransaction
 		/// <remarks>
 		/// Only applicable when <see cref="TransactionVersion"/> is 4.
 		/// </remarks>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> SpendAuthSig => this.TransactionVersion == 4 ? this.spendAuthSig.Value : default;
+		public readonly ReadOnlyMemory<byte> SpendAuthSig => this.spendAuthSig;
 
 		/// <summary>
 		/// Decodes a <see cref="SaplingSpendDescription"/>.
@@ -923,6 +904,9 @@ public record RawTransaction
 		/// <param name="transactionVersion">The version of the transaction being read from.</param>
 		/// <returns>The initialized <see cref="SaplingSpendDescription"/>.</returns>
 		/// <exception cref="NotSupportedException">Thrown if the <paramref name="transactionVersion"/> is not 4 or 5.</exception>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffer backing the <paramref name="reader"/> remains the same.
+		/// </remarks>
 		public static SaplingSpendDescription Decode(ref DecodingReader reader, uint transactionVersion)
 		{
 			if (transactionVersion is > 5 or < 4)
@@ -930,12 +914,12 @@ public record RawTransaction
 				throw new NotSupportedException(Strings.FormatUnsupportedTransactionVersion(transactionVersion));
 			}
 
-			ReadOnlySpan<byte> cv = reader.Read(32);
-			ReadOnlySpan<byte> anchor = transactionVersion == 4 ? reader.Read(32) : default;
-			ReadOnlySpan<byte> nullifier = reader.Read(32);
-			ReadOnlySpan<byte> rk = reader.Read(32);
-			ReadOnlySpan<byte> zkproof = transactionVersion == 4 ? reader.Read(192) : default;
-			ReadOnlySpan<byte> spendAuthSig = transactionVersion == 4 ? reader.Read(64) : default;
+			ReadOnlyMemory<byte> cv = reader.Read(32);
+			ReadOnlyMemory<byte> anchor = transactionVersion == 4 ? reader.Read(32) : default;
+			ReadOnlyMemory<byte> nullifier = reader.Read(32);
+			ReadOnlyMemory<byte> rk = reader.Read(32);
+			ReadOnlyMemory<byte> zkproof = transactionVersion == 4 ? reader.Read(192) : default;
+			ReadOnlyMemory<byte> spendAuthSig = transactionVersion == 4 ? reader.Read(64) : default;
 
 			return transactionVersion == 5
 				? new(cv, nullifier, rk)
@@ -949,28 +933,37 @@ public record RawTransaction
 	/// <remarks>
 	/// As described in <see href="https://zips.z.cash/protocol/protocol.pdf">the Zcash protocol</see>, §7.4.
 	/// </remarks>
-	public record struct SaplingOutputDescription
+	public readonly record struct SaplingOutputDescription
 	{
-		private readonly Bytes32 cv;
-		private readonly Bytes32 cmu;
-		private readonly Bytes32 ephemeralKey;
-		private readonly Bytes580 encCiphertext;
-		private readonly Bytes80 outCiphertext;
-		private readonly Bytes192 zkproof;
+		private readonly ReadOnlyMemory<byte> cv;
+		private readonly ReadOnlyMemory<byte> cmu;
+		private readonly ReadOnlyMemory<byte> ephemeralKey;
+		private readonly ReadOnlyMemory<byte> encCiphertext;
+		private readonly ReadOnlyMemory<byte> outCiphertext;
+		private readonly ReadOnlyMemory<byte> zkproof;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SaplingOutputDescription"/> class
 		/// for a v5 transaction.
 		/// </summary>
-		/// <inheritdoc cref="SaplingOutputDescription(ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte}, ReadOnlySpan{byte})"/>
-		public SaplingOutputDescription(ReadOnlySpan<byte> cv, ReadOnlySpan<byte> cmu, ReadOnlySpan<byte> ephemeralKey, ReadOnlySpan<byte> encCiphertext, ReadOnlySpan<byte> outCiphertext)
+		/// <inheritdoc cref="SaplingOutputDescription(ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte})"/>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffers provided remain the same.
+		/// </remarks>
+		public SaplingOutputDescription(ReadOnlyMemory<byte> cv, ReadOnlyMemory<byte> cmu, ReadOnlyMemory<byte> ephemeralKey, ReadOnlyMemory<byte> encCiphertext, ReadOnlyMemory<byte> outCiphertext)
 		{
+			SharedCryptoUtilities.CheckLength(cv, 32);
+			SharedCryptoUtilities.CheckLength(cmu, 32);
+			SharedCryptoUtilities.CheckLength(ephemeralKey, 32);
+			SharedCryptoUtilities.CheckLength(encCiphertext, 580);
+			SharedCryptoUtilities.CheckLength(outCiphertext, 80);
+
 			this.Version = 5;
-			this.cv = new(cv);
-			this.cmu = new(cmu);
-			this.ephemeralKey = new(ephemeralKey);
-			this.encCiphertext = new(encCiphertext);
-			this.outCiphertext = new(outCiphertext);
+			this.cv = cv;
+			this.cmu = cmu;
+			this.ephemeralKey = ephemeralKey;
+			this.encCiphertext = encCiphertext;
+			this.outCiphertext = outCiphertext;
 		}
 
 		/// <summary>
@@ -983,15 +976,25 @@ public record RawTransaction
 		/// <param name="encCiphertext">The encrypted contents of the note plaintext.</param>
 		/// <param name="outCiphertext">The encrypted contents of the byte string created by concatenation of the transmission key with the ephemeral secret key.</param>
 		/// <param name="zkproof">An encoding of the zk-SNARK proof.</param>
-		public SaplingOutputDescription(ReadOnlySpan<byte> cv, ReadOnlySpan<byte> cmu, ReadOnlySpan<byte> ephemeralKey, ReadOnlySpan<byte> encCiphertext, ReadOnlySpan<byte> outCiphertext, ReadOnlySpan<byte> zkproof)
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffers provided remain the same.
+		/// </remarks>
+		public SaplingOutputDescription(ReadOnlyMemory<byte> cv, ReadOnlyMemory<byte> cmu, ReadOnlyMemory<byte> ephemeralKey, ReadOnlyMemory<byte> encCiphertext, ReadOnlyMemory<byte> outCiphertext, ReadOnlyMemory<byte> zkproof)
 		{
+			SharedCryptoUtilities.CheckLength(cv, 32);
+			SharedCryptoUtilities.CheckLength(cmu, 32);
+			SharedCryptoUtilities.CheckLength(ephemeralKey, 32);
+			SharedCryptoUtilities.CheckLength(encCiphertext, 580);
+			SharedCryptoUtilities.CheckLength(outCiphertext, 80);
+			SharedCryptoUtilities.CheckLength(zkproof, 192);
+
 			this.Version = 5;
-			this.cv = new(cv);
-			this.cmu = new(cmu);
-			this.ephemeralKey = new(ephemeralKey);
-			this.encCiphertext = new(encCiphertext);
-			this.outCiphertext = new(outCiphertext);
-			this.zkproof = new(zkproof);
+			this.cv = cv;
+			this.cmu = cmu;
+			this.ephemeralKey = ephemeralKey;
+			this.encCiphertext = encCiphertext;
+			this.outCiphertext = outCiphertext;
+			this.zkproof = zkproof;
 		}
 
 		/// <summary>
@@ -1002,32 +1005,27 @@ public record RawTransaction
 		/// <summary>
 		/// Gets a value commitment to the net value of the output note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> ValueCommitment => this.cv.Value;
+		public readonly ReadOnlyMemory<byte> ValueCommitment => this.cv;
 
 		/// <summary>
 		/// Gets the u-coordinate of the note commitment for the output note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> NoteCommitmentUCoord => this.cmu.Value;
+		public readonly ReadOnlyMemory<byte> NoteCommitmentUCoord => this.cmu;
 
 		/// <summary>
 		/// Gets an encoding of an ephemeral Jubjub public key.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EphemeralKey => this.ephemeralKey.Value;
+		public readonly ReadOnlyMemory<byte> EphemeralKey => this.ephemeralKey;
 
 		/// <summary>
 		/// Gets the encrypted contents of the note plaintext.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EncryptedCiphertext => this.encCiphertext.Value;
+		public readonly ReadOnlyMemory<byte> EncryptedCiphertext => this.encCiphertext;
 
 		/// <summary>
 		/// Gets the encrypted contents of the byte string created by concatenation of the transmission key with the ephemeral secret key.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> OutCiphertext => this.outCiphertext.Value;
+		public readonly ReadOnlyMemory<byte> OutCiphertext => this.outCiphertext;
 
 		/// <summary>
 		/// Gets an encoding of the zk-SNARK proof.
@@ -1035,8 +1033,7 @@ public record RawTransaction
 		/// <remarks>
 		/// This property only applies when <see cref="Version"/> is 4.
 		/// </remarks>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> ZkProof => this.Version == 4 ? this.zkproof.Value : default;
+		public readonly ReadOnlyMemory<byte> ZkProof => this.zkproof;
 
 		/// <summary>
 		/// Decodes a <see cref="SaplingOutputDescription"/>.
@@ -1045,6 +1042,9 @@ public record RawTransaction
 		/// <param name="transactionVersion">The version of the transaction being read from.</param>
 		/// <returns>The initialized <see cref="SaplingOutputDescription"/>.</returns>
 		/// <exception cref="NotSupportedException">Thrown if the <paramref name="transactionVersion"/> is not 4 or 5.</exception>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffer backing the <paramref name="reader"/> remains the same.
+		/// </remarks>
 		public static SaplingOutputDescription Decode(ref DecodingReader reader, uint transactionVersion)
 		{
 			if (transactionVersion is > 5 or < 4)
@@ -1052,12 +1052,12 @@ public record RawTransaction
 				throw new NotSupportedException(Strings.FormatUnsupportedTransactionVersion(transactionVersion));
 			}
 
-			ReadOnlySpan<byte> cv = reader.Read(32);
-			ReadOnlySpan<byte> cmu = reader.Read(32);
-			ReadOnlySpan<byte> ephemeralKey = reader.Read(32);
-			ReadOnlySpan<byte> encCiphertext = reader.Read(580);
-			ReadOnlySpan<byte> outCiphertext = reader.Read(80);
-			ReadOnlySpan<byte> zkproof = transactionVersion == 4 ? reader.Read(192) : default;
+			ReadOnlyMemory<byte> cv = reader.Read(32);
+			ReadOnlyMemory<byte> cmu = reader.Read(32);
+			ReadOnlyMemory<byte> ephemeralKey = reader.Read(32);
+			ReadOnlyMemory<byte> encCiphertext = reader.Read(580);
+			ReadOnlyMemory<byte> outCiphertext = reader.Read(80);
+			ReadOnlyMemory<byte> zkproof = transactionVersion == 4 ? reader.Read(192) : default;
 
 			return transactionVersion == 5
 				? new(cv, cmu, ephemeralKey, encCiphertext, outCiphertext)
@@ -1071,15 +1071,15 @@ public record RawTransaction
 	/// <remarks>
 	/// As described in <see href="https://zips.z.cash/protocol/protocol.pdf">the Zcash protocol</see>, §7.5.
 	/// </remarks>
-	public record struct OrchardAction
+	public readonly record struct OrchardAction
 	{
-		private Bytes32 cv;
-		private Bytes32 nullifier;
-		private Bytes32 rk;
-		private Bytes32 cmx;
-		private Bytes32 ephemeralKey;
-		private Bytes580 encCiphertext;
-		private Bytes80 outCiphertext;
+		private readonly ReadOnlyMemory<byte> cv;
+		private readonly ReadOnlyMemory<byte> nullifier;
+		private readonly ReadOnlyMemory<byte> rk;
+		private readonly ReadOnlyMemory<byte> cmx;
+		private readonly ReadOnlyMemory<byte> ephemeralKey;
+		private readonly ReadOnlyMemory<byte> encCiphertext;
+		private readonly ReadOnlyMemory<byte> outCiphertext;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OrchardAction"/> class.
@@ -1091,58 +1091,62 @@ public record RawTransaction
 		/// <param name="ephemeralKey">An encoding of an ephemeral Pallas public key.</param>
 		/// <param name="encCiphertext">A ciphertext component for the encrypted output note.</param>
 		/// <param name="outCiphertext">A ciphertext component that allows the holder of the outgoing cipher key (which can be derived from a full viewing key) to recover the recipient diversified transmission key pk_d and the ephemeral private key <c>esk</c>, hence the entire note plaintext.</param>
-		public OrchardAction(ReadOnlySpan<byte> cv, ReadOnlySpan<byte> nullifier, ReadOnlySpan<byte> rk, ReadOnlySpan<byte> cmx, ReadOnlySpan<byte> ephemeralKey, ReadOnlySpan<byte> encCiphertext, ReadOnlySpan<byte> outCiphertext)
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffers provided remain the same.
+		/// </remarks>
+		public OrchardAction(ReadOnlyMemory<byte> cv, ReadOnlyMemory<byte> nullifier, ReadOnlyMemory<byte> rk, ReadOnlyMemory<byte> cmx, ReadOnlyMemory<byte> ephemeralKey, ReadOnlyMemory<byte> encCiphertext, ReadOnlyMemory<byte> outCiphertext)
 		{
-			this.cv = new(cv);
-			this.nullifier = new(nullifier);
-			this.rk = new(rk);
-			this.cmx = new(cmx);
-			this.ephemeralKey = new(ephemeralKey);
-			this.encCiphertext = new(encCiphertext);
-			this.outCiphertext = new(outCiphertext);
+			SharedCryptoUtilities.CheckLength(cv, 32);
+			SharedCryptoUtilities.CheckLength(nullifier, 32);
+			SharedCryptoUtilities.CheckLength(rk, 32);
+			SharedCryptoUtilities.CheckLength(cmx, 32);
+			SharedCryptoUtilities.CheckLength(ephemeralKey, 32);
+			SharedCryptoUtilities.CheckLength(encCiphertext, 580);
+			SharedCryptoUtilities.CheckLength(outCiphertext, 80);
+
+			this.cv = cv;
+			this.nullifier = nullifier;
+			this.rk = rk;
+			this.cmx = cmx;
+			this.ephemeralKey = ephemeralKey;
+			this.encCiphertext = encCiphertext;
+			this.outCiphertext = outCiphertext;
 		}
 
 		/// <summary>
 		/// Gets a value commitment to the net value of the input note minus the output note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> ValueCommitment => this.cv.Value;
+		public readonly ReadOnlyMemory<byte> ValueCommitment => this.cv;
 
 		/// <summary>
 		/// Gets the nullifier of the input note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Nullifier => this.nullifier.Value;
+		public readonly ReadOnlyMemory<byte> Nullifier => this.nullifier;
 
 		/// <summary>
 		/// Gets a randomized validating key for spendAuthSig.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Rk => this.rk.Value;
+		public readonly ReadOnlyMemory<byte> Rk => this.rk;
 
 		/// <summary>
 		/// Gets the x-coordinate of the note commitment for the output note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> Cmx => this.cmx.Value;
+		public readonly ReadOnlyMemory<byte> Cmx => this.cmx;
 
 		/// <summary>
 		/// Gets an encoding of an ephemeral Pallas public key.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EphemeralKey => this.ephemeralKey.Value;
+		public readonly ReadOnlyMemory<byte> EphemeralKey => this.ephemeralKey;
 
 		/// <summary>
 		/// Gets a ciphertext component for the encrypted output note.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> EncryptedCiphertext => this.encCiphertext.Value;
+		public readonly ReadOnlyMemory<byte> EncryptedCiphertext => this.encCiphertext;
 
 		/// <summary>
 		/// Gets a ciphertext component that allows the holder of the outgoing cipher key (which can be derived from a full viewing key) to recover the recipient diversified transmission key pk_d and the ephemeral private key esk, hence the entire note plaintext.
 		/// </summary>
-		[UnscopedRef]
-		public ReadOnlySpan<byte> OutCiphertext => this.outCiphertext.Value;
+		public readonly ReadOnlyMemory<byte> OutCiphertext => this.outCiphertext;
 
 		/// <summary>
 		/// Decodes an <see cref="OrchardAction"/>.
@@ -1150,17 +1154,116 @@ public record RawTransaction
 		/// <param name="reader">The reader to use.</param>
 		/// <param name="transactionVersion">The version of the transaction being decoded.</param>
 		/// <returns>The initialized <see cref="OrchardAction"/>.</returns>
+		/// <remarks>
+		/// This method does not allocate any memory, and will only be valid while the content of the buffer backing the <paramref name="reader"/> remains the same.
+		/// </remarks>
 		public static OrchardAction Decode(ref DecodingReader reader, uint transactionVersion)
 		{
-			ReadOnlySpan<byte> cv = reader.Read(32);
-			ReadOnlySpan<byte> nullifier = reader.Read(32);
-			ReadOnlySpan<byte> rk = reader.Read(32);
-			ReadOnlySpan<byte> cmx = reader.Read(32);
-			ReadOnlySpan<byte> ephemeralKey = reader.Read(32);
-			ReadOnlySpan<byte> encCiphertext = reader.Read(580);
-			ReadOnlySpan<byte> outCiphertext = reader.Read(80);
+			ReadOnlyMemory<byte> cv = reader.Read(32);
+			ReadOnlyMemory<byte> nullifier = reader.Read(32);
+			ReadOnlyMemory<byte> rk = reader.Read(32);
+			ReadOnlyMemory<byte> cmx = reader.Read(32);
+			ReadOnlyMemory<byte> ephemeralKey = reader.Read(32);
+			ReadOnlyMemory<byte> encCiphertext = reader.Read(580);
+			ReadOnlyMemory<byte> outCiphertext = reader.Read(80);
 
 			return new(cv, nullifier, rk, cmx, ephemeralKey, encCiphertext, outCiphertext);
+		}
+	}
+
+	/// <summary>
+	/// An alloc-free enumerator of lists in the transaction.
+	/// </summary>
+	/// <typeparam name="T">The type of element that is enumerated.</typeparam>
+	public struct DescriptionEnumerator<T> : IEnumerator<T>
+		where T : struct
+	{
+		private readonly DecodingReader start;
+		private readonly int count;
+		private readonly DescriptionReader<T> reader;
+		private readonly uint transactionVersion;
+		private DecodingReader currentReader;
+		private int currentIndex;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DescriptionEnumerator{T}"/> struct.
+		/// </summary>
+		/// <param name="start">The reader, positioned at the first element.</param>
+		/// <param name="count">The number of elements in the sequence.</param>
+		/// <param name="reader">The delegate to decode each element.</param>
+		/// <param name="transactionVersion">The transaction version.</param>
+		internal DescriptionEnumerator(DecodingReader start, int count, DescriptionReader<T> reader, uint transactionVersion)
+		{
+			this.start = start;
+			this.currentReader = start;
+			this.count = count;
+			this.reader = reader;
+			this.transactionVersion = transactionVersion;
+		}
+
+		/// <inheritdoc/>
+		public T Current { get; set; }
+
+		/// <inheritdoc/>
+		object IEnumerator.Current => this.Current;
+
+		/// <summary>
+		/// Gets the number of elements in the sequence.
+		/// </summary>
+		public int Count => this.count;
+
+		/// <inheritdoc/>
+		public void Dispose()
+		{
+		}
+
+		/// <inheritdoc/>
+		public bool MoveNext()
+		{
+			if (this.currentIndex < this.count)
+			{
+				this.Current = this.reader(ref this.currentReader, this.transactionVersion);
+				this.currentIndex++;
+				return true;
+			}
+
+			return false;
+		}
+
+		/// <inheritdoc/>
+		public void Reset()
+		{
+			this.currentReader = this.start;
+			this.currentIndex = 0;
+			this.Current = default;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DescriptionEnumerator{T}"/> struct
+		/// by reading the compact count of elements and fast forwarding past all elements for the caller.
+		/// </summary>
+		/// <param name="reader">The reader to use.</param>
+		/// <param name="itemReader">The delegate that reads one element.</param>
+		/// <param name="transactionVersion">The transaction version.</param>
+		/// <returns>The initialized enumerator.</returns>
+		internal static DescriptionEnumerator<T> Initialize(ref DecodingReader reader, DescriptionReader<T> itemReader, uint transactionVersion)
+		{
+			int count = reader.ReadInt32Compact();
+
+			// Initialize the enumerator at the start of the sequence.
+			DescriptionEnumerator<T> result = new(reader, count, itemReader, transactionVersion);
+
+			// Fast forward the reader to the end so our caller can proceed to skip over the whole sequence.
+			while (result.MoveNext())
+			{
+			}
+
+			// Set our ref argument so our caller knows where the end of the sequence is.
+			reader = result.currentReader;
+
+			// Now reset our enumerator to the start of the sequence so it's ready for use.
+			result.Reset();
+			return result;
 		}
 	}
 }

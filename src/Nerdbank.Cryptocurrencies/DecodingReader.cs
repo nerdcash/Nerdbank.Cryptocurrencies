@@ -6,15 +6,15 @@ namespace Nerdbank.Cryptocurrencies;
 /// <summary>
 /// Decodes binary data into its raw primitives.
 /// </summary>
-public ref struct DecodingReader
+public struct DecodingReader
 {
-	private ReadOnlySpan<byte> buffer;
+	private ReadOnlyMemory<byte> buffer;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DecodingReader"/> struct.
 	/// </summary>
 	/// <param name="buffer">The buffer to decode.</param>
-	public DecodingReader(ReadOnlySpan<byte> buffer)
+	public DecodingReader(ReadOnlyMemory<byte> buffer)
 	{
 		this.buffer = buffer;
 	}
@@ -30,7 +30,7 @@ public ref struct DecodingReader
 	/// <returns>The decoded value.</returns>
 	public uint ReadUInt32LE()
 	{
-		uint result = BitUtilities.ReadUInt32LE(this.buffer);
+		uint result = BitUtilities.ReadUInt32LE(this.buffer.Span);
 		this.buffer = this.buffer[sizeof(uint)..];
 		return result;
 	}
@@ -41,7 +41,7 @@ public ref struct DecodingReader
 	/// <returns>The decoded value.</returns>
 	public ulong ReadUInt64LE()
 	{
-		ulong result = BitUtilities.ReadUInt64LE(this.buffer);
+		ulong result = BitUtilities.ReadUInt64LE(this.buffer.Span);
 		this.buffer = this.buffer[sizeof(ulong)..];
 		return result;
 	}
@@ -55,7 +55,7 @@ public ref struct DecodingReader
 		long result;
 		if (BitConverter.IsLittleEndian)
 		{
-			result = BitConverter.ToInt64(this.buffer);
+			result = BitConverter.ToInt64(this.buffer.Span);
 		}
 		else
 		{
@@ -72,7 +72,7 @@ public ref struct DecodingReader
 	/// <param name="buffer">The buffer to fill.</param>
 	public void Read(Span<byte> buffer)
 	{
-		this.buffer[..buffer.Length].CopyTo(buffer);
+		this.buffer[..buffer.Length].Span.CopyTo(buffer);
 		this.buffer = this.buffer[buffer.Length..];
 	}
 
@@ -81,9 +81,9 @@ public ref struct DecodingReader
 	/// </summary>
 	/// <param name="length">The length of the span to return.</param>
 	/// <returns>The span into the encoded bytes.</returns>
-	public ReadOnlySpan<byte> Read(int length)
+	public ReadOnlyMemory<byte> Read(int length)
 	{
-		ReadOnlySpan<byte> result = this.buffer[..length];
+		ReadOnlyMemory<byte> result = this.buffer[..length];
 		this.buffer = this.buffer[length..];
 		return result;
 	}
@@ -94,7 +94,7 @@ public ref struct DecodingReader
 	/// <returns>The decoded value.</returns>
 	public ulong ReadUInt64Compact()
 	{
-		int bytesRead = CompactSize.Decode(this.buffer, out ulong result);
+		int bytesRead = CompactSize.Decode(this.buffer.Span, out ulong result);
 		this.buffer = this.buffer[bytesRead..];
 		return result;
 	}
@@ -112,7 +112,7 @@ public ref struct DecodingReader
 	/// <returns>The byte.</returns>
 	public byte ReadByte()
 	{
-		byte result = this.buffer[0];
+		byte result = this.buffer.Span[0];
 		this.buffer = this.buffer[1..];
 		return result;
 	}

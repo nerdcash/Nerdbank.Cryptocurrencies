@@ -91,8 +91,8 @@ Nerdbank.Cryptocurrencies.DecodeError.UnexpectedLength = 7 -> Nerdbank.Cryptocur
 Nerdbank.Cryptocurrencies.DecodeError.UnrecognizedVersion = 8 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodingReader
 Nerdbank.Cryptocurrencies.DecodingReader.DecodingReader() -> void
-Nerdbank.Cryptocurrencies.DecodingReader.DecodingReader(System.ReadOnlySpan<byte> buffer) -> void
-Nerdbank.Cryptocurrencies.DecodingReader.Read(int length) -> System.ReadOnlySpan<byte>
+Nerdbank.Cryptocurrencies.DecodingReader.DecodingReader(System.ReadOnlyMemory<byte> buffer) -> void
+Nerdbank.Cryptocurrencies.DecodingReader.Read(int length) -> System.ReadOnlyMemory<byte>
 Nerdbank.Cryptocurrencies.DecodingReader.Read(System.Span<byte> buffer) -> void
 Nerdbank.Cryptocurrencies.DecodingReader.ReadByte() -> byte
 Nerdbank.Cryptocurrencies.DecodingReader.ReadInt32Compact() -> int

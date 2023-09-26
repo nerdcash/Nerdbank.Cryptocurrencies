@@ -28,11 +28,13 @@ public class RawTransactionTests : TestBase
 		Assert.Equal(0, tx.Sprout.JoinSplitSig.Length);
 
 		Assert.Equal(5000, tx.Sapling.ValueBalance);
-		Assert.Equal(1, tx.Sapling.Spends.Length);
-		Assert.Equal(2, tx.Sapling.Outputs.Length);
+		Assert.Equal(1, tx.Sapling.Spends.Count);
+		TestDescriptionEnumerator(tx.Sapling.Spends);
+		Assert.Equal(2, tx.Sapling.Outputs.Count);
+		TestDescriptionEnumerator(tx.Sapling.Outputs);
 
 		Assert.Equal(0, tx.Orchard.ValueBalance);
-		Assert.Equal(0, tx.Orchard.Actions.Length);
+		Assert.Equal(0, tx.Orchard.Actions.Count);
 		Assert.Equal(0, tx.Orchard.BindingSig.Length);
 		Assert.Equal(0, tx.Orchard.SpendAuthSigs.Length);
 		Assert.Equal(0, tx.Orchard.Proofs.Length);
@@ -59,11 +61,11 @@ public class RawTransactionTests : TestBase
 		Assert.Equal(64, tx.Sprout.JoinSplitSig.Length);
 
 		Assert.Equal(0, tx.Sapling.ValueBalance);
-		Assert.Equal(0, tx.Sapling.Spends.Length);
-		Assert.Equal(0, tx.Sapling.Outputs.Length);
+		Assert.Equal(0, tx.Sapling.Spends.Count);
+		Assert.Equal(0, tx.Sapling.Outputs.Count);
 
 		Assert.Equal(0, tx.Orchard.ValueBalance);
-		Assert.Equal(0, tx.Orchard.Actions.Length);
+		Assert.Equal(0, tx.Orchard.Actions.Count);
 		Assert.Equal(0, tx.Orchard.BindingSig.Length);
 		Assert.Equal(0, tx.Orchard.SpendAuthSigs.Length);
 		Assert.Equal(0, tx.Orchard.Proofs.Length);
@@ -94,11 +96,12 @@ public class RawTransactionTests : TestBase
 		Assert.Equal(0, tx.Sprout.JoinSplitSig.Length);
 
 		Assert.Equal(0, tx.Sapling.ValueBalance);
-		Assert.Equal(0, tx.Sapling.Spends.Length);
-		Assert.Equal(0, tx.Sapling.Outputs.Length);
+		Assert.Equal(0, tx.Sapling.Spends.Count);
+		TestDescriptionEnumerator(tx.Sapling.Spends);
+		Assert.Equal(0, tx.Sapling.Outputs.Count);
 
 		Assert.Equal(0, tx.Orchard.ValueBalance);
-		Assert.Equal(0, tx.Orchard.Actions.Length);
+		Assert.Equal(0, tx.Orchard.Actions.Count);
 		Assert.Equal(0, tx.Orchard.BindingSig.Length);
 		Assert.Equal(0, tx.Orchard.SpendAuthSigs.Length);
 		Assert.Equal(0, tx.Orchard.Proofs.Length);
@@ -129,15 +132,39 @@ public class RawTransactionTests : TestBase
 		Assert.Equal(0, tx.Sprout.JoinSplitSig.Length);
 
 		Assert.Equal(0, tx.Sapling.ValueBalance);
-		Assert.Equal(0, tx.Sapling.Spends.Length);
-		Assert.Equal(0, tx.Sapling.Outputs.Length);
+		Assert.Equal(0, tx.Sapling.Spends.Count);
+		TestDescriptionEnumerator(tx.Sapling.Spends);
+		Assert.Equal(0, tx.Sapling.Outputs.Count);
 
 		Assert.Equal(0, tx.Orchard.ValueBalance);
-		Assert.Equal(0, tx.Orchard.Actions.Length);
+		Assert.Equal(0, tx.Orchard.Actions.Count);
 		Assert.Equal(0, tx.Orchard.BindingSig.Length);
 		Assert.Equal(0, tx.Orchard.SpendAuthSigs.Length);
 		Assert.Equal(0, tx.Orchard.Proofs.Length);
 		Assert.Equal(0, tx.Orchard.Anchor.Length);
 		Assert.Equal(default, tx.Orchard.Flags);
+	}
+
+	private static void TestDescriptionEnumerator<T>(RawTransaction.DescriptionEnumerator<T> enumerator)
+		where T : struct
+	{
+		int count = enumerator.Count;
+		List<T> list = new(count);
+		int seen;
+		for (seen = 0; seen < count; ++seen)
+		{
+			Assert.True(enumerator.MoveNext());
+			list.Add(enumerator.Current);
+		}
+
+		Assert.False(enumerator.MoveNext());
+		enumerator.Reset();
+		for (seen = 0; seen < count; ++seen)
+		{
+			Assert.True(enumerator.MoveNext());
+			Assert.Equal(list[seen], enumerator.Current);
+		}
+
+		Assert.False(enumerator.MoveNext());
 	}
 }

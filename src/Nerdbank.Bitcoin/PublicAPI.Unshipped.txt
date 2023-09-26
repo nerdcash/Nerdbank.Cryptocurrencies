@@ -4,8 +4,9 @@ Nerdbank.Bitcoin.RawTransaction.Outpoint
 Nerdbank.Bitcoin.RawTransaction.Outpoint.Index.get -> uint
 Nerdbank.Bitcoin.RawTransaction.Outpoint.Index.init -> void
 Nerdbank.Bitcoin.RawTransaction.Outpoint.Outpoint() -> void
-Nerdbank.Bitcoin.RawTransaction.Outpoint.Outpoint(System.ReadOnlySpan<byte> txid, uint index) -> void
-Nerdbank.Bitcoin.RawTransaction.Outpoint.Txid.get -> System.ReadOnlySpan<byte>
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Outpoint(System.ReadOnlyMemory<byte> txid, uint index) -> void
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Txid.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Bitcoin.RawTransaction.RawTransaction() -> void
 Nerdbank.Bitcoin.RawTransaction.TxIn
 Nerdbank.Bitcoin.RawTransaction.TxIn.PreviousOutput.get -> Nerdbank.Bitcoin.RawTransaction.Outpoint?
 Nerdbank.Bitcoin.RawTransaction.TxIn.PreviousOutput.init -> void
