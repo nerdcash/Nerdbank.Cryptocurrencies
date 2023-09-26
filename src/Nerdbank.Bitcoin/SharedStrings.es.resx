@@ -117,61 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
-    <value>Un niño endurecido no puede derivarse de una clave extendida pública. Utiliza una clave extendida privada en su lugar.</value>
-  </data>
-  <data name="InvalidAddress" xml:space="preserve">
-    <value>¡Esta dirección no es válida o no se reconoce.</value>
-  </data>
-  <data name="InvalidAddressChecksum" xml:space="preserve">
-    <value>Esta dirección tiene una suma de comprobación no válida.</value>
-  </data>
-  <data name="InvalidAddressLength" xml:space="preserve">
-    <value>Esta dirección no cumple con los requisitos de longitud.</value>
-  </data>
-  <data name="InvalidKey" xml:space="preserve">
-    <value>¡No válido.</value>
-  </data>
-  <data name="InvalidNetworkHeader" xml:space="preserve">
-    <value>Esta dirección no especifica una red reconocida.</value>
-  </data>
-  <data name="InvalidPadding" xml:space="preserve">
-    <value>Falta la suma de comprobación de esta dirección o es incorrecta.</value>
-  </data>
-  <data name="InvalidSaplingPreamble" xml:space="preserve">
-    <value>Una dirección de árbol joven debe comenzar con 'zs1' o 'ztestsapling1'.</value>
-  </data>
-  <data name="InvalidSproutPreamble" xml:space="preserve">
-    <value>Una dirección de brote debe comenzar con 'zc' o 'zt'.</value>
-  </data>
-  <data name="InvalidXAddress" xml:space="preserve">
-    <value>Esta dirección {addressType} cumple con los requisitos esperados.</value>
-  </data>
-  <data name="LengthOutsideExpectedRange" xml:space="preserve">
-    <value>Se esperaba que la colección tuviera una longitud dentro de {minimum}-{maximum}, pero era {actual}.</value>
-  </data>
-  <data name="MemoDataTooLarge" xml:space="preserve">
-    <value>Los datos proporcionados son demasiado grandes para caber en el campo de nota.</value>
-  </data>
-  <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
-    <value>Todos los receptores deben provenir de la misma red Zcash.</value>
-  </data>
-  <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
-    <value>¡Solo se admiten llaves endurecidas.</value>
-  </data>
-  <data name="UnrecognizedAddress" xml:space="preserve">
-    <value>Esta dirección no se ajusta a ningún formato conocido.</value>
-  </data>
-  <data name="UnrecognizedNetwork" xml:space="preserve">
-    <value>Red no reconocida.</value>
-  </data>
-  <data name="UnrecognizedScheme" xml:space="preserve">
-    <value>Se esperaba el esquema '{expected}' pero se encontró '{actual}' en su lugar.</value>
-  </data>
-  <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
-    <value>Se ha producido un error al obtener metadatos del servidor lightwallet.</value>
-  </data>
-  <data name="UnsupportedTransactionVersion" xml:space="preserve">
-    <value>Versión de transacción no compatible {version}.</value>
+  <data name="UnexpectedLength" xml:space="preserve">
+    <value>La longitud debe ser exactamente {expected}, pero fue {actual}.</value>
   </data>
 </root>

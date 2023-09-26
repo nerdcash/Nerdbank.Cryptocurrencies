@@ -4,6 +4,8 @@
 using System.Runtime.CompilerServices;
 #if ZCASH
 using Nerdbank.Zcash;
+#elif BITCOIN
+using Nerdbank.Bitcoin;
 #endif
 
 namespace Nerdbank.Cryptocurrencies;
@@ -13,6 +15,24 @@ namespace Nerdbank.Cryptocurrencies;
 /// </summary>
 internal static class SharedCryptoUtilities
 {
+	/// <summary>
+	/// Verifies that a given span has a particular length.
+	/// </summary>
+	/// <param name="span">The span to check.</param>
+	/// <param name="expectedLength">The required length.</param>
+	/// <param name="parameterName">The name of the parameter being validated. This will be used if an exception is thrown.</param>
+	/// <exception cref="ArgumentException">Thrown if the length of <paramref name="span"/> does not equal <paramref name="expectedLength"/>.</exception>
+	internal static void CheckLength(this ReadOnlySpan<byte> span, int expectedLength, [CallerArgumentExpression("span")] string? parameterName = null)
+	{
+		if (span.Length != expectedLength)
+		{
+			throw new ArgumentException(SharedStrings.FormatUnexpectedLength(expectedLength, span.Length), parameterName);
+		}
+	}
+
+	/// <inheritdoc cref="CheckLength(ReadOnlySpan{byte}, int, string?)"/>
+	internal static void CheckLength(this ReadOnlyMemory<byte> memory, int expectedLength, [CallerArgumentExpression("memory")] string? parameterName = null) => CheckLength(memory.Span, expectedLength, parameterName);
+
 	/// <summary>
 	/// Copies the contents of one buffer to another,
 	/// after verifying that the lengths of the two buffers are equal.

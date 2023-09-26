@@ -46,7 +46,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.Web", "src\N
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedSource", "src\SharedSource\SharedSource.shproj", "{A6EBBEA8-ABED-4830-B0D0-CC0EB427AB9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Zcash.Cli", "src\Nerdbank.Zcash.Cli\Nerdbank.Zcash.Cli.csproj", "{9602994E-CBDB-4202-8001-FD3AE58949E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.Cli", "src\Nerdbank.Zcash.Cli\Nerdbank.Zcash.Cli.csproj", "{9602994E-CBDB-4202-8001-FD3AE58949E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Bitcoin", "src\Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj", "{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -130,6 +132,18 @@ Global
 		{9602994E-CBDB-4202-8001-FD3AE58949E8}.Release|ARM64.Build.0 = Release|ARM64
 		{9602994E-CBDB-4202-8001-FD3AE58949E8}.Release|x64.ActiveCfg = Release|x64
 		{9602994E-CBDB-4202-8001-FD3AE58949E8}.Release|x64.Build.0 = Release|x64
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Debug|x64.Build.0 = Debug|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|ARM64.Build.0 = Release|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|x64.ActiveCfg = Release|Any CPU
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -144,6 +158,7 @@ Global
 		{F6767CA9-4D7B-439E-A419-A0797D3BCEFA} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{A6EBBEA8-ABED-4830-B0D0-CC0EB427AB9D} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{9602994E-CBDB-4202-8001-FD3AE58949E8} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
+		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}
@@ -152,5 +167,6 @@ Global
 		src\SharedSource\SharedSource.projitems*{5edc775a-ba1b-48d8-9f62-645612c30cf0}*SharedItemsImports = 5
 		src\SharedSource\SharedSource.projitems*{777cf9a5-26f4-42ba-9ecb-5ed6b75d988c}*SharedItemsImports = 5
 		src\SharedSource\SharedSource.projitems*{a6ebbea8-abed-4830-b0d0-cc0eb427ab9d}*SharedItemsImports = 13
+		src\SharedSource\SharedSource.projitems*{d4e12aef-a9da-464a-8c0b-b8241fc492d4}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

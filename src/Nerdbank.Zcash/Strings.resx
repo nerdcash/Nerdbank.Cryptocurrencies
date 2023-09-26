@@ -171,4 +171,7 @@
   <data name="UnrecognizedScheme" xml:space="preserve">
     <value>Expected '{expected}' scheme but found '{actual}' instead.</value>
   </data>
+  <data name="UnsupportedTransactionVersion" xml:space="preserve">
+    <value>Unsupported transaction version {version}.</value>
+  </data>
 </root>

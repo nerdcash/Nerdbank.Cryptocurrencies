@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)BitcoinUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FixedLengthStructs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SharedCryptoUtilities.cs" />
   </ItemGroup>
 </Project>

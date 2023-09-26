@@ -89,6 +89,18 @@ Nerdbank.Cryptocurrencies.DecodeError.InvalidWord = 5 -> Nerdbank.Cryptocurrenci
 Nerdbank.Cryptocurrencies.DecodeError.NoSeparator = 3 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnexpectedLength = 7 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnrecognizedVersion = 8 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodingReader
+Nerdbank.Cryptocurrencies.DecodingReader.DecodingReader() -> void
+Nerdbank.Cryptocurrencies.DecodingReader.DecodingReader(System.ReadOnlyMemory<byte> buffer) -> void
+Nerdbank.Cryptocurrencies.DecodingReader.Read(int length) -> System.ReadOnlyMemory<byte>
+Nerdbank.Cryptocurrencies.DecodingReader.Read(System.Span<byte> buffer) -> void
+Nerdbank.Cryptocurrencies.DecodingReader.ReadByte() -> byte
+Nerdbank.Cryptocurrencies.DecodingReader.ReadInt32Compact() -> int
+Nerdbank.Cryptocurrencies.DecodingReader.ReadInt64LE() -> long
+Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt32LE() -> uint
+Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt64Compact() -> ulong
+Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt64LE() -> ulong
+Nerdbank.Cryptocurrencies.DecodingReader.RemainingLength.get -> int
 Nerdbank.Cryptocurrencies.IExtendedKey
 Nerdbank.Cryptocurrencies.IExtendedKey.ChildIndex.get -> uint
 Nerdbank.Cryptocurrencies.IExtendedKey.Depth.get -> byte
