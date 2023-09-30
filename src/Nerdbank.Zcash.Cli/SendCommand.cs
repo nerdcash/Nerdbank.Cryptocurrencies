@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
-using System.CommandLine.Parsing;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -18,7 +17,7 @@ internal class SendCommand : SyncFirstCommandBase
 
 	internal static Command BuildCommand()
 	{
-		Argument<ZcashAddress> recipientArgument = new("recipient", AddressParser, description: Strings.SendRecipientArgumentDescription);
+		Argument<ZcashAddress> recipientArgument = new("recipient", Utilities.AddressParser, description: Strings.SendRecipientArgumentDescription);
 		Argument<decimal> amountArgument = new("amount", Strings.SendAmountArgumentDescription);
 		Option<string> memoOption = new("--memo", Strings.SendMemoOptionDescription);
 		Option<decimal?> feeOption = new("--fee", Strings.SendFeeOptionDescription);

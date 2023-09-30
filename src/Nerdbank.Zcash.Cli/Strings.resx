@@ -156,6 +156,27 @@
   <data name="PasswordOptionDescription" xml:space="preserve">
     <value>A password in addition to the seed phrase that unlocks the account. While any phrase will do, some wallets only accept one word.</value>
   </data>
+  <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
+    <value>The amount to request for a particular payment.</value>
+  </data>
+  <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
+    <value>The {switchName} switch must have the same number of arguments as the number of payees ({expected}) but had {actual}.</value>
+  </data>
+  <data name="RequestPaymentCommandDescription" xml:space="preserve">
+    <value>Create a payment request URI and optionally a QR code.</value>
+  </data>
+  <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
+    <value>A human readable label that identifies the receiving address.</value>
+  </data>
+  <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
+    <value>A memo associated with a particular payment.</value>
+  </data>
+  <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
+    <value>A human readable message to associated with a particular payment.</value>
+  </data>
+  <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
+    <value>The Zcash address(es) to receive payments.</value>
+  </data>
   <data name="RootCommandDescription" xml:space="preserve">
     <value>Performs Zcash operations.</value>
   </data>

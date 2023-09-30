@@ -14,6 +14,7 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	SyncCommand.BuildCommand(),
 	BalanceCommand.BuildCommand(),
 	SendCommand.BuildCommand(),
+	RequestPaymentCommand.BuildCommand(),
 };
 
 await new CommandLineBuilder(rootCommand)
