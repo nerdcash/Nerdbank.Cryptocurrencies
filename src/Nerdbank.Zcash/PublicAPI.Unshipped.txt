@@ -474,12 +474,11 @@ Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Amount.get -> deci
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Amount.init -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Label.get -> string?
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Label.init -> void
-Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Memo.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Memo.get -> Nerdbank.Zcash.Memo
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Memo.set -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Message.get -> string?
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Message.init -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.PaymentRequestDetails(Nerdbank.Zcash.ZcashAddress! Address) -> void
-Nerdbank.Zcash.Zip321PaymentRequestUris.Zip321PaymentRequestUris() -> void
 Nerdbank.Zcash.Zip32HDWallet
 Nerdbank.Zcash.Zip32HDWallet.ChainCode
 Nerdbank.Zcash.Zip32HDWallet.ChainCode.ChainCode() -> void

@@ -19,10 +19,10 @@ public struct Memo : IEquatable<Memo>
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Memo"/> struct.
 	/// </summary>
-	/// <param name="memoBytes">The memo bytes. Must be exactly 512 bytes.</param>
+	/// <param name="memoBytes">The memo bytes. Must be at most 512 bytes. Fewer bytes will lead to padding zeros to fill 512 bytes.</param>
 	public Memo(ReadOnlySpan<byte> memoBytes)
 	{
-		this.bytes = new(memoBytes);
+		this.bytes = new(memoBytes, allowShorterInput: true);
 	}
 
 	/// <summary>
