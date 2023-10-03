@@ -177,6 +177,9 @@
   <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
     <value>The Zcash address(es) to receive payments.</value>
   </data>
+  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
+    <value>The path to the image to save with the QR code.</value>
+  </data>
   <data name="RootCommandDescription" xml:space="preserve">
     <value>Performs Zcash operations.</value>
   </data>

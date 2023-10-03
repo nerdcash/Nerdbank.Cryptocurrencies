@@ -3,6 +3,9 @@
 
 using System.Collections.Immutable;
 using System.CommandLine;
+using System.CommandLine.IO;
+using Nerdbank.QRCodes;
+using QRCoder;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -20,6 +23,8 @@ internal class RequestPaymentCommand
 
 	internal required string[]? Messages { get; init; }
 
+	internal required string? SaveQRCodePath { get; init; }
+
 	internal static Command BuildCommand()
 	{
 		Argument<ZcashAddress[]> payeesArgument = new("payee", parse: Utilities.AddressParserAllowMultiple, description: Strings.RequestPaymentPayeeArgumentDescription) { Arity = ArgumentArity.OneOrMore };
@@ -27,6 +32,7 @@ internal class RequestPaymentCommand
 		Option<Memo[]> memosOption = new("--memo", parseArgument: Utilities.MemoParserAllowMultiple, description: Strings.RequestPaymentMemoOptionDescription) { Arity = ArgumentArity.OneOrMore };
 		Option<string[]> labelsOption = new("--label", Strings.RequestPaymentLabelOptionDescription) { Arity = ArgumentArity.OneOrMore };
 		Option<string[]> messagesOption = new("--message", Strings.RequestPaymentMessageOptionDescription) { Arity = ArgumentArity.OneOrMore };
+		Option<string> saveQRCodeOption = new Option<string>("--output", Strings.RequestPaymentSaveQRCodeOption).LegalFilePathsOnly();
 
 		Command command = new("RequestPayment", Strings.RequestPaymentCommandDescription)
 		{
@@ -35,6 +41,7 @@ internal class RequestPaymentCommand
 			memosOption,
 			labelsOption,
 			messagesOption,
+			saveQRCodeOption,
 		};
 
 		command.AddValidator(v =>
@@ -80,6 +87,7 @@ internal class RequestPaymentCommand
 				Memos = ctxt.ParseResult.GetValueForOption(memosOption),
 				Labels = ctxt.ParseResult.GetValueForOption(labelsOption),
 				Messages = ctxt.ParseResult.GetValueForOption(messagesOption),
+				SaveQRCodePath = ctxt.ParseResult.GetValueForOption(saveQRCodeOption),
 			}.Execute();
 		});
 
@@ -107,8 +115,35 @@ internal class RequestPaymentCommand
 		}
 
 		Zip321PaymentRequestUris.PaymentRequest request = new(details.MoveToImmutable());
-		this.Console.WriteLine(request.ToString());
 
-		return 0;
+		int exitCode = this.ExportQRCode(request);
+
+		this.Console.WriteLine($"Uri: {request}");
+
+		return exitCode;
+	}
+
+	private int ExportQRCode(Zip321PaymentRequestUris.PaymentRequest request)
+	{
+		QRCodeGenerator generator = new();
+		QREncoder encoder = new();
+		QRCodeData data = generator.CreateQrCode(request.ToString(), encoder.ECCLevel);
+
+		int exitCode = 0;
+		if (this.SaveQRCodePath is not null)
+		{
+			try
+			{
+				encoder.Encode(data, new FileInfo(this.SaveQRCodePath), null);
+				this.Console.WriteLine($"QR code saved to \"{this.SaveQRCodePath}\".");
+			}
+			catch (NotSupportedException ex)
+			{
+				this.Console.Error.WriteLine(ex.Message);
+				exitCode = 1;
+			}
+		}
+
+		return exitCode;
 	}
 }

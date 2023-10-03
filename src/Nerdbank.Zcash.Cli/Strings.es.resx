@@ -231,4 +231,7 @@
   <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
     <value>Una nota asociada con un pago en particular.</value>
   </data>
+  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
+    <value>La ruta a la imagen para guardar con el código QR.</value>
+  </data>
 </root>
