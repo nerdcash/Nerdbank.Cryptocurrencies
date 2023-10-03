@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
-using System.Text;
 using static Nerdbank.Zcash.Zip321PaymentRequestUris;
 
 public class Zip321PaymentRequestUrisTests
@@ -12,7 +11,7 @@ public class Zip321PaymentRequestUrisTests
 
 	private static readonly PaymentRequest ValidPaymentRequest1 = new(new PaymentRequestDetails(ZcashAddress.Parse("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))
 	{
-		Memo = Encoding.UTF8.GetBytes("This is a simple memo."),
+		Memo = Memo.FromMessage("This is a simple memo."),
 		Message = "Thank you for your purchase",
 		Amount = 1,
 	});
@@ -24,7 +23,7 @@ public class Zip321PaymentRequestUrisTests
 		},
 		new PaymentRequestDetails(ZcashAddress.Parse("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))
 		{
-			Memo = Encoding.UTF8.GetBytes("This is a unicode memo ✨🦄🏆🎉"),
+			Memo = Memo.FromMessage("This is a unicode memo ✨🦄🏆🎉"),
 			Amount = 0.789m,
 		}));
 
@@ -74,7 +73,7 @@ public class Zip321PaymentRequestUrisTests
 		Assert.Equal(payment.Address, actual.Address);
 		Assert.Null(actual.Message);
 		Assert.Null(actual.Amount);
-		Assert.True(actual.Memo.IsEmpty);
+		Assert.Equal(Zip302MemoFormat.MemoFormat.NoMemo, actual.Memo.MemoFormat);
 		Assert.Null(actual.Label);
 	}
 
@@ -99,7 +98,10 @@ public class Zip321PaymentRequestUrisTests
 	[Fact]
 	public void ToString_2Payments()
 	{
-		Assert.Equal(ValidUri2, ValidPaymentRequest2.ToString());
+		string actual = ValidPaymentRequest2.ToString();
+		this.logger.WriteLine($"Expected: {ValidUri2}");
+		this.logger.WriteLine($"Actual:   {actual}");
+		Assert.Equal(ValidUri2, actual);
 	}
 
 	[Fact]

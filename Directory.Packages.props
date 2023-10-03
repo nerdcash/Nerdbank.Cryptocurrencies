@@ -17,11 +17,15 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.6.11" />
     <PackageVersion Include="NBitcoin.Secp256k1" Version="3.1.1" />
+    <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.9-beta" />
+    <PackageVersion Include="QRCoder" Version="1.4.3" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="xunit.combinatorial" Version="1.6.24" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.1" />
     <PackageVersion Include="xunit" Version="2.5.1" />
+    <PackageVersion Include="ZXing.Net" Version="0.16.9" />
+    <PackageVersion Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.12" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" />

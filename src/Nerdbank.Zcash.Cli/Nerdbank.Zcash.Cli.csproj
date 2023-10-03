@@ -2,11 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>net7.0;net7.0-windows</TargetFrameworks>
     <Platforms>x64;ARM64</Platforms>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nerdbank.QRCodes" />
     <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
@@ -16,12 +18,4 @@
   </ItemGroup>
 
   <Import Project="..\Nerdbank.Zcash\NativeBindings.targets" />
-
-  <ItemGroup>
-    <EditorConfigFiles Remove="C:\Users\andre\source\repos\Nerdbank.Cryptocurrencies\src\Nerdbank.Zcash.Cli\.editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="C:\Users\andre\source\repos\Nerdbank.Cryptocurrencies\src\Nerdbank.Zcash.Cli\.editorconfig" />
-  </ItemGroup>
 </Project>

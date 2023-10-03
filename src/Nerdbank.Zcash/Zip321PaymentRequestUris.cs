@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
-using Nerdbank.Zcash.FixedLengthStructs;
 
 namespace Nerdbank.Zcash;
 
@@ -15,7 +14,7 @@ namespace Nerdbank.Zcash;
 /// <remarks>
 /// This class implements <see href="https://zips.z.cash/zip-0321">ZIP-321</see>.
 /// </remarks>
-public class Zip321PaymentRequestUris
+public static class Zip321PaymentRequestUris
 {
 	/// <summary>
 	/// Payment details for one element in a <see cref="PaymentRequest"/>.
@@ -23,11 +22,6 @@ public class Zip321PaymentRequestUris
 	/// <param name="Address">A Zcash address to receive payment.</param>
 	public record PaymentRequestDetails(ZcashAddress Address)
 	{
-		/// <summary>
-		/// Backing field for the <see cref="Memo"/> property.
-		/// </summary>
-		private Bytes512 memo;
-
 		/// <summary>
 		/// Gets the label for an address (e.g. name of receiver).
 		/// </summary>
@@ -39,18 +33,9 @@ public class Zip321PaymentRequestUris
 		public string? Label { get; init; }
 
 		/// <summary>
-		/// Gets or sets the memo that may be required to include in the payment, with trailing 0 bytes trimmed.
+		/// Gets or sets the memo that may be required to include in the payment.
 		/// </summary>
-		/// <remarks>
-		/// <para>This value is often a UTF-8 encoded text message.</para>
-		/// <para>When set, the source buffer is copied.</para>
-		/// </remarks>
-		/// <exception cref="ArgumentException">Thrown if set to a buffer with more than 512 bytes.</exception>
-		public ReadOnlySpan<byte> Memo
-		{
-			get => this.memo.Value.TrimEnd((byte)0);
-			set => this.memo = new(value, allowShorterInput: true);
-		}
+		public Memo Memo { get; set; } = Memo.NoMemo;
 
 		/// <summary>
 		/// Gets the message to display from the requester to the payer.
@@ -282,7 +267,7 @@ public class Zip321PaymentRequestUris
 						break;
 
 					case MemoParam:
-						if (!payment.Memo.IsEmpty)
+						if (payment.Memo.MemoFormat != Zip302MemoFormat.MemoFormat.NoMemo)
 						{
 							errorCode = ParseError.InvalidParam;
 							errorMessage = $"The value for '{key}' has already been specified.";
@@ -296,7 +281,7 @@ public class Zip321PaymentRequestUris
 							return false;
 						}
 
-						payment = payment with { Memo = memoBytes[..bytesWritten] };
+						payment = payment with { Memo = new(memoBytes[..bytesWritten]) };
 						break;
 
 					case LabelParam:
@@ -407,9 +392,9 @@ public class Zip321PaymentRequestUris
 						AppendParameter(AmountParam, payment.Amount.Value.ToString(CultureInfo.InvariantCulture), escapeValue: false);
 					}
 
-					ReadOnlySpan<byte> trimmedMemo = payment.Memo;
-					if (!trimmedMemo.IsEmpty)
+					if (payment.Memo.MemoFormat is not Zip302MemoFormat.MemoFormat.NoMemo && payment.Memo.Message != string.Empty)
 					{
+						ReadOnlySpan<byte> trimmedMemo = payment.Memo.RawBytes.TrimEnd((byte)0);
 						AppendParameter(MemoParam, Base64UrlEncode(trimmedMemo), escapeValue: false);
 					}
 

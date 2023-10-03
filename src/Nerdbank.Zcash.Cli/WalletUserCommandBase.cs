@@ -50,15 +50,4 @@ internal abstract class WalletUserCommandBase
 	}
 
 	internal abstract Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken);
-
-	protected static ZcashAddress AddressParser(ArgumentResult result)
-	{
-		if (ZcashAddress.TryParse(result.Tokens[0].Value, out ZcashAddress? addr, out _, out string? errorMessage))
-		{
-			return addr;
-		}
-
-		result.ErrorMessage = errorMessage;
-		return null!;
-	}
 }

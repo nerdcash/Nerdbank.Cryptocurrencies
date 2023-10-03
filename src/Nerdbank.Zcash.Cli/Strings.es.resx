@@ -210,4 +210,28 @@
   <data name="SendFeeOptionDescription" xml:space="preserve">
     <value>Anula el cálculo de la tarifa predeterminada con un valor específico (en ZEC).</value>
   </data>
+  <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
+    <value>El switch {switchName} debe tener el mismo número de argumentos que el número de beneficiarios ({expected}) pero tenía {actual}.</value>
+  </data>
+  <data name="RequestPaymentCommandDescription" xml:space="preserve">
+    <value>Cree un URI de solicitud de pago y, opcionalmente, un código QR.</value>
+  </data>
+  <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
+    <value>La (s) dirección(es) de Zcash para recibir pagos.</value>
+  </data>
+  <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
+    <value>Una etiqueta legible por humanos que identifica la dirección de recepción.</value>
+  </data>
+  <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
+    <value>Un mensaje legible por humanos asociado con un pago en particular.</value>
+  </data>
+  <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
+    <value>La cantidad a solicitar para un pago en particular.</value>
+  </data>
+  <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
+    <value>Una nota asociada con un pago en particular.</value>
+  </data>
+  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
+    <value>La ruta a la imagen para guardar con el código QR.</value>
+  </data>
 </root>
