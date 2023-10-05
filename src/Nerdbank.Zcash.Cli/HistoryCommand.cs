@@ -49,7 +49,26 @@ internal class HistoryCommand : SyncFirstCommandBase
 		List<LightWalletClient.Transaction> txs = client.GetDownloadedTransactions(this.StartingBlock);
 		foreach (LightWalletClient.Transaction tx in txs)
 		{
-			this.Console.WriteLine($"{tx.BlockNumber} {tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt} {tx.NetChange,13:N8}");
+			this.Console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.BlockNumber} Txid: {tx.TransactionId}");
+			const string indentation = "                      ";
+
+			foreach (LightWalletClient.TransactionSendItem send in tx.Sends)
+			{
+				this.Console.WriteLine($"{indentation} -{send.Amount,13:N8} {send.Memo} {send.RecipientUA ?? send.ToAddress}");
+			}
+
+			foreach (LightWalletClient.TransactionRecvItem recv in tx.Notes)
+			{
+				if (!recv.IsChange)
+				{
+					this.Console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {(recv.Memo.MemoFormat == Zip302MemoFormat.MemoFormat.ProprietaryData ? "(proprietary)" : recv.Memo)} {recv.ToAddress}");
+				}
+			}
+
+			if (!tx.IsIncoming)
+			{
+				this.Console.WriteLine($"{indentation} -{tx.Fee,13:N8} transaction fee");
+			}
 		}
 
 		return 0;

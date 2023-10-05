@@ -42,6 +42,7 @@ public class LightWalletClient : IDisposable
 
 		this.serverUrl = serverUrl;
 		this.account = account;
+		this.Network = account.Network;
 
 		Span<byte> uskBytes = stackalloc byte[500];
 		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
@@ -80,6 +81,7 @@ public class LightWalletClient : IDisposable
 		Requires.NotNull(serverUrl);
 
 		this.serverUrl = serverUrl;
+		this.Network = network;
 
 		this.handle = new LightWalletSafeHandle(
 			unchecked((nint)LightWalletMethods.LightwalletInitializeFromDisk(
@@ -92,6 +94,11 @@ public class LightWalletClient : IDisposable
 					watchMemPool))),
 			ownsHandle: true);
 	}
+
+	/// <summary>
+	/// Gets the Zcash network that this client operates on.
+	/// </summary>
+	public ZcashNetwork Network { get; }
 
 	/// <summary>
 	/// Gets or sets the interval to report progress for long-running tasks.
@@ -170,7 +177,7 @@ public class LightWalletClient : IDisposable
 	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
 	{
 		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock))
-			.Select(t => new Transaction(t))
+			.Select(t => new Transaction(t, this.Network))
 			.OrderBy(t => t.When)
 			.ToList();
 	}
@@ -344,6 +351,50 @@ public class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
+	/// Describes an individual note received in a transaction.
+	/// </summary>
+	/// <param name="ToAddress">The address the note is addressed to. This will be the specific diversified address used. If a <see cref="UnifiedAddress"/>, it will have only one receiver, even if the address used by the sender originally had multiple receivers.</param>
+	/// <param name="Amount">The amount received.</param>
+	/// <param name="Memo">The memo included in the note.</param>
+	/// <param name="IsChange">A value indicating whether this note represents "change" returned to the wallet in an otherwise outbound transaction.</param>
+	public record struct TransactionRecvItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo, bool IsChange)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TransactionRecvItem"/> class.
+		/// </summary>
+		/// <param name="d">The uniffi sapling note.</param>
+		/// <param name="network">The network that the transaction is on.</param>
+		internal TransactionRecvItem(SaplingNote d, ZcashNetwork network)
+			: this(new SaplingAddress(new SaplingReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TransactionRecvItem"/> class.
+		/// </summary>
+		/// <param name="d">The uniffi orchard note.</param>
+		/// <param name="network">The network that the transaction is on.</param>
+		internal TransactionRecvItem(OrchardNote d, ZcashNetwork network)
+			: this(new OrchardAddress(new OrchardReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange)
+		{
+		}
+
+		/// <summary>
+		/// Gets the pool that received this note.
+		/// </summary>
+		public Pool Pool
+		{
+			get => this.ToAddress switch
+			{
+				TransparentAddress => Pool.Transparent,
+				SaplingAddress => Pool.Sapling,
+				OrchardAddress => Pool.Orchard,
+				_ => throw new NotSupportedException(),
+			};
+		}
+	}
+
+	/// <summary>
 	/// Carries details of a progress update on a send operation.
 	/// </summary>
 	/// <param name="Id">An id for the operation.</param>
@@ -434,14 +485,17 @@ public class LightWalletClient : IDisposable
 	/// <param name="Spent">The amount of ZEC that was spent in this transaction.</param>
 	/// <param name="Received">The amount of ZEC that was received in this transaction.</param>
 	/// <param name="Sends">A collection of individual spend details with amounts and recipients belonging to this transaction.</param>
-	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, ImmutableArray<TransactionSendItem> Sends)
+	/// <param name="Notes">Notes received in this transaction.</param>
+	/// <param name="IsIncoming"><see langword="true"/> if the transaction was sent by a different wallet; <see langword="false" /> otherwise.</param>
+	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, ImmutableArray<TransactionSendItem> Sends, ImmutableArray<TransactionRecvItem> Notes, bool IsIncoming)
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Transaction"/> class.
 		/// </summary>
 		/// <param name="t">The uniffi transaction to copy data from.</param>
-		internal Transaction(uniffi.LightWallet.Transaction t)
-			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray())
+		/// <param name="network">The network this transaction is on.</param>
+		internal Transaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
+			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray(), t.saplingNotes.Select(s => new TransactionRecvItem(s, network)).Concat(t.orchardNotes.Select(o => new TransactionRecvItem(o, network))).ToImmutableArray(), t.isIncoming)
 		{
 		}
 
@@ -449,6 +503,23 @@ public class LightWalletClient : IDisposable
 		/// Gets the net balance change applied by this transaction.
 		/// </summary>
 		public decimal NetChange => this.Received - this.Spent;
+
+		/// <summary>
+		/// Gets the transaction fee.
+		/// </summary>
+		public decimal Fee
+		{
+			get
+			{
+				if (this.IsIncoming)
+				{
+					// https://github.com/zingolabs/zingolib/issues/553
+					throw new NotSupportedException("ZingoLib doesn't expose the transaction details necessary to calculate the fee for incoming transactions.");
+				}
+
+				return this.Spent - this.Received - this.Sends.Sum(s => s.Amount);
+			}
+		}
 	}
 
 	/// <summary>

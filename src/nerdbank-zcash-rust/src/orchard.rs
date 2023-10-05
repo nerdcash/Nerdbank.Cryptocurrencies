@@ -112,7 +112,10 @@ pub extern "C" fn get_orchard_raw_payment_address_from_ivk(
 }
 
 #[no_mangle]
-pub extern "C" fn orchard_to_scalar_to_repr(uniform_bytes: *const [u8; 64], repr: *mut [u8; 32]) -> i32 {
+pub extern "C" fn orchard_to_scalar_to_repr(
+    uniform_bytes: *const [u8; 64],
+    repr: *mut [u8; 32],
+) -> i32 {
     let uniform_bytes = unsafe { &*uniform_bytes };
     let repr = unsafe { &mut *repr };
 
