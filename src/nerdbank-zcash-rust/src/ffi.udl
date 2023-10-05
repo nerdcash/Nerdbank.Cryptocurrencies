@@ -61,6 +61,22 @@ dictionary Transaction {
 	f64? price;
 	boolean unconfirmed;
 	sequence<TransactionSendDetail> sends;
+	sequence<SaplingNote> sapling_notes;
+	sequence<OrchardNote> orchard_notes;
+};
+
+dictionary SaplingNote {
+	u64 value;
+	sequence<u8> memo;
+	boolean is_change;
+	sequence<u8> recipient;
+};
+
+dictionary OrchardNote {
+	u64 value;
+	sequence<u8> memo;
+	boolean is_change;
+	sequence<u8> recipient;
 };
 
 dictionary TransactionSendDetail {

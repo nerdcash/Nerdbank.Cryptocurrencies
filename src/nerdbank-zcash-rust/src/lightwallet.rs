@@ -1,7 +1,7 @@
 use http::Uri;
 use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
-use zcash_primitives::memo::MemoBytes;
+use zcash_primitives::memo::{Memo, MemoBytes};
 use zingoconfig::{ChainType, ZingoConfig};
 use zingolib::lightclient::{LightClient, PoolBalances, SyncResult};
 use zingolib::load_clientconfig;
@@ -250,6 +250,8 @@ pub struct Transaction {
     pub price: Option<f64>,
     pub unconfirmed: bool,
     pub sends: Vec<TransactionSendDetail>,
+    pub sapling_notes: Vec<SaplingNote>,
+    pub orchard_notes: Vec<OrchardNote>,
 }
 
 #[derive(Debug)]
@@ -258,6 +260,22 @@ pub struct TransactionSendDetail {
     pub value: u64,
     pub recipient_ua: Option<String>,
     pub memo: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct SaplingNote {
+    pub value: u64,
+    pub memo: Vec<u8>,
+    pub is_change: bool,
+    pub recipient: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct OrchardNote {
+    pub value: u64,
+    pub memo: Vec<u8>,
+    pub is_change: bool,
+    pub recipient: Vec<u8>,
 }
 
 pub fn lightwallet_get_transactions(
@@ -292,6 +310,26 @@ pub fn lightwallet_get_transactions(
                                 value: o.value,
                                 recipient_ua: o.recipient_ua.clone(),
                                 memo: o.memo.to_bytes().into(),
+                            })
+                            .collect(),
+                        sapling_notes: tx
+                            .sapling_notes
+                            .iter()
+                            .map(|n| SaplingNote {
+                                value: n.note.value().inner(),
+                                memo: n.memo.as_ref().unwrap_or(&Memo::Empty).to_bytes().into(),
+                                is_change: n.is_change,
+                                recipient: n.note.recipient().to_bytes().to_vec(),
+                            })
+                            .collect(),
+                        orchard_notes: tx
+                            .orchard_notes
+                            .iter()
+                            .map(|n| OrchardNote {
+                                value: n.note.value().inner(),
+                                memo: n.memo.as_ref().unwrap_or(&Memo::Empty).to_bytes().into(),
+                                is_change: n.is_change,
+                                recipient: n.note.recipient().to_raw_address_bytes().to_vec(),
                             })
                             .collect(),
                     })
