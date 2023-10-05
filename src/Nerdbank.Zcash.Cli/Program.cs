@@ -13,6 +13,7 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	UACommand.BuildCommand(),
 	SyncCommand.BuildCommand(),
 	BalanceCommand.BuildCommand(),
+	HistoryCommand.BuildCommand(),
 	SendCommand.BuildCommand(),
 	RequestPaymentCommand.BuildCommand(),
 };

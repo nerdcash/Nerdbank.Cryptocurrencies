@@ -129,6 +129,12 @@
   <data name="BirthdayHeightOptionDescription" xml:space="preserve">
     <value>Forces a particular birthday height to be recorded in the new account. By default this will be the current blockchain length if in online mode.</value>
   </data>
+  <data name="HistoryCommandDescription" xml:space="preserve">
+    <value>List transactions from the blockchain belonging to this wallet.</value>
+  </data>
+  <data name="HistoryStartingBlockOptionDescription" xml:space="preserve">
+    <value>The first block whose transactions should be included in the transaction list.</value>
+  </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>Error parsing address: "{address}". {error}</value>
   </data>
