@@ -118,7 +118,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 		this.logger.WriteLine(ex.ToString());
 	}
 
-	[Fact]
+	[Fact(Skip = "Skip while ZingoLib panics: https://github.com/zingolabs/zingolib/issues/566")]
 	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
 	public async Task SendAsync_InsufficientFunds()
 	{
