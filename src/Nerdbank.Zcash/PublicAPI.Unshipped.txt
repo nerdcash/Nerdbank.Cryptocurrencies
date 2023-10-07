@@ -473,6 +473,7 @@ Nerdbank.Zcash.ZcashAddress.ZcashAddress(string! address) -> void
 Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.MainNet = 0 -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.TestNet = 1 -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.ZcashUtilities
 Nerdbank.Zcash.Zip302MemoFormat
 Nerdbank.Zcash.Zip302MemoFormat.MemoFormat
 Nerdbank.Zcash.Zip302MemoFormat.MemoFormat.Message = 1 -> Nerdbank.Zcash.Zip302MemoFormat.MemoFormat
@@ -680,6 +681,7 @@ static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.Zcas
 static Nerdbank.Zcash.ZcashAddress.Parse(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.TryParse(string! address, out Nerdbank.Zcash.ZcashAddress? result) -> bool
 static Nerdbank.Zcash.ZcashAddress.TryParse(string! address, out Nerdbank.Zcash.ZcashAddress? result, out Nerdbank.Zcash.ParseError? errorCode, out string? errorMessage) -> bool
+static Nerdbank.Zcash.ZcashUtilities.GetTickerName(this Nerdbank.Zcash.ZcashNetwork network) -> string!
 static Nerdbank.Zcash.Zip302MemoFormat.DetectMemoFormat(System.ReadOnlySpan<byte> memo) -> Nerdbank.Zcash.Zip302MemoFormat.MemoFormat
 static Nerdbank.Zcash.Zip302MemoFormat.EncodeMessage(System.ReadOnlySpan<char> text, System.Span<byte> memo) -> void
 static Nerdbank.Zcash.Zip302MemoFormat.EncodeNoMemo(System.Span<byte> memo) -> void

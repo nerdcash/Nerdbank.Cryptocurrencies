@@ -6,8 +6,24 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Internal utilities for this library.
 /// </summary>
-internal static class ZcashUtilities
+public static class ZcashUtilities
 {
+	/// <summary>
+	/// Gets the ticker symbol to use iven a Zcash network (e.g. ZEC or TAZ).
+	/// </summary>
+	/// <param name="network">The Zcash network.</param>
+	/// <returns>The ticker symbol (either ZEC or TAZ).</returns>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="network"/> isn't a recognized value.</exception>
+	public static string GetTickerName(this ZcashNetwork network)
+	{
+		return network switch
+		{
+			ZcashNetwork.MainNet => "ZEC",
+			ZcashNetwork.TestNet => "TAZ",
+			_ => throw new ArgumentException(Strings.FormatUnrecognizedNetwork(network), nameof(network)),
+		};
+	}
+
 	/// <summary>
 	/// Converts a .NET <see cref="System.Numerics.BigInteger"/> to the BouncyCastle equivalent.
 	/// </summary>
