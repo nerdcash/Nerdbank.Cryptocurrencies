@@ -101,6 +101,50 @@ Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt32LE() -> uint
 Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt64Compact() -> ulong
 Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt64LE() -> ulong
 Nerdbank.Cryptocurrencies.DecodingReader.RemainingLength.get -> int
+Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange
+Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.BinanceUSExchange(System.Net.Http.HttpClient! httpClient) -> void
+Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.Dispose() -> void
+Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
+Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
+Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.PricesAsOf.get -> System.DateTimeOffset?
+Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.RefreshPricesAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.Basis.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.Basis.set -> void
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.ExchangeRate() -> void
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.ExchangeRate(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount Basis, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount TradeInterest) -> void
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.InBasisAmount.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.OppositeDirection.get -> Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.set -> void
+Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider
+Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.FindFirstSupportedTradingPairAsync(Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest, System.Collections.Generic.IReadOnlyList<Nerdbank.Cryptocurrencies.Exchanges.Security!>! acceptableBases, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.TradingPair?>
+Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
+Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
+Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider
+Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.DateTimeOffset when, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>!
+Nerdbank.Cryptocurrencies.Exchanges.Security
+Nerdbank.Cryptocurrencies.Exchanges.Security.Amount(decimal amount) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Cryptocurrencies.Exchanges.Security.Name.get -> string?
+Nerdbank.Cryptocurrencies.Exchanges.Security.Name.init -> void
+Nerdbank.Cryptocurrencies.Exchanges.Security.Precision.get -> int
+Nerdbank.Cryptocurrencies.Exchanges.Security.Precision.init -> void
+Nerdbank.Cryptocurrencies.Exchanges.Security.Security(string! TickerSymbol, string? Name = null, int Precision = 8) -> void
+Nerdbank.Cryptocurrencies.Exchanges.Security.TickerSymbol.get -> string!
+Nerdbank.Cryptocurrencies.Exchanges.Security.TickerSymbol.init -> void
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Amount.get -> decimal
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Amount.set -> void
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Security.get -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Security.set -> void
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.SecurityAmount() -> void
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.SecurityAmount(decimal Amount, Nerdbank.Cryptocurrencies.Exchanges.Security! Security) -> void
+Nerdbank.Cryptocurrencies.Exchanges.TradingPair
+Nerdbank.Cryptocurrencies.Exchanges.TradingPair.Basis.get -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+Nerdbank.Cryptocurrencies.Exchanges.TradingPair.OppositeDirection.get -> Nerdbank.Cryptocurrencies.Exchanges.TradingPair
+Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradeInterest.get -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradingPair() -> void
+Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradingPair(Nerdbank.Cryptocurrencies.Exchanges.Security! basis, Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest) -> void
 Nerdbank.Cryptocurrencies.IExtendedKey
 Nerdbank.Cryptocurrencies.IExtendedKey.ChildIndex.get -> uint
 Nerdbank.Cryptocurrencies.IExtendedKey.Depth.get -> byte
@@ -125,6 +169,9 @@ override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Version.get -
 override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.WriteKeyMaterial(System.Span<byte> destination) -> int
 override Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.ToString() -> string!
 override Nerdbank.Cryptocurrencies.Bip39Mnemonic.ToString() -> string!
+override Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.ToString() -> string!
+override Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.ToString() -> string!
+override Nerdbank.Cryptocurrencies.Exchanges.TradingPair.ToString() -> string!
 static Nerdbank.Cryptocurrencies.Base58Check.Decode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.Encode(System.ReadOnlySpan<byte> payload, System.Span<char> chars) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.GetMaxDecodedLength(int charCount) -> int
@@ -163,6 +210,155 @@ static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> bu
 static Nerdbank.Cryptocurrencies.CompactSize.Encode(ulong value, System.Span<byte> buffer) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.GetEncodedLength(ulong value) -> int
 static Nerdbank.Cryptocurrencies.CryptoUtilities.Derive<TKey>(this TKey! key, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! keyPath) -> TKey!
+static Nerdbank.Cryptocurrencies.Exchanges.Security.WellKnown.get -> System.Collections.Immutable.ImmutableDictionary<string!, Nerdbank.Cryptocurrencies.Exchanges.Security!>!
+static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator +(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator -(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator -(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 static readonly Nerdbank.Cryptocurrencies.Bech32.Bech32m -> Nerdbank.Cryptocurrencies.Bech32!
 static readonly Nerdbank.Cryptocurrencies.Bech32.Original -> Nerdbank.Cryptocurrencies.Bech32!
 static readonly Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Root -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ACM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ADA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.AEON -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ALGO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ARQ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ARRR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ATOM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BAND -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BAT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BBS -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BCH -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BCHA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BCN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BEAM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BITC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BKC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BLOC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BNB -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BTC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BTCP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BUSD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.CASH -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.CCX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.CIV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.COAL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.COMP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.CUT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.D -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.DAI -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.DASH -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.DERO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.DOGE -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.EGLD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ENJ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.EOS -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ERG -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETH -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETNX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETNXP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FBF -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FIL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FLUX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.GHOST -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.GPKR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.GRFT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.GRIMM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.GRIN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.GRLC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.HBAR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.HNT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ICX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.INC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.INTU -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.IOTA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.IRD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.KNC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.KNCL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.KRB -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.LINK -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.LNS -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.LTC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.LTHN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.LUX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MANA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MAT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MATIC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MKR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MSR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MWC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NAH -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NANO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NBR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NCP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NEO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.OMB -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.OMG -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ONE -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ONION -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ONT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.OXEN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.OXT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.PAXG -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.PCN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.PIVX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.PLURA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.POT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.PRCY -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.PURK -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.QTUM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.QUAN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.REP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.REPV1 -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.RTO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.RVN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.RYO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SHB -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SHIB -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SIN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SLD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SOL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SOLACE -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.STORJ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SUMO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.TRTL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.TUBE -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.UNI -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.UPX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.USD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.USDC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.USDT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.VEIL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.VET -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.VTHO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.WAE -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.WAVES -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.WOW -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.WTIP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XAO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XEQ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XGM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XGS -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XHV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XLA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XLM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XNV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XPP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XRN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XRP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XTA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XTNC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XTZ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XUN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XUSD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XVG -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XWP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZANO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZEC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZEN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZIL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZRX -> Nerdbank.Cryptocurrencies.Exchanges.Security!

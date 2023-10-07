@@ -168,4 +168,16 @@
   <data name="WrongNumberOfWords" xml:space="preserve">
     <value>¡Un mnemotécnico no tiene este número de palabras.</value>
   </data>
+  <data name="SecurityMismatch" xml:space="preserve">
+    <value>Esta operación requiere que todas las entradas sean del mismo tipo de seguridad.</value>
+  </data>
+  <data name="HistoricalPricesNotAvailable" xml:space="preserve">
+    <value>Los precios históricos no están disponibles en este intercambio.</value>
+  </data>
+  <data name="TradingPairNotSupported" xml:space="preserve">
+    <value>Esta bolsa no ofrece este par de trading.</value>
+  </data>
+  <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
+    <value>La base y el interés comercial deben ser diferentes.</value>
+  </data>
 </root>
