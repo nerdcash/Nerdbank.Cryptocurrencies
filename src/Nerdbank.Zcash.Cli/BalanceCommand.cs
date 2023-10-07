@@ -42,19 +42,19 @@ internal class BalanceCommand : SyncFirstCommandBase
 
 		LightWalletClient.PoolBalances poolBalances = client.GetPoolBalances();
 
-		if (poolBalances.TransparentBalance.HasValue)
+		if (poolBalances.Transparent.HasValue)
 		{
-			PrintLine("Transparent", poolBalances.TransparentBalance.Value);
+			PrintTransparentPoolBalances(poolBalances.Transparent.Value);
 		}
 
 		if (poolBalances.Sapling is not null)
 		{
-			PrintShieldedPoolBalances("Sapling", poolBalances.Sapling);
+			PrintShieldedPoolBalances("Sapling", poolBalances.Sapling.Value);
 		}
 
 		if (poolBalances.Orchard is not null)
 		{
-			PrintShieldedPoolBalances("Orchard", poolBalances.Orchard);
+			PrintShieldedPoolBalances("Orchard", poolBalances.Orchard.Value);
 		}
 
 		void PrintShieldedPoolBalances(string poolName, LightWalletClient.ShieldedPoolBalance pool)
@@ -63,6 +63,11 @@ internal class BalanceCommand : SyncFirstCommandBase
 			PrintLine($"{poolName} verified", pool.VerifiedBalance);
 			PrintLine($"{poolName} unverified", pool.UnverifiedBalance);
 			PrintLine($"{poolName} spendable", pool.SpendableBalance);
+		}
+
+		void PrintTransparentPoolBalances(LightWalletClient.TransparentPoolBalance pool)
+		{
+			PrintLine("Transparent", pool.Balance);
 		}
 
 		void PrintLine(string caption, decimal amount)

@@ -395,6 +395,56 @@ public class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
+	/// The balances that applies to the transparent pool for a particular account.
+	/// </summary>
+	/// <param name="Balance">The pool balance.</param>
+	public record struct TransparentPoolBalance(decimal Balance);
+
+	/// <summary>
+	/// The balances that apply to a single shielded pool for a particular account.
+	/// </summary>
+	/// <param name="Balance">The pool balance.</param>
+	/// <param name="VerifiedBalance">The verified balance.</param>
+	/// <param name="UnverifiedBalance">The unverified balance.</param>
+	/// <param name="SpendableBalance">The spendable balance.</param>
+	public record struct ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> class
+		/// with balances given in ZATs.
+		/// </summary>
+		/// <param name="balance"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='Balance']"/></param>
+		/// <param name="verified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='VerifiedBalance']"/></param>
+		/// <param name="unverified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='UnverifiedBalance']"/></param>
+		/// <param name="spendable"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='SpendableBalance']"/></param>
+		public ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable)
+			: this(ZatsToZEC(balance), ZatsToZEC(verified), ZatsToZEC(unverified), ZatsToZEC(spendable))
+		{
+		}
+	}
+
+	/// <summary>
+	/// The balance across all pools for a Zcash account.
+	/// </summary>
+	/// <param name="Transparent">The transparent balance.</param>
+	/// <param name="Sapling">The sapling balance.</param>
+	/// <param name="Orchard">The orchard balance.</param>
+	public record struct PoolBalances(TransparentPoolBalance? Transparent, ShieldedPoolBalance? Sapling, ShieldedPoolBalance? Orchard)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PoolBalances"/> class.
+		/// </summary>
+		/// <param name="balances">The balances as they come from the interop layer.</param>
+		internal PoolBalances(uniffi.LightWallet.PoolBalances balances)
+			: this(
+				Requires.NotNull(balances).transparentBalance.HasValue ? new(ZatsToZEC(balances.transparentBalance!.Value)) : null,
+				balances.saplingBalance.HasValue ? new(balances.saplingBalance.Value, balances.verifiedSaplingBalance!.Value, balances.unverifiedSaplingBalance!.Value, balances.spendableSaplingBalance!.Value) : null,
+				balances.orchardBalance.HasValue ? new(balances.orchardBalance.Value, balances.verifiedOrchardBalance!.Value, balances.unverifiedOrchardBalance!.Value, balances.spendableOrchardBalance!.Value) : null)
+		{
+		}
+	}
+
+	/// <summary>
 	/// Carries details of a progress update on a send operation.
 	/// </summary>
 	/// <param name="Id">An id for the operation.</param>
@@ -519,50 +569,6 @@ public class LightWalletClient : IDisposable
 
 				return this.Spent - this.Received - this.Sends.Sum(s => s.Amount);
 			}
-		}
-	}
-
-	/// <summary>
-	/// The balances that apply to a single shielded pool.
-	/// </summary>
-	/// <param name="Balance">The pool balance.</param>
-	/// <param name="VerifiedBalance">The verified balance.</param>
-	/// <param name="UnverifiedBalance">The unverified balance.</param>
-	/// <param name="SpendableBalance">The spendable balance.</param>
-	public record ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> class
-		/// with balances given in ZATs.
-		/// </summary>
-		/// <param name="balance"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='Balance']"/></param>
-		/// <param name="verified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='VerifiedBalance']"/></param>
-		/// <param name="unverified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='UnverifiedBalance']"/></param>
-		/// <param name="spendable"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='SpendableBalance']"/></param>
-		public ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable)
-			: this(ZatsToZEC(balance), ZatsToZEC(verified), ZatsToZEC(unverified), ZatsToZEC(spendable))
-		{
-		}
-	}
-
-	/// <summary>
-	/// The balance across all pools for a Zcash account.
-	/// </summary>
-	/// <param name="TransparentBalance">The transparent balance, in ZEC.</param>
-	/// <param name="Sapling">The sapling balance.</param>
-	/// <param name="Orchard">The orchard balance.</param>
-	public record PoolBalances(decimal? TransparentBalance, ShieldedPoolBalance? Sapling, ShieldedPoolBalance? Orchard)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="PoolBalances"/> class.
-		/// </summary>
-		/// <param name="balances">The balances as they come from the interop layer.</param>
-		internal PoolBalances(uniffi.LightWallet.PoolBalances balances)
-			: this(
-				Requires.NotNull(balances).transparentBalance.HasValue ? ZatsToZEC(balances.transparentBalance!.Value) : null,
-				balances.saplingBalance.HasValue ? new(balances.saplingBalance.Value, balances.verifiedSaplingBalance!.Value, balances.unverifiedSaplingBalance!.Value, balances.spendableSaplingBalance!.Value) : null,
-				balances.orchardBalance.HasValue ? new(balances.orchardBalance.Value, balances.verifiedOrchardBalance!.Value, balances.unverifiedOrchardBalance!.Value, balances.spendableOrchardBalance!.Value) : null)
-		{
 		}
 	}
 
