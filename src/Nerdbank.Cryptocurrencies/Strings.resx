@@ -129,6 +129,9 @@
   <data name="DecodeInputTooShort" xml:space="preserve">
     <value>The input length is shorter than the minimum required for this encoding.</value>
   </data>
+  <data name="HistoricalPricesNotAvailable" xml:space="preserve">
+    <value>Historical prices are not available from this exchange.</value>
+  </data>
   <data name="HumanReadablePartRequired" xml:space="preserve">
     <value>An empty human-readable part is not allowed.</value>
   </data>
@@ -153,8 +156,17 @@
   <data name="MustBeNonZeroMultipleOf32" xml:space="preserve">
     <value>This number must be a non-zero multiple of 32.</value>
   </data>
+  <data name="SecurityMismatch" xml:space="preserve">
+    <value>This operation requires all inputs to be of the same security type.</value>
+  </data>
   <data name="TargetBufferTooSmall" xml:space="preserve">
     <value>Target buffer is not large enough to hold the decoded payload.</value>
+  </data>
+  <data name="TradingPairNotSupported" xml:space="preserve">
+    <value>This exchange does not offer this trading pair.</value>
+  </data>
+  <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
+    <value>The basis and trade interest must be different.</value>
   </data>
   <data name="VeryUnlikelyInvalidChildKey" xml:space="preserve">
     <value>This derived key is invalid for a statistically highly improbable reason. Please skip to the next child number.</value>
