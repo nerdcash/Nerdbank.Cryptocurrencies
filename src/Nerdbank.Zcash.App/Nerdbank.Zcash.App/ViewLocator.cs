@@ -7,9 +7,13 @@ using Nerdbank.Zcash.App.ViewModels;
 
 namespace Nerdbank.Zcash.App;
 
+/// <summary>
+/// Locates a view for a given view model.
+/// </summary>
 public class ViewLocator : IDataTemplate
 {
-	public Control? Build(object data)
+	/// <inheritdoc/>
+	public Control? Build(object? data)
 	{
 		if (data is null)
 		{
@@ -27,6 +31,7 @@ public class ViewLocator : IDataTemplate
 		return new TextBlock { Text = name };
 	}
 
+	/// <inheritdoc/>
 	public bool Match(object? data)
 	{
 		return data is ViewModelBase;

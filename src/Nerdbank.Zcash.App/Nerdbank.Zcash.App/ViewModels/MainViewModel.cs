@@ -5,5 +5,5 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-	public string Greeting => "Welcome to Avalonia!";
+	public string Greeting => Strings.AppGreeting;
 }

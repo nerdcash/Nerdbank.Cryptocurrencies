@@ -1,0 +1,7 @@
+[*.cs]
+
+# Missing documentation on publicly visible types and members.
+dotnet_diagnostic.CS1591.severity = silent
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = silent
