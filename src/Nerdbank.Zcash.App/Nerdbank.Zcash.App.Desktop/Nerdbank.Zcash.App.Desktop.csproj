@@ -5,6 +5,7 @@
     One for Windows with net7.0-windows TFM, one for MacOS with net7.0-macos and one with net7.0 TFM for Linux.-->
     <TargetFramework>net7.0</TargetFramework>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <Platforms>x64;ARM64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,4 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Zcash.App\Nerdbank.Zcash.App.csproj" />
   </ItemGroup>
+
+  <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
 </Project>
