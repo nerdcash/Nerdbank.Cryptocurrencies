@@ -23,6 +23,10 @@ if ($Release) {
 Push-Location $PSScriptRoot
 
 if (!$env:CI) {
+    if (!(Test-Path Cargo.toml)) {
+        # We have to have *some* Cargo.toml in the root directory, so we'll copy the one for the "others" target.
+        Copy-Item cargoTomlTargets/others/* -Force
+    }
     .\generate_cs_bindings.ps1
 }
 
