@@ -6,6 +6,10 @@ root = true
 [*]
 indent_style = tab
 
+[*.axaml]
+indent_style = space
+indent_size = 2
+
 # (Please don't specify an indent_size here; that has too many unintended consequences.)
 
 [*.yml]

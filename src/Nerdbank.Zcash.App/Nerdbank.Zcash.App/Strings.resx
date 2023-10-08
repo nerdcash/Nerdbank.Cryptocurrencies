@@ -123,4 +123,16 @@
   <data name="AppTitle" xml:space="preserve">
     <value>eZCash</value>
   </data>
+  <data name="ImportWalletButtonText" xml:space="preserve">
+    <value>Import an existing wallet</value>
+  </data>
+  <data name="ImportWalletExplanation" xml:space="preserve">
+    <value>Choose this if you have a seed phrase (typically 12 or 24 words) that you've saved from another wallet.</value>
+  </data>
+  <data name="StartNewWalletButtonText" xml:space="preserve">
+    <value>Create a new wallet</value>
+  </data>
+  <data name="StartNewWalletExplanation" xml:space="preserve">
+    <value>Choose this if you've never used a Zcash wallet before.</value>
+  </data>
 </root>

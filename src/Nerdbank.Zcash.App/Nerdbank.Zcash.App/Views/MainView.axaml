@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.MainView"
              x:DataType="vm:MainViewModel">
   <Design.DataContext>
@@ -12,5 +12,27 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  <StackPanel Margin="10" Spacing="15">
+    <StackPanel.Styles>
+      <Style Selector="Button">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+      </Style>
+      <Style Selector="TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap" />
+      </Style>
+      <Style Selector="StackPanel.ButtonAndExplanation">
+        <Setter Property="Background" Value="LightCyan" />
+      </Style>
+    </StackPanel.Styles>
+    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
+    <StackPanel Classes="ButtonAndExplanation">
+      <Button Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" />
+      <TextBlock Text="{Binding StartNewWalletExplanation}" />
+    </StackPanel>
+    <StackPanel Classes="ButtonAndExplanation">
+      <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
+      <TextBlock Text="{Binding ImportWalletExplanation}" />
+    </StackPanel>
+  </StackPanel>
 </UserControl>
