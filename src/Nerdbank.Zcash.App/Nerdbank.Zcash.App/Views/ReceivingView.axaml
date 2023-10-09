@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.ReceivingView"
+             x:DataType="vm:ReceivingViewModel">
+  <Design.DataContext>
+    <vm:ReceivingViewModel />
+  </Design.DataContext>
+  <Grid>
+    <Grid.Styles>
+      <Style Selector="TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap" />
+      </Style>
+    </Grid.Styles>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="10" />
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="auto" />
+    </Grid.RowDefinitions>
+    <TextBlock FontSize="18" Text="{Binding Title}" />
+    <WrapPanel Grid.Row="1">
+      <Label Content="{Binding ReceiverIdentityLabel}" />
+      <TextBox Text="{Binding ReceiverIdentity}" Width="250" />
+    </WrapPanel>
+    <Image Source="{Binding QrCode}" Margin="0,10,0,10" Grid.Row="2" />
+    <TextBlock Text="{Binding Address}" HorizontalAlignment="Center" Grid.Row="3" />
+    <StackPanel Grid.Row="5">
+      <TextBlock Text="{Binding Explanation}" HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding PaymentReceivedText}" HorizontalAlignment="Center" Margin="0,10" />
+      <Button Content="{Binding AddPaymentRequestCaption}" Command="{Binding AddPaymentRequestCommand}" HorizontalAlignment="Center" IsVisible="{Binding AddPaymentRequestVisible}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

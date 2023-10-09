@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.SendingView"
+             x:DataType="vm:SendingViewModel">
+  <Design.DataContext>
+    <vm:SendingViewModel />
+  </Design.DataContext>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="auto" />
+    </Grid.RowDefinitions>
+    <!-- TODO: this should be in a repeater control of some sort,
+         so we can allow multiple recipients to be either manually entered
+         or automatically initialized based on scanning a multi-pay payment request.-->
+    <TextBlock FontSize="18" Text="{Binding Title}" />
+    <ScrollViewer Grid.Row="1">
+      <StackPanel>
+        <Button Content="{Binding ScanCommandCaption}" HorizontalAlignment="Center" />
+        <WrapPanel>
+          <!-- Offer address book picker. -->
+          <Label Content="{Binding RecipientAddressCaption}" />
+          <TextBox Text="{Binding RecipientAddress}" Width="250" />
+        </WrapPanel>
+        <WrapPanel>
+          <Label Content="{Binding AmountCaption}" />
+          <StackPanel Orientation="Horizontal">
+            <TextBox Text="{Binding Amount}" Width="100" />
+            <TextBlock Text="{Binding TickerSymbol}" />
+          </StackPanel>
+        </WrapPanel>
+        <WrapPanel>
+          <Label Content="{Binding MemoCaption}" Target="{Binding #MemoTextBox}" />
+          <TextBox Name="MemoTextBox" Text="{Binding Memo}" MaxLength="512" Width="200" />
+        </WrapPanel>
+      </StackPanel>
+    </ScrollViewer>
+    <Grid Grid.Row="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="auto" />
+      </Grid.ColumnDefinitions>
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto" />
+          <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Margin" Value="2" />
+          </Style>
+          <Style Selector="TextBlock.Amount">
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+          </Style>
+        </Grid.Styles>
+        <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" />
+        <TextBlock Classes="Amount" Text="{Binding SubtotalFormatted}" Grid.Column="1" Grid.Row="0" />
+        <TextBlock Text="{Binding FeeCaption}" Grid.Row="1" />
+        <TextBlock Classes="Amount" Text="{Binding FeeFormatted}" Grid.Column="1" Grid.Row="1" />
+        <TextBlock Text="{Binding TotalCaption}" Grid.Row="2" />
+        <TextBlock Classes="Amount" Text="{Binding TotalFormatted}" Grid.Column="1" Grid.Row="2" />
+      </Grid>
+      <Button Grid.Column="1" Content="{Binding SendCommandCaption}" Command="{Binding SendCommand}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
+    </Grid>
+  </Grid>
+</UserControl>

@@ -12,11 +12,12 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <StackPanel Margin="10" Spacing="15">
+  <StackPanel Spacing="15">
     <StackPanel.Styles>
       <Style Selector="Button">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Margin" Value="8" />
       </Style>
       <Style Selector="TextBlock">
         <Setter Property="TextWrapping" Value="Wrap" />
@@ -26,6 +27,7 @@
       </Style>
     </StackPanel.Styles>
     <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
+    <Image Source="{Binding ZcashLogo}" HorizontalAlignment="Center" Height="100" />
     <StackPanel Classes="ButtonAndExplanation">
       <Button Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" />
       <TextBlock Text="{Binding StartNewWalletExplanation}" />

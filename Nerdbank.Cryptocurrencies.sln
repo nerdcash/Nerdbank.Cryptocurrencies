@@ -55,6 +55,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nerdbank.Zcash.App", "Nerdbank.Zcash.App", "{60403FE5-ED42-481F-A229-C96D398F7680}"
 	ProjectSection(SolutionItems) = preProject
 		src\Nerdbank.Zcash.App\.editorconfig = src\Nerdbank.Zcash.App\.editorconfig
+		src\Nerdbank.Zcash.App\Directory.Build.props = src\Nerdbank.Zcash.App\Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.App.Android", "src\Nerdbank.Zcash.App\Nerdbank.Zcash.App.Android\Nerdbank.Zcash.App.Android.csproj", "{572F88D2-4973-4A0E-A954-27D8831793D1}"
