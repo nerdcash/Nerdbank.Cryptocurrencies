@@ -26,15 +26,17 @@
         <Setter Property="Background" Value="LightCyan" />
       </Style>
     </StackPanel.Styles>
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
-    <Image Source="{Binding ZcashLogo}" HorizontalAlignment="Center" Height="100" />
     <StackPanel Classes="ButtonAndExplanation">
-      <Button Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" />
-      <TextBlock Text="{Binding StartNewWalletExplanation}" />
+      <Button Command="{Binding ReceiveCommand}" Content="{Binding ReceiveCommandCaption}" />
+      <TextBlock Text="{Binding ReceiveExplanation}" />
     </StackPanel>
     <StackPanel Classes="ButtonAndExplanation">
-      <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
-      <TextBlock Text="{Binding ImportWalletExplanation}" />
+      <Button Command="{Binding SendCommand}" Content="{Binding SendCommandCaption}" />
+      <TextBlock Text="{Binding SendExplanation}" />
+    </StackPanel>
+    <StackPanel Classes="ButtonAndExplanation">
+      <Button Command="{Binding BalanceCommand}" Content="{Binding BalanceCommandCaption}" />
+      <TextBlock Text="{Binding BalanceExplanation}" />
     </StackPanel>
   </StackPanel>
 </UserControl>

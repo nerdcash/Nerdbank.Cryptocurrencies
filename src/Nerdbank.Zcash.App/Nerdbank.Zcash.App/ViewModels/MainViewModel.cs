@@ -1,39 +1,32 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Avalonia.Media.Imaging;
-using Nerdbank.Cryptocurrencies;
-
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
 	public MainViewModel()
 	{
-		this.StartNewWalletCommand = ReactiveCommand.Create(this.CreateNewAccount);
-		this.ImportWalletCommand = ReactiveCommand.Create(() => { });
+		this.ReceiveCommand = ReactiveCommand.Create(() => { });
+		this.SendCommand = ReactiveCommand.Create(() => { });
+		this.BalanceCommand = ReactiveCommand.Create(() => { });
 	}
 
-	public string Greeting => Strings.AppGreeting;
+	public string ReceiveCommandCaption => "Receive";
 
-	public Bitmap ZcashLogo => Resources.ZcashLogo;
+	public ReactiveCommand<Unit, Unit> ReceiveCommand { get; }
 
-	public string StartNewWalletButtonText => Strings.StartNewWalletButtonText;
+	public string ReceiveExplanation => "Help someone send you Zcash by sharing your address with them.";
 
-	public string StartNewWalletExplanation => Strings.StartNewWalletExplanation;
+	public string SendCommandCaption => "Send";
 
-	public string ImportWalletButtonText => Strings.ImportWalletButtonText;
+	public ReactiveCommand<Unit, Unit> SendCommand { get; }
 
-	public string ImportWalletExplanation => Strings.ImportWalletExplanation;
+	public string SendExplanation => "Send someone Zcash.";
 
-	public ReactiveCommand<Unit, Unit> StartNewWalletCommand { get; }
+	public string BalanceCommandCaption => "Balance";
 
-	public ReactiveCommand<Unit, Unit> ImportWalletCommand { get; }
+	public ReactiveCommand<Unit, Unit> BalanceCommand { get; }
 
-	private void CreateNewAccount()
-	{
-		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(128);
-		Zip32HDWallet zip32 = new(mnemonic);
-		ZcashAccount account = new(zip32);
-	}
+	public string BalanceExplanation => "Check your balance.";
 }
