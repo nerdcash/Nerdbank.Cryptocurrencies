@@ -27,11 +27,15 @@ public class TransactionHistoryViewModel : ViewModelBase
 
 	public string WhenColumnHeader => "When";
 
-	public string AmountColumnHeader => "Amount";
+	public string AmountColumnHeader => this.Network.GetTickerName();
+
+	public string FiatAmountColumnHeader => "USD";
 
 	public string OtherPartyNameColumnHeader => "Name";
 
 	public string MemoColumnHeader => "Memo";
+
+	public string RunningBalanceColumnHeader => "Balance";
 
 	public TransactionViewModel? SelectedTransaction
 	{

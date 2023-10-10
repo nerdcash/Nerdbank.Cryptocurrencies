@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Globalization;
+
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class TransactionViewModel : ViewModelBase
@@ -8,10 +10,12 @@ public class TransactionViewModel : ViewModelBase
 	private uint? blockNumber;
 	private DateTimeOffset? when = DateTimeOffset.Now;
 	private string otherPartyName = string.Empty;
+	private decimal runningBalance;
 
 	public TransactionViewModel()
 	{
 		this.LinkProperty(nameof(this.When), nameof(this.WhenFormatted));
+		this.LinkProperty(nameof(this.RunningBalance), nameof(this.RunningBalanceFormatted));
 	}
 
 	public uint? BlockNumber
@@ -40,6 +44,18 @@ public class TransactionViewModel : ViewModelBase
 
 	public required decimal Amount { get; init; }
 
+	public decimal FiatAmount => this.Amount * 30;
+
+	public string FiatAmountFormatted
+	{
+		get
+		{
+			NumberFormatInfo customFormat = (NumberFormatInfo)CultureInfo.CurrentCulture.NumberFormat.Clone();
+			customFormat.CurrencyNegativePattern = 1; // Change negative sign pattern to negative sign (-10)
+			return this.FiatAmount.ToString("C", customFormat);
+		}
+	}
+
 	public ZcashAmountFormatted AmountFormatted => new(this.Amount, this.Network);
 
 	public string AmountCaption => "Amount";
@@ -59,4 +75,12 @@ public class TransactionViewModel : ViewModelBase
 	public string MemoCaption => "Memo";
 
 	public required bool IsIncoming { get; init; }
+
+	public decimal RunningBalance
+	{
+		get => this.runningBalance;
+		set => this.RaiseAndSetIfChanged(ref this.runningBalance, value);
+	}
+
+	public ZcashAmountFormatted RunningBalanceFormatted => new(this.RunningBalance, this.Network);
 }
