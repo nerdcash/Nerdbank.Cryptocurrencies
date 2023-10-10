@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
              mc:Ignorable="d" d:DesignWidth="150" d:DesignHeight="30"
              x:Class="Nerdbank.Zcash.App.Views.DecimalDisplay"
              x:DataType="vm:ZcashAmountFormatted">
@@ -19,6 +20,6 @@
     <TextBlock Text="{Binding DarkText}" Foreground="Black" />
     <TextBlock Text="{Binding LightText}" Foreground="LightGray" />
     <TextBlock Text=" " Foreground="Gray" />
-    <TextBlock Text="{Binding Units}" Foreground="Black" />
+    <TextBlock Text="{Binding Units}" Foreground="Black" IsVisible="{Binding Path=IsUnitsVisible, RelativeSource={RelativeSource AncestorType={x:Type local:DecimalDisplay}}}" />
   </StackPanel>
 </UserControl>

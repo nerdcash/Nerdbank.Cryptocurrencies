@@ -37,7 +37,7 @@
         </WrapPanel>
         <WrapPanel>
           <Label Content="{Binding MemoCaption}" Target="{Binding #MemoTextBox}" />
-          <TextBox Name="MemoTextBox" Text="{Binding Memo}" MaxLength="512" Width="200" />
+          <TextBox Name="MemoTextBox" Text="{Binding Memo}" MaxLength="512" Width="250" Height="70" AcceptsReturn="True" TextWrapping="Wrap" />
         </WrapPanel>
       </StackPanel>
     </ScrollViewer>

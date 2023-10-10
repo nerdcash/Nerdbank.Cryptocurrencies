@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.TransactionHistoryView"
+             x:DataType="vm:TransactionHistoryViewModel">
+  <Design.DataContext>
+    <vm:TransactionHistoryViewModel />
+  </Design.DataContext>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="auto" />
+    </Grid.RowDefinitions>
+    <TextBlock Text="{Binding Title}" FontSize="18" />
+    <DataGrid ItemsSource="{Binding Transactions}"
+              SelectedItem="{Binding SelectedTransaction}"
+              IsReadOnly="True"
+              Grid.Row="1"
+              Background="AliceBlue">
+      <DataGrid.Columns>
+        <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <local:DecimalDisplay DataContext="{Binding AmountFormatted}" IsUnitsVisible="False" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="{Binding OtherPartyNameColumnHeader}" Binding="{Binding OtherPartyName}" />
+        <DataGridTextColumn Header="{Binding MemoColumnHeader}" Binding="{Binding Memo}" />
+        <DataGridTextColumn Header="{Binding WhenColumnHeader}" Binding="{Binding WhenFormatted}" />
+      </DataGrid.Columns>
+    </DataGrid>
+    <StackPanel Grid.Row="2" IsVisible="{Binding IsTransactionDetailsVisible}">
+      <ScrollViewer DataContext="{Binding SelectedTransaction}"
+                    MaxHeight="200"
+                    x:DataType="vm:TransactionViewModel">
+        <StackPanel>
+          <StackPanel.Styles>
+            <Style Selector="TextBox">
+              <Setter Property="IsReadOnly" Value="True" />
+            </Style>
+          </StackPanel.Styles>
+          <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" />
+          <TextBox Text="{Binding TransactionId}" Name="TransactionIdBox" />
+          <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" />
+          <TextBox Text="{Binding BlockNumber}" Name="BlockNumberBox" />
+          <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" />
+          <TextBox Text="{Binding When}" Name="WhenBox" />
+          <Label Content="{Binding OtherPartyNameCaption}" Target="{Binding #OtherPartyNameBox}" />
+          <TextBox Text="{Binding OtherPartyName}" Name="OtherPartyNameBox" />
+          <Label Content="{Binding AmountCaption}" Target="{Binding #AmountBox}" />
+          <local:DecimalDisplay DataContext="{Binding AmountFormatted}" Name="AmountBox" HorizontalAlignment="Left" />
+          <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" />
+          <TextBox Text="{Binding Memo}" Name="MemoBox" Height="70" />
+        </StackPanel>
+      </ScrollViewer>
+    </StackPanel>
+  </Grid>
+</UserControl>
