@@ -22,5 +22,12 @@
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="Margin" Value="8" />
     </Style>
+    <Style Selector="Grid.SumTable TextBlock">
+      <Setter Property="Margin" Value="2" />
+    </Style>
+    <Style Selector="Grid.SumTable TextBlock.Amount">
+      <Setter Property="FontFamily" Value="Consolas" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
   </Application.Styles>
 </Application>

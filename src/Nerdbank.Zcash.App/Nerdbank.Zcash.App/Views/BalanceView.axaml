@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.BalanceView"
+             x:DataType="vm:BalanceViewModel">
+  <Design.DataContext>
+    <vm:BalanceViewModel />
+  </Design.DataContext>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" />
+    <StackPanel VerticalAlignment="Center" Grid.Row="1">
+      <StackPanel Grid.ColumnSpan="2">
+        <StackPanel.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+          </Style>
+        </StackPanel.Styles>
+        <TextBlock Text="{Binding BalanceCaption}" />
+        <local:DecimalDisplay DataContext="{Binding BalanceFormatted}" FontWeight="Bold" HorizontalAlignment="Center" />
+      </StackPanel>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto" />
+          <ColumnDefinition Width="10" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition />
+          <RowDefinition />
+          <RowDefinition />
+        </Grid.RowDefinitions>
+        <local:DecimalDisplay DataContext="{Binding SpendableBalanceFormatted}" />
+        <StackPanel Grid.Column="2">
+          <TextBlock Text="{Binding SpendableBalanceCaption}" />
+          <TextBlock Text="{Binding SpendableBalanceExplanation}" />
+        </StackPanel>
+        <local:DecimalDisplay DataContext="{Binding UnspendableChangeFormatted}" Grid.Row="1" />
+        <StackPanel Grid.Row="1" Grid.Column="2">
+          <TextBlock Text="{Binding UnspendableChangeCaption}" />
+          <TextBlock Text="{Binding UnspendableChangeExplanation}" />
+        </StackPanel>
+        <local:DecimalDisplay DataContext="{Binding ImmatureIncomeFormatted}" Grid.Row="2" />
+        <StackPanel IsVisible="{Binding IsImmatureIncomeVisible}" Background="LightYellow" Grid.Row="2" Grid.Column="2">
+          <TextBlock Text="{Binding ImmatureIncomeCaption}" />
+          <TextBlock Text="{Binding ImmatureIncomeExplanation}" />
+        </StackPanel>
+        <Rectangle Grid.Row="1" Grid.ColumnSpan="3" Fill="Black" Height="1" VerticalAlignment="Top" />
+        <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="Black" Height="1" VerticalAlignment="Top" />
+        <Rectangle Grid.Row="3" Grid.ColumnSpan="3" Fill="Black" Height="1" VerticalAlignment="Top" />
+      </Grid>
+      <StackPanel IsVisible="{Binding IsUnconfirmedIncomeVisible}" Background="LightPink">
+        <TextBlock Text="{Binding UnconfirmedIncomeCaption}" />
+        <local:DecimalDisplay DataContext="{Binding UnconfirmedIncomeFormatted}" FontWeight="Bold" HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding UnconfirmedIncomeExplanation}" />
+      </StackPanel>
+    </StackPanel>
+  </Grid>
+</UserControl>

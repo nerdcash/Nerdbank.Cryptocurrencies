@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.SendingView"
              x:DataType="vm:SendingViewModel">
@@ -53,23 +54,15 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto" />
+          <ColumnDefinition Width="10" />
           <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
-        <Grid.Styles>
-          <Style Selector="TextBlock">
-            <Setter Property="Margin" Value="2" />
-          </Style>
-          <Style Selector="TextBlock.Amount">
-            <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="HorizontalAlignment" Value="Right" />
-          </Style>
-        </Grid.Styles>
         <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" />
-        <TextBlock Classes="Amount" Text="{Binding SubtotalFormatted}" Grid.Column="1" Grid.Row="0" />
+        <local:DecimalDisplay DataContext="{Binding SubtotalFormatted}" Grid.Column="2" Grid.Row="0" />
         <TextBlock Text="{Binding FeeCaption}" Grid.Row="1" />
-        <TextBlock Classes="Amount" Text="{Binding FeeFormatted}" Grid.Column="1" Grid.Row="1" />
+        <local:DecimalDisplay DataContext="{Binding FeeFormatted}" Grid.Column="2" Grid.Row="1" />
         <TextBlock Text="{Binding TotalCaption}" Grid.Row="2" />
-        <TextBlock Classes="Amount" Text="{Binding TotalFormatted}" Grid.Column="1" Grid.Row="2" />
+        <local:DecimalDisplay DataContext="{Binding TotalFormatted}" Grid.Column="2" Grid.Row="2" />
       </Grid>
       <Button Grid.Column="1" Content="{Binding SendCommandCaption}" Command="{Binding SendCommand}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
     </Grid>

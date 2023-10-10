@@ -64,6 +64,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.App.Desktop"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.App.iOS", "src\Nerdbank.Zcash.App\Nerdbank.Zcash.App.iOS\Nerdbank.Zcash.App.iOS.csproj", "{7819857D-B787-4778-8FBA-9B4DF464921E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Zcash.App.Tests", "test\Nerdbank.Zcash.App.Tests\Nerdbank.Zcash.App.Tests.csproj", "{050642D7-A247-4906-80F3-39BB70FEABDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -218,6 +220,18 @@ Global
 		{7819857D-B787-4778-8FBA-9B4DF464921E}.Release|x64.ActiveCfg = Release|Any CPU
 		{7819857D-B787-4778-8FBA-9B4DF464921E}.Release|x64.Build.0 = Release|Any CPU
 		{7819857D-B787-4778-8FBA-9B4DF464921E}.Release|x64.Deploy.0 = Release|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Debug|x64.Build.0 = Debug|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|ARM64.Build.0 = Release|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|x64.ActiveCfg = Release|Any CPU
+		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -238,6 +252,7 @@ Global
 		{572F88D2-4973-4A0E-A954-27D8831793D1} = {60403FE5-ED42-481F-A229-C96D398F7680}
 		{1AF0F605-D573-4312-B27B-6602486D1E26} = {60403FE5-ED42-481F-A229-C96D398F7680}
 		{7819857D-B787-4778-8FBA-9B4DF464921E} = {60403FE5-ED42-481F-A229-C96D398F7680}
+		{050642D7-A247-4906-80F3-39BB70FEABDE} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}

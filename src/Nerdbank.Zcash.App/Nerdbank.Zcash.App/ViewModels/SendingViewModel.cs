@@ -49,19 +49,19 @@ public class SendingViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.fee, value);
 	}
 
-	public string FeeFormatted => this.Fee is null ? string.Empty : $"{this.Fee.Value:F8} {this.Network.GetTickerName()}";
+	public ZcashAmountFormatted FeeFormatted => new(this.Fee ?? 0, this.Network);
 
 	public decimal Subtotal => this.Amount;
 
 	public string SubtotalCaption => "Subtotal";
 
-	public string SubtotalFormatted => $"{this.Subtotal:F8} {this.Network.GetTickerName()}";
+	public ZcashAmountFormatted SubtotalFormatted => new(this.Subtotal, this.Network);
 
 	public string TotalCaption => "Total";
 
 	public decimal Total => this.Amount + (this.Fee ?? 0);
 
-	public string TotalFormatted => $"{this.Total:F8} {this.Network.GetTickerName()}";
+	public ZcashAmountFormatted TotalFormatted => new(this.Total, this.Network);
 
 	public string MemoCaption => "Memo:";
 

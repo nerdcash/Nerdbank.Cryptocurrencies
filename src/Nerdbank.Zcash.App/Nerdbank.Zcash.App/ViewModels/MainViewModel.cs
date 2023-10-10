@@ -3,6 +3,7 @@
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
+// Consider using +, - and = for receive, spend and balance buttons respectively.
 public class MainViewModel : ViewModelBase
 {
 	public MainViewModel()
