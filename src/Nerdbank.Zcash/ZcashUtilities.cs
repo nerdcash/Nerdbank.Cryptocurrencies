@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Cryptocurrencies.Exchanges;
+
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -8,6 +10,8 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public static class ZcashUtilities
 {
+	private static readonly Security ZECTestNet = Security.ZEC with { TickerSymbol = "TAZ", Name = "Zcash (testnet)" };
+
 	/// <summary>
 	/// Gets the ticker symbol to use iven a Zcash network (e.g. ZEC or TAZ).
 	/// </summary>
@@ -20,6 +24,22 @@ public static class ZcashUtilities
 		{
 			ZcashNetwork.MainNet => "ZEC",
 			ZcashNetwork.TestNet => "TAZ",
+			_ => throw new ArgumentException(Strings.FormatUnrecognizedNetwork(network), nameof(network)),
+		};
+	}
+
+	/// <summary>
+	/// Gets the <see cref="Security" /> object for a given Zcash network.
+	/// </summary>
+	/// <param name="network">The zcash network.</param>
+	/// <returns>A <see cref="Security"/> value.</returns>
+	/// <exception cref="ArgumentException">Thrown if the <paramref name="network"/> value isn't recognized.</exception>
+	public static Security AsSecurity(this ZcashNetwork network)
+	{
+		return network switch
+		{
+			ZcashNetwork.MainNet => Security.ZEC,
+			ZcashNetwork.TestNet => ZECTestNet,
 			_ => throw new ArgumentException(Strings.FormatUnrecognizedNetwork(network), nameof(network)),
 		};
 	}
