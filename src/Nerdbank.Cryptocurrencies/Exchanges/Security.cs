@@ -28,7 +28,7 @@ public record Security(string TickerSymbol, string? Name = null, int Precision =
 	public static readonly Security BAT = new("BAT", "Basic Attention Token");
 	public static readonly Security BBS = new("BBS", "BBSCoin");
 	public static readonly Security BCH = new("BCH", "Bitcoin Cash");
-	public static readonly Security BCHA = new("BCHA", " Bitcoin Cash ABC");
+	public static readonly Security BCHA = new("BCHA", "Bitcoin Cash ABC");
 	public static readonly Security BCN = new("BCN", "Bytecoin");
 	public static readonly Security BEAM = new("BEAM", "Beam");
 	public static readonly Security BITC = new("BITC", "BitCash");
@@ -159,7 +159,7 @@ public record Security(string TickerSymbol, string? Name = null, int Precision =
 	public static readonly Security XWP = new("XWP", "Swap");
 	public static readonly Security ZANO = new("ZANO", "Zano");
 	public static readonly Security ZEC = new("ZEC", "Zcash", 8);
-	public static readonly Security ZEN = new("ZEN", " Horizen");
+	public static readonly Security ZEN = new("ZEN", "Horizen");
 	public static readonly Security ZIL = new("ZIL", "Zilliqa");
 	public static readonly Security ZRX = new("ZRX", "0x");
 #pragma warning restore CS1591, SA1600
