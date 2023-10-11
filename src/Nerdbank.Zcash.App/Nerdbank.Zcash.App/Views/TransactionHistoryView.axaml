@@ -26,7 +26,7 @@
         <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:DecimalDisplay DataContext="{Binding AmountFormatted}" IsUnitsVisible="False" />
+              <local:SecurityAmountDisplay Value="{Binding Amount}" IsUnitsVisible="False" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -43,7 +43,7 @@
         <DataGridTemplateColumn Header="{Binding RunningBalanceColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:DecimalDisplay DataContext="{Binding RunningBalanceFormatted}" IsUnitsVisible="False" />
+              <local:SecurityAmountDisplay Value="{Binding RunningBalance}" IsUnitsVisible="False" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -89,7 +89,7 @@
           <Label Content="{Binding OtherPartyNameCaption}" Target="{Binding #OtherPartyNameBox}" />
           <TextBox Text="{Binding OtherPartyName}" Name="OtherPartyNameBox" />
           <Label Content="{Binding AmountCaption}" Target="{Binding #AmountBox}" />
-          <local:DecimalDisplay DataContext="{Binding AmountFormatted}" Name="AmountBox" HorizontalAlignment="Left" />
+          <local:SecurityAmountDisplay Value="{Binding Amount}" Name="AmountBox" HorizontalAlignment="Left" />
           <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" />
           <TextBox Text="{Binding Memo}" Name="MemoBox" Height="70" />
         </StackPanel>

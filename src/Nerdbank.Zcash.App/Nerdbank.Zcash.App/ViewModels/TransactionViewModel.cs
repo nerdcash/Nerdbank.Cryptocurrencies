@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Globalization;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -10,13 +11,12 @@ public class TransactionViewModel : ViewModelBase
 	private uint? blockNumber = 2_200_235;
 	private DateTimeOffset? when = DateTimeOffset.Now;
 	private string otherPartyName = string.Empty;
-	private decimal runningBalance;
+	private SecurityAmount runningBalance;
 	private string mutableMemo = string.Empty;
 
 	public TransactionViewModel()
 	{
 		this.LinkProperty(nameof(this.When), nameof(this.WhenFormatted));
-		this.LinkProperty(nameof(this.RunningBalance), nameof(this.RunningBalanceFormatted));
 	}
 
 	public uint? BlockNumber
@@ -43,9 +43,9 @@ public class TransactionViewModel : ViewModelBase
 
 	public string WhenCaption => "When";
 
-	public required decimal Amount { get; init; }
+	public required SecurityAmount Amount { get; init; }
 
-	public decimal FiatAmount => this.Amount * 30;
+	public decimal FiatAmount => this.Amount.Amount * 30;
 
 	public string FiatAmountFormatted
 	{
@@ -56,8 +56,6 @@ public class TransactionViewModel : ViewModelBase
 			return this.FiatAmount.ToString("C", customFormat);
 		}
 	}
-
-	public ZcashAmountFormatted AmountFormatted => new(this.Amount, this.Network);
 
 	public string AmountCaption => "Amount";
 
@@ -85,11 +83,9 @@ public class TransactionViewModel : ViewModelBase
 
 	public required bool IsIncoming { get; init; }
 
-	public decimal RunningBalance
+	public SecurityAmount RunningBalance
 	{
 		get => this.runningBalance;
 		set => this.RaiseAndSetIfChanged(ref this.runningBalance, value);
 	}
-
-	public ZcashAmountFormatted RunningBalanceFormatted => new(this.RunningBalance, this.Network);
 }

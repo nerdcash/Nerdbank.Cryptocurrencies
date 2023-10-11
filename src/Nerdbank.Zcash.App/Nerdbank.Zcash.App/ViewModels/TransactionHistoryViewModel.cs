@@ -3,6 +3,7 @@
 
 using System.Collections.ObjectModel;
 using DynamicData;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -16,9 +17,11 @@ public class TransactionHistoryViewModel : ViewModelBase
 		this.CommonConstruction();
 		this.Transactions.AddRange(new TransactionViewModel[]
 		{
-			new() { Amount = 1.2345m, IsIncoming = true, OtherPartyName = "Andrew Arnott", Memo = "For the pizza", TransactionId = "12345abc" },
-			new() { Amount = -0.5m, IsIncoming = false, OtherPartyName = "Red Rock Cafe", Memo = "Hot Chocolate", TransactionId = "1e62b7" },
+			new() { Amount = ZEC(1.2345m), IsIncoming = true, OtherPartyName = "Andrew Arnott", Memo = "For the pizza", TransactionId = "12345abc" },
+			new() { Amount = ZEC(-0.5m), IsIncoming = false, OtherPartyName = "Red Rock Cafe", Memo = "Hot Chocolate", TransactionId = "1e62b7" },
 		});
+
+		SecurityAmount ZEC(decimal amount) => new(amount, this.ZcashSecurity);
 	}
 
 	public string Title => "Transaction History";

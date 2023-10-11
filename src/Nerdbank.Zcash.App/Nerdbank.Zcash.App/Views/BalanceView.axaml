@@ -17,16 +17,22 @@
     </Grid.RowDefinitions>
     <local:SyncHeaderControl DataContext="{Binding SyncProgress}" />
     <StackPanel VerticalAlignment="Center" Grid.Row="1">
-      <StackPanel Grid.ColumnSpan="2">
+      <StackPanel.Styles>
+        <Style Selector="TextBlock.SubsetName">
+          <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+      </StackPanel.Styles>
+      <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,20">
         <StackPanel.Styles>
           <Style Selector="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="20" />
           </Style>
         </StackPanel.Styles>
         <TextBlock Text="{Binding BalanceCaption}" />
-        <local:DecimalDisplay DataContext="{Binding BalanceFormatted}" FontWeight="Bold" HorizontalAlignment="Center" />
+        <local:SecurityAmountDisplay Value="{Binding Balance}" FontWeight="Bold" HorizontalAlignment="Center" />
       </StackPanel>
-      <Grid>
+      <Grid IsVisible="{Binding IsBalanceBreakdownVisible}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto" />
           <ColumnDefinition Width="10" />
@@ -37,28 +43,28 @@
           <RowDefinition />
           <RowDefinition />
         </Grid.RowDefinitions>
-        <local:DecimalDisplay DataContext="{Binding SpendableBalanceFormatted}" />
+        <local:SecurityAmountDisplay Value="{Binding SpendableBalance}" />
         <StackPanel Grid.Column="2">
-          <TextBlock Text="{Binding SpendableBalanceCaption}" />
+          <TextBlock Text="{Binding SpendableBalanceCaption}" Classes="SubsetName" />
           <TextBlock Text="{Binding SpendableBalanceExplanation}" />
         </StackPanel>
-        <local:DecimalDisplay DataContext="{Binding UnspendableChangeFormatted}" Grid.Row="1" />
-        <StackPanel Grid.Row="1" Grid.Column="2">
-          <TextBlock Text="{Binding UnspendableChangeCaption}" />
+        <local:SecurityAmountDisplay Value="{Binding UnspendableChange}" Grid.Row="1" IsVisible="{Binding IsUnspendableChangeVisible}" />
+        <StackPanel Grid.Row="1" Grid.Column="2" IsVisible="{Binding IsUnspendableChangeVisible}">
+          <TextBlock Text="{Binding UnspendableChangeCaption}" Classes="SubsetName" />
           <TextBlock Text="{Binding UnspendableChangeExplanation}" />
         </StackPanel>
-        <local:DecimalDisplay DataContext="{Binding ImmatureIncomeFormatted}" Grid.Row="2" />
+        <local:SecurityAmountDisplay Value="{Binding ImmatureIncome}" Grid.Row="2" IsVisible="{Binding IsImmatureIncomeVisible}" />
         <StackPanel IsVisible="{Binding IsImmatureIncomeVisible}" Background="LightYellow" Grid.Row="2" Grid.Column="2">
-          <TextBlock Text="{Binding ImmatureIncomeCaption}" />
+          <TextBlock Text="{Binding ImmatureIncomeCaption}" Classes="SubsetName" />
           <TextBlock Text="{Binding ImmatureIncomeExplanation}" />
         </StackPanel>
-        <Rectangle Grid.Row="1" Grid.ColumnSpan="3" Fill="Black" Height="1" VerticalAlignment="Top" />
-        <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="Black" Height="1" VerticalAlignment="Top" />
-        <Rectangle Grid.Row="3" Grid.ColumnSpan="3" Fill="Black" Height="1" VerticalAlignment="Top" />
+        <Rectangle Grid.Row="1" Grid.ColumnSpan="3" Fill="LightGray" Height="1" VerticalAlignment="Top" />
+        <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="LightGray" Height="1" VerticalAlignment="Top" />
+        <Rectangle Grid.Row="3" Grid.ColumnSpan="3" Fill="LightGray" Height="1" VerticalAlignment="Top" />
       </Grid>
-      <StackPanel IsVisible="{Binding IsUnconfirmedIncomeVisible}" Background="LightPink">
+      <StackPanel IsVisible="{Binding IsUnconfirmedIncomeVisible}" Background="AntiqueWhite" Margin="0,20,0,0">
         <TextBlock Text="{Binding UnconfirmedIncomeCaption}" />
-        <local:DecimalDisplay DataContext="{Binding UnconfirmedIncomeFormatted}" FontWeight="Bold" HorizontalAlignment="Center" />
+        <local:SecurityAmountDisplay Value="{Binding UnconfirmedIncome}" FontWeight="Bold" HorizontalAlignment="Center" />
         <TextBlock Text="{Binding UnconfirmedIncomeExplanation}" />
       </StackPanel>
     </StackPanel>

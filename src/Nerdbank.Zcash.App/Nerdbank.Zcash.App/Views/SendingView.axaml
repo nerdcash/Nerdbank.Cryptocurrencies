@@ -32,7 +32,7 @@
           <Label Content="{Binding AmountCaption}" />
           <StackPanel Orientation="Horizontal">
             <TextBox Text="{Binding Amount}" Width="100" />
-            <TextBlock Text="{Binding TickerSymbol}" />
+            <TextBlock Text="{Binding TickerSymbol}" VerticalAlignment="Center" />
           </StackPanel>
         </WrapPanel>
         <WrapPanel>
@@ -58,11 +58,11 @@
           <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
         <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" />
-        <local:DecimalDisplay DataContext="{Binding SubtotalFormatted}" Grid.Column="2" Grid.Row="0" />
+        <local:SecurityAmountDisplay Value="{Binding Subtotal}" Grid.Column="2" Grid.Row="0" />
         <TextBlock Text="{Binding FeeCaption}" Grid.Row="1" />
-        <local:DecimalDisplay DataContext="{Binding FeeFormatted}" Grid.Column="2" Grid.Row="1" />
+        <local:SecurityAmountDisplay Value="{Binding Fee}" Grid.Column="2" Grid.Row="1" />
         <TextBlock Text="{Binding TotalCaption}" Grid.Row="2" />
-        <local:DecimalDisplay DataContext="{Binding TotalFormatted}" Grid.Column="2" Grid.Row="2" />
+        <local:SecurityAmountDisplay Value="{Binding Total}" Grid.Column="2" Grid.Row="2" />
       </Grid>
       <Button Grid.Column="1" Content="{Binding SendCommandCaption}" Command="{Binding SendCommand}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
     </Grid>

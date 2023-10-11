@@ -1,24 +1,25 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Cryptocurrencies.Exchanges;
+
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SendingViewModel : ViewModelBase
 {
 	private string recipientAddress = string.Empty;
 	private decimal amount;
-	private decimal? fee = 0.0001m; // for design time simulation
+	private SecurityAmount? fee;
 	private string memo = string.Empty;
 
+	[Obsolete("For design-time use only.", error: true)]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	public SendingViewModel()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	{
-		this.SendCommand = ReactiveCommand.Create(() => { });
-		this.ScanCommand = ReactiveCommand.Create(() => { });
-		this.LinkProperty(nameof(this.Fee), nameof(this.FeeFormatted));
-		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
-		this.LinkProperty(nameof(this.Subtotal), nameof(this.SubtotalFormatted));
-		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
-		this.LinkProperty(nameof(this.Fee), nameof(this.Total));
+		this.CommonConstruction();
+
+		this.fee = new(0.0001m, this.ZcashSecurity);
 	}
 
 	public string Title => "Send Zcash";
@@ -43,25 +44,19 @@ public class SendingViewModel : ViewModelBase
 
 	public string FeeCaption => "Fee";
 
-	public decimal? Fee
+	public SecurityAmount? Fee
 	{
 		get => this.fee;
 		set => this.RaiseAndSetIfChanged(ref this.fee, value);
 	}
 
-	public ZcashAmountFormatted FeeFormatted => new(this.Fee ?? 0, this.Network);
-
-	public decimal Subtotal => this.Amount;
+	public SecurityAmount Subtotal => new(this.Amount, this.ZcashSecurity);
 
 	public string SubtotalCaption => "Subtotal";
 
-	public ZcashAmountFormatted SubtotalFormatted => new(this.Subtotal, this.Network);
-
 	public string TotalCaption => "Total";
 
-	public decimal Total => this.Amount + (this.Fee ?? 0);
-
-	public ZcashAmountFormatted TotalFormatted => new(this.Total, this.Network);
+	public SecurityAmount Total => new SecurityAmount(this.Amount, this.ZcashSecurity) + (this.Fee ?? default);
 
 	public string MemoCaption => "Memo:";
 
@@ -73,9 +68,18 @@ public class SendingViewModel : ViewModelBase
 
 	public string SendCommandCaption => "📤 Send";
 
-	public ReactiveCommand<Unit, Unit> SendCommand { get; }
+	public ReactiveCommand<Unit, Unit> SendCommand { get; private set; }
 
 	public string ScanCommandCaption => "Scan address or payment request";
 
-	public ReactiveCommand<Unit, Unit> ScanCommand { get; }
+	public ReactiveCommand<Unit, Unit> ScanCommand { get; private set; }
+
+	private void CommonConstruction()
+	{
+		this.SendCommand = ReactiveCommand.Create(() => { });
+		this.ScanCommand = ReactiveCommand.Create(() => { });
+		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
+		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
+		this.LinkProperty(nameof(this.Fee), nameof(this.Total));
+	}
 }
