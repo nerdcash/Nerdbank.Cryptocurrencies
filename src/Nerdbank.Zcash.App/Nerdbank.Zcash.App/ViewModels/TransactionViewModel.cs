@@ -7,10 +7,11 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class TransactionViewModel : ViewModelBase
 {
-	private uint? blockNumber;
+	private uint? blockNumber = 2_200_235;
 	private DateTimeOffset? when = DateTimeOffset.Now;
 	private string otherPartyName = string.Empty;
 	private decimal runningBalance;
+	private string mutableMemo = string.Empty;
 
 	public TransactionViewModel()
 	{
@@ -73,6 +74,14 @@ public class TransactionViewModel : ViewModelBase
 	public string? Memo { get; init; }
 
 	public string MemoCaption => "Memo";
+
+	public string MutableMemoCaption => "Private Memo";
+
+	public string MutableMemo
+	{
+		get => this.mutableMemo;
+		set => this.RaiseAndSetIfChanged(ref this.mutableMemo, value);
+	}
 
 	public required bool IsIncoming { get; init; }
 

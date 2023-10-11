@@ -14,7 +14,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="*"/>
-      <RowDefinition Height="auto" />
+      <!--<RowDefinition Height="auto" />-->
     </Grid.RowDefinitions>
     <TextBlock Text="{Binding Title}" FontSize="18" />
     <DataGrid ItemsSource="{Binding Transactions}"
@@ -48,8 +48,29 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
       </DataGrid.Columns>
+      <DataGrid.RowDetailsTemplate>
+        <DataTemplate x:DataType="vm:TransactionViewModel">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="auto" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" />
+            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1"/>
+            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" VerticalAlignment="Center" Grid.Row="1" />
+            <TextBox Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="1" Grid.Column="1" IsReadOnly="True" />
+            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="2" />
+            <TextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" />
+          </Grid>
+        </DataTemplate>
+      </DataGrid.RowDetailsTemplate>
     </DataGrid>
-    <StackPanel Grid.Row="2" IsVisible="{Binding IsTransactionDetailsVisible}">
+    <!--<StackPanel Grid.Row="2" IsVisible="{Binding IsTransactionDetailsVisible}">
       <ScrollViewer DataContext="{Binding SelectedTransaction}"
                     MaxHeight="200"
                     x:DataType="vm:TransactionViewModel">
@@ -73,6 +94,6 @@
           <TextBox Text="{Binding Memo}" Name="MemoBox" Height="70" />
         </StackPanel>
       </ScrollViewer>
-    </StackPanel>
+    </StackPanel>-->
   </Grid>
 </UserControl>
