@@ -1,9 +1,10 @@
 ﻿## Views to build
 
 - Is this address mine?
-  Takes an address (or scans a QR code) and tells which (if any) account it belongs to.
+  - Takes an address (or scans a QR code) and tells which (if any) account it belongs to.
 - Create/import/switch accounts
-- Backup
+- Export
+  - Produce full and incoming viewing keys
 - About
 
 ## Views to enhance
@@ -21,3 +22,5 @@
 - Address book
   - Validate contact's address.
   - Add QR code scanner for storing contact address.
+- Backup
+  - Offer shamir secret

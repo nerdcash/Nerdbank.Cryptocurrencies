@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.BackupView"
+             x:DataType="vm:BackupViewModel">
+  <Design.DataContext>
+    <vm:BackupViewModel />
+  </Design.DataContext>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <TextBlock Classes="Title" Text="{Binding Title}" />
+    <ScrollViewer IsVisible="{Binding IsRevealed}" Grid.Row="1">
+      <StackPanel>
+        <TextBlock Text="{Binding BackupSeedPhraseImportant}" FontWeight="Bold" />
+        <Label Content="{Binding SeedPhraseCaption}" Target="{Binding #SeedPhraseGrid}" />
+        <DataGrid ItemsSource="{Binding SeedPhraseRows}" HeadersVisibility="None" Name="SeedPhraseGrid">
+          <DataGrid.Columns>
+            <DataGridTextColumn Binding="{Binding Word1}" />
+            <DataGridTextColumn Binding="{Binding Word2}" />
+            <DataGridTextColumn Binding="{Binding Word3}" />
+          </DataGrid.Columns>
+        </DataGrid>
+        <Grid Margin="10">
+          <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+          </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+          <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
+          <TextBlock Text="{Binding Password}" Grid.Column="2" />
+          <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
+          <TextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
+          <TextBlock Text="{Binding MaxAccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
+          <TextBlock Text="{Binding MaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
+        </Grid>
+        <TextBlock Text="{Binding BackupToFileExplanation}" />
+        <Button Command="{Binding BackupCommand}" Content="{Binding BackupCommandCaption}" HorizontalAlignment="Center" />
+      </StackPanel>
+    </ScrollViewer>
+    <Panel IsVisible="{Binding !IsRevealed}" Grid.Row="1">
+      <StackPanel VerticalAlignment="Center">
+        <ItemsControl ItemsSource="{Binding RevealCautions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" Margin="0,0,0,10" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Command="{Binding RevealCommand}" Content="{Binding RevealCommandCaption}"
+                HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </StackPanel>
+    </Panel>
+  </Grid>
+</UserControl>
