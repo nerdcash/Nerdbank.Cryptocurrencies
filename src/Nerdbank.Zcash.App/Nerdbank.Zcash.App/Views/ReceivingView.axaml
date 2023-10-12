@@ -24,7 +24,7 @@
       <RowDefinition Height="auto" />
       <RowDefinition Height="auto" />
     </Grid.RowDefinitions>
-    <TextBlock FontSize="18" Text="{Binding Title}" />
+    <TextBlock Classes="Title" Text="{Binding Title}" />
     <WrapPanel Grid.Row="1">
       <Label Content="{Binding ReceiverIdentityLabel}" />
       <TextBox Text="{Binding ReceiverIdentity}" Width="250" />

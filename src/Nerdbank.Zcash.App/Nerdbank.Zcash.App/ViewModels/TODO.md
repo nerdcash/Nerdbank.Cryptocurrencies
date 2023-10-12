@@ -2,7 +2,6 @@
 
 - Is this address mine?
   Takes an address (or scans a QR code) and tells which (if any) account it belongs to.
-- Address book
 - Create/import/switch accounts
 - Backup
 - About
@@ -19,3 +18,6 @@
 - Receiving
   - Add sync progress control
   - Create payment request
+- Address book
+  - Validate contact's address.
+  - Add QR code scanner for storing contact address.

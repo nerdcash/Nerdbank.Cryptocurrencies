@@ -15,6 +15,9 @@
     <Style Selector="TextBlock">
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <Style Selector="TextBlock.Title">
+      <Setter Property="FontSize" Value="18" />
+    </Style>
     <Style Selector="StackPanel.ButtonAndExplanation">
       <Setter Property="Background" Value="LightCyan" />
     </Style>
