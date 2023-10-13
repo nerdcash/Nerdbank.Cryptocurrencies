@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.MatchAddressView"
+             x:DataType="vm:MatchAddressViewModel">
+  <Design.DataContext>
+    <vm:MatchAddressViewModel />
+  </Design.DataContext>
+  <StackPanel>
+    <TextBlock Text="{Binding Title}" Classes="Title" />
+    <TextBlock Text="{Binding Explanation}" Margin="0,0,0,10" />
+    <Label Content="{Binding AddressCaption}" Target="{Binding #AddressBox}" />
+    <TextBox Name="AddressBox" Text="{Binding Address}" />
+    <Button Command="{Binding MatchAddressCommand}" Content="{Binding MatchAddressCommandCaption}" />
+    <StackPanel IsVisible="{Binding IsAccountMatch}">
+      <TextBlock Text="{Binding MatchedAccountTitle}" />
+      <TextBlock Text="{Binding MatchedAccount.Name}" />
+    </StackPanel>
+    <StackPanel IsVisible="{Binding IsContactMatch}">
+      <TextBlock Text="{Binding MatchedContactTitle}" />
+      <TextBlock Text="{Binding MatchedContact.Name}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

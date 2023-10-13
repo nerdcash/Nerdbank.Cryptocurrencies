@@ -1,7 +1,5 @@
 ﻿## Views to build
 
-- Is this address mine?
-  - Takes an address (or scans a QR code) and tells which (if any) account it belongs to.
 - New account
 
 ## Views to enhance
