@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.AccountsView"
+             x:DataType="vm:AccountsViewModel">
+  <Design.DataContext>
+    <vm:AccountsViewModel />
+  </Design.DataContext>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="auto" />
+    </Grid.RowDefinitions>
+    <TextBlock Classes="Title" Text="{Binding Title}" />
+    <DataGrid Grid.Row="1" ItemsSource="{Binding Accounts}">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="{Binding AccountNameColumnHeader}" Binding="{Binding Name}" />
+        <DataGridTemplateColumn Header="{Binding AccountBalanceColumnHeader}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <local:SecurityAmountDisplay Value="{Binding Balance}" IsUnitsVisible="False" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn>
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Button Command="{Binding SwitchToCommand}" Content="{Binding SwitchToCommandCaption}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+      <DataGrid.RowDetailsTemplate>
+        <DataTemplate x:DataType="vm:AccountViewModel">
+          <StackPanel>
+            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsIndexVisible}">
+              <TextBlock Text="{Binding IndexCaption}" />
+              <TextBlock Text="{Binding Index}" />
+            </StackPanel>
+            <Button Command="{Binding RevealKeysCommand}" Content="{Binding RevealKeysCommandCaption}" />
+            <StackPanel IsVisible="{Binding AreKeysRevealed}">
+              <Label Content="{Binding FullViewingKeyCaption}" Target="{Binding #FullViewingKeyBox}" />
+              <TextBox Name="FullViewingKeyBox" IsReadOnly="True" Text="{Binding FullViewingKey}" HorizontalAlignment="Stretch" />
+              <Label Content="{Binding IncomingViewingKeyCaption}" Target="{Binding #IncomingViewingKeyBox}" />
+              <TextBox Name="IncomingViewingKeyBox" IsReadOnly="True" Text="{Binding IncomingViewingKey}" HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <Button Command="{Binding DeleteCommand}" Content="{Binding DeleteCommandCaption}" />
+          </StackPanel>
+        </DataTemplate>
+      </DataGrid.RowDetailsTemplate>
+    </DataGrid>
+    <Button Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}"
+            Grid.Row="2" HorizontalAlignment="Right" />
+  </Grid>
+</UserControl>

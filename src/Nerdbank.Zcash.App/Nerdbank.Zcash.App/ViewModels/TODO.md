@@ -2,9 +2,7 @@
 
 - Is this address mine?
   - Takes an address (or scans a QR code) and tells which (if any) account it belongs to.
-- Create/import/switch accounts
-- Export
-  - Produce full and incoming viewing keys
+- New account
 - About
 
 ## Views to enhance
