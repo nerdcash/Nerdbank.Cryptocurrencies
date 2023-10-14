@@ -2,23 +2,32 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Avalonia.Media.Imaging;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 // Consider using +, - and = for receive, spend and balance buttons respectively.
 public class HomeScreenViewModel : ViewModelBase
 {
+	private readonly IViewModelServices viewModelServices;
 	private bool isBackupRecommended;
 
+	[Obsolete("Design-time only", error: true)]
 	public HomeScreenViewModel()
+		: this(new DesignTimeViewModelServices())
 	{
-		this.ReceiveCommand = ReactiveCommand.Create(() => { });
-		this.SendCommand = ReactiveCommand.Create(() => { });
-		this.BalanceCommand = ReactiveCommand.Create(() => { });
-		this.BackupCommand = ReactiveCommand.Create(() => { });
-
 		// TODO: determine if backup is recommended based on whether the user checked off that task in the Backup view.
 		this.isBackupRecommended = true;
+	}
+
+	public HomeScreenViewModel(IViewModelServices viewModelServices)
+	{
+		this.viewModelServices = viewModelServices;
+
+		this.ReceiveCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new ReceivingViewModel(viewModelServices)));
+		this.SendCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SendingViewModel(viewModelServices)));
+		this.BalanceCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BalanceViewModel(viewModelServices)));
+		this.BackupCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices)));
 	}
 
 	public Bitmap Logo => Resources.ZcashLogo;

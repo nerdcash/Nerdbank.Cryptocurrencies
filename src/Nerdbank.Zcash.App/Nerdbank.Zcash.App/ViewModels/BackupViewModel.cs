@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft;
 using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -11,25 +13,31 @@ namespace Nerdbank.Zcash.App.ViewModels;
 /// </summary>
 public class BackupViewModel : ViewModelBase
 {
+	private readonly IViewModelServices viewModelServices;
 	private bool revealData;
 	private bool seedPhraseBackedUp;
 
 	[Obsolete("Design-time only", error: true)]
 	public BackupViewModel()
-		: this(Bip39Mnemonic.Create(256))
+		: this(new DesignTimeViewModelServices())
 	{
-		this.BirthdayHeight = 23_456_789;
 		this.Password = "SomePassword";
 	}
 
-	public BackupViewModel(Bip39Mnemonic mnemonic)
+	public BackupViewModel(IViewModelServices viewModelServices)
 	{
+		Requires.Argument(viewModelServices.Wallet is not null, nameof(viewModelServices), "Wallet must be initialized.");
+		this.viewModelServices = viewModelServices;
+
 		this.BackupCommand = ReactiveCommand.Create(() => { });
 		this.RevealCommand = ReactiveCommand.Create(() => { this.IsRevealed = !this.IsRevealed; });
 
+		Bip39Mnemonic mnemonic = viewModelServices.Wallet.Mnemonic;
 		this.SeedPhrase = mnemonic.SeedPhrase;
 		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic));
 		this.Password = mnemonic.Password.ToString();
+
+		this.BirthdayHeight = viewModelServices.Wallet.Accounts.Values.Min(a => a.BirthdayHeight);
 	}
 
 	public string Title => "Backup";
@@ -60,7 +68,7 @@ public class BackupViewModel : ViewModelBase
 
 	public string BirthdayHeightCaption => "Birthday height";
 
-	public required uint BirthdayHeight { get; init; }
+	public ulong? BirthdayHeight { get; }
 
 	public string SeedPhrase { get; init; } = string.Empty;
 

@@ -10,9 +10,12 @@
         x:Class="Nerdbank.Zcash.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="eZcash"
-        Content="{Binding Content}">
+        Title="eZcash">
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
+  <DockPanel>
+    <Button HorizontalAlignment="Left" DockPanel.Dock="Top" Content="Back" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
+    <ContentControl Content="{Binding Content}" />
+  </DockPanel>
 </Window>

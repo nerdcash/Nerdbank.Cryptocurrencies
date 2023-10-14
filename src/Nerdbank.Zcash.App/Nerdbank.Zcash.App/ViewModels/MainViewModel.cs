@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class MainViewModel : ViewModelBase
+public class MainViewModel : ViewModelBase, IViewModelServices
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
 
@@ -13,10 +13,16 @@ public class MainViewModel : ViewModelBase
 	{
 		this.NavigateBackCommand = ReactiveCommand.Create(
 			() => this.NavigateBack(),
-			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.viewStack.Count > 1)));
+			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.CanNavigateBack)));
+		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
 
-		this.NavigateTo(new HomeScreenViewModel());
+		this.NavigateTo(new HomeScreenViewModel(this));
+
+		// TODO: Load this from a file when it exists.
+		this.Wallet = new();
 	}
+
+	public ZcashWallet Wallet { get; }
 
 	public ViewModelBase? Content
 	{
@@ -27,6 +33,8 @@ public class MainViewModel : ViewModelBase
 	/// Gets the command that navigates back one step in the view stack.
 	/// </summary>
 	public ICommand NavigateBackCommand { get; }
+
+	public bool CanNavigateBack => this.viewStack.Count > 1;
 
 	/// <summary>
 	/// Replaces the entire view stack with a new view model.
@@ -41,13 +49,6 @@ public class MainViewModel : ViewModelBase
 		this.NavigateTo(viewModel);
 	}
 
-	/// <summary>
-	/// Pushes a view model onto the view stack.
-	/// </summary>
-	/// <param name="viewModel">The new view model.</param>
-	/// <remarks>
-	/// This will no-op if the given view model is already the current view model.
-	/// </remarks>
 	public void NavigateTo(ViewModelBase viewModel)
 	{
 		if (this.Content != viewModel)
@@ -57,10 +58,6 @@ public class MainViewModel : ViewModelBase
 		}
 	}
 
-	/// <summary>
-	/// Pops the current view model off the view stack, effectively moving the view "back" one step.
-	/// </summary>
-	/// <param name="ifCurrentViewModel">The view model that is expected to be on top at the time of the call. If specified, the stack will only be popped if this is the top view model.</param>
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel = null)
 	{
 		if (this.viewStack.Count > 1 && (ifCurrentViewModel is null || this.viewStack.Peek() == ifCurrentViewModel))

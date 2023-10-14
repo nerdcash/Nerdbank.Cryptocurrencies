@@ -13,13 +13,19 @@ public class SendingViewModel : ViewModelBase
 	private string memo = string.Empty;
 
 	[Obsolete("For design-time use only.", error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	public SendingViewModel()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+		: this(new DesignTimeViewModelServices())
 	{
-		this.CommonConstruction();
-
 		this.fee = new(0.0001m, this.ZcashSecurity);
+	}
+
+	public SendingViewModel(IViewModelServices viewModelServices)
+	{
+		this.SendCommand = ReactiveCommand.Create(() => { });
+		this.ScanCommand = ReactiveCommand.Create(() => { });
+		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
+		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
+		this.LinkProperty(nameof(this.Fee), nameof(this.Total));
 	}
 
 	public string Title => "Send Zcash";
@@ -73,13 +79,4 @@ public class SendingViewModel : ViewModelBase
 	public string ScanCommandCaption => "Scan address or payment request";
 
 	public ReactiveCommand<Unit, Unit> ScanCommand { get; private set; }
-
-	private void CommonConstruction()
-	{
-		this.SendCommand = ReactiveCommand.Create(() => { });
-		this.ScanCommand = ReactiveCommand.Create(() => { });
-		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
-		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
-		this.LinkProperty(nameof(this.Fee), nameof(this.Total));
-	}
 }

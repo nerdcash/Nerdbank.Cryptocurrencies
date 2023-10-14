@@ -15,14 +15,22 @@ public class BalanceViewModel : ViewModelBase
 
 	[Obsolete("For design-time use only.", error: true)]
 	public BalanceViewModel()
+		: this(new DesignTimeViewModelServices())
 	{
-		this.CommonConstruction();
-
 		this.balance = new(10.123m, this.ZcashSecurity);
 		this.immatureIncome = new(0.5m, this.ZcashSecurity);
 		this.unconfirmedIncome = new(1.2m, this.ZcashSecurity);
 		this.spendableBalance = new(10.100m, this.ZcashSecurity);
 		this.unspendableChange = new(0.023m, this.ZcashSecurity);
+	}
+
+	public BalanceViewModel(IViewModelServices viewModelServices)
+	{
+		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));
+		this.LinkProperty(nameof(this.ImmatureIncome), nameof(this.IsImmatureIncomeVisible));
+		this.LinkProperty(nameof(this.UnconfirmedIncome), nameof(this.IsUnconfirmedIncomeVisible));
+		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
+		this.LinkProperty(nameof(this.UnspendableChange), nameof(this.IsUnspendableChangeVisible));
 	}
 
 	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
@@ -82,13 +90,4 @@ public class BalanceViewModel : ViewModelBase
 	public string UnspendableChangeCaption => "🪢 Tied up";
 
 	public string UnspendableChangeExplanation => "Recent spends can tie up some of your Zcash for a few minutes.";
-
-	private void CommonConstruction()
-	{
-		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));
-		this.LinkProperty(nameof(this.ImmatureIncome), nameof(this.IsImmatureIncomeVisible));
-		this.LinkProperty(nameof(this.UnconfirmedIncome), nameof(this.IsUnconfirmedIncomeVisible));
-		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
-		this.LinkProperty(nameof(this.UnspendableChange), nameof(this.IsUnspendableChangeVisible));
-	}
 }

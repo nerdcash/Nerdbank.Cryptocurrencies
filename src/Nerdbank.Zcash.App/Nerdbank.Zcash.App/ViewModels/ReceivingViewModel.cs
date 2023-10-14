@@ -9,10 +9,18 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ReceivingViewModel : ViewModelBase
 {
+	private readonly IViewModelServices viewModelServices;
 	private string receiverIdentity = string.Empty;
 
 	public ReceivingViewModel()
+		: this(new DesignTimeViewModelServices())
 	{
+	}
+
+	public ReceivingViewModel(IViewModelServices viewModelServices)
+	{
+		this.viewModelServices = viewModelServices;
+
 		QRCodeGenerator generator = new();
 		QREncoder encoder = new() { NoPadding = true };
 		QRCodeData data = generator.CreateQrCode("some data", encoder.ECCLevel);
