@@ -30,7 +30,7 @@
           <TextBlock Text="{Binding MaxAccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
           <TextBlock Text="{Binding MaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
         </Grid>
-        <ToggleButton IsChecked="{Binding SeedPhraseBackedUp}" Content="{Binding SeedPhraseBackedUpCaption}" />
+        <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
         <TextBlock Text="{Binding BackupToFileExplanation}" />
         <Button Command="{Binding BackupCommand}" Content="{Binding BackupCommandCaption}" HorizontalAlignment="Center" />
       </StackPanel>

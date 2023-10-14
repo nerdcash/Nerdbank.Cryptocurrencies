@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class MainViewModel : ViewModelBase, IViewModelServices
+public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
 
@@ -16,10 +16,10 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.CanNavigateBack)));
 		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
 
-		this.NavigateTo(new HomeScreenViewModel(this));
-
 		// TODO: Load this from a file when it exists.
 		this.Wallet = new();
+
+		this.NavigateTo(new HomeScreenViewModel(this));
 	}
 
 	public ZcashWallet Wallet { get; }

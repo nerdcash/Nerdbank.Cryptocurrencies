@@ -24,7 +24,7 @@ public class BalanceViewModel : ViewModelBase
 		this.unspendableChange = new(0.023m, this.ZcashSecurity);
 	}
 
-	public BalanceViewModel(IViewModelServices viewModelServices)
+	public BalanceViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
 		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));
 		this.LinkProperty(nameof(this.ImmatureIncome), nameof(this.IsImmatureIncomeVisible));

@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ReceivingViewModel : ViewModelBase
 {
-	private readonly IViewModelServices viewModelServices;
+	private readonly IViewModelServicesWithWallet viewModelServices;
 	private string receiverIdentity = string.Empty;
 
 	public ReceivingViewModel()
@@ -17,7 +17,7 @@ public class ReceivingViewModel : ViewModelBase
 	{
 	}
 
-	public ReceivingViewModel(IViewModelServices viewModelServices)
+	public ReceivingViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 

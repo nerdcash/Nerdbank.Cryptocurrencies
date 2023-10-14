@@ -2,27 +2,26 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Avalonia.Media.Imaging;
-using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 // Consider using +, - and = for receive, spend and balance buttons respectively.
 public class HomeScreenViewModel : ViewModelBase
 {
-	private readonly IViewModelServices viewModelServices;
-	private bool isBackupRecommended;
+	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly ObservableAsPropertyHelper<bool> isSeedPhraseBackedUp;
 
 	[Obsolete("Design-time only", error: true)]
 	public HomeScreenViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		// TODO: determine if backup is recommended based on whether the user checked off that task in the Backup view.
-		this.isBackupRecommended = true;
 	}
 
-	public HomeScreenViewModel(IViewModelServices viewModelServices)
+	public HomeScreenViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
+
+		this.isSeedPhraseBackedUp = this.WhenAnyValue(x => x.viewModelServices.Wallet.IsSeedPhraseBackedUp).ToProperty(this, nameof(this.IsSeedPhraseBackedUp));
 
 		this.ReceiveCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new ReceivingViewModel(viewModelServices)));
 		this.SendCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SendingViewModel(viewModelServices)));
@@ -31,6 +30,8 @@ public class HomeScreenViewModel : ViewModelBase
 	}
 
 	public Bitmap Logo => Resources.ZcashLogo;
+
+	public bool IsSeedPhraseBackedUp => this.isSeedPhraseBackedUp.Value;
 
 	public string ReceiveCommandCaption => "Receive";
 
@@ -49,12 +50,6 @@ public class HomeScreenViewModel : ViewModelBase
 	public ReactiveCommand<Unit, Unit> BalanceCommand { get; }
 
 	public string BalanceExplanation => "Check your balance.";
-
-	public bool IsBackupRecommended
-	{
-		get => this.isBackupRecommended;
-		set => this.RaiseAndSetIfChanged(ref this.isBackupRecommended, value);
-	}
 
 	public string BackupCommandCaption => "Backup your wallet";
 

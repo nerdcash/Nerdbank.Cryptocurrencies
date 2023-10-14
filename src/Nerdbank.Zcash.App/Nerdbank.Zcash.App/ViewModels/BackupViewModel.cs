@@ -13,9 +13,8 @@ namespace Nerdbank.Zcash.App.ViewModels;
 /// </summary>
 public class BackupViewModel : ViewModelBase
 {
-	private readonly IViewModelServices viewModelServices;
+	private readonly IViewModelServicesWithWallet viewModelServices;
 	private bool revealData;
-	private bool seedPhraseBackedUp;
 
 	[Obsolete("Design-time only", error: true)]
 	public BackupViewModel()
@@ -24,9 +23,8 @@ public class BackupViewModel : ViewModelBase
 		this.Password = "SomePassword";
 	}
 
-	public BackupViewModel(IViewModelServices viewModelServices)
+	public BackupViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
-		Requires.Argument(viewModelServices.Wallet is not null, nameof(viewModelServices), "Wallet must be initialized.");
 		this.viewModelServices = viewModelServices;
 
 		this.BackupCommand = ReactiveCommand.Create(() => { });
@@ -84,12 +82,19 @@ public class BackupViewModel : ViewModelBase
 
 	public uint MaxAccountIndex { get; init; } = 1;
 
-	public string SeedPhraseBackedUpCaption => "I have copied down my seed phrase (and password)";
+	public string IsSeedPhraseBackedUpCaption => "I have copied down my seed phrase (and password)";
 
-	public bool SeedPhraseBackedUp
+	public bool IsSeedPhraseBackedUp
 	{
-		get => this.seedPhraseBackedUp;
-		set => this.RaiseAndSetIfChanged(ref this.seedPhraseBackedUp, value);
+		get => this.viewModelServices.Wallet.IsSeedPhraseBackedUp;
+		set
+		{
+			if (this.viewModelServices.Wallet.IsSeedPhraseBackedUp != value)
+			{
+				this.viewModelServices.Wallet.IsSeedPhraseBackedUp = value;
+				this.RaisePropertyChanged();
+			}
+		}
 	}
 
 	private static SeedPhraseRow[] BreakupSeedPhraseIntoRows(Bip39Mnemonic mnemonic)

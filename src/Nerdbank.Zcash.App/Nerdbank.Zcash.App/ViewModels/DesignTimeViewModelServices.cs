@@ -3,7 +3,7 @@
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-internal class DesignTimeViewModelServices : IViewModelServices
+internal class DesignTimeViewModelServices : IViewModelServicesWithWallet
 {
 	public ZcashWallet Wallet { get; } = new();
 

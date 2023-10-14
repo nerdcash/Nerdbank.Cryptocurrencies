@@ -19,7 +19,7 @@ public class SendingViewModel : ViewModelBase
 		this.fee = new(0.0001m, this.ZcashSecurity);
 	}
 
-	public SendingViewModel(IViewModelServices viewModelServices)
+	public SendingViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
 		this.SendCommand = ReactiveCommand.Create(() => { });
 		this.ScanCommand = ReactiveCommand.Create(() => { });
