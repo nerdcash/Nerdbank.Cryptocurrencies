@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Windows.Input;
+using Microsoft;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
+	private ZcashWallet? wallet;
 
 	public MainViewModel()
 	{
@@ -16,13 +18,23 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.CanNavigateBack)));
 		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
 
-		// TODO: Load this from a file when it exists.
-		this.Wallet = new();
-
-		this.NavigateTo(new HomeScreenViewModel(this));
+		this.NavigateTo(this.Wallet is null ? new FirstLaunchViewModel(this) : new HomeScreenViewModel(this));
 	}
 
-	public ZcashWallet Wallet { get; }
+	public ZcashWallet? Wallet
+	{
+		get => this.wallet;
+		set
+		{
+			if (this.wallet != value)
+			{
+				Verify.Operation(this.wallet is null, "Wallet can only be set once.");
+				this.RaiseAndSetIfChanged(ref this.wallet, value);
+			}
+		}
+	}
+
+	ZcashWallet IViewModelServicesWithWallet.Wallet => this.Wallet ?? throw new InvalidOperationException();
 
 	public ViewModelBase? Content
 	{
@@ -36,13 +48,6 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 
 	public bool CanNavigateBack => this.viewStack.Count > 1;
 
-	/// <summary>
-	/// Replaces the entire view stack with a new view model.
-	/// </summary>
-	/// <param name="viewModel">The new view model to select.</param>
-	/// <remarks>
-	/// This is useful primarily at the start of the app, when the user may not see the main home screen right away due to a first launch experience.
-	/// </remarks>
 	public void ReplaceViewStack(ViewModelBase viewModel)
 	{
 		this.viewStack.Clear();

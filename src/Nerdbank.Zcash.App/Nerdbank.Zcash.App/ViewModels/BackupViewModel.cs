@@ -36,6 +36,7 @@ public class BackupViewModel : ViewModelBase
 		this.Password = mnemonic.Password.ToString();
 
 		this.BirthdayHeight = viewModelServices.Wallet.Accounts.Values.Min(a => a.BirthdayHeight);
+		this.MaxAccountIndex = viewModelServices.Wallet.Accounts.Keys.Max();
 	}
 
 	public string Title => "Backup";
@@ -80,7 +81,7 @@ public class BackupViewModel : ViewModelBase
 
 	public string MaxAccountIndexCaption => "Max account index";
 
-	public uint MaxAccountIndex { get; init; } = 1;
+	public uint MaxAccountIndex { get; init; }
 
 	public string IsSeedPhraseBackedUpCaption => "I have copied down my seed phrase (and password)";
 

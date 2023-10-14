@@ -6,12 +6,21 @@ using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-internal class FirstLaunchViewModel
+public class FirstLaunchViewModel : ViewModelBase
 {
+	private readonly IViewModelServices viewModelServices;
+
+	[Obsolete("For design-time use only.", error: true)]
 	public FirstLaunchViewModel()
+		: this(new DesignTimeViewModelServices())
+	{
+	}
+
+	public FirstLaunchViewModel(IViewModelServices viewModelServices)
 	{
 		this.StartNewWalletCommand = ReactiveCommand.Create(this.CreateNewAccount);
 		this.ImportWalletCommand = ReactiveCommand.Create(() => { });
+		this.viewModelServices = viewModelServices;
 	}
 
 	public string Greeting => Strings.AppGreeting;
@@ -34,6 +43,14 @@ internal class FirstLaunchViewModel
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(128);
 		Zip32HDWallet zip32 = new(mnemonic);
-		ZcashAccount account = new(zip32);
+		uint index = 0;
+		ZcashAccount account = new(zip32, index);
+
+		this.viewModelServices.Wallet = new ZcashWallet()
+		{
+			Mnemonic = mnemonic,
+			Accounts = { [index] = account },
+		};
+		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithWallet)this.viewModelServices));
 	}
 }

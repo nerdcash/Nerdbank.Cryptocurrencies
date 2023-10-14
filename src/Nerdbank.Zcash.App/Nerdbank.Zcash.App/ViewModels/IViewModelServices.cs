@@ -6,9 +6,9 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public interface IViewModelServices
 {
 	/// <summary>
-	/// Gets the wallet data model.
+	/// Gets or sets the wallet data model.
 	/// </summary>
-	ZcashWallet? Wallet { get; }
+	ZcashWallet? Wallet { get; set; }
 
 	/// <summary>
 	/// Pushes a view model onto the view stack.
@@ -24,4 +24,13 @@ public interface IViewModelServices
 	/// </summary>
 	/// <param name="ifCurrentViewModel">The view model that is expected to be on top at the time of the call. If specified, the stack will only be popped if this is the top view model.</param>
 	void NavigateBack(ViewModelBase? ifCurrentViewModel = null);
+
+	/// <summary>
+	/// Replaces the entire view stack with a new view model.
+	/// </summary>
+	/// <param name="viewModel">The new view model to select.</param>
+	/// <remarks>
+	/// This is useful primarily at the start of the app, when the user may not see the main home screen right away due to a first launch experience.
+	/// </remarks>
+	void ReplaceViewStack(ViewModelBase viewModel);
 }

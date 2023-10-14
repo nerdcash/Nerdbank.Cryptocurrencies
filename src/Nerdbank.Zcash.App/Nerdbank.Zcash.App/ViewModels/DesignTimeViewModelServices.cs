@@ -5,13 +5,19 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 internal class DesignTimeViewModelServices : IViewModelServicesWithWallet
 {
-	public ZcashWallet Wallet { get; } = new();
+	public ZcashWallet? Wallet { get; set; } = new();
+
+	ZcashWallet IViewModelServicesWithWallet.Wallet => this.Wallet ?? throw new InvalidOperationException();
 
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel)
 	{
 	}
 
 	public void NavigateTo(ViewModelBase viewModel)
+	{
+	}
+
+	public void ReplaceViewStack(ViewModelBase viewModel)
 	{
 	}
 }
