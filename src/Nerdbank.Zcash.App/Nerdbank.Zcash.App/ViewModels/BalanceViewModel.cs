@@ -7,17 +7,17 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class BalanceViewModel : ViewModelBase
 {
-	private SecurityAmount balance;
 	private SecurityAmount immatureIncome;
 	private SecurityAmount unconfirmedIncome;
 	private SecurityAmount spendableBalance;
 	private SecurityAmount unspendableChange;
+	private SecurityAmount anticipatedFees;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public BalanceViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.balance = new(10.123m, this.ZcashSecurity);
+		this.anticipatedFees = new(-0.103m, this.ZcashSecurity);
 		this.immatureIncome = new(0.5m, this.ZcashSecurity);
 		this.unconfirmedIncome = new(1.2m, this.ZcashSecurity);
 		this.spendableBalance = new(10.100m, this.ZcashSecurity);
@@ -26,22 +26,37 @@ public class BalanceViewModel : ViewModelBase
 
 	public BalanceViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
+		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
 		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));
+
+		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.Balance));
+		this.LinkProperty(nameof(this.UnspendableChange), nameof(this.Balance));
+		this.LinkProperty(nameof(this.ImmatureIncome), nameof(this.Balance));
+		this.LinkProperty(nameof(this.AnticipatedFees), nameof(this.Balance));
+
 		this.LinkProperty(nameof(this.ImmatureIncome), nameof(this.IsImmatureIncomeVisible));
 		this.LinkProperty(nameof(this.UnconfirmedIncome), nameof(this.IsUnconfirmedIncomeVisible));
-		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
 		this.LinkProperty(nameof(this.UnspendableChange), nameof(this.IsUnspendableChangeVisible));
+		this.LinkProperty(nameof(this.AnticipatedFees), nameof(this.IsAnticipatedFeesVisible));
 	}
 
 	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
 
-	public SecurityAmount Balance
+	public SecurityAmount Balance => this.spendableBalance + this.unspendableChange + this.immatureIncome + this.anticipatedFees;
+
+	public string BalanceCaption => "💰 Balance";
+
+	public string AnticipatedFeesCaption => "🪙 Anticipated fees";
+
+	public bool IsAnticipatedFeesVisible => this.AnticipatedFees.Amount < 0;
+
+	public SecurityAmount AnticipatedFees
 	{
-		get => this.balance;
-		set => this.RaiseAndSetIfChanged(ref this.balance, value);
+		get => this.anticipatedFees;
+		set => this.RaiseAndSetIfChanged(ref this.anticipatedFees, value);
 	}
 
-	public string BalanceCaption => "Balance";
+	public string AnticipatedFeesExplanation => "This is the estimated portion of your balance that will go to fees when you spend your Zcash.";
 
 	public bool IsImmatureIncomeVisible => this.ImmatureIncome.Amount > 0;
 
@@ -51,7 +66,7 @@ public class BalanceViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.immatureIncome, value);
 	}
 
-	public string ImmatureIncomeCaption => "📩 Incoming (immature)";
+	public string ImmatureIncomeCaption => "📩 Immature";
 
 	public string ImmatureIncomeExplanation => "Zcash has been sent to you and confirmed, but is not yet available to spend. This stage can last several minutes.";
 
@@ -63,7 +78,7 @@ public class BalanceViewModel : ViewModelBase
 
 	public bool IsUnconfirmedIncomeVisible => this.UnconfirmedIncome.Amount > 0;
 
-	public string UnconfirmedIncomeCaption => "Incoming (unconfirmed)";
+	public string UnconfirmedIncomeCaption => "📥 Incoming";
 
 	public string UnconfirmedIncomeExplanation => "Zcash has been sent to you but has not yet been confirmed. Unconfirmed funds aren't guaranteed to be yours yet. This usually clears up in a minute or two.";
 
