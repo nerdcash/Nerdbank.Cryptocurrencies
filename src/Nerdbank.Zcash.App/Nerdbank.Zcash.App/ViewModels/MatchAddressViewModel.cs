@@ -12,7 +12,7 @@ public class MatchAddressViewModel : ViewModelBase
 
 	public MatchAddressViewModel()
 	{
-		this.MatchAddressCommand = ReactiveCommand.Create(() => { });
+		this.MatchAddressCommand = ReactiveCommand.Create(this.DoMatch);
 	}
 
 	public string Title => $"Match Address";
@@ -54,4 +54,17 @@ public class MatchAddressViewModel : ViewModelBase
 	public string MatchedContactTitle => "✅ Matched contact";
 
 	public string MatchedAccountTitle => "✅ Matched account";
+
+	private void DoMatch()
+	{
+		// Match on accounts first.
+		// If we encounter a partial match (one where a multi-receiver UA has receivers that do match and receivers that don't), report a partial match with a big warning,
+		// since this could mean an attacker is trying to trick the user into thinking they own the address.
+
+		// Match on contacts next. When matching, try to match on each receiver.
+		// On partial matches (e.g. the contact only has one receiver but we're searching with a multi-receiver unified address),
+		// report a partial match and possibly offer to add the additional receivers to the contact if they trust the address.
+
+		// On no match at all, show breakdown of receiver addresses if it's a multi-receiver address.
+	}
 }

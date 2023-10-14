@@ -34,6 +34,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <DataGridTextColumn Header="{Binding AccountIndexColumnHeader}" Binding="{Binding Index}" />
       </DataGrid.Columns>
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:AccountViewModel">
@@ -54,7 +55,9 @@
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
     </DataGrid>
-    <Button Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}"
-            Grid.Row="2" HorizontalAlignment="Right" />
+    <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right">
+      <Button Command="{Binding ImportAccountCommand}" Content="{Binding ImportAccountCommandCaption}" />
+      <Button Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}" />
+    </StackPanel>
   </Grid>
 </UserControl>

@@ -11,6 +11,7 @@ public class AccountsViewModel : ViewModelBase
 	public AccountsViewModel()
 	{
 		this.NewAccountCommand = ReactiveCommand.Create(() => { });
+		this.ImportAccountCommand = ReactiveCommand.Create(() => { });
 
 		this.Accounts.Add(new AccountViewModel() { Name = "Spending", Index = 0 });
 		this.Accounts.Add(new AccountViewModel() { Name = "Savings", Index = 1 });
@@ -29,4 +30,8 @@ public class AccountsViewModel : ViewModelBase
 	public ReactiveCommand<Unit, Unit> NewAccountCommand { get; }
 
 	public string NewAccountCommandCaption => "New account";
+
+	public ReactiveCommand<Unit, Unit> ImportAccountCommand { get; }
+
+	public string ImportAccountCommandCaption => "Import account";
 }

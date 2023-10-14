@@ -1,7 +1,5 @@
 ﻿## Views to build
 
-- New account
-
 ## Views to enhance
 
 - Transactions history
