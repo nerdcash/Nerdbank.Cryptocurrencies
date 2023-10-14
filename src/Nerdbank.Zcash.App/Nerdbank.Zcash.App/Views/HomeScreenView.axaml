@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.HomeScreenView"
+             x:DataType="vm:HomeScreenViewModel">
+  <Design.DataContext>
+    <vm:HomeScreenViewModel />
+  </Design.DataContext>
+  <StackPanel Spacing="15">
+    <StackPanel.Styles>
+      <Style Selector="Button">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Margin" Value="8" />
+      </Style>
+      <Style Selector="TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap" />
+      </Style>
+      <Style Selector="StackPanel.ButtonAndExplanation">
+        <Setter Property="Background" Value="LightCyan" />
+      </Style>
+    </StackPanel.Styles>
+    <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
+    <StackPanel Classes="ButtonAndExplanation">
+      <Button Command="{Binding ReceiveCommand}" Content="{Binding ReceiveCommandCaption}" />
+      <TextBlock Text="{Binding ReceiveExplanation}" />
+    </StackPanel>
+    <StackPanel Classes="ButtonAndExplanation">
+      <Button Command="{Binding SendCommand}" Content="{Binding SendCommandCaption}" />
+      <TextBlock Text="{Binding SendExplanation}" />
+    </StackPanel>
+    <StackPanel Classes="ButtonAndExplanation">
+      <Button Command="{Binding BalanceCommand}" Content="{Binding BalanceCommandCaption}" />
+      <TextBlock Text="{Binding BalanceExplanation}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

@@ -24,7 +24,7 @@ namespace Nerdbank.Zcash.App
 			{
 				desktop.MainWindow = new MainWindow
 				{
-					DataContext = new MainViewModel(),
+					DataContext = new MainWindowViewModel(),
 				};
 			}
 			else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
