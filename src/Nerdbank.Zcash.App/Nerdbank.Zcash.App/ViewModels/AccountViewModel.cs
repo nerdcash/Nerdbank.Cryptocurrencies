@@ -23,7 +23,6 @@ public class AccountViewModel : ViewModelBase
 	{
 		this.SwitchToCommand = ReactiveCommand.Create(() => { });
 		this.DeleteCommand = ReactiveCommand.Create(() => { });
-		this.RevealKeysCommand = ReactiveCommand.Create(() => { this.AreKeysRevealed = !this.AreKeysRevealed; });
 
 		this.LinkProperty(nameof(this.AreKeysRevealed), nameof(this.RevealKeysCommandCaption));
 
@@ -72,7 +71,5 @@ public class AccountViewModel : ViewModelBase
 
 	public string DeleteCommandCaption => "Delete";
 
-	public string RevealKeysCommandCaption => this.AreKeysRevealed ? "Hide keys" : "Reveal keys";
-
-	public ReactiveCommand<Unit, Unit> RevealKeysCommand { get; }
+	public string RevealKeysCommandCaption => "Reveal keys";
 }

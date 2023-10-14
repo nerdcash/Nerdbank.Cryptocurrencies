@@ -24,6 +24,7 @@
         <Setter Property="Background" Value="LightCyan" />
       </Style>
     </StackPanel.Styles>
+    <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
     <StackPanel Classes="ButtonAndExplanation">
       <Button Command="{Binding ReceiveCommand}" Content="{Binding ReceiveCommandCaption}" />
       <TextBlock Text="{Binding ReceiveExplanation}" />

@@ -9,13 +9,9 @@
   <Design.DataContext>
     <vm:AddressBookViewModel />
   </Design.DataContext>
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="auto" />
-      <RowDefinition Height="*" />
-    </Grid.RowDefinitions>
-    <TextBlock Classes="Title" Text="{Binding Title}" />
-    <DataGrid ItemsSource="{Binding Contacts}" AutoGenerateColumns="False" Grid.Row="1">
+  <DockPanel>
+    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
+    <DataGrid ItemsSource="{Binding Contacts}" AutoGenerateColumns="False">
       <DataGrid.Columns>
         <DataGridTextColumn Header="{Binding NameColumnHeader}" Binding="{Binding Name}" />
         <DataGridTemplateColumn Header="{Binding SendCommandColumnHeader}" IsReadOnly="True" CanUserSort="False">
@@ -35,18 +31,11 @@
             <Button Content="{Binding ShowDiversifiedAddressCommandCaption}" IsVisible="{Binding IsShowDiversifiedAddressButtonVisible}"
                     Command="{Binding ShowDiversifiedAddressCommand}"
                     HorizontalAlignment="Center" />
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <Grid.RowDefinitions>
-                <RowDefinition/>
-              </Grid.RowDefinitions>
+            <Grid ColumnDefinitions="auto, *">
             </Grid>
           </StackPanel>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
     </DataGrid>
-  </Grid>
+  </DockPanel>
 </UserControl>

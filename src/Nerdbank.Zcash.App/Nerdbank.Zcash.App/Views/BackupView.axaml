@@ -9,13 +9,9 @@
   <Design.DataContext>
     <vm:BackupViewModel />
   </Design.DataContext>
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="auto" />
-      <RowDefinition Height="*" />
-    </Grid.RowDefinitions>
-    <TextBlock Classes="Title" Text="{Binding Title}" />
-    <ScrollViewer IsVisible="{Binding IsRevealed}" Grid.Row="1">
+  <DockPanel>
+    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
+    <ScrollViewer IsVisible="{Binding IsRevealed}">
       <StackPanel>
         <TextBlock Text="{Binding BackupSeedPhraseImportant}" FontWeight="Bold" />
         <Label Content="{Binding SeedPhraseCaption}" Target="{Binding #SeedPhraseGrid}" />
@@ -26,17 +22,7 @@
             <DataGridTextColumn Binding="{Binding Word3}" />
           </DataGrid.Columns>
         </DataGrid>
-        <Grid Margin="10">
-          <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition />
-            <RowDefinition />
-          </Grid.RowDefinitions>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="10" />
-            <ColumnDefinition />
-          </Grid.ColumnDefinitions>
+        <Grid Margin="10" RowDefinitions="auto, auto, auto" ColumnDefinitions="auto, 10, auto">
           <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
           <TextBlock Text="{Binding Password}" Grid.Column="2" />
           <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
@@ -48,7 +34,7 @@
         <Button Command="{Binding BackupCommand}" Content="{Binding BackupCommandCaption}" HorizontalAlignment="Center" />
       </StackPanel>
     </ScrollViewer>
-    <Panel IsVisible="{Binding !IsRevealed}" Grid.Row="1">
+    <Panel IsVisible="{Binding !IsRevealed}">
       <StackPanel VerticalAlignment="Center">
         <ItemsControl ItemsSource="{Binding RevealCautions}">
           <ItemsControl.ItemTemplate>
@@ -61,5 +47,5 @@
                 HorizontalAlignment="Center" VerticalAlignment="Center" />
       </StackPanel>
     </Panel>
-  </Grid>
+  </DockPanel>
 </UserControl>

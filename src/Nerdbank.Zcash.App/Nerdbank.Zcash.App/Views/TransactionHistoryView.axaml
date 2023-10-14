@@ -10,13 +10,8 @@
   <Design.DataContext>
     <vm:TransactionHistoryViewModel />
   </Design.DataContext>
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="auto"/>
-      <RowDefinition Height="*"/>
-      <!--<RowDefinition Height="auto" />-->
-    </Grid.RowDefinitions>
-    <TextBlock Text="{Binding Title}" FontSize="18" />
+  <DockPanel>
+    <TextBlock Text="{Binding Title}" FontSize="18" DockPanel.Dock="Top" />
     <DataGrid ItemsSource="{Binding Transactions}"
               SelectedItem="{Binding SelectedTransaction}"
               IsReadOnly="True"
@@ -50,16 +45,7 @@
       </DataGrid.Columns>
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:TransactionViewModel">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition/>
-              <RowDefinition/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="auto" />
-              <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+          <Grid RowDefinitions="auto,auto,auto" ColumnDefinitions="auto,*">
             <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" />
             <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1"/>
             <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" VerticalAlignment="Center" Grid.Row="1" />
@@ -95,5 +81,5 @@
         </StackPanel>
       </ScrollViewer>
     </StackPanel>-->
-  </Grid>
+  </DockPanel>
 </UserControl>

@@ -10,14 +10,18 @@
   <Design.DataContext>
     <vm:AccountsViewModel />
   </Design.DataContext>
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="auto" />
-      <RowDefinition Height="*" />
-      <RowDefinition Height="auto" />
-    </Grid.RowDefinitions>
-    <TextBlock Classes="Title" Text="{Binding Title}" />
-    <DataGrid Grid.Row="1" ItemsSource="{Binding Accounts}">
+  <DockPanel>
+    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
+    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+      <SplitButton Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}">
+        <SplitButton.Flyout>
+          <MenuFlyout Placement="Top">
+            <MenuItem Header="{Binding ImportAccountCommandCaption}" Command="{Binding ImportAccountCommand}" />
+          </MenuFlyout>
+        </SplitButton.Flyout>
+      </SplitButton>
+    </StackPanel>
+    <DataGrid ItemsSource="{Binding Accounts}">
       <DataGrid.Columns>
         <DataGridTextColumn Header="{Binding AccountNameColumnHeader}" Binding="{Binding Name}" />
         <DataGridTemplateColumn Header="{Binding AccountBalanceColumnHeader}">
@@ -43,7 +47,7 @@
               <TextBlock Text="{Binding IndexCaption}" />
               <TextBlock Text="{Binding Index}" />
             </StackPanel>
-            <Button Command="{Binding RevealKeysCommand}" Content="{Binding RevealKeysCommandCaption}" />
+            <ToggleButton Content="{Binding RevealKeysCommandCaption}" IsChecked="{Binding AreKeysRevealed}" />
             <StackPanel IsVisible="{Binding AreKeysRevealed}">
               <Label Content="{Binding FullViewingKeyCaption}" Target="{Binding #FullViewingKeyBox}" />
               <TextBox Name="FullViewingKeyBox" IsReadOnly="True" Text="{Binding FullViewingKey}" HorizontalAlignment="Stretch" />
@@ -55,9 +59,5 @@
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
     </DataGrid>
-    <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right">
-      <Button Command="{Binding ImportAccountCommand}" Content="{Binding ImportAccountCommandCaption}" />
-      <Button Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}" />
-    </StackPanel>
-  </Grid>
+  </DockPanel>
 </UserControl>

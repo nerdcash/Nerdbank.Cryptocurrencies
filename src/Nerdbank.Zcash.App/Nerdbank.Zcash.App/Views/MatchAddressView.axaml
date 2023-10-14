@@ -9,19 +9,21 @@
   <Design.DataContext>
     <vm:MatchAddressViewModel />
   </Design.DataContext>
-  <StackPanel>
-    <TextBlock Text="{Binding Title}" Classes="Title" />
-    <TextBlock Text="{Binding Explanation}" Margin="0,0,0,10" />
-    <Label Content="{Binding AddressCaption}" Target="{Binding #AddressBox}" />
-    <TextBox Name="AddressBox" Text="{Binding Address}" />
-    <Button Command="{Binding MatchAddressCommand}" Content="{Binding MatchAddressCommandCaption}" />
-    <StackPanel IsVisible="{Binding IsAccountMatch}">
-      <TextBlock Text="{Binding MatchedAccountTitle}" />
-      <TextBlock Text="{Binding MatchedAccount.Name}" />
+  <DockPanel>
+    <TextBlock Text="{Binding Title}" Classes="Title" DockPanel.Dock="Top" />
+    <StackPanel>
+      <TextBlock Text="{Binding Explanation}" Margin="0,0,0,10" />
+      <Label Content="{Binding AddressCaption}" Target="{Binding #AddressBox}" />
+      <TextBox Name="AddressBox" Text="{Binding Address}" />
+      <Button Command="{Binding MatchAddressCommand}" Content="{Binding MatchAddressCommandCaption}" />
+      <StackPanel IsVisible="{Binding IsAccountMatch}">
+        <TextBlock Text="{Binding MatchedAccountTitle}" />
+        <TextBlock Text="{Binding MatchedAccount.Name}" />
+      </StackPanel>
+      <StackPanel IsVisible="{Binding IsContactMatch}">
+        <TextBlock Text="{Binding MatchedContactTitle}" />
+        <TextBlock Text="{Binding MatchedContact.Name}" />
+      </StackPanel>
     </StackPanel>
-    <StackPanel IsVisible="{Binding IsContactMatch}">
-      <TextBlock Text="{Binding MatchedContactTitle}" />
-      <TextBlock Text="{Binding MatchedContact.Name}" />
-    </StackPanel>
-  </StackPanel>
+  </DockPanel>
 </UserControl>

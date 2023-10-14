@@ -10,32 +10,35 @@
     <vm:SettingsViewModel />
   </Design.DataContext>
 
-  <StackPanel>
-    <StackPanel.Styles>
-      <Style Selector="Label">
-        <Setter Property="FontWeight" Value="Bold" />
-      </Style>
-    </StackPanel.Styles>
-    <Label Content="{Binding AlternateCurrencyCaption}" Target="{Binding #AlternateCurrencyBox}" />
-    <ComboBox Name="AlternateCurrencyBox" ItemsSource="{Binding AlternateCurrencies}" SelectedItem="{Binding AlternateCurrency}">
-      <ComboBox.ItemTemplate>
-        <DataTemplate>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock Text="{Binding Name}" />
-            <TextBlock Text=" (" />
-            <TextBlock Text="{Binding TickerSymbol}" />
-            <TextBlock Text=")" />
-          </StackPanel>
-        </DataTemplate>
-      </ComboBox.ItemTemplate>
-    </ComboBox>
-    <TextBlock Text="{Binding AlternateCurrencyExplanation}" />
+  <DockPanel>
+    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
+    <StackPanel>
+      <StackPanel.Styles>
+        <Style Selector="Label">
+          <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+      </StackPanel.Styles>
+      <Label Content="{Binding AlternateCurrencyCaption}" Target="{Binding #AlternateCurrencyBox}" />
+      <ComboBox Name="AlternateCurrencyBox" ItemsSource="{Binding AlternateCurrencies}" SelectedItem="{Binding AlternateCurrency}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Name}" />
+              <TextBlock Text=" (" />
+              <TextBlock Text="{Binding TickerSymbol}" />
+              <TextBlock Text=")" />
+            </StackPanel>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <TextBlock Text="{Binding AlternateCurrencyExplanation}" />
 
-    <Expander IsExpanded="False" Header="{Binding AdvancedExpanderHeader}" Margin="0,10,0,0" HorizontalAlignment="Stretch">
-      <StackPanel>
-        <Label Content="{Binding LightServerUrlCaption}" Target="{Binding #LightServerUrlBox}" />
-        <TextBox Text="{Binding LightServerUrl}" HorizontalAlignment="Stretch" Name="LightServerUrlBox" />
-      </StackPanel>
-    </Expander>
-  </StackPanel>
+      <Expander IsExpanded="False" Header="{Binding AdvancedExpanderHeader}" Margin="0,10,0,0" HorizontalAlignment="Stretch">
+        <StackPanel>
+          <Label Content="{Binding LightServerUrlCaption}" Target="{Binding #LightServerUrlBox}" />
+          <TextBox Text="{Binding LightServerUrl}" HorizontalAlignment="Stretch" Name="LightServerUrlBox" />
+        </StackPanel>
+      </Expander>
+    </StackPanel>
+  </DockPanel>
 </UserControl>

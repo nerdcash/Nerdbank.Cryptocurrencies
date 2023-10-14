@@ -12,7 +12,7 @@
 
   <StackPanel Spacing="15">
     <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
-    <Image Source="{Binding ZcashLogo}" HorizontalAlignment="Center" Height="100" />
+    <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
     <StackPanel Classes="ButtonAndExplanation">
       <Button Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" />
       <TextBlock Text="{Binding StartNewWalletExplanation}" />

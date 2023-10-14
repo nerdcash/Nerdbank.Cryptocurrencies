@@ -10,15 +10,17 @@
     <vm:AboutViewModel />
   </Design.DataContext>
 
-  <StackPanel>
-    <TextBlock Text="{Binding Title}" Classes="Title" />
-    <TextBlock Text="{Binding Message}" />
-    <Button Command="{Binding SupportCommand}" Content="{Binding SupportCommandCaption}" />
-    <Button Command="{Binding DonateCommand}" Content="{Binding DonateCommandCaption}" />
-    <WrapPanel>
-      <TextBlock Text="{Binding VersionCaption}" VerticalAlignment="Center" />
-      <TextBlock Text=" " />
-      <TextBox IsReadOnly="True" Text="{Binding Version}" />
-    </WrapPanel>
-  </StackPanel>
+  <DockPanel>
+    <TextBlock Text="{Binding Title}" Classes="Title" DockPanel.Dock="Top" />
+    <StackPanel>
+      <TextBlock Text="{Binding Message}" />
+      <Button Command="{Binding SupportCommand}" Content="{Binding SupportCommandCaption}" />
+      <Button Command="{Binding DonateCommand}" Content="{Binding DonateCommandCaption}" />
+      <WrapPanel>
+        <TextBlock Text="{Binding VersionCaption}" VerticalAlignment="Center" />
+        <TextBlock Text=" " />
+        <TextBox IsReadOnly="True" Text="{Binding Version}" />
+      </WrapPanel>
+    </StackPanel>
+  </DockPanel>
 </UserControl>

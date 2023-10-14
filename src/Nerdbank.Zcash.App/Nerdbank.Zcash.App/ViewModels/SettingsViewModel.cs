@@ -10,6 +10,8 @@ public class SettingsViewModel : ViewModelBase
 	private Security alternateCurrency = Security.USD;
 	private string lightServerUrl = "https://zcash.mysideoftheweb.com:9067/";
 
+	public string Title => "Settings";
+
 	public Security AlternateCurrency
 	{
 		get => this.alternateCurrency;

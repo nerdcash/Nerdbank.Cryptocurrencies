@@ -16,7 +16,7 @@ internal class FirstLaunchViewModel
 
 	public string Greeting => Strings.AppGreeting;
 
-	public Bitmap ZcashLogo => Resources.ZcashLogo;
+	public Bitmap Logo => Resources.ZcashLogo;
 
 	public string StartNewWalletButtonText => Strings.StartNewWalletButtonText;
 

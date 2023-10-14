@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Avalonia.Media.Imaging;
+
 namespace Nerdbank.Zcash.App.ViewModels;
 
 // Consider using +, - and = for receive, spend and balance buttons respectively.
@@ -12,6 +14,8 @@ public class MainViewModel : ViewModelBase
 		this.SendCommand = ReactiveCommand.Create(() => { });
 		this.BalanceCommand = ReactiveCommand.Create(() => { });
 	}
+
+	public Bitmap Logo => Resources.ZcashLogo;
 
 	public string ReceiveCommandCaption => "Receive";
 

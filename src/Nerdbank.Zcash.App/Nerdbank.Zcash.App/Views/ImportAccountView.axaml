@@ -10,11 +10,13 @@
     <vm:ImportAccountViewModel />
   </Design.DataContext>
 
-  <StackPanel>
-    <TextBlock Classes="Title" Text="{Binding Title}" />
-    <TextBlock Text="{Binding Explanation}" Margin="0,0,0,20" />
-    <TextBlock Text="{Binding KeyCaption}" />
-    <TextBox Text="{Binding Key}" Height="100" />
-    <Button Command="{Binding ImportCommand}" Content="{Binding ImportCommandCaption}" />
-  </StackPanel>
+  <DockPanel>
+    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
+    <StackPanel>
+      <TextBlock Text="{Binding Explanation}" Margin="0,0,0,20" />
+      <TextBlock Text="{Binding KeyCaption}" />
+      <TextBox Text="{Binding Key}" Height="100" />
+      <Button Command="{Binding ImportCommand}" Content="{Binding ImportCommandCaption}" />
+    </StackPanel>
+  </DockPanel>
 </UserControl>

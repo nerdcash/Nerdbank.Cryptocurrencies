@@ -10,12 +10,8 @@
   <Design.DataContext>
     <vm:BalanceViewModel />
   </Design.DataContext>
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="auto" />
-      <RowDefinition Height="*" />
-    </Grid.RowDefinitions>
-    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" />
+  <DockPanel>
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" />
     <StackPanel VerticalAlignment="Center" Grid.Row="1">
       <StackPanel.Styles>
         <Style Selector="TextBlock.SubsetName">
@@ -32,17 +28,7 @@
         <TextBlock Text="{Binding BalanceCaption}" />
         <local:SecurityAmountDisplay Value="{Binding Balance}" FontWeight="Bold" HorizontalAlignment="Center" />
       </StackPanel>
-      <Grid IsVisible="{Binding IsBalanceBreakdownVisible}">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="auto" />
-          <ColumnDefinition Width="10" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition />
-          <RowDefinition />
-          <RowDefinition />
-        </Grid.RowDefinitions>
+      <Grid IsVisible="{Binding IsBalanceBreakdownVisible}" ColumnDefinitions="auto, 10, *" RowDefinitions="auto, auto, auto">
         <local:SecurityAmountDisplay Value="{Binding SpendableBalance}" />
         <StackPanel Grid.Column="2">
           <TextBlock Text="{Binding SpendableBalanceCaption}" Classes="SubsetName" />
@@ -68,5 +54,5 @@
         <TextBlock Text="{Binding UnconfirmedIncomeExplanation}" />
       </StackPanel>
     </StackPanel>
-  </Grid>
+  </DockPanel>
 </UserControl>

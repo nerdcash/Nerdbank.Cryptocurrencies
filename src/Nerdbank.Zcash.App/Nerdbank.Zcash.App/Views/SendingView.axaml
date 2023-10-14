@@ -10,16 +10,22 @@
   <Design.DataContext>
     <vm:SendingViewModel />
   </Design.DataContext>
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="auto" />
-      <RowDefinition Height="*" />
-      <RowDefinition Height="auto" />
-    </Grid.RowDefinitions>
+  <DockPanel>
     <!-- TODO: this should be in a repeater control of some sort,
          so we can allow multiple recipients to be either manually entered
          or automatically initialized based on scanning a multi-pay payment request.-->
-    <TextBlock FontSize="18" Text="{Binding Title}" />
+    <TextBlock FontSize="18" Text="{Binding Title}" DockPanel.Dock="Top" />
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*, auto">
+      <Grid RowDefinitions="*,*,*" ColumnDefinitions="auto,10,auto">
+        <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" />
+        <local:SecurityAmountDisplay Value="{Binding Subtotal}" Grid.Column="2" Grid.Row="0" />
+        <TextBlock Text="{Binding FeeCaption}" Grid.Row="1" />
+        <local:SecurityAmountDisplay Value="{Binding Fee}" Grid.Column="2" Grid.Row="1" />
+        <TextBlock Text="{Binding TotalCaption}" Grid.Row="2" />
+        <local:SecurityAmountDisplay Value="{Binding Total}" Grid.Column="2" Grid.Row="2" />
+      </Grid>
+      <Button Grid.Column="1" Content="{Binding SendCommandCaption}" Command="{Binding SendCommand}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
+    </Grid>
     <ScrollViewer Grid.Row="1">
       <StackPanel>
         <Button Content="{Binding ScanCommandCaption}" HorizontalAlignment="Center" />
@@ -41,30 +47,5 @@
         </WrapPanel>
       </StackPanel>
     </ScrollViewer>
-    <Grid Grid.Row="2">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="auto" />
-      </Grid.ColumnDefinitions>
-      <Grid>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="*" />
-          <RowDefinition Height="*" />
-          <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="auto" />
-          <ColumnDefinition Width="10" />
-          <ColumnDefinition Width="auto" />
-        </Grid.ColumnDefinitions>
-        <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" />
-        <local:SecurityAmountDisplay Value="{Binding Subtotal}" Grid.Column="2" Grid.Row="0" />
-        <TextBlock Text="{Binding FeeCaption}" Grid.Row="1" />
-        <local:SecurityAmountDisplay Value="{Binding Fee}" Grid.Column="2" Grid.Row="1" />
-        <TextBlock Text="{Binding TotalCaption}" Grid.Row="2" />
-        <local:SecurityAmountDisplay Value="{Binding Total}" Grid.Column="2" Grid.Row="2" />
-      </Grid>
-      <Button Grid.Column="1" Content="{Binding SendCommandCaption}" Command="{Binding SendCommand}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
-    </Grid>
-  </Grid>
+  </DockPanel>
 </UserControl>

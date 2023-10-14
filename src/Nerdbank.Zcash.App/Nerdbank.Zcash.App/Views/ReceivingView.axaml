@@ -10,11 +10,6 @@
     <vm:ReceivingViewModel />
   </Design.DataContext>
   <Grid>
-    <Grid.Styles>
-      <Style Selector="TextBlock">
-        <Setter Property="TextWrapping" Value="Wrap" />
-      </Style>
-    </Grid.Styles>
     <Grid.RowDefinitions>
       <RowDefinition Height="auto" />
       <RowDefinition Height="auto" />
