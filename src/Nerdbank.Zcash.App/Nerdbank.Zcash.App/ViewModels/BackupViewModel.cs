@@ -12,6 +12,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class BackupViewModel : ViewModelBase
 {
 	private bool revealData;
+	private bool seedPhraseBackedUp;
 
 	[Obsolete("Design-time only", error: true)]
 	public BackupViewModel()
@@ -74,6 +75,14 @@ public class BackupViewModel : ViewModelBase
 	public string MaxAccountIndexCaption => "Max account index";
 
 	public uint MaxAccountIndex { get; init; } = 1;
+
+	public string SeedPhraseBackedUpCaption => "I have copied down my seed phrase (and password)";
+
+	public bool SeedPhraseBackedUp
+	{
+		get => this.seedPhraseBackedUp;
+		set => this.RaiseAndSetIfChanged(ref this.seedPhraseBackedUp, value);
+	}
 
 	private static SeedPhraseRow[] BreakupSeedPhraseIntoRows(Bip39Mnemonic mnemonic)
 	{
