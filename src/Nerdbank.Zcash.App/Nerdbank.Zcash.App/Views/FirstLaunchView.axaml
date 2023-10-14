@@ -13,8 +13,14 @@
   <StackPanel Spacing="15">
     <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
     <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
-    <StackPanel Classes="ButtonAndExplanation">
-      <Button Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" />
+    <StackPanel Classes="ButtonAndExplanation" HorizontalAlignment="Stretch">
+      <SplitButton Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" HorizontalAlignment="Stretch">
+        <SplitButton.Flyout>
+          <Flyout>
+            <MenuItem Command="{Binding StartNewWalletAdvancedCommand}" Header="{Binding StartNewWalletAdvancedCommandCaption}" />
+          </Flyout>
+        </SplitButton.Flyout>
+      </SplitButton>
       <TextBlock Text="{Binding StartNewWalletExplanation}" />
     </StackPanel>
     <StackPanel Classes="ButtonAndExplanation">

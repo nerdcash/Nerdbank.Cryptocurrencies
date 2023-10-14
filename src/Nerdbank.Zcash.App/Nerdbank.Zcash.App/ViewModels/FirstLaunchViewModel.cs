@@ -19,6 +19,7 @@ public class FirstLaunchViewModel : ViewModelBase
 	public FirstLaunchViewModel(IViewModelServices viewModelServices)
 	{
 		this.StartNewWalletCommand = ReactiveCommand.Create(this.CreateNewAccount);
+		this.StartNewWalletAdvancedCommand = ReactiveCommand.Create(this.CreateNewAccountAdvanced);
 		this.ImportWalletCommand = ReactiveCommand.Create(() => { });
 		this.viewModelServices = viewModelServices;
 	}
@@ -37,6 +38,10 @@ public class FirstLaunchViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, Unit> StartNewWalletCommand { get; }
 
+	public string StartNewWalletAdvancedCommandCaption => Strings.StartNewWalletAdvancedCommandCaption;
+
+	public ReactiveCommand<Unit, Unit> StartNewWalletAdvancedCommand { get; }
+
 	public ReactiveCommand<Unit, Unit> ImportWalletCommand { get; }
 
 	private void CreateNewAccount()
@@ -52,5 +57,10 @@ public class FirstLaunchViewModel : ViewModelBase
 			Accounts = { [index] = account },
 		};
 		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithWallet)this.viewModelServices));
+	}
+
+	private void CreateNewAccountAdvanced()
+	{
+		this.viewModelServices.NavigateTo(new CreateNewWalletViewModel(this.viewModelServices));
 	}
 }

@@ -129,6 +129,9 @@
   <data name="ImportWalletExplanation" xml:space="preserve">
     <value>Choose this if you have a seed phrase (typically 12 or 24 words) that you've saved from another wallet.</value>
   </data>
+  <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
+    <value>Create a new wallet (advanced)...</value>
+  </data>
   <data name="StartNewWalletButtonText" xml:space="preserve">
     <value>Create a new wallet</value>
   </data>
