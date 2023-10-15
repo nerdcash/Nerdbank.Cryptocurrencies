@@ -7,6 +7,8 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 internal class DesignTimeViewModelServices : IViewModelServicesWithWallet
 {
+	private ZcashAccount? selectedAccount;
+
 	public ZcashWallet? Wallet { get; set; } = new()
 	{
 		Accounts =
@@ -14,6 +16,12 @@ internal class DesignTimeViewModelServices : IViewModelServicesWithWallet
 			[0] = new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(128), ZcashNetwork.TestNet)),
 		},
 	};
+
+	public ZcashAccount SelectedAccount
+	{
+		get => this.selectedAccount ??= this.Wallet!.Accounts.First().Value;
+		set => this.selectedAccount = value;
+	}
 
 	ZcashWallet IViewModelServicesWithWallet.Wallet => this.Wallet ?? throw new InvalidOperationException();
 

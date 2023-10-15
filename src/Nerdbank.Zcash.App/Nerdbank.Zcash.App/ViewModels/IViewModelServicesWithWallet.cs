@@ -9,4 +9,9 @@ public interface IViewModelServicesWithWallet : IViewModelServices
 	/// Gets the wallet data model.
 	/// </summary>
 	new ZcashWallet Wallet { get; }
+
+	/// <summary>
+	/// Gets or sets the active account.
+	/// </summary>
+	ZcashAccount SelectedAccount { get; set; }
 }

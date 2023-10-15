@@ -11,6 +11,7 @@ public class ReceivingViewModel : ViewModelBase
 {
 	private readonly IViewModelServicesWithWallet viewModelServices;
 	private string receiverIdentity = string.Empty;
+	private ZcashAddress receivingAddress;
 
 	public ReceivingViewModel()
 		: this(new DesignTimeViewModelServices())
@@ -21,9 +22,11 @@ public class ReceivingViewModel : ViewModelBase
 	{
 		this.viewModelServices = viewModelServices;
 
+		this.receivingAddress = viewModelServices.SelectedAccount.GetDiversifiedAddress();
+
 		QRCodeGenerator generator = new();
 		QREncoder encoder = new() { NoPadding = true };
-		QRCodeData data = generator.CreateQrCode("some data", encoder.ECCLevel);
+		QRCodeData data = generator.CreateQrCode(this.receivingAddress, encoder.ECCLevel);
 		this.QrCode = new Bitmap(new MemoryStream(encoder.Encode(data, ".png", null)));
 
 		this.AddPaymentRequestCommand = ReactiveCommand.Create(() => { });
@@ -41,7 +44,7 @@ public class ReceivingViewModel : ViewModelBase
 
 	public Bitmap QrCode { get; private set; }
 
-	public string Address { get; } = "u1aoeuchch...oechknce";
+	public string Address => $"{this.receivingAddress.Address[..10]}...{this.receivingAddress.Address[^10..]}";
 
 	public string Explanation => "A unique address is generated every time you share your address with someone. This enhances your privacy and helps you identify where payments come from.";
 

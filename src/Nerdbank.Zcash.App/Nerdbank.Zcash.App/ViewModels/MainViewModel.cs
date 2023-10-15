@@ -10,6 +10,7 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
 	private ZcashWallet? wallet;
+	private ZcashAccount? selectedAccount;
 
 	public MainViewModel()
 	{
@@ -35,6 +36,12 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 	}
 
 	ZcashWallet IViewModelServicesWithWallet.Wallet => this.Wallet ?? throw new InvalidOperationException();
+
+	public ZcashAccount SelectedAccount
+	{
+		get => this.selectedAccount ?? this.Wallet?.Accounts.FirstOrDefault().Value ?? throw new InvalidOperationException();
+		set => this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
+	}
 
 	public ViewModelBase? Content
 	{
