@@ -7,11 +7,6 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ViewModelBase : ReactiveObject
 {
-	// TODO: replace this with a real check on the ZcashAccount.
-	public ZcashNetwork Network { get; set; } = ZcashNetwork.MainNet;
-
-	protected Security ZcashSecurity => this.Network.AsSecurity();
-
 	protected void LinkProperty(string basePropertyName, string dependentPropertyName)
 	{
 		this.PropertyChanged += (sender, e) =>

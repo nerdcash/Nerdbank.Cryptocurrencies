@@ -129,6 +129,9 @@
   <data name="ImportWalletExplanation" xml:space="preserve">
     <value>Choose this if you have a seed phrase (typically 12 or 24 words) that you've saved from another wallet.</value>
   </data>
+  <data name="SaplingReceivingAddressHeader" xml:space="preserve">
+    <value>Sapling</value>
+  </data>
   <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
     <value>Create a new wallet (advanced)...</value>
   </data>
@@ -137,5 +140,11 @@
   </data>
   <data name="StartNewWalletExplanation" xml:space="preserve">
     <value>Choose this if you've never used a Zcash wallet before.</value>
+  </data>
+  <data name="TransparentReceivingAddressHeader" xml:space="preserve">
+    <value>Transparent</value>
+  </data>
+  <data name="UnifiedReceivingAddressHeader" xml:space="preserve">
+    <value>Unified</value>
   </data>
 </root>

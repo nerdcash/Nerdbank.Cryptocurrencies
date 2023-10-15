@@ -9,19 +9,27 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class TransactionHistoryViewModel : ViewModelBase
 {
+	private readonly IViewModelServicesWithWallet viewModelServices;
 	private TransactionViewModel? selectedTransaction;
 
 	[Obsolete("For design-time use only", error: true)]
 	public TransactionHistoryViewModel()
+		: this(new DesignTimeViewModelServices())
 	{
-		this.CommonConstruction();
 		this.Transactions.AddRange(new TransactionViewModel[]
 		{
 			new() { Amount = ZEC(1.2345m), IsIncoming = true, OtherPartyName = "Andrew Arnott", Memo = "For the pizza", TransactionId = "12345abc" },
 			new() { Amount = ZEC(-0.5m), IsIncoming = false, OtherPartyName = "Red Rock Cafe", Memo = "Hot Chocolate", TransactionId = "1e62b7" },
 		});
 
-		SecurityAmount ZEC(decimal amount) => new(amount, this.ZcashSecurity);
+		SecurityAmount ZEC(decimal amount) => new(amount, this.viewModelServices.SelectedAccount.Network.AsSecurity());
+	}
+
+	public TransactionHistoryViewModel(IViewModelServicesWithWallet viewModelServices)
+	{
+		this.viewModelServices = viewModelServices;
+
+		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
 	}
 
 	public string Title => "Transaction History";
@@ -30,7 +38,7 @@ public class TransactionHistoryViewModel : ViewModelBase
 
 	public string WhenColumnHeader => "When";
 
-	public string AmountColumnHeader => this.Network.GetTickerName();
+	public string AmountColumnHeader => this.viewModelServices.SelectedAccount.Network.GetTickerName();
 
 	public string FiatAmountColumnHeader => "USD";
 
@@ -47,9 +55,4 @@ public class TransactionHistoryViewModel : ViewModelBase
 	}
 
 	public bool IsTransactionDetailsVisible => this.SelectedTransaction is not null;
-
-	private void CommonConstruction()
-	{
-		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
-	}
 }

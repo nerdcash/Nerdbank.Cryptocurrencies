@@ -27,7 +27,7 @@
         <DataGridTemplateColumn Header="{Binding AccountBalanceColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding Balance}" IsUnitsVisible="False" />
+              <local:SecurityAmountDisplay Value="{Binding Balance}" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

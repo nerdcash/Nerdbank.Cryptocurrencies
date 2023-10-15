@@ -7,6 +7,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SendingViewModel : ViewModelBase
 {
+	private readonly IViewModelServicesWithWallet viewModelServices;
 	private string recipientAddress = string.Empty;
 	private decimal amount;
 	private SecurityAmount? fee;
@@ -16,11 +17,13 @@ public class SendingViewModel : ViewModelBase
 	public SendingViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.fee = new(0.0001m, this.ZcashSecurity);
+		this.fee = new(0.0001m, this.viewModelServices.SelectedAccount.Network.AsSecurity());
 	}
 
 	public SendingViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
+		this.viewModelServices = viewModelServices;
+
 		this.SendCommand = ReactiveCommand.Create(() => { });
 		this.ScanCommand = ReactiveCommand.Create(() => { });
 		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
@@ -40,7 +43,7 @@ public class SendingViewModel : ViewModelBase
 
 	public string AmountCaption => "Amount:";
 
-	public string TickerSymbol => this.Network.GetTickerName();
+	public string TickerSymbol => this.viewModelServices.SelectedAccount.Network.GetTickerName();
 
 	public decimal Amount
 	{
@@ -56,13 +59,13 @@ public class SendingViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.fee, value);
 	}
 
-	public SecurityAmount Subtotal => new(this.Amount, this.ZcashSecurity);
+	public SecurityAmount Subtotal => new(this.Amount, this.viewModelServices.SelectedAccount.Network.AsSecurity());
 
 	public string SubtotalCaption => "Subtotal";
 
 	public string TotalCaption => "Total";
 
-	public SecurityAmount Total => new SecurityAmount(this.Amount, this.ZcashSecurity) + (this.Fee ?? default);
+	public SecurityAmount Total => new SecurityAmount(this.Amount, this.viewModelServices.SelectedAccount.Network.AsSecurity()) + (this.Fee ?? default);
 
 	public string MemoCaption => "Memo:";
 

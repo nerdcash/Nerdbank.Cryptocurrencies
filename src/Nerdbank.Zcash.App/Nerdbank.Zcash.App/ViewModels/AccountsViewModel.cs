@@ -23,7 +23,7 @@ public class AccountsViewModel : ViewModelBase
 
 	public string AccountNameColumnHeader => "Name";
 
-	public string AccountBalanceColumnHeader => $"Balance ({this.ZcashSecurity.TickerSymbol})";
+	public string AccountBalanceColumnHeader => $"Balance";
 
 	public string AccountIndexColumnHeader => "Index";
 

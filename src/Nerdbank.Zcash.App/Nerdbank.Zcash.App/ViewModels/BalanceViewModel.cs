@@ -7,6 +7,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class BalanceViewModel : ViewModelBase
 {
+	private readonly IViewModelServicesWithWallet viewModelServices;
 	private SecurityAmount immatureIncome;
 	private SecurityAmount unconfirmedIncome;
 	private SecurityAmount spendableBalance;
@@ -17,15 +18,19 @@ public class BalanceViewModel : ViewModelBase
 	public BalanceViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.anticipatedFees = new(-0.103m, this.ZcashSecurity);
-		this.immatureIncome = new(0.5m, this.ZcashSecurity);
-		this.unconfirmedIncome = new(1.2m, this.ZcashSecurity);
-		this.spendableBalance = new(10.100m, this.ZcashSecurity);
-		this.unspendableChange = new(0.023m, this.ZcashSecurity);
+		Security security = this.viewModelServices.SelectedAccount.Network.AsSecurity();
+
+		this.anticipatedFees = new(-0.103m, security);
+		this.immatureIncome = new(0.5m, security);
+		this.unconfirmedIncome = new(1.2m, security);
+		this.spendableBalance = new(10.100m, security);
+		this.unspendableChange = new(0.023m, security);
 	}
 
 	public BalanceViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
+		this.viewModelServices = viewModelServices;
+
 		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
 		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));
 

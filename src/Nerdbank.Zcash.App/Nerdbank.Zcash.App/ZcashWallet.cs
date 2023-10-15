@@ -28,6 +28,10 @@ public class ZcashWallet : INotifyPropertyChanged
 
 	public SortedDictionary<uint, ZcashAccount> Accounts { get; } = new();
 
+	public uint? MaxAccountIndex => this.Accounts.Count > 0 ? this.Accounts.Keys.Max() : null;
+
+	public uint? MaxTransparentAddressIndex { get; set; }
+
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 	protected void RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
