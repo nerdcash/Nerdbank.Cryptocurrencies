@@ -95,6 +95,11 @@ public class ZcashAccount
 	/// </summary>
 	public UnifiedAddress DefaultAddress => this.IncomingViewing.UnifiedKey.DefaultAddress;
 
+	/// <summary>
+	/// Gets a value indicating whether this account contains an orchard or sapling key.
+	/// </summary>
+	public bool HasDiversifiableKeys => this.IncomingViewing.Orchard is not null || this.IncomingViewing.Sapling is not null;
+
 	private string DebuggerDisplay => $"{this.DefaultAddress}";
 
 	/// <inheritdoc cref="GetDiversifiedAddress(ref DiversifierIndex)"/>
@@ -122,6 +127,10 @@ public class ZcashAccount
 	/// you prevent them from being able to correlate this address with others to discover they are
 	/// interacting with the same person, thereby increasing your privacy.
 	/// </remarks>
+	/// <exception cref="InvalidOperationException">
+	/// Thrown if this account has no diversifiable keys.
+	/// This can be predicted using <see cref="HasDiversifiableKeys"/>.
+	/// </exception>
 	public UnifiedAddress GetDiversifiedAddress(ref DiversifierIndex diversifierIndex)
 	{
 		List<ZcashAddress> componentAddresses = new(2);

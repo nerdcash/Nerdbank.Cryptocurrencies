@@ -121,4 +121,20 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(incomingViewAccount.IncomingViewing?.Orchard);
 		Assert.Equal(DefaultAccount.IncomingViewing!.UnifiedKey, incomingViewAccount.IncomingViewing?.UnifiedKey);
 	}
+
+	[Fact]
+	public void HasDiversifiableKeys()
+	{
+		// Default account has diversifiable keys.
+		Assert.True(DefaultAccount.HasDiversifiableKeys);
+
+		// Orchard only accounts have diversifiable keys.
+		Assert.True(new ZcashAccount(UnifiedViewingKey.Incoming.Create(DefaultAccount.IncomingViewing.Orchard!)).HasDiversifiableKeys);
+
+		// Sapling only accounts have diversifiable keys.
+		Assert.True(new ZcashAccount(UnifiedViewingKey.Incoming.Create(DefaultAccount.IncomingViewing.Sapling!)).HasDiversifiableKeys);
+
+		// Transparent only accounts have no diversifiable keys.
+		Assert.False(new ZcashAccount(UnifiedViewingKey.Incoming.Create(DefaultAccount.IncomingViewing.Transparent!)).HasDiversifiableKeys);
+	}
 }
