@@ -41,6 +41,8 @@ Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdba
 Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! walletPath, string! walletName, string! logName, bool watchMemPool) -> void
 Nerdbank.Zcash.LightWalletClient.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.LightWalletClient.PoolBalances
+Nerdbank.Zcash.LightWalletClient.PoolBalances.Deconstruct(out Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance? Transparent, out Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance? Sapling, out Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance? Orchard) -> void
+Nerdbank.Zcash.LightWalletClient.PoolBalances.Equals(Nerdbank.Zcash.LightWalletClient.PoolBalances other) -> bool
 Nerdbank.Zcash.LightWalletClient.PoolBalances.Orchard.get -> Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance?
 Nerdbank.Zcash.LightWalletClient.PoolBalances.Orchard.set -> void
 Nerdbank.Zcash.LightWalletClient.PoolBalances.PoolBalances() -> void
@@ -51,6 +53,7 @@ Nerdbank.Zcash.LightWalletClient.PoolBalances.Transparent.get -> Nerdbank.Zcash.
 Nerdbank.Zcash.LightWalletClient.PoolBalances.Transparent.set -> void
 Nerdbank.Zcash.LightWalletClient.SendAsync(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.LightWalletClient.TransactionSendItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<string!>!
 Nerdbank.Zcash.LightWalletClient.SendProgress
+Nerdbank.Zcash.LightWalletClient.SendProgress.Deconstruct(out uint Id, out bool IsSendInProgress, out uint Progress, out uint Total, out string? LastError, out string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Id.get -> uint
 Nerdbank.Zcash.LightWalletClient.SendProgress.Id.init -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.IsSendInProgress.get -> bool
@@ -61,12 +64,15 @@ Nerdbank.Zcash.LightWalletClient.SendProgress.LastTransactionId.get -> string?
 Nerdbank.Zcash.LightWalletClient.SendProgress.LastTransactionId.init -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Progress.get -> uint
 Nerdbank.Zcash.LightWalletClient.SendProgress.Progress.init -> void
+Nerdbank.Zcash.LightWalletClient.SendProgress.SendProgress(Nerdbank.Zcash.LightWalletClient.SendProgress! original) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.SendProgress(uint Id, bool IsSendInProgress, uint Progress, uint Total, string? LastError, string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.get -> uint
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.init -> void
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Balance.get -> decimal
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Balance.set -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Deconstruct(out decimal Balance, out decimal VerifiedBalance, out decimal UnverifiedBalance, out decimal SpendableBalance) -> void
+Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Equals(Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance other) -> bool
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.ShieldedPoolBalance() -> void
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance) -> void
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable) -> void
@@ -85,26 +91,31 @@ Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksDone.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksDone.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksTotal.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksTotal.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.Deconstruct(out string? LastError, out ulong StartBlock, out ulong EndBlock, out ulong BlocksDone, out ulong TxnScanDone, out ulong BlocksTotal, out ulong BatchNum, out ulong BatchTotal) -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.EndBlock.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.EndBlock.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.LastError.get -> string?
 Nerdbank.Zcash.LightWalletClient.SyncProgress.LastError.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.StartBlock.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.StartBlock.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.SyncProgress(Nerdbank.Zcash.LightWalletClient.SyncProgress! original) -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.SyncProgress(string? LastError, ulong StartBlock, ulong EndBlock, ulong BlocksDone, ulong TxnScanDone, ulong BlocksTotal, ulong BatchNum, ulong BatchTotal) -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.TxnScanDone.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.TxnScanDone.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncResult
+Nerdbank.Zcash.LightWalletClient.SyncResult.Deconstruct(out bool Success, out ulong LatestBlock, out ulong TotalBlocksScanned) -> void
 Nerdbank.Zcash.LightWalletClient.SyncResult.LatestBlock.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncResult.LatestBlock.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncResult.Success.get -> bool
 Nerdbank.Zcash.LightWalletClient.SyncResult.Success.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncResult.SyncResult(bool Success, ulong LatestBlock, ulong TotalBlocksScanned) -> void
+Nerdbank.Zcash.LightWalletClient.SyncResult.SyncResult(Nerdbank.Zcash.LightWalletClient.SyncResult! original) -> void
 Nerdbank.Zcash.LightWalletClient.SyncResult.TotalBlocksScanned.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncResult.TotalBlocksScanned.init -> void
 Nerdbank.Zcash.LightWalletClient.Transaction
 Nerdbank.Zcash.LightWalletClient.Transaction.BlockNumber.get -> uint
 Nerdbank.Zcash.LightWalletClient.Transaction.BlockNumber.init -> void
+Nerdbank.Zcash.LightWalletClient.Transaction.Deconstruct(out string! TransactionId, out uint BlockNumber, out System.DateTime When, out bool IsUnconfirmed, out decimal Spent, out decimal Received, out System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.LightWalletClient.TransactionSendItem> Sends, out System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.LightWalletClient.TransactionRecvItem> Notes, out bool IsIncoming) -> void
 Nerdbank.Zcash.LightWalletClient.Transaction.Fee.get -> decimal
 Nerdbank.Zcash.LightWalletClient.Transaction.IsIncoming.get -> bool
 Nerdbank.Zcash.LightWalletClient.Transaction.IsIncoming.init -> void
@@ -119,6 +130,7 @@ Nerdbank.Zcash.LightWalletClient.Transaction.Sends.get -> System.Collections.Imm
 Nerdbank.Zcash.LightWalletClient.Transaction.Sends.init -> void
 Nerdbank.Zcash.LightWalletClient.Transaction.Spent.get -> decimal
 Nerdbank.Zcash.LightWalletClient.Transaction.Spent.init -> void
+Nerdbank.Zcash.LightWalletClient.Transaction.Transaction(Nerdbank.Zcash.LightWalletClient.Transaction! original) -> void
 Nerdbank.Zcash.LightWalletClient.Transaction.Transaction(string! TransactionId, uint BlockNumber, System.DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.LightWalletClient.TransactionSendItem> Sends, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.LightWalletClient.TransactionRecvItem> Notes, bool IsIncoming) -> void
 Nerdbank.Zcash.LightWalletClient.Transaction.TransactionId.get -> string!
 Nerdbank.Zcash.LightWalletClient.Transaction.TransactionId.init -> void
@@ -127,6 +139,8 @@ Nerdbank.Zcash.LightWalletClient.Transaction.When.init -> void
 Nerdbank.Zcash.LightWalletClient.TransactionRecvItem
 Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.Amount.get -> decimal
 Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.Amount.set -> void
+Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.Deconstruct(out Nerdbank.Zcash.ZcashAddress! ToAddress, out decimal Amount, out Nerdbank.Zcash.Memo Memo, out bool IsChange) -> void
+Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.Equals(Nerdbank.Zcash.LightWalletClient.TransactionRecvItem other) -> bool
 Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.IsChange.get -> bool
 Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.IsChange.set -> void
 Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.Memo.get -> Nerdbank.Zcash.Memo
@@ -139,6 +153,8 @@ Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.TransactionRecvItem(Nerdban
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.Amount.get -> decimal
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.Amount.set -> void
+Nerdbank.Zcash.LightWalletClient.TransactionSendItem.Deconstruct(out Nerdbank.Zcash.ZcashAddress! ToAddress, out decimal Amount, out Nerdbank.Zcash.Memo Memo, out Nerdbank.Zcash.UnifiedAddress? RecipientUA) -> void
+Nerdbank.Zcash.LightWalletClient.TransactionSendItem.Equals(Nerdbank.Zcash.LightWalletClient.TransactionSendItem other) -> bool
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.Memo.get -> Nerdbank.Zcash.Memo
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.Memo.set -> void
 Nerdbank.Zcash.LightWalletClient.TransactionSendItem.RecipientUA.get -> Nerdbank.Zcash.UnifiedAddress?
@@ -150,6 +166,8 @@ Nerdbank.Zcash.LightWalletClient.TransactionSendItem.TransactionSendItem(Nerdban
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Balance.get -> decimal
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Balance.set -> void
+Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Deconstruct(out decimal Balance) -> void
+Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Equals(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance other) -> bool
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance() -> void
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance(decimal Balance) -> void
 Nerdbank.Zcash.LightWalletClient.UpdateFrequency.get -> System.TimeSpan
@@ -226,6 +244,7 @@ Nerdbank.Zcash.RawTransaction.DescriptionEnumerator<T>.DescriptionEnumerator() -
 Nerdbank.Zcash.RawTransaction.DescriptionEnumerator<T>.Dispose() -> void
 Nerdbank.Zcash.RawTransaction.DescriptionEnumerator<T>.MoveNext() -> bool
 Nerdbank.Zcash.RawTransaction.DescriptionEnumerator<T>.Reset() -> void
+Nerdbank.Zcash.RawTransaction.Equals(Nerdbank.Zcash.RawTransaction other) -> bool
 Nerdbank.Zcash.RawTransaction.ExpiryHeight.get -> uint
 Nerdbank.Zcash.RawTransaction.ExpiryHeight.init -> void
 Nerdbank.Zcash.RawTransaction.Header.get -> uint
@@ -235,6 +254,7 @@ Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Anchor.get -> System.ReadOnlyM
 Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Commitments.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.EncCiphertexts.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.EphemeralKey.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Equals(Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14 other) -> bool
 Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.JSDescriptionBCTV14() -> void
 Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.JSDescriptionBCTV14(ulong vpub_old, ulong vpub_new, System.ReadOnlyMemory<byte> anchor, System.ReadOnlyMemory<byte> nullifiers, System.ReadOnlyMemory<byte> commitments, System.ReadOnlyMemory<byte> ephemeralKey, System.ReadOnlyMemory<byte> randomSeed, System.ReadOnlyMemory<byte> vmacs, System.ReadOnlyMemory<byte> zkproof, System.ReadOnlyMemory<byte> encCiphertexts) -> void
 Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Nullifiers.get -> System.ReadOnlyMemory<byte>
@@ -248,6 +268,7 @@ Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Anchor.get -> System.ReadOnly
 Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Commitments.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.EncCiphertexts.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.EphemeralKey.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Equals(Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16 other) -> bool
 Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.JSDescriptionGroth16() -> void
 Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.JSDescriptionGroth16(ulong vpub_old, ulong vpub_new, System.ReadOnlyMemory<byte> anchor, System.ReadOnlyMemory<byte> nullifiers, System.ReadOnlyMemory<byte> commitments, System.ReadOnlyMemory<byte> ephemeralKey, System.ReadOnlyMemory<byte> randomSeed, System.ReadOnlyMemory<byte> vmacs, System.ReadOnlyMemory<byte> zkproof, System.ReadOnlyMemory<byte> encCiphertexts) -> void
 Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Nullifiers.get -> System.ReadOnlyMemory<byte>
@@ -264,6 +285,7 @@ Nerdbank.Zcash.RawTransaction.OrchardAction
 Nerdbank.Zcash.RawTransaction.OrchardAction.Cmx.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.OrchardAction.EncryptedCiphertext.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.OrchardAction.EphemeralKey.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.OrchardAction.Equals(Nerdbank.Zcash.RawTransaction.OrchardAction other) -> bool
 Nerdbank.Zcash.RawTransaction.OrchardAction.Nullifier.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.OrchardAction.OrchardAction() -> void
 Nerdbank.Zcash.RawTransaction.OrchardAction.OrchardAction(System.ReadOnlyMemory<byte> cv, System.ReadOnlyMemory<byte> nullifier, System.ReadOnlyMemory<byte> rk, System.ReadOnlyMemory<byte> cmx, System.ReadOnlyMemory<byte> ephemeralKey, System.ReadOnlyMemory<byte> encCiphertext, System.ReadOnlyMemory<byte> outCiphertext) -> void
@@ -277,6 +299,7 @@ Nerdbank.Zcash.RawTransaction.OrchardFields.Anchor.get -> System.ReadOnlyMemory<
 Nerdbank.Zcash.RawTransaction.OrchardFields.Anchor.init -> void
 Nerdbank.Zcash.RawTransaction.OrchardFields.BindingSig.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.OrchardFields.BindingSig.init -> void
+Nerdbank.Zcash.RawTransaction.OrchardFields.Equals(Nerdbank.Zcash.RawTransaction.OrchardFields other) -> bool
 Nerdbank.Zcash.RawTransaction.OrchardFields.Flags.get -> Nerdbank.Zcash.RawTransaction.OrchardFlags
 Nerdbank.Zcash.RawTransaction.OrchardFields.Flags.init -> void
 Nerdbank.Zcash.RawTransaction.OrchardFields.OrchardFields() -> void
@@ -298,6 +321,7 @@ Nerdbank.Zcash.RawTransaction.SaplingFields.Anchor.get -> System.ReadOnlyMemory<
 Nerdbank.Zcash.RawTransaction.SaplingFields.Anchor.init -> void
 Nerdbank.Zcash.RawTransaction.SaplingFields.BindingSig.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.SaplingFields.BindingSig.init -> void
+Nerdbank.Zcash.RawTransaction.SaplingFields.Equals(Nerdbank.Zcash.RawTransaction.SaplingFields other) -> bool
 Nerdbank.Zcash.RawTransaction.SaplingFields.OutputProofsS.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.SaplingFields.OutputProofsS.init -> void
 Nerdbank.Zcash.RawTransaction.SaplingFields.Outputs.get -> Nerdbank.Zcash.RawTransaction.DescriptionEnumerator<Nerdbank.Zcash.RawTransaction.SaplingOutputDescription>
@@ -314,6 +338,7 @@ Nerdbank.Zcash.RawTransaction.SaplingFields.ValueBalance.init -> void
 Nerdbank.Zcash.RawTransaction.SaplingOutputDescription
 Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.EncryptedCiphertext.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.EphemeralKey.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.Equals(Nerdbank.Zcash.RawTransaction.SaplingOutputDescription other) -> bool
 Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.NoteCommitmentUCoord.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.OutCiphertext.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.SaplingOutputDescription() -> void
@@ -324,6 +349,7 @@ Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.Version.get -> uint
 Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.ZkProof.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.SaplingSpendDescription
 Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Anchor.get -> System.ReadOnlyMemory<byte>
+Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Equals(Nerdbank.Zcash.RawTransaction.SaplingSpendDescription other) -> bool
 Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Nullifier.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.SaplingSpendDescription() -> void
 Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.SaplingSpendDescription(System.ReadOnlyMemory<byte> cv, System.ReadOnlyMemory<byte> anchor, System.ReadOnlyMemory<byte> nullifier, System.ReadOnlyMemory<byte> rk, System.ReadOnlyMemory<byte> zkproof, System.ReadOnlyMemory<byte> spendAuthSig) -> void
@@ -336,6 +362,7 @@ Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.ZkProof.get -> System.Read
 Nerdbank.Zcash.RawTransaction.Sprout.get -> Nerdbank.Zcash.RawTransaction.SproutFields
 Nerdbank.Zcash.RawTransaction.Sprout.init -> void
 Nerdbank.Zcash.RawTransaction.SproutFields
+Nerdbank.Zcash.RawTransaction.SproutFields.Equals(Nerdbank.Zcash.RawTransaction.SproutFields other) -> bool
 Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitBCTV14.get -> System.ReadOnlyMemory<Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14>
 Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitBCTV14.init -> void
 Nerdbank.Zcash.RawTransaction.SproutFields.JoinSplitGroth16.get -> System.ReadOnlyMemory<Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16>
@@ -348,6 +375,7 @@ Nerdbank.Zcash.RawTransaction.SproutFields.SproutFields() -> void
 Nerdbank.Zcash.RawTransaction.Transparent.get -> Nerdbank.Zcash.RawTransaction.TransparentFields
 Nerdbank.Zcash.RawTransaction.Transparent.init -> void
 Nerdbank.Zcash.RawTransaction.TransparentFields
+Nerdbank.Zcash.RawTransaction.TransparentFields.Equals(Nerdbank.Zcash.RawTransaction.TransparentFields other) -> bool
 Nerdbank.Zcash.RawTransaction.TransparentFields.Inputs.get -> System.ReadOnlyMemory<Nerdbank.Bitcoin.RawTransaction.TxIn>
 Nerdbank.Zcash.RawTransaction.TransparentFields.Inputs.init -> void
 Nerdbank.Zcash.RawTransaction.TransparentFields.Outputs.get -> System.ReadOnlyMemory<Nerdbank.Bitcoin.RawTransaction.TxOut>
@@ -446,6 +474,7 @@ Nerdbank.Zcash.ZcashAccount.BirthdayHeight.init -> void
 Nerdbank.Zcash.ZcashAccount.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashAccount.FullViewing.get -> Nerdbank.Zcash.ZcashAccount.FullViewingKeys?
 Nerdbank.Zcash.ZcashAccount.FullViewingKeys
+Nerdbank.Zcash.ZcashAccount.FullViewingKeys.FullViewingKeys(Nerdbank.Zcash.ZcashAccount.FullViewingKeys! original) -> void
 Nerdbank.Zcash.ZcashAccount.FullViewingKeys.Internal.get -> Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys!
 Nerdbank.Zcash.ZcashAccount.FullViewingKeys.Orchard.get -> Nerdbank.Zcash.Orchard.FullViewingKey?
 Nerdbank.Zcash.ZcashAccount.FullViewingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey?
@@ -456,14 +485,17 @@ Nerdbank.Zcash.ZcashAccount.GetDiversifiedAddress(ref Nerdbank.Zcash.Diversifier
 Nerdbank.Zcash.ZcashAccount.HasDiversifiableKeys.get -> bool
 Nerdbank.Zcash.ZcashAccount.IncomingViewing.get -> Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys!
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys
+Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.IncomingViewingKeys(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys! original) -> void
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Orchard.get -> Nerdbank.Zcash.Orchard.IncomingViewingKey?
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey?
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey?
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.UnifiedKey.get -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys
+Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.InternalFullViewingKeys(Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys! original) -> void
 Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.Orchard.get -> Nerdbank.Zcash.Orchard.FullViewingKey?
 Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey?
 Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys
+Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.InternalSpendingKeys(Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys! original) -> void
 Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.ExpandedSpendingKey?
 Nerdbank.Zcash.ZcashAccount.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashAccount.Spending.get -> Nerdbank.Zcash.ZcashAccount.SpendingKeys?
@@ -471,6 +503,7 @@ Nerdbank.Zcash.ZcashAccount.SpendingKeys
 Nerdbank.Zcash.ZcashAccount.SpendingKeys.Internal.get -> Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys!
 Nerdbank.Zcash.ZcashAccount.SpendingKeys.Orchard.get -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey?
 Nerdbank.Zcash.ZcashAccount.SpendingKeys.Sapling.get -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey?
+Nerdbank.Zcash.ZcashAccount.SpendingKeys.SpendingKeys(Nerdbank.Zcash.ZcashAccount.SpendingKeys! original) -> void
 Nerdbank.Zcash.ZcashAccount.SpendingKeys.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey?
 Nerdbank.Zcash.ZcashAccount.ZcashAccount(Nerdbank.Zcash.UnifiedViewingKey! viewingKey) -> void
 Nerdbank.Zcash.ZcashAccount.ZcashAccount(Nerdbank.Zcash.Zip32HDWallet! zip32, uint index = 0) -> void
@@ -490,6 +523,7 @@ Nerdbank.Zcash.Zip302MemoFormat.MemoFormat.ProprietaryData = 2 -> Nerdbank.Zcash
 Nerdbank.Zcash.Zip302MemoFormat.MemoFormat.Reserved = 3 -> Nerdbank.Zcash.Zip302MemoFormat.MemoFormat
 Nerdbank.Zcash.Zip321PaymentRequestUris
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest
+Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.PaymentRequest(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest! original) -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.PaymentRequest(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails! payment) -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.PaymentRequest(System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails!> payments) -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.Payments.get -> System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails!>
@@ -499,6 +533,7 @@ Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Address.get -> Ner
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Address.init -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Amount.get -> decimal?
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Amount.init -> void
+Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Deconstruct(out Nerdbank.Zcash.ZcashAddress! Address) -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Label.get -> string?
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Label.init -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Memo.get -> Nerdbank.Zcash.Memo
@@ -506,6 +541,7 @@ Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Memo.set -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Message.get -> string?
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Message.init -> void
 Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.PaymentRequestDetails(Nerdbank.Zcash.ZcashAddress! Address) -> void
+Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.PaymentRequestDetails(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails! original) -> void
 Nerdbank.Zcash.Zip32HDWallet
 Nerdbank.Zcash.Zip32HDWallet.ChainCode
 Nerdbank.Zcash.Zip32HDWallet.ChainCode.ChainCode() -> void
@@ -615,6 +651,23 @@ Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(N
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(Nerdbank.Zcash.TransparentP2SHReceiver receiver, uint maxAddressIndex, out Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change? change, out uint? addressIndex) -> bool
 Nerdbank.Zcash.Zip32HDWallet.Zip32HDWallet(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
 Nerdbank.Zcash.Zip32HDWallet.Zip32HDWallet(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> void
+override Nerdbank.Zcash.LightWalletClient.PoolBalances.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.SendProgress.Equals(object? obj) -> bool
+override Nerdbank.Zcash.LightWalletClient.SendProgress.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.SendProgress.ToString() -> string!
+override Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.SyncProgress.Equals(object? obj) -> bool
+override Nerdbank.Zcash.LightWalletClient.SyncProgress.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.SyncProgress.ToString() -> string!
+override Nerdbank.Zcash.LightWalletClient.SyncResult.Equals(object? obj) -> bool
+override Nerdbank.Zcash.LightWalletClient.SyncResult.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.SyncResult.ToString() -> string!
+override Nerdbank.Zcash.LightWalletClient.Transaction.Equals(object? obj) -> bool
+override Nerdbank.Zcash.LightWalletClient.Transaction.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.Transaction.ToString() -> string!
+override Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.TransactionSendItem.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.GetHashCode() -> int
 override Nerdbank.Zcash.Memo.ToString() -> string!
 override Nerdbank.Zcash.Orchard.FullViewingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Orchard.FullViewingKey.GetHashCode() -> int
@@ -624,6 +677,16 @@ override Nerdbank.Zcash.OrchardAddress.GetPoolReceiver<TPoolReceiver>() -> TPool
 override Nerdbank.Zcash.OrchardAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.OrchardAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.OrchardAddress.Receivers.get -> System.Collections.Generic.IReadOnlyList<Nerdbank.Zcash.ZcashAddress!>!
+override Nerdbank.Zcash.RawTransaction.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.OrchardAction.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.OrchardFields.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.SaplingFields.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.SproutFields.GetHashCode() -> int
+override Nerdbank.Zcash.RawTransaction.TransparentFields.GetHashCode() -> int
 override Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.GetHashCode() -> int
 override Nerdbank.Zcash.Sapling.FullViewingKey.Equals(object? obj) -> bool
@@ -646,11 +709,30 @@ override Nerdbank.Zcash.UnifiedAddress.Network.get -> Nerdbank.Zcash.ZcashNetwor
 override Nerdbank.Zcash.UnifiedViewingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.UnifiedViewingKey.GetHashCode() -> int
 override Nerdbank.Zcash.UnifiedViewingKey.ToString() -> string!
+override Nerdbank.Zcash.ZcashAccount.FullViewingKeys.Equals(object? obj) -> bool
+override Nerdbank.Zcash.ZcashAccount.FullViewingKeys.GetHashCode() -> int
+override Nerdbank.Zcash.ZcashAccount.FullViewingKeys.ToString() -> string!
+override Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Equals(object? obj) -> bool
+override Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.GetHashCode() -> int
+override Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.ToString() -> string!
+override Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.Equals(object? obj) -> bool
+override Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.GetHashCode() -> int
+override Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.ToString() -> string!
+override Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.Equals(object? obj) -> bool
+override Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.GetHashCode() -> int
+override Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.ToString() -> string!
+override Nerdbank.Zcash.ZcashAccount.SpendingKeys.Equals(object? obj) -> bool
+override Nerdbank.Zcash.ZcashAccount.SpendingKeys.GetHashCode() -> int
+override Nerdbank.Zcash.ZcashAccount.SpendingKeys.ToString() -> string!
 override Nerdbank.Zcash.ZcashAddress.Equals(object? obj) -> bool
 override Nerdbank.Zcash.ZcashAddress.GetHashCode() -> int
 override Nerdbank.Zcash.ZcashAddress.ToString() -> string!
+override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.GetHashCode() -> int
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.ToString() -> string!
+override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.GetHashCode() -> int
+override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.ToString() -> string!
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.GetHashCode() -> int
@@ -660,16 +742,54 @@ override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.GetHashCode
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(ulong diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+static Nerdbank.Zcash.LightWalletClient.PoolBalances.operator !=(Nerdbank.Zcash.LightWalletClient.PoolBalances left, Nerdbank.Zcash.LightWalletClient.PoolBalances right) -> bool
+static Nerdbank.Zcash.LightWalletClient.PoolBalances.operator ==(Nerdbank.Zcash.LightWalletClient.PoolBalances left, Nerdbank.Zcash.LightWalletClient.PoolBalances right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SendProgress.operator !=(Nerdbank.Zcash.LightWalletClient.SendProgress? left, Nerdbank.Zcash.LightWalletClient.SendProgress? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SendProgress.operator ==(Nerdbank.Zcash.LightWalletClient.SendProgress? left, Nerdbank.Zcash.LightWalletClient.SendProgress? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.operator !=(Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance left, Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance right) -> bool
+static Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.operator ==(Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance left, Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SyncProgress.operator !=(Nerdbank.Zcash.LightWalletClient.SyncProgress? left, Nerdbank.Zcash.LightWalletClient.SyncProgress? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SyncProgress.operator ==(Nerdbank.Zcash.LightWalletClient.SyncProgress? left, Nerdbank.Zcash.LightWalletClient.SyncProgress? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SyncResult.operator !=(Nerdbank.Zcash.LightWalletClient.SyncResult? left, Nerdbank.Zcash.LightWalletClient.SyncResult? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SyncResult.operator ==(Nerdbank.Zcash.LightWalletClient.SyncResult? left, Nerdbank.Zcash.LightWalletClient.SyncResult? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.Transaction.operator !=(Nerdbank.Zcash.LightWalletClient.Transaction? left, Nerdbank.Zcash.LightWalletClient.Transaction? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.Transaction.operator ==(Nerdbank.Zcash.LightWalletClient.Transaction? left, Nerdbank.Zcash.LightWalletClient.Transaction? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.operator !=(Nerdbank.Zcash.LightWalletClient.TransactionRecvItem left, Nerdbank.Zcash.LightWalletClient.TransactionRecvItem right) -> bool
+static Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.operator ==(Nerdbank.Zcash.LightWalletClient.TransactionRecvItem left, Nerdbank.Zcash.LightWalletClient.TransactionRecvItem right) -> bool
+static Nerdbank.Zcash.LightWalletClient.TransactionSendItem.operator !=(Nerdbank.Zcash.LightWalletClient.TransactionSendItem left, Nerdbank.Zcash.LightWalletClient.TransactionSendItem right) -> bool
+static Nerdbank.Zcash.LightWalletClient.TransactionSendItem.operator ==(Nerdbank.Zcash.LightWalletClient.TransactionSendItem left, Nerdbank.Zcash.LightWalletClient.TransactionSendItem right) -> bool
+static Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.operator !=(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance left, Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance right) -> bool
+static Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.operator ==(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance left, Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance right) -> bool
 static Nerdbank.Zcash.ManagedLightWalletClient.CreateAsync(System.Uri! serverUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Zcash.ManagedLightWalletClient!>
 static Nerdbank.Zcash.Memo.FromMessage(string? message) -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.Memo.NoMemo.get -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.OrchardReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.RawTransaction.Decode(System.ReadOnlyMemory<byte> bytes) -> Nerdbank.Zcash.RawTransaction
 static Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14
+static Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.operator !=(Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14 left, Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14 right) -> bool
+static Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.operator ==(Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14 left, Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14 right) -> bool
 static Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16
+static Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.operator !=(Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16 left, Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16 right) -> bool
+static Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.operator ==(Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16 left, Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16 right) -> bool
+static Nerdbank.Zcash.RawTransaction.operator !=(Nerdbank.Zcash.RawTransaction left, Nerdbank.Zcash.RawTransaction right) -> bool
+static Nerdbank.Zcash.RawTransaction.operator ==(Nerdbank.Zcash.RawTransaction left, Nerdbank.Zcash.RawTransaction right) -> bool
 static Nerdbank.Zcash.RawTransaction.OrchardAction.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.OrchardAction
+static Nerdbank.Zcash.RawTransaction.OrchardAction.operator !=(Nerdbank.Zcash.RawTransaction.OrchardAction left, Nerdbank.Zcash.RawTransaction.OrchardAction right) -> bool
+static Nerdbank.Zcash.RawTransaction.OrchardAction.operator ==(Nerdbank.Zcash.RawTransaction.OrchardAction left, Nerdbank.Zcash.RawTransaction.OrchardAction right) -> bool
+static Nerdbank.Zcash.RawTransaction.OrchardFields.operator !=(Nerdbank.Zcash.RawTransaction.OrchardFields left, Nerdbank.Zcash.RawTransaction.OrchardFields right) -> bool
+static Nerdbank.Zcash.RawTransaction.OrchardFields.operator ==(Nerdbank.Zcash.RawTransaction.OrchardFields left, Nerdbank.Zcash.RawTransaction.OrchardFields right) -> bool
+static Nerdbank.Zcash.RawTransaction.SaplingFields.operator !=(Nerdbank.Zcash.RawTransaction.SaplingFields left, Nerdbank.Zcash.RawTransaction.SaplingFields right) -> bool
+static Nerdbank.Zcash.RawTransaction.SaplingFields.operator ==(Nerdbank.Zcash.RawTransaction.SaplingFields left, Nerdbank.Zcash.RawTransaction.SaplingFields right) -> bool
 static Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.SaplingOutputDescription
+static Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.operator !=(Nerdbank.Zcash.RawTransaction.SaplingOutputDescription left, Nerdbank.Zcash.RawTransaction.SaplingOutputDescription right) -> bool
+static Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.operator ==(Nerdbank.Zcash.RawTransaction.SaplingOutputDescription left, Nerdbank.Zcash.RawTransaction.SaplingOutputDescription right) -> bool
 static Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader, uint transactionVersion) -> Nerdbank.Zcash.RawTransaction.SaplingSpendDescription
+static Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.operator !=(Nerdbank.Zcash.RawTransaction.SaplingSpendDescription left, Nerdbank.Zcash.RawTransaction.SaplingSpendDescription right) -> bool
+static Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.operator ==(Nerdbank.Zcash.RawTransaction.SaplingSpendDescription left, Nerdbank.Zcash.RawTransaction.SaplingSpendDescription right) -> bool
+static Nerdbank.Zcash.RawTransaction.SproutFields.operator !=(Nerdbank.Zcash.RawTransaction.SproutFields left, Nerdbank.Zcash.RawTransaction.SproutFields right) -> bool
+static Nerdbank.Zcash.RawTransaction.SproutFields.operator ==(Nerdbank.Zcash.RawTransaction.SproutFields left, Nerdbank.Zcash.RawTransaction.SproutFields right) -> bool
+static Nerdbank.Zcash.RawTransaction.TransparentFields.operator !=(Nerdbank.Zcash.RawTransaction.TransparentFields left, Nerdbank.Zcash.RawTransaction.TransparentFields right) -> bool
+static Nerdbank.Zcash.RawTransaction.TransparentFields.operator ==(Nerdbank.Zcash.RawTransaction.TransparentFields left, Nerdbank.Zcash.RawTransaction.TransparentFields right) -> bool
 static Nerdbank.Zcash.Sapling.FullViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.FullViewingKey!
 static Nerdbank.Zcash.Sapling.IncomingViewingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
 static Nerdbank.Zcash.SaplingReceiver.UnifiedReceiverTypeCode.get -> byte
@@ -685,6 +805,16 @@ static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(params Nerdbank.Zcash.II
 static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 static Nerdbank.Zcash.UnifiedViewingKey.Parse(string! unifiedViewingKey) -> Nerdbank.Zcash.UnifiedViewingKey!
 static Nerdbank.Zcash.UnifiedViewingKey.TryParse(string! unifiedViewingKey, out Nerdbank.Zcash.UnifiedViewingKey? result) -> bool
+static Nerdbank.Zcash.ZcashAccount.FullViewingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.FullViewingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.FullViewingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.FullViewingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? left, Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? left, Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? left, Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? left, Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.SpendingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.SpendingKeys? left, Nerdbank.Zcash.ZcashAccount.SpendingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.SpendingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.SpendingKeys? left, Nerdbank.Zcash.ZcashAccount.SpendingKeys? right) -> bool
 static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?
 static Nerdbank.Zcash.ZcashAddress.Parse(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.TryParse(string! address, out Nerdbank.Zcash.ZcashAddress? result) -> bool
@@ -697,9 +827,13 @@ static Nerdbank.Zcash.Zip302MemoFormat.EncodeNoMemo(System.Span<byte> memo) -> v
 static Nerdbank.Zcash.Zip302MemoFormat.EncodeProprietaryData(System.ReadOnlySpan<byte> data, System.Span<byte> memo) -> void
 static Nerdbank.Zcash.Zip302MemoFormat.TryDecodeMessage(System.ReadOnlySpan<byte> memo, out string? text) -> bool
 static Nerdbank.Zcash.Zip302MemoFormat.TryDecodeProprietaryData(System.ReadOnlySpan<byte> memo, System.Span<byte> data) -> bool
+static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.operator !=(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? left, Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? right) -> bool
+static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.operator ==(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? left, Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? right) -> bool
 static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.Parse(string! uri) -> Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest!
 static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.TryParse(string! uri, out Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? paymentRequest) -> bool
 static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.TryParse(string! uri, out Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? paymentRequest, out Nerdbank.Zcash.ParseError? errorCode, out string? errorMessage) -> bool
+static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.operator !=(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails? left, Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails? right) -> bool
+static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.operator ==(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails? left, Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails? right) -> bool
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
@@ -709,4 +843,77 @@ static Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.FromEncoded(S
 static Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.FromEncoded(System.ReadOnlySpan<char> encoding) -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.Create(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
+virtual Nerdbank.Zcash.LightWalletClient.SendProgress.<Clone>$() -> Nerdbank.Zcash.LightWalletClient.SendProgress!
+virtual Nerdbank.Zcash.LightWalletClient.SendProgress.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.LightWalletClient.SendProgress.Equals(Nerdbank.Zcash.LightWalletClient.SendProgress? other) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.SendProgress.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.SyncProgress.<Clone>$() -> Nerdbank.Zcash.LightWalletClient.SyncProgress!
+virtual Nerdbank.Zcash.LightWalletClient.SyncProgress.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.LightWalletClient.SyncProgress.Equals(Nerdbank.Zcash.LightWalletClient.SyncProgress? other) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.SyncProgress.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.SyncResult.<Clone>$() -> Nerdbank.Zcash.LightWalletClient.SyncResult!
+virtual Nerdbank.Zcash.LightWalletClient.SyncResult.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.LightWalletClient.SyncResult.Equals(Nerdbank.Zcash.LightWalletClient.SyncResult? other) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.SyncResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.Transaction.<Clone>$() -> Nerdbank.Zcash.LightWalletClient.Transaction!
+virtual Nerdbank.Zcash.LightWalletClient.Transaction.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.LightWalletClient.Transaction.Equals(Nerdbank.Zcash.LightWalletClient.Transaction? other) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.Transaction.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.FullViewingKeys.<Clone>$() -> Nerdbank.Zcash.ZcashAccount.FullViewingKeys!
+virtual Nerdbank.Zcash.ZcashAccount.FullViewingKeys.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.ZcashAccount.FullViewingKeys.Equals(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? other) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.FullViewingKeys.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.<Clone>$() -> Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys!
+virtual Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Equals(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? other) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.<Clone>$() -> Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys!
+virtual Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.Equals(Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys? other) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.<Clone>$() -> Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys!
+virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.Equals(Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? other) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.SpendingKeys.<Clone>$() -> Nerdbank.Zcash.ZcashAccount.SpendingKeys!
+virtual Nerdbank.Zcash.ZcashAccount.SpendingKeys.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.ZcashAccount.SpendingKeys.Equals(Nerdbank.Zcash.ZcashAccount.SpendingKeys? other) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.SpendingKeys.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.<Clone>$() -> Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest!
+virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.EqualityContract.get -> System.Type!
 virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.Equals(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest? other) -> bool
+virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.<Clone>$() -> Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails!
+virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Equals(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails? other) -> bool
+virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.PrintMembers(System.Text.StringBuilder! builder) -> bool
+~override Nerdbank.Zcash.LightWalletClient.PoolBalances.Equals(object obj) -> bool
+~override Nerdbank.Zcash.LightWalletClient.PoolBalances.ToString() -> string
+~override Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Equals(object obj) -> bool
+~override Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.ToString() -> string
+~override Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.Equals(object obj) -> bool
+~override Nerdbank.Zcash.LightWalletClient.TransactionRecvItem.ToString() -> string
+~override Nerdbank.Zcash.LightWalletClient.TransactionSendItem.Equals(object obj) -> bool
+~override Nerdbank.Zcash.LightWalletClient.TransactionSendItem.ToString() -> string
+~override Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Equals(object obj) -> bool
+~override Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.OrchardAction.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.OrchardAction.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.OrchardFields.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.OrchardFields.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.SaplingFields.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.SaplingFields.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.SaplingOutputDescription.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.SaplingSpendDescription.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.SproutFields.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.SproutFields.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.ToString() -> string
+~override Nerdbank.Zcash.RawTransaction.TransparentFields.Equals(object obj) -> bool
+~override Nerdbank.Zcash.RawTransaction.TransparentFields.ToString() -> string
