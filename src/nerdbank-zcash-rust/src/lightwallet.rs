@@ -2,7 +2,7 @@ use http::Uri;
 use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
 use zcash_primitives::memo::{Memo, MemoBytes};
-use zingoconfig::{ChainType, ZingoConfig};
+use zingoconfig::ZingoConfig;
 use zingolib::lightclient::{LightClient, PoolBalances, SyncResult};
 use zingolib::load_clientconfig;
 use zingolib::wallet::traits::ToBytes;
@@ -23,6 +23,20 @@ lazy_static! {
 
 lazy_static! {
     static ref RT: Runtime = tokio::runtime::Runtime::new().unwrap();
+}
+
+pub enum ChainType {
+    Mainnet,
+    Testnet,
+}
+
+impl From<ChainType> for zingoconfig::ChainType {
+    fn from(chain_type: ChainType) -> Self {
+        match chain_type {
+            ChainType::Mainnet => zingoconfig::ChainType::Mainnet,
+            ChainType::Testnet => zingoconfig::ChainType::Testnet,
+        }
+    }
 }
 
 fn add_lightclient(lightclient: Arc<LightClient>) -> u64 {
@@ -92,7 +106,7 @@ fn prepare_config(config: Config) -> Result<ZingoConfig, LightWalletError> {
     let mut zingo_config = load_clientconfig(
         server_uri.clone(),
         Some(config.data_dir.into()),
-        config.chain_type,
+        config.chain_type.into(),
         config.monitor_mempool,
     )
     .map_err(|e| LightWalletError::Other {
@@ -110,7 +124,7 @@ pub fn lightwallet_initialize(
 ) -> Result<u64, LightWalletError> {
     let zingo_config = prepare_config(config)?;
 
-    let lightclient = match zingo_config.wallet_exists() {
+    let lightclient = match zingo_config.wallet_path_exists() {
         true => LightClient::read_wallet_from_disk(&zingo_config).map_err(|e| {
             LightWalletError::Other {
                 message: e.to_string(),
