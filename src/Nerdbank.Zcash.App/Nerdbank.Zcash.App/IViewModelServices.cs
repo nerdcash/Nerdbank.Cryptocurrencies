@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.App.Models;
+using Avalonia.Controls;
 
 namespace Nerdbank.Zcash.App;
 
@@ -16,6 +16,8 @@ public interface IViewModelServices
 	/// Gets the persisted collection of contacts.
 	/// </summary>
 	IContactManager ContactManager { get; }
+
+	TopLevel? TopLevel { get; }
 
 	/// <summary>
 	/// Pushes a view model onto the view stack.

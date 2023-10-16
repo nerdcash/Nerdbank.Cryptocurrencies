@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ReceivingAddress : IDisposable
 {
-	public ReceivingAddress(ZcashAddress address, PaymentRequestDetailsViewModel? paymentRequestDetails, string header)
+	public ReceivingAddress(IViewModelServicesWithWallet viewModelServices, ZcashAddress address, PaymentRequestDetailsViewModel? paymentRequestDetails, string header)
 	{
 		this.Header = header;
 		this.Address = address;
@@ -27,6 +27,8 @@ public class ReceivingAddress : IDisposable
 		}
 
 		this.QRCode = this.CreateQRCode();
+
+		this.CopyCommand = ReactiveCommand.CreateFromTask(() => viewModelServices.TopLevel?.Clipboard?.SetTextAsync(this.FullText) ?? Task.CompletedTask);
 	}
 
 	public string Header { get; }
@@ -38,6 +40,8 @@ public class ReceivingAddress : IDisposable
 	public string FullText { get; }
 
 	public string ShortText { get; }
+
+	public ReactiveCommand<Unit, Unit> CopyCommand { get; }
 
 	public void Dispose()
 	{

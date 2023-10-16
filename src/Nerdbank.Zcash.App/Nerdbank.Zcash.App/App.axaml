@@ -42,5 +42,12 @@
       <Setter Property="FontFamily" Value="Consolas" />
       <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
+    <Style Selector="Button.Copy">
+      <!--<Setter Property="Content">
+        <Setter.Value>
+          <Image Source="/Assets/copy.png" />
+        </Setter.Value>
+      </Setter>-->
+    </Style>
   </Application.Styles>
 </Application>

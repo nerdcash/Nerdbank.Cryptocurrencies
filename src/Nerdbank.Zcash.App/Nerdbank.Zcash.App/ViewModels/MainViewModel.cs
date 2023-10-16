@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Windows.Input;
+using Avalonia.Controls;
 using Microsoft;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -21,6 +22,8 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 
 		this.NavigateTo(this.Wallet is null ? new FirstLaunchViewModel(this) : new HomeScreenViewModel(this));
 	}
+
+	public TopLevel? TopLevel { get; set; }
 
 	public ZcashWallet? Wallet
 	{

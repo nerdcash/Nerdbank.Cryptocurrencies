@@ -39,12 +39,12 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 		{
 			DiversifierIndex diversifierIndex = this.assignedAddresses?.AssignedDiversifier ?? new(DateTime.UtcNow.Ticks);
 			UnifiedAddress unifiedAddress = account.GetDiversifiedAddress(ref diversifierIndex);
-			this.Addresses.Add(new(unifiedAddress, paymentRequestDetailsViewModel, Strings.UnifiedReceivingAddressHeader));
+			this.Addresses.Add(new(viewModelServices, unifiedAddress, paymentRequestDetailsViewModel, Strings.UnifiedReceivingAddressHeader));
 
 			if (unifiedAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver)
 			{
 				SaplingAddress saplingAddress = new(saplingReceiver, unifiedAddress.Network);
-				this.Addresses.Add(new(saplingAddress, paymentRequestDetailsViewModel, Strings.SaplingReceivingAddressHeader));
+				this.Addresses.Add(new(viewModelServices, saplingAddress, paymentRequestDetailsViewModel, Strings.SaplingReceivingAddressHeader));
 			}
 		}
 
@@ -54,7 +54,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 			// We'll bump the max index up by one if the owner indicates the address was actually 'consumed' by the receiver.
 			this.transparentAddressIndex = this.assignedAddresses?.AssignedTransparentAddressIndex ?? (viewModelServices.Wallet.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
 			TransparentAddress transparentAddress = transparent.GetReceiverIndex(this.transparentAddressIndex).DefaultAddress;
-			this.Addresses.Add(new(transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
+			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
 		}
 
 		this.PaymentRequestDetails = new(this.viewModelServices.SelectedAccount.Network.AsSecurity());

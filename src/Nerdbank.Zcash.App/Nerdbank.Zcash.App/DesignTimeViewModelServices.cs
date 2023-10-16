@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using Avalonia.Controls;
 using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App;
@@ -25,6 +26,8 @@ internal class DesignTimeViewModelServices : IViewModelServicesWithWallet
 	}
 
 	public IContactManager ContactManager { get; } = new DesignTimeContactManager();
+
+	public TopLevel? TopLevel => null;
 
 	ZcashWallet IViewModelServicesWithWallet.Wallet => this.Wallet ?? throw new InvalidOperationException();
 
