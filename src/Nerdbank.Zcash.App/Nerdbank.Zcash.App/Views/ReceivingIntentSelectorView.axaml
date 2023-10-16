@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.ReceivingIntentSelectorView"
+             x:DataType="vm:ReceivingIntentSelectorViewModel">
+  <Design.DataContext>
+    <vm:ReceivingIntentSelectorViewModel />
+  </Design.DataContext>
+  <DockPanel>
+    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
+
+    <StackPanel>
+      <Label Content="{Binding ReceiverIdentityLabel}" Target="{Binding #ReceiverIdentityBox}" />
+      <TextBox Name="ReceiverIdentityBox" Text="{Binding ReceiverIdentity}" />
+      <Button Content="{Binding ProceedCaption}" Command="{Binding ProceedCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="5" />
+
+      <Expander Header="{Binding PaymentRequestCaption}" HorizontalAlignment="Stretch" Margin="0 10 0 0">
+        <StackPanel DataContext="{Binding PaymentRequestDetails}">
+          <Label Content="{Binding AmountCaption}" Target="{Binding #AmountBox}" />
+          <TextBox Name="AmountBox" Text="{Binding Amount}" />
+          <Label Content="{Binding MessageCaption}" Target="{Binding #MessageBox}" />
+          <TextBox Name="MessageBox" Text="{Binding Message}" />
+          <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" />
+          <TextBox Name="MemoBox" Text="{Binding Memo}" />
+          <Label Content="{Binding LabelCaption}" Target="{Binding #LabelBox}" />
+          <TextBox Name="LabelBox" Text="{Binding Label}" />
+        </StackPanel>
+      </Expander>
+    </StackPanel>
+  </DockPanel>
+</UserControl>

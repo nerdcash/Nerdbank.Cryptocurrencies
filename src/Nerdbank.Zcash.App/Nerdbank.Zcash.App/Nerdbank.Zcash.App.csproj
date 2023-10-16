@@ -30,4 +30,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\ReceivingIntentSelectorView.axaml.cs">
+      <DependentUpon>ReceivingIntentSelectorView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

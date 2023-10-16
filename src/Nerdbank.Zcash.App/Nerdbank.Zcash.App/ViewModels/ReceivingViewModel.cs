@@ -12,44 +12,39 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 {
 	private readonly IViewModelServicesWithWallet viewModelServices;
 
-	/// <summary>
-	/// The unique diversifier index to use for the receiving address if the contact
-	/// that is being shown the address doesn't already have one assigned.
-	/// </summary>
-	private readonly DiversifierIndex newDiversifierIndex;
+	private readonly Contact? observingContact;
 
-	/// <summary>
-	/// The address index to use for the transparent address if the contact
-	/// that is being shown the address doesn't already have one assigned.
-	/// </summary>
-	private readonly uint newTransparentAddressIndex;
+	private readonly Contact.AssignedSendingAddresses? assignedAddresses;
 
-	private string receiverIdentity = string.Empty;
+	private readonly uint transparentAddressIndex;
+
 	private ReceivingAddress displayedAddress;
 
 	public ReceivingViewModel()
-		: this(new DesignTimeViewModelServices())
+		: this(new DesignTimeViewModelServices(), null, null)
 	{
 	}
 
-	public ReceivingViewModel(IViewModelServicesWithWallet viewModelServices)
+	public ReceivingViewModel(IViewModelServicesWithWallet viewModelServices, Contact? observingContact, PaymentRequestDetailsViewModel? paymentRequestDetailsViewModel)
 	{
 		this.viewModelServices = viewModelServices;
+		this.observingContact = observingContact;
 
 		QRCodeGenerator generator = new();
 		QREncoder encoder = new() { NoPadding = true };
 
 		ZcashAccount account = viewModelServices.SelectedAccount;
-		this.newDiversifierIndex = new(DateTime.UtcNow.Ticks);
+		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(account);
 		if (account.HasDiversifiableKeys)
 		{
-			UnifiedAddress unifiedAddress = account.GetDiversifiedAddress(ref this.newDiversifierIndex);
-			this.Addresses.Add(new(unifiedAddress, Strings.UnifiedReceivingAddressHeader));
+			DiversifierIndex diversifierIndex = this.assignedAddresses?.AssignedDiversifier ?? new(DateTime.UtcNow.Ticks);
+			UnifiedAddress unifiedAddress = account.GetDiversifiedAddress(ref diversifierIndex);
+			this.Addresses.Add(new(unifiedAddress, paymentRequestDetailsViewModel, Strings.UnifiedReceivingAddressHeader));
 
 			if (unifiedAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver)
 			{
 				SaplingAddress saplingAddress = new(saplingReceiver, unifiedAddress.Network);
-				this.Addresses.Add(new(saplingAddress, Strings.SaplingReceivingAddressHeader));
+				this.Addresses.Add(new(saplingAddress, paymentRequestDetailsViewModel, Strings.SaplingReceivingAddressHeader));
 			}
 		}
 
@@ -57,45 +52,33 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 		{
 			// Consume a fresh transparent address for this receiver.
 			// We'll bump the max index up by one if the owner indicates the address was actually 'consumed' by the receiver.
-			this.newTransparentAddressIndex = viewModelServices.Wallet.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1;
-			TransparentAddress transparentAddress = transparent.GetReceiverIndex(this.newTransparentAddressIndex).DefaultAddress;
-			this.Addresses.Add(new(transparentAddress, Strings.TransparentReceivingAddressHeader));
+			this.transparentAddressIndex = this.assignedAddresses?.AssignedTransparentAddressIndex ?? (viewModelServices.Wallet.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
+			TransparentAddress transparentAddress = transparent.GetReceiverIndex(this.transparentAddressIndex).DefaultAddress;
+			this.Addresses.Add(new(transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
 		}
 
+		this.PaymentRequestDetails = new(this.viewModelServices.SelectedAccount.Network.AsSecurity());
 		this.displayedAddress = this.Addresses[0];
-
-		this.AddPaymentRequestCommand = ReactiveCommand.Create(() => { });
+		this.RecordTransparentAddressShownIfApplicable();
 	}
 
 	public string Title => "Receive Zcash";
 
-	public string ReceiverIdentityLabel => "Who are you showing this address to?";
-
-	public string ReceiverIdentity
-	{
-		get => this.receiverIdentity;
-		set => this.RaiseAndSetIfChanged(ref this.receiverIdentity, value);
-	}
-
 	public ReceivingAddress DisplayedAddress
 	{
 		get => this.displayedAddress;
-		set => this.RaiseAndSetIfChanged(ref this.displayedAddress, value);
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.displayedAddress, value);
+			this.RecordTransparentAddressShownIfApplicable();
+		}
 	}
 
 	public ObservableCollection<ReceivingAddress> Addresses { get; } = new();
 
-	public string AddPaymentRequestCaption => "Add expected payment details to the QR code";
+	public PaymentRequestDetailsViewModel PaymentRequestDetails { get; }
 
-	/// <summary>
-	/// Gets a value indicating whether the <see cref="AddPaymentRequestCommand"/> button should be visible.
-	/// </summary>
-	/// <remarks>
-	/// The button should disappear after payment is received.
-	/// </remarks>
-	public bool AddPaymentRequestVisible => true;
-
-	public ReactiveCommand<Unit, Unit> AddPaymentRequestCommand { get; }
+	public string AddPaymentRequestCaption => "Payment details";
 
 	/// <summary>
 	/// Gets a message informing the user as to when the last payment was received at this address, if any.
@@ -113,5 +96,17 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 		}
 
 		this.Addresses.Clear();
+	}
+
+	private void RecordTransparentAddressShownIfApplicable()
+	{
+		if (this.DisplayedAddress.Address is TransparentAddress && this.assignedAddresses is not null)
+		{
+			this.assignedAddresses.AssignedTransparentAddressIndex ??= this.transparentAddressIndex;
+			if (this.transparentAddressIndex > this.viewModelServices.Wallet.MaxTransparentAddressIndex || this.viewModelServices.Wallet.MaxTransparentAddressIndex is null)
+			{
+				this.viewModelServices.Wallet.MaxTransparentAddressIndex = this.transparentAddressIndex;
+			}
+		}
 	}
 }

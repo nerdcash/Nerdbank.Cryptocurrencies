@@ -43,6 +43,8 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 		set => this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
 	}
 
+	public IContactManager ContactManager { get; } = new ContactManager();
+
 	public ViewModelBase? Content
 	{
 		get => this.viewStack.TryPeek(out ViewModelBase? current) ? current : null;

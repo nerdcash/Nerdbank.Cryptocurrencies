@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Nerdbank.Zcash.App.ViewModels;
+using Nerdbank.Zcash.App.Models;
+
+namespace Nerdbank.Zcash.App;
 
 public interface IViewModelServices
 {
@@ -9,6 +11,11 @@ public interface IViewModelServices
 	/// Gets or sets the wallet data model.
 	/// </summary>
 	ZcashWallet? Wallet { get; set; }
+
+	/// <summary>
+	/// Gets the persisted collection of contacts.
+	/// </summary>
+	IContactManager ContactManager { get; }
 
 	/// <summary>
 	/// Pushes a view model onto the view stack.
