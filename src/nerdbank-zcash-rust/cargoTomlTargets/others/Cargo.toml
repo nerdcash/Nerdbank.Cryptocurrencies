@@ -22,6 +22,6 @@ pasta_curves = "0.5.1"
 thiserror = "1.0.47"
 tokio = "1.32.0"
 uniffi = "0.23.0"
-zcash_primitives = { git = "https://github.com/zingolabs/librustzcash.git", branch = "zingo_rc_branch" }
+zcash_primitives = { git = "https://github.com/zingolabs/librustzcash.git", tag = "zingo_rc.2" }
 zingoconfig = { path = "../../external/zingolib/zingoconfig", default-features = true }
 zingolib = { path = "../../external/zingolib/zingolib", default-features = true }

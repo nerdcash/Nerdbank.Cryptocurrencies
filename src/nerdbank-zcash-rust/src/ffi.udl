@@ -7,9 +7,7 @@ enum LightWalletError {
 
 enum ChainType {
 	"Testnet",
-	"Regtest",
 	"Mainnet",
-	"FakeMainnet",
 };
 
 dictionary Config {
