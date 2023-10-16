@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Nerdbank.Cryptocurrencies.Exchanges;
+using ZXing.Mobile;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -25,7 +26,7 @@ public class SendingViewModel : ViewModelBase
 		this.viewModelServices = viewModelServices;
 
 		this.SendCommand = ReactiveCommand.Create(() => { });
-		this.ScanCommand = ReactiveCommand.Create(() => { });
+		this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
 		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
 		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
 		this.LinkProperty(nameof(this.Fee), nameof(this.Total));
@@ -82,4 +83,21 @@ public class SendingViewModel : ViewModelBase
 	public string ScanCommandCaption => "Scan address or payment request";
 
 	public ReactiveCommand<Unit, Unit> ScanCommand { get; private set; }
+
+	private async Task ScanAsync()
+	{
+		try
+		{
+			MobileBarcodeScanner scanner = new();
+			MobileBarcodeScanningOptions options = new()
+			{
+			};
+			ZXing.Result result = await scanner.Scan(options);
+		}
+		catch (NotSupportedException)
+		{
+			// fallback to file picker
+			// TODO
+		}
+	}
 }
