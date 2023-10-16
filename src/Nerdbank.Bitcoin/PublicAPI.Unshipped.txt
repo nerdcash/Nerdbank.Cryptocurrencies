@@ -1,6 +1,8 @@
 ﻿#nullable enable
 Nerdbank.Bitcoin.RawTransaction
+Nerdbank.Bitcoin.RawTransaction.Equals(Nerdbank.Bitcoin.RawTransaction other) -> bool
 Nerdbank.Bitcoin.RawTransaction.Outpoint
+Nerdbank.Bitcoin.RawTransaction.Outpoint.Equals(Nerdbank.Bitcoin.RawTransaction.Outpoint other) -> bool
 Nerdbank.Bitcoin.RawTransaction.Outpoint.Index.get -> uint
 Nerdbank.Bitcoin.RawTransaction.Outpoint.Index.init -> void
 Nerdbank.Bitcoin.RawTransaction.Outpoint.Outpoint() -> void
@@ -8,6 +10,7 @@ Nerdbank.Bitcoin.RawTransaction.Outpoint.Outpoint(System.ReadOnlyMemory<byte> tx
 Nerdbank.Bitcoin.RawTransaction.Outpoint.Txid.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Bitcoin.RawTransaction.RawTransaction() -> void
 Nerdbank.Bitcoin.RawTransaction.TxIn
+Nerdbank.Bitcoin.RawTransaction.TxIn.Equals(Nerdbank.Bitcoin.RawTransaction.TxIn other) -> bool
 Nerdbank.Bitcoin.RawTransaction.TxIn.PreviousOutput.get -> Nerdbank.Bitcoin.RawTransaction.Outpoint?
 Nerdbank.Bitcoin.RawTransaction.TxIn.PreviousOutput.init -> void
 Nerdbank.Bitcoin.RawTransaction.TxIn.Sequence.get -> uint
@@ -16,11 +19,32 @@ Nerdbank.Bitcoin.RawTransaction.TxIn.SignatureScript.get -> System.ReadOnlyMemor
 Nerdbank.Bitcoin.RawTransaction.TxIn.SignatureScript.init -> void
 Nerdbank.Bitcoin.RawTransaction.TxIn.TxIn() -> void
 Nerdbank.Bitcoin.RawTransaction.TxOut
+Nerdbank.Bitcoin.RawTransaction.TxOut.Equals(Nerdbank.Bitcoin.RawTransaction.TxOut other) -> bool
 Nerdbank.Bitcoin.RawTransaction.TxOut.Script.get -> System.ReadOnlyMemory<byte>
 Nerdbank.Bitcoin.RawTransaction.TxOut.Script.init -> void
 Nerdbank.Bitcoin.RawTransaction.TxOut.TxOut() -> void
 Nerdbank.Bitcoin.RawTransaction.TxOut.Value.get -> long
 Nerdbank.Bitcoin.RawTransaction.TxOut.Value.init -> void
+override Nerdbank.Bitcoin.RawTransaction.GetHashCode() -> int
+override Nerdbank.Bitcoin.RawTransaction.Outpoint.GetHashCode() -> int
+override Nerdbank.Bitcoin.RawTransaction.TxIn.GetHashCode() -> int
+override Nerdbank.Bitcoin.RawTransaction.TxOut.GetHashCode() -> int
+static Nerdbank.Bitcoin.RawTransaction.operator !=(Nerdbank.Bitcoin.RawTransaction left, Nerdbank.Bitcoin.RawTransaction right) -> bool
+static Nerdbank.Bitcoin.RawTransaction.operator ==(Nerdbank.Bitcoin.RawTransaction left, Nerdbank.Bitcoin.RawTransaction right) -> bool
 static Nerdbank.Bitcoin.RawTransaction.Outpoint.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader) -> Nerdbank.Bitcoin.RawTransaction.Outpoint?
+static Nerdbank.Bitcoin.RawTransaction.Outpoint.operator !=(Nerdbank.Bitcoin.RawTransaction.Outpoint left, Nerdbank.Bitcoin.RawTransaction.Outpoint right) -> bool
+static Nerdbank.Bitcoin.RawTransaction.Outpoint.operator ==(Nerdbank.Bitcoin.RawTransaction.Outpoint left, Nerdbank.Bitcoin.RawTransaction.Outpoint right) -> bool
 static Nerdbank.Bitcoin.RawTransaction.TxIn.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader) -> Nerdbank.Bitcoin.RawTransaction.TxIn
+static Nerdbank.Bitcoin.RawTransaction.TxIn.operator !=(Nerdbank.Bitcoin.RawTransaction.TxIn left, Nerdbank.Bitcoin.RawTransaction.TxIn right) -> bool
+static Nerdbank.Bitcoin.RawTransaction.TxIn.operator ==(Nerdbank.Bitcoin.RawTransaction.TxIn left, Nerdbank.Bitcoin.RawTransaction.TxIn right) -> bool
 static Nerdbank.Bitcoin.RawTransaction.TxOut.Decode(ref Nerdbank.Cryptocurrencies.DecodingReader reader) -> Nerdbank.Bitcoin.RawTransaction.TxOut
+static Nerdbank.Bitcoin.RawTransaction.TxOut.operator !=(Nerdbank.Bitcoin.RawTransaction.TxOut left, Nerdbank.Bitcoin.RawTransaction.TxOut right) -> bool
+static Nerdbank.Bitcoin.RawTransaction.TxOut.operator ==(Nerdbank.Bitcoin.RawTransaction.TxOut left, Nerdbank.Bitcoin.RawTransaction.TxOut right) -> bool
+~override Nerdbank.Bitcoin.RawTransaction.Equals(object obj) -> bool
+~override Nerdbank.Bitcoin.RawTransaction.Outpoint.Equals(object obj) -> bool
+~override Nerdbank.Bitcoin.RawTransaction.Outpoint.ToString() -> string
+~override Nerdbank.Bitcoin.RawTransaction.ToString() -> string
+~override Nerdbank.Bitcoin.RawTransaction.TxIn.Equals(object obj) -> bool
+~override Nerdbank.Bitcoin.RawTransaction.TxIn.ToString() -> string
+~override Nerdbank.Bitcoin.RawTransaction.TxOut.Equals(object obj) -> bool
+~override Nerdbank.Bitcoin.RawTransaction.TxOut.ToString() -> string
