@@ -7,13 +7,13 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class TransactionHistoryViewModel : ViewModelBase
+public class HistoryViewModel : ViewModelBase
 {
 	private readonly IViewModelServicesWithWallet viewModelServices;
 	private TransactionViewModel? selectedTransaction;
 
 	[Obsolete("For design-time use only", error: true)]
-	public TransactionHistoryViewModel()
+	public HistoryViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
 		this.Transactions.AddRange(new TransactionViewModel[]
@@ -25,14 +25,14 @@ public class TransactionHistoryViewModel : ViewModelBase
 		SecurityAmount ZEC(decimal amount) => new(amount, this.viewModelServices.SelectedAccount.Network.AsSecurity());
 	}
 
-	public TransactionHistoryViewModel(IViewModelServicesWithWallet viewModelServices)
+	public HistoryViewModel(IViewModelServicesWithWallet viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
 	}
 
-	public string Title => "Transaction History";
+	public string Title => "History";
 
 	public ObservableCollection<TransactionViewModel> Transactions { get; } = new();
 

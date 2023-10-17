@@ -5,10 +5,10 @@
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
              xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-             x:Class="Nerdbank.Zcash.App.Views.TransactionHistoryView"
-             x:DataType="vm:TransactionHistoryViewModel">
+             x:Class="Nerdbank.Zcash.App.Views.HistoryView"
+             x:DataType="vm:HistoryViewModel">
   <Design.DataContext>
-    <vm:TransactionHistoryViewModel />
+    <vm:HistoryViewModel />
   </Design.DataContext>
   <DockPanel>
     <TextBlock Text="{Binding Title}" FontSize="18" DockPanel.Dock="Top" />

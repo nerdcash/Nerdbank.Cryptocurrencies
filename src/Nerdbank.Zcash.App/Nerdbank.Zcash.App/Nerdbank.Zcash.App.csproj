@@ -36,5 +36,8 @@
     <Compile Update="Views\ReceivingIntentSelectorView.axaml.cs">
       <DependentUpon>ReceivingIntentSelectorView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\HistoryView.axaml.cs">
+      <DependentUpon>HistoryView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

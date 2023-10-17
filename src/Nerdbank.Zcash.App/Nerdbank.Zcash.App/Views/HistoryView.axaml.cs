@@ -5,9 +5,9 @@ using Avalonia.Controls;
 
 namespace Nerdbank.Zcash.App.Views;
 
-public partial class TransactionHistoryView : UserControl
+public partial class HistoryView : UserControl
 {
-	public TransactionHistoryView()
+	public HistoryView()
 	{
 		this.InitializeComponent();
 	}
