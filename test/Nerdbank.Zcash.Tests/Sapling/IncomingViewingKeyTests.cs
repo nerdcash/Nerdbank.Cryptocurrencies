@@ -9,6 +9,7 @@ namespace Sapling;
 public class IncomingViewingKeyTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
+	private readonly IncomingViewingKey ivk = new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet).CreateSaplingAccount().IncomingViewingKey;
 
 	public IncomingViewingKeyTests(ITestOutputHelper logger)
 	{
@@ -50,5 +51,43 @@ public class IncomingViewingKeyTests : TestBase
 		Assert.False(account2.IncomingViewingKey.CheckReceiver(receiver.Value));
 		Assert.False(account2.IncomingViewingKey.TryGetDiversifierIndex(receiver.Value, out idx));
 		Assert.Null(idx);
+	}
+
+	[Fact]
+	public void TryDecode()
+	{
+		Assert.True(IncomingViewingKey.TryDecode(this.ivk.TextEncoding, out DecodeError? decodeError, out string? errorMessage, out IncomingViewingKey? imported));
+		Assert.Null(decodeError);
+		Assert.Null(errorMessage);
+		Assert.NotNull(imported);
+		Assert.Equal(this.ivk.TextEncoding, imported.TextEncoding);
+	}
+
+	[Fact]
+	public void TryDecode_ViaInterface()
+	{
+		Assert.True(TryDecodeViaInterface<IncomingViewingKey>(this.ivk.TextEncoding, out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? imported));
+		Assert.Null(decodeError);
+		Assert.Null(errorMessage);
+		Assert.NotNull(imported);
+		Assert.Equal(this.ivk.TextEncoding, imported.TextEncoding);
+	}
+
+	[Fact]
+	public void TryDecode_Fail()
+	{
+		Assert.False(IncomingViewingKey.TryDecode("fail", out DecodeError? decodeError, out string? errorMessage, out IncomingViewingKey? imported));
+		Assert.NotNull(decodeError);
+		Assert.NotNull(errorMessage);
+		Assert.Null(imported);
+	}
+
+	[Fact]
+	public void TryDecode_ViaInterface_Fail()
+	{
+		Assert.False(TryDecodeViaInterface<IncomingViewingKey>("fail", out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? imported));
+		Assert.NotNull(decodeError);
+		Assert.NotNull(errorMessage);
+		Assert.Null(imported);
 	}
 }

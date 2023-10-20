@@ -133,7 +133,7 @@ public class ZcashAccount
 	/// <param name="encodedKey">The standard encoding of some key.</param>
 	/// <param name="account">Receives the initialized account, if parsing is successful.</param>
 	/// <returns><see langword="true" /> if <paramref name="encodedKey"/> was recognized as an encoding of some Zcash-related key; <see langword="false" /> otherwise.</returns>
-	public static bool TryImportAccount(string encodedKey, out ZcashAccount? account)
+	public static bool TryImportAccount(string encodedKey, [NotNullWhen(true)] out ZcashAccount? account)
 	{
 		account = null;
 		if (ZcashUtilities.TryParseKey(encodedKey, out IKeyWithTextEncoding? result))
@@ -142,18 +142,15 @@ public class ZcashAccount
 			{
 				account = new ZcashAccount(unifiedViewingKey);
 			}
-
-			if (result is ISpendingKey && result is Zip32HDWallet.IExtendedKey extendedSK)
+			else if (result is ISpendingKey && result is Zip32HDWallet.IExtendedKey extendedSK)
 			{
 				account = new ZcashAccount(SpendingKeys.FromKeys(extendedSK));
 			}
-
-			if (result is IFullViewingKey fvk)
+			else if (result is IFullViewingKey fvk)
 			{
 				account = new ZcashAccount(FullViewingKeys.FromKeys(fvk));
 			}
-
-			if (result is IIncomingViewingKey ivk)
+			else if (result is IIncomingViewingKey ivk)
 			{
 				account = new ZcashAccount(IncomingViewingKeys.FromKeys(ivk));
 			}
@@ -498,6 +495,10 @@ public class ZcashAccount
 				{
 					sapling = s;
 				}
+				else if (key is Zip32HDWallet.Sapling.ExtendedFullViewingKey extSapling)
+				{
+					sapling = extSapling.FullViewingKey;
+				}
 				else if (key is Orchard.FullViewingKey o)
 				{
 					orchard = o;
@@ -598,7 +599,7 @@ public class ZcashAccount
 			Sapling.IncomingViewingKey? sapling = null;
 			Orchard.IncomingViewingKey? orchard = null;
 
-			foreach (Zip32HDWallet.IExtendedKey key in incomingViewingKeys)
+			foreach (IIncomingViewingKey key in incomingViewingKeys)
 			{
 				if (key is Transparent.ExtendedViewingKey t)
 				{

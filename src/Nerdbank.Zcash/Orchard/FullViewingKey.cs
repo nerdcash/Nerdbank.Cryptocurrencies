@@ -46,7 +46,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 3;
 
 	/// <inheritdoc/>
-	string IKeyWithTextEncoding.TextEncoding => this.textEncoding ??= UnifiedViewingKey.Full.Create(this);
+	public string TextEncoding => this.textEncoding ??= UnifiedViewingKey.Full.Create(this);
 
 	/// <summary>
 	/// Gets the spend validating key.

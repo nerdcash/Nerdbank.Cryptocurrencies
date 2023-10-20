@@ -377,6 +377,26 @@ public class UnifiedViewingKeyTests : TestBase
 	}
 
 	[Fact]
+	public void TryDecode()
+	{
+		Assert.True(TryDecodeViaInterface<UnifiedViewingKey>("uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z", out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? key));
+		UnifiedViewingKey uvk = (UnifiedViewingKey)key;
+
+		SaplingFVK? sapling = uvk.GetViewingKey<SaplingFVK>();
+		Assert.NotNull(sapling);
+		Assert.NotNull(sapling.IncomingViewingKey);
+		Assert.Equal(
+			"zs1duqpcc2ql7zfjttdm2gpawe8t5ecek5k834u9vdg4mqhw7j8j39sgjy8xguvk2semyd4ujeyj28",
+			sapling.IncomingViewingKey.DefaultAddress);
+
+		OrchardFVK? orchard = uvk.GetViewingKey<OrchardFVK>();
+		Assert.NotNull(orchard);
+		Assert.Equal(
+			"u1zpfqm4r0cc5ttvt4mft6nvyqe3uwsdcgx65s44sd3ar42rnkz7v9az0ez7dpyxvjcyj9x0sd89yy7635vn8fplwvg6vn4tr6wqpyxqaw",
+			orchard.IncomingViewingKey.DefaultAddress);
+	}
+
+	[Fact]
 	public void Create_FVK_RetainsViewingKeys()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);

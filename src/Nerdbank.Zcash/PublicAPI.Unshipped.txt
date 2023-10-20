@@ -196,6 +196,7 @@ Nerdbank.Zcash.Orchard.FullViewingKey.DeriveInternal() -> Nerdbank.Zcash.Orchard
 Nerdbank.Zcash.Orchard.FullViewingKey.Equals(Nerdbank.Zcash.Orchard.FullViewingKey? other) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Orchard.IncomingViewingKey!
 Nerdbank.Zcash.Orchard.FullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.Orchard.FullViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.Orchard.IncomingViewingKey
 Nerdbank.Zcash.Orchard.IncomingViewingKey.CheckReceiver(Nerdbank.Zcash.OrchardReceiver receiver) -> bool
 Nerdbank.Zcash.Orchard.IncomingViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.OrchardReceiver
