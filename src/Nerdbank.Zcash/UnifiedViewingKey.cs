@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash;
 /// <remarks>
 /// This implements the Unified Viewing Keys part of the <see href="https://zips.z.cash/zip-0316">ZIP-316</see> specification.
 /// </remarks>
-public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IIncomingViewingKey, IEquatable<UnifiedViewingKey>
+public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IIncomingViewingKey, IEquatable<UnifiedViewingKey>, IKeyWithTextEncoding
 {
 	private const string HumanReadablePartMainNetFVK = "uview";
 	private const string HumanReadablePartTestNetFVK = "uviewtest";
@@ -28,7 +28,7 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// <param name="network">The network this key operates on.</param>
 	private protected UnifiedViewingKey(string encoding, IEnumerable<IIncomingViewingKey> viewingKeys, ZcashNetwork network)
 	{
-		this.ViewingKey = encoding;
+		this.TextEncoding = encoding;
 		this.viewingKeys = viewingKeys.Cast<IUnifiedEncodingElement>().ToArray();
 		this.Network = network;
 	}
@@ -36,7 +36,7 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// <summary>
 	/// Gets the string encoding of the unified viewing key.
 	/// </summary>
-	public string ViewingKey { get; }
+	public string TextEncoding { get; }
 
 	/// <inheritdoc cref="IIncomingViewingKey.DefaultAddress"/>
 	/// <remarks>
@@ -57,7 +57,7 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// </summary>
 	/// <param name="viewingKey">The viewing key to convert.</param>
 	[return: NotNullIfNotNull(nameof(viewingKey))]
-	public static implicit operator string?(UnifiedViewingKey? viewingKey) => viewingKey?.ViewingKey;
+	public static implicit operator string?(UnifiedViewingKey? viewingKey) => viewingKey?.TextEncoding;
 
 	/// <summary>
 	/// Parses a unified viewing key into its component viewing keys.
@@ -65,24 +65,92 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// <param name="unifiedViewingKey">The string encoding of the unified viewing key.</param>
 	/// <returns>The parsed unified viewing keys.</returns>
 	/// <exception cref="InvalidKeyException">Thrown if any of the viewing keys fail to deserialize.</exception>
-	public static UnifiedViewingKey Parse(string unifiedViewingKey)
+	public static UnifiedViewingKey Decode(string unifiedViewingKey)
 	{
 		Requires.NotNull(unifiedViewingKey);
-		return TryParse(unifiedViewingKey, out UnifiedViewingKey? result, out ParseError? errorCode, out string? errorMessage)
+		return TryDecode(unifiedViewingKey, out _, out string? errorMessage, out UnifiedViewingKey? result)
 			? result
 			: throw new InvalidKeyException(errorMessage);
+	}
+
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+	{
+		if (TryDecode(encoding, out decodeError, out errorMessage, out UnifiedViewingKey? uvk))
+		{
+			key = uvk;
+			return true;
+		}
+
+		key = null;
+		return false;
 	}
 
 	/// <summary>
 	/// Parses a unified viewing key into its component viewing keys.
 	/// </summary>
-	/// <param name="unifiedViewingKey">The string encoding of the unified viewing key.</param>
-	/// <param name="result">Receives the parsed viewing key, if successful.</param>
-	/// <returns>A value indicating whether parsing was successful.</returns>
-	public static bool TryParse(string unifiedViewingKey, [NotNullWhen(true)] out UnifiedViewingKey? result)
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	public static bool TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out UnifiedViewingKey? key)
 	{
-		Requires.NotNull(unifiedViewingKey);
-		return TryParse(unifiedViewingKey, out result, out _, out _);
+		Requires.NotNull(encoding);
+		if (!UnifiedEncoding.TryDecode(encoding, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? unknownElements, out decodeError, out errorMessage))
+		{
+			key = null;
+			return false;
+		}
+
+		bool isFullViewingKey;
+		ZcashNetwork network;
+		switch (humanReadablePart)
+		{
+			case HumanReadablePartMainNetFVK:
+				isFullViewingKey = true;
+				network = ZcashNetwork.MainNet;
+				break;
+			case HumanReadablePartMainNetIVK:
+				isFullViewingKey = false;
+				network = ZcashNetwork.MainNet;
+				break;
+			case HumanReadablePartTestNetFVK:
+				isFullViewingKey = true;
+				network = ZcashNetwork.TestNet;
+				break;
+			case HumanReadablePartTestNetIVK:
+				isFullViewingKey = false;
+				network = ZcashNetwork.TestNet;
+				break;
+			default:
+				decodeError = DecodeError.UnrecognizedHRP;
+				errorMessage = Strings.UnrecognizedAddress;
+				key = null;
+				return false;
+		}
+
+		// Walk over each viewing key.
+		List<IUnifiedEncodingElement> viewingKeys = new(unknownElements.Count);
+		foreach (UnifiedEncoding.UnknownElement element in unknownElements)
+		{
+			IUnifiedEncodingElement? viewingKey = element.UnifiedTypeCode switch
+			{
+				UnifiedTypeCodes.Sapling => isFullViewingKey
+					? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
+					: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
+				UnifiedTypeCodes.Orchard => isFullViewingKey
+					? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
+					: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
+				UnifiedTypeCodes.TransparentP2PKH => Zip32HDWallet.Transparent.ExtendedViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network, isFullViewingKey),
+				_ => element,
+			};
+
+			viewingKeys.Add(viewingKey);
+		}
+
+		key = isFullViewingKey
+			? new Full(encoding, viewingKeys.Cast<IFullViewingKey>(), network)
+			: new Incoming(encoding, viewingKeys.Cast<IIncomingViewingKey>(), network);
+		decodeError = null;
+		errorMessage = null;
+		return true;
 	}
 
 	/// <summary>
@@ -96,8 +164,8 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		return this.viewingKeys.OfType<T>().FirstOrDefault();
 	}
 
-	/// <inheritdoc cref="ViewingKey"/>
-	public override string ToString() => this.ViewingKey;
+	/// <inheritdoc cref="TextEncoding"/>
+	public override string ToString() => this.TextEncoding;
 
 	/// <inheritdoc/>
 	public bool Equals(UnifiedViewingKey? other)
@@ -211,68 +279,6 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		string unifiedEncoding = UnifiedEncoding.Encode(humanReadablePart, viewingKeys.Cast<IUnifiedEncodingElement>());
 
 		return (unifiedEncoding, network.Value);
-	}
-
-	private static bool TryParse(string unifiedViewingKey, [NotNullWhen(true)] out UnifiedViewingKey? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
-	{
-		if (!UnifiedEncoding.TryDecode(unifiedViewingKey, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? unknownElements, out errorCode, out errorMessage))
-		{
-			result = null;
-			return false;
-		}
-
-		bool isFullViewingKey;
-		ZcashNetwork network;
-		switch (humanReadablePart)
-		{
-			case HumanReadablePartMainNetFVK:
-				isFullViewingKey = true;
-				network = ZcashNetwork.MainNet;
-				break;
-			case HumanReadablePartMainNetIVK:
-				isFullViewingKey = false;
-				network = ZcashNetwork.MainNet;
-				break;
-			case HumanReadablePartTestNetFVK:
-				isFullViewingKey = true;
-				network = ZcashNetwork.TestNet;
-				break;
-			case HumanReadablePartTestNetIVK:
-				isFullViewingKey = false;
-				network = ZcashNetwork.TestNet;
-				break;
-			default:
-				errorCode = ParseError.UnrecognizedAddressType;
-				errorMessage = Strings.UnrecognizedAddress;
-				result = null;
-				return false;
-		}
-
-		// Walk over each viewing key.
-		List<IUnifiedEncodingElement> viewingKeys = new(unknownElements.Count);
-		foreach (UnifiedEncoding.UnknownElement element in unknownElements)
-		{
-			IUnifiedEncodingElement? viewingKey = element.UnifiedTypeCode switch
-			{
-				UnifiedTypeCodes.Sapling => isFullViewingKey
-					? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-					: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
-				UnifiedTypeCodes.Orchard => isFullViewingKey
-					? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-					: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
-				UnifiedTypeCodes.TransparentP2PKH => Zip32HDWallet.Transparent.ExtendedViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network, isFullViewingKey),
-				_ => element,
-			};
-
-			viewingKeys.Add(viewingKey);
-		}
-
-		result = isFullViewingKey
-			? new Full(unifiedViewingKey, viewingKeys.Cast<IFullViewingKey>(), network)
-			: new Incoming(unifiedViewingKey, viewingKeys.Cast<IIncomingViewingKey>(), network);
-		errorCode = null;
-		errorMessage = null;
-		return true;
 	}
 
 	/// <summary>

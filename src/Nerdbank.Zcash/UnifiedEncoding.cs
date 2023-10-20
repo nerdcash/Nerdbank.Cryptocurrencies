@@ -110,23 +110,22 @@ internal static class UnifiedEncoding
 	/// <param name="errorCode">Receives the error code, if unsuccessful.</param>
 	/// <param name="errorMessage">Receives the error message, if unsuccessful.</param>
 	/// <returns>A value indicating whether decoding was successful.</returns>
-	internal static bool TryDecode(ReadOnlySpan<char> encoding, [NotNullWhen(true)] out string? humanReadablePart, [NotNullWhen(true)] out IReadOnlyList<UnknownElement>? elements, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+	internal static bool TryDecode(ReadOnlySpan<char> encoding, [NotNullWhen(true)] out string? humanReadablePart, [NotNullWhen(true)] out IReadOnlyList<UnknownElement>? elements, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage)
 	{
 		humanReadablePart = null;
 		elements = null;
 		(int Tag, int Data)? length = Bech32.GetDecodedLength(encoding);
 		if (length is null)
 		{
-			errorCode = ParseError.UnrecognizedAddressType;
+			errorCode = DecodeError.UnrecognizedAddressType;
 			errorMessage = Strings.UnrecognizedAddress;
 			return false;
 		}
 
 		Span<char> humanReadablePartChars = stackalloc char[length.Value.Tag];
 		Memory<byte> data = new byte[length.Value.Data];
-		if (!Bech32.Bech32m.TryDecode(encoding, humanReadablePartChars, data.Span, out DecodeError? decodeError, out errorMessage, out _))
+		if (!Bech32.Bech32m.TryDecode(encoding, humanReadablePartChars, data.Span, out errorCode, out errorMessage, out _))
 		{
-			errorCode = ZcashAddress.DecodeToParseError(decodeError);
 			return false;
 		}
 
@@ -134,7 +133,7 @@ internal static class UnifiedEncoding
 
 		if (length.Value.Data is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
 		{
-			errorCode = ParseError.InvalidAddress;
+			errorCode = DecodeError.UnexpectedLength;
 			errorMessage = Strings.InvalidAddressLength;
 			return false;
 		}
@@ -146,7 +145,7 @@ internal static class UnifiedEncoding
 		InitializePadding(humanReadablePart, padding);
 		if (!data.Span[^padding.Length..].SequenceEqual(padding))
 		{
-			errorCode = ParseError.InvalidAddress;
+			errorCode = DecodeError.BadPadding;
 			errorMessage = Strings.InvalidPadding;
 			return false;
 		}
@@ -166,7 +165,7 @@ internal static class UnifiedEncoding
 			// Process each receiver type we support, and quietly ignore any we don't.
 			if (data.Length < elementLength)
 			{
-				errorCode = ParseError.InvalidAddress;
+				errorCode = DecodeError.UnexpectedLength;
 				errorMessage = $"Expected data length {elementLength} but remaining data had only {data.Length} bytes left.";
 				return false;
 			}

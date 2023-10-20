@@ -137,4 +137,148 @@ public class ZcashAccountTests : TestBase
 		// Transparent only accounts have no diversifiable keys.
 		Assert.False(new ZcashAccount(UnifiedViewingKey.Incoming.Create(DefaultAccount.IncomingViewing.Transparent!)).HasDiversifiableKeys);
 	}
+
+	[Fact]
+	public void TryImportAccount_InvalidKey()
+	{
+		Assert.False(ZcashAccount.TryImportAccount("abc", out ZcashAccount? account));
+		Assert.Null(account);
+	}
+
+	[Fact]
+	public void TryImportAccount_Spending_Orchard()
+	{
+		ZcashAccount account = this.ImportAccount(DefaultAccount.Spending!.Orchard!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.NotNull(account.Spending);
+		Assert.NotNull(account.Spending.Orchard);
+		Assert.Null(account.Spending.Sapling);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.NotNull(account.FullViewing.Orchard);
+
+		Assert.NotNull(account.IncomingViewing.Orchard);
+	}
+
+	[Fact]
+	public void TryImportAccount_UVK()
+	{
+		ZcashAccount account = this.ImportAccount(DefaultAccount.FullViewing!.UnifiedKey.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.NotNull(account.FullViewing.Transparent);
+		Assert.NotNull(account.FullViewing.Sapling);
+		Assert.NotNull(account.FullViewing.Orchard);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.NotNull(account.IncomingViewing.Transparent);
+		Assert.NotNull(account.IncomingViewing.Sapling);
+		Assert.NotNull(account.IncomingViewing.Orchard);
+	}
+
+	[Fact]
+	public void TryImportAccount_FullViewing_Orchard()
+	{
+		ZcashAccount account = this.ImportAccount(DefaultAccount.FullViewing!.Orchard!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.NotNull(account.FullViewing.Orchard);
+		Assert.Null(account.FullViewing.Transparent);
+		Assert.Null(account.FullViewing.Sapling);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.NotNull(account.IncomingViewing.Orchard);
+		Assert.Null(account.IncomingViewing.Transparent);
+		Assert.Null(account.IncomingViewing.Sapling);
+	}
+
+	[Fact]
+	public void TryImportAccount_FullViewing_Sapling()
+	{
+		ZcashAccount account = this.ImportAccount(Zip32.CreateSaplingAccount(0).ExtendedFullViewingKey.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.Null(account.FullViewing.Orchard);
+		Assert.NotNull(account.FullViewing.Sapling);
+		Assert.Null(account.FullViewing.Transparent);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.Null(account.IncomingViewing.Orchard);
+		Assert.NotNull(account.IncomingViewing.Sapling);
+		Assert.Null(account.IncomingViewing.Transparent);
+	}
+
+	[Fact]
+	public void TryImportAccount_Spending_Transparent()
+	{
+		ZcashAccount account = this.ImportAccount(DefaultAccount.Spending!.Transparent!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.NotNull(account.Spending);
+		Assert.Null(account.Spending.Orchard);
+		Assert.Null(account.Spending.Sapling);
+		Assert.NotNull(account.Spending.Transparent);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.Null(account.FullViewing.Orchard);
+		Assert.Null(account.FullViewing.Sapling);
+		Assert.NotNull(account.FullViewing.Transparent);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.Null(account.IncomingViewing.Orchard);
+		Assert.Null(account.IncomingViewing.Sapling);
+		Assert.NotNull(account.IncomingViewing.Transparent);
+	}
+
+	[Fact]
+	public void TryImportAccount_FullViewing_Transparent()
+	{
+		ZcashAccount account = this.ImportAccount(DefaultAccount.FullViewing!.Transparent!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.Null(account.FullViewing.Orchard);
+		Assert.Null(account.FullViewing.Sapling);
+		Assert.NotNull(account.FullViewing.Transparent);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.Null(account.IncomingViewing.Orchard);
+		Assert.Null(account.IncomingViewing.Sapling);
+		Assert.NotNull(account.IncomingViewing.Transparent);
+	}
+
+	[Fact]
+	public void TryImportAccount_IncomingViewing_Orchard()
+	{
+		ZcashAccount account = this.ImportAccount(DefaultAccount.IncomingViewing.Orchard!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.Null(account.FullViewing);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.NotNull(account.IncomingViewing.Orchard);
+		Assert.Null(account.IncomingViewing.Transparent);
+		Assert.Null(account.IncomingViewing.Sapling);
+	}
+
+	private ZcashAccount ImportAccount(string encoded)
+	{
+		this.logger.WriteLine(encoded);
+		Assert.True(ZcashAccount.TryImportAccount(encoded, out ZcashAccount? account));
+		return account;
+	}
 }

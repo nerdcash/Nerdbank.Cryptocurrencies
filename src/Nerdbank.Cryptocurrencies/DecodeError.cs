@@ -62,4 +62,25 @@ public enum DecodeError
 	/// The key carries inconsistent data regarding its derivation.
 	/// </summary>
 	InvalidDerivationData,
+
+	/// <summary>
+	/// The address did not conform to a recognized type.
+	/// </summary>
+	UnrecognizedAddressType,
+
+	/// <summary>
+	/// The encoding carries an unrecognized human-readable part.
+	/// Perhaps the wrong decoder is being applied to the given string.
+	/// </summary>
+	UnrecognizedHRP,
+
+	/// <summary>
+	/// The encoding carries a valid key, but its type does not match the type expected by the caller.
+	/// </summary>
+	TypeMismatch,
+
+	/// <summary>
+	/// An unenumerated error occurred. See error message for details.
+	/// </summary>
+	Other,
 }

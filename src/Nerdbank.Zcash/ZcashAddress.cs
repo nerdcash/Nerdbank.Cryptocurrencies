@@ -75,25 +75,22 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 	/// <param name="address">The address.</param>
 	/// <returns>The parsed address.</returns>
 	/// <exception type="InvalidAddressException">Thrown if the address is invalid.</exception>
-	public static ZcashAddress Parse(string address)
+	public static ZcashAddress Decode(string address)
 	{
-		return TryParse(address, out ZcashAddress? result, out _, out string? errorMessage)
+		return TryDecode(address, out _, out string? errorMessage, out ZcashAddress? result)
 			? result
 			: throw new InvalidAddressException(errorMessage);
 	}
-
-	/// <inheritdoc cref="TryParse(string, out ZcashAddress?, out ParseError?, out string?)"/>
-	public static bool TryParse(string address, [NotNullWhen(true)] out ZcashAddress? result) => TryParse(address, out result, out _, out _);
 
 	/// <summary>
 	/// Tries to parse a string of characters as an address.
 	/// </summary>
 	/// <param name="address">The address.</param>
-	/// <param name="result">Receives the parsed address.</param>
 	/// <param name="errorCode">Receives the error code if parsing fails.</param>
 	/// <param name="errorMessage">Receives the error message if the parsing fails.</param>
+	/// <param name="result">Receives the parsed address.</param>
 	/// <returns>A value indicating whether the address parsed to a valid address.</returns>
-	public static bool TryParse(string address, [NotNullWhen(true)] out ZcashAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+	public static bool TryDecode(string address, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out ZcashAddress? result)
 	{
 		Requires.NotNull(address, nameof(address));
 
@@ -102,7 +99,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 			switch (attempt)
 			{
 				case 0:
-					if (TransparentAddress.TryParse(address, out TransparentAddress? tAddr, out errorCode, out errorMessage))
+					if (TransparentAddress.TryParse(address, out errorCode, out errorMessage, out TransparentAddress? tAddr))
 					{
 						result = tAddr;
 						return true;
@@ -118,7 +115,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 
 					break;
 				case 1:
-					if (SaplingAddress.TryParse(address, out SaplingAddress? saplingAddr, out errorCode, out errorMessage))
+					if (SaplingAddress.TryParse(address, out errorCode, out errorMessage, out SaplingAddress? saplingAddr))
 					{
 						result = saplingAddr;
 						return true;
@@ -126,7 +123,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 
 					break;
 				case 3:
-					if (UnifiedAddress.TryParse(address, out UnifiedAddress? orchardAddr, out errorCode, out errorMessage))
+					if (UnifiedAddress.TryParse(address, out errorCode, out errorMessage, out UnifiedAddress? orchardAddr))
 					{
 						result = orchardAddr;
 						return true;
@@ -135,13 +132,13 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 					break;
 				default:
 					result = null;
-					errorCode = ParseError.UnrecognizedAddressType;
+					errorCode = DecodeError.UnrecognizedAddressType;
 					errorMessage = Strings.UnrecognizedAddress;
 					return false;
 			}
 
 			// Any error other than an unrecognized address type is a fatal error.
-			if (errorCode != ParseError.UnrecognizedAddressType)
+			if (errorCode != DecodeError.UnrecognizedAddressType)
 			{
 				result = null;
 				return false;
@@ -192,22 +189,6 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 	/// <param name="destination">The buffer to receive the UA contribution.</param>
 	/// <returns>The number of bytes actually written to the buffer.</returns>
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination) => this.GetReceiverEncoding(destination);
-
-	/// <summary>
-	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.
-	/// </summary>
-	/// <param name="decodeError">The decode error.</param>
-	/// <returns>The parse error to report to the user.</returns>
-	[return: NotNullIfNotNull(nameof(decodeError))]
-	internal static ParseError? DecodeToParseError(DecodeError? decodeError)
-	{
-		return decodeError switch
-		{
-			null => null,
-			DecodeError.BufferTooSmall => throw Assumes.Fail("An internal error occurred: the buffer was too small."),
-			_ => ParseError.InvalidAddress,
-		};
-	}
 
 	/// <summary>
 	/// Writes out the encoded receiver for this address.

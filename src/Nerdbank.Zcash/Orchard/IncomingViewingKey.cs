@@ -9,9 +9,11 @@ namespace Nerdbank.Zcash.Orchard;
 /// The incoming viewing key for the Orchard pool.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>
+public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>, IKeyWithTextEncoding
 {
 	private readonly Bytes64 rawEncoding;
+
+	private string? textEncoding;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class.
@@ -46,6 +48,9 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => this.Dk.Value.Length + this.Ivk.Value.Length;
 
+	/// <inheritdoc/>
+	public string TextEncoding => this.textEncoding ??= UnifiedViewingKey.Incoming.Create(this);
+
 	/// <summary>
 	/// Gets the diversifier key.
 	/// </summary>
@@ -62,6 +67,43 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding.Value;
 
 	private string DebuggerDisplay => this.DefaultAddress;
+
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+	{
+		if (TryDecode(encoding, out decodeError, out errorMessage, out IncomingViewingKey? ivk))
+		{
+			key = ivk;
+			return true;
+		}
+
+		key = null;
+		return false;
+	}
+
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	public static bool TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IncomingViewingKey? key)
+	{
+		if (UnifiedViewingKey.TryDecode(encoding, out decodeError, out errorMessage, out UnifiedViewingKey? uvk))
+		{
+			key = uvk.GetViewingKey<IncomingViewingKey>();
+			if (key is not null)
+			{
+				return true;
+			}
+			else
+			{
+				decodeError = DecodeError.TypeMismatch;
+				errorMessage = Strings.ExpectedKeyNotContainedWithinUnifiedViewingKey;
+				return false;
+			}
+		}
+		else
+		{
+			key = null;
+			return false;
+		}
+	}
 
 	/// <summary>
 	/// Creates an orchard receiver using this key and a given diversifier.

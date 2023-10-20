@@ -19,16 +19,16 @@ public class SaplingAddressTests : TestBase
 	[Fact]
 	public void Network()
 	{
-		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SaplingAddress>(ZcashAddress.Parse(ValidSaplingAddress)).Network);
+		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SaplingAddress>(ZcashAddress.Decode(ValidSaplingAddress)).Network);
 	}
 
 	[Fact]
-	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Parse(ValidSaplingAddress).HasShieldedReceiver);
+	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Decode(ValidSaplingAddress).HasShieldedReceiver);
 
 	[Theory, MemberData(nameof(InvalidAddresses))]
-	public void TryParse_Invalid(string address)
+	public void TryDecode_Invalid(string address)
 	{
-		Assert.False(ZcashAddress.TryParse(address, out _));
+		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
 	[Fact]

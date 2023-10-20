@@ -25,8 +25,8 @@ public class TransparentP2SHAddressTests : TestBase
 	[Fact]
 	public void GetPoolReceiver()
 	{
-		Assert.NotNull(ZcashAddress.Parse(ValidTransparentP2SHAddress).GetPoolReceiver<TransparentP2SHReceiver>());
-		Assert.Null(ZcashAddress.Parse(ValidTransparentP2SHAddress).GetPoolReceiver<TransparentP2PKHReceiver>());
-		Assert.Null(ZcashAddress.Parse(ValidTransparentP2SHAddress).GetPoolReceiver<SaplingReceiver>());
+		Assert.NotNull(ZcashAddress.Decode(ValidTransparentP2SHAddress).GetPoolReceiver<TransparentP2SHReceiver>());
+		Assert.Null(ZcashAddress.Decode(ValidTransparentP2SHAddress).GetPoolReceiver<TransparentP2PKHReceiver>());
+		Assert.Null(ZcashAddress.Decode(ValidTransparentP2SHAddress).GetPoolReceiver<SaplingReceiver>());
 	}
 }

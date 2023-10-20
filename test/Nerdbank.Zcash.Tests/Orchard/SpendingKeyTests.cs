@@ -15,19 +15,19 @@ public class SpendingKeyTests : TestBase
 	}
 
 	[Fact]
-	public void Encoding_Test()
+	public void TextEncoding_Test()
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet).CreateOrchardAccount().SpendingKey;
-		this.logger.WriteLine(key.Encoded);
-		Assert.Equal("secret-orchard-sk-test1whlyqth636qgqpeh3mfy388yqyc5uqe6r6r7avmyau0wkut764zskqcut8", key.Encoded);
+		this.logger.WriteLine(key.TextEncoding);
+		Assert.Equal("secret-orchard-sk-test1whlyqth636qgqpeh3mfy388yqyc5uqe6r6r7avmyau0wkut764zskqcut8", key.TextEncoding);
 	}
 
 	[Fact]
-	public void Encoding_Main()
+	public void TextEncoding_Main()
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet).CreateOrchardAccount().SpendingKey;
-		this.logger.WriteLine(key.Encoded);
-		Assert.Equal("secret-orchard-sk-main1te7l50dm25afq89clh8r2ft34lufgxfyn0lwe6hxvvhyzfp3xfeqctpsk7", key.Encoded);
+		this.logger.WriteLine(key.TextEncoding);
+		Assert.Equal("secret-orchard-sk-main1te7l50dm25afq89clh8r2ft34lufgxfyn0lwe6hxvvhyzfp3xfeqctpsk7", key.TextEncoding);
 	}
 
 	[Theory, PairwiseData]

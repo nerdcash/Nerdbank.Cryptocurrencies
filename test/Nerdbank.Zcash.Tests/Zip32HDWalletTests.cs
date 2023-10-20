@@ -149,7 +149,7 @@ public class Zip32HDWalletTests : TestBase
 	}
 
 	[Theory, PairwiseData]
-	public void ExtendedSpendingKey_Sapling_Encoded_FromEncoded(bool testNet)
+	public void ExtendedSpendingKey_Sapling_TextEncoding_TryDecode(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 		string expected = testNet
@@ -157,16 +157,16 @@ public class Zip32HDWalletTests : TestBase
 			: "secret-extended-key-main1qvqlw6pjqqqqpqrcxxrqd2acqcurzx7wat9gk7jv3wee36rj970d9h47fpg6fddwupcaun2z7rkqh4hdkkw2y6a2w4x32vg908tpyr63z4akzq4sz5fsm92zmal0puqq9ye7afkkakvg7aurtlrex03dahp7zgfay3dwdkc85t6662jk4lkv8kjughx6x8vrn97pqcqn04wduse3n5hhlkf6qc5ah08udx9g0wpkf6rausju7yamzl6z4gdyrtmqs9ak93w0z222vgsffenlf";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
-		string actual = account.Encoded;
+		string actual = account.TextEncoding;
 		this.logger.WriteLine(actual);
 		Assert.Equal(expected, actual);
 
-		var decoded = Zip32HDWallet.Sapling.ExtendedSpendingKey.FromEncoded(actual);
+		Assert.True(Zip32HDWallet.Sapling.ExtendedSpendingKey.TryDecode(actual, out _, out _, out Zip32HDWallet.Sapling.ExtendedSpendingKey? decoded));
 		Assert.Equal(account, decoded);
 	}
 
 	[Theory, PairwiseData]
-	public void ExtendedSpendingKey_Orchard_Encoded_FromEncoded(bool testNet)
+	public void ExtendedSpendingKey_Orchard_TextEncoding_TryDecode(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 		string expected = testNet
@@ -174,11 +174,11 @@ public class Zip32HDWalletTests : TestBase
 			: "secret-orchard-extsk-main1qwx8hu3mqqqqpqzr5shlv8gv794seyh4247z7htmgfq7weu7fsk55mxy79uvecdqcd08m73ahd2n4yquhr7uudf9wxhl39qeyjdlam82ue3jusfyxye8y3x62h0";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Orchard.ExtendedSpendingKey account = wallet.CreateOrchardAccount(0);
-		string actual = account.Encoded;
+		string actual = account.TextEncoding;
 		this.logger.WriteLine(actual);
 		Assert.Equal(expected, actual);
 
-		var decoded = Zip32HDWallet.Orchard.ExtendedSpendingKey.FromEncoded(actual);
+		Assert.True(Zip32HDWallet.Orchard.ExtendedSpendingKey.TryDecode(actual, out _, out _, out Zip32HDWallet.Orchard.ExtendedSpendingKey? decoded));
 		Assert.Equal(account, decoded);
 	}
 }

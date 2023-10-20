@@ -65,7 +65,7 @@ This site is running locally in your browser and does not send any data to a ser
     private void ParseAddress()
     {
         this.interpretedAddress = this.address;
-        if (ZcashAddress.TryParse(this.address, out ZcashAddress? addr, out _, out errorMessage))
+        if (ZcashAddress.TryDecode(this.address, out _, out errorMessage, out ZcashAddress? addr))
         {
             this.network = addr.Network.ToString();
             this.transparentAddress = GetReceiverAddress<TransparentAddress>(addr);
@@ -105,7 +105,7 @@ This site is running locally in your browser and does not send any data to a ser
     {
         if (!string.IsNullOrWhiteSpace(this.userAddressList))
         {
-            var addrs = this.userAddressList.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Select(ZcashAddress.Parse).ToList();
+            var addrs = this.userAddressList.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Select(ZcashAddress.Decode).ToList();
             this.address = UnifiedAddress.Create(addrs).ToString();
             this.ParseAddress();
         }

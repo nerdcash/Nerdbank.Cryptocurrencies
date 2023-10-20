@@ -74,8 +74,8 @@ public class UnifiedViewingKeyTests : TestBase
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
 		SaplingSK sapling = wallet.CreateSaplingAccount(0);
 		UnifiedViewingKey.Incoming uivk = UnifiedViewingKey.Incoming.Create(orchard.FullViewingKey, sapling.IncomingViewingKey);
-		this.logger.WriteLine(uivk.ViewingKey);
-		Assert.StartsWith("uivktest1", uivk.ViewingKey);
+		this.logger.WriteLine(uivk.TextEncoding);
+		Assert.StartsWith("uivktest1", uivk.TextEncoding);
 	}
 
 	[Fact]
@@ -84,7 +84,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
 		UnifiedViewingKey uvk = UnifiedViewingKey.Full.Create(orchard.FullViewingKey);
-		Assert.Equal(uvk.ViewingKey, uvk.ToString());
+		Assert.Equal(uvk.TextEncoding, uvk.ToString());
 	}
 
 	[Fact]
@@ -93,7 +93,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
 		UnifiedViewingKey uvk = UnifiedViewingKey.Incoming.Create(orchard.IncomingViewingKey);
-		Assert.Equal(uvk.ViewingKey, uvk.ToString());
+		Assert.Equal(uvk.TextEncoding, uvk.ToString());
 	}
 
 	[Fact]
@@ -103,7 +103,7 @@ public class UnifiedViewingKeyTests : TestBase
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
 		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Full.Create(orchard.FullViewingKey);
 		string uvkString = uvk;
-		Assert.Equal(uvk.ViewingKey, uvkString);
+		Assert.Equal(uvk.TextEncoding, uvkString);
 	}
 
 	[Fact]
@@ -113,7 +113,7 @@ public class UnifiedViewingKeyTests : TestBase
 		OrchardSK orchard = wallet.CreateOrchardAccount(0);
 		UnifiedViewingKey.Incoming uvk = UnifiedViewingKey.Incoming.Create(orchard.IncomingViewingKey);
 		string uvkString = uvk;
-		Assert.Equal(uvk.ViewingKey, uvkString);
+		Assert.Equal(uvk.TextEncoding, uvkString);
 	}
 
 	[Fact]
@@ -125,7 +125,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		Assert.Equal(
 			"uview12z0pgg2u7q5ky5wzas8mmgcs4zy8cmdyt62tn3ecpdurnqqnlldx6j73600qe4xkz7jp4w37elr2d48jm5ktuvlm5x8z5ke6cg3x8m6sk5sruh4xnjk93h86fls0uyhhtaj8vu0mw0t7cr74vc8ra2360yhamnskk7a7ahsasndmagsmuhs27lqdyjsz9",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -137,7 +137,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		Assert.Equal(
 			"uivk1zz6k7d37rldq7mk0n4uegyvesggreucz8h48nnrvlzznhvv3kqm4zp7wngksclaptu8hfqc6l57takh5x6jypygqp5m7d36gmxlxakgzqkp3luqrdgnk97k556wezjydjkmqkvkvf6",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -149,7 +149,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		Assert.Equal(
 			"uview17x4ug5kp5shmrywnsadcce6dmyj54ey9hgu4yek25zfw5vnhrghectdsdgsgc099jj99amrxkl5afvyv50jxpwg3u53rq4hzhtln8gurtu5vey602wp0q6xcyxnjtat0a5hn4z82am7fygd42u4h3n27ndtpkx9w6p8nv20k7f5swak7g4wvhte39sasxm9rxea3y7q3c537csxlut9jaf8g3j3ddl02x4j0j7zg0qglvx55",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -161,7 +161,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		Assert.Equal(
 			"uivk1fahcymtzgy7kza5nvvq9s0wjxsgjhwt5aunczjeg2sszfrutf0gdrfue9en54ecmlzfxr7hsfwyaqzygzf8f35ng6za3jzxfceh2t093asl04t299wca03ezeuchn4h2cf5s66zdzr",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -175,7 +175,7 @@ public class UnifiedViewingKeyTests : TestBase
 		// This expected value came from YWallet when generated with the test seed phrase.
 		Assert.Equal(
 			"uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -188,7 +188,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		Assert.Equal(
 			"uivk14pdvka3fgede8n5atxw3rq5h55w4qqyte3n8zkzhh8m92qju0kewjz3jzklnx99tu6u9lwye2a4gvks66sdkzrd2q67zqn7lwfejvqh9g32dad8mqy2hx7ug9ak6qryuq8u055a090s9mwaw7l86awhnrqkkgu4u8updz2rvuqn08x9efhtwmknl327a4s3akm2mv9qe2h9j788zmptyxsctmthdw8gngd2svmsex548s97ypjg",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -201,7 +201,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(uvk);
 		Assert.Equal(
 			"uview1ntk3zd44nje0tz4x6ml8vxxse88dnsts9c3mdppgu3qk8gny27qrvjk38y9htmv0f5my8qp0nwpcepdpmqeat7gg9kux8jtkzl7nap73sptf4vcg03vgj94qd9kafm2q2mss69kpqy2",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -214,7 +214,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(uvk);
 		Assert.Equal(
 			"uivk1rc6aa5kgpfgltsd2ds9gxggs3rpfayed6rr8mwnjk3hces69cgdv7p5nqvfe95fwy7kdfvs58z7er8kyyznezgnaky8jk9tx57zk4qzudm06tq9pglzfja4phcs7mu407m595ucetr2",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	[Fact]
@@ -228,7 +228,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		Assert.Equal(
 			"uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z",
-			uvk.ViewingKey);
+			uvk.TextEncoding);
 	}
 
 	/// <summary>
@@ -306,22 +306,22 @@ public class UnifiedViewingKeyTests : TestBase
 	[Theory]
 	[InlineData("abc")]
 	[InlineData("")]
-	public void TryParse_BadInputs(string key)
+	public void TryDecode_BadInputs(string key)
 	{
-		Assert.False(UnifiedViewingKey.TryParse(key, out UnifiedViewingKey? result));
+		Assert.False(UnifiedViewingKey.TryDecode(key, out _, out _, out UnifiedViewingKey? result));
 		Assert.Null(result);
 
-		InvalidKeyException ex = Assert.Throws<InvalidKeyException>(() => UnifiedViewingKey.Parse(key));
+		InvalidKeyException ex = Assert.Throws<InvalidKeyException>(() => UnifiedViewingKey.Decode(key));
 		this.logger.WriteLine(ex.Message);
 	}
 
 	[Fact]
-	public void TryParse_Null()
+	public void TryDecode_Null()
 	{
 		UnifiedViewingKey? result = null;
-		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.TryParse(null!, out result));
+		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.TryDecode(null!, out _, out _, out result));
 		Assert.Null(result);
-		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Parse(null!));
+		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Decode(null!));
 	}
 
 	[Theory, PairwiseData]
@@ -358,9 +358,29 @@ public class UnifiedViewingKeyTests : TestBase
 	}
 
 	[Fact]
-	public void Parse_GetViewingKey()
+	public void Decode_GetViewingKey()
 	{
-		UnifiedViewingKey uvk = UnifiedViewingKey.Parse("uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z");
+		UnifiedViewingKey uvk = UnifiedViewingKey.Decode("uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z");
+
+		SaplingFVK? sapling = uvk.GetViewingKey<SaplingFVK>();
+		Assert.NotNull(sapling);
+		Assert.NotNull(sapling.IncomingViewingKey);
+		Assert.Equal(
+			"zs1duqpcc2ql7zfjttdm2gpawe8t5ecek5k834u9vdg4mqhw7j8j39sgjy8xguvk2semyd4ujeyj28",
+			sapling.IncomingViewingKey.DefaultAddress);
+
+		OrchardFVK? orchard = uvk.GetViewingKey<OrchardFVK>();
+		Assert.NotNull(orchard);
+		Assert.Equal(
+			"u1zpfqm4r0cc5ttvt4mft6nvyqe3uwsdcgx65s44sd3ar42rnkz7v9az0ez7dpyxvjcyj9x0sd89yy7635vn8fplwvg6vn4tr6wqpyxqaw",
+			orchard.IncomingViewingKey.DefaultAddress);
+	}
+
+	[Fact]
+	public void TryDecode()
+	{
+		Assert.True(TryDecodeViaInterface<UnifiedViewingKey>("uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z", out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? key));
+		UnifiedViewingKey uvk = (UnifiedViewingKey)key;
 
 		SaplingFVK? sapling = uvk.GetViewingKey<SaplingFVK>();
 		Assert.NotNull(sapling);
@@ -427,11 +447,11 @@ public class UnifiedViewingKeyTests : TestBase
 
 	private static void AssertNoOutgoingKey(UnifiedViewingKey uivk)
 	{
-		Assert.StartsWith("uivk1", uivk.ViewingKey);
+		Assert.StartsWith("uivk1", uivk.TextEncoding);
 		Assert.NotNull(uivk.GetViewingKey<IIncomingViewingKey>());
 		Assert.Null(uivk.GetViewingKey<IFullViewingKey>());
 
-		UnifiedViewingKey parsed = UnifiedViewingKey.Parse(uivk);
+		UnifiedViewingKey parsed = UnifiedViewingKey.Decode(uivk);
 		Assert.NotNull(parsed.GetViewingKey<IIncomingViewingKey>());
 		Assert.Null(parsed.GetViewingKey<IFullViewingKey>());
 	}
@@ -441,17 +461,17 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.NotNull(uvk.GetViewingKey<IIncomingViewingKey>());
 		Assert.Null(uvk.GetViewingKey<ISpendingKey>());
 
-		UnifiedViewingKey parsed = UnifiedViewingKey.Parse(uvk);
+		UnifiedViewingKey parsed = UnifiedViewingKey.Decode(uvk);
 		Assert.NotNull(parsed.GetViewingKey<IIncomingViewingKey>());
 		Assert.Null(parsed.GetViewingKey<ISpendingKey>());
 	}
 
 	private static void AssertRoundtrip(UnifiedViewingKey uvk)
 	{
-		UnifiedViewingKey reparsed = UnifiedViewingKey.Parse(uvk);
+		UnifiedViewingKey reparsed = UnifiedViewingKey.Decode(uvk);
 		Assert.Equal(uvk.Network, reparsed.Network);
 		Assert.Equal(uvk.GetType(), reparsed.GetType());
-		Assert.Equal(uvk.ViewingKey, reparsed.ViewingKey);
+		Assert.Equal(uvk.TextEncoding, reparsed.TextEncoding);
 
 		Assert.True(uvk.Equals(reparsed));
 	}

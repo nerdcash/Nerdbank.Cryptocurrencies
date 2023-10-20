@@ -341,9 +341,9 @@ internal static unsafe partial class NativeMethods
 	/// Derives the ivk value for a sapling incoming viewing key from elements of the full viewing key.
 	/// </summary>
 	/// <param name="fvk">The encoding of the public facing <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
-	/// <param name="dk">The encoding of the public facing <see cref="Nerdbank.Zcash.DiversifierKey"/> associated with the public full viewing key.</param>
+	/// <param name="dk">The encoding of the public facing <see cref="DiversifierKey"/> associated with the public full viewing key.</param>
 	/// <param name="internalFvk">Receives the encoded internal <see cref="Nerdbank.Zcash.Sapling.FullViewingKey"/>.</param>
-	/// <param name="internalDk">Receives the encoded internal <see cref="Nerdbank.Zcash.DiversifierKey"/>.</param>
+	/// <param name="internalDk">Receives the encoded internal <see cref="DiversifierKey"/>.</param>
 	/// <returns>0 on success, or a negative error code.</returns>
 	/// <exception cref="ArgumentException">Thrown if the provided buffers are not of expected length.</exception>
 	internal static int DeriveSaplingInternalFullViewingKey(ReadOnlySpan<byte> fvk, ReadOnlySpan<byte> dk, Span<byte> internalFvk, Span<byte> internalDk)
@@ -371,8 +371,8 @@ internal static unsafe partial class NativeMethods
 	/// <summary>
 	/// Derives the ivk value for a sapling incoming viewing key from elements of the full viewing key.
 	/// </summary>
-	/// <param name="extendedSpendingKey">The encoding of the public facing <see cref="Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey"/>.</param>
-	/// <param name="internalExtendedSpendingKey">Receives the encoded internal <see cref="Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey"/>.</param>
+	/// <param name="extendedSpendingKey">The encoding of the public facing <see cref="Zip32HDWallet.Sapling.ExtendedSpendingKey"/>.</param>
+	/// <param name="internalExtendedSpendingKey">Receives the encoded internal <see cref="Zip32HDWallet.Sapling.ExtendedSpendingKey"/>.</param>
 	/// <returns>0 on success, or a negative error code.</returns>
 	/// <exception cref="ArgumentException">Thrown if the provided buffers are not of expected length.</exception>
 	internal static int DeriveSaplingInternalSpendingKey(ReadOnlySpan<byte> extendedSpendingKey, Span<byte> internalExtendedSpendingKey)
