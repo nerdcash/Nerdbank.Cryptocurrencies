@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using NBitcoin.Secp256k1;
+using Org.BouncyCastle.Tls;
 using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
@@ -14,7 +15,7 @@ public partial class Zip32HDWallet
 		/// The full viewing key, extended so it can be used to derive child keys.
 		/// </summary>
 		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-		public class ExtendedViewingKey : ExtendedPublicKey, IExtendedKey, IFullOrIncomingViewingKey, IUnifiedEncodingElement, IEquatable<ExtendedViewingKey>, IUnifiedEncodingElementEqualityComparer
+		public class ExtendedViewingKey : ExtendedPublicKey, IExtendedKey, IFullOrIncomingViewingKey, IUnifiedEncodingElement, IEquatable<ExtendedViewingKey>, IUnifiedEncodingElementEqualityComparer, IKeyWithTextEncoding
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedViewingKey"/> class.
@@ -110,6 +111,40 @@ public partial class Zip32HDWallet
 			int IUnifiedEncodingElement.UnifiedDataLength => 65;
 
 			private new string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
+
+			/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+			public static bool TryDecode(ReadOnlySpan<char> encoding, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out ExtendedViewingKey? key)
+			{
+				if (!TryDecode(encoding, out decodeResult, out errorMessage, out ExtendedKeyBase? bip32Key))
+				{
+					key = null;
+					return false;
+				}
+
+				if (bip32Key is ExtendedPublicKey publicKey)
+				{
+					key = new(publicKey, bip32Key.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
+					return true;
+				}
+
+				decodeResult = DecodeError.UnrecognizedHRP;
+				errorMessage = "The key is not a private key.";
+				key = null;
+				return false;
+			}
+
+			/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+			static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+			{
+				if (TryDecode(encoding, out decodeError, out errorMessage, out ExtendedViewingKey? fvk))
+				{
+					key = fvk;
+					return true;
+				}
+
+				key = null;
+				return false;
+			}
 
 			/// <inheritdoc/>
 			public override ExtendedViewingKey Derive(uint childIndex) => new(base.Derive(childIndex), this.Network);

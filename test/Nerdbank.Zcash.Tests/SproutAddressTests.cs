@@ -14,22 +14,22 @@ public class SproutAddressTests : TestBase
 	[Fact]
 	public void Network()
 	{
-		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SproutAddress>(ZcashAddress.Parse(ValidSproutAddress)).Network);
+		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SproutAddress>(ZcashAddress.Decode(ValidSproutAddress)).Network);
 	}
 
 	[Fact]
-	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Parse(ValidSproutAddress).HasShieldedReceiver);
+	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Decode(ValidSproutAddress).HasShieldedReceiver);
 
 	[Theory, MemberData(nameof(InvalidAddresses))]
-	public void TryParse_Invalid(string address)
+	public void TryDecode_Invalid(string address)
 	{
-		Assert.False(ZcashAddress.TryParse(address, out _));
+		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
 	[Fact]
 	public void Ctor_Receiver()
 	{
-		SproutReceiver? receiver = ZcashAddress.Parse(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
+		SproutReceiver? receiver = ZcashAddress.Decode(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
 		Assert.NotNull(receiver);
 		SproutAddress addr = new(receiver.Value);
 		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
@@ -40,7 +40,7 @@ public class SproutAddressTests : TestBase
 	[Fact]
 	public void Ctor_Receiver_TestNet()
 	{
-		SproutReceiver? receiver = ZcashAddress.Parse(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
+		SproutReceiver? receiver = ZcashAddress.Decode(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
 		Assert.NotNull(receiver);
 		SproutAddress addr = new(receiver.Value, ZcashNetwork.TestNet);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);

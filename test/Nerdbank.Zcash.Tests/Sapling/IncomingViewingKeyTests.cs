@@ -16,7 +16,7 @@ public class IncomingViewingKeyTests : TestBase
 	}
 
 	[Theory, PairwiseData]
-	public void Encoded_FromEncoded(bool testNet)
+	public void TextEncoding_TryDecode(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 		string expected = testNet
@@ -24,12 +24,14 @@ public class IncomingViewingKeyTests : TestBase
 			: "zivks184h858g2g87ucf4jp3vqr0legsts34cn60xptenyz72rdrwvlvzsfwkpqh";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
-		string actual = account.FullViewingKey.IncomingViewingKey.Encoded;
+		string actual = account.FullViewingKey.IncomingViewingKey.TextEncoding;
 		this.logger.WriteLine(actual);
 		Assert.Equal(expected, actual);
 
-		var decoded = IncomingViewingKey.FromEncoded(actual);
-		Assert.Equal(account.FullViewingKey.IncomingViewingKey, decoded);
+		Assert.True(IncomingViewingKey.TryDecode(actual, out DecodeError? decodeError, out string? errorMessage, out IncomingViewingKey? key));
+		Assert.Null(decodeError);
+		Assert.Null(errorMessage);
+		Assert.Equal(account.FullViewingKey.IncomingViewingKey, key);
 	}
 
 	[Fact]

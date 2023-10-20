@@ -36,7 +36,7 @@ internal static class Utilities
 
 	internal static ZcashAddress AddressParser(ArgumentResult result)
 	{
-		if (ZcashAddress.TryParse(result.Tokens[0].Value, out ZcashAddress? addr, out _, out string? errorMessage))
+		if (ZcashAddress.TryDecode(result.Tokens[0].Value, out _, out string? errorMessage, out ZcashAddress? addr))
 		{
 			return addr;
 		}
@@ -50,7 +50,7 @@ internal static class Utilities
 		ZcashAddress[] addresses = new ZcashAddress[result.Tokens.Count];
 		for (int i = 0; i < result.Tokens.Count; i++)
 		{
-			if (ZcashAddress.TryParse(result.Tokens[i].Value, out ZcashAddress? addr, out _, out string? errorMessage))
+			if (ZcashAddress.TryDecode(result.Tokens[i].Value, out _, out string? errorMessage, out ZcashAddress? addr))
 			{
 				addresses[i] = addr;
 			}

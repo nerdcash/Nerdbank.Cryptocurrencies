@@ -52,8 +52,8 @@ public class SaplingAddress : ZcashAddress
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SaplingReceiver, TPoolReceiver>(this.receiver);
 
-	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
-	internal static bool TryParse(string address, [NotNullWhen(true)] out SaplingAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+	/// <inheritdoc cref="ZcashAddress.TryDecode(string, out DecodeError?, out string?, out ZcashAddress?)" />
+	internal static bool TryParse(string address, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out SaplingAddress? result)
 	{
 		ZcashNetwork? network =
 			address.StartsWith(MainNetHumanReadablePart, StringComparison.Ordinal) ? ZcashNetwork.MainNet :
@@ -62,7 +62,7 @@ public class SaplingAddress : ZcashAddress
 		if (network is null)
 		{
 			result = null;
-			errorCode = ParseError.UnrecognizedAddressType;
+			errorCode = DecodeError.UnrecognizedAddressType;
 			errorMessage = Strings.InvalidSaplingPreamble;
 			return false;
 		}
@@ -71,10 +71,9 @@ public class SaplingAddress : ZcashAddress
 		{
 			Span<char> tag = stackalloc char[tagLength];
 			Span<byte> data = stackalloc byte[dataLength];
-			if (!Bech32.Original.TryDecode(address, tag, data, out DecodeError? decodeError, out errorMessage, out _))
+			if (!Bech32.Original.TryDecode(address, tag, data, out errorCode, out errorMessage, out _))
 			{
 				result = null;
-				errorCode = DecodeToParseError(decodeError);
 				return false;
 			}
 
@@ -85,7 +84,7 @@ public class SaplingAddress : ZcashAddress
 		}
 
 		result = null;
-		errorCode = ParseError.UnrecognizedAddressType;
+		errorCode = DecodeError.UnrecognizedAddressType;
 		errorMessage = Strings.FormatInvalidXAddress("sapling");
 		return false;
 	}

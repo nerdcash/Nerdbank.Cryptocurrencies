@@ -345,7 +345,7 @@ public class LightWalletClient : IDisposable
 		/// </summary>
 		/// <param name="d">The uniffi data to copy from.</param>
 		internal TransactionSendItem(TransactionSendDetail d)
-			: this(ZcashAddress.Parse(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Parse(d.recipientUa))
+			: this(ZcashAddress.Decode(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Decode(d.recipientUa))
 		{
 		}
 	}

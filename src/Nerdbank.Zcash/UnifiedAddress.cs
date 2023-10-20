@@ -112,8 +112,8 @@ public abstract class UnifiedAddress : ZcashAddress
 		return new CompoundUnifiedAddress(unifiedChars, new(GetReceiversInPreferredOrder(receivers)));
 	}
 
-	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
-	internal static bool TryParse(string address, [NotNullWhen(true)] out UnifiedAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+	/// <inheritdoc cref="ZcashAddress.TryDecode(string, out DecodeError?, out string?, out ZcashAddress?)" />
+	internal static bool TryParse(string address, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out UnifiedAddress? result)
 	{
 		if (!UnifiedEncoding.TryDecode(address, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? unknownElements, out errorCode, out errorMessage))
 		{
@@ -131,7 +131,7 @@ public abstract class UnifiedAddress : ZcashAddress
 				network = ZcashNetwork.TestNet;
 				break;
 			default:
-				errorCode = ParseError.UnrecognizedAddressType;
+				errorCode = DecodeError.UnrecognizedHRP;
 				errorMessage = Strings.UnrecognizedAddress;
 				result = null;
 				return false;

@@ -145,8 +145,9 @@ public static class Zip321PaymentRequestUris
 					return false;
 				}
 
-				if (!ZcashAddress.TryParse(addressChars.ToString(), out ZcashAddress? address, out errorCode, out errorMessage))
+				if (!ZcashAddress.TryDecode(addressChars.ToString(), out DecodeError? decodeError, out errorMessage, out ZcashAddress? address))
 				{
+					errorCode = decodeError.ToParseError();
 					return false;
 				}
 
@@ -226,8 +227,9 @@ public static class Zip321PaymentRequestUris
 				switch (paramName)
 				{
 					case AddressParam:
-						if (!ZcashAddress.TryParse(decodedValue, out ZcashAddress? address, out errorCode, out errorMessage))
+						if (!ZcashAddress.TryDecode(decodedValue, out DecodeError? decodeError, out errorMessage, out ZcashAddress? address))
 						{
+							errorCode = decodeError.ToParseError();
 							return false;
 						}
 

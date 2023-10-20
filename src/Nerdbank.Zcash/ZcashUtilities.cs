@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Nerdbank.Cryptocurrencies.Exchanges;
+using static Nerdbank.Zcash.Zip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -41,6 +42,79 @@ public static class ZcashUtilities
 			ZcashNetwork.MainNet => Security.ZEC,
 			ZcashNetwork.TestNet => ZECTestNet,
 			_ => throw new ArgumentException(Strings.FormatUnrecognizedNetwork(network), nameof(network)),
+		};
+	}
+
+	/// <summary>
+	/// Parses an encoded key into its Zcash representation.
+	/// </summary>
+	/// <param name="encodedKey">A standard Zcash key encoding.</param>
+	/// <param name="key">Receives the instantiated key, if parsing is successful and the key type is recognized as related to Zcash.</param>
+	/// <returns><see langword="true" /> if <paramref name="encodedKey"/> was recognized as an encoding of some Zcash-related key; <see langword="false" /> otherwise.</returns>
+	/// <remarks>
+	/// <listheader>Recognized encodings include:</listheader>
+	/// <list type="bullet">
+	/// <item>Unified viewing keys (<c>uview</c> or <c>uivk</c>)</item>
+	/// <item>Orchard extended spending keys (<c>secret-orchard-extsk-main</c>)</item>
+	/// <item>Sapling extended spending keys (<c>secret-extended-key-main</c>)</item>
+	/// <item>Sapling extended full viewing keys (<c>zxviews</c>)</item>
+	/// <item>Sapling incoming viewing keys (<c>zivks</c>)</item>
+	/// <item>Transparent spending keys (<c>xprv</c>)</item>
+	/// <item>Transparent viewing keys (<c>xpub</c>)</item>
+	/// </list>
+	/// <para>Both mainnet and testnet encodings are supported.</para>
+	/// </remarks>
+	public static bool TryParseKey(string encodedKey, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+	{
+		if (UnifiedViewingKey.TryDecode(encodedKey, out _, out _, out UnifiedViewingKey? unifiedViewingKey))
+		{
+			key = unifiedViewingKey;
+		}
+		else if (Zip32HDWallet.Orchard.ExtendedSpendingKey.TryDecode(encodedKey, out _, out _, out Zip32HDWallet.Orchard.ExtendedSpendingKey? orchardSpendingKey))
+		{
+			key = orchardSpendingKey;
+		}
+		else if (Zip32HDWallet.Sapling.ExtendedSpendingKey.TryDecode(encodedKey, out _, out _, out Zip32HDWallet.Sapling.ExtendedSpendingKey? saplingSpendingKey))
+		{
+			key = saplingSpendingKey;
+		}
+		else if (Zip32HDWallet.Sapling.ExtendedFullViewingKey.TryDecode(encodedKey, out _, out _, out Zip32HDWallet.Sapling.ExtendedFullViewingKey? saplingFVK))
+		{
+			key = saplingFVK;
+		}
+		else if (Sapling.IncomingViewingKey.TryDecode(encodedKey, out _, out _, out Sapling.IncomingViewingKey? saplingIVK))
+		{
+			key = saplingIVK;
+		}
+		else if (Transparent.ExtendedSpendingKey.TryDecode(encodedKey, out _, out _, out Transparent.ExtendedSpendingKey? transparentPrivateKey))
+		{
+			key = transparentPrivateKey;
+		}
+		else if (Transparent.ExtendedViewingKey.TryDecode(encodedKey, out _, out _, out Transparent.ExtendedViewingKey? transparentViewingKey))
+		{
+			key = transparentViewingKey;
+		}
+		else
+		{
+			key = null;
+		}
+
+		return key is not null;
+	}
+
+	/// <summary>
+	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.
+	/// </summary>
+	/// <param name="decodeError">The decode error.</param>
+	/// <returns>The parse error to report to the user.</returns>
+	[return: NotNullIfNotNull(nameof(decodeError))]
+	internal static ParseError? ToParseError(this DecodeError? decodeError)
+	{
+		return decodeError switch
+		{
+			null => null,
+			DecodeError.BufferTooSmall => throw Assumes.Fail("An internal error occurred: the buffer was too small."),
+			_ => ParseError.InvalidAddress,
 		};
 	}
 

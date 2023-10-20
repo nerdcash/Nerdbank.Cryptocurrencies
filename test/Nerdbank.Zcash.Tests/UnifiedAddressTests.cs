@@ -19,32 +19,32 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Receivers_UnifiedMultiple()
 	{
-		UnifiedAddress addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling));
+		UnifiedAddress addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Decode(ValidUnifiedAddressOrchardSapling));
 		Assert.Equal(
 			new[]
 			{
-				ZcashAddress.Parse(ValidUnifiedAddressOrchard),
-				ZcashAddress.Parse(ValidSaplingAddress),
+				ZcashAddress.Decode(ValidUnifiedAddressOrchard),
+				ZcashAddress.Decode(ValidSaplingAddress),
 			},
 			addr.Receivers);
 
-		addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH));
+		addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Decode(ValidUnifiedAddressOrchardSaplingTransparentP2PKH));
 		Assert.Equal(
 			new[]
 			{
-				ZcashAddress.Parse(ValidUnifiedAddressOrchard),
-				ZcashAddress.Parse(ValidSaplingAddress),
-				ZcashAddress.Parse(ValidTransparentP2PKHAddress),
+				ZcashAddress.Decode(ValidUnifiedAddressOrchard),
+				ZcashAddress.Decode(ValidSaplingAddress),
+				ZcashAddress.Decode(ValidTransparentP2PKHAddress),
 			},
 			addr.Receivers);
 
-		addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2SH));
+		addr = Assert.IsAssignableFrom<UnifiedAddress>(ZcashAddress.Decode(ValidUnifiedAddressOrchardSaplingTransparentP2SH));
 		Assert.Equal(
 			new[]
 			{
-				ZcashAddress.Parse(ValidUnifiedAddressOrchard),
-				ZcashAddress.Parse(ValidSaplingAddress),
-				ZcashAddress.Parse(ValidTransparentP2SHAddress),
+				ZcashAddress.Decode(ValidUnifiedAddressOrchard),
+				ZcashAddress.Decode(ValidSaplingAddress),
+				ZcashAddress.Decode(ValidTransparentP2SHAddress),
 			},
 			addr.Receivers);
 	}
@@ -52,7 +52,7 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void GetPoolReceiver()
 	{
-		var ua = (UnifiedAddress)ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH);
+		var ua = (UnifiedAddress)ZcashAddress.Decode(ValidUnifiedAddressOrchardSaplingTransparentP2PKH);
 		OrchardReceiver orchard = ua.GetPoolReceiver<OrchardReceiver>() ?? throw new Exception("Missing Orchard receiver");
 		SaplingReceiver sapling = ua.GetPoolReceiver<SaplingReceiver>() ?? throw new Exception("Missing Sapling receiver");
 		TransparentP2PKHReceiver p2pkh = ua.GetPoolReceiver<TransparentP2PKHReceiver>() ?? throw new Exception("Missing P2PKH receiver");
@@ -62,8 +62,8 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void HasShieldedReceiver()
 	{
-		Assert.True(ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH).HasShieldedReceiver);
-		Assert.True(ZcashAddress.Parse(ValidUnifiedAddressSapling).HasShieldedReceiver);
+		Assert.True(ZcashAddress.Decode(ValidUnifiedAddressOrchardSaplingTransparentP2PKH).HasShieldedReceiver);
+		Assert.True(ZcashAddress.Decode(ValidUnifiedAddressSapling).HasShieldedReceiver);
 	}
 
 	[Fact]
@@ -79,8 +79,8 @@ public class UnifiedAddressTests : TestBase
 		// Per the spec, sprout addresses are not allowed.
 		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidSaplingAddress),
-			ZcashAddress.Parse(ValidSproutAddress),
+			ZcashAddress.Decode(ValidSaplingAddress),
+			ZcashAddress.Decode(ValidSproutAddress),
 		}));
 	}
 
@@ -90,9 +90,9 @@ public class UnifiedAddressTests : TestBase
 		// Per the spec, only one transparent address (of either type) is allowed in a UA.
 		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidSaplingAddress),
-			ZcashAddress.Parse(ValidTransparentP2SHAddress),
-			ZcashAddress.Parse(ValidTransparentP2PKHAddress),
+			ZcashAddress.Decode(ValidSaplingAddress),
+			ZcashAddress.Decode(ValidTransparentP2SHAddress),
+			ZcashAddress.Decode(ValidTransparentP2PKHAddress),
 		}));
 	}
 
@@ -101,8 +101,8 @@ public class UnifiedAddressTests : TestBase
 	{
 		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidSaplingAddress),
-			ZcashAddress.Parse(ValidSaplingAddress2),
+			ZcashAddress.Decode(ValidSaplingAddress),
+			ZcashAddress.Decode(ValidSaplingAddress2),
 		}));
 	}
 
@@ -114,8 +114,8 @@ public class UnifiedAddressTests : TestBase
 	{
 		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidUnifiedAddressOrchardSapling),
-			ZcashAddress.Parse(ValidUnifiedAddressOrchardSaplingTransparentP2PKH),
+			ZcashAddress.Decode(ValidUnifiedAddressOrchardSapling),
+			ZcashAddress.Decode(ValidUnifiedAddressOrchardSaplingTransparentP2PKH),
 		}));
 	}
 
@@ -124,17 +124,17 @@ public class UnifiedAddressTests : TestBase
 	{
 		var addr = UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
-			ZcashAddress.Parse(ValidSaplingAddress),
-			ZcashAddress.Parse(ValidTransparentP2PKHAddress),
+			ZcashAddress.Decode(ValidUnifiedAddressOrchard),
+			ZcashAddress.Decode(ValidSaplingAddress),
+			ZcashAddress.Decode(ValidTransparentP2PKHAddress),
 		});
 		Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparentP2PKH, addr.ToString());
 
 		addr = UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
-			ZcashAddress.Parse(ValidSaplingAddress),
-			ZcashAddress.Parse(ValidTransparentP2SHAddress),
+			ZcashAddress.Decode(ValidUnifiedAddressOrchard),
+			ZcashAddress.Decode(ValidSaplingAddress),
+			ZcashAddress.Decode(ValidTransparentP2SHAddress),
 		});
 		Assert.Equal(ValidUnifiedAddressOrchardSaplingTransparentP2SH, addr.ToString());
 	}
@@ -145,8 +145,8 @@ public class UnifiedAddressTests : TestBase
 		var addr = UnifiedAddress.Create(
 			new[]
 			{
-				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
-				ZcashAddress.Parse(ValidSaplingAddressTestNet),
+				ZcashAddress.Decode(ValidUnifiedAddressOrchardTestNet),
+				ZcashAddress.Decode(ValidSaplingAddressTestNet),
 			});
 		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
@@ -160,7 +160,7 @@ public class UnifiedAddressTests : TestBase
 		var addr = UnifiedAddress.Create(
 			new[]
 			{
-				ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet),
+				ZcashAddress.Decode(ValidUnifiedAddressOrchardTestNet),
 			});
 		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
@@ -173,8 +173,8 @@ public class UnifiedAddressTests : TestBase
 	{
 		Assert.Throws<ArgumentException>(() => UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidSaplingAddressTestNet),
-			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
+			ZcashAddress.Decode(ValidSaplingAddressTestNet),
+			ZcashAddress.Decode(ValidUnifiedAddressOrchard),
 		}));
 	}
 
@@ -183,7 +183,7 @@ public class UnifiedAddressTests : TestBase
 	{
 		var addr = UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidUnifiedAddressOrchard),
+			ZcashAddress.Decode(ValidUnifiedAddressOrchard),
 		});
 		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ValidUnifiedAddressOrchard, addr.ToString());
@@ -194,7 +194,7 @@ public class UnifiedAddressTests : TestBase
 	{
 		var addr = UnifiedAddress.Create(new[]
 		{
-			ZcashAddress.Parse(ValidSaplingAddress),
+			ZcashAddress.Decode(ValidSaplingAddress),
 		});
 		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
@@ -207,7 +207,7 @@ public class UnifiedAddressTests : TestBase
 		var addr = UnifiedAddress.Create(
 			new[]
 			{
-				ZcashAddress.Parse(ValidSaplingAddressTestNet),
+				ZcashAddress.Decode(ValidSaplingAddressTestNet),
 			});
 		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
@@ -218,13 +218,13 @@ public class UnifiedAddressTests : TestBase
 	[Fact]
 	public void Network_AfterParse()
 	{
-		Assert.Equal(ZcashNetwork.MainNet, ZcashAddress.Parse(ValidUnifiedAddressSapling).Network);
-		Assert.Equal(ZcashNetwork.TestNet, ZcashAddress.Parse(ValidUnifiedAddressSaplingTestNet).Network);
+		Assert.Equal(ZcashNetwork.MainNet, ZcashAddress.Decode(ValidUnifiedAddressSapling).Network);
+		Assert.Equal(ZcashNetwork.TestNet, ZcashAddress.Decode(ValidUnifiedAddressSaplingTestNet).Network);
 	}
 
 	[Theory, MemberData(nameof(InvalidAddresses))]
-	public void TryParse_Invalid(string address)
+	public void TryDecode_Invalid(string address)
 	{
-		Assert.False(ZcashAddress.TryParse(address, out _));
+		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 }

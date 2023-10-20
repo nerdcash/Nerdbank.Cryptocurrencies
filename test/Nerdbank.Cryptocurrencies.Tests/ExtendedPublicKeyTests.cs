@@ -89,18 +89,18 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 	}
 
 	[Fact]
-	public void Parse_Roundtripping()
+	public void Decode_Roundtripping()
 	{
 		using ExtendedPrivateKey pvk = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(128));
 		ExtendedPublicKey pub = pvk.PublicKey;
 		string pubAsString = pub.ToString();
-		ExtendedPublicKey pub2 = Assert.IsType<ExtendedPublicKey>(ExtendedKeyBase.Parse(pub.ToString()));
+		ExtendedPublicKey pub2 = Assert.IsType<ExtendedPublicKey>(ExtendedKeyBase.Decode(pub.ToString()));
 		AssertEqual(pubAsString, pub2);
 
 		// Test parsing of derived keys.
 		ExtendedPublicKey pubDerived = pub.Derive(1);
 		string pubDerivedAsString = pubDerived.ToString();
-		ExtendedPublicKey pubDerived2 = Assert.IsType<ExtendedPublicKey>(ExtendedKeyBase.Parse(pubDerived.ToString()));
+		ExtendedPublicKey pubDerived2 = Assert.IsType<ExtendedPublicKey>(ExtendedKeyBase.Decode(pubDerived.ToString()));
 		AssertEqual(pubDerivedAsString, pubDerived2);
 	}
 

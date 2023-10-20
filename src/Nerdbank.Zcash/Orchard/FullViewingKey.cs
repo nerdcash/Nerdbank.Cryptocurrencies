@@ -10,9 +10,10 @@ namespace Nerdbank.Zcash.Orchard;
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatable<FullViewingKey>
+public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatable<FullViewingKey>, IKeyWithTextEncoding
 {
 	private readonly Bytes96 rawEncoding;
+	private string? textEncoding;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
@@ -44,6 +45,9 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 3;
 
+	/// <inheritdoc/>
+	string IKeyWithTextEncoding.TextEncoding => this.textEncoding ??= UnifiedViewingKey.Full.Create(this);
+
 	/// <summary>
 	/// Gets the spend validating key.
 	/// </summary>
@@ -65,6 +69,43 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding.Value;
 
 	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress.ToString();
+
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+	{
+		if (TryDecode(encoding, out decodeError, out errorMessage, out FullViewingKey? fvk))
+		{
+			key = fvk;
+			return true;
+		}
+
+		key = null;
+		return false;
+	}
+
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	public static bool TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out FullViewingKey? key)
+	{
+		if (UnifiedViewingKey.TryDecode(encoding, out decodeError, out errorMessage, out UnifiedViewingKey? uvk))
+		{
+			key = uvk.GetViewingKey<FullViewingKey>();
+			if (key is not null)
+			{
+				return true;
+			}
+			else
+			{
+				decodeError = DecodeError.TypeMismatch;
+				errorMessage = Strings.ExpectedKeyNotContainedWithinUnifiedViewingKey;
+				return false;
+			}
+		}
+		else
+		{
+			key = null;
+			return false;
+		}
+	}
 
 	/// <summary>
 	/// Derives the internal full viewing key from this.

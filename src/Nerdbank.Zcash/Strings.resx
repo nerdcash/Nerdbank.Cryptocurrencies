@@ -123,6 +123,9 @@
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
     <value>An error occurred while fetching metadata from the lightwallet server.</value>
   </data>
+  <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
+    <value>The unified viewing key does not include the key type required to use this API.</value>
+  </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>This address is invalid or unrecognized.</value>
   </data>

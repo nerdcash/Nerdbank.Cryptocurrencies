@@ -13,10 +13,11 @@ public partial class Zip32HDWallet
 		/// A key capable of spending, extended so it can be used to derive child keys.
 		/// </summary>
 		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-		public class ExtendedSpendingKey : IExtendedKey, ISpendingKey, IEquatable<ExtendedSpendingKey>
+		public class ExtendedSpendingKey : IExtendedKey, ISpendingKey, IEquatable<ExtendedSpendingKey>, IKeyWithTextEncoding
 		{
 			private const string Bech32MainNetworkHRP = "secret-orchard-extsk-main";
 			private const string Bech32TestNetworkHRP = "secret-orchard-extsk-test";
+			private string? textEncoding;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class.
@@ -77,21 +78,26 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the Bech32 encoding of the spending key.
 			/// </summary>
-			public string Encoded
+			public string TextEncoding
 			{
 				get
 				{
-					Span<byte> encodedBytes = stackalloc byte[169];
-					Span<char> encodedChars = stackalloc char[512];
-					int byteLength = this.Encode(encodedBytes);
-					string hrp = this.Network switch
+					if (this.textEncoding is null)
 					{
-						ZcashNetwork.MainNet => Bech32MainNetworkHRP,
-						ZcashNetwork.TestNet => Bech32TestNetworkHRP,
-						_ => throw new NotSupportedException(),
-					};
-					int charLength = Bech32.Original.Encode(hrp, encodedBytes[..byteLength], encodedChars);
-					return new string(encodedChars[..charLength]);
+						Span<byte> encodedBytes = stackalloc byte[169];
+						Span<char> encodedChars = stackalloc char[512];
+						int byteLength = this.Encode(encodedBytes);
+						string hrp = this.Network switch
+						{
+							ZcashNetwork.MainNet => Bech32MainNetworkHRP,
+							ZcashNetwork.TestNet => Bech32TestNetworkHRP,
+							_ => throw new NotSupportedException(),
+						};
+						int charLength = Bech32.Original.Encode(hrp, encodedBytes[..byteLength], encodedChars);
+						this.textEncoding = new string(encodedChars[..charLength]);
+					}
+
+					return this.textEncoding;
 				}
 			}
 
@@ -112,28 +118,51 @@ public partial class Zip32HDWallet
 
 			private string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
 
+			/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+			static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+			{
+				if (TryDecode(encoding, out decodeError, out errorMessage, out ExtendedSpendingKey? sk))
+				{
+					key = sk;
+					return true;
+				}
+
+				key = null;
+				return false;
+			}
+
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class
 			/// from the bech32 encoding of an extended spending key as specified in ZIP-32.
 			/// </summary>
-			/// <param name="encoding">The bech32-encoded key.</param>
-			/// <returns>An initialized <see cref="ExtendedSpendingKey"/>.</returns>
-			/// <remarks>
-			/// This method can parse the output of the <see cref="Encoded"/> property.
-			/// </remarks>
-			public static ExtendedSpendingKey FromEncoded(ReadOnlySpan<char> encoding)
+			/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+			public static bool TryDecode(ReadOnlySpan<char> encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out ExtendedSpendingKey? key)
 			{
 				Span<char> hrp = stackalloc char[50];
 				Span<byte> data = stackalloc byte[169];
-				(int tagLength, int dataLength) = Bech32.Original.Decode(encoding, hrp, data);
-				hrp = hrp[..tagLength];
-				ZcashNetwork network = hrp switch
+				if (!Bech32.Original.TryDecode(encoding, hrp, data, out decodeError, out errorMessage, out (int TagLength, int DataLength) length))
+				{
+					key = null;
+					return false;
+				}
+
+				hrp = hrp[..length.TagLength];
+				ZcashNetwork? network = hrp switch
 				{
 					Bech32MainNetworkHRP => ZcashNetwork.MainNet,
 					Bech32TestNetworkHRP => ZcashNetwork.TestNet,
-					_ => throw new InvalidKeyException($"Unexpected bech32 tag: {hrp}"),
+					_ => null,
 				};
-				return Decode(data[..dataLength], network);
+				if (network is null)
+				{
+					decodeError = DecodeError.UnrecognizedHRP;
+					errorMessage = $"Unexpected bech32 tag: {hrp}";
+					key = null;
+					return false;
+				}
+
+				key = Decode(data[..length.DataLength], network.Value);
+				return true;
 			}
 
 			/// <inheritdoc/>

@@ -5,7 +5,7 @@ using Microsoft;
 
 public class TransparentAddressTests : TestBase
 {
-	private static readonly TransparentAddress ParsedP2PKHAddress = (TransparentP2PKHAddress)ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+	private static readonly TransparentAddress ParsedP2PKHAddress = (TransparentP2PKHAddress)ZcashAddress.Decode(ValidTransparentP2PKHAddress);
 
 	private readonly ITestOutputHelper logger;
 
@@ -25,17 +25,17 @@ public class TransparentAddressTests : TestBase
 	public void Network()
 	{
 		Assert.Equal(ZcashNetwork.MainNet, ParsedP2PKHAddress.Network);
-		Assert.Equal(ZcashNetwork.MainNet, Assert.IsAssignableFrom<TransparentAddress>(ZcashAddress.Parse(ValidTransparentP2SHAddress)).Network);
+		Assert.Equal(ZcashNetwork.MainNet, Assert.IsAssignableFrom<TransparentAddress>(ZcashAddress.Decode(ValidTransparentP2SHAddress)).Network);
 	}
 
 	[Theory, MemberData(nameof(InvalidAddresses))]
-	public void TryParse_Invalid(string address)
+	public void TryDecode_Invalid(string address)
 	{
-		Assert.False(ZcashAddress.TryParse(address, out _));
+		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
 	[Fact]
-	public void TryParse_BadNetwork()
+	public void TryDecode_BadNetwork()
 	{
 		// Manufacture a transparent address with a bad network header.
 		byte[] receiver = new byte[22];
@@ -46,16 +46,16 @@ public class TransparentAddressTests : TestBase
 		string addr = new(addrChars, 0, count);
 		Assumes.True(addr.StartsWith('t'));
 
-		Assert.False(ZcashAddress.TryParse(addr, out _));
+		Assert.False(ZcashAddress.TryDecode(addr, out _, out _, out _));
 	}
 
 	[Theory]
 	[InlineData("tdasgh2344235")]
 	[InlineData("tadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada")]
 	[InlineData("tbalsdhfldsfhsdhfgdfgdf")]
-	public void TryParse_FuzzInputs_ShouldReturnFalse(string input)
+	public void TryDecode_FuzzInputs_ShouldReturnFalse(string input)
 	{
-		Assert.False(ZcashAddress.TryParse(input, out ZcashAddress? address, out ParseError? errorCode, out string? errorMessage));
+		Assert.False(ZcashAddress.TryDecode(input, out DecodeError? errorCode, out string? errorMessage, out ZcashAddress? address));
 		this.logger.WriteLine(errorMessage);
 
 		Assert.Null(address);
