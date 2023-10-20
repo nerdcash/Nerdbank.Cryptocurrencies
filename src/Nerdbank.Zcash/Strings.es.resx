@@ -174,4 +174,7 @@
   <data name="UnsupportedTransactionVersion" xml:space="preserve">
     <value>Versión de transacción no compatible {version}.</value>
   </data>
+  <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
+    <value>La clave de visualización unificada no incluye el tipo de clave necesario para utilizar esta API.</value>
+  </data>
 </root>
