@@ -20,41 +20,41 @@ public class ZcashAddressTests : TestBase
 	};
 
 	[Theory, MemberData(nameof(ValidAddresses))]
-	public void Parse_Valid(string address)
+	public void Decode_Valid(string address)
 	{
-		var addr = ZcashAddress.Parse(address);
+		var addr = ZcashAddress.Decode(address);
 		Assert.Equal(address, addr.ToString());
 	}
 
 	[Theory, MemberData(nameof(ValidAddresses))]
-	public void TryParse_Valid(string address)
+	public void TryDecode_Valid(string address)
 	{
-		Assert.True(ZcashAddress.TryParse(address, out ZcashAddress? addr));
+		Assert.True(ZcashAddress.TryDecode(address, out _, out _, out ZcashAddress? addr));
 		Assert.Equal(address, addr.ToString());
 	}
 
 	[Theory, MemberData(nameof(InvalidAddresses))]
 	public void Parse_Invalid(string address)
 	{
-		Assert.Throws<InvalidAddressException>(() => ZcashAddress.Parse(address));
+		Assert.Throws<InvalidAddressException>(() => ZcashAddress.Decode(address));
 	}
 
 	[Theory, MemberData(nameof(InvalidAddresses))]
-	public void TryParse_Invalid(string address)
+	public void TryDecode_Invalid(string address)
 	{
-		Assert.False(ZcashAddress.TryParse(address, out _));
+		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
 	[Fact]
 	public void Parse_Null()
 	{
-		Assert.Throws<ArgumentNullException>(() => ZcashAddress.Parse(null!));
+		Assert.Throws<ArgumentNullException>(() => ZcashAddress.Decode(null!));
 	}
 
 	[Fact]
-	public void TryParse_Null()
+	public void TryDecode_Null()
 	{
-		Assert.Throws<ArgumentNullException>(() => ZcashAddress.TryParse(null!, out _));
+		Assert.Throws<ArgumentNullException>(() => ZcashAddress.TryDecode(null!, out _, out _, out _));
 	}
 
 	[Theory]
@@ -65,16 +65,16 @@ public class ZcashAddressTests : TestBase
 	[InlineData(ValidSproutAddress, typeof(SproutAddress))]
 	[InlineData(ValidTransparentP2PKHAddress, typeof(TransparentP2PKHAddress))]
 	[InlineData(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
-	public void Parse_ReturnsAppropriateType(string address, Type expectedKind)
+	public void Decode_ReturnsAppropriateType(string address, Type expectedKind)
 	{
-		var addr = ZcashAddress.Parse(address);
+		var addr = ZcashAddress.Decode(address);
 		Assert.IsAssignableFrom(expectedKind, addr);
 	}
 
 	[Fact]
 	public void ImplicitlyCastableToString()
 	{
-		var addr = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
+		var addr = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
 		string str = addr.Address;
 		Assert.Equal(ValidTransparentP2PKHAddress, str);
 	}
@@ -82,9 +82,9 @@ public class ZcashAddressTests : TestBase
 	[Fact]
 	public void Equality()
 	{
-		var addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		var addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		var addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		var addr1a = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
+		var addr1b = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
+		var addr2 = ZcashAddress.Decode(ValidTransparentP2SHAddress);
 		Assert.Equal(addr1a, addr1b);
 		Assert.NotEqual(addr1a, addr2);
 	}
@@ -92,9 +92,9 @@ public class ZcashAddressTests : TestBase
 	[Fact]
 	public void HashCodes()
 	{
-		var addr1a = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		var addr1b = ZcashAddress.Parse(ValidTransparentP2PKHAddress);
-		var addr2 = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		var addr1a = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
+		var addr1b = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
+		var addr2 = ZcashAddress.Decode(ValidTransparentP2SHAddress);
 		Assert.Equal(addr1a.GetHashCode(), addr1b.GetHashCode());
 		Assert.NotEqual(addr1a.GetHashCode(), addr2.GetHashCode());
 	}
@@ -102,7 +102,7 @@ public class ZcashAddressTests : TestBase
 	[Fact]
 	public void ImplicitCast()
 	{
-		string address = ZcashAddress.Parse(ValidTransparentP2SHAddress);
+		string address = ZcashAddress.Decode(ValidTransparentP2SHAddress);
 		Assert.Equal(ValidTransparentP2SHAddress, address);
 	}
 

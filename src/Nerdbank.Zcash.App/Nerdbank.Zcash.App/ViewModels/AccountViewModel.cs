@@ -27,8 +27,8 @@ public class AccountViewModel : ViewModelBase
 		this.LinkProperty(nameof(this.AreKeysRevealed), nameof(this.RevealKeysCommandCaption));
 
 		this.Balance = account.Network.AsSecurity().Amount(balance); // TODO: hook this up to a live feed so it updates as the wallet syncs.
-		this.FullViewingKey = account.FullViewing?.UnifiedKey.ViewingKey;
-		this.IncomingViewingKey = account.IncomingViewing.UnifiedKey.ViewingKey;
+		this.FullViewingKey = account.FullViewing?.UnifiedKey.TextEncoding;
+		this.IncomingViewingKey = account.IncomingViewing.UnifiedKey.TextEncoding;
 	}
 
 	public string Name

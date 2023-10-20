@@ -58,8 +58,8 @@ public class SproutAddress : ZcashAddress
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SproutReceiver, TPoolReceiver>(this.receiver);
 
-	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
-	internal static unsafe bool TryParse(string address, [NotNullWhen(true)] out SproutAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+	/// <inheritdoc cref="ZcashAddress.TryDecode(string, out DecodeError?, out string?, out ZcashAddress?)" />
+	internal static unsafe bool TryParse(string address, [NotNullWhen(true)] out SproutAddress? result, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage)
 	{
 		ZcashNetwork? network =
 			address.StartsWith("zc", StringComparison.Ordinal) ? ZcashNetwork.MainNet :
@@ -68,16 +68,15 @@ public class SproutAddress : ZcashAddress
 		if (network is null)
 		{
 			result = null;
-			errorCode = ParseError.UnrecognizedAddressType;
+			errorCode = DecodeError.UnrecognizedAddressType;
 			errorMessage = Strings.InvalidSproutPreamble;
 			return false;
 		}
 
 		Span<byte> decoded = stackalloc byte[2 + sizeof(SproutReceiver)];
-		if (!Base58Check.TryDecode(address, decoded, out DecodeError? decodeError, out errorMessage, out _))
+		if (!Base58Check.TryDecode(address, decoded, out errorCode, out errorMessage, out _))
 		{
 			result = null;
-			errorCode = DecodeToParseError(decodeError);
 			return false;
 		}
 

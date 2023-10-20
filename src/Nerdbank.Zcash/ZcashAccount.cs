@@ -65,6 +65,30 @@ public class ZcashAccount
 		}
 	}
 
+	private ZcashAccount(SpendingKeys keys)
+	{
+		Requires.NotNull(keys);
+
+		this.Spending = keys;
+		this.FullViewing = this.Spending.FullViewingKey;
+		this.IncomingViewing = this.FullViewing.IncomingViewingKey;
+	}
+
+	private ZcashAccount(FullViewingKeys keys)
+	{
+		Requires.NotNull(keys);
+
+		this.FullViewing = keys;
+		this.IncomingViewing = this.FullViewing.IncomingViewingKey;
+	}
+
+	private ZcashAccount(IncomingViewingKeys keys)
+	{
+		Requires.NotNull(keys);
+
+		this.IncomingViewing = keys;
+	}
+
 	/// <summary>
 	/// Gets the network this account should be used with.
 	/// </summary>
@@ -101,6 +125,42 @@ public class ZcashAccount
 	public bool HasDiversifiableKeys => this.IncomingViewing.Orchard is not null || this.IncomingViewing.Sapling is not null;
 
 	private string DebuggerDisplay => $"{this.DefaultAddress}";
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ZcashAccount"/> class
+	/// from the encoded form of one or more keys.
+	/// </summary>
+	/// <param name="encodedKey">The standard encoding of some key.</param>
+	/// <param name="account">Receives the initialized account, if parsing is successful.</param>
+	/// <returns><see langword="true" /> if <paramref name="encodedKey"/> was recognized as an encoding of some Zcash-related key; <see langword="false" /> otherwise.</returns>
+	public static bool TryImportAccount(string encodedKey, out ZcashAccount? account)
+	{
+		account = null;
+		if (ZcashUtilities.TryParseKey(encodedKey, out IKeyWithTextEncoding? result))
+		{
+			if (result is UnifiedViewingKey unifiedViewingKey)
+			{
+				account = new ZcashAccount(unifiedViewingKey);
+			}
+
+			if (result is ISpendingKey && result is Zip32HDWallet.IExtendedKey extendedSK)
+			{
+				account = new ZcashAccount(SpendingKeys.FromKeys(extendedSK));
+			}
+
+			if (result is IFullViewingKey fvk)
+			{
+				account = new ZcashAccount(FullViewingKeys.FromKeys(fvk));
+			}
+
+			if (result is IIncomingViewingKey ivk)
+			{
+				account = new ZcashAccount(IncomingViewingKeys.FromKeys(ivk));
+			}
+		}
+
+		return account is not null;
+	}
 
 	/// <inheritdoc cref="GetDiversifiedAddress(ref DiversifierIndex)"/>
 	public UnifiedAddress GetDiversifiedAddress()
@@ -292,6 +352,41 @@ public class ZcashAccount
 
 		/// <inheritdoc/>
 		IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SpendingKeys"/> class.
+		/// </summary>
+		/// <param name="spendingKeys">An array of keys that may be included in this instance.</param>
+		/// <returns>The newly created object.</returns>
+		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="spendingKeys"/> is not supported.</exception>
+		internal static SpendingKeys FromKeys(params Zip32HDWallet.IExtendedKey[] spendingKeys)
+		{
+			Transparent.ExtendedSpendingKey? transparent = null;
+			Zip32HDWallet.Sapling.ExtendedSpendingKey? sapling = null;
+			Zip32HDWallet.Orchard.ExtendedSpendingKey? orchard = null;
+
+			foreach (Zip32HDWallet.IExtendedKey key in spendingKeys)
+			{
+				if (key is Transparent.ExtendedSpendingKey t)
+				{
+					transparent = t;
+				}
+				else if (key is Zip32HDWallet.Sapling.ExtendedSpendingKey s)
+				{
+					sapling = s;
+				}
+				else if (key is Zip32HDWallet.Orchard.ExtendedSpendingKey o)
+				{
+					orchard = o;
+				}
+				else
+				{
+					throw new NotSupportedException($"Unsupported key type: {key.GetType()}");
+				}
+			}
+
+			return new(transparent, sapling, orchard);
+		}
 	}
 
 	/// <summary>
@@ -380,6 +475,41 @@ public class ZcashAccount
 
 		/// <inheritdoc/>
 		IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FullViewingKeys"/> class.
+		/// </summary>
+		/// <param name="fullViewingKeys">An array of keys that may be included in this instance.</param>
+		/// <returns>The newly created object.</returns>
+		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="fullViewingKeys"/> is not supported.</exception>
+		internal static FullViewingKeys FromKeys(params IFullViewingKey[] fullViewingKeys)
+		{
+			Transparent.ExtendedViewingKey? transparent = null;
+			Sapling.DiversifiableFullViewingKey? sapling = null;
+			Orchard.FullViewingKey? orchard = null;
+
+			foreach (Zip32HDWallet.IExtendedKey key in fullViewingKeys)
+			{
+				if (key is Transparent.ExtendedViewingKey t)
+				{
+					transparent = t;
+				}
+				else if (key is Sapling.DiversifiableFullViewingKey s)
+				{
+					sapling = s;
+				}
+				else if (key is Orchard.FullViewingKey o)
+				{
+					orchard = o;
+				}
+				else
+				{
+					throw new NotSupportedException($"Unsupported key type: {key.GetType()}");
+				}
+			}
+
+			return new(transparent, sapling, orchard);
+		}
 	}
 
 	/// <summary>
@@ -455,5 +585,40 @@ public class ZcashAccount
 
 		/// <inheritdoc/>
 		ZcashNetwork IZcashKey.Network => this.UnifiedKey.Network;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="IncomingViewingKeys"/> class.
+		/// </summary>
+		/// <param name="incomingViewingKeys">An array of spending keys that may be included in this instance.</param>
+		/// <returns>The newly created object.</returns>
+		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="incomingViewingKeys"/> is not supported.</exception>
+		internal static IncomingViewingKeys FromKeys(params IIncomingViewingKey[] incomingViewingKeys)
+		{
+			Transparent.ExtendedViewingKey? transparent = null;
+			Sapling.IncomingViewingKey? sapling = null;
+			Orchard.IncomingViewingKey? orchard = null;
+
+			foreach (Zip32HDWallet.IExtendedKey key in incomingViewingKeys)
+			{
+				if (key is Transparent.ExtendedViewingKey t)
+				{
+					transparent = t;
+				}
+				else if (key is Sapling.IncomingViewingKey s)
+				{
+					sapling = s;
+				}
+				else if (key is Orchard.IncomingViewingKey o)
+				{
+					orchard = o;
+				}
+				else
+				{
+					throw new NotSupportedException($"Unsupported key type: {key.GetType()}");
+				}
+			}
+
+			return new(transparent, sapling, orchard);
+		}
 	}
 }

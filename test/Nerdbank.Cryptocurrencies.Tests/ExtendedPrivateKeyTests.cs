@@ -102,17 +102,17 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 	}
 
 	[Fact]
-	public void Parse_Roundtripping()
+	public void Decode_Roundtripping()
 	{
 		using ExtendedPrivateKey pvk = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(128));
 		string pvkAsString = pvk.ToString();
-		using ExtendedPrivateKey pvk2 = Assert.IsType<ExtendedPrivateKey>(ExtendedKeyBase.Parse(pvk.ToString()));
+		using ExtendedPrivateKey pvk2 = Assert.IsType<ExtendedPrivateKey>(ExtendedKeyBase.Decode(pvk.ToString()));
 		AssertEqual(pvkAsString, pvk2);
 
 		// Test parsing of derived keys.
 		using ExtendedPrivateKey pvkDerived = pvk.Derive(1);
 		string pvkDerivedAsString = pvkDerived.ToString();
-		using ExtendedPrivateKey pvkDerived2 = Assert.IsType<ExtendedPrivateKey>(ExtendedKeyBase.Parse(pvkDerived.ToString()));
+		using ExtendedPrivateKey pvkDerived2 = Assert.IsType<ExtendedPrivateKey>(ExtendedKeyBase.Decode(pvkDerived.ToString()));
 		AssertEqual(pvkDerivedAsString, pvkDerived2);
 	}
 

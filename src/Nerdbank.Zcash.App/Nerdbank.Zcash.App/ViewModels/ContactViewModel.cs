@@ -41,7 +41,7 @@ public class ContactViewModel : ViewModelBase
 
 	public string AddressCaption => "Address";
 
-	public bool HasAddress => this.Address is not null && ZcashAddress.TryParse(this.Address, out _);
+	public bool HasAddress => this.Address is not null && ZcashAddress.TryDecode(this.Address, out _, out _, out _);
 
 	/// <summary>
 	/// Gets or sets an address from the user's wallet that was shared with the contact.
@@ -71,5 +71,5 @@ public class ContactViewModel : ViewModelBase
 	/// <summary>
 	/// Gets a value indicating whether the contact has a shielded receiving address.
 	/// </summary>
-	public bool HasShieldedReceivingAddress => this.Address is not null && ZcashAddress.TryParse(this.Address, out ZcashAddress? address) && address.HasShieldedReceiver;
+	public bool HasShieldedReceivingAddress => this.Address is not null && ZcashAddress.TryDecode(this.Address, out _, out _, out ZcashAddress? address) && address.HasShieldedReceiver;
 }

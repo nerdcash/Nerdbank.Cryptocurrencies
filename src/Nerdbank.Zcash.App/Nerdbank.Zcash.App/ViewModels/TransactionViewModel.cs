@@ -59,7 +59,7 @@ public class TransactionViewModel : ViewModelBase
 
 	public string AmountCaption => "Amount";
 
-	public ZcashAddress? OtherPartyAddress { get; init; } = ZcashAddress.Parse("u1wwsl42efxdj727vfcgmcf7wgxdqjjen4wqu79666ujf4qj4sqgezjemnaf23dlsgct3etneqrf2py2qws0lt2jfxv0n9cx5yr7l9vwa4hqvcznu0kxz90vpz4tgrd327wl4s875883w0rq6zjkp67c6qthdwwa6kcw8pv3699sfy27qa");
+	public ZcashAddress? OtherPartyAddress { get; init; } = ZcashAddress.Decode("u1wwsl42efxdj727vfcgmcf7wgxdqjjen4wqu79666ujf4qj4sqgezjemnaf23dlsgct3etneqrf2py2qws0lt2jfxv0n9cx5yr7l9vwa4hqvcznu0kxz90vpz4tgrd327wl4s875883w0rq6zjkp67c6qthdwwa6kcw8pv3699sfy27qa");
 
 	public string OtherPartyName
 	{

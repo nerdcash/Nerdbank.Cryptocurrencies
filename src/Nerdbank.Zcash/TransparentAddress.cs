@@ -22,16 +22,15 @@ public abstract class TransparentAddress : ZcashAddress
 	/// </summary>
 	internal static int DecodedLength => 22;
 
-	/// <inheritdoc cref="ZcashAddress.TryParse(string, out ZcashAddress?, out ParseError?, out string?)" />
-	internal static bool TryParse(string address, [NotNullWhen(true)] out TransparentAddress? result, [NotNullWhen(false)] out ParseError? errorCode, [NotNullWhen(false)] out string? errorMessage)
+	/// <inheritdoc cref="ZcashAddress.TryDecode(string, out DecodeError?, out string?, out ZcashAddress?)" />
+	internal static bool TryParse(string address, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out TransparentAddress? result)
 	{
 		if (address.StartsWith("t", StringComparison.OrdinalIgnoreCase) && address.Length > 2)
 		{
 			Span<byte> decoded = stackalloc byte[DecodedLength];
-			if (!Base58Check.TryDecode(address, decoded, out DecodeError? decodeError, out errorMessage, out _))
+			if (!Base58Check.TryDecode(address, decoded, out errorCode, out errorMessage, out _))
 			{
 				result = null;
-				errorCode = DecodeToParseError(decodeError);
 				return false;
 			}
 
@@ -45,7 +44,7 @@ public abstract class TransparentAddress : ZcashAddress
 
 			if (network is null)
 			{
-				errorCode = ParseError.InvalidAddress;
+				errorCode = DecodeError.UnrecognizedAddressType;
 				errorMessage = Strings.InvalidNetworkHeader;
 				result = null;
 				return false;
@@ -68,7 +67,7 @@ public abstract class TransparentAddress : ZcashAddress
 		}
 
 		result = null;
-		errorCode = ParseError.UnrecognizedAddressType;
+		errorCode = DecodeError.UnrecognizedAddressType;
 		errorMessage = Strings.UnrecognizedAddress;
 		return false;
 	}

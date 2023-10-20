@@ -9,7 +9,7 @@ public class Zip321PaymentRequestUrisTests
 	private const string ValidUri1 = "zcash:ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez?amount=1&memo=VGhpcyBpcyBhIHNpbXBsZSBtZW1vLg&message=Thank%20you%20for%20your%20purchase";
 	private const string ValidUri2 = "zcash:?address=tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU&amount=123.456&address.1=ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez&amount.1=0.789&memo.1=VGhpcyBpcyBhIHVuaWNvZGUgbWVtbyDinKjwn6aE8J-PhvCfjok";
 
-	private static readonly PaymentRequest ValidPaymentRequest1 = new(new PaymentRequestDetails(ZcashAddress.Parse("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))
+	private static readonly PaymentRequest ValidPaymentRequest1 = new(new PaymentRequestDetails(ZcashAddress.Decode("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))
 	{
 		Memo = Memo.FromMessage("This is a simple memo."),
 		Message = "Thank you for your purchase",
@@ -17,11 +17,11 @@ public class Zip321PaymentRequestUrisTests
 	});
 
 	private static readonly PaymentRequest ValidPaymentRequest2 = new(ImmutableArray.Create(
-		new PaymentRequestDetails(ZcashAddress.Parse("tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU"))
+		new PaymentRequestDetails(ZcashAddress.Decode("tmEZhbWHTpdKMw5it8YDspUXSMGQyFwovpU"))
 		{
 			Amount = 123.456m,
 		},
-		new PaymentRequestDetails(ZcashAddress.Parse("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))
+		new PaymentRequestDetails(ZcashAddress.Decode("ztestsapling10yy2ex5dcqkclhc7z7yrnjq2z6feyjad56ptwlfgmy77dmaqqrl9gyhprdx59qgmsnyfska2kez"))
 		{
 			Memo = Memo.FromMessage("This is a unicode memo ✨🦄🏆🎉"),
 			Amount = 0.789m,

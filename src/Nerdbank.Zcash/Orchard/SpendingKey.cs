@@ -14,6 +14,7 @@ public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 	private const string Bech32mTestNetworkHRP = "secret-orchard-sk-test";
 
 	private readonly Bytes32 value;
+	private string? textEncoding;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SpendingKey"/> class.
@@ -51,19 +52,24 @@ public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 	/// <summary>
 	/// Gets the Bech32m encoding of the spending key.
 	/// </summary>
-	public string Encoded
+	public string TextEncoding
 	{
 		get
 		{
-			Span<char> encodedChars = stackalloc char[512];
-			string hrp = this.Network switch
+			if (this.textEncoding is null)
 			{
-				ZcashNetwork.MainNet => Bech32mMainNetworkHRP,
-				ZcashNetwork.TestNet => Bech32mTestNetworkHRP,
-				_ => throw new NotSupportedException(),
-			};
-			int charLength = Bech32.Bech32m.Encode(hrp, this.value.Value, encodedChars);
-			return new string(encodedChars[..charLength]);
+				Span<char> encodedChars = stackalloc char[512];
+				string hrp = this.Network switch
+				{
+					ZcashNetwork.MainNet => Bech32mMainNetworkHRP,
+					ZcashNetwork.TestNet => Bech32mTestNetworkHRP,
+					_ => throw new NotSupportedException(),
+				};
+				int charLength = Bech32.Bech32m.Encode(hrp, this.value.Value, encodedChars);
+				this.textEncoding = new string(encodedChars[..charLength]);
+			}
+
+			return this.textEncoding;
 		}
 	}
 

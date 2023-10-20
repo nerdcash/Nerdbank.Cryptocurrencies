@@ -13,7 +13,7 @@ public partial class Zip32HDWallet
 		/// The extended spending key.
 		/// </summary>
 		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-		public class ExtendedSpendingKey : Bip32HDWallet.ExtendedPrivateKey, IExtendedKey, ISpendingKey, IUnifiedEncodingElement, IEquatable<ExtendedSpendingKey>
+		public class ExtendedSpendingKey : Bip32HDWallet.ExtendedPrivateKey, IExtendedKey, ISpendingKey, IUnifiedEncodingElement, IEquatable<ExtendedSpendingKey>, IKeyWithTextEncoding
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class
@@ -70,6 +70,40 @@ public partial class Zip32HDWallet
 			int IUnifiedEncodingElement.UnifiedDataLength => 64;
 
 			private new string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
+
+			/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+			public static bool TryDecode(ReadOnlySpan<char> encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out ExtendedSpendingKey? key)
+			{
+				if (!TryDecode(encoding, out decodeError, out errorMessage, out Bip32HDWallet.ExtendedKeyBase? bip32Key))
+				{
+					key = null;
+					return false;
+				}
+
+				if (bip32Key is Bip32HDWallet.ExtendedPrivateKey privateKey)
+				{
+					key = new(privateKey, bip32Key.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
+					return true;
+				}
+
+				decodeError = DecodeError.UnrecognizedHRP;
+				errorMessage = "The key is not a private key.";
+				key = null;
+				return false;
+			}
+
+			/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+			static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+			{
+				if (TryDecode(encoding, out decodeError, out errorMessage, out ExtendedSpendingKey? sk))
+				{
+					key = sk;
+					return true;
+				}
+
+				key = null;
+				return false;
+			}
 
 			/// <inheritdoc/>
 			public override ExtendedSpendingKey Derive(uint childIndex) => new(base.Derive(childIndex), this.Network);

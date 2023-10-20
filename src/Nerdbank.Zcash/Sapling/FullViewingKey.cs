@@ -9,10 +9,11 @@ namespace Nerdbank.Zcash.Sapling;
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>
+public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>, IKeyWithTextEncoding
 {
 	private const string Bech32MainNetworkHRP = "zviews";
 	private const string Bech32TestNetworkHRP = "zviewtestsapling";
+	private string? textEncoding;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
@@ -37,21 +38,26 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>
 	/// <summary>
 	/// Gets the Bech32 encoding of the full viewing key.
 	/// </summary>
-	public string Encoded
+	public string TextEncoding
 	{
 		get
 		{
-			Span<byte> encodedBytes = stackalloc byte[96];
-			Span<char> encodedChars = stackalloc char[512];
-			int byteLength = this.Encode(encodedBytes);
-			string hrp = this.Network switch
+			if (this.textEncoding is null)
 			{
-				ZcashNetwork.MainNet => Bech32MainNetworkHRP,
-				ZcashNetwork.TestNet => Bech32TestNetworkHRP,
-				_ => throw new NotSupportedException(),
-			};
-			int charLength = Bech32.Original.Encode(hrp, encodedBytes[..byteLength], encodedChars);
-			return new string(encodedChars[..charLength]);
+				Span<byte> encodedBytes = stackalloc byte[96];
+				Span<char> encodedChars = stackalloc char[512];
+				int byteLength = this.Encode(encodedBytes);
+				string hrp = this.Network switch
+				{
+					ZcashNetwork.MainNet => Bech32MainNetworkHRP,
+					ZcashNetwork.TestNet => Bech32TestNetworkHRP,
+					_ => throw new NotSupportedException(),
+				};
+				int charLength = Bech32.Original.Encode(hrp, encodedBytes[..byteLength], encodedChars);
+				this.textEncoding = new string(encodedChars[..charLength]);
+			}
+
+			return this.textEncoding;
 		}
 	}
 
@@ -80,28 +86,51 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>
 
 	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress.ToString();
 
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+	{
+		if (TryDecode(encoding, out decodeError, out errorMessage, out FullViewingKey? fvk))
+		{
+			key = fvk;
+			return true;
+		}
+
+		key = null;
+		return false;
+	}
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class
 	/// from the bech32 encoding of an full viewing key as specified in ZIP-32.
 	/// </summary>
-	/// <param name="encoding">The bech32-encoded key.</param>
-	/// <returns>An initialized <see cref="FullViewingKey"/>.</returns>
-	/// <remarks>
-	/// This method can parse the output of the <see cref="Encoded"/> property.
-	/// </remarks>
-	public static FullViewingKey FromEncoded(ReadOnlySpan<char> encoding)
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	public static bool TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out FullViewingKey? key)
 	{
 		Span<char> hrp = stackalloc char[50];
 		Span<byte> data = stackalloc byte[96];
-		(int tagLength, int dataLength) = Bech32.Original.Decode(encoding, hrp, data);
-		hrp = hrp[..tagLength];
-		ZcashNetwork network = hrp switch
+		if (!Bech32.Original.TryDecode(encoding, hrp, data, out decodeError, out errorMessage, out (int TagLength, int DataLength) length))
+		{
+			key = null;
+			return false;
+		}
+
+		hrp = hrp[..length.TagLength];
+		ZcashNetwork? network = hrp switch
 		{
 			Bech32MainNetworkHRP => ZcashNetwork.MainNet,
 			Bech32TestNetworkHRP => ZcashNetwork.TestNet,
-			_ => throw new InvalidKeyException($"Unexpected bech32 tag: {hrp}"),
+			_ => null,
 		};
-		return Decode(data[..dataLength], network);
+		if (network is null)
+		{
+			decodeError = DecodeError.UnrecognizedHRP;
+			errorMessage = $"Unexpected bech32 tag: {hrp}";
+			key = null;
+			return false;
+		}
+
+		key = Decode(data[..length.DataLength], network.Value);
+		return true;
 	}
 
 	/// <inheritdoc/>

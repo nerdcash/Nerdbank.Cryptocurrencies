@@ -17,12 +17,17 @@ public static partial class Bip32HDWallet
 	/// </summary>
 	/// <seealso cref="ExtendedPrivateKey"/>
 	/// <seealso cref="ExtendedPublicKey"/>
-	public abstract class ExtendedKeyBase : IExtendedKey
+	public abstract class ExtendedKeyBase : IExtendedKey, IKeyWithTextEncoding
 	{
 		private const int ChainCodeLength = 32;
 		private const int ParentFingerprintLength = 4;
 
 		private readonly FixedArrays fixedArrays;
+
+		/// <summary>
+		/// Backing field for the <see cref="TextEncoding"/> property.
+		/// </summary>
+		private string? textEncoding;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ExtendedKeyBase"/> class
@@ -76,6 +81,27 @@ public static partial class Bip32HDWallet
 		public uint ChildIndex { get; }
 
 		/// <inheritdoc/>
+		public string TextEncoding
+		{
+			get
+			{
+				if (this.textEncoding is null)
+				{
+					Span<byte> data = stackalloc byte[78];
+					int bytesWritten = this.WriteBytes(data);
+					Debug.Assert(bytesWritten == data.Length, $"We only wrote {bytesWritten} bytes into our {data.Length} byte buffer.");
+
+					Span<char> encoded = stackalloc char[112];
+					int length = Base58Check.Encode(data, encoded);
+
+					this.textEncoding = encoded[..length].ToString();
+				}
+
+				return this.textEncoding;
+			}
+		}
+
+		/// <inheritdoc/>
 		public KeyPath? DerivationPath { get; init; }
 
 		/// <summary>
@@ -98,12 +124,12 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		protected string DebuggerDisplay => $"{this.GetType().Name} {this.DerivationPath}";
 
-		/// <inheritdoc cref="TryParse(ReadOnlySpan{char}, out ExtendedKeyBase?, out DecodeError?, out string?)"/>
+		/// <inheritdoc cref="TryDecode(ReadOnlySpan{char}, out DecodeError?, out string?, out ExtendedKeyBase?)"/>
 		/// <returns>The decoded extended key. An instance of either <see cref="ExtendedPrivateKey"/> or <see cref="ExtendedPublicKey"/>.</returns>
 		/// <exception cref="FormatException">Thrown if parsing fails.</exception>
-		public static ExtendedKeyBase Parse(ReadOnlySpan<char> extendedKeyEncoding)
+		public static ExtendedKeyBase Decode(ReadOnlySpan<char> extendedKeyEncoding)
 		{
-			if (!TryParse(extendedKeyEncoding, out ExtendedKeyBase? result, out _, out string? errorMessage))
+			if (!TryDecode(extendedKeyEncoding, out _, out string? errorMessage, out ExtendedKeyBase? result))
 			{
 				throw new FormatException(errorMessage);
 			}
@@ -111,20 +137,33 @@ public static partial class Bip32HDWallet
 			return result;
 		}
 
+		/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+		static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+		{
+			if (TryDecode(encoding, out decodeError, out errorMessage, out ExtendedKeyBase? kb))
+			{
+				key = kb;
+				return true;
+			}
+
+			key = null;
+			return false;
+		}
+
 		/// <summary>
 		/// Parses an extended key in its common base58 representation (e.g. "xprv..." or "xpub...") into an <see cref="ExtendedKeyBase"/> instance.
 		/// </summary>
-		/// <param name="extendedKeyEncoding">The base58 encoding of an extended private or public key.</param>
-		/// <param name="result">Receives the decoded key, if successful. An instance of either <see cref="ExtendedPrivateKey"/> or <see cref="ExtendedPublicKey"/>.</param>
+		/// <param name="encoding">The base58 encoding of an extended private or public key.</param>
 		/// <param name="decodeError">Receives the decoding error, if applicable.</param>
 		/// <param name="errorMessage">Receives an error message explaining the parsing failure, if applicable.</param>
+		/// <param name="result">Receives the decoded key, if successful. An instance of either <see cref="ExtendedPrivateKey"/> or <see cref="ExtendedPublicKey"/>.</param>
 		/// <returns><see langword="true" /> if parsing was successful; <see langword="false" /> otherwise.</returns>
-		public static bool TryParse(ReadOnlySpan<char> extendedKeyEncoding, [NotNullWhen(true)] out ExtendedKeyBase? result, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage)
+		public static bool TryDecode(ReadOnlySpan<char> encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out ExtendedKeyBase? result)
 		{
 			result = null;
-			int maxBytesLength = Base58Check.GetMaxDecodedLength(extendedKeyEncoding.Length);
+			int maxBytesLength = Base58Check.GetMaxDecodedLength(encoding.Length);
 			Span<byte> bytes = stackalloc byte[maxBytesLength];
-			if (!Base58Check.TryDecode(extendedKeyEncoding, bytes, out decodeError, out errorMessage, out int bytesWritten))
+			if (!Base58Check.TryDecode(encoding, bytes, out decodeError, out errorMessage, out int bytesWritten))
 			{
 				return false;
 			}
@@ -224,20 +263,10 @@ public static partial class Bip32HDWallet
 		}
 
 		/// <summary>
-		/// Writes out the binary representation of this key in the standard Base58Check encoding.
+		/// Writes out the standard Base58Check encoding.
 		/// </summary>
 		/// <returns>The Base58Check encoding of this key.</returns>
-		public override string ToString()
-		{
-			Span<byte> data = stackalloc byte[78];
-			int bytesWritten = this.WriteBytes(data);
-			Debug.Assert(bytesWritten == data.Length, $"We only wrote {bytesWritten} bytes into our {data.Length} byte buffer.");
-
-			Span<char> encoded = stackalloc char[112];
-			int length = Base58Check.Encode(data, encoded);
-
-			return encoded[..length].ToString();
-		}
+		public override string ToString() => this.TextEncoding;
 
 		/// <inheritdoc/>
 		public abstract IExtendedKey Derive(uint childIndex);

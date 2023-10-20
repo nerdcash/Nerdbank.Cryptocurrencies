@@ -47,7 +47,7 @@ internal class UACommand
 
 		internal int Execute(CancellationToken cancellationToken)
 		{
-			if (!ZcashAddress.TryParse(this.UnifiedAddress, out ZcashAddress? parsed, out _, out string? errorMessage))
+			if (!ZcashAddress.TryDecode(this.UnifiedAddress, out _, out string? errorMessage, out ZcashAddress? parsed))
 			{
 				this.Console.Error.WriteLine(errorMessage);
 				return 1;
@@ -105,7 +105,7 @@ internal class UACommand
 			ZcashAddress[] receiverAddresses = new ZcashAddress[this.Receivers.Length];
 			for (int i = 0; i < this.Receivers.Length; i++)
 			{
-				if (!ZcashAddress.TryParse(this.Receivers[i], out ZcashAddress? addr, out _, out string? errorMessage))
+				if (!ZcashAddress.TryDecode(this.Receivers[i], out _, out string? errorMessage, out ZcashAddress? addr))
 				{
 					this.Console.Error.WriteLine(Strings.FormatInvalidAddress(this.Receivers[i], errorMessage));
 					return 1;

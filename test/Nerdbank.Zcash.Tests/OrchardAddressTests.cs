@@ -11,13 +11,13 @@ public class OrchardAddressTests : TestBase
 	}
 
 	[Fact]
-	public void TryParse_TestNet()
+	public void Decode_TestNet()
 	{
-		Assert.Equal(ZcashNetwork.TestNet, ZcashAddress.Parse(ValidUnifiedAddressOrchardTestNet).Network);
+		Assert.Equal(ZcashNetwork.TestNet, ZcashAddress.Decode(ValidUnifiedAddressOrchardTestNet).Network);
 	}
 
 	[Fact]
-	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Parse(ValidUnifiedAddressOrchard).HasShieldedReceiver);
+	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Decode(ValidUnifiedAddressOrchard).HasShieldedReceiver);
 
 	[Fact]
 	public void Ctor_Receiver_TestNet()
