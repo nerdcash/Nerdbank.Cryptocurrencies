@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// and generate addresses.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingElement, IEquatable<DiversifiableFullViewingKey>
+public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUnifiedEncodingElement, IEquatable<DiversifiableFullViewingKey>
 {
 	private readonly DiversifierKey dk;
 
@@ -23,14 +23,27 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 		this.dk = dk;
 
 		// Replace the base class's value with our own that includes the Dk value.
-		this.IncomingViewingKey = new IncomingViewingKey(this.IncomingViewingKey.Ivk.Value, this.Dk.Value, fullViewingKey.Network);
+		this.IncomingViewingKey = new DiversifiableIncomingViewingKey(base.IncomingViewingKey.Ivk.Value, this.Dk.Value, fullViewingKey.Network);
 	}
+
+	/// <summary>
+	/// Gets the same key, but with the diversifier key removed.
+	/// </summary>
+	public FullViewingKey WithoutDiversifier => new(this.Ak, this.Nk, this.IncomingViewingKey.WithoutDiversifier, this.Ovk);
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => this.Ak.Value.Length + this.Nk.Value.Length + this.Ovk.Value.Length + this.Dk.Value.Length;
+
+	/// <inheritdoc/>
+	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+
+	/// <summary>
+	/// Gets or sets the incoming viewing key.
+	/// </summary>
+	public new DiversifiableIncomingViewingKey IncomingViewingKey { get; protected set; }
 
 	/// <summary>
 	/// Gets the diversifier key.
@@ -141,7 +154,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IUnifiedEncodingEleme
 		ReadOnlySpan<byte> nk = keyContribution[32..64];
 		ReadOnlySpan<byte> ovk = keyContribution[64..96];
 		ReadOnlySpan<byte> dk = keyContribution[96..];
-		IncomingViewingKey ivk = IncomingViewingKey.FromFullViewingKey(ak, nk, dk, network);
+		IncomingViewingKey ivk = DiversifiableIncomingViewingKey.FromFullViewingKey(ak, nk, dk, network);
 		FullViewingKey fvk = new(new(ak), new(nk), ivk, new(ovk));
 		return new DiversifiableFullViewingKey(fvk, new(dk));
 	}

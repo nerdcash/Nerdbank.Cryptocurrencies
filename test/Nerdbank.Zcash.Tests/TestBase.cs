@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 public abstract class TestBase
 {
@@ -52,4 +53,10 @@ public abstract class TestBase
 	/// per the policy set by <see cref="TimeoutTokenSource"/>.
 	/// </summary>
 	protected CancellationToken TimeoutToken => this.TimeoutTokenSource.Token;
+
+	protected static bool TryDecodeViaInterface<T>(string encoded, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+		where T : IKeyWithTextEncoding
+	{
+		return T.TryDecode(encoded, out decodeError, out errorMessage, out key);
+	}
 }

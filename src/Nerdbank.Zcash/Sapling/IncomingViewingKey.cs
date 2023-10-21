@@ -9,25 +9,22 @@ namespace Nerdbank.Zcash.Sapling;
 /// A viewing key for incoming transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>, IKeyWithTextEncoding
+public class IncomingViewingKey : IZcashKey, IEquatable<IncomingViewingKey>, IKeyWithTextEncoding
 {
 	private const string Bech32MainNetworkHRP = "zivks";
 	private const string Bech32TestNetworkHRP = "zivktestsapling";
 
 	private readonly Bytes32 ivk;
-	private readonly DiversifierKey? dk;
 	private string? textEncoding;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class.
 	/// </summary>
 	/// <param name="ivk">The 32-byte ivk value.</param>
-	/// <param name="dk">The 11-byte diversification key.</param>
 	/// <param name="network">The network this key should be used with.</param>
-	internal IncomingViewingKey(ReadOnlySpan<byte> ivk, ReadOnlySpan<byte> dk, ZcashNetwork network)
+	internal IncomingViewingKey(ReadOnlySpan<byte> ivk, ZcashNetwork network)
 	{
 		this.ivk = new(ivk);
-		this.dk = dk.Length > 0 ? new(dk) : null;
 		this.Network = network;
 	}
 
@@ -35,23 +32,6 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// Gets the network this key should be used with.
 	/// </summary>
 	public ZcashNetwork Network { get; }
-
-	/// <summary>
-	/// Gets the default address for this spending key.
-	/// </summary>
-	/// <remarks>
-	/// Create additional diversified addresses using <see cref="TryCreateReceiver"/>.
-	/// </remarks>
-	public SaplingAddress DefaultAddress => new(this.CreateDefaultReceiver(), this.Network);
-
-	/// <inheritdoc/>
-	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
-
-	/// <inheritdoc/>
-	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;
-
-	/// <inheritdoc/>
-	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 2;
 
 	/// <summary>
 	/// Gets the Bech32 encoding of the incoming viewing key.
@@ -84,12 +64,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// </summary>
 	internal ref readonly Bytes32 Ivk => ref this.ivk;
 
-	/// <summary>
-	/// Gets the diversification key.
-	/// </summary>
-	internal ref readonly DiversifierKey? Dk => ref this.dk;
-
-	private string DebuggerDisplay => this.DefaultAddress;
+	private string DebuggerDisplay => this.TextEncoding;
 
 	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
 	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
@@ -159,118 +134,24 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	}
 
 	/// <summary>
-	/// Creates a sapling receiver using this key and a given diversifier.
-	/// </summary>
-	/// <param name="diversifierIndex">
-	/// The diversifier index to start searching at, in the range of 0..(2^88 - 1).
-	/// Not every index will produce a valid diversifier. About half will fail.
-	/// The default diversifier is defined as the smallest non-negative index that produces a valid diversifier.
-	/// This value will be incremented until a diversifier can be found, considering the buffer to be a little-endian encoded integer.
-	/// </param>
-	/// <param name="receiver">Receives the sapling receiver, if successful.</param>
-	/// <returns>
-	/// <see langword="true"/> if a valid diversifier could be produced at or above the initial value given by <paramref name="diversifierIndex"/>.
-	/// <see langword="false"/> if no valid diversifier could be found at or above <paramref name="diversifierIndex"/>.
-	/// </returns>
-	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="diversifierIndex"/> is negative.</exception>
-	public bool TryCreateReceiver(ref DiversifierIndex diversifierIndex, [NotNullWhen(true)] out SaplingReceiver? receiver)
-	{
-		Verify.Operation(this.Dk.HasValue, "This IVK was not created with a diversifier key.");
-		Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
-		Span<byte> diversifierIndexSpan = stackalloc byte[11];
-		diversifierIndex.Value.CopyTo(diversifierIndexSpan);
-		if (NativeMethods.TryGetSaplingReceiver(this.ivk.Value, this.Dk.Value.Value, diversifierIndexSpan, receiverBytes) != 0)
-		{
-			receiver = null;
-			return false;
-		}
-
-		diversifierIndex = new(diversifierIndexSpan);
-		receiver = new(receiverBytes);
-		return true;
-	}
-
-	/// <summary>
-	/// Creates the default sapling receiver for this key.
-	/// </summary>
-	/// <returns>The receiver.</returns>
-	public SaplingReceiver CreateDefaultReceiver()
-	{
-		DiversifierIndex diversifierIndex = default;
-		Assumes.True(this.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver? receiver));
-		return receiver.Value;
-	}
-
-	/// <summary>
-	/// Checks whether a given sapling receiver was derived from the same spending authority as this key
-	/// (in other words: would ZEC sent to this receiver arrive in this account?).
-	/// </summary>
-	/// <param name="receiver">The receiver to test.</param>
-	/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
-	/// <remarks>
-	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex"/> method,
-	/// which runs a similar test but also provides the decrypted diversifier index.</para>
-	/// </remarks>
-	public bool CheckReceiver(SaplingReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
-
-	/// <summary>
-	/// Checks whether a given sapling receiver was derived from the same spending authority as this key
-	/// (in other words: would ZEC sent to this receiver arrive in this account?).
-	/// If so, the diversifier that was used to create it is decrypted back into its original index.
-	/// </summary>
-	/// <param name="receiver">The receiver to decrypt.</param>
-	/// <param name="diversifierIndex">Receives the original diversifier index, if successful.</param>
-	/// <returns>A value indicating whether the receiver could be decrypted successfully (i.e. the receiver came from this key).</returns>
-	/// <remarks>
-	/// <para>Use <see cref="CheckReceiver(SaplingReceiver)"/> for a simpler API if the diversifier index is not required.</para>
-	/// </remarks>
-	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
-	{
-		Verify.Operation(this.Dk.HasValue, "This IVK was not created with a diversifier key.");
-
-		Span<byte> diversifierSpan = stackalloc byte[11];
-		switch (NativeMethods.DecryptSaplingDiversifierWithIvk(this.Ivk.Value, this.Dk.Value.Value, receiver.Span, diversifierSpan))
-		{
-			case 0:
-				diversifierIndex = new(diversifierSpan);
-				return true;
-			case 1:
-				diversifierIndex = null;
-				return false;
-			default: throw new ArgumentException();
-		}
-	}
-
-	/// <inheritdoc/>
-	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
-	{
-		Verify.Operation(this.Dk.HasValue, "Cannot write this IVK because its dk value is unknown.");
-		int written = 0;
-		written += this.Dk.Value.Value.CopyToRetLength(destination[written..]);
-		written += this.Ivk.Value.CopyToRetLength(destination[written..]);
-		return written;
-	}
-
-	/// <summary>
 	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class
 	/// by deserializing it from a buffer.
 	/// </summary>
 	/// <param name="buffer">The 32-byte buffer to read from.</param>
 	/// <param name="network">The network this key should be used with.</param>
 	/// <returns>The deserialized key.</returns>
-	internal static IncomingViewingKey Decode(ReadOnlySpan<byte> buffer, ZcashNetwork network) => new(buffer[..32], default, network);
+	internal static IncomingViewingKey Decode(ReadOnlySpan<byte> buffer, ZcashNetwork network) => new(buffer[..32], network: network);
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="IncomingViewingKey"/> class
+	/// Initializes a new instance of the <see cref="DiversifiableIncomingViewingKey"/> class
 	/// from elements of a full viewing key.
 	/// </summary>
 	/// <param name="ak">The Ak subgroup point.</param>
 	/// <param name="nk">The nullifier deriving key.</param>
-	/// <param name="dk">The diversification key. May be default. Required for inclusion in a unified viewing key.</param>
 	/// <param name="network">The network on which this key should operate.</param>
 	/// <returns>The constructed incoming viewing key.</returns>
 	/// <exception cref="InvalidKeyException">Thrown if an error occurs while parsing the inputs.</exception>
-	internal static IncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, ReadOnlySpan<byte> dk, ZcashNetwork network)
+	internal static IncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, ZcashNetwork network)
 	{
 		Span<byte> ivk = stackalloc byte[32];
 		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(ak, nk, ivk) != 0)
@@ -278,16 +159,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 			throw new InvalidKeyException();
 		}
 
-		return new(ivk, dk, network);
-	}
-
-	/// <inheritdoc cref="Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
-	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
-	{
-		Requires.Argument(keyContribution.Length == 64, nameof(keyContribution), "Unexpected length.");
-		ReadOnlySpan<byte> dk = keyContribution[0..32];
-		ReadOnlySpan<byte> ivk = keyContribution[32..64];
-		return new IncomingViewingKey(ivk, dk, network);
+		return new(ivk, network);
 	}
 
 	/// <summary>

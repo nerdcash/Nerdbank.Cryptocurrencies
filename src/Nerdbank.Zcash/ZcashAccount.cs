@@ -60,7 +60,7 @@ public class ZcashAccount
 		{
 			this.IncomingViewing = new IncomingViewingKeys(
 				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
-				viewingKey.GetViewingKey<Sapling.IncomingViewingKey>(),
+				viewingKey.GetViewingKey<Sapling.DiversifiableIncomingViewingKey>(),
 				viewingKey.GetViewingKey<Orchard.IncomingViewingKey>());
 		}
 	}
@@ -133,7 +133,7 @@ public class ZcashAccount
 	/// <param name="encodedKey">The standard encoding of some key.</param>
 	/// <param name="account">Receives the initialized account, if parsing is successful.</param>
 	/// <returns><see langword="true" /> if <paramref name="encodedKey"/> was recognized as an encoding of some Zcash-related key; <see langword="false" /> otherwise.</returns>
-	public static bool TryImportAccount(string encodedKey, out ZcashAccount? account)
+	public static bool TryImportAccount(string encodedKey, [NotNullWhen(true)] out ZcashAccount? account)
 	{
 		account = null;
 		if (ZcashUtilities.TryParseKey(encodedKey, out IKeyWithTextEncoding? result))
@@ -142,18 +142,15 @@ public class ZcashAccount
 			{
 				account = new ZcashAccount(unifiedViewingKey);
 			}
-
-			if (result is ISpendingKey && result is Zip32HDWallet.IExtendedKey extendedSK)
+			else if (result is ISpendingKey && result is Zip32HDWallet.IExtendedKey extendedSK)
 			{
 				account = new ZcashAccount(SpendingKeys.FromKeys(extendedSK));
 			}
-
-			if (result is IFullViewingKey fvk)
+			else if (result is IFullViewingKey fvk)
 			{
 				account = new ZcashAccount(FullViewingKeys.FromKeys(fvk));
 			}
-
-			if (result is IIncomingViewingKey ivk)
+			else if (result is IIncomingViewingKey ivk)
 			{
 				account = new ZcashAccount(IncomingViewingKeys.FromKeys(ivk));
 			}
@@ -488,7 +485,7 @@ public class ZcashAccount
 			Sapling.DiversifiableFullViewingKey? sapling = null;
 			Orchard.FullViewingKey? orchard = null;
 
-			foreach (Zip32HDWallet.IExtendedKey key in fullViewingKeys)
+			foreach (IFullViewingKey key in fullViewingKeys)
 			{
 				if (key is Transparent.ExtendedViewingKey t)
 				{
@@ -497,6 +494,10 @@ public class ZcashAccount
 				else if (key is Sapling.DiversifiableFullViewingKey s)
 				{
 					sapling = s;
+				}
+				else if (key is Zip32HDWallet.Sapling.ExtendedFullViewingKey extSapling)
+				{
+					sapling = extSapling.FullViewingKey;
 				}
 				else if (key is Orchard.FullViewingKey o)
 				{
@@ -549,7 +550,7 @@ public class ZcashAccount
 		/// <param name="transparent">A key for the transparent pool.</param>
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
-		internal IncomingViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.IncomingViewingKey? sapling, Orchard.IncomingViewingKey? orchard)
+		internal IncomingViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.DiversifiableIncomingViewingKey? sapling, Orchard.IncomingViewingKey? orchard)
 		{
 			this.Transparent = transparent;
 			this.Sapling = sapling;
@@ -573,7 +574,7 @@ public class ZcashAccount
 		/// <summary>
 		/// Gets the incoming viewing key for the sapling pool.
 		/// </summary>
-		public Sapling.IncomingViewingKey? Sapling { get; }
+		public Sapling.DiversifiableIncomingViewingKey? Sapling { get; }
 
 		/// <summary>
 		/// Gets the incoming viewing key for the orchard pool.
@@ -595,16 +596,16 @@ public class ZcashAccount
 		internal static IncomingViewingKeys FromKeys(params IIncomingViewingKey[] incomingViewingKeys)
 		{
 			Transparent.ExtendedViewingKey? transparent = null;
-			Sapling.IncomingViewingKey? sapling = null;
+			Sapling.DiversifiableIncomingViewingKey? sapling = null;
 			Orchard.IncomingViewingKey? orchard = null;
 
-			foreach (Zip32HDWallet.IExtendedKey key in incomingViewingKeys)
+			foreach (IIncomingViewingKey key in incomingViewingKeys)
 			{
 				if (key is Transparent.ExtendedViewingKey t)
 				{
 					transparent = t;
 				}
-				else if (key is Sapling.IncomingViewingKey s)
+				else if (key is Sapling.DiversifiableIncomingViewingKey s)
 				{
 					sapling = s;
 				}

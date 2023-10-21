@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.Sapling;
 /// A viewing key that can decrypt incoming and outgoing transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>, IKeyWithTextEncoding
+public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTextEncoding
 {
 	private const string Bech32MainNetworkHRP = "zviews";
 	private const string Bech32TestNetworkHRP = "zviewtestsapling";
@@ -66,9 +66,6 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>, IKeyW
 	/// </summary>
 	public IncomingViewingKey IncomingViewingKey { get; protected set; }
 
-	/// <inheritdoc/>
-	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
-
 	/// <summary>
 	/// Gets the Ak subgroup point.
 	/// </summary>
@@ -84,7 +81,7 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>, IKeyW
 	/// </summary>
 	internal OutgoingViewingKey Ovk { get; }
 
-	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress.ToString();
+	private string DebuggerDisplay => this.TextEncoding;
 
 	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
 	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
@@ -185,7 +182,7 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>, IKeyW
 		return new FullViewingKey(
 			new(ak),
 			new(nk),
-			IncomingViewingKey.FromFullViewingKey(ak, nk, default, network),
+			IncomingViewingKey.FromFullViewingKey(ak, nk, network),
 			new(ovk));
 	}
 
@@ -205,7 +202,7 @@ public class FullViewingKey : IFullViewingKey, IEquatable<FullViewingKey>, IKeyW
 		return new FullViewingKey(
 			new SubgroupPoint(ak),
 			new NullifierDerivingKey(nk),
-			IncomingViewingKey.FromFullViewingKey(ak, nk, dk: default, network),
+			IncomingViewingKey.FromFullViewingKey(ak, nk, network),
 			new OutgoingViewingKey(ovk));
 	}
 

@@ -66,7 +66,7 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the incoming viewing key.
 			/// </summary>
-			public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+			public DiversifiableIncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
 
 			/// <inheritdoc/>
 			IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
@@ -93,7 +93,7 @@ public partial class Zip32HDWallet
 			/// Gets the default address for this spending key.
 			/// </summary>
 			/// <remarks>
-			/// Create additional diversified addresses using <see cref="IncomingViewingKey.TryCreateReceiver"/>
+			/// Create additional diversified addresses using <see cref="DiversifiableIncomingViewingKey.TryCreateReceiver"/>
 			/// found on the <see cref="FullViewingKey"/>.
 			/// </remarks>
 			public SaplingAddress DefaultAddress => this.IncomingViewingKey.DefaultAddress;

@@ -71,15 +71,29 @@ public class ZcashUtilitiesTests : TestBase
 	}
 
 	[Theory, PairwiseData]
-	public void TryParseKey_Sapling_FullViewingKey(ZcashNetwork network)
+	public void TryParseKey_Sapling_ExtendedFullViewingKey(ZcashNetwork network)
 	{
 		// We can't round-trip a ZcashAccount.FullViewing.Sapling key because
 		// a Sapling DiversifiableFullViewingKey has no defined text encoding.
-		// Only FVKs (which like the diversifier key) and extended fvk's have
+		// Only FVKs (which lack the diversifier key) and extended fvk's have
 		// defined text encodings.
 		Zip32HDWallet.Sapling.ExtendedSpendingKey saplingESK = Zip32HDWallet.Sapling.Create(Bip39Mnemonic.Create(32), network);
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey saplingEFVK = saplingESK.ExtendedFullViewingKey;
 		this.Assert_KeyRoundTrip(saplingEFVK);
+	}
+
+	[Theory, PairwiseData]
+	public void TryParseKey_Sapling_FullViewingKey(ZcashNetwork network)
+	{
+		// We specifically want to test round-tripping of the non-diversifiable key here.
+		this.Assert_TryParseKey<Nerdbank.Zcash.Sapling.FullViewingKey>(network, a => a.FullViewing!.Sapling!);
+	}
+
+	[Theory, PairwiseData]
+	public void TryParseKey_Sapling_IncomingViewingKey(ZcashNetwork network)
+	{
+		// We specifically want to test round-tripping of the non-diversifiable key here.
+		this.Assert_TryParseKey<Nerdbank.Zcash.Sapling.IncomingViewingKey>(network, a => a.IncomingViewing.Sapling!);
 	}
 
 	[Fact]
@@ -87,12 +101,6 @@ public class ZcashUtilitiesTests : TestBase
 	{
 		Assert.False(ZcashUtilities.TryParseKey("abc", out IKeyWithTextEncoding? key));
 		Assert.Null(key);
-	}
-
-	[Theory, PairwiseData]
-	public void TryParseKey_Sapling_IncomingViewingKey(ZcashNetwork network)
-	{
-		this.Assert_TryParseKey(network, a => a.IncomingViewing.Sapling!);
 	}
 
 	[Theory, PairwiseData]

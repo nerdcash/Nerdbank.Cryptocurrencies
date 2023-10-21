@@ -196,6 +196,7 @@ Nerdbank.Zcash.Orchard.FullViewingKey.DeriveInternal() -> Nerdbank.Zcash.Orchard
 Nerdbank.Zcash.Orchard.FullViewingKey.Equals(Nerdbank.Zcash.Orchard.FullViewingKey? other) -> bool
 Nerdbank.Zcash.Orchard.FullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Orchard.IncomingViewingKey!
 Nerdbank.Zcash.Orchard.FullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.Orchard.FullViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.Orchard.IncomingViewingKey
 Nerdbank.Zcash.Orchard.IncomingViewingKey.CheckReceiver(Nerdbank.Zcash.OrchardReceiver receiver) -> bool
 Nerdbank.Zcash.Orchard.IncomingViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.OrchardReceiver
@@ -389,10 +390,19 @@ Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.CheckReceiver(Nerdbank.Zcash.SaplingReceiver receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.DeriveInternal() -> Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey!
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.Equals(Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey? other) -> bool
+Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey!
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.SaplingReceiver receiver, out Nerdbank.Zcash.DiversifierIndex? diversifierIndex) -> bool
+Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.WithoutDiversifier.get -> Nerdbank.Zcash.Sapling.FullViewingKey!
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.CheckReceiver(Nerdbank.Zcash.SaplingReceiver receiver) -> bool
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.SaplingReceiver
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.TryCreateReceiver(ref Nerdbank.Zcash.DiversifierIndex diversifierIndex, out Nerdbank.Zcash.SaplingReceiver? receiver) -> bool
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.SaplingReceiver receiver, out Nerdbank.Zcash.DiversifierIndex? diversifierIndex) -> bool
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.WithoutDiversifier.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
 Nerdbank.Zcash.Sapling.ExpandedSpendingKey
 Nerdbank.Zcash.Sapling.ExpandedSpendingKey.Equals(Nerdbank.Zcash.Sapling.ExpandedSpendingKey? other) -> bool
-Nerdbank.Zcash.Sapling.ExpandedSpendingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
+Nerdbank.Zcash.Sapling.ExpandedSpendingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey!
 Nerdbank.Zcash.Sapling.ExpandedSpendingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Sapling.FullViewingKey
 Nerdbank.Zcash.Sapling.FullViewingKey.Equals(Nerdbank.Zcash.Sapling.FullViewingKey? other) -> bool
@@ -400,14 +410,9 @@ Nerdbank.Zcash.Sapling.FullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.S
 Nerdbank.Zcash.Sapling.FullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Sapling.FullViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.Sapling.IncomingViewingKey
-Nerdbank.Zcash.Sapling.IncomingViewingKey.CheckReceiver(Nerdbank.Zcash.SaplingReceiver receiver) -> bool
-Nerdbank.Zcash.Sapling.IncomingViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.SaplingReceiver
-Nerdbank.Zcash.Sapling.IncomingViewingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
 Nerdbank.Zcash.Sapling.IncomingViewingKey.Equals(Nerdbank.Zcash.Sapling.IncomingViewingKey? other) -> bool
 Nerdbank.Zcash.Sapling.IncomingViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Sapling.IncomingViewingKey.TextEncoding.get -> string!
-Nerdbank.Zcash.Sapling.IncomingViewingKey.TryCreateReceiver(ref Nerdbank.Zcash.DiversifierIndex diversifierIndex, out Nerdbank.Zcash.SaplingReceiver? receiver) -> bool
-Nerdbank.Zcash.Sapling.IncomingViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.SaplingReceiver receiver, out Nerdbank.Zcash.DiversifierIndex? diversifierIndex) -> bool
 Nerdbank.Zcash.SaplingAddress
 Nerdbank.Zcash.SaplingAddress.SaplingAddress(in Nerdbank.Zcash.SaplingReceiver receiver, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
 Nerdbank.Zcash.SaplingReceiver
@@ -488,7 +493,7 @@ Nerdbank.Zcash.ZcashAccount.IncomingViewing.get -> Nerdbank.Zcash.ZcashAccount.I
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.IncomingViewingKeys(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys! original) -> void
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Orchard.get -> Nerdbank.Zcash.Orchard.IncomingViewingKey?
-Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey?
+Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey?
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Transparent.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey?
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.UnifiedKey.get -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys
@@ -602,7 +607,7 @@ Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.DeriveInternal() -> 
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Equals(Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey? other) -> bool
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Fingerprint.get -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.FullViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey!
-Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.ParentFullViewingKeyTag.get -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey.TextEncoding.get -> string!
@@ -620,7 +625,7 @@ Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.ExpandedSpendingKey.get
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.ExtendedFullViewingKey.get -> Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedFullViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Fingerprint.get -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.FullViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey!
-Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
+Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.ParentFullViewingKeyTag.get -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag
 Nerdbank.Zcash.Zip32HDWallet.Sapling.ExtendedSpendingKey.TextEncoding.get -> string!
