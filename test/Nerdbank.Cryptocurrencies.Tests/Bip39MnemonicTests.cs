@@ -7,6 +7,7 @@ using System.Text;
 
 public class Bip39MnemonicTests
 {
+	private const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
 	private readonly ITestOutputHelper logger;
 
 	public Bip39MnemonicTests(ITestOutputHelper logger)
@@ -64,16 +65,24 @@ public class Bip39MnemonicTests
 	[Fact]
 	public void TryParse_NormalizesCapitalization()
 	{
-		const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
 		Assert.True(Bip39Mnemonic.TryParse(SeedPhrase.ToUpperInvariant(), out Bip39Mnemonic? mnemonic, out _, out _));
 		Assert.Equal("5E29A6C2EF223A851C2FF239B0026271", Convert.ToHexString(mnemonic.Entropy));
 		Assert.Equal(SeedPhrase, mnemonic.SeedPhrase);
 	}
 
 	[Fact]
+	public void TryParse_ToleratesExtraWhitespace()
+	{
+		const string CleanSeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
+		const string MessySeedPhrase = "  funny	essay   radar tattoo casual dream idle wrestle defy \n length obtain tobacco \n";
+		Assert.True(Bip39Mnemonic.TryParse(MessySeedPhrase.ToUpperInvariant(), out Bip39Mnemonic? mnemonic, out _, out _));
+		Assert.Equal("5E29A6C2EF223A851C2FF239B0026271", Convert.ToHexString(mnemonic.Entropy));
+		Assert.Equal(CleanSeedPhrase, mnemonic.SeedPhrase);
+	}
+
+	[Fact]
 	public void TryParse_WithExplicitPassword()
 	{
-		const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
 		const string Password = "some password";
 		Assert.True(Bip39Mnemonic.TryParse(SeedPhrase, Password.AsMemory(), out Bip39Mnemonic? mnemonic, out _, out _));
 		Assert.Equal("5E29A6C2EF223A851C2FF239B0026271", Convert.ToHexString(mnemonic.Entropy));
@@ -85,7 +94,6 @@ public class Bip39MnemonicTests
 	public void TryParse_WithImplicitPassword()
 	{
 		const string Password = "somepassword";
-		const string SeedPhrase = "funny essay radar tattoo casual dream idle wrestle defy length obtain tobacco";
 		Assert.True(Bip39Mnemonic.TryParse($"{SeedPhrase} {Password}", out Bip39Mnemonic? mnemonic, out _, out _));
 		Assert.Equal("5E29A6C2EF223A851C2FF239B0026271", Convert.ToHexString(mnemonic.Entropy));
 		Assert.Equal(Password.AsMemory().ToString(), mnemonic.Password.ToString());
@@ -99,6 +107,59 @@ public class Bip39MnemonicTests
 		Assert.False(Bip39Mnemonic.TryParse(SeedPhrase, out Bip39Mnemonic? mnemonic, out DecodeError? decodeError, out string? errorMessage));
 		this.logger.WriteLine(errorMessage);
 		Assert.Equal(DecodeError.BadWordCount, decodeError);
+	}
+
+	[Fact]
+	public void TryParse_EmptyString_WithPasswordParameter()
+	{
+		Assert.False(Bip39Mnemonic.TryParse(string.Empty, string.Empty, out Bip39Mnemonic? mnemonic, out DecodeError? decodeError, out string? errorMessage));
+		Assert.Null(mnemonic);
+		Assert.Equal(DecodeError.BadWordCount, decodeError);
+		this.logger.WriteLine(errorMessage);
+	}
+
+	[Fact]
+	public void TryParse_EmptyString()
+	{
+		Assert.False(Bip39Mnemonic.TryParse(string.Empty, out Bip39Mnemonic? mnemonic, out DecodeError? decodeError, out string? errorMessage));
+		Assert.Null(mnemonic);
+		Assert.Equal(DecodeError.BadWordCount, decodeError);
+		this.logger.WriteLine(errorMessage);
+	}
+
+	[Fact]
+	public void TryParse_OnlyWhitespace()
+	{
+		Assert.False(Bip39Mnemonic.TryParse("  ", out Bip39Mnemonic? mnemonic, out DecodeError? decodeError, out string? errorMessage));
+		Assert.Null(mnemonic);
+		Assert.Equal(DecodeError.BadWordCount, decodeError);
+		this.logger.WriteLine(errorMessage);
+	}
+
+	[Fact]
+	public void TryParse_IncompletelyTyped_WithPasswordParameter()
+	{
+		Assert.False(Bip39Mnemonic.TryParse("f", string.Empty, out Bip39Mnemonic? mnemonic, out DecodeError? decodeError, out string? errorMessage));
+		Assert.Null(mnemonic);
+		Assert.Equal(DecodeError.BadWordCount, decodeError);
+		this.logger.WriteLine(errorMessage);
+	}
+
+	[Fact]
+	public void TryParse_IncompletelyTyped()
+	{
+		Assert.False(Bip39Mnemonic.TryParse("f", out Bip39Mnemonic? mnemonic, out DecodeError? decodeError, out string? errorMessage));
+		Assert.Null(mnemonic);
+		Assert.Equal(DecodeError.BadWordCount, decodeError);
+		this.logger.WriteLine(errorMessage);
+	}
+
+	[Fact]
+	public void Parse_PasswordWhitespaceSignificant()
+	{
+		Bip39Mnemonic oneSpace = Bip39Mnemonic.Parse(SeedPhrase, " ");
+		Bip39Mnemonic twoSpaces = Bip39Mnemonic.Parse(SeedPhrase, "  ");
+		Assert.False(oneSpace.Seed.SequenceEqual(twoSpaces.Seed));
 	}
 
 	[Fact]

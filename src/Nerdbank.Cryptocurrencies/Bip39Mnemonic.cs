@@ -28,7 +28,7 @@ public partial class Bip39Mnemonic
 	/// Initializes a new instance of the <see cref="Bip39Mnemonic"/> class.
 	/// </summary>
 	/// <param name="entropy">The entropy buffer that must be represented by the seed phrase. The length in bytes must be a non-zero multiple of 4. This should <em>not</em> include the checksum.</param>
-	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed.</param>
+	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed. Whitespace will <em>not</em> be trimmed.</param>
 	/// <exception cref="ArgumentException">Throw if the length of <paramref name="entropy"/> is not a multiple of 4.</exception>
 	/// <remarks>
 	/// This constructor is useful for those who already have the entropy created from a cryptographically strong random number generator.
@@ -87,7 +87,7 @@ public partial class Bip39Mnemonic
 	/// Common values are 128 (which produces a 12 word phrase), and 256 (which produces a 24 word phrase).
 	/// Must be a multiple of 32.
 	/// </param>
-	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed.</param>
+	/// <param name="password">An optional password that when mixed in with the seed phrase will produce a unique binary seed. Whitespace will <em>not</em> be trimmed.</param>
 	/// <returns>The seed phrase.</returns>
 	/// <exception cref="ArgumentException">Throw if <paramref name="entropyLengthInBits"/> is not a multiple of 32.</exception>
 	public static Bip39Mnemonic Create(int entropyLengthInBits, ReadOnlyMemory<char> password)
@@ -130,7 +130,7 @@ public partial class Bip39Mnemonic
 	/// <summary>
 	/// Decodes a seed phrase to the entropy data it represents.
 	/// </summary>
-	/// <param name="seedPhrase">The seed phrase. This <em>may</em> include exactly one extra word that serves as a password.</param>
+	/// <param name="seedPhrase">The seed phrase. This <em>may</em> include exactly one extra word that serves as a password. Extra whitespace is ignored.</param>
 	/// <param name="mnemonic">Receives the mnemonic.</param>
 	/// <param name="decodeError">Receives the error code if decoding fails.</param>
 	/// <param name="errorMessage">Receives the error message if decoding fails.</param>
@@ -166,7 +166,7 @@ public partial class Bip39Mnemonic
 	/// Decodes a seed phrase to the entropy data it represents.
 	/// </summary>
 	/// <param name="seedPhrase">The seed phrase.</param>
-	/// <param name="password">An optional password. This may contain any character including spaces, although spaces are not recommended because some wallet software does not provide a special password entry but instead accepts it as a <em>single</em> additional word in the seed phrase.</param>
+	/// <param name="password">An optional password. This may contain any character including spaces, although spaces are not recommended because some wallet software does not provide a special password entry but instead accepts it as a <em>single</em> additional word in the seed phrase. Whitespace will <em>not</em> be trimmed.</param>
 	/// <param name="mnemonic">Receives the mnemonic.</param>
 	/// <param name="decodeError">Receives the error code if decoding fails.</param>
 	/// <param name="errorMessage">Receives the error message if decoding fails.</param>
@@ -176,7 +176,7 @@ public partial class Bip39Mnemonic
 		WordList wordList = WordList.Default;
 		int bitsInitialized = 0;
 		int wordCount = CountWords(seedPhrase);
-		if (wordCount % 3 > 0)
+		if (wordCount % 3 > 0 || wordCount == 0)
 		{
 			mnemonic = null;
 			decodeError = DecodeError.BadWordCount;
