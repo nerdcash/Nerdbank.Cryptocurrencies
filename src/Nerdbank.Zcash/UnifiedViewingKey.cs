@@ -134,7 +134,7 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 			{
 				UnifiedTypeCodes.Sapling => isFullViewingKey
 					? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-					: Sapling.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
+					: Sapling.DiversifiableIncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
 				UnifiedTypeCodes.Orchard => isFullViewingKey
 					? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
 					: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),

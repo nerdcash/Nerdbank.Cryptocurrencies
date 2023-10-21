@@ -60,7 +60,7 @@ public class ZcashAccount
 		{
 			this.IncomingViewing = new IncomingViewingKeys(
 				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
-				viewingKey.GetViewingKey<Sapling.IncomingViewingKey>(),
+				viewingKey.GetViewingKey<Sapling.DiversifiableIncomingViewingKey>(),
 				viewingKey.GetViewingKey<Orchard.IncomingViewingKey>());
 		}
 	}
@@ -485,7 +485,7 @@ public class ZcashAccount
 			Sapling.DiversifiableFullViewingKey? sapling = null;
 			Orchard.FullViewingKey? orchard = null;
 
-			foreach (Zip32HDWallet.IExtendedKey key in fullViewingKeys)
+			foreach (IFullViewingKey key in fullViewingKeys)
 			{
 				if (key is Transparent.ExtendedViewingKey t)
 				{
@@ -550,7 +550,7 @@ public class ZcashAccount
 		/// <param name="transparent">A key for the transparent pool.</param>
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
-		internal IncomingViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.IncomingViewingKey? sapling, Orchard.IncomingViewingKey? orchard)
+		internal IncomingViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.DiversifiableIncomingViewingKey? sapling, Orchard.IncomingViewingKey? orchard)
 		{
 			this.Transparent = transparent;
 			this.Sapling = sapling;
@@ -574,7 +574,7 @@ public class ZcashAccount
 		/// <summary>
 		/// Gets the incoming viewing key for the sapling pool.
 		/// </summary>
-		public Sapling.IncomingViewingKey? Sapling { get; }
+		public Sapling.DiversifiableIncomingViewingKey? Sapling { get; }
 
 		/// <summary>
 		/// Gets the incoming viewing key for the orchard pool.
@@ -596,7 +596,7 @@ public class ZcashAccount
 		internal static IncomingViewingKeys FromKeys(params IIncomingViewingKey[] incomingViewingKeys)
 		{
 			Transparent.ExtendedViewingKey? transparent = null;
-			Sapling.IncomingViewingKey? sapling = null;
+			Sapling.DiversifiableIncomingViewingKey? sapling = null;
 			Orchard.IncomingViewingKey? orchard = null;
 
 			foreach (IIncomingViewingKey key in incomingViewingKeys)
@@ -605,7 +605,7 @@ public class ZcashAccount
 				{
 					transparent = t;
 				}
-				else if (key is Sapling.IncomingViewingKey s)
+				else if (key is Sapling.DiversifiableIncomingViewingKey s)
 				{
 					sapling = s;
 				}
