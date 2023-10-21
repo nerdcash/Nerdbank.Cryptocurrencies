@@ -44,9 +44,15 @@ if ($x86) {
   }
 }
 
+$platform = 'x64'
+if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+    $platform = 'arm64'
+}
+
 & $dotnet test $RepoRoot `
     --no-build `
     -c $Configuration `
+    -p:Platform=$platform `
     --filter "TestCategory!=FailsInCloudTest & RequiresNetwork!=true" `
     --collect "Code Coverage;Format=cobertura" `
     --settings "$PSScriptRoot/test.runsettings" `
