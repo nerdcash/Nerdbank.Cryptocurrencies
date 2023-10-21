@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Threading.Tasks;
 using Nerdbank.Zcash.FixedLengthStructs;
-using Nerdbank.Zcash.Orchard;
 
 namespace Nerdbank.Zcash.Sapling;
 
@@ -70,7 +68,7 @@ public class ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>, ISpendingKey
 	/// <summary>
 	/// Gets the incoming viewing key.
 	/// </summary>
-	public IncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
+	public DiversifiableIncomingViewingKey IncomingViewingKey => this.FullViewingKey.IncomingViewingKey;
 
 	/// <inheritdoc/>
 	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
