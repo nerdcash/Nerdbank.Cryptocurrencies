@@ -47,7 +47,7 @@ if ($x86) {
 & $dotnet test $RepoRoot `
     --no-build `
     -c $Configuration `
-    --filter "TestCategory!=FailsInCloudTest" `
+    --filter "TestCategory!=FailsInCloudTest & RequiresNetwork!=true" `
     --collect "Code Coverage;Format=cobertura" `
     --settings "$PSScriptRoot/test.runsettings" `
     --blame-hang-timeout 60s `
