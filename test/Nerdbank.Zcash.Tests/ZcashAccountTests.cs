@@ -18,6 +18,9 @@ public class ZcashAccountTests : TestBase
 	[Fact]
 	public void DefaultAccountProperties()
 	{
+		Assert.Same(Zip32, DefaultAccount.HDWallet);
+		Assert.Equal<uint?>(1, AlternateAccount.HDAccountIndex);
+
 		Assert.NotNull(DefaultAccount.Spending?.Orchard);
 		Assert.NotNull(DefaultAccount.Spending?.Sapling);
 		Assert.NotNull(DefaultAccount.Spending?.Transparent);
@@ -101,6 +104,9 @@ public class ZcashAccountTests : TestBase
 	public void FullViewingAccount()
 	{
 		ZcashAccount fullViewAccount = new(DefaultAccount.FullViewing!.UnifiedKey);
+
+		Assert.Null(fullViewAccount.HDWallet);
+		Assert.Null(fullViewAccount.HDAccountIndex);
 
 		Assert.Null(fullViewAccount.Spending);
 		Assert.NotNull(fullViewAccount.FullViewing?.Transparent);
