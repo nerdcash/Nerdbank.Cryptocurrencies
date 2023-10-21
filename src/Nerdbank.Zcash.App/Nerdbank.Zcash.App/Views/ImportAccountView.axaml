@@ -13,10 +13,26 @@
   <DockPanel>
     <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
     <StackPanel>
-      <TextBlock Text="{Binding Explanation}" Margin="0,0,0,20" />
-      <TextBlock Text="{Binding KeyCaption}" />
-      <TextBox Text="{Binding Key}" Height="100" />
-      <Button Command="{Binding ImportCommand}" Content="{Binding ImportCommandCaption}" />
+      <Label Target="{Binding #KeyBox}">
+        <TextBlock Text="{Binding KeyCaption}" />
+      </Label>
+      <TextBox Text="{Binding Key}" Height="100" TextWrapping="Wrap" Name="KeyBox" />
+
+      <StackPanel IsVisible="{Binding IsPasswordVisible}">
+        <Label Content="{Binding SeedPasswordCaption}" Target="{Binding #SeedPasswordBox}" />
+        <TextBox Text="{Binding SeedPassword}" Name="SeedPasswordBox" />
+        <TextBlock Text="{Binding SeedPasswordWhitespaceWarning}" IsVisible="{Binding SeedPasswordHasWhitespace}"
+                   Foreground="Red" />
+      </StackPanel>
+      <CheckBox IsChecked="{Binding IsTestNet}" Content="{Binding IsTestNetCaption}" IsVisible="{Binding IsTestNetVisible}" />
+
+      <Label Content="{Binding BirthdayHeightCaption}" Target="{Binding #BirthdayHeightBox}" />
+      <NumericUpDown Value="{Binding BirthdayHeight}" Name="BirthdayHeightBox" Minimum="{Binding MinimumBirthdayHeight}" Increment="1" />
+      
+      <Button Command="{Binding ImportCommand}"
+              Content="{Binding ImportCommandCaption}"
+              HorizontalAlignment="Center"
+              Margin="10"/>
     </StackPanel>
   </DockPanel>
 </UserControl>

@@ -20,7 +20,7 @@ public class FirstLaunchViewModel : ViewModelBase
 	{
 		this.StartNewWalletCommand = ReactiveCommand.Create(this.CreateNewAccount);
 		this.StartNewWalletAdvancedCommand = ReactiveCommand.Create(this.CreateNewAccountAdvanced);
-		this.ImportWalletCommand = ReactiveCommand.Create(() => { });
+		this.ImportWalletCommand = ReactiveCommand.Create(this.ImportWallet);
 		this.viewModelServices = viewModelServices;
 	}
 
@@ -62,5 +62,23 @@ public class FirstLaunchViewModel : ViewModelBase
 	private void CreateNewAccountAdvanced()
 	{
 		this.viewModelServices.NavigateTo(new CreateNewWalletViewModel(this.viewModelServices));
+	}
+
+	private void ImportWallet()
+	{
+		ImportAccountViewModel importAccountViewModel = new();
+		importAccountViewModel.ImportCommand.Subscribe(account =>
+		{
+			this.viewModelServices.Wallet = new ZcashWallet()
+			{
+				//Accounts = { [account.Index] = account },
+			};
+
+			// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
+			this.viewModelServices.Wallet.IsSeedPhraseBackedUp = true;
+
+			this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithWallet)this.viewModelServices));
+		});
+		this.viewModelServices.NavigateTo(importAccountViewModel);
 	}
 }
