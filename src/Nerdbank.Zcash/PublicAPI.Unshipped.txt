@@ -476,7 +476,7 @@ Nerdbank.Zcash.UnifiedViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.ZcashAccount
 Nerdbank.Zcash.ZcashAccount.AddressSendsToThisAcount(Nerdbank.Zcash.ZcashAddress! address) -> bool
 Nerdbank.Zcash.ZcashAccount.BirthdayHeight.get -> ulong?
-Nerdbank.Zcash.ZcashAccount.BirthdayHeight.init -> void
+Nerdbank.Zcash.ZcashAccount.BirthdayHeight.set -> void
 Nerdbank.Zcash.ZcashAccount.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashAccount.FullViewing.get -> Nerdbank.Zcash.ZcashAccount.FullViewingKeys?
 Nerdbank.Zcash.ZcashAccount.FullViewingKeys
@@ -489,6 +489,8 @@ Nerdbank.Zcash.ZcashAccount.FullViewingKeys.UnifiedKey.get -> Nerdbank.Zcash.Uni
 Nerdbank.Zcash.ZcashAccount.GetDiversifiedAddress() -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashAccount.GetDiversifiedAddress(ref Nerdbank.Zcash.DiversifierIndex diversifierIndex) -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashAccount.HasDiversifiableKeys.get -> bool
+Nerdbank.Zcash.ZcashAccount.HDAccountIndex.get -> uint?
+Nerdbank.Zcash.ZcashAccount.HDWallet.get -> Nerdbank.Zcash.Zip32HDWallet?
 Nerdbank.Zcash.ZcashAccount.IncomingViewing.get -> Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys!
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.IncomingViewingKeys(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys! original) -> void
