@@ -29,6 +29,9 @@ public class ZcashAccount
 	{
 		Requires.NotNull(zip32);
 
+		this.HDWallet = zip32;
+		this.HDAccountIndex = index;
+
 		Transparent.ExtendedSpendingKey transparent = zip32.CreateTransparentAccount(index);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey sapling = zip32.CreateSaplingAccount(index);
 		Zip32HDWallet.Orchard.ExtendedSpendingKey orchard = zip32.CreateOrchardAccount(index);
@@ -90,6 +93,16 @@ public class ZcashAccount
 	}
 
 	/// <summary>
+	/// Gets the ZIP-32 HD wallet that was used to generate this account, if applicable.
+	/// </summary>
+	public Zip32HDWallet? HDWallet { get; }
+
+	/// <summary>
+	/// Gets the account index used to generate this account from a <see cref="Zip32HDWallet"/>, if applicable.
+	/// </summary>
+	public uint? HDAccountIndex { get; }
+
+	/// <summary>
 	/// Gets the network this account should be used with.
 	/// </summary>
 	public ZcashNetwork Network => this.IncomingViewing.UnifiedKey.Network;
@@ -110,9 +123,9 @@ public class ZcashAccount
 	public IncomingViewingKeys IncomingViewing { get; }
 
 	/// <summary>
-	/// Gets the birthday height on this account.
+	/// Gets or sets the birthday height on this account.
 	/// </summary>
-	public ulong? BirthdayHeight { get; init; }
+	public ulong? BirthdayHeight { get; set; }
 
 	/// <summary>
 	/// Gets the default unified address for this account.
