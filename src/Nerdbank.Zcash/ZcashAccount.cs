@@ -29,8 +29,7 @@ public class ZcashAccount
 	{
 		Requires.NotNull(zip32);
 
-		this.HDWallet = zip32;
-		this.HDAccountIndex = index;
+		this.HDDerivation = new(zip32, index);
 
 		Transparent.ExtendedSpendingKey transparent = zip32.CreateTransparentAccount(index);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey sapling = zip32.CreateSaplingAccount(index);
@@ -93,14 +92,9 @@ public class ZcashAccount
 	}
 
 	/// <summary>
-	/// Gets the ZIP-32 HD wallet that was used to generate this account, if applicable.
+	/// Gets the ZIP-32 HD wallet and index that was used to generate this account, if applicable.
 	/// </summary>
-	public Zip32HDWallet? HDWallet { get; }
-
-	/// <summary>
-	/// Gets the account index used to generate this account from a <see cref="Zip32HDWallet"/>, if applicable.
-	/// </summary>
-	public uint? HDAccountIndex { get; }
+	public HDDerivationSource? HDDerivation { get; }
 
 	/// <summary>
 	/// Gets the network this account should be used with.
@@ -297,6 +291,13 @@ public class ZcashAccount
 	/// </summary>
 	/// <returns>The diversifier index.</returns>
 	private static DiversifierIndex GetTimeBasedDiversifier() => new(DateTime.UtcNow.Ticks);
+
+	/// <summary>
+	/// Describes the parameters that were used to create this account.
+	/// </summary>
+	/// <param name="Wallet">The ZIP-32 HD wallet used.</param>
+	/// <param name="AccountIndex">The account index used to derive this account.</param>
+	public record struct HDDerivationSource(Zip32HDWallet Wallet, uint AccountIndex);
 
 	/// <summary>
 	/// Spending keys for each pool.

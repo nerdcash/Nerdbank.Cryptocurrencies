@@ -489,8 +489,16 @@ Nerdbank.Zcash.ZcashAccount.FullViewingKeys.UnifiedKey.get -> Nerdbank.Zcash.Uni
 Nerdbank.Zcash.ZcashAccount.GetDiversifiedAddress() -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashAccount.GetDiversifiedAddress(ref Nerdbank.Zcash.DiversifierIndex diversifierIndex) -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashAccount.HasDiversifiableKeys.get -> bool
-Nerdbank.Zcash.ZcashAccount.HDAccountIndex.get -> uint?
-Nerdbank.Zcash.ZcashAccount.HDWallet.get -> Nerdbank.Zcash.Zip32HDWallet?
+Nerdbank.Zcash.ZcashAccount.HDDerivation.get -> Nerdbank.Zcash.ZcashAccount.HDDerivationSource?
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.AccountIndex.get -> uint
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.AccountIndex.set -> void
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Deconstruct(out Nerdbank.Zcash.Zip32HDWallet! Wallet, out uint AccountIndex) -> void
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Equals(Nerdbank.Zcash.ZcashAccount.HDDerivationSource other) -> bool
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.HDDerivationSource() -> void
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.HDDerivationSource(Nerdbank.Zcash.Zip32HDWallet! Wallet, uint AccountIndex) -> void
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Wallet.get -> Nerdbank.Zcash.Zip32HDWallet!
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Wallet.set -> void
 Nerdbank.Zcash.ZcashAccount.IncomingViewing.get -> Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys!
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.IncomingViewingKeys(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys! original) -> void
@@ -562,6 +570,7 @@ Nerdbank.Zcash.Zip32HDWallet.CreateSaplingAccount(uint account = 0) -> Nerdbank.
 Nerdbank.Zcash.Zip32HDWallet.CreateTransparentAccount(uint account = 0) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
 Nerdbank.Zcash.Zip32HDWallet.CreateTransparentKeyPath(uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
 Nerdbank.Zcash.Zip32HDWallet.CreateTransparentKeyPath(uint account, Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+Nerdbank.Zcash.Zip32HDWallet.Equals(Nerdbank.Zcash.Zip32HDWallet? other) -> bool
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.Equals(Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint other) -> bool
 Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.FullViewingKeyFingerprint() -> void
@@ -720,6 +729,7 @@ override Nerdbank.Zcash.UnifiedViewingKey.ToString() -> string!
 override Nerdbank.Zcash.ZcashAccount.FullViewingKeys.Equals(object? obj) -> bool
 override Nerdbank.Zcash.ZcashAccount.FullViewingKeys.GetHashCode() -> int
 override Nerdbank.Zcash.ZcashAccount.FullViewingKeys.ToString() -> string!
+override Nerdbank.Zcash.ZcashAccount.HDDerivationSource.GetHashCode() -> int
 override Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.Equals(object? obj) -> bool
 override Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.GetHashCode() -> int
 override Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.ToString() -> string!
@@ -817,6 +827,8 @@ static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(System.Collections.Gener
 static Nerdbank.Zcash.UnifiedViewingKey.TryDecode(string! encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.UnifiedViewingKey? key) -> bool
 static Nerdbank.Zcash.ZcashAccount.FullViewingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.FullViewingKeys? right) -> bool
 static Nerdbank.Zcash.ZcashAccount.FullViewingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.FullViewingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.HDDerivationSource.operator !=(Nerdbank.Zcash.ZcashAccount.HDDerivationSource left, Nerdbank.Zcash.ZcashAccount.HDDerivationSource right) -> bool
+static Nerdbank.Zcash.ZcashAccount.HDDerivationSource.operator ==(Nerdbank.Zcash.ZcashAccount.HDDerivationSource left, Nerdbank.Zcash.ZcashAccount.HDDerivationSource right) -> bool
 static Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? left, Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? right) -> bool
 static Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? left, Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys? right) -> bool
 static Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.InternalFullViewingKeys? right) -> bool
@@ -930,3 +942,5 @@ virtual Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.PrintMembe
 ~override Nerdbank.Zcash.RawTransaction.ToString() -> string
 ~override Nerdbank.Zcash.RawTransaction.TransparentFields.Equals(object obj) -> bool
 ~override Nerdbank.Zcash.RawTransaction.TransparentFields.ToString() -> string
+~override Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Equals(object obj) -> bool
+~override Nerdbank.Zcash.ZcashAccount.HDDerivationSource.ToString() -> string

@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash;
 /// <see href="https://zips.z.cash/zip-0032">ZIP-32</see>.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public partial class Zip32HDWallet
+public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 {
 	/// <summary>
 	/// The coin type to use in the key derivation path for <see cref="ZcashNetwork.MainNet"/>.
@@ -164,6 +164,14 @@ public partial class Zip32HDWallet
 	/// <param name="account">The account index. Use 0 for the first account and increment by one only after completing a transaction in the previous account so that account discovery can find all accounts.</param>
 	/// <returns>The account spending key.</returns>
 	public Transparent.ExtendedSpendingKey CreateTransparentAccount(uint account = 0) => this.masterTransparentKey.Derive(this.CreateTransparentKeyPath(account));
+
+	/// <inheritdoc/>
+	public bool Equals(Zip32HDWallet? other)
+	{
+		return other is not null
+			&& this.Seed.Span.SequenceEqual(other.Seed.Span)
+			&& this.Network == other.Network;
+	}
 
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.
