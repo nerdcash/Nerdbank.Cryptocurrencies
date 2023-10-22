@@ -181,4 +181,36 @@ public class Zip32HDWalletTests : TestBase
 		Assert.True(Zip32HDWallet.Orchard.ExtendedSpendingKey.TryDecode(actual, out _, out _, out Zip32HDWallet.Orchard.ExtendedSpendingKey? decoded));
 		Assert.Equal(account, decoded);
 	}
+
+	[Fact]
+	public void Equals_True()
+	{
+		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
+		Zip32HDWallet wallet2 = new(Mnemonic, ZcashNetwork.TestNet);
+		Assert.Equal(wallet1, wallet2);
+	}
+
+	[Fact]
+	public void Equals_DifferentNetwork()
+	{
+		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
+		Zip32HDWallet wallet2 = new(Mnemonic, ZcashNetwork.MainNet);
+		Assert.NotEqual(wallet1, wallet2);
+	}
+
+	[Fact]
+	public void Equals_MnemonicVsEquivalentSeed()
+	{
+		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
+		Zip32HDWallet wallet2 = new(Mnemonic.Seed, ZcashNetwork.TestNet);
+		Assert.Equal(wallet1, wallet2);
+	}
+
+	[Fact]
+	public void Equals_DifferentSeed()
+	{
+		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
+		Zip32HDWallet wallet2 = new(Bip39Mnemonic.Create(128), ZcashNetwork.TestNet);
+		Assert.NotEqual(wallet1, wallet2);
+	}
 }
