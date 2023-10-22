@@ -38,6 +38,8 @@ public class ZcashAccount
 		this.Spending = new SpendingKeys(transparent, sapling, orchard);
 		this.FullViewing = this.Spending.FullViewingKey;
 		this.IncomingViewing = this.FullViewing.IncomingViewingKey;
+
+		this.MaxTransparentAddressIndex = 0;
 	}
 
 	/// <summary>
@@ -64,6 +66,11 @@ public class ZcashAccount
 				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
 				viewingKey.GetViewingKey<Sapling.DiversifiableIncomingViewingKey>(),
 				viewingKey.GetViewingKey<Orchard.IncomingViewingKey>());
+		}
+
+		if (this.IncomingViewing.Transparent is not null)
+		{
+			this.MaxTransparentAddressIndex = 0;
 		}
 	}
 
@@ -130,6 +137,14 @@ public class ZcashAccount
 	/// Gets a value indicating whether this account contains an orchard or sapling key.
 	/// </summary>
 	public bool HasDiversifiableKeys => this.IncomingViewing.Orchard is not null || this.IncomingViewing.Sapling is not null;
+
+	/// <summary>
+	/// Gets or sets the maximum index for a transparent address that is likely to have been generated.
+	/// </summary>
+	/// <remarks>
+	/// This value is useful for scanning for UTXOs, as well as for generating new transparent addresses.
+	/// </remarks>
+	public uint? MaxTransparentAddressIndex { get; set; }
 
 	private string DebuggerDisplay => $"{this.DefaultAddress}";
 
@@ -216,6 +231,29 @@ public class ZcashAccount
 		Verify.Operation(componentAddresses.Count > 0, "This account doesn't include any diversifiable keys.");
 
 		return UnifiedAddress.Create(componentAddresses);
+	}
+
+	/// <summary>
+	/// Gets a transparent address that sends ZEC to this account.
+	/// </summary>
+	/// <param name="index">
+	/// The index of the address to produce. Avoid reusing an index for more than one sender to improve privacy.
+	/// Using a value that is one greater than <see cref="MaxTransparentAddressIndex"/> is a good rule.
+	/// </param>
+	/// <returns>A transparent address.</returns>
+	/// <remarks>
+	/// If <paramref name="index"/> is greater than <see cref="MaxTransparentAddressIndex"/>, then <see cref="MaxTransparentAddressIndex"/> is updated to <paramref name="index"/>.
+	/// </remarks>
+	/// <exception cref="InvalidOperationException">
+	/// Throw when no transparent key is associated with this account.
+	/// This can be tested for in advance by testing that the <see cref="IncomingViewingKeys.Transparent"/> property of the <see cref="IncomingViewing"/> property is not <see langword="null" />.
+	/// </exception>
+	public TransparentAddress GetTransparentAddress(uint index = 0)
+	{
+		Verify.Operation(this.IncomingViewing.Transparent is not null, "This account doesn't include any transparent keys.");
+
+		this.MaxTransparentAddressIndex = this.MaxTransparentAddressIndex is null ? index : Math.Max(index, this.MaxTransparentAddressIndex.Value);
+		return this.IncomingViewing.Transparent.GetReceivingKey(index).DefaultAddress;
 	}
 
 	/// <summary>
