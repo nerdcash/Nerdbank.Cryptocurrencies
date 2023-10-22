@@ -29,8 +29,7 @@ public class ZcashAccount
 	{
 		Requires.NotNull(zip32);
 
-		this.HDWallet = zip32;
-		this.HDAccountIndex = index;
+		this.HDDerivation = new(zip32, index);
 
 		Transparent.ExtendedSpendingKey transparent = zip32.CreateTransparentAccount(index);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey sapling = zip32.CreateSaplingAccount(index);
@@ -39,6 +38,8 @@ public class ZcashAccount
 		this.Spending = new SpendingKeys(transparent, sapling, orchard);
 		this.FullViewing = this.Spending.FullViewingKey;
 		this.IncomingViewing = this.FullViewing.IncomingViewingKey;
+
+		this.MaxTransparentAddressIndex = 0;
 	}
 
 	/// <summary>
@@ -65,6 +66,11 @@ public class ZcashAccount
 				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
 				viewingKey.GetViewingKey<Sapling.DiversifiableIncomingViewingKey>(),
 				viewingKey.GetViewingKey<Orchard.IncomingViewingKey>());
+		}
+
+		if (this.IncomingViewing.Transparent is not null)
+		{
+			this.MaxTransparentAddressIndex = 0;
 		}
 	}
 
@@ -93,14 +99,9 @@ public class ZcashAccount
 	}
 
 	/// <summary>
-	/// Gets the ZIP-32 HD wallet that was used to generate this account, if applicable.
+	/// Gets the ZIP-32 HD wallet and index that was used to generate this account, if applicable.
 	/// </summary>
-	public Zip32HDWallet? HDWallet { get; }
-
-	/// <summary>
-	/// Gets the account index used to generate this account from a <see cref="Zip32HDWallet"/>, if applicable.
-	/// </summary>
-	public uint? HDAccountIndex { get; }
+	public HDDerivationSource? HDDerivation { get; }
 
 	/// <summary>
 	/// Gets the network this account should be used with.
@@ -136,6 +137,14 @@ public class ZcashAccount
 	/// Gets a value indicating whether this account contains an orchard or sapling key.
 	/// </summary>
 	public bool HasDiversifiableKeys => this.IncomingViewing.Orchard is not null || this.IncomingViewing.Sapling is not null;
+
+	/// <summary>
+	/// Gets or sets the maximum index for a transparent address that is likely to have been generated.
+	/// </summary>
+	/// <remarks>
+	/// This value is useful for scanning for UTXOs, as well as for generating new transparent addresses.
+	/// </remarks>
+	public uint? MaxTransparentAddressIndex { get; set; }
 
 	private string DebuggerDisplay => $"{this.DefaultAddress}";
 
@@ -225,6 +234,29 @@ public class ZcashAccount
 	}
 
 	/// <summary>
+	/// Gets a transparent address that sends ZEC to this account.
+	/// </summary>
+	/// <param name="index">
+	/// The index of the address to produce. Avoid reusing an index for more than one sender to improve privacy.
+	/// Using a value that is one greater than <see cref="MaxTransparentAddressIndex"/> is a good rule.
+	/// </param>
+	/// <returns>A transparent address.</returns>
+	/// <remarks>
+	/// If <paramref name="index"/> is greater than <see cref="MaxTransparentAddressIndex"/>, then <see cref="MaxTransparentAddressIndex"/> is updated to <paramref name="index"/>.
+	/// </remarks>
+	/// <exception cref="InvalidOperationException">
+	/// Throw when no transparent key is associated with this account.
+	/// This can be tested for in advance by testing that the <see cref="IncomingViewingKeys.Transparent"/> property of the <see cref="IncomingViewing"/> property is not <see langword="null" />.
+	/// </exception>
+	public TransparentAddress GetTransparentAddress(uint index = 0)
+	{
+		Verify.Operation(this.IncomingViewing.Transparent is not null, "This account doesn't include any transparent keys.");
+
+		this.MaxTransparentAddressIndex = this.MaxTransparentAddressIndex is null ? index : Math.Max(index, this.MaxTransparentAddressIndex.Value);
+		return this.IncomingViewing.Transparent.GetReceivingKey(index).DefaultAddress;
+	}
+
+	/// <summary>
 	/// Checks whether a given address sends ZEC to this account.
 	/// </summary>
 	/// <param name="address">The address to test.</param>
@@ -297,6 +329,13 @@ public class ZcashAccount
 	/// </summary>
 	/// <returns>The diversifier index.</returns>
 	private static DiversifierIndex GetTimeBasedDiversifier() => new(DateTime.UtcNow.Ticks);
+
+	/// <summary>
+	/// Describes the parameters that were used to create this account.
+	/// </summary>
+	/// <param name="Wallet">The ZIP-32 HD wallet used.</param>
+	/// <param name="AccountIndex">The account index used to derive this account.</param>
+	public record struct HDDerivationSource(Zip32HDWallet Wallet, uint AccountIndex);
 
 	/// <summary>
 	/// Spending keys for each pool.

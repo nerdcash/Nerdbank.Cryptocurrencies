@@ -60,7 +60,7 @@ public partial class Zip32HDWallet
 					}
 					else
 					{
-						ExtendedViewingKey derived = this.GetReceiverIndex(0);
+						ExtendedViewingKey derived = this.GetReceivingKey(0);
 						Assumes.True(derived.Depth == 5);
 						return derived.DefaultAddress;
 					}
@@ -159,7 +159,7 @@ public partial class Zip32HDWallet
 			/// <param name="index">The address index to generate the viewing key for.</param>
 			/// <returns>The derived key.</returns>
 			/// <exception cref="InvalidOperationException">Thrown if this instance does not conform to either a full or viewing key.</exception>
-			public ExtendedViewingKey GetReceiverIndex(uint index)
+			public ExtendedViewingKey GetReceivingKey(uint index)
 			{
 				KeyPath derivationPath = this.Depth switch
 				{
