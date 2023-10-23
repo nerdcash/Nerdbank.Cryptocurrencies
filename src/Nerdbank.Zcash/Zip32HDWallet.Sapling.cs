@@ -20,11 +20,15 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Creates a master key for the Sapling pool.
 		/// </summary>
-		/// <param name="seed">The seed byte sequence, which MUST be at least 32 and at most 252 bytes.</param>
+		/// <param name="seed">
+		/// The seed byte sequence, which MUST be at least 32 and at most 252 bytes.
+		/// This seed SHOULD be generated from at least 32-bytes of entropy (e.g. a 24 word seed phrase) to meet Zcash security modeling.
+		/// </param>
 		/// <param name="network">The network this key should be used with.</param>
 		/// <returns>The master extended spending key.</returns>
 		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, ZcashNetwork network)
 		{
+			ThrowIfSeedHasDisallowedSize(seed);
 			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
 			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Sapling"u8, OutputSizeInBytes = blakeOutput.Length });
 			ReadOnlySpan<byte> spendingKey = blakeOutput[..32];
