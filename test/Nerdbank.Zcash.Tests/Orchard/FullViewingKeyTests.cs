@@ -21,7 +21,7 @@ public class FullViewingKeyTests : TestBase
 		this.logger.WriteLine($"Public address: {this.fvk.IncomingViewingKey.DefaultAddress}");
 		FullViewingKey internalFvk = this.fvk.DeriveInternal();
 		this.logger.WriteLine($"Internal address: {internalFvk.IncomingViewingKey.DefaultAddress}");
-		Assert.Equal("u1pxm93mp9jct7h5u7rref63mht9eqcskhsw86q3dntj7pt8w3jqj6vscsx09fz4z5lc277t4vpcexc46vus7twg3n8szv0cnucuzneuhh", internalFvk.IncomingViewingKey.DefaultAddress);
+		Assert.Equal("u16ddqv7tagn5wvfwwkarzq3wlw2kvpqldsd6dzy8f9lypm2lc9qxt04jurykft0kl69hg57j39866fde7sz0effua2sh67ld5gg7xlrrr", internalFvk.IncomingViewingKey.DefaultAddress);
 	}
 
 	[Fact]

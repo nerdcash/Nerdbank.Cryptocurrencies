@@ -121,7 +121,7 @@
     <value>The index of the account to create.</value>
   </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
-    <value>The seed phrase length must be positive and a multiple of 3.</value>
+    <value>The seed phrase length must be at least 24, and a multiple of 3.</value>
   </data>
   <data name="BalanceCommandDescription" xml:space="preserve">
     <value>Reports on balances for each pool.</value>
@@ -193,7 +193,7 @@
     <value>Do not specify both seed phrase and a length for a generated seed phrase.</value>
   </data>
   <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
-    <value>The number of words in the generated seed phrase. Must be a multiple of 3.</value>
+    <value>The number of words in the generated seed phrase. Must be 24 or greater, and a multiple of 3.</value>
   </data>
   <data name="SeedPhraseOptionDescription" xml:space="preserve">
     <value>Use a particular seed phrase. Specify one as an argument or a prompt will collect it interactively.</value>

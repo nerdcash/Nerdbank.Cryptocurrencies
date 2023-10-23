@@ -21,8 +21,8 @@ public class IncomingViewingKeyTests : TestBase
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 		string expected = testNet
-			? "zivktestsapling1yugfl5hmjt5wk4xx5atkculk54c630mu099sdthnemvzmfjemczqjt4zz2"
-			: "zivks184h858g2g87ucf4jp3vqr0legsts34cn60xptenyz72rdrwvlvzsfwkpqh";
+			? "zivktestsapling1j9ne49vsmdgp9wrysf4drdu2fjqc8sue7fydej82tfz9m9fl5yzs92j0h3"
+			: "zivks1dj9c724gxstqma92fywr3upl2acyu6jg380ml4dlfau8akcuv5rq8xhc3n";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
 		string actual = account.FullViewingKey.IncomingViewingKey.WithoutDiversifier.TextEncoding;

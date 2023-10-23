@@ -77,7 +77,7 @@ public class ZcashUtilitiesTests : TestBase
 		// a Sapling DiversifiableFullViewingKey has no defined text encoding.
 		// Only FVKs (which lack the diversifier key) and extended fvk's have
 		// defined text encodings.
-		Zip32HDWallet.Sapling.ExtendedSpendingKey saplingESK = Zip32HDWallet.Sapling.Create(Bip39Mnemonic.Create(32), network);
+		Zip32HDWallet.Sapling.ExtendedSpendingKey saplingESK = Zip32HDWallet.Sapling.Create(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), network);
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey saplingEFVK = saplingESK.ExtendedFullViewingKey;
 		this.Assert_KeyRoundTrip(saplingEFVK);
 	}
@@ -118,7 +118,7 @@ public class ZcashUtilitiesTests : TestBase
 	private void Assert_TryParseKey<TKey>(ZcashNetwork network, Func<ZcashAccount, TKey> keyExtractor)
 		where TKey : class, IKeyWithTextEncoding
 	{
-		ZcashAccount account = new(new Zip32HDWallet(Bip39Mnemonic.Create(32), network));
+		ZcashAccount account = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), network));
 
 		TKey original = keyExtractor(account);
 		this.Assert_KeyRoundTrip(original);
@@ -137,7 +137,7 @@ public class ZcashUtilitiesTests : TestBase
 	private void Assert_TryParseUnifiedKey<TKey>(ZcashNetwork network, Func<ZcashAccount, TKey> keyExtractor)
 		where TKey : class, IKeyWithTextEncoding, IIncomingViewingKey
 	{
-		ZcashAccount account = new(new Zip32HDWallet(Bip39Mnemonic.Create(32), network));
+		ZcashAccount account = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), network));
 
 		TKey original = keyExtractor(account);
 		string encoded = original.TextEncoding;

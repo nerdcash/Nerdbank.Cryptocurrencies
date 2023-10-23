@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.Cli;
 
 internal class NewAccountCommand
 {
-	private const int SeedPhraseWordLengthDefault = 24;
+	private static readonly int SeedPhraseWordLengthDefault = Bip39Mnemonic.WordsRequiredForEntropyLength(Zip32HDWallet.MinimumEntropyLengthInBits);
 
 	private NewAccountCommand()
 	{
@@ -43,7 +43,7 @@ internal class NewAccountCommand
 		seedPhraseWordLengthOption.AddValidator(v =>
 		{
 			int value = v.GetValueForOption(seedPhraseWordLengthOption);
-			if (value % 3 != 0 || value <= 0)
+			if (value % 3 != 0 || value < Bip39Mnemonic.WordsRequiredForEntropyLength(Zip32HDWallet.MinimumEntropyLengthInBits))
 			{
 				v.ErrorMessage = Strings.BadSeedPhraseLength;
 			}
