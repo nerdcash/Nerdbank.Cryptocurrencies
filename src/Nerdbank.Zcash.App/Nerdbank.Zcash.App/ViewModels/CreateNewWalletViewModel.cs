@@ -5,7 +5,7 @@ using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class CreateNewWalletViewModel : ViewModelBase
+public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServices viewModelServices;
 	private int entropyLength = 128;

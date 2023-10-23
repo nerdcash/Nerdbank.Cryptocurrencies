@@ -10,7 +10,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 /// <summary>
 /// Displays the seed phrase, birthday height, # of accounts used, and backup to file button.
 /// </summary>
-public class BackupViewModel : ViewModelBase
+public class BackupViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private readonly HDWallet wallet;
@@ -114,7 +114,7 @@ public class BackupViewModel : ViewModelBase
 		return result;
 	}
 
-	public class SeedPhraseRow : ViewModelBase
+	public class SeedPhraseRow : ReactiveObject
 	{
 		public SeedPhraseRow(int startingIndex, string word1, string word2, string word3)
 		{

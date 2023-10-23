@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class AddressBookViewModel : ViewModelBase
+public class AddressBookViewModel : ViewModelBase, IHasTitle
 {
 	[Obsolete("For design-time use only", error: true)]
 	public AddressBookViewModel()

@@ -5,7 +5,7 @@ using Nerdbank.Zcash.App.Models;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ReceivingIntentSelectorViewModel : ViewModelBase
+public class ReceivingIntentSelectorViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private string receiverIdentity = string.Empty;

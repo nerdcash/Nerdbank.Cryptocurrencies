@@ -11,7 +11,6 @@
     <vm:HistoryViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Text="{Binding Title}" FontSize="18" DockPanel.Dock="Top" />
     <DataGrid ItemsSource="{Binding Transactions}"
               SelectedItem="{Binding SelectedTransaction}"
               IsReadOnly="True"

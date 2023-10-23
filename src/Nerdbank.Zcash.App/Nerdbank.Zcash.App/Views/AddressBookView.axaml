@@ -10,7 +10,6 @@
     <vm:AddressBookViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
     <DataGrid ItemsSource="{Binding Contacts}" AutoGenerateColumns="False">
       <DataGrid.Columns>
         <DataGridTextColumn Header="{Binding NameColumnHeader}" Binding="{Binding Name}" />

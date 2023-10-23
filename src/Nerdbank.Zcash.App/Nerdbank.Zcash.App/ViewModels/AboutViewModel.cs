@@ -3,7 +3,7 @@
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class AboutViewModel : ViewModelBase
+public class AboutViewModel : ViewModelBase, IHasTitle
 {
 	public AboutViewModel()
 	{

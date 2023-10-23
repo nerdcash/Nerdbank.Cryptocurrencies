@@ -7,7 +7,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class HistoryViewModel : ViewModelBase
+public class HistoryViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private TransactionViewModel? selectedTransaction;

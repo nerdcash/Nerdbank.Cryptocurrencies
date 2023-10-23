@@ -10,7 +10,6 @@
     <vm:CreateNewWalletViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
     <Button DockPanel.Dock="Bottom" HorizontalAlignment="Right" Command="{Binding CreateAccountCommand}" Content="{Binding CreateAccountButtonText}" />
     <StackPanel>
       <Label Target="{Binding #EntropySlider}" HorizontalAlignment="Center" Content="{Binding EntropyLengthCaption}" Margin="0 10 0 0" />

@@ -10,7 +10,6 @@
     <vm:BackupViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
     <ScrollViewer IsVisible="{Binding IsRevealed}">
       <StackPanel>
         <TextBlock Text="{Binding BackupSeedPhraseImportant}" FontWeight="Bold" />

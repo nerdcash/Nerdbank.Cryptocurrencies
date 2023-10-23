@@ -10,8 +10,6 @@
     <vm:ReceivingIntentSelectorViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
-
     <StackPanel>
       <Label Content="{Binding ReceiverIdentityLabel}" Target="{Binding #ReceiverIdentityBox}" />
       <TextBox Name="ReceiverIdentityBox" Text="{Binding ReceiverIdentity}" />

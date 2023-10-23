@@ -5,7 +5,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class SettingsViewModel : ViewModelBase
+public class SettingsViewModel : ViewModelBase, IHasTitle
 {
 	private Security alternateCurrency = Security.USD;
 	private string lightServerUrl = "https://zcash.mysideoftheweb.com:9067/";

@@ -11,7 +11,6 @@
   </Design.DataContext>
 
   <DockPanel>
-    <TextBlock Text="{Binding Title}" Classes="Title" DockPanel.Dock="Top" />
     <StackPanel>
       <TextBlock Text="{Binding Message}" />
       <Button Command="{Binding SupportCommand}" Content="{Binding SupportCommandCaption}" />

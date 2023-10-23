@@ -8,7 +8,7 @@ using QRCoder;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ReceivingViewModel : ViewModelBase, IDisposable
+public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 {
 	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 

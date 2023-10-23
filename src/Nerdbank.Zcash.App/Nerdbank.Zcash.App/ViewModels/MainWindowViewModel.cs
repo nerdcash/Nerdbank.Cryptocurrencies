@@ -5,4 +5,12 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class MainWindowViewModel : MainViewModel
 {
+	private static readonly string AppTitle = Strings.AppTitle;
+
+	public MainWindowViewModel()
+	{
+		this.LinkProperty(nameof(this.Content), nameof(this.Title));
+	}
+
+	public string Title => this.Content is IHasTitle titledViewModel ? $"{titledViewModel.Title} - {AppTitle}" : AppTitle;
 }

@@ -6,7 +6,7 @@ using ZXing.Mobile;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class SendingViewModel : ViewModelBase
+public class SendingViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private string recipientAddress = string.Empty;

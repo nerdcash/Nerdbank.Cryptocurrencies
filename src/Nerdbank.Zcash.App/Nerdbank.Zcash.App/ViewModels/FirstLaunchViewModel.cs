@@ -7,7 +7,7 @@ using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class FirstLaunchViewModel : ViewModelBase
+public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServices viewModelServices;
 
@@ -24,6 +24,8 @@ public class FirstLaunchViewModel : ViewModelBase
 		this.ImportWalletCommand = ReactiveCommand.Create(this.ImportWallet);
 		this.viewModelServices = viewModelServices;
 	}
+
+	public string Title => "Welcome";
 
 	public string Greeting => Strings.AppGreeting;
 

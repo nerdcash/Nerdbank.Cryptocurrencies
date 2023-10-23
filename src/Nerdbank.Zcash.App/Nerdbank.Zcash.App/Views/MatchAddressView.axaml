@@ -10,7 +10,6 @@
     <vm:MatchAddressViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Text="{Binding Title}" Classes="Title" DockPanel.Dock="Top" />
     <StackPanel>
       <TextBlock Text="{Binding Explanation}" Margin="0,0,0,10" />
       <Label Content="{Binding AddressCaption}" Target="{Binding #AddressBox}" />

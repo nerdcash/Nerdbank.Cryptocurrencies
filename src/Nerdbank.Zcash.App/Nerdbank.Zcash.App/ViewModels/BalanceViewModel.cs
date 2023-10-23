@@ -5,7 +5,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class BalanceViewModel : ViewModelBase
+public class BalanceViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private SecurityAmount immatureIncome;
@@ -46,6 +46,8 @@ public class BalanceViewModel : ViewModelBase
 	}
 
 	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+
+	public string Title => "Balance";
 
 	public SecurityAmount Balance => this.spendableBalance + this.unspendableChange + this.immatureIncome + this.anticipatedFees;
 

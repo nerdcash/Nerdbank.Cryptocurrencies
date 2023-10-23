@@ -10,7 +10,7 @@
         x:Class="Nerdbank.Zcash.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="eZcash">
+        Title="{Binding Title}">
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>

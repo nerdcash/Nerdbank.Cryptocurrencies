@@ -10,7 +10,6 @@
     <vm:ReceivingViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
     <TextBlock Text="{Binding PaymentReceivedText}" HorizontalAlignment="Center" Margin="0,10" DockPanel.Dock="Bottom" />
     <TabControl TabStripPlacement="Top"
                 ItemsSource="{Binding Addresses}"

@@ -3,7 +3,7 @@
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class MatchAddressViewModel : ViewModelBase
+public class MatchAddressViewModel : ViewModelBase, IHasTitle
 {
 	private bool isAccountMatch;
 	private bool isContactMatch;

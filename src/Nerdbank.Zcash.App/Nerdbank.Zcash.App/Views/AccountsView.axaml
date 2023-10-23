@@ -11,7 +11,6 @@
     <vm:AccountsViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Classes="Title" Text="{Binding Title}" DockPanel.Dock="Top" />
     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
       <SplitButton Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}">
         <SplitButton.Flyout>

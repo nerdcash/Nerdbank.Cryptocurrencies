@@ -6,7 +6,7 @@ using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ImportAccountViewModel : ViewModelBase
+public class ImportAccountViewModel : ViewModelBase, IHasTitle
 {
 	private const ulong SaplingActivationHeight = 419_200;
 	private readonly ObservableBox<bool> importCommandEnabled = new(false);

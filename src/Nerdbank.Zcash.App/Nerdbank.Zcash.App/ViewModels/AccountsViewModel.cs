@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class AccountsViewModel : ViewModelBase
+public class AccountsViewModel : ViewModelBase, IHasTitle
 {
 	[Obsolete("Design-time only", error: true)]
 	public AccountsViewModel()
