@@ -3,6 +3,7 @@ abstract Nerdbank.Zcash.UnifiedAddress.Receivers.get -> System.Collections.Gener
 abstract Nerdbank.Zcash.ZcashAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 abstract Nerdbank.Zcash.ZcashAddress.HasShieldedReceiver.get -> bool
 abstract Nerdbank.Zcash.ZcashAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+const Nerdbank.Zcash.Zip32HDWallet.MinimumEntropyLengthInBits = 256 -> int
 Nerdbank.Zcash.DiversifierIndex
 Nerdbank.Zcash.DiversifierIndex.DiversifierIndex() -> void
 Nerdbank.Zcash.DiversifierIndex.DiversifierIndex(System.Numerics.BigInteger value) -> void
