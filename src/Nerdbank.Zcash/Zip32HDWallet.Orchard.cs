@@ -20,12 +20,15 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Creates a master key for the Orchard pool.
 		/// </summary>
-		/// <param name="seed">The seed for use to generate the master key. A given seed will always produce the same master key.</param>
+		/// <param name="seed">
+		/// The seed for use to generate the master key. A given seed will always produce the same master key.
+		/// This seed SHOULD be generated from at least 32-bytes of entropy (e.g. a 24 word seed phrase) to meet Zcash security modeling.
+		/// </param>
 		/// <param name="network">The network this key should be used with.</param>
 		/// <returns>A master extended spending key.</returns>
 		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, ZcashNetwork network)
 		{
-			// Rust: assert!(seed.len() >= 32 && seed.len() <= 252);
+			ThrowIfSeedHasDisallowedSize(seed);
 			Span<byte> blakeOutput = stackalloc byte[64]; // 512 bits
 			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Orchard"u8, OutputSizeInBytes = blakeOutput.Length });
 
