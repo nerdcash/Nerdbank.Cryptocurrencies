@@ -10,7 +10,7 @@
     <vm:FirstLaunchViewModel />
   </Design.DataContext>
 
-  <StackPanel Spacing="15">
+  <StackPanel Spacing="15" VerticalAlignment="Center">
     <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
     <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
     <StackPanel Classes="ButtonAndExplanation" HorizontalAlignment="Stretch">

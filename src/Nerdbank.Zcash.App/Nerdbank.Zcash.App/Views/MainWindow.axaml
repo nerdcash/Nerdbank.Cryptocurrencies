@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:Nerdbank.Zcash.App.Views"
-        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="550"
-        Width="400" Height="450"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="500"
+        Width="500" Height="650"
         Padding="10"
         x:Class="Nerdbank.Zcash.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -15,7 +15,33 @@
     <vm:MainWindowViewModel />
   </Design.DataContext>
   <DockPanel>
-    <Button HorizontalAlignment="Left" DockPanel.Dock="Top" Content="Back" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="Back" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
+      <MenuItem Header="App">
+        <MenuItem Header="Home" />
+        <MenuItem Header="Address book" />
+        <Separator />
+        <MenuItem Header="Address check" />
+        <MenuItem Header="Settings" />
+        <Separator />
+        <MenuItem Header="About" />
+      </MenuItem>
+      <MenuItem Header="_Accounts">
+        <MenuItem Header="List" />
+        <MenuItem Header="New" />
+        <MenuItem Header="New (advanced)" />
+        <MenuItem Header="Balance" />
+        <Separator />
+        <MenuItem Header="Import" />
+        <MenuItem Header="Export" />
+        <MenuItem Header="Backup" />
+      </MenuItem>
+      <MenuItem Header="Transactions">
+        <MenuItem Header="History" />
+        <MenuItem Header="Send" />
+        <MenuItem Header="Receive" />
+      </MenuItem>
+    </Menu>
     <ContentControl Content="{Binding Content}" />
   </DockPanel>
 </Window>
