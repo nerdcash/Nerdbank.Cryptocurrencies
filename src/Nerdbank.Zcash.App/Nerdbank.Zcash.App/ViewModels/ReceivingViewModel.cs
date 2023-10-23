@@ -10,7 +10,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ReceivingViewModel : ViewModelBase, IDisposable
 {
-	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 
 	private readonly Contact? observingContact;
 
@@ -25,7 +25,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 	{
 	}
 
-	public ReceivingViewModel(IViewModelServicesWithWallet viewModelServices, Contact? observingContact, PaymentRequestDetailsViewModel? paymentRequestDetailsViewModel)
+	public ReceivingViewModel(IViewModelServicesWithSelectedAccount viewModelServices, Contact? observingContact, PaymentRequestDetailsViewModel? paymentRequestDetailsViewModel)
 	{
 		this.viewModelServices = viewModelServices;
 		this.observingContact = observingContact;
@@ -52,8 +52,8 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 		{
 			// Consume a fresh transparent address for this receiver.
 			// We'll bump the max index up by one if the owner indicates the address was actually 'consumed' by the receiver.
-			this.transparentAddressIndex = this.assignedAddresses?.AssignedTransparentAddressIndex ?? (viewModelServices.Wallet.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
-			TransparentAddress transparentAddress = transparent.GetReceiverIndex(this.transparentAddressIndex).DefaultAddress;
+			this.transparentAddressIndex = this.assignedAddresses?.AssignedTransparentAddressIndex ?? (viewModelServices.SelectedAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
+			TransparentAddress transparentAddress = viewModelServices.SelectedAccount.GetTransparentAddress(this.transparentAddressIndex);
 			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
 		}
 
@@ -103,9 +103,9 @@ public class ReceivingViewModel : ViewModelBase, IDisposable
 		if (this.DisplayedAddress.Address is TransparentAddress && this.assignedAddresses is not null)
 		{
 			this.assignedAddresses.AssignedTransparentAddressIndex ??= this.transparentAddressIndex;
-			if (this.transparentAddressIndex > this.viewModelServices.Wallet.MaxTransparentAddressIndex || this.viewModelServices.Wallet.MaxTransparentAddressIndex is null)
+			if (this.transparentAddressIndex > this.viewModelServices.SelectedAccount.MaxTransparentAddressIndex || this.viewModelServices.SelectedAccount.MaxTransparentAddressIndex is null)
 			{
-				this.viewModelServices.Wallet.MaxTransparentAddressIndex = this.transparentAddressIndex;
+				this.viewModelServices.SelectedAccount.MaxTransparentAddressIndex = this.transparentAddressIndex;
 			}
 		}
 	}

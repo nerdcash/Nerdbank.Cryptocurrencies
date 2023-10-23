@@ -3,15 +3,10 @@
 
 namespace Nerdbank.Zcash.App;
 
-public interface IViewModelServicesWithWallet : IViewModelServices
+public interface IViewModelServicesWithSelectedAccount : IViewModelServices
 {
-	/// <summary>
-	/// Gets the wallet data model.
-	/// </summary>
-	new ZcashWallet Wallet { get; }
-
 	/// <summary>
 	/// Gets or sets the active account.
 	/// </summary>
-	ZcashAccount SelectedAccount { get; set; }
+	new ZcashAccount SelectedAccount { get; set; }
 }

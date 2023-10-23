@@ -7,7 +7,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class BalanceViewModel : ViewModelBase
 {
-	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private SecurityAmount immatureIncome;
 	private SecurityAmount unconfirmedIncome;
 	private SecurityAmount spendableBalance;
@@ -27,7 +27,7 @@ public class BalanceViewModel : ViewModelBase
 		this.unspendableChange = new(0.023m, security);
 	}
 
-	public BalanceViewModel(IViewModelServicesWithWallet viewModelServices)
+	public BalanceViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 

@@ -7,29 +7,34 @@ using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App;
 
-internal class DesignTimeViewModelServices : IViewModelServicesWithWallet
+internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccount
 {
 	private ZcashAccount? selectedAccount;
 
-	public ZcashWallet? Wallet { get; set; } = new()
+	internal DesignTimeViewModelServices()
 	{
-		Accounts =
-		{
-			[0] = new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(128), ZcashNetwork.TestNet)),
-		},
+	}
+
+	public ZcashWallet Wallet { get; } = new()
+	{
+		new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(128), ZcashNetwork.TestNet)),
 	};
 
-	public ZcashAccount SelectedAccount
+	public ZcashAccount? SelectedAccount
 	{
-		get => this.selectedAccount ??= this.Wallet!.Accounts.First().Value;
+		get => this.selectedAccount ??= this.Wallet.First();
 		set => this.selectedAccount = value;
+	}
+
+	ZcashAccount IViewModelServicesWithSelectedAccount.SelectedAccount
+	{
+		get => this.SelectedAccount ?? throw new InvalidOperationException();
+		set => this.SelectedAccount = value;
 	}
 
 	public IContactManager ContactManager { get; } = new DesignTimeContactManager();
 
 	public TopLevel? TopLevel => null;
-
-	ZcashWallet IViewModelServicesWithWallet.Wallet => this.Wallet ?? throw new InvalidOperationException();
 
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel)
 	{

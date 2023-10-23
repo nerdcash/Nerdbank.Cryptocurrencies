@@ -8,9 +8,19 @@ namespace Nerdbank.Zcash.App;
 public interface IViewModelServices
 {
 	/// <summary>
-	/// Gets or sets the wallet data model.
+	/// Gets the wallet data model.
 	/// </summary>
-	ZcashWallet? Wallet { get; set; }
+	ZcashWallet Wallet { get; }
+
+	/// <summary>
+	/// Gets or sets the active account.
+	/// </summary>
+	ZcashAccount? SelectedAccount { get; set; }
+
+	/// <summary>
+	/// Gets the HD wallet that contains the <see cref="SelectedAccount"/>, if any.
+	/// </summary>
+	HDWallet? SelectedHDWallet => this.SelectedAccount is not null ? this.Wallet.GetHDWalletFor(this.SelectedAccount) : null;
 
 	/// <summary>
 	/// Gets the persisted collection of contacts.

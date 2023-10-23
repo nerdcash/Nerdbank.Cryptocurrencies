@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Security.Cryptography;
 using Avalonia.Media.Imaging;
 using Nerdbank.Cryptocurrencies;
 
@@ -47,16 +48,10 @@ public class FirstLaunchViewModel : ViewModelBase
 	private void CreateNewAccount()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(128);
-		Zip32HDWallet zip32 = new(mnemonic);
-		uint index = 0;
-		ZcashAccount account = new(zip32, index);
-
-		this.viewModelServices.Wallet = new ZcashWallet()
-		{
-			Mnemonic = mnemonic,
-			Accounts = { [index] = account },
-		};
-		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithWallet)this.viewModelServices));
+		Zip32HDWallet zip32 = new(mnemonic, ZcashNetwork.MainNet);
+		this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
+		this.viewModelServices.SelectedAccount = this.viewModelServices.Wallet.First();
+		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithSelectedAccount)this.viewModelServices));
 	}
 
 	private void CreateNewAccountAdvanced()
@@ -69,15 +64,18 @@ public class FirstLaunchViewModel : ViewModelBase
 		ImportAccountViewModel importAccountViewModel = new();
 		importAccountViewModel.ImportCommand.Subscribe(account =>
 		{
-			this.viewModelServices.Wallet = new ZcashWallet()
+			if (account is not null)
 			{
-				//Accounts = { [account.Index] = account },
-			};
+				this.viewModelServices.Wallet.Add(account);
 
-			// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
-			this.viewModelServices.Wallet.IsSeedPhraseBackedUp = true;
+				// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
+				if (this.viewModelServices.Wallet.GetHDWalletFor(account) is { } hdContainer)
+				{
+					hdContainer.IsSeedPhraseBackedUp = true;
+				}
 
-			this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithWallet)this.viewModelServices));
+				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithSelectedAccount)this.viewModelServices));
+			}
 		});
 		this.viewModelServices.NavigateTo(importAccountViewModel);
 	}

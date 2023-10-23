@@ -7,7 +7,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ReceivingIntentSelectorViewModel : ViewModelBase
 {
-	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private string receiverIdentity = string.Empty;
 
 	[Obsolete("Design-time only", error: true)]
@@ -16,7 +16,7 @@ public class ReceivingIntentSelectorViewModel : ViewModelBase
 	{
 	}
 
-	public ReceivingIntentSelectorViewModel(IViewModelServicesWithWallet viewModelServices)
+	public ReceivingIntentSelectorViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 

@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 // Consider using +, - and = for receive, spend and balance buttons respectively.
 public class HomeScreenViewModel : ViewModelBase
 {
-	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private readonly ObservableAsPropertyHelper<bool> isSeedPhraseBackedUp;
 
 	[Obsolete("Design-time only", error: true)]
@@ -17,16 +17,18 @@ public class HomeScreenViewModel : ViewModelBase
 	{
 	}
 
-	public HomeScreenViewModel(IViewModelServicesWithWallet viewModelServices)
+	public HomeScreenViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.isSeedPhraseBackedUp = this.WhenAnyValue(x => x.viewModelServices.Wallet.IsSeedPhraseBackedUp).ToProperty(this, nameof(this.IsSeedPhraseBackedUp));
+		this.isSeedPhraseBackedUp = this.WhenAnyValue(x => x.viewModelServices.SelectedHDWallet!.IsSeedPhraseBackedUp).ToProperty(this, nameof(this.IsSeedPhraseBackedUp));
 
 		this.ReceiveCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new ReceivingIntentSelectorViewModel(viewModelServices)));
 		this.SendCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SendingViewModel(viewModelServices)));
 		this.BalanceCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BalanceViewModel(viewModelServices)));
-		this.BackupCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices)));
+		this.BackupCommand = ReactiveCommand.Create(
+			() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices, viewModelServices.SelectedHDWallet)),
+			viewModelServices.WhenAnyValue<IViewModelServicesWithSelectedAccount, bool, HDWallet?>(vm => vm.SelectedHDWallet, w => w is not null));
 	}
 
 	public Bitmap Logo => Resources.ZcashLogo;

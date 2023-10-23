@@ -7,10 +7,9 @@ using Microsoft;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
+public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccount
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
-	private ZcashWallet? wallet;
 	private ZcashAccount? selectedAccount;
 
 	public MainViewModel()
@@ -18,32 +17,27 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 		this.NavigateBackCommand = ReactiveCommand.Create(
 			() => this.NavigateBack(),
 			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.CanNavigateBack)));
-		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
 
-		this.NavigateTo(this.Wallet is null ? new FirstLaunchViewModel(this) : new HomeScreenViewModel(this));
+		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
+		this.LinkProperty(nameof(this.SelectedAccount), nameof(IViewModelServicesWithSelectedAccount.SelectedHDWallet));
+
+		this.NavigateTo(this.Wallet.IsEmpty ? new FirstLaunchViewModel(this) : new HomeScreenViewModel(this));
 	}
 
 	public TopLevel? TopLevel { get; set; }
 
-	public ZcashWallet? Wallet
+	public ZcashWallet Wallet { get; } = new();
+
+	public ZcashAccount? SelectedAccount
 	{
-		get => this.wallet;
-		set
-		{
-			if (this.wallet != value)
-			{
-				Verify.Operation(this.wallet is null, "Wallet can only be set once.");
-				this.RaiseAndSetIfChanged(ref this.wallet, value);
-			}
-		}
+		get => this.selectedAccount ??= this.Wallet.AllAccounts.SelectMany(g => g).FirstOrDefault();
+		set => this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
 	}
 
-	ZcashWallet IViewModelServicesWithWallet.Wallet => this.Wallet ?? throw new InvalidOperationException();
-
-	public ZcashAccount SelectedAccount
+	ZcashAccount IViewModelServicesWithSelectedAccount.SelectedAccount
 	{
-		get => this.selectedAccount ?? this.Wallet?.Accounts.FirstOrDefault().Value ?? throw new InvalidOperationException();
-		set => this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
+		get => this.SelectedAccount ?? throw new InvalidOperationException();
+		set => this.SelectedAccount = value;
 	}
 
 	public IContactManager ContactManager { get; } = new ContactManager();
@@ -82,5 +76,12 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithWallet
 			this.viewStack.Pop();
 			this.RaisePropertyChanged(nameof(this.Content));
 		}
+	}
+
+	private ZcashAccount FindFirstAccount()
+	{
+		return this.Wallet.HDWallets.SelectMany(w => w.Accounts.Values).FirstOrDefault()
+			?? this.Wallet.LoneAccounts.FirstOrDefault()
+			?? throw new InvalidOperationException();
 	}
 }

@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SendingViewModel : ViewModelBase
 {
-	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private string recipientAddress = string.Empty;
 	private decimal amount;
 	private SecurityAmount? fee;
@@ -21,7 +21,7 @@ public class SendingViewModel : ViewModelBase
 		this.fee = new(0.0001m, this.viewModelServices.SelectedAccount.Network.AsSecurity());
 	}
 
-	public SendingViewModel(IViewModelServicesWithWallet viewModelServices)
+	public SendingViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 

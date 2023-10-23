@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using Microsoft;
 using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -11,30 +12,35 @@ namespace Nerdbank.Zcash.App.ViewModels;
 /// </summary>
 public class BackupViewModel : ViewModelBase
 {
-	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
+	private readonly HDWallet wallet;
 	private bool revealData;
 
 	[Obsolete("Design-time only", error: true)]
 	public BackupViewModel()
-		: this(new DesignTimeViewModelServices())
+		: this(new DesignTimeViewModelServices(), null)
 	{
 		this.Password = "SomePassword";
 	}
 
-	public BackupViewModel(IViewModelServicesWithWallet viewModelServices)
+	public BackupViewModel(IViewModelServicesWithSelectedAccount viewModelServices, HDWallet? wallet)
 	{
+		wallet ??= viewModelServices.SelectedHDWallet ?? throw new ArgumentNullException(nameof(wallet));
+		Requires.Argument(wallet.Zip32.Mnemonic is not null, nameof(wallet), "This HD wallet does not know its own mnemonic.");
+
 		this.viewModelServices = viewModelServices;
+		this.wallet = wallet;
 
 		this.BackupCommand = ReactiveCommand.Create(() => { });
 		this.RevealCommand = ReactiveCommand.Create(() => { this.IsRevealed = !this.IsRevealed; });
 
-		Bip39Mnemonic mnemonic = viewModelServices.Wallet.Mnemonic;
+		Bip39Mnemonic mnemonic = wallet.Zip32.Mnemonic;
 		this.SeedPhrase = mnemonic.SeedPhrase;
 		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic));
 		this.Password = mnemonic.Password.ToString();
 
-		this.BirthdayHeight = viewModelServices.Wallet.Accounts.Values.Min(a => a.BirthdayHeight);
-		this.MaxAccountIndex = viewModelServices.Wallet.Accounts.Keys.Max();
+		this.BirthdayHeight = wallet.BirthdayHeight;
+		this.MaxAccountIndex = wallet.MaxAccountIndex;
 	}
 
 	public string Title => "Backup";
@@ -85,12 +91,12 @@ public class BackupViewModel : ViewModelBase
 
 	public bool IsSeedPhraseBackedUp
 	{
-		get => this.viewModelServices.Wallet.IsSeedPhraseBackedUp;
+		get => this.wallet.IsSeedPhraseBackedUp;
 		set
 		{
-			if (this.viewModelServices.Wallet.IsSeedPhraseBackedUp != value)
+			if (this.wallet.IsSeedPhraseBackedUp != value)
 			{
-				this.viewModelServices.Wallet.IsSeedPhraseBackedUp = value;
+				this.wallet.IsSeedPhraseBackedUp = value;
 				this.RaisePropertyChanged();
 			}
 		}

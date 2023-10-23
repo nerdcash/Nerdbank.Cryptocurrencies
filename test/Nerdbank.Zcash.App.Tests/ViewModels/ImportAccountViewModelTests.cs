@@ -31,9 +31,9 @@ public class ImportAccountViewModelTests
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
 		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDWallet?.Mnemonic?.SeedPhrase);
-		Assert.Equal(string.Empty, account.HDWallet?.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDAccountIndex);
+		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(string.Empty, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
 		Assert.Equal(isTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet, account.Network);
 	}
 
@@ -48,9 +48,9 @@ public class ImportAccountViewModelTests
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
 		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDWallet?.Mnemonic?.SeedPhrase);
-		Assert.Equal(OneWordPassword, account.HDWallet?.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDAccountIndex);
+		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(OneWordPassword, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
 	}
 
 	[Fact]
@@ -63,9 +63,9 @@ public class ImportAccountViewModelTests
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
 		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDWallet?.Mnemonic?.SeedPhrase);
-		Assert.Equal(OneWordPassword, account.HDWallet?.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDAccountIndex);
+		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(OneWordPassword, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
 	}
 
 	/// <summary>
@@ -93,9 +93,9 @@ public class ImportAccountViewModelTests
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
 		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDWallet?.Mnemonic?.SeedPhrase);
-		Assert.Equal(AnotherWordPassword, account.HDWallet?.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDAccountIndex);
+		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(AnotherWordPassword, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
 	}
 
 	[Fact]
@@ -115,8 +115,7 @@ public class ImportAccountViewModelTests
 		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
 		Assert.Equal(transparentAccount, account.Spending?.Transparent);
-		Assert.Null(account.HDWallet);
-		Assert.Null(account.HDAccountIndex);
+		Assert.Null(account.HDDerivation);
 	}
 
 	[Fact]

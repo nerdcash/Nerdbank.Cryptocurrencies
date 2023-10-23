@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class HistoryViewModel : ViewModelBase
 {
-	private readonly IViewModelServicesWithWallet viewModelServices;
+	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private TransactionViewModel? selectedTransaction;
 
 	[Obsolete("For design-time use only", error: true)]
@@ -25,7 +25,7 @@ public class HistoryViewModel : ViewModelBase
 		SecurityAmount ZEC(decimal amount) => new(amount, this.viewModelServices.SelectedAccount.Network.AsSecurity());
 	}
 
-	public HistoryViewModel(IViewModelServicesWithWallet viewModelServices)
+	public HistoryViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 
