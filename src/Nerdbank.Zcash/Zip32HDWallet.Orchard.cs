@@ -15,14 +15,14 @@ public partial class Zip32HDWallet
 		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)"/>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
 		/// <param name="network"><inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)" path="/param[@name='network']"/></param>
-		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network) => Create(Requires.NotNull(mnemonic).Seed, network);
+		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network) => Create(ThrowIfEntropyTooShort(Requires.NotNull(mnemonic)).Seed, network);
 
 		/// <summary>
 		/// Creates a master key for the Orchard pool.
 		/// </summary>
 		/// <param name="seed">
 		/// The seed for use to generate the master key. A given seed will always produce the same master key.
-		/// This seed SHOULD be generated from at least 32-bytes of entropy (e.g. a 24 word seed phrase) to meet Zcash security modeling.
+		/// This seed SHOULD be generated from entropy of at least <see cref="MinimumEntropyLengthInBits"/> in length to meet Zcash security modeling.
 		/// </param>
 		/// <param name="network">The network this key should be used with.</param>
 		/// <returns>A master extended spending key.</returns>

@@ -41,6 +41,7 @@ public class Bip39MnemonicTests
 		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Create(65));
 		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Create(16));
 		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Create(0));
+		Assert.Throws<ArgumentException>(() => Bip39Mnemonic.Create(-5));
 	}
 
 	[Fact]
@@ -187,5 +188,28 @@ public class Bip39MnemonicTests
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(64);
 		Assert.Equal(mnemonic.SeedPhrase, mnemonic.ToString());
+	}
+
+	[Fact]
+	public void WordsRequiredForEntropyLength_MultiplesOf32()
+	{
+		Assert.Equal(3, Bip39Mnemonic.WordsRequiredForEntropyLength(32));
+		Assert.Equal(12, Bip39Mnemonic.WordsRequiredForEntropyLength(128));
+		Assert.Equal(24, Bip39Mnemonic.WordsRequiredForEntropyLength(256));
+	}
+
+	[Fact]
+	public void WordsRequiredForEntropyLength_InBetweenLengths()
+	{
+		Assert.Equal(3, Bip39Mnemonic.WordsRequiredForEntropyLength(16));
+		Assert.Equal(15, Bip39Mnemonic.WordsRequiredForEntropyLength(129));
+		Assert.Equal(24, Bip39Mnemonic.WordsRequiredForEntropyLength(250));
+	}
+
+	[Fact]
+	public void WordsRequiredForEntropyLength_CrazyValues()
+	{
+		Assert.Throws<ArgumentOutOfRangeException>(() => Bip39Mnemonic.WordsRequiredForEntropyLength(0));
+		Assert.Throws<ArgumentOutOfRangeException>(() => Bip39Mnemonic.WordsRequiredForEntropyLength(-5));
 	}
 }

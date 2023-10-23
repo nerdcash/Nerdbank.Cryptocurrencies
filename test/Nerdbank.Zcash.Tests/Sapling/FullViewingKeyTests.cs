@@ -20,8 +20,8 @@ public class FullViewingKeyTests : TestBase
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 		string expected = testNet
-			? "zviewtestsapling15cr64vjtd0x7xh6ytmun4ulp7k93th7xunhrkqrf55q82m892fr6n708hdlq20gj2ydxz2n5ps052lmz20w2ykxfr9dzwu8fnmktv6fxz3eadpdsa53xl4jwk5m2axj87ksfwngjndj5x8fyr2v7a6ykny7t049p"
-			: "zviews1lxdtxcc28jx4anvr49m8qz6rdvv6zuff49vc7vj3gmxzkq0vhlkmcvdmv6a0sm2x9rfdf26xcr34xuhyk9sxfct86ylqwwrf6w6z739z7kkj5440anpa5hz9ek33mque0sgxqymatn0yxvva9alajwsx9yd8x6ty";
+			? "zviewtestsapling16ptegdee2jewf4sv05ykk3nd8yvhpjvm234k5ct0zxw8xvxueurr9zr0h928thlde6mdckgterxa5d6fz4r79hkgsppq3j2tek0hcvhtjjaxnk8vlkuw0e0k6j555085ygpnvm4q9ku26xapl3eyugjalsjzwdwq"
+			: "zviews1hjqajk4hheqry6ye4ygz6jysrh2ekzcyvr5375a9v8vdwz8jt6xz2f0xwjlnsrkd6sra7fl7efjk0lvd3q0mm62n4kkfq0q4laqtygahrnketg356x8q6gjyczcf4wmyhs3mgwt3hktwfre8002u5aunvu6d0rtr";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
 		string actual = account.FullViewingKey.WithoutDiversifier.TextEncoding;

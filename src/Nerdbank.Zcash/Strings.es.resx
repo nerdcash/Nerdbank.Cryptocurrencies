@@ -177,4 +177,10 @@
   <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
     <value>La clave de visualización unificada no incluye el tipo de clave necesario para utilizar esta API.</value>
   </data>
+  <data name="LengthRangeNotMet" xml:space="preserve">
+    <value>Este valor debe tener una longitud de {minimum}-{maximum}.</value>
+  </data>
+  <data name="NotEnoughEntropy" xml:space="preserve">
+    <value>La entropía es demasiado corta. Se requieren al menos {minimum} bytes.</value>
+  </data>
 </root>

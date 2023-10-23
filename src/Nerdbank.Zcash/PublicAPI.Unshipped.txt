@@ -672,6 +672,7 @@ Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(N
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(Nerdbank.Zcash.TransparentP2SHReceiver receiver, uint maxAddressIndex, out Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change? change, out uint? addressIndex) -> bool
 Nerdbank.Zcash.Zip32HDWallet.Zip32HDWallet(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
 Nerdbank.Zcash.Zip32HDWallet.Zip32HDWallet(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> void
+override Nerdbank.Zcash.DiversifierIndex.ToString() -> string!
 override Nerdbank.Zcash.LightWalletClient.PoolBalances.GetHashCode() -> int
 override Nerdbank.Zcash.LightWalletClient.SendProgress.Equals(object? obj) -> bool
 override Nerdbank.Zcash.LightWalletClient.SendProgress.GetHashCode() -> int
