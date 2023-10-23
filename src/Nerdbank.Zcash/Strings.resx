@@ -156,6 +156,9 @@
   <data name="LengthOutsideExpectedRange" xml:space="preserve">
     <value>The collection was expected to have a length within {minimum}-{maximum} but was {actual}.</value>
   </data>
+  <data name="LengthRangeNotMet" xml:space="preserve">
+    <value>This value must have a length of {minimum}-{maximum}.</value>
+  </data>
   <data name="MemoDataTooLarge" xml:space="preserve">
     <value>The data provided is too large to fit into the memo field.</value>
   </data>

@@ -75,6 +75,20 @@ public class Zip32HDWalletTests : TestBase
 	}
 
 	[Fact]
+	public void Orchard_Create_SeedLengthRequirements()
+	{
+		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Orchard.Create(new byte[31], ZcashNetwork.MainNet));
+		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Orchard.Create(new byte[253], ZcashNetwork.MainNet));
+	}
+
+	[Fact]
+	public void Sapling_Create_SeedLengthRequirements()
+	{
+		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Sapling.Create(new byte[31], ZcashNetwork.MainNet));
+		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Sapling.Create(new byte[253], ZcashNetwork.MainNet));
+	}
+
+	[Fact]
 	public void CreateSaplingAddressFromSeed_ViaFVK()
 	{
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;

@@ -14,6 +14,11 @@ namespace Nerdbank.Zcash;
 public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 {
 	/// <summary>
+	/// The number of bits required in the original source (the entropy) used for the seeds used to derive master keys.
+	/// </summary>
+	public const int MinimumEntropyLengthInBits = 256;
+
+	/// <summary>
 	/// The coin type to use in the key derivation path for <see cref="ZcashNetwork.MainNet"/>.
 	/// </summary>
 	private const uint MainNetCoinType = 133;
@@ -27,6 +32,11 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 	/// The value of the <c>purpose</c> position in the key path.
 	/// </summary>
 	private const uint Purpose = 32;
+
+	/// <summary>
+	/// The required length (in bytes) of the seed used to derive master keys.
+	/// </summary>
+	private static readonly (int Min, int Max) MasterSeedAllowedLength = (32, 252);
 
 	private Orchard.ExtendedSpendingKey masterOrchardKey;
 
@@ -200,4 +210,15 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 	/// <param name="input">A little-endian ordered encoding of an integer.</param>
 	/// <remarks>This is the inverse operation to <see cref="I2LEOSP(BigInteger, Span{byte})"/>.</remarks>
 	private static BigInteger LEOS2IP(ReadOnlySpan<byte> input) => new(input, isUnsigned: true);
+
+	/// <summary>
+	/// Throws an <see cref="ArgumentException"/> if a given span has a length outside the range allowed by ZIP-32 for purposes of creating a master key.
+	/// </summary>
+	private static void ThrowIfSeedHasDisallowedSize(ReadOnlySpan<byte> seed)
+	{
+		if (seed.Length < MasterSeedAllowedLength.Min || seed.Length > MasterSeedAllowedLength.Max)
+		{
+			throw new ArgumentException(Strings.FormatLengthRangeNotMet(MasterSeedAllowedLength.Min, MasterSeedAllowedLength.Max), nameof(seed));
+		}
+	}
 }
