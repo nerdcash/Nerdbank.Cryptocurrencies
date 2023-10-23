@@ -14,6 +14,11 @@ namespace Nerdbank.Zcash;
 public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 {
 	/// <summary>
+	/// The number of bits required in the original source (the entropy) used for the seeds used to derive master keys.
+	/// </summary>
+	public const int MinimumEntropyLengthInBits = 256;
+
+	/// <summary>
 	/// The coin type to use in the key derivation path for <see cref="ZcashNetwork.MainNet"/>.
 	/// </summary>
 	private const uint MainNetCoinType = 133;
