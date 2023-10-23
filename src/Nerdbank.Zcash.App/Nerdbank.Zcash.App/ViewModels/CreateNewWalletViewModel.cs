@@ -8,7 +8,6 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServices viewModelServices;
-	private int entropyLength = 128;
 	private string password = string.Empty;
 	private bool isTestNet;
 
@@ -22,28 +21,10 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.LinkProperty(nameof(this.EntropyLength), nameof(this.SeedPhraseWordCount));
-
 		this.CreateAccountCommand = ReactiveCommand.Create(this.CreateNewAccount);
 	}
 
 	public string Title => "Create new wallet";
-
-	public string EntropyLengthCaption => "Seed phrase length";
-
-	public int EntropyLengthMin => 128;
-
-	public int EntropyLengthMax => 256;
-
-	public int EntropyStepSize => 32;
-
-	public int EntropyLength
-	{
-		get => this.entropyLength;
-		set => this.RaiseAndSetIfChanged(ref this.entropyLength, value);
-	}
-
-	public int SeedPhraseWordCount => this.EntropyLength / 32 * 3;
 
 	public string PasswordCaption => "Password";
 
@@ -53,7 +34,7 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.password, value);
 	}
 
-	public string PasswordExplanation => "A password is optional. If specified, it is effectively an extra word in your seed phrase that is required to restore access to your funds on another device or wallet app. A password can be anything, but a single word is strongly recommended to allow restoring your wallet into other apps that permit only a one-word password.";
+	public string PasswordExplanation => "A password is optional. If specified, it is effectively an extra word in your seed phrase that is required to restore access to your funds on another device or wallet app. A password can be anything, but a single word is strongly recommended to allow restoring your wallet into other apps that permit only a one-word password.\n\nThis password is not required on every launch of this app.";
 
 	public bool IsTestNet
 	{
@@ -69,7 +50,8 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 
 	private void CreateNewAccount()
 	{
-		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(this.EntropyLength, this.Password);
+		// ZIP-32 and the Zcash threat modeling requires (at least) 256-bit seeds (https://discord.com/channels/809218587167293450/972649509651906711/1165400226232803378).
+		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits, this.Password);
 		Zip32HDWallet zip32 = new(mnemonic, this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
 		this.viewModelServices.Wallet.Add(new ZcashAccount(zip32, 0));
 		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithSelectedAccount)this.viewModelServices));

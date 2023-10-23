@@ -49,7 +49,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	private void CreateNewAccount()
 	{
-		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(128);
+		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
 		Zip32HDWallet zip32 = new(mnemonic, ZcashNetwork.MainNet);
 		this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
 		this.viewModelServices.SelectedAccount = this.viewModelServices.Wallet.First();
