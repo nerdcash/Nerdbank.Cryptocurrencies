@@ -14,12 +14,17 @@ public class ContactViewModel : ViewModelBase
 		this.ShowDiversifiedAddressCommand = ReactiveCommand.Create(() => { });
 		this.SendCommand = ReactiveCommand.Create(() => { });
 
+		this.LinkProperty(nameof(this.Name), nameof(this.IsEmpty));
+		this.LinkProperty(nameof(this.Address), nameof(this.IsEmpty));
+
 		this.LinkProperty(nameof(this.Address), nameof(this.HasShieldedReceivingAddress));
 		this.LinkProperty(nameof(this.Address), nameof(this.HasAddress));
 		this.LinkProperty(nameof(this.MyAddressShownToContact), nameof(this.HasContactSeenMyDiversifiedAddressCaption));
 		this.LinkProperty(nameof(this.MyAddressShownToContact), nameof(this.IsShowDiversifiedAddressButtonVisible));
 		this.LinkProperty(nameof(this.HasShieldedReceivingAddress), nameof(this.SendCommandCaption));
 	}
+
+	public bool IsEmpty => string.IsNullOrEmpty(this.Name) && string.IsNullOrEmpty(this.Address);
 
 	/// <summary>
 	/// Gets or sets the name of the contact.

@@ -10,7 +10,10 @@
     <vm:AddressBookViewModel />
   </Design.DataContext>
   <DockPanel>
-    <DataGrid ItemsSource="{Binding Contacts}" AutoGenerateColumns="False">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+      <Button Command="{Binding NewContactCommand}" Content="{Binding NewContactCaption}" />
+    </StackPanel>
+    <DataGrid ItemsSource="{Binding Contacts}" SelectedItem="{Binding SelectedContact}" AutoGenerateColumns="False">
       <DataGrid.Columns>
         <DataGridTextColumn Header="{Binding NameColumnHeader}" Binding="{Binding Name}" />
         <DataGridTemplateColumn Header="{Binding SendCommandColumnHeader}" IsReadOnly="True" CanUserSort="False">

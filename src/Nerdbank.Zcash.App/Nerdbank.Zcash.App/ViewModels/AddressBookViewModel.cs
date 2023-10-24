@@ -8,6 +8,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class AddressBookViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServices viewModelServices;
+	private ContactViewModel? selectedContact;
 
 	[Obsolete("For design-time use only", error: true)]
 	public AddressBookViewModel()
@@ -20,6 +21,8 @@ public class AddressBookViewModel : ViewModelBase, IHasTitle
 	public AddressBookViewModel(IViewModelServices viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
+
+		this.NewContactCommand = ReactiveCommand.Create(this.NewContact);
 	}
 
 	public ObservableCollection<ContactViewModel> Contacts { get; } = new();
@@ -29,4 +32,21 @@ public class AddressBookViewModel : ViewModelBase, IHasTitle
 	public string NameColumnHeader => "Name";
 
 	public string SendCommandColumnHeader => "Has Address";
+
+	public ReactiveCommand<Unit, Unit> NewContactCommand { get; }
+
+	public string NewContactCaption => "New contact";
+
+	public ContactViewModel? SelectedContact
+	{
+		get => this.selectedContact;
+		set => this.RaiseAndSetIfChanged(ref this.selectedContact, value);
+	}
+
+	public void NewContact()
+	{
+		ContactViewModel newContact = new ContactViewModel();
+		this.Contacts.Add(newContact);
+		this.SelectedContact = newContact;
+	}
 }
