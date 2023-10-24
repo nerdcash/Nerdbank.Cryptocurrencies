@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="BadSeedPhraseLength" xml:space="preserve">
-    <value>La longitud de la frase semilla debe ser positiva y un múltiplo de 3.</value>
+	<data name="BadSeedPhraseLength" xml:space="preserve">
+    <value>La longitud de la frase semilla debe ser de al menos 24 y un múltiplo de 3.</value>
   </data>
   <data name="SeedPhrasePrompt" xml:space="preserve">
     <value>Introduzca la frase semilla:</value>
@@ -147,8 +147,8 @@
   <data name="OfflineOptionDescription" xml:space="preserve">
     <value>Suprime todas las comunicaciones de red. En particular, esto eliminará la visualización de la altura de cumpleaños para la nueva cuenta.</value>
   </data>
-  <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
-    <value>El número de palabras en la frase semilla generada. Debe ser un múltiplo de 3.</value>
+	<data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
+    <value>El número de palabras en la frase semilla generada. Debe ser 24 o más, y un múltiplo de 3.</value>
   </data>
   <data name="TestNetOptionDescription" xml:space="preserve">
     <value>Indica que la cuenta se utilizará en una red de prueba en lugar de en una red principal.</value>

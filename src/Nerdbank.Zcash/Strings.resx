@@ -165,6 +165,9 @@
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>
+  <data name="NotEnoughEntropy" xml:space="preserve">
+    <value>The entropy is too short. At least {minimum} bytes are required.</value>
+  </data>
   <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
     <value>Only hardened keys are supported.</value>
   </data>

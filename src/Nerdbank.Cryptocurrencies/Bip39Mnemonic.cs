@@ -239,6 +239,24 @@ public partial class Bip39Mnemonic
 	}
 
 	/// <summary>
+	/// Gets the number of words required to represent a given entropy requirement.
+	/// </summary>
+	/// <param name="entropyLengthInBits">The minimum required length of entropy (in bits). If this is not a multiple of 32, it will be rounded up to meet BIP-39 algorithm requirements.</param>
+	/// <returns>The number of words required in the seed phrase to meet that requirement.</returns>
+	public static int WordsRequiredForEntropyLength(int entropyLengthInBits)
+	{
+		Requires.Range(entropyLengthInBits > 0, nameof(entropyLengthInBits));
+
+		int mod = entropyLengthInBits % 32;
+		if (mod > 0)
+		{
+			entropyLengthInBits += 32 - mod;
+		}
+
+		return (entropyLengthInBits + (entropyLengthInBits / 32)) / 11;
+	}
+
+	/// <summary>
 	/// Returns the <see cref="SeedPhrase"/>.
 	/// </summary>
 	/// <returns>The seed phrase.</returns>

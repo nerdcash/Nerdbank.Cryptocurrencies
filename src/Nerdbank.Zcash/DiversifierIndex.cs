@@ -78,4 +78,10 @@ public struct DiversifierIndex : IEquatable<DiversifierIndex>
 
 	/// <inheritdoc/>
 	public bool Equals(DiversifierIndex other) => this.value.Value.SequenceEqual(other.value.Value);
+
+	/// <inheritdoc/>
+	public override string ToString()
+	{
+		return Convert.ToHexString(this.Value);
+	}
 }

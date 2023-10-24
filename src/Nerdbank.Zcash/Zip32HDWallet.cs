@@ -16,6 +16,9 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 	/// <summary>
 	/// The number of bits required in the original source (the entropy) used for the seeds used to derive master keys.
 	/// </summary>
+	/// <remarks>
+	/// A 24 word seed phrase meets this requirement.
+	/// </remarks>
 	public const int MinimumEntropyLengthInBits = 256;
 
 	/// <summary>
@@ -52,7 +55,7 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
 	public Zip32HDWallet(Bip39Mnemonic mnemonic, ZcashNetwork network = ZcashNetwork.MainNet)
 #pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-		: this(Requires.NotNull(mnemonic).Seed, network)
+		: this(ThrowIfEntropyTooShort(Requires.NotNull(mnemonic)).Seed, network)
 	{
 		this.Mnemonic = mnemonic;
 	}
@@ -220,5 +223,15 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 		{
 			throw new ArgumentException(Strings.FormatLengthRangeNotMet(MasterSeedAllowedLength.Min, MasterSeedAllowedLength.Max), nameof(seed));
 		}
+	}
+
+	private static Bip39Mnemonic ThrowIfEntropyTooShort(Bip39Mnemonic mnemonic)
+	{
+		if (mnemonic.Entropy.Length * 8 < MinimumEntropyLengthInBits)
+		{
+			throw new ArgumentException(Strings.FormatNotEnoughEntropy(MinimumEntropyLengthInBits / 8), nameof(mnemonic));
+		}
+
+		return mnemonic;
 	}
 }
