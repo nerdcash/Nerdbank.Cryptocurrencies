@@ -34,6 +34,8 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccoun
 		set => this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
 	}
 
+	public HDWallet? SelectedHDWallet => this.SelectedAccount is not null ? this.Wallet.GetHDWalletFor(this.SelectedAccount) : null;
+
 	ZcashAccount IViewModelServicesWithSelectedAccount.SelectedAccount
 	{
 		get => this.SelectedAccount ?? throw new InvalidOperationException();
@@ -64,6 +66,12 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccoun
 	{
 		if (this.Content != viewModel)
 		{
+			if (viewModel.GetType() == this.Content?.GetType())
+			{
+				// Don't push the same view model type onto the stack twice.
+				this.viewStack.Pop();
+			}
+
 			this.viewStack.Push(viewModel);
 			this.RaisePropertyChanged(nameof(this.Content));
 		}

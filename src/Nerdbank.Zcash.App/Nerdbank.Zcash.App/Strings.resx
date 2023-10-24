@@ -127,7 +127,7 @@
     <value>Import an existing wallet</value>
   </data>
   <data name="ImportWalletExplanation" xml:space="preserve">
-    <value>Choose this if you have a seed phrase (typically 12 or 24 words) that you've saved from another wallet.</value>
+    <value>Choose this if you have a seed phrase (typically 24 words) that you've saved from another wallet.</value>
   </data>
   <data name="SaplingReceivingAddressHeader" xml:space="preserve">
     <value>Sapling</value>

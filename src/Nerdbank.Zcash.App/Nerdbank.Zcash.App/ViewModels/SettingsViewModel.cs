@@ -9,6 +9,18 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 {
 	private Security alternateCurrency = Security.USD;
 	private string lightServerUrl = "https://zcash.mysideoftheweb.com:9067/";
+	private IViewModelServices viewModelServices;
+
+	[Obsolete("For design-time use only", true)]
+	public SettingsViewModel()
+		: this(new DesignTimeViewModelServices())
+	{
+	}
+
+	public SettingsViewModel(IViewModelServices viewModelServices)
+	{
+		this.viewModelServices = viewModelServices;
+	}
 
 	public string Title => "Settings";
 

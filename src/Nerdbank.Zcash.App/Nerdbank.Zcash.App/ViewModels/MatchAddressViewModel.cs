@@ -5,13 +5,21 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class MatchAddressViewModel : ViewModelBase, IHasTitle
 {
+	private readonly IViewModelServices viewModelServices;
 	private bool isAccountMatch;
 	private bool isContactMatch;
 	private AccountViewModel? matchedAccount;
 	private ContactViewModel? matchedContact;
 
+	[Obsolete("For design-time use only", error: true)]
 	public MatchAddressViewModel()
+		: this(new DesignTimeViewModelServices())
 	{
+	}
+
+	public MatchAddressViewModel(IViewModelServices viewModelServices)
+	{
+		this.viewModelServices = viewModelServices;
 		this.MatchAddressCommand = ReactiveCommand.Create(this.DoMatch);
 	}
 

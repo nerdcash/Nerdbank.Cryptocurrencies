@@ -18,28 +18,23 @@
     <Menu DockPanel.Dock="Top">
       <MenuItem Header="Back" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
       <MenuItem Header="App">
-        <MenuItem Header="Home" />
-        <MenuItem Header="Address book" />
+        <MenuItem Header="Home" Command="{Binding HomeCommand}" />
+        <MenuItem Header="Address book" Command="{Binding AddressBookCommand}" />
+        <MenuItem Header="Accounts" Command="{Binding AccountsListCommand}" />
         <Separator />
-        <MenuItem Header="Address check" />
-        <MenuItem Header="Settings" />
+        <MenuItem Header="Settings" Command="{Binding SettingsCommand}" />
+        <MenuItem Header="Backup" Command="{Binding BackupCommand}" />
         <Separator />
-        <MenuItem Header="About" />
-      </MenuItem>
-      <MenuItem Header="_Accounts">
-        <MenuItem Header="List" />
-        <MenuItem Header="New" />
-        <MenuItem Header="New (advanced)" />
-        <MenuItem Header="Balance" />
-        <Separator />
-        <MenuItem Header="Import" />
-        <MenuItem Header="Export" />
-        <MenuItem Header="Backup" />
+        <MenuItem Header="About" Command="{Binding AboutCommand}" />
       </MenuItem>
       <MenuItem Header="Transactions">
-        <MenuItem Header="History" />
-        <MenuItem Header="Send" />
-        <MenuItem Header="Receive" />
+        <MenuItem Header="Balance" Command="{Binding AccountBalanceCommand}" />
+        <MenuItem Header="History" Command="{Binding TransactionHistoryCommand}" />
+        <MenuItem Header="Send" Command="{Binding SendCommand}" />
+        <MenuItem Header="Receive" Command="{Binding ReceiveCommand}" />
+      </MenuItem>
+      <MenuItem Header="Tools">
+        <MenuItem Header="Address check" Command="{Binding AddressCheckCommand}" />
       </MenuItem>
     </Menu>
     <ContentControl Content="{Binding Content}" />

@@ -32,6 +32,8 @@ internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccou
 		set => this.SelectedAccount = value;
 	}
 
+	public HDWallet? SelectedHDWallet => this.SelectedAccount is not null ? this.Wallet.GetHDWalletFor(this.SelectedAccount) : null;
+
 	public IContactManager ContactManager { get; } = new DesignTimeContactManager();
 
 	public TopLevel? TopLevel => null;

@@ -7,14 +7,22 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class AccountsViewModel : ViewModelBase, IHasTitle
 {
+	private readonly IViewModelServices viewModelServices;
+
 	[Obsolete("Design-time only", error: true)]
 	public AccountsViewModel()
+		: this(new DesignTimeViewModelServices())
 	{
-		this.NewAccountCommand = ReactiveCommand.Create(() => { });
-		this.ImportAccountCommand = ReactiveCommand.Create(() => { });
-
 		this.Accounts.Add(new AccountViewModel() { Name = "Spending", Index = 0 });
 		this.Accounts.Add(new AccountViewModel() { Name = "Savings", Index = 1 });
+	}
+
+	public AccountsViewModel(IViewModelServices viewModelServices)
+	{
+		this.viewModelServices = viewModelServices;
+
+		this.NewAccountCommand = ReactiveCommand.Create(() => { });
+		this.ImportAccountCommand = ReactiveCommand.Create(() => { });
 	}
 
 	public string Title => "Accounts";

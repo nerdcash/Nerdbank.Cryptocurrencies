@@ -20,7 +20,7 @@ public interface IViewModelServices
 	/// <summary>
 	/// Gets the HD wallet that contains the <see cref="SelectedAccount"/>, if any.
 	/// </summary>
-	HDWallet? SelectedHDWallet => this.SelectedAccount is not null ? this.Wallet.GetHDWalletFor(this.SelectedAccount) : null;
+	HDWallet? SelectedHDWallet { get; }
 
 	/// <summary>
 	/// Gets the persisted collection of contacts.
