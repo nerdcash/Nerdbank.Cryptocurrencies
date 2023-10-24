@@ -17,7 +17,7 @@ internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccou
 
 	public ZcashWallet Wallet { get; } = new()
 	{
-		new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(128), ZcashNetwork.TestNet)),
+		new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)),
 	};
 
 	public ZcashAccount? SelectedAccount
