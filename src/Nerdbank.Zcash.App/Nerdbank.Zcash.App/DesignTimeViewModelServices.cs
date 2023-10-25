@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Avalonia.Controls;
 using Nerdbank.Cryptocurrencies;
 
@@ -14,6 +16,8 @@ internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccou
 	internal DesignTimeViewModelServices()
 	{
 	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
 
 	public ZcashWallet Wallet { get; } = new()
 	{
@@ -48,6 +52,11 @@ internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccou
 
 	public void ReplaceViewStack(ViewModelBase viewModel)
 	{
+	}
+
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
 	private class DesignTimeContactManager : IContactManager

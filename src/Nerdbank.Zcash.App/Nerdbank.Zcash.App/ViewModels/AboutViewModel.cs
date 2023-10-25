@@ -5,10 +5,22 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class AboutViewModel : ViewModelBase, IHasTitle
 {
+	public static readonly ZcashAddress DonationReceiver = ZcashAddress.Decode("u17dsy4yqsyc6mxrmntvd6d48yy56j4lxfxhe096qrcwgz9ddu928ujtre05dfwp43mdsuxa7j7kmn5ksa94lh2lehwl302ffp9f4gnjvde3tlkcj8fm8xhl6dmxxz9x2jshmltj9hdlzsep9m029d7mapx0qg575s5fsyr2x03cfw4v9e");
+	private readonly IViewModelServices viewModelServices;
+
+	[Obsolete("For designer use only")]
 	public AboutViewModel()
+		: this(new DesignTimeViewModelServices())
 	{
-		this.DonateCommand = ReactiveCommand.Create(() => { });
+	}
+
+	public AboutViewModel(IViewModelServices viewModelServices)
+	{
+		IObservable<bool> nonEmptyWallet = viewModelServices.WhenAnyValue(vm => vm.Wallet.IsEmpty, empty => !empty);
+
+		this.DonateCommand = ReactiveCommand.Create(this.Donate, nonEmptyWallet);
 		this.SupportCommand = ReactiveCommand.Create(() => { });
+		this.viewModelServices = viewModelServices;
 	}
 
 	public string Title => $"About {Strings.AppTitle}";
@@ -32,4 +44,17 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 	public string Version => ThisAssembly.AssemblyInformationalVersion;
 
 	public string VersionCaption => "You are using version";
+
+	public void Donate()
+	{
+		if (this.viewModelServices.SelectedAccount is not null)
+		{
+			SendingViewModel sending = new((IViewModelServicesWithSelectedAccount)this.viewModelServices)
+			{
+				RecipientAddress = DonationReceiver,
+				Memo = Strings.FormatDonationMemo(Strings.AppTitle),
+			};
+			this.viewModelServices.NavigateTo(sending);
+		}
+	}
 }

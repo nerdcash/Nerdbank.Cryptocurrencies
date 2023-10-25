@@ -12,6 +12,7 @@
   <DockPanel>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
       <Button Command="{Binding NewContactCommand}" Content="{Binding NewContactCaption}" />
+      <Button Command="{Binding DeleteContactCommand}" Content="{Binding DeleteContactCaption}" />
     </StackPanel>
     <DataGrid ItemsSource="{Binding Contacts}" SelectedItem="{Binding SelectedContact}" AutoGenerateColumns="False">
       <DataGrid.Columns>
@@ -19,7 +20,7 @@
         <DataGridTemplateColumn Header="{Binding SendCommandColumnHeader}" IsReadOnly="True" CanUserSort="False">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Button Command="{Binding SendCommand}" Content="{Binding SendCommandCaption}" />
+              <Button Command="{Binding SendCommand}" Content="{Binding SendCommandCaption}" IsVisible="{Binding HasAddress}" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

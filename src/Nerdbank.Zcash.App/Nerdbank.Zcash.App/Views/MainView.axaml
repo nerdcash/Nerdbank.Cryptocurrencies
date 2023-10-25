@@ -5,9 +5,15 @@
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.MainView"
-             x:DataType="vm:MainViewModel"
-             Content="{Binding Content}">
+             x:DataType="vm:MainViewModel">
   <Design.DataContext>
     <vm:MainViewModel />
   </Design.DataContext>
+  <DockPanel>
+    <TextBlock Text="{Binding ContentTitle}" 
+               DockPanel.Dock="Top"
+               HorizontalAlignment="Center"
+               FontSize="18" />
+    <ContentControl Content="{Binding Content}" />
+  </DockPanel>
 </UserControl>

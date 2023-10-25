@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
 using Avalonia.Controls;
 
 namespace Nerdbank.Zcash.App;
 
-public interface IViewModelServices
+public interface IViewModelServices : INotifyPropertyChanged
 {
 	/// <summary>
 	/// Gets the wallet data model.
