@@ -10,7 +10,7 @@
     <vm:HomeScreenViewModel />
   </Design.DataContext>
   <ScrollViewer>
-    <StackPanel Spacing="15">
+    <StackPanel Spacing="15" MaxWidth="400">
       <StackPanel.Styles>
         <Style Selector="Button">
           <Setter Property="HorizontalAlignment" Value="Stretch" />

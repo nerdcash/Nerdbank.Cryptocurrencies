@@ -14,6 +14,10 @@
     <StackPanel>
       <Label Content="{Binding PasswordCaption}" />
       <TextBox Text="{Binding Password}" />
+      <StackPanel IsVisible="{Binding PasswordContainsWhitespace}">
+        <TextBlock Text="{Binding PasswordContainsWhitespaceWarning}" Classes="Warning" />
+        <Button Content="{Binding RemoveWhitespaceCommandCaption}" Command="{Binding RemoveWhitespaceCommand}" />
+      </StackPanel>
       <TextBlock Text="{Binding PasswordExplanation}" />
 
       <CheckBox IsChecked="{Binding IsTestNet}" Content="{Binding IsTestNetCaption}" Margin="0 10" />

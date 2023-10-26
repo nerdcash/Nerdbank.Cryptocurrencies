@@ -18,6 +18,9 @@
     <Style Selector="TextBlock.Title">
       <Setter Property="FontSize" Value="18" />
     </Style>
+    <Style Selector="TextBlock.Warning">
+      <Setter Property="Foreground" Value="Red" />
+    </Style>
     <Style Selector="StackPanel.ButtonAndExplanation">
       <Setter Property="Background" Value="LightCyan" />
     </Style>
