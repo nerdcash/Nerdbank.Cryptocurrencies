@@ -27,8 +27,21 @@
     </Grid>
     <ScrollViewer Grid.Row="1">
       <StackPanel>
-        <Button Content="{Binding ScanCommandCaption}" HorizontalAlignment="Center" />
         <StackPanel>
+          <Grid ColumnDefinitions="auto,*">
+            <Label Content="{Binding FromAccountCaption}" Target="{Binding #FromAccountBox}" VerticalAlignment="Center" />
+            <ComboBox Name="FromAccountBox"
+                      Grid.Column="1"
+                      ItemsSource="{Binding FromAccounts}"
+                      SelectedItem="{Binding FromAccount}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <!--<TextBlock Text="{Binding Name}" />-->
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
+
           <!-- Offer address book picker. -->
           <Label Content="{Binding RecipientAddressCaption}" />
           <DockPanel>

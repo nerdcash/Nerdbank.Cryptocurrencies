@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccount
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
-	private ZcashAccount? selectedAccount;
+	private Account? selectedAccount;
 	private ObservableAsPropertyHelper<string?> contentTitle;
 
 	public MainViewModel()
@@ -48,15 +48,15 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccoun
 
 	public ZcashWallet Wallet { get; } = new();
 
-	public ZcashAccount? SelectedAccount
+	public Account? SelectedAccount
 	{
 		get => this.selectedAccount ??= this.Wallet.AllAccounts.SelectMany(g => g).FirstOrDefault();
 		set => this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
 	}
 
-	public HDWallet? SelectedHDWallet => this.SelectedAccount is not null ? this.Wallet.GetHDWalletFor(this.SelectedAccount) : null;
+	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
 
-	ZcashAccount IViewModelServicesWithSelectedAccount.SelectedAccount
+	Account IViewModelServicesWithSelectedAccount.SelectedAccount
 	{
 		get => this.SelectedAccount ?? throw new InvalidOperationException();
 		set => this.SelectedAccount = value;
@@ -133,7 +133,7 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccoun
 	public void NewAccount()
 	{
 		Verify.Operation(this.SelectedHDWallet is not null, "HD wallet must be selected first.");
-		ZcashAccount newAccount = this.SelectedHDWallet.AddAccount(this.SelectedHDWallet.MaxAccountIndex + 1);
+		Account newAccount = this.SelectedHDWallet.AddAccount(this.SelectedHDWallet.MaxAccountIndex + 1);
 		this.SelectedAccount = newAccount;
 	}
 
@@ -142,7 +142,7 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccoun
 		return this.Wallet.IsEmpty ? new FirstLaunchViewModel(this) : new HomeScreenViewModel(this);
 	}
 
-	private ZcashAccount FindFirstAccount()
+	private Account FindFirstAccount()
 	{
 		return this.Wallet.HDWallets.SelectMany(w => w.Accounts.Values).FirstOrDefault()
 			?? this.Wallet.LoneAccounts.FirstOrDefault()

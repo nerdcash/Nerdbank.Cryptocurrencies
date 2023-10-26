@@ -16,12 +16,12 @@ public interface IViewModelServices : INotifyPropertyChanged
 	/// <summary>
 	/// Gets or sets the active account.
 	/// </summary>
-	ZcashAccount? SelectedAccount { get; set; }
+	Account? SelectedAccount { get; set; }
 
 	/// <summary>
 	/// Gets the HD wallet that contains the <see cref="SelectedAccount"/>, if any.
 	/// </summary>
-	HDWallet? SelectedHDWallet { get; }
+	HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
 
 	/// <summary>
 	/// Gets the persisted collection of contacts.

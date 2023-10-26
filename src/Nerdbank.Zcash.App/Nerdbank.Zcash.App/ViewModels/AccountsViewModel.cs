@@ -2,6 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using DynamicData;
+using Microsoft;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -13,16 +16,24 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	public AccountsViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.Accounts.Add(new AccountViewModel() { Name = "Spending", Index = 0 });
-		this.Accounts.Add(new AccountViewModel() { Name = "Savings", Index = 1 });
+		HDWallet hdWallet = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet));
+		Account spending = hdWallet.AddAccount(0);
+		spending.Name = "Spending";
+		Account savings = hdWallet.AddAccount(1);
+		savings.Name = "Savings";
+		this.Accounts.Add(new AccountViewModel(spending));
+		this.Accounts.Add(new AccountViewModel(savings));
 	}
 
 	public AccountsViewModel(IViewModelServices viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.NewAccountCommand = ReactiveCommand.Create(() => { });
-		this.ImportAccountCommand = ReactiveCommand.Create(() => { });
+		this.NewAccountCommand = ReactiveCommand.Create(this.NewAccount);
+		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
+
+		this.Accounts.AddRange(
+			this.viewModelServices.Wallet.AllAccounts.SelectMany(a => a).Select(a => new AccountViewModel(a)));
 	}
 
 	public string Title => "Accounts";
@@ -42,4 +53,15 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	public ReactiveCommand<Unit, Unit> ImportAccountCommand { get; }
 
 	public string ImportAccountCommandCaption => "Import account";
+
+	public void ImportAccount()
+	{
+		this.viewModelServices.NavigateTo(new ImportAccountViewModel(this.viewModelServices));
+	}
+
+	public void NewAccount()
+	{
+		Verify.Operation(this.viewModelServices.SelectedHDWallet is not null, "No HD wallet selected.");
+		this.viewModelServices.SelectedHDWallet.AddAccount(this.viewModelServices.SelectedHDWallet.MaxAccountIndex + 1);
+	}
 }

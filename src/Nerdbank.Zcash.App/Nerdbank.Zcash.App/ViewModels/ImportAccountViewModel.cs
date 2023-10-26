@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft;
 using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -10,6 +9,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 {
 	private const ulong SaplingActivationHeight = 419_200;
 	private readonly ObservableBox<bool> importCommandEnabled = new(false);
+	private readonly IViewModelServices viewModelServices;
 	private string key = string.Empty;
 	private string seedPassword = string.Empty;
 	private bool isTestNet;
@@ -19,12 +19,19 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 	private bool isSeed;
 	private bool isPasswordVisible;
 
+	[Obsolete("Design-time only", error: true)]
 	public ImportAccountViewModel()
+		: this(new DesignTimeViewModelServices())
+	{
+	}
+
+	public ImportAccountViewModel(IViewModelServices viewModelServices)
 	{
 		this.LinkProperty(nameof(this.IsSeed), nameof(this.IsTestNetVisible));
 		this.LinkProperty(nameof(this.SeedPassword), nameof(this.SeedPasswordHasWhitespace));
 
 		this.ImportCommand = ReactiveCommand.Create(this.Import, this.importCommandEnabled);
+		this.viewModelServices = viewModelServices;
 	}
 
 	public string Title => "Import Account";

@@ -8,6 +8,7 @@ Features unique to eZcash over other Zcash wallets include:
   - Less technical jargon.
   - Fewer settings. Just better default behavior.
   - Play with Zcash on testnet before committing real funds.
+  - Grows with you. Start with simple features and grow into more advance features as you need them.
 - Use the current exchange rate between Zcash and your local fiat currency or alternate cryptocurrency so you can see and input amounts in ZEC or a more stable currency.
 - Multiple accounts.
 - Balance view

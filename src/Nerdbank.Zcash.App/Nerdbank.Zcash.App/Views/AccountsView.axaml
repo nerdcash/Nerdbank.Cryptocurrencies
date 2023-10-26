@@ -30,14 +30,6 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn>
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <Button Command="{Binding SwitchToCommand}" Content="{Binding SwitchToCommandCaption}" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-        <DataGridTextColumn Header="{Binding AccountIndexColumnHeader}" Binding="{Binding Index}" />
       </DataGrid.Columns>
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:AccountViewModel">
@@ -53,7 +45,6 @@
               <Label Content="{Binding IncomingViewingKeyCaption}" Target="{Binding #IncomingViewingKeyBox}" />
               <TextBox Name="IncomingViewingKeyBox" IsReadOnly="True" Text="{Binding IncomingViewingKey}" HorizontalAlignment="Stretch" />
             </StackPanel>
-            <Button Command="{Binding DeleteCommand}" Content="{Binding DeleteCommandCaption}" />
           </StackPanel>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>

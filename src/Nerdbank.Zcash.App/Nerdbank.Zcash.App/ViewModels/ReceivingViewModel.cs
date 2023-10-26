@@ -18,6 +18,8 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	private readonly uint transparentAddressIndex;
 
+	private readonly Account receivingAccount;
+
 	private ReceivingAddress displayedAddress;
 
 	public ReceivingViewModel()
@@ -25,7 +27,10 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	{
 	}
 
-	public ReceivingViewModel(IViewModelServicesWithSelectedAccount viewModelServices, Contact? observingContact, PaymentRequestDetailsViewModel? paymentRequestDetailsViewModel)
+	public ReceivingViewModel(
+		IViewModelServicesWithSelectedAccount viewModelServices,
+		Contact? observingContact,
+		PaymentRequestDetailsViewModel? paymentRequestDetailsViewModel)
 	{
 		this.viewModelServices = viewModelServices;
 		this.observingContact = observingContact;
@@ -33,12 +38,12 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		QRCodeGenerator generator = new();
 		QREncoder encoder = new() { NoPadding = true };
 
-		ZcashAccount account = viewModelServices.SelectedAccount;
-		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(account);
-		if (account.HasDiversifiableKeys)
+		this.receivingAccount = viewModelServices.SelectedAccount;
+		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount.ZcashAccount);
+		if (this.receivingAccount.ZcashAccount.HasDiversifiableKeys)
 		{
 			DiversifierIndex diversifierIndex = this.assignedAddresses?.AssignedDiversifier ?? new(DateTime.UtcNow.Ticks);
-			UnifiedAddress unifiedAddress = account.GetDiversifiedAddress(ref diversifierIndex);
+			UnifiedAddress unifiedAddress = this.receivingAccount.ZcashAccount.GetDiversifiedAddress(ref diversifierIndex);
 			this.Addresses.Add(new(viewModelServices, unifiedAddress, paymentRequestDetailsViewModel, Strings.UnifiedReceivingAddressHeader));
 
 			if (unifiedAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver)
@@ -48,16 +53,16 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			}
 		}
 
-		if (viewModelServices.SelectedAccount.IncomingViewing.Transparent is { } transparent)
+		if (this.receivingAccount.ZcashAccount.IncomingViewing.Transparent is { } transparent)
 		{
 			// Consume a fresh transparent address for this receiver.
 			// We'll bump the max index up by one if the owner indicates the address was actually 'consumed' by the receiver.
-			this.transparentAddressIndex = this.assignedAddresses?.AssignedTransparentAddressIndex ?? (viewModelServices.SelectedAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
-			TransparentAddress transparentAddress = viewModelServices.SelectedAccount.GetTransparentAddress(this.transparentAddressIndex);
+			this.transparentAddressIndex = this.assignedAddresses?.AssignedTransparentAddressIndex ?? (this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
+			TransparentAddress transparentAddress = this.receivingAccount.ZcashAccount.GetTransparentAddress(this.transparentAddressIndex);
 			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
 		}
 
-		this.PaymentRequestDetails = new(this.viewModelServices.SelectedAccount.Network.AsSecurity());
+		this.PaymentRequestDetails = new(this.receivingAccount.ZcashAccount.Network.AsSecurity());
 		this.displayedAddress = this.Addresses[0];
 		this.RecordTransparentAddressShownIfApplicable();
 	}
@@ -103,9 +108,9 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		if (this.DisplayedAddress.Address is TransparentAddress && this.assignedAddresses is not null)
 		{
 			this.assignedAddresses.AssignedTransparentAddressIndex ??= this.transparentAddressIndex;
-			if (this.transparentAddressIndex > this.viewModelServices.SelectedAccount.MaxTransparentAddressIndex || this.viewModelServices.SelectedAccount.MaxTransparentAddressIndex is null)
+			if (this.transparentAddressIndex > this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex || this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is null)
 			{
-				this.viewModelServices.SelectedAccount.MaxTransparentAddressIndex = this.transparentAddressIndex;
+				this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex = this.transparentAddressIndex;
 			}
 		}
 	}

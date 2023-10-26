@@ -3,7 +3,7 @@
 
 using System.Reactive.Linq;
 
-public class ImportAccountViewModelTests
+public class ImportAccountViewModelTests : ViewModelTestBase
 {
 	private const string ValidSeedPhrase = "weapon solid program critic you long skill foot damp kingdom west history car crunch park increase excite hidden bless spot matter razor memory garbage";
 	private const string OneWordPassword = "OneWord";
@@ -11,11 +11,12 @@ public class ImportAccountViewModelTests
 
 	private readonly ITestOutputHelper logger;
 
-	private ImportAccountViewModel viewModel = new();
+	private ImportAccountViewModel viewModel;
 
 	public ImportAccountViewModelTests(ITestOutputHelper logger)
 	{
 		this.logger = logger;
+		this.viewModel = new(this.MainViewModel);
 	}
 
 	[Theory, PairwiseData]

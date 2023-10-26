@@ -63,17 +63,17 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	private void ImportWallet()
 	{
-		ImportAccountViewModel importAccountViewModel = new();
+		ImportAccountViewModel importAccountViewModel = new(this.viewModelServices);
 		importAccountViewModel.ImportCommand.Subscribe(account =>
 		{
 			if (account is not null)
 			{
-				this.viewModelServices.Wallet.Add(account);
+				Account accountModel = this.viewModelServices.Wallet.Add(account);
 
 				// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
-				if (this.viewModelServices.Wallet.GetHDWalletFor(account) is { } hdContainer)
+				if (accountModel.MemberOf is not null)
 				{
-					hdContainer.IsSeedPhraseBackedUp = true;
+					accountModel.MemberOf.IsSeedPhraseBackedUp = true;
 				}
 
 				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithSelectedAccount)this.viewModelServices));

@@ -8,5 +8,5 @@ public interface IViewModelServicesWithSelectedAccount : IViewModelServices
 	/// <summary>
 	/// Gets or sets the active account.
 	/// </summary>
-	new ZcashAccount SelectedAccount { get; set; }
+	new Account SelectedAccount { get; set; }
 }

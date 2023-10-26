@@ -13,8 +13,9 @@ namespace Nerdbank.Zcash.App.Models;
 /// </summary>
 public class HDWallet : INotifyPropertyChanged
 {
-	private readonly SortedDictionary<uint, ZcashAccount> accounts = new();
+	private readonly SortedDictionary<uint, Account> accounts = new();
 	private bool isSeedPhraseBackedUp;
+	private string name = string.Empty;
 
 	public HDWallet(Zip32HDWallet zip32)
 	{
@@ -22,6 +23,19 @@ public class HDWallet : INotifyPropertyChanged
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
+
+	/// <summary>
+	/// Gets or sets an optional name for an HD wallet.
+	/// </summary>
+	/// <remarks>
+	/// HD wallets should have names when there are more than one of them so they can be grouped together in the UI
+	/// and the user can understand the groupings.
+	/// </remarks>
+	public string Name
+	{
+		get => this.name;
+		set => this.RaiseAndSetIfChanged(ref this.name, value);
+	}
 
 	public bool IsSeedPhraseBackedUp
 	{
@@ -36,11 +50,11 @@ public class HDWallet : INotifyPropertyChanged
 	/// </summary>
 	public ulong BirthdayHeight { get; set; }
 
-	public IReadOnlyDictionary<uint, ZcashAccount> Accounts => this.accounts;
+	public IReadOnlyDictionary<uint, Account> Accounts => this.accounts;
 
 	public uint MaxAccountIndex => this.Accounts.Count > 0 ? this.Accounts.Keys.Max() : 0;
 
-	public void AddAccount(ZcashAccount account)
+	public Account AddAccount(ZcashAccount account)
 	{
 		Requires.Argument(this.Zip32.Equals(account.HDDerivation?.Wallet), nameof(account), "This account does not belong to this HD wallet.");
 		if (this.Accounts.ContainsKey(account.HDDerivation.Value.AccountIndex))
@@ -48,19 +62,21 @@ public class HDWallet : INotifyPropertyChanged
 			throw new ArgumentException("An account with this index already exists.", nameof(account));
 		}
 
-		this.accounts.Add(account.HDDerivation.Value.AccountIndex, account);
+		Account accountModel = new(account, this);
+		this.accounts.Add(account.HDDerivation.Value.AccountIndex, accountModel);
+		return accountModel;
 	}
 
-	public ZcashAccount AddAccount(uint index)
+	public Account AddAccount(uint index)
 	{
 		if (this.Accounts.ContainsKey(index))
 		{
 			throw new ArgumentException("An account with this index already exists.", nameof(index));
 		}
 
-		ZcashAccount account = new(this.Zip32, index);
-		this.accounts.Add(index, account);
-		return account;
+		Account accountModel = new(new ZcashAccount(this.Zip32, index), this);
+		this.accounts.Add(index, accountModel);
+		return accountModel;
 	}
 
 	public bool RemoveAccount(uint index) => this.accounts.Remove(index);

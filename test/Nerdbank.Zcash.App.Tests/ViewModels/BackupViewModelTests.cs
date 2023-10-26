@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Reactive.Linq;
+using Nerdbank.Zcash.App.Models;
 
 public class BackupViewModelTests
 {
@@ -10,8 +11,8 @@ public class BackupViewModelTests
 
 	public BackupViewModelTests()
 	{
-		ZcashAccount defaultAccount = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet));
-		this.mainViewModel.Wallet.Add(defaultAccount);
+		Account defaultAccount = this.mainViewModel.Wallet.Add(
+			new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)));
 		this.mainViewModel.SelectedAccount = defaultAccount;
 		this.viewModel = new(this.mainViewModel, null);
 	}

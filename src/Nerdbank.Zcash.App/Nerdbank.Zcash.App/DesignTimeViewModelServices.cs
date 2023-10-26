@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash.App;
 
 internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccount
 {
-	private ZcashAccount? selectedAccount;
+	private Account? selectedAccount;
 
 	internal DesignTimeViewModelServices()
 	{
@@ -24,19 +24,19 @@ internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccou
 		new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)),
 	};
 
-	public ZcashAccount? SelectedAccount
+	public Account? SelectedAccount
 	{
 		get => this.selectedAccount ??= this.Wallet.First();
 		set => this.selectedAccount = value;
 	}
 
-	ZcashAccount IViewModelServicesWithSelectedAccount.SelectedAccount
+	Account IViewModelServicesWithSelectedAccount.SelectedAccount
 	{
 		get => this.SelectedAccount ?? throw new InvalidOperationException();
 		set => this.SelectedAccount = value;
 	}
 
-	public HDWallet? SelectedHDWallet => this.SelectedAccount is not null ? this.Wallet.GetHDWalletFor(this.SelectedAccount) : null;
+	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
 
 	public IContactManager ContactManager { get; } = new DesignTimeContactManager();
 

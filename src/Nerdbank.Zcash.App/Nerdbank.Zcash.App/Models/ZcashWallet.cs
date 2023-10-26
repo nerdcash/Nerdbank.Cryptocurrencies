@@ -11,16 +11,18 @@ namespace Nerdbank.Zcash.App.Models;
 /// <summary>
 /// A wallet that contains all the accounts the user wants to track.
 /// </summary>
-public class ZcashWallet : INotifyPropertyChanged, IEnumerable<ZcashAccount>
+public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>
 {
 	private readonly ObservableCollection<HDWallet> hdWallets = new();
-	private readonly ObservableCollection<ZcashAccount> loneAccounts = new();
+	private readonly ObservableCollection<Account> loneAccounts = new();
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ZcashWallet"/> class.
 	/// </summary>
 	public ZcashWallet()
 	{
+		this.LoneAccounts = new(this.loneAccounts);
+
 		this.hdWallets.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
 		this.loneAccounts.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
 	}
@@ -43,12 +45,12 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<ZcashAccount>
 	/// <summary>
 	/// Gets a collection of the accounts that were imported without a seed phrase.
 	/// </summary>
-	public IReadOnlyList<ZcashAccount> LoneAccounts => this.loneAccounts;
+	public ReadOnlyObservableCollection<Account> LoneAccounts { get; }
 
 	/// <summary>
 	/// Gets a sequence of all accounts in the wallet.
 	/// </summary>
-	public IEnumerable<IGrouping<HDWallet?, ZcashAccount>> AllAccounts =>
+	public IEnumerable<IGrouping<HDWallet?, Account>> AllAccounts =>
 		(from hd in this.HDWallets
 		 from account in hd.Accounts.Values
 		 group account by hd into seedPhrase
@@ -58,7 +60,8 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<ZcashAccount>
 	/// Adds an account to the wallet.
 	/// </summary>
 	/// <param name="account">The account to add.</param>
-	public void Add(ZcashAccount account)
+	/// <returns>The account model wrapper that is created to wrap the <see cref="ZcashAccount"/>.</returns>
+	public Account Add(ZcashAccount account)
 	{
 		if (account.HDDerivation is { } derivation)
 		{
@@ -69,26 +72,21 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<ZcashAccount>
 				this.hdWallets.Add(hd);
 			}
 
-			hd.AddAccount(account);
+			return hd.AddAccount(account);
 		}
 		else
 		{
-			this.loneAccounts.Add(account);
+			Account accountModel = new(account, null);
+			this.loneAccounts.Add(accountModel);
+			return accountModel;
 		}
 	}
 
 	/// <inheritdoc/>
-	public IEnumerator<ZcashAccount> GetEnumerator() => this.HDWallets.SelectMany(hd => hd.Accounts.Values).Concat(this.LoneAccounts).GetEnumerator();
+	public IEnumerator<Account> GetEnumerator() => this.HDWallets.SelectMany(hd => hd.Accounts.Values).Concat(this.LoneAccounts).GetEnumerator();
 
 	/// <inheritdoc/>
 	IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
-	/// <summary>
-	/// Gets the <see cref="HDWallet"/> that contains the given account.
-	/// </summary>
-	/// <param name="account">The account to search with.</param>
-	/// <returns>The <see cref="HDWallet"/> that contains the given <paramref name="account"/>; or <see langword="null" /> if none was found.</returns>
-	internal HDWallet? GetHDWalletFor(ZcashAccount account) => this.HDWallets.FirstOrDefault(w => w.Accounts.Values.Contains(account));
 
 	/// <summary>
 	/// Raises the <see cref="PropertyChanged"/> event.
