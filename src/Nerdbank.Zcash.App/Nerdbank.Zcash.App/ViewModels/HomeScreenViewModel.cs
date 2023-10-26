@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 // Consider using +, - and = for receive, spend and balance buttons respectively.
 public class HomeScreenViewModel : ViewModelBase
 {
-	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
+	private readonly IViewModelServices viewModelServices;
 	private readonly ObservableAsPropertyHelper<bool> isSeedPhraseBackedUp;
 
 	[Obsolete("Design-time only", error: true)]
@@ -17,7 +17,7 @@ public class HomeScreenViewModel : ViewModelBase
 	{
 	}
 
-	public HomeScreenViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
+	public HomeScreenViewModel(IViewModelServices viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 
@@ -28,7 +28,7 @@ public class HomeScreenViewModel : ViewModelBase
 		this.BalanceCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BalanceViewModel(viewModelServices)));
 		this.BackupCommand = ReactiveCommand.Create(
 			() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices, viewModelServices.SelectedHDWallet)),
-			viewModelServices.WhenAnyValue<IViewModelServicesWithSelectedAccount, bool, HDWallet?>(vm => vm.SelectedHDWallet, w => w is not null));
+			viewModelServices.WhenAnyValue<IViewModelServices, bool, HDWallet?>(vm => vm.SelectedHDWallet, w => w is not null));
 	}
 
 	public Bitmap Logo => Resources.ZcashLogo;

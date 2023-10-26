@@ -28,18 +28,9 @@
     <ScrollViewer Grid.Row="1">
       <StackPanel>
         <StackPanel>
-          <Grid ColumnDefinitions="auto,*">
+          <Grid ColumnDefinitions="auto,*" IsVisible="{Binding AccountPickerIsVisible}">
             <Label Content="{Binding FromAccountCaption}" Target="{Binding #FromAccountBox}" VerticalAlignment="Center" />
-            <ComboBox Name="FromAccountBox"
-                      Grid.Column="1"
-                      ItemsSource="{Binding FromAccounts}"
-                      SelectedItem="{Binding FromAccount}">
-              <ComboBox.ItemTemplate>
-                <DataTemplate>
-                  <!--<TextBlock Text="{Binding Name}" />-->
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
+            <local:AccountSelector Name="FromAccountBox" Grid.Column="1" />
           </Grid>
 
           <!-- Offer address book picker. -->

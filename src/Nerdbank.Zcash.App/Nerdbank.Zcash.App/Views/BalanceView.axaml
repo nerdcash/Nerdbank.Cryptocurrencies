@@ -23,6 +23,7 @@
             <Setter Property="FontSize" Value="20" />
           </Style>
         </StackPanel.Styles>
+        <local:AccountSelector HorizontalAlignment="Center" Margin="0 0 0 10" />
         <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,20" Classes="HeadlineBalance">
           <TextBlock Text="{Binding BalanceCaption}" />
           <local:SecurityAmountDisplay Value="{Binding Balance}" FontWeight="Bold" HorizontalAlignment="Center" />

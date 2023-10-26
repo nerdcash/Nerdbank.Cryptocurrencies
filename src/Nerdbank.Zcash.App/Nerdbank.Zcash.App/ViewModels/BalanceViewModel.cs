@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class BalanceViewModel : ViewModelBase, IHasTitle
+public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private SecurityAmount immatureIncome;
 	private SecurityAmount unconfirmedIncome;
 	private SecurityAmount spendableBalance;
@@ -18,7 +18,7 @@ public class BalanceViewModel : ViewModelBase, IHasTitle
 	public BalanceViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		Security security = this.viewModelServices.SelectedAccount.Network.AsSecurity();
+		Security security = this.ViewModelServices.SelectedAccount!.Network.AsSecurity();
 
 		this.anticipatedFees = new(-0.103m, security);
 		this.immatureIncome = new(0.5m, security);
@@ -27,9 +27,10 @@ public class BalanceViewModel : ViewModelBase, IHasTitle
 		this.unspendableChange = new(0.023m, security);
 	}
 
-	public BalanceViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
+	public BalanceViewModel(IViewModelServices viewModelServices)
+		: base(viewModelServices)
 	{
-		this.viewModelServices = viewModelServices;
+		this.SelectedAccount = this.Accounts.FirstOrDefault(viewModelServices.SelectedAccount);
 
 		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
 		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));

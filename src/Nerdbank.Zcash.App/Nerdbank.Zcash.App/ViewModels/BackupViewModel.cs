@@ -10,9 +10,8 @@ namespace Nerdbank.Zcash.App.ViewModels;
 /// <summary>
 /// Displays the seed phrase, birthday height, # of accounts used, and backup to file button.
 /// </summary>
-public class BackupViewModel : ViewModelBase, IHasTitle
+public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private readonly HDWallet wallet;
 	private bool revealData;
 
@@ -23,12 +22,12 @@ public class BackupViewModel : ViewModelBase, IHasTitle
 		this.Password = "SomePassword";
 	}
 
-	public BackupViewModel(IViewModelServicesWithSelectedAccount viewModelServices, HDWallet? wallet)
+	public BackupViewModel(IViewModelServices viewModelServices, HDWallet? wallet)
+		: base(viewModelServices)
 	{
 		wallet ??= viewModelServices.SelectedHDWallet ?? throw new ArgumentNullException(nameof(wallet));
 		Requires.Argument(wallet.Zip32.Mnemonic is not null, nameof(wallet), "This HD wallet does not know its own mnemonic.");
 
-		this.viewModelServices = viewModelServices;
 		this.wallet = wallet;
 
 		this.BackupCommand = ReactiveCommand.Create(() => { });

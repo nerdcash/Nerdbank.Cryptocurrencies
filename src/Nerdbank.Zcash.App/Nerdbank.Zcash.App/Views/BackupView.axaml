@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.BackupView"
              x:DataType="vm:BackupViewModel">
@@ -12,6 +13,7 @@
   <DockPanel>
     <ScrollViewer IsVisible="{Binding IsRevealed}">
       <StackPanel>
+        <local:AccountSelector HorizontalAlignment="Center" />
         <TextBlock Text="{Binding BackupSeedPhraseImportant}" FontWeight="Bold" />
         <Label Content="{Binding SeedPhraseCaption}" Target="{Binding #SeedPhraseGrid}" />
         <DataGrid ItemsSource="{Binding SeedPhraseRows}" HeadersVisibility="None" Name="SeedPhraseGrid">

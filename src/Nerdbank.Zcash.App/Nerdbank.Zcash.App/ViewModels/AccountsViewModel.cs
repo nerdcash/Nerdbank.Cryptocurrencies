@@ -16,13 +16,6 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	public AccountsViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		HDWallet hdWallet = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet));
-		Account spending = hdWallet.AddAccount(0);
-		spending.Name = "Spending";
-		Account savings = hdWallet.AddAccount(1);
-		savings.Name = "Savings";
-		this.Accounts.Add(new AccountViewModel(spending));
-		this.Accounts.Add(new AccountViewModel(savings));
 	}
 
 	public AccountsViewModel(IViewModelServices viewModelServices)

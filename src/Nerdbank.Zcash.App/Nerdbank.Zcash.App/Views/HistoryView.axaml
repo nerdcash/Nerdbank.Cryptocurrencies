@@ -11,6 +11,7 @@
     <vm:HistoryViewModel />
   </Design.DataContext>
   <DockPanel>
+    <local:AccountSelector DockPanel.Dock="Top" HorizontalAlignment="Center" />
     <DataGrid ItemsSource="{Binding Transactions}"
               SelectedItem="{Binding SelectedTransaction}"
               IsReadOnly="True"

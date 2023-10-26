@@ -13,7 +13,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	[Obsolete("For design-time use only.", error: true)]
 	public FirstLaunchViewModel()
-		: this(new DesignTimeViewModelServices())
+		: this(new DesignTimeViewModelServices(empty: true))
 	{
 	}
 
@@ -51,9 +51,11 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
 		Zip32HDWallet zip32 = new(mnemonic, ZcashNetwork.MainNet);
-		this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
+		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
+		accountModel.Name = "Main";
+
 		this.viewModelServices.SelectedAccount = this.viewModelServices.Wallet.First();
-		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithSelectedAccount)this.viewModelServices));
+		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 	}
 
 	private void CreateNewAccountAdvanced()
@@ -76,7 +78,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 					accountModel.MemberOf.IsSeedPhraseBackedUp = true;
 				}
 
-				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithSelectedAccount)this.viewModelServices));
+				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 			}
 		});
 		this.viewModelServices.NavigateTo(importAccountViewModel);

@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ReceivingAddress : IDisposable
 {
-	public ReceivingAddress(IViewModelServicesWithSelectedAccount viewModelServices, ZcashAddress address, PaymentRequestDetailsViewModel? paymentRequestDetails, string header)
+	public ReceivingAddress(IViewModelServices viewModelServices, ZcashAddress address, PaymentRequestDetailsViewModel? paymentRequestDetails, string header)
 	{
 		this.Header = header;
 		this.Address = address;

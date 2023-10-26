@@ -4,6 +4,7 @@
 global using Nerdbank.Cryptocurrencies;
 global using Nerdbank.Zcash;
 global using Nerdbank.Zcash.App;
+global using Nerdbank.Zcash.App.Models;
 global using Nerdbank.Zcash.App.ViewModels;
 global using Xunit;
 global using Xunit.Abstractions;

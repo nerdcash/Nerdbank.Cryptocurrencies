@@ -10,7 +10,7 @@
   <Design.DataContext>
     <app:SecurityAmountFormatted />
   </Design.DataContext>
-  <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0">
     <StackPanel.Styles>
       <Style Selector="TextBlock">
         <Setter Property="FontFamily" Value="Consolas" />

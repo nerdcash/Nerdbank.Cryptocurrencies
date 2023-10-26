@@ -8,7 +8,7 @@ using Microsoft;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccount
+public class MainViewModel : ViewModelBase, IViewModelServices
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
 	private Account? selectedAccount;
@@ -39,7 +39,7 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccoun
 		this.BackupCommand = ReactiveCommand.Create(() => this.NavigateTo(new BackupViewModel(this, this.SelectedHDWallet)), nonEmptyWallet);
 
 		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
-		this.LinkProperty(nameof(this.SelectedAccount), nameof(IViewModelServicesWithSelectedAccount.SelectedHDWallet));
+		this.LinkProperty(nameof(this.SelectedAccount), nameof(this.SelectedHDWallet));
 
 		this.NavigateTo(this.GetHomeViewModel());
 	}
@@ -55,12 +55,6 @@ public class MainViewModel : ViewModelBase, IViewModelServicesWithSelectedAccoun
 	}
 
 	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
-
-	Account IViewModelServicesWithSelectedAccount.SelectedAccount
-	{
-		get => this.SelectedAccount ?? throw new InvalidOperationException();
-		set => this.SelectedAccount = value;
-	}
 
 	public IContactManager ContactManager { get; } = new ContactManager();
 

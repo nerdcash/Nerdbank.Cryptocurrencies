@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.App.Models;
-
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ReceivingIntentSelectorViewModel : ViewModelBase, IHasTitle
+public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private string receiverIdentity = string.Empty;
 
 	[Obsolete("Design-time only", error: true)]
@@ -16,11 +13,10 @@ public class ReceivingIntentSelectorViewModel : ViewModelBase, IHasTitle
 	{
 	}
 
-	public ReceivingIntentSelectorViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
+	public ReceivingIntentSelectorViewModel(IViewModelServices viewModelServices)
+		: base(viewModelServices)
 	{
-		this.viewModelServices = viewModelServices;
-
-		this.PaymentRequestDetails = new PaymentRequestDetailsViewModel(viewModelServices.SelectedAccount.Network.AsSecurity());
+		this.PaymentRequestDetails = new PaymentRequestDetailsViewModel(this.SelectedSecurity);
 
 		this.ProceedCommand = ReactiveCommand.Create(this.Proceed);
 		this.LinkProperty(nameof(this.ReceiverIdentity), nameof(this.ProceedCaption));
@@ -50,9 +46,10 @@ public class ReceivingIntentSelectorViewModel : ViewModelBase, IHasTitle
 	{
 		Contact? matchingContact = null;
 		ReceivingViewModel receivingViewModel = new(
-			this.viewModelServices,
+			this.ViewModelServices,
+			this.SelectedAccount,
 			matchingContact,
 			this.PaymentRequestDetails.IsEmpty ? null : this.PaymentRequestDetails);
-		this.viewModelServices.NavigateTo(receivingViewModel);
+		this.ViewModelServices.NavigateTo(receivingViewModel);
 	}
 }

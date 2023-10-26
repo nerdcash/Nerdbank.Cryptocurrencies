@@ -54,6 +54,6 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits, this.Password);
 		Zip32HDWallet zip32 = new(mnemonic, this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
 		this.viewModelServices.Wallet.Add(new ZcashAccount(zip32, 0));
-		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel((IViewModelServicesWithSelectedAccount)this.viewModelServices));
+		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 	}
 }

@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft;
 
 namespace Nerdbank.Zcash.App.Models;
 
@@ -79,6 +80,24 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>
 			Account accountModel = new(account, null);
 			this.loneAccounts.Add(accountModel);
 			return accountModel;
+		}
+	}
+
+	public void Add(Account account)
+	{
+		Requires.Argument(account.MemberOf is null == account.ZcashAccount.HDDerivation is null, nameof(account), "Account must be either a lone account or a member of a seed phrase wallet.");
+
+		if (account.MemberOf is not null)
+		{
+			account.MemberOf.AddAccount(account);
+			if (!this.hdWallets.Contains(account.MemberOf))
+			{
+				this.hdWallets.Add(account.MemberOf);
+			}
+		}
+		else
+		{
+			this.loneAccounts.Add(account);
 		}
 	}
 

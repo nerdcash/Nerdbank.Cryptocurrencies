@@ -3,37 +3,45 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
 using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App;
 
-internal class DesignTimeViewModelServices : IViewModelServicesWithSelectedAccount
+internal class DesignTimeViewModelServices : IViewModelServices
 {
 	private Account? selectedAccount;
 
-	internal DesignTimeViewModelServices()
+	internal DesignTimeViewModelServices(bool empty = false)
 	{
+		if (!empty)
+		{
+			Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
+			HDWallet zec = new(new(mnemonic, ZcashNetwork.MainNet));
+			HDWallet taz = new(new(mnemonic, ZcashNetwork.TestNet));
+
+			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0), taz) { Name = "Main" };
+			Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1), taz) { Name = "Savings" };
+			Account realAccount = new(new ZcashAccount(zec.Zip32, 0), zec) { Name = "Real ZEC" };
+
+			this.Wallet.Add(mainAccount);
+			this.Wallet.Add(savingsAccount);
+			this.Wallet.Add(realAccount);
+
+			this.SelectedAccount = mainAccount;
+		}
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	public ZcashWallet Wallet { get; } = new()
-	{
-		new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)),
-	};
+	public ZcashWallet Wallet { get; } = new();
 
 	public Account? SelectedAccount
 	{
 		get => this.selectedAccount ??= this.Wallet.First();
 		set => this.selectedAccount = value;
-	}
-
-	Account IViewModelServicesWithSelectedAccount.SelectedAccount
-	{
-		get => this.SelectedAccount ?? throw new InvalidOperationException();
-		set => this.SelectedAccount = value;
 	}
 
 	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;

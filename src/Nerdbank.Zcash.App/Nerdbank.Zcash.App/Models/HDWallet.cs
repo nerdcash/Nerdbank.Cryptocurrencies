@@ -56,15 +56,21 @@ public class HDWallet : INotifyPropertyChanged
 
 	public Account AddAccount(ZcashAccount account)
 	{
-		Requires.Argument(this.Zip32.Equals(account.HDDerivation?.Wallet), nameof(account), "This account does not belong to this HD wallet.");
-		if (this.Accounts.ContainsKey(account.HDDerivation.Value.AccountIndex))
+		Account accountModel = new(account, this);
+		this.AddAccount(accountModel);
+		return accountModel;
+	}
+
+	public void AddAccount(Account account)
+	{
+		Requires.Argument(account.MemberOf == this, nameof(account), "This account does not belong to this HD wallet.");
+		Requires.Argument(this.Zip32.Equals(account.ZcashAccount.HDDerivation?.Wallet), nameof(account), "This account does not belong to this HD wallet.");
+		if (this.Accounts.ContainsKey(account.ZcashAccount.HDDerivation.Value.AccountIndex))
 		{
 			throw new ArgumentException("An account with this index already exists.", nameof(account));
 		}
 
-		Account accountModel = new(account, this);
-		this.accounts.Add(account.HDDerivation.Value.AccountIndex, accountModel);
-		return accountModel;
+		this.accounts.Add(account.ZcashAccount.HDDerivation.Value.AccountIndex, account);
 	}
 
 	public Account AddAccount(uint index)

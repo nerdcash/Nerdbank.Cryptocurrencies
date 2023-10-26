@@ -49,7 +49,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 	{
 		if (this.viewModelServices.SelectedAccount is not null)
 		{
-			SendingViewModel sending = new((IViewModelServicesWithSelectedAccount)this.viewModelServices)
+			SendingViewModel sending = new(this.viewModelServices)
 			{
 				RecipientAddress = DonationReceiver,
 				Memo = Strings.FormatDonationMemo(Strings.AppTitle),

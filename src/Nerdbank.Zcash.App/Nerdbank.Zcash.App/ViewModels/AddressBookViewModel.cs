@@ -7,7 +7,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class AddressBookViewModel : ViewModelBase, IHasTitle
 {
-	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
+	private readonly IViewModelServices viewModelServices;
 	private ContactViewModel? selectedContact;
 
 	[Obsolete("For design-time use only", error: true)]
@@ -19,7 +19,7 @@ public class AddressBookViewModel : ViewModelBase, IHasTitle
 		this.Contacts.Add(new ContactViewModel(this.viewModelServices) { Name = "David Arnott" });
 	}
 
-	public AddressBookViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
+	public AddressBookViewModel(IViewModelServices viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
 

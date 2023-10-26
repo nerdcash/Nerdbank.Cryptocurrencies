@@ -7,9 +7,8 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class HistoryViewModel : ViewModelBase, IHasTitle
+public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
 	private TransactionViewModel? selectedTransaction;
 
 	[Obsolete("For design-time use only", error: true)]
@@ -22,13 +21,14 @@ public class HistoryViewModel : ViewModelBase, IHasTitle
 			new() { Amount = ZEC(-0.5m), RunningBalance = ZEC(1.2345m - 0.5m), IsIncoming = false, OtherPartyName = "Red Rock Cafe", Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now },
 		});
 
-		SecurityAmount ZEC(decimal amount) => new(amount, this.viewModelServices.SelectedAccount.Network.AsSecurity());
+		SecurityAmount ZEC(decimal amount) => this.SelectedSecurity.Amount(amount);
+
+		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 	}
 
-	public HistoryViewModel(IViewModelServicesWithSelectedAccount viewModelServices)
+	public HistoryViewModel(IViewModelServices viewModelServices)
+		: base(viewModelServices)
 	{
-		this.viewModelServices = viewModelServices;
-
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
 	}
 
@@ -38,7 +38,7 @@ public class HistoryViewModel : ViewModelBase, IHasTitle
 
 	public string WhenColumnHeader => "When";
 
-	public string AmountColumnHeader => this.viewModelServices.SelectedAccount.Network.GetTickerName();
+	public string AmountColumnHeader => this.SelectedSecurity.TickerSymbol;
 
 	public string FiatAmountColumnHeader => "USD";
 

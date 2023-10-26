@@ -107,7 +107,7 @@ public class ContactViewModel : ViewModelBase
 
 	public void Send()
 	{
-		SendingViewModel sendingViewModel = new((IViewModelServicesWithSelectedAccount)this.viewModelServices)
+		SendingViewModel sendingViewModel = new(this.viewModelServices)
 		{
 			RecipientAddress = this.Address,
 		};

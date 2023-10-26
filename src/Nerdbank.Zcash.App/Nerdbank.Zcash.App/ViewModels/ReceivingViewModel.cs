@@ -3,6 +3,7 @@
 
 using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
+using Microsoft;
 using Nerdbank.QRCodes;
 using QRCoder;
 
@@ -10,7 +11,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 {
-	private readonly IViewModelServicesWithSelectedAccount viewModelServices;
+	private readonly IViewModelServices viewModelServices;
 
 	private readonly Contact? observingContact;
 
@@ -23,12 +24,13 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	private ReceivingAddress displayedAddress;
 
 	public ReceivingViewModel()
-		: this(new DesignTimeViewModelServices(), null, null)
+		: this(new DesignTimeViewModelServices(), null, null, null)
 	{
 	}
 
 	public ReceivingViewModel(
-		IViewModelServicesWithSelectedAccount viewModelServices,
+		IViewModelServices viewModelServices,
+		Account? receivingAccount,
 		Contact? observingContact,
 		PaymentRequestDetailsViewModel? paymentRequestDetailsViewModel)
 	{
@@ -38,7 +40,9 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		QRCodeGenerator generator = new();
 		QREncoder encoder = new() { NoPadding = true };
 
-		this.receivingAccount = viewModelServices.SelectedAccount;
+		this.receivingAccount = receivingAccount ?? viewModelServices.SelectedAccount!;
+		Requires.Argument(this.receivingAccount is not null, nameof(receivingAccount), "Must be provided when SelectedAccount is null.");
+
 		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount.ZcashAccount);
 		if (this.receivingAccount.ZcashAccount.HasDiversifiableKeys)
 		{
