@@ -2,27 +2,24 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using DynamicData;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class AddressBookViewModel : ViewModelBase, IHasTitle
+public class AddressBookViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private readonly IViewModelServices viewModelServices;
 	private ContactViewModel? selectedContact;
 
 	[Obsolete("For design-time use only", error: true)]
 	public AddressBookViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.Contacts.Add(new ContactViewModel(this.viewModelServices) { Name = "Andrew Arnott", Address = "t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF" });
-		this.Contacts.Add(new ContactViewModel(this.viewModelServices) { Name = "Jason Arnott", Address = "u17kydrnuh9k8dqtud9qugel5ym835xqg8jk5czy2qcxea0zucru7d9w0c9hcq43898l2d993taaqh6vr0u6yskjnn582vyvu8qqk6qyme0z2vfgcclxatca7cx2f45v2n9zfd7hmkwlrw0wt38z9ua2yvgdnvppucyf2cfsxwlyfy339k" });
-		this.Contacts.Add(new ContactViewModel(this.viewModelServices) { Name = "David Arnott" });
 	}
 
 	public AddressBookViewModel(IViewModelServices viewModelServices)
+		: base(viewModelServices)
 	{
-		this.viewModelServices = viewModelServices;
-
+		this.Contacts.AddRange(viewModelServices.ContactManager.Contacts.Select(c => new ContactViewModel(this, c)));
 		IObservable<bool> contactSelected = this.ObservableForProperty(vm => vm.SelectedContact, c => c is not null);
 
 		this.NewContactCommand = ReactiveCommand.Create(this.NewContact);
@@ -37,7 +34,7 @@ public class AddressBookViewModel : ViewModelBase, IHasTitle
 
 	public string SendCommandColumnHeader => "Has Address";
 
-	public ReactiveCommand<Unit, Unit> NewContactCommand { get; }
+	public ReactiveCommand<Unit, ContactViewModel> NewContactCommand { get; }
 
 	public string NewContactCaption => "New";
 
@@ -51,16 +48,19 @@ public class AddressBookViewModel : ViewModelBase, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.selectedContact, value);
 	}
 
-	public void NewContact()
+	public ContactViewModel NewContact()
 	{
 		ContactViewModel? newContact = this.Contacts.FirstOrDefault(c => c.IsEmpty);
 		if (newContact is null)
 		{
-			newContact = new ContactViewModel(this.viewModelServices);
+			Contact model = new();
+			this.ViewModelServices.ContactManager.Contacts.Add(model);
+			newContact = new ContactViewModel(this, model);
 			this.Contacts.Add(newContact);
 		}
 
 		this.SelectedContact = newContact;
+		return newContact;
 	}
 
 	public void DeleteContact(ContactViewModel contact)

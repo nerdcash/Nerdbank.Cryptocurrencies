@@ -3,11 +3,17 @@
 
 namespace Nerdbank.Zcash.App.Models;
 
-public class Contact
+public class Contact : ReactiveObject
 {
-	public string Name { get; set; } = string.Empty;
+	private string name = string.Empty;
 
-	public ZcashAddress? ReceivingAddress { get; }
+	public string Name
+	{
+		get => this.name;
+		set => this.RaiseAndSetIfChanged(ref this.name, value);
+	}
+
+	public ZcashAddress? ReceivingAddress { get; set; }
 
 	/// <summary>
 	/// Gets the addresses that have been assigned to this contact for sending to the wallet owner.

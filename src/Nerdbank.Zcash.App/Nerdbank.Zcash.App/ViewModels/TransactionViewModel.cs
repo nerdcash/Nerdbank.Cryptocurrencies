@@ -71,7 +71,7 @@ public class TransactionViewModel : ViewModelBase
 
 	public string? Memo { get; init; }
 
-	public string MemoCaption => "Memo";
+	public string MemoCaption => "Shared Memo";
 
 	public string MutableMemoCaption => "Private Memo";
 

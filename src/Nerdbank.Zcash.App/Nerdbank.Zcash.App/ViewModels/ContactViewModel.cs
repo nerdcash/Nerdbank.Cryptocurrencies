@@ -5,24 +5,24 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ContactViewModel : ViewModelBase
 {
-	private readonly IViewModelServices viewModelServices;
+	private readonly AddressBookViewModel addressBook;
 	private readonly ObservableAsPropertyHelper<bool> isEmpty;
 	private readonly ObservableAsPropertyHelper<bool> hasShieldedReceivingAddress;
 	private readonly ObservableAsPropertyHelper<bool> hasAddress;
 	private readonly ObservableAsPropertyHelper<string> sendCommandCaption;
 	private readonly ObservableAsPropertyHelper<bool> isShowDiversifiedAddressButtonVisible;
-	private string name = string.Empty;
 	private string address = string.Empty;
 	private string? myAddressShownToContact;
 
-	public ContactViewModel(IViewModelServices viewModelServices)
+	public ContactViewModel(AddressBookViewModel addressBook, Contact model)
 	{
-		this.viewModelServices = viewModelServices;
+		this.addressBook = addressBook;
+		this.Model = model;
 
 		this.WhenAnyValue(
 			vm => vm.Name,
 			vm => vm.Address,
-			(n, a) => n is not null || a is not null)
+			(n, a) => n.Length == 0 && a.Length == 0)
 			.ToProperty(this, vm => vm.IsEmpty, out this.isEmpty);
 		this.WhenAnyValue(
 			vm => vm.Address,
@@ -41,7 +41,7 @@ public class ContactViewModel : ViewModelBase
 			shown => shown is null)
 			.ToProperty(this, vm => vm.IsShowDiversifiedAddressButtonVisible, out this.isShowDiversifiedAddressButtonVisible);
 
-		this.ShowDiversifiedAddressCommand = ReactiveCommand.Create(() => { });
+		this.ShowDiversifiedAddressCommand = ReactiveCommand.Create(this.ShowDiversifiedAddress);
 
 		IObservable<bool> canSend = this.WhenAnyValue(vm => vm.HasAddress);
 		this.SendCommand = ReactiveCommand.Create(this.Send, canSend);
@@ -49,7 +49,14 @@ public class ContactViewModel : ViewModelBase
 		this.LinkProperty(nameof(this.MyAddressShownToContact), nameof(this.HasContactSeenMyDiversifiedAddressCaption));
 		this.LinkProperty(nameof(this.MyAddressShownToContact), nameof(this.IsShowDiversifiedAddressButtonVisible));
 		this.LinkProperty(nameof(this.HasShieldedReceivingAddress), nameof(this.SendCommandCaption));
+
+		this.Model.WhenAnyValue(c => c.Name).Subscribe(_ => this.RaisePropertyChanged(nameof(this.Name)));
+		this.Address = this.Model.ReceivingAddress ?? string.Empty;
+
+		// TODO: link up MyAddressShownToContact, considering the selected account that it's relative to may be changed.
 	}
+
+	public Contact Model { get; }
 
 	public bool IsEmpty => this.isEmpty.Value;
 
@@ -58,8 +65,15 @@ public class ContactViewModel : ViewModelBase
 	/// </summary>
 	public string Name
 	{
-		get => this.name;
-		set => this.RaiseAndSetIfChanged(ref this.name, value);
+		get => this.Model.Name;
+		set
+		{
+			if (this.Model.Name != value)
+			{
+				this.Model.Name = value;
+				this.RaisePropertyChanged();
+			}
+		}
 	}
 
 	/// <summary>
@@ -105,12 +119,24 @@ public class ContactViewModel : ViewModelBase
 	/// </summary>
 	public bool HasShieldedReceivingAddress => this.hasShieldedReceivingAddress.Value;
 
+	private IViewModelServices ViewModelServices => this.addressBook.ViewModelServices;
+
 	public void Send()
 	{
-		SendingViewModel sendingViewModel = new(this.viewModelServices)
+		SendingViewModel sendingViewModel = new(this.ViewModelServices)
 		{
 			RecipientAddress = this.Address,
 		};
-		this.viewModelServices.NavigateTo(sendingViewModel);
+		this.ViewModelServices.NavigateTo(sendingViewModel);
+	}
+
+	public void ShowDiversifiedAddress()
+	{
+		ReceivingViewModel receivingViewModel = new(
+			this.ViewModelServices,
+			this.addressBook.SelectedAccount,
+			this.Model,
+			paymentRequestDetailsViewModel: null);
+		this.ViewModelServices.NavigateTo(receivingViewModel);
 	}
 }

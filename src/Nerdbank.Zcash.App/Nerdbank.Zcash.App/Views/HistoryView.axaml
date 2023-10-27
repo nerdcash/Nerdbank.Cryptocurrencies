@@ -18,6 +18,8 @@
               Grid.Row="1"
               Background="AliceBlue">
       <DataGrid.Columns>
+        <DataGridTextColumn Header="{Binding WhenColumnHeader}" Binding="{Binding WhenFormatted}" />
+        <DataGridTextColumn Header="{Binding OtherPartyNameColumnHeader}" Binding="{Binding OtherPartyName}" />
         <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -32,26 +34,26 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="{Binding OtherPartyNameColumnHeader}" Binding="{Binding OtherPartyName}" />
-        <DataGridTextColumn Header="{Binding MemoColumnHeader}" Binding="{Binding Memo}" />
-        <DataGridTextColumn Header="{Binding WhenColumnHeader}" Binding="{Binding WhenFormatted}" />
+        <DataGridTextColumn Header="{Binding MemoColumnHeader}" Binding="{Binding Memo}" IsVisible="False" />
         <DataGridTemplateColumn Header="{Binding RunningBalanceColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding RunningBalance}" IsUnitsVisible="False" />
+              <local:SecurityAmountDisplay Value="{Binding RunningBalance}" IsUnitsVisible="False" Padding="10 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
       </DataGrid.Columns>
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:TransactionViewModel">
-          <Grid RowDefinitions="auto,auto,auto" ColumnDefinitions="auto,*">
-            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" />
-            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1"/>
-            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" VerticalAlignment="Center" Grid.Row="1" />
-            <TextBox Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="1" Grid.Column="1" IsReadOnly="True" />
-            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="2" />
-            <TextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" />
+          <Grid RowDefinitions="auto,auto,auto,auto" ColumnDefinitions="auto,*">
+            <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" />
+            <TextBox Text="{Binding Memo}" Name="MemoBox" Grid.Column="1"/>
+            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}"  Grid.Row="1"/>
+            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1" Grid.Row="1" />
+            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" VerticalAlignment="Center" Grid.Row="2" />
+            <TextBox Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="2" Grid.Column="1" IsReadOnly="True" />
+            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="3" />
+            <TextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" />
           </Grid>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>

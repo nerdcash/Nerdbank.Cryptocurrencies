@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.AddressBookView"
              x:DataType="vm:AddressBookViewModel">
@@ -10,6 +11,7 @@
     <vm:AddressBookViewModel />
   </Design.DataContext>
   <DockPanel>
+    <local:AccountSelector DockPanel.Dock="Top" HorizontalAlignment="Center" />
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
       <Button Command="{Binding NewContactCommand}" Content="{Binding NewContactCaption}" />
       <Button Command="{Binding DeleteContactCommand}" Content="{Binding DeleteContactCaption}" />

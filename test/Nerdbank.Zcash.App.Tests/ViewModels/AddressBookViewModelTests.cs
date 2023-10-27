@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-public class AddressBookViewModelTests
+public class AddressBookViewModelTests : ViewModelTestBase
 {
-	private MainViewModel mainViewModel = new();
 	private AddressBookViewModel viewModel;
 
 	public AddressBookViewModelTests()
 	{
-		this.viewModel = new AddressBookViewModel(this.mainViewModel);
+		this.viewModel = new AddressBookViewModel(this.MainViewModel);
 	}
 
 	[Fact]
@@ -23,5 +22,21 @@ public class AddressBookViewModelTests
 		this.viewModel.NewContact();
 		Assert.Same(newContact, Assert.Single(this.viewModel.Contacts));
 		Assert.Same(newContact, this.viewModel.SelectedContact);
+
+		newContact.Name = "Foo";
+		this.viewModel.NewContact();
+		Assert.NotSame(newContact, this.viewModel.SelectedContact);
+		Assert.Equal(2, this.viewModel.Contacts.Count);
+	}
+
+	[Fact]
+	public void ContactNamePersists()
+	{
+		ContactViewModel contact = this.viewModel.NewContact();
+		contact.Name = "Somebody";
+
+		// Re-open
+		this.viewModel = new(this.MainViewModel);
+		Assert.Equal("Somebody", this.viewModel.Contacts.Single().Name);
 	}
 }
