@@ -8,6 +8,8 @@ namespace Nerdbank.Zcash.App;
 
 public interface IViewModelServices : INotifyPropertyChanged
 {
+	AppSettings Settings { get; }
+
 	/// <summary>
 	/// Gets the wallet data model.
 	/// </summary>

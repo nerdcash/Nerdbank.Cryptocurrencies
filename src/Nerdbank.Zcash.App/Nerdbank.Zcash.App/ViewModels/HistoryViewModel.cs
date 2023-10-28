@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private bool exchangeRateExplanationIsVisible = true;
+	private ObservableAsPropertyHelper<bool> exchangeRatePerTransactionHasBeenDismissed;
 
 	private TransactionViewModel? selectedTransaction;
 
@@ -30,7 +30,10 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public HistoryViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
-		this.HideExchangeRateExplanationCommand = ReactiveCommand.Create(() => { this.ExchangeRateExplanationIsVisible = false; });
+		this.HideExchangeRateExplanationCommand = ReactiveCommand.Create(() => { this.ViewModelServices.Settings.ExchangeRatePerTransactionHasBeenDismissed = true; });
+
+		this.exchangeRatePerTransactionHasBeenDismissed = viewModelServices.Settings.WhenAnyValue(s => s.ExchangeRatePerTransactionHasBeenDismissed, d => !d)
+			.ToProperty(this, nameof(this.ExchangeRateExplanationIsVisible));
 
 		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
@@ -62,11 +65,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string ExchangeRateExplanation => "The value in fiat currency is based on the exchange rate at the time of each transaction.";
 
-	public bool ExchangeRateExplanationIsVisible
-	{
-		get => this.exchangeRateExplanationIsVisible;
-		set => this.RaiseAndSetIfChanged(ref this.exchangeRateExplanationIsVisible, value);
-	}
+	public bool ExchangeRateExplanationIsVisible => this.exchangeRatePerTransactionHasBeenDismissed.Value;
 
 	public ReactiveCommand<Unit, Unit> HideExchangeRateExplanationCommand { get; }
 

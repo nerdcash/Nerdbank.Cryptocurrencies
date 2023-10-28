@@ -8,7 +8,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class SettingsViewModel : ViewModelBase, IHasTitle
 {
 	private Security alternateCurrency = Security.USD;
-	private string lightServerUrl = "https://zcash.mysideoftheweb.com:9067/";
+	private string lightServerUrl;
 	private IViewModelServices viewModelServices;
 
 	[Obsolete("For design-time use only", true)]
@@ -20,6 +20,8 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	public SettingsViewModel(IViewModelServices viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
+
+		this.lightServerUrl = this.viewModelServices.Settings.LightServerUrl.AbsoluteUri;
 	}
 
 	public string Title => "Settings";
@@ -43,6 +45,13 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	public string LightServerUrl
 	{
 		get => this.lightServerUrl;
-		set => this.RaiseAndSetIfChanged(ref this.lightServerUrl, value);
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.lightServerUrl, value);
+			if (value.Length > 0 && Uri.TryCreate(value, UriKind.Absolute, out Uri? result))
+			{
+				this.viewModelServices.Settings.LightServerUrl = result;
+			}
+		}
 	}
 }

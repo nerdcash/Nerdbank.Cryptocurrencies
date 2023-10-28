@@ -56,6 +56,8 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	public TopLevel? TopLevel => null;
 
+	public AppSettings Settings { get; } = new();
+
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel)
 	{
 	}

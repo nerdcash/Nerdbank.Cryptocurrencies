@@ -46,6 +46,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public TopLevel? TopLevel { get; set; }
 
+	public AppSettings Settings => App.Instance.Settings;
+
 	public ZcashWallet Wallet { get; } = new();
 
 	public Account? SelectedAccount
