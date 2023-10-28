@@ -39,17 +39,24 @@ Nerdbank.Bitcoin.Bip44MultiAccountHD
 Nerdbank.Bitcoin.Bip44MultiAccountHD.Change
 Nerdbank.Bitcoin.Bip44MultiAccountHD.Change.ChangeAddressChain = 1 -> Nerdbank.Bitcoin.Bip44MultiAccountHD.Change
 Nerdbank.Bitcoin.Bip44MultiAccountHD.Change.ReceivingAddressChain = 0 -> Nerdbank.Bitcoin.Bip44MultiAccountHD.Change
+Nerdbank.Bitcoin.BitcoinP2PKHAddress
+Nerdbank.Bitcoin.BitcoinP2PKHAddress.BitcoinP2PKHAddress(NBitcoin.Secp256k1.ECPubKey! pubKey, bool isTestNet) -> void
+Nerdbank.Bitcoin.BitcoinP2PKHAddress.IsTestNet.get -> bool
+Nerdbank.Bitcoin.BitcoinP2PKHAddress.PublicKeyHash.get -> System.ReadOnlySpan<byte>
+Nerdbank.Bitcoin.BitcoinP2PKHAddress.TextEncoding.get -> string!
 Nerdbank.Bitcoin.BitcoinUtilities
 Nerdbank.Bitcoin.PrivateKey
 Nerdbank.Bitcoin.PrivateKey.CryptographicKey.get -> NBitcoin.Secp256k1.ECPrivKey!
 Nerdbank.Bitcoin.PrivateKey.Dispose() -> void
 Nerdbank.Bitcoin.PrivateKey.IsTestNet.get -> bool
+Nerdbank.Bitcoin.PrivateKey.P2PKHAddress.get -> Nerdbank.Bitcoin.BitcoinP2PKHAddress!
 Nerdbank.Bitcoin.PrivateKey.PrivateKey(NBitcoin.Secp256k1.ECPrivKey! key, bool isTestNet) -> void
 Nerdbank.Bitcoin.PrivateKey.PublicKey.get -> Nerdbank.Bitcoin.PublicKey!
 Nerdbank.Bitcoin.PrivateKey.TextEncoding.get -> string!
 Nerdbank.Bitcoin.PublicKey
 Nerdbank.Bitcoin.PublicKey.CryptographicKey.get -> NBitcoin.Secp256k1.ECPubKey!
 Nerdbank.Bitcoin.PublicKey.IsTestNet.get -> bool
+Nerdbank.Bitcoin.PublicKey.P2PKHAddress.get -> Nerdbank.Bitcoin.BitcoinP2PKHAddress!
 Nerdbank.Bitcoin.PublicKey.PublicKey(NBitcoin.Secp256k1.ECPubKey! key, bool isTestNet) -> void
 Nerdbank.Bitcoin.RawTransaction
 Nerdbank.Bitcoin.RawTransaction.Equals(Nerdbank.Bitcoin.RawTransaction other) -> bool
@@ -87,6 +94,7 @@ override Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.Identifier.get -> Syst
 override Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.Version.get -> System.ReadOnlySpan<byte>
 override Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.WriteKeyMaterial(System.Span<byte> destination) -> int
 override Nerdbank.Bitcoin.Bip39Mnemonic.ToString() -> string!
+override Nerdbank.Bitcoin.BitcoinP2PKHAddress.ToString() -> string!
 override Nerdbank.Bitcoin.RawTransaction.GetHashCode() -> int
 override Nerdbank.Bitcoin.RawTransaction.Outpoint.GetHashCode() -> int
 override Nerdbank.Bitcoin.RawTransaction.TxIn.GetHashCode() -> int
@@ -109,6 +117,7 @@ static Nerdbank.Bitcoin.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint ac
 static Nerdbank.Bitcoin.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account, Nerdbank.Bitcoin.Bip44MultiAccountHD.Change change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32KeyPath!
 static Nerdbank.Bitcoin.Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint coinType, System.Func<Nerdbank.Cryptocurrencies.Bip32KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32KeyPath!>!
 static Nerdbank.Bitcoin.Bip44MultiAccountHD.DiscoverUsedAddressesAsync(Nerdbank.Cryptocurrencies.Bip32KeyPath! account, System.Func<Nerdbank.Cryptocurrencies.Bip32KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32KeyPath!>!
+static Nerdbank.Bitcoin.BitcoinP2PKHAddress.TryDecode(string! address, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Bitcoin.BitcoinP2PKHAddress? bitcoinAddress) -> bool
 static Nerdbank.Bitcoin.BitcoinUtilities.Derive<TKey>(this TKey! key, Nerdbank.Cryptocurrencies.Bip32KeyPath! keyPath) -> TKey!
 static Nerdbank.Bitcoin.PrivateKey.TryDecode(string! encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Bitcoin.PrivateKey? key) -> bool
 static Nerdbank.Bitcoin.RawTransaction.operator !=(Nerdbank.Bitcoin.RawTransaction left, Nerdbank.Bitcoin.RawTransaction right) -> bool

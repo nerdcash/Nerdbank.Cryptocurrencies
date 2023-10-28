@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using NBitcoin.Secp256k1;
 
@@ -9,6 +10,7 @@ namespace Nerdbank.Bitcoin;
 /// <summary>
 /// An EC private key.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 public class PrivateKey : IDisposable, IKey, IKeyWithTextEncoding
 {
 	/// <summary>
@@ -51,6 +53,13 @@ public class PrivateKey : IDisposable, IKey, IKeyWithTextEncoding
 	/// Gets the public key counterpart to this private key.
 	/// </summary>
 	public PublicKey PublicKey { get; }
+
+	/// <summary>
+	/// Gets the Bitcoin address for this private key.
+	/// </summary>
+	public BitcoinP2PKHAddress P2PKHAddress => this.PublicKey.P2PKHAddress;
+
+	private string DebuggerDisplay => $"{this.TextEncoding} ({this.PublicKey.P2PKHAddress})";
 
 	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
 	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
