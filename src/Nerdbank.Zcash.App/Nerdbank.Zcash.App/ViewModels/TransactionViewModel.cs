@@ -16,7 +16,8 @@ public class TransactionViewModel : ViewModelBase
 
 	public TransactionViewModel()
 	{
-		this.LinkProperty(nameof(this.When), nameof(this.WhenFormatted));
+		this.LinkProperty(nameof(this.When), nameof(this.WhenColumnFormatted));
+		this.LinkProperty(nameof(this.When), nameof(this.WhenDetailedFormatted));
 	}
 
 	public uint? BlockNumber
@@ -39,7 +40,31 @@ public class TransactionViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.when, value);
 	}
 
-	public string WhenFormatted => this.When?.ToString("g") ?? string.Empty;
+	public string WhenColumnFormatted
+	{
+		get
+		{
+			if (this.When is null)
+			{
+				return string.Empty;
+			}
+
+			int daysAgo = (DateTimeOffset.UtcNow - this.When.Value).Days;
+			if (daysAgo < 7)
+			{
+				return $"{this.When:ddd}";
+			}
+
+			if (daysAgo < 6 * 30 || this.When.Value.Year == DateTimeOffset.UtcNow.Year)
+			{
+				return $"{this.When:d MMM}";
+			}
+
+			return $"{this.When:d}";
+		}
+	}
+
+	public string WhenDetailedFormatted => this.When?.ToString("g") ?? string.Empty;
 
 	public string WhenCaption => "When";
 

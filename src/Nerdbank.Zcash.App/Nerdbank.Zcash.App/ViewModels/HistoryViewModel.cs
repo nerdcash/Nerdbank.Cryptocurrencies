@@ -9,6 +9,8 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
+	private bool exchangeRateExplanationIsVisible = true;
+
 	private TransactionViewModel? selectedTransaction;
 
 	[Obsolete("For design-time use only", error: true)]
@@ -17,18 +19,20 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		this.Transactions.AddRange(new TransactionViewModel[]
 		{
-			new() { Amount = ZEC(1.2345m), RunningBalance = ZEC(1.2345m), IsIncoming = true, OtherPartyName = "Andrew Arnott", Memo = "For the pizza", TransactionId = "12345abc", When = DateTimeOffset.Now.Subtract(TimeSpan.FromDays(1)) },
-			new() { Amount = ZEC(-0.5m), RunningBalance = ZEC(1.2345m - 0.5m), IsIncoming = false, OtherPartyName = "Red Rock Cafe", Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now },
+			new() { Amount = ZEC(1.2345m), RunningBalance = ZEC(1.2345m), IsIncoming = true, OtherPartyName = "Andrew Arnott", Memo = "For the pizza", TransactionId = "12345abc", When = DateTimeOffset.Now - TimeSpan.FromDays(200) },
+			new() { Amount = ZEC(-0.5m), RunningBalance = ZEC(1.2345m - 0.5m), IsIncoming = false, OtherPartyName = "Red Rock Cafe", Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now - TimeSpan.FromDays(35) },
+			new() { Amount = ZEC(2m), RunningBalance = ZEC(1.2345m - 0.5m + 2m), IsIncoming = true, OtherPartyName = "Employer", Memo = "Paycheck", TransactionId = "236ba", When = DateTimeOffset.Now - TimeSpan.FromDays(2) },
 		});
 
 		SecurityAmount ZEC(decimal amount) => this.SelectedSecurity.Amount(amount);
-
-		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 	}
 
 	public HistoryViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
+		this.HideExchangeRateExplanationCommand = ReactiveCommand.Create(() => { this.ExchangeRateExplanationIsVisible = false; });
+
+		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
 	}
 
@@ -55,4 +59,16 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	}
 
 	public bool IsTransactionDetailsVisible => this.SelectedTransaction is not null;
+
+	public string ExchangeRateExplanation => "The value in fiat currency is based on the exchange rate at the time of each transaction.";
+
+	public bool ExchangeRateExplanationIsVisible
+	{
+		get => this.exchangeRateExplanationIsVisible;
+		set => this.RaiseAndSetIfChanged(ref this.exchangeRateExplanationIsVisible, value);
+	}
+
+	public ReactiveCommand<Unit, Unit> HideExchangeRateExplanationCommand { get; }
+
+	public string HideExchangeRateExplanationCommandCaption => "Got it";
 }
