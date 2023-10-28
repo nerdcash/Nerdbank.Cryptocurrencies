@@ -3,19 +3,19 @@
 
 using NBitcoin.Secp256k1;
 
-namespace Nerdbank.Cryptocurrencies.Bitcoin;
+namespace Nerdbank.Bitcoin;
 
 /// <summary>
 /// An elliptic curve public key.
 /// </summary>
-internal class PublicKey : IKey
+public class PublicKey : IKey
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="PublicKey" /> class.
 	/// </summary>
 	/// <param name="key">The underlying cryptographic key.</param>
 	/// <param name="isTestNet">A value indicating whether this key operates on the testnet.</param>
-	internal PublicKey(ECPubKey key, bool isTestNet)
+	public PublicKey(ECPubKey key, bool isTestNet)
 	{
 		this.CryptographicKey = key;
 		this.IsTestNet = isTestNet;
@@ -27,5 +27,5 @@ internal class PublicKey : IKey
 	/// <summary>
 	/// Gets the underlying cryptographic key.
 	/// </summary>
-	internal ECPubKey CryptographicKey { get; }
+	public ECPubKey CryptographicKey { get; }
 }

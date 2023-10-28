@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using NBitcoin.Secp256k1;
-using Org.BouncyCastle.Tls;
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
+using Nerdbank.Bitcoin;
+using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -161,10 +161,10 @@ public partial class Zip32HDWallet
 			/// <exception cref="InvalidOperationException">Thrown if this instance does not conform to either a full or viewing key.</exception>
 			public ExtendedViewingKey GetReceivingKey(uint index)
 			{
-				KeyPath derivationPath = this.Depth switch
+				Bip32KeyPath derivationPath = this.Depth switch
 				{
-					3 => new KeyPath(index, new KeyPath((uint)Bip44MultiAccountHD.Change.ReceivingAddressChain)),
-					4 when this.ChildIndex == (uint)Bip44MultiAccountHD.Change.ReceivingAddressChain => new KeyPath(index),
+					3 => new Bip32KeyPath(index, new Bip32KeyPath((uint)Bip44MultiAccountHD.Change.ReceivingAddressChain)),
+					4 when this.ChildIndex == (uint)Bip44MultiAccountHD.Change.ReceivingAddressChain => new Bip32KeyPath(index),
 					_ => throw new InvalidOperationException("This is not the full or incoming viewing key."),
 				};
 				return this.Derive(derivationPath);

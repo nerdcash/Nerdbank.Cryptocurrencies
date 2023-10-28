@@ -4,9 +4,8 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using NBitcoin.Secp256k1;
-using Nerdbank.Cryptocurrencies.Bitcoin;
 
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 public static partial class Bip32HDWallet
 {
@@ -112,7 +111,7 @@ public static partial class Bip32HDWallet
 
 			return new ExtendedPrivateKey(ECPrivKey.Create(masterKey), chainCode, testNet)
 			{
-				DerivationPath = KeyPath.Root,
+				DerivationPath = Bip32KeyPath.Root,
 			};
 		}
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
@@ -122,7 +121,7 @@ public static partial class Bip32HDWallet
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
 			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
-			if ((childIndex & HardenedBit) != 0)
+			if ((childIndex & Bip32KeyPath.HardenedBit) != 0)
 			{
 				this.Key.CryptographicKey.WriteToSpan(hashInput[1..]);
 			}

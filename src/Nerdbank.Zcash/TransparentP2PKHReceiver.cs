@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Digests;
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
 

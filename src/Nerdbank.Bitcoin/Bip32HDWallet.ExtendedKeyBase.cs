@@ -5,10 +5,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Nerdbank.Cryptocurrencies.Bitcoin;
 using Secp = NBitcoin.Secp256k1;
 
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 public static partial class Bip32HDWallet
 {
@@ -102,7 +101,7 @@ public static partial class Bip32HDWallet
 		}
 
 		/// <inheritdoc/>
-		public KeyPath? DerivationPath { get; init; }
+		public Bip32KeyPath? DerivationPath { get; init; }
 
 		/// <summary>
 		/// Gets the first 32-bits of the <see cref="Identifier"/> of the parent key.

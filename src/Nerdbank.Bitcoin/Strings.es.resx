@@ -117,46 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Bech32TagBufferTooSmall" xml:space="preserve">
-    <value>El búfer de etiquetas es demasiado pequeño.</value>
-  </data>
-  <data name="CallResetFirst" xml:space="preserve">
-    <value>Este objeto no se ha reinicializado desde la última vez que se finalizó. ¡Llama primero a "{methodName}".</value>
-  </data>
-  <data name="DecodeInputTooShort" xml:space="preserve">
-    <value>La longitud de entrada es más corta que el mínimo requerido para esta codificación.</value>
-  </data>
-  <data name="HumanReadablePartRequired" xml:space="preserve">
-    <value>No se permite una parte vacía legible por humanos.</value>
-  </data>
-  <data name="InvalidBip32KeyPath" xml:space="preserve">
-    <value>Ruta de derivación de clave BIP-32 no válida.</value>
-  </data>
-  <data name="InvalidCharXFoundAtY" xml:space="preserve">
-    <value>¡Carácter '{character}' no permitido encontrado en la posición {position}.</value>
+  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
+    <value>Un niño endurecido no puede derivarse de una clave extendida pública. Utiliza una clave extendida privada en su lugar.</value>
   </data>
   <data name="InvalidChecksum" xml:space="preserve">
     <value>Suma de comprobación no válida.</value>
   </data>
-  <data name="InvalidOnKeyPathRoot" xml:space="preserve">
-    <value>Esta operación no es válida en el nodo KeyPath.Root de una ruta clave.</value>
+  <data name="LengthMustBeNonEmptyAndDivisibleBy4" xml:space="preserve">
+    <value>La longitud del búfer debe ser múltiplo de 4 distinto de cero.</value>
   </data>
-  <data name="MissingBech32Separator" xml:space="preserve">
-    <value>¡No se ha encontrado ningún carácter separador '1'.</value>
+  <data name="MustBeNonZeroMultipleOf32" xml:space="preserve">
+    <value>Este número debe ser un múltiplo distinto de cero de 32.</value>
   </data>
-  <data name="TargetBufferTooSmall" xml:space="preserve">
-    <value>¡El búfer de destino no es lo suficientemente grande como para contener la carga útil decodificada.</value>
+  <data name="VeryUnlikelyInvalidChildKey" xml:space="preserve">
+    <value>Esta clave derivada no es válida por una razón estadísticamente muy improbable. ¡Por favor, pase al siguiente número de niño.</value>
   </data>
-  <data name="SecurityMismatch" xml:space="preserve">
-    <value>Esta operación requiere que todas las entradas sean del mismo tipo de seguridad.</value>
+  <data name="VeryUnlikelyUnvalidChildKeyOnPath" xml:space="preserve">
+    <value>Error en la generación de claves en {keyPath}.</value>
   </data>
-  <data name="HistoricalPricesNotAvailable" xml:space="preserve">
-    <value>Los precios históricos no están disponibles en este intercambio.</value>
+  <data name="WordNotOnWordList" xml:space="preserve">
+    <value>La palabra '{word}' no aparece en la lista de palabras permitidas.</value>
   </data>
-  <data name="TradingPairNotSupported" xml:space="preserve">
-    <value>Esta bolsa no ofrece este par de trading.</value>
-  </data>
-  <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
-    <value>La base y el interés comercial deben ser diferentes.</value>
+  <data name="WrongNumberOfWords" xml:space="preserve">
+    <value>Un mnemotécnico no tiene este número de palabras.</value>
   </data>
 </root>

@@ -37,7 +37,7 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
-			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
+			public Bip32KeyPath? DerivationPath { get; init; }
 
 			/// <summary>
 			/// Gets the full viewing key.
@@ -180,7 +180,7 @@ public partial class Zip32HDWallet
 			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
 			public ExtendedSpendingKey Derive(uint childIndex)
 			{
-				bool childIsHardened = (childIndex & Bip32HDWallet.HardenedBit) != 0;
+				bool childIsHardened = (childIndex & Bip32KeyPath.HardenedBit) != 0;
 				if (!childIsHardened)
 				{
 					throw new ArgumentException(Strings.OnlyHardenedChildKeysSupported, nameof(childIndex));

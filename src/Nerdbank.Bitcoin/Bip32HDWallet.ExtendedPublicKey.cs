@@ -5,11 +5,10 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using Nerdbank.Cryptocurrencies.Bitcoin;
 using Org.BouncyCastle.Crypto.Digests;
 using ECPubKey = NBitcoin.Secp256k1.ECPubKey;
 
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 public static partial class Bip32HDWallet
 {
@@ -80,7 +79,7 @@ public static partial class Bip32HDWallet
 		/// <inheritdoc/>
 		public override ExtendedPublicKey Derive(uint childIndex)
 		{
-			if ((childIndex & HardenedBit) != 0)
+			if ((childIndex & Bip32KeyPath.HardenedBit) != 0)
 			{
 				throw new NotSupportedException(Strings.CannotDeriveHardenedChildFromPublicKey);
 			}

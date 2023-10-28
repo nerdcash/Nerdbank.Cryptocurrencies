@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
+using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 {
@@ -50,7 +50,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 	public void Derive_TestVectors(TestVector vector)
 	{
 		ExtendedPrivateKey current = ExtendedPrivateKey.Create(Convert.FromHexString(vector.SeedAsHex));
-		KeyPath keyPath = KeyPath.Root;
+		Bip32KeyPath keyPath = Bip32KeyPath.Root;
 		this.logger.WriteLine($"Initial state: {keyPath}");
 		TestVectorStep step = vector.Steps[0];
 		AssertMatch();
@@ -58,7 +58,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		for (int i = 1; i < vector.Steps.Length; i++)
 		{
 			step = vector.Steps[i];
-			keyPath = new KeyPath(step.ChildIndex, keyPath);
+			keyPath = new Bip32KeyPath(step.ChildIndex, keyPath);
 			this.logger.WriteLine($"Step {i}: {keyPath}");
 			current = current.Derive(step.ChildIndex);
 			AssertMatch();
@@ -77,12 +77,12 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
 		string expected = master.Derive(1).Derive(2).Derive(3).ToString();
 
-		using ExtendedPrivateKey derive12 = master.Derive(KeyPath.Parse("/1/2"));
-		using ExtendedPrivateKey derive3 = derive12.Derive(KeyPath.Parse("/3"));
+		using ExtendedPrivateKey derive12 = master.Derive(Bip32KeyPath.Parse("/1/2"));
+		using ExtendedPrivateKey derive3 = derive12.Derive(Bip32KeyPath.Parse("/3"));
 		AssertEqual(expected, derive3);
 
-		using ExtendedPrivateKey derive123Unrooted = master.Derive(KeyPath.Parse("/1/2/3"));
-		using ExtendedPrivateKey derive123Rooted = master.Derive(KeyPath.Parse("m/1/2/3"));
+		using ExtendedPrivateKey derive123Unrooted = master.Derive(Bip32KeyPath.Parse("/1/2/3"));
+		using ExtendedPrivateKey derive123Rooted = master.Derive(Bip32KeyPath.Parse("m/1/2/3"));
 		AssertEqual(expected, derive123Unrooted);
 		AssertEqual(expected, derive123Rooted);
 	}
@@ -94,11 +94,11 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		using ExtendedPrivateKey derived = master.Derive(1);
 
 		// This first simply cannot happen because one cannot derive a sibling key.
-		Assert.Throws<NotSupportedException>(() => derived.Derive(KeyPath.Parse("m/2")));
+		Assert.Throws<NotSupportedException>(() => derived.Derive(Bip32KeyPath.Parse("m/2")));
 
 		// This cannot happen until we decide that since we can match the depth and child number,
 		// we can *assume* the rest of the path is the same and proceed to derive the next step.
-		Assert.Throws<NotSupportedException>(() => derived.Derive(KeyPath.Parse("m/1/2")));
+		Assert.Throws<NotSupportedException>(() => derived.Derive(Bip32KeyPath.Parse("m/1/2")));
 	}
 
 	[Fact]
@@ -120,7 +120,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 	public void DerivationPath()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
-		Assert.Equal(KeyPath.Root, master.DerivationPath);
+		Assert.Equal(Bip32KeyPath.Root, master.DerivationPath);
 		Assert.Equal("m/2", master.Derive(2).DerivationPath?.ToString());
 	}
 }
