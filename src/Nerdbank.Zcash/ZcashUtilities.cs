@@ -91,13 +91,17 @@ public static class ZcashUtilities
 		{
 			key = saplingIVK;
 		}
-		else if (Zip32HDWallet.Transparent.ExtendedSpendingKey.TryDecode(encodedKey, out _, out _, out Zip32HDWallet.Transparent.ExtendedSpendingKey? transparentPrivateKey))
+		else if (Zip32HDWallet.Transparent.ExtendedSpendingKey.TryDecode(encodedKey, out _, out _, out Zip32HDWallet.Transparent.ExtendedSpendingKey? transparentExtPrivateKey))
+		{
+			key = transparentExtPrivateKey;
+		}
+		else if (Zip32HDWallet.Transparent.ExtendedViewingKey.TryDecode(encodedKey, out _, out _, out Zip32HDWallet.Transparent.ExtendedViewingKey? transparentExtViewingKey))
+		{
+			key = transparentExtViewingKey;
+		}
+		else if (Transparent.PrivateKey.TryDecode(encodedKey, out _, out _, out Transparent.PrivateKey? transparentPrivateKey))
 		{
 			key = transparentPrivateKey;
-		}
-		else if (Zip32HDWallet.Transparent.ExtendedViewingKey.TryDecode(encodedKey, out _, out _, out Zip32HDWallet.Transparent.ExtendedViewingKey? transparentViewingKey))
-		{
-			key = transparentViewingKey;
 		}
 		else
 		{

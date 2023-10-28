@@ -32,15 +32,9 @@ public class PrivateKey : IDisposable, IKey, IKeyWithTextEncoding
 	{
 		get
 		{
-			// https://developer.bitcoin.org/devguide/wallets.html#wallet-import-format-wif
 			Span<byte> keyMaterial = stackalloc byte[32];
 			this.CryptographicKey.sec.WriteToSpan(keyMaterial);
-			Span<byte> versionAndPayload = stackalloc byte[1 + keyMaterial.Length];
-			versionAndPayload[0] = this.IsTestNet ? (byte)0xef : (byte)0x80;
-			keyMaterial.CopyTo(versionAndPayload[1..]);
-			Span<char> encoding = stackalloc char[Base58Check.GetMaxEncodedLength(versionAndPayload.Length)];
-			int length = Base58Check.Encode(versionAndPayload, encoding);
-			return encoding[..length].ToString();
+			return Encode(keyMaterial, this.IsTestNet);
 		}
 	}
 
@@ -112,6 +106,23 @@ public class PrivateKey : IDisposable, IKey, IKeyWithTextEncoding
 
 		key = new(privKey, isTestNet);
 		return true;
+	}
+
+	/// <summary>
+	/// Encodes a private key into the Wallet Import Format (WIF).
+	/// </summary>
+	/// <param name="privateKey">The private key.</param>
+	/// <param name="isTestNet">A value indicating whether this is for testnet.</param>
+	/// <returns>The encoded string.</returns>
+	public static string Encode(ReadOnlySpan<byte> privateKey, bool isTestNet)
+	{
+		// https://developer.bitcoin.org/devguide/wallets.html#wallet-import-format-wif
+		Span<byte> versionAndPayload = stackalloc byte[1 + privateKey.Length];
+		versionAndPayload[0] = isTestNet ? (byte)0xef : (byte)0x80;
+		privateKey.CopyTo(versionAndPayload[1..]);
+		Span<char> encoding = stackalloc char[Base58Check.GetMaxEncodedLength(versionAndPayload.Length)];
+		int length = Base58Check.Encode(versionAndPayload, encoding);
+		return encoding[..length].ToString();
 	}
 
 	/// <inheritdoc/>

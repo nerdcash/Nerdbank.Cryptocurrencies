@@ -62,6 +62,11 @@ public static partial class Bip32HDWallet
 		public ECPrivKey CryptographicKey => this.Key.CryptographicKey;
 
 		/// <summary>
+		/// Gets the underlying private key that this object extends.
+		/// </summary>
+		public PrivateKey Key { get; }
+
+		/// <summary>
 		/// Gets the public extended key counterpart to this private key.
 		/// </summary>
 		public ExtendedPublicKey PublicKey => this.publicKey ??= new ExtendedPublicKey(this.CryptographicKey.CreatePubKey(), this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildIndex, this.IsTestNet) { DerivationPath = this.DerivationPath };
@@ -78,11 +83,6 @@ public static partial class Bip32HDWallet
 		/// Gets the version header for private keys on testnet.
 		/// </summary>
 		internal static ReadOnlySpan<byte> TestNet => new byte[] { 0x04, 0x35, 0x83, 0x94 };
-
-		/// <summary>
-		/// Gets the underlying private key that this object extends.
-		/// </summary>
-		internal PrivateKey Key { get; }
 
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;

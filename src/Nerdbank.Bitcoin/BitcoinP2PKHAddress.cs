@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using NBitcoin.Secp256k1;
 using Nerdbank.Zcash.FixedLengthStructs;
-using Org.BouncyCastle.Crypto.Digests;
-using SHA256 = System.Security.Cryptography.SHA256;
 
 namespace Nerdbank.Bitcoin;
 
@@ -32,23 +30,17 @@ public class BitcoinP2PKHAddress
 		pubKey.WriteToSpan(true, pubKeyBytes, out int bytesWritten);
 		pubKeyBytes = pubKeyBytes[..bytesWritten];
 
-		Span<byte> sha256HashBytes = stackalloc byte[32];
-		Assumes.True(SHA256.HashData(pubKeyBytes, sha256HashBytes) == sha256HashBytes.Length);
-
 		Span<byte> payloadWithVersion = stackalloc byte[1 + 20];
 		payloadWithVersion[0] = isTestNet ? (byte)0x6f : (byte)0x00;
 
-		Span<byte> publicKeyHash = payloadWithVersion[1..];
-		RipeMD160Digest digest = new();
-		digest.BlockUpdate(sha256HashBytes);
-		Assumes.True(digest.DoFinal(publicKeyHash) == publicKeyHash.Length);
+		PublicKey.CreatePublicKeyHash(pubKeyBytes, payloadWithVersion[1..]);
 
 		Span<char> address = stackalloc char[Base58Check.GetMaxEncodedLength(payloadWithVersion.Length)];
 		int charLength = Base58Check.Encode(payloadWithVersion, address);
 
 		this.TextEncoding = address[..charLength].ToString();
 		this.IsTestNet = isTestNet;
-		this.publicKeyHash = new(publicKeyHash);
+		this.publicKeyHash = new(payloadWithVersion[1..]);
 	}
 
 	/// <summary>

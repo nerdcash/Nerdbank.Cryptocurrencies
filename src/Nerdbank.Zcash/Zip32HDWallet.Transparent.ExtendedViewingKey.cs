@@ -28,6 +28,7 @@ public partial class Zip32HDWallet
 				Requires.NotNull(copyFrom);
 				Requires.Argument(copyFrom.IsTestNet == network.IsTestNet(), nameof(network), "Does not agree with IsTestNet on base type.");
 				this.Network = network;
+				this.Key = new Zcash.Transparent.PublicKey(this.CryptographicKey, network);
 			}
 
 			/// <summary>
@@ -44,7 +45,13 @@ public partial class Zip32HDWallet
 				: base(key, chainCode.Value, parentFullViewingKeyTag.Value, depth, childIndex, network.IsTestNet())
 			{
 				this.Network = network;
+				this.Key = new Zcash.Transparent.PublicKey(this.CryptographicKey, network);
 			}
+
+			/// <summary>
+			/// Gets the public key.
+			/// </summary>
+			public new Zcash.Transparent.PublicKey Key { get; }
 
 			/// <inheritdoc/>
 			public ZcashNetwork Network { get; }

@@ -59,6 +59,11 @@ public static partial class Bip32HDWallet
 		public ECPubKey CryptographicKey => this.key.CryptographicKey;
 
 		/// <summary>
+		/// Gets the key.
+		/// </summary>
+		public PublicKey Key => this.key;
+
+		/// <summary>
 		/// Gets the version header for public keys on mainnet.
 		/// </summary>
 		internal static ReadOnlySpan<byte> MainNet => new byte[] { 0x04, 0x88, 0xB2, 0x1E };
@@ -67,11 +72,6 @@ public static partial class Bip32HDWallet
 		/// Gets the version header for public keys on testnet.
 		/// </summary>
 		internal static ReadOnlySpan<byte> TestNet => new byte[] { 0x04, 0x35, 0x87, 0xCF };
-
-		/// <summary>
-		/// Gets the key.
-		/// </summary>
-		internal PublicKey Key => this.key;
 
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
