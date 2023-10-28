@@ -8,3 +8,4 @@ global using Nerdbank.Zcash.App.Models;
 global using Nerdbank.Zcash.App.ViewModels;
 global using Xunit;
 global using Xunit.Abstractions;
+global using Bip39Mnemonic = Nerdbank.Bitcoin.Bip39Mnemonic;

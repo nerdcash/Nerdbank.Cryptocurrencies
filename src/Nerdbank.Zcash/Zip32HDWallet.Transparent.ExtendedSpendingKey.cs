@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using NBitcoin.Secp256k1;
+using Nerdbank.Bitcoin;
 
 namespace Nerdbank.Zcash;
 
@@ -29,6 +30,7 @@ public partial class Zip32HDWallet
 				: base(key, chainCode.Value, parentFullViewingKeyTag.Value, depth, childIndex, network.IsTestNet())
 			{
 				this.Network = network;
+				this.Key = new Zcash.Transparent.PrivateKey(key, network);
 			}
 
 			/// <summary>
@@ -40,7 +42,13 @@ public partial class Zip32HDWallet
 				: base(copyFrom)
 			{
 				this.Network = network;
+				this.Key = new Zcash.Transparent.PrivateKey(this.CryptographicKey, network);
 			}
+
+			/// <summary>
+			/// Gets the private key.
+			/// </summary>
+			public new Zcash.Transparent.PrivateKey Key { get; }
 
 			/// <inheritdoc/>
 			public ZcashNetwork Network { get; }

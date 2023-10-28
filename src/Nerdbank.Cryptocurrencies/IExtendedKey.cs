@@ -24,18 +24,18 @@ public interface IExtendedKey : IKey
 	/// <remarks>
 	/// A key that was deserialized from its text representation will not have a known derivation path.
 	/// </remarks>
-	Bip32HDWallet.KeyPath? DerivationPath { get; }
+	Bip32KeyPath? DerivationPath { get; }
 
 	/// <summary>
 	/// Derives a new extended private key that is a direct child of this one.
 	/// </summary>
-	/// <param name="childIndex">The child key number to derive. This may include the <see cref="Bip32HDWallet.HardenedBit"/> to derive a hardened key.</param>
+	/// <param name="childIndex">The child key number to derive. This may include the <see cref="Bip32KeyPath.HardenedBit"/> to derive a hardened key.</param>
 	/// <returns>A derived extended key.</returns>
 	/// <exception cref="InvalidKeyException">
 	/// Thrown in a statistically extremely unlikely event of the derived key being invalid.
 	/// Callers should handle this exception by requesting a new key with an incremented value
 	/// for <paramref name="childIndex"/>.
 	/// </exception>
-	/// <exception cref="NotSupportedException">Thrown if the value of the <see cref="Bip32HDWallet.HardenedBit"/> in the <paramref name="childIndex"/> argument is not supported by the receiving key.</exception>
+	/// <exception cref="NotSupportedException">Thrown if the value of the <see cref="Bip32KeyPath.HardenedBit"/> in the <paramref name="childIndex"/> argument is not supported by the receiving key.</exception>
 	IExtendedKey Derive(uint childIndex);
 }

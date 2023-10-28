@@ -3,7 +3,7 @@
 
 using System.CommandLine;
 using System.CommandLine.IO;
-using Nerdbank.Cryptocurrencies;
+using Nerdbank.Bitcoin;
 
 namespace Nerdbank.Zcash.Cli;
 

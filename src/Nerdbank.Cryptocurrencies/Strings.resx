@@ -123,9 +123,6 @@
   <data name="CallResetFirst" xml:space="preserve">
     <value>This object has not been reinitialized since it was last finalized. Call "{methodName}" first.</value>
   </data>
-  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
-    <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
-  </data>
   <data name="DecodeInputTooShort" xml:space="preserve">
     <value>The input length is shorter than the minimum required for this encoding.</value>
   </data>
@@ -147,14 +144,8 @@
   <data name="InvalidOnKeyPathRoot" xml:space="preserve">
     <value>This operation is not valid on the KeyPath.Root node of a key path.</value>
   </data>
-  <data name="LengthMustBeNonEmptyAndDivisibleBy4" xml:space="preserve">
-    <value>The length of the buffer must be non-zero multiple of 4.</value>
-  </data>
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>No '1' separator character found.</value>
-  </data>
-  <data name="MustBeNonZeroMultipleOf32" xml:space="preserve">
-    <value>This number must be a non-zero multiple of 32.</value>
   </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>This operation requires all inputs to be of the same security type.</value>
@@ -167,17 +158,5 @@
   </data>
   <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
     <value>The basis and trade interest must be different.</value>
-  </data>
-  <data name="VeryUnlikelyInvalidChildKey" xml:space="preserve">
-    <value>This derived key is invalid for a statistically highly improbable reason. Please skip to the next child number.</value>
-  </data>
-  <data name="VeryUnlikelyUnvalidChildKeyOnPath" xml:space="preserve">
-    <value>Key generation failure at {keyPath}.</value>
-  </data>
-  <data name="WordNotOnWordList" xml:space="preserve">
-    <value>The word '{word}' does not appear on the allowed word list.</value>
-  </data>
-  <data name="WrongNumberOfWords" xml:space="preserve">
-    <value>A mnemonic does not have this number of words.</value>
   </data>
 </root>

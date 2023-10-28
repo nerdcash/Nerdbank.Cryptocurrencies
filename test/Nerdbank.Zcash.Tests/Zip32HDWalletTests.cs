@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Numerics;
+using Nerdbank.Bitcoin;
 
 public class Zip32HDWalletTests : TestBase
 {
@@ -169,7 +170,7 @@ public class Zip32HDWalletTests : TestBase
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
 		Zip32HDWallet.Orchard.ExtendedSpendingKey account = wallet.CreateOrchardAccount(1);
-		Assert.Equal(1u | Bip32HDWallet.HardenedBit, account.ChildIndex);
+		Assert.Equal(1u | Bip32KeyPath.HardenedBit, account.ChildIndex);
 
 		Assert.Equal(new OrchardAddress(account.IncomingViewingKey.CreateReceiver(0), ZcashNetwork.TestNet), account.DefaultAddress);
 	}
@@ -179,7 +180,7 @@ public class Zip32HDWalletTests : TestBase
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(1);
-		Assert.Equal(1u | Bip32HDWallet.HardenedBit, account.ChildIndex);
+		Assert.Equal(1u | Bip32KeyPath.HardenedBit, account.ChildIndex);
 
 		DiversifierIndex diversifier = default;
 		Assert.True(account.IncomingViewingKey.TryCreateReceiver(ref diversifier, out SaplingReceiver? receiver));

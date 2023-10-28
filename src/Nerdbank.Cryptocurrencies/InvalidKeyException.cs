@@ -30,7 +30,7 @@ public class InvalidKeyException : Exception
 	}
 
 	/// <summary>
-	/// Gets the key derivationpath that failed, if applicable.
+	/// Gets the key derivation path that failed, if applicable.
 	/// </summary>
-	public Bip32HDWallet.KeyPath? KeyPath { get; init; }
+	public Bip32KeyPath? KeyPath { get; init; }
 }

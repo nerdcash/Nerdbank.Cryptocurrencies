@@ -6,3 +6,4 @@ global using System.Reactive;
 global using Nerdbank.Zcash.App.Models;
 global using Nerdbank.Zcash.App.ViewModels;
 global using ReactiveUI;
+global using Bip39Mnemonic = Nerdbank.Bitcoin.Bip39Mnemonic;

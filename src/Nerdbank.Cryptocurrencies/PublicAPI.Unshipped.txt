@@ -1,63 +1,23 @@
 ﻿#nullable enable
-abstract Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.Derive(uint childIndex) -> Nerdbank.Cryptocurrencies.IExtendedKey!
-abstract Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.Identifier.get -> System.ReadOnlySpan<byte>
-abstract Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.Version.get -> System.ReadOnlySpan<byte>
-abstract Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.WriteKeyMaterial(System.Span<byte> destination) -> int
-const Nerdbank.Cryptocurrencies.Bip32HDWallet.HardenedBit = 2147483648 -> uint
-const Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.RecommendedAddressGapLimit = 20 -> uint
+const Nerdbank.Cryptocurrencies.Bip32KeyPath.HardenedBit = 2147483648 -> uint
 Nerdbank.Cryptocurrencies.Base58Check
 Nerdbank.Cryptocurrencies.Bech32
 Nerdbank.Cryptocurrencies.Bech32.Decode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data) -> (int TagLength, int DataLength)
 Nerdbank.Cryptocurrencies.Bech32.Encode(System.ReadOnlySpan<char> tag, System.ReadOnlySpan<byte> data, System.Span<char> output) -> int
 Nerdbank.Cryptocurrencies.Bech32.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<char> tag, System.Span<byte> data, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length) -> bool
-Nerdbank.Cryptocurrencies.Bip32HDWallet
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.ChainCode.get -> System.ReadOnlySpan<byte>
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.ChildIndex.get -> uint
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.DebuggerDisplay.get -> string!
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.Depth.get -> byte
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.DerivationPath.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.DerivationPath.init -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.ExtendedKeyBase(Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase! copyFrom) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.IsTestNet.get -> bool
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.ParentFingerprint.get -> System.ReadOnlySpan<byte>
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.TextEncoding.get -> string!
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.WriteBytes(System.Span<byte> destination) -> int
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.CryptographicKey.get -> NBitcoin.Secp256k1.ECPrivKey!
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Dispose() -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(NBitcoin.Secp256k1.ECPrivKey! key, System.ReadOnlySpan<byte> chainCode, bool testNet) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(NBitcoin.Secp256k1.ECPrivKey! key, System.ReadOnlySpan<byte> chainCode, System.ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey! copyFrom) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.PublicKey.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey!
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.CryptographicKey.get -> NBitcoin.Secp256k1.ECPubKey!
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.ExtendedPublicKey(NBitcoin.Secp256k1.ECPubKey! key, System.ReadOnlySpan<byte> chainCode, System.ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.ExtendedPublicKey(Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey! copyFrom) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Append(uint index) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.CompareTo(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? other) -> int
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Index.get -> uint
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.IsHardened.get -> bool
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.IsRooted.get -> bool
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.KeyPath(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! original) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.KeyPath(uint index, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? parent = null) -> void
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Length.get -> uint
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parent.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Steps.get -> System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.this[uint level].get -> uint
-Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Truncate(uint length) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-Nerdbank.Cryptocurrencies.Bip39Mnemonic
-Nerdbank.Cryptocurrencies.Bip39Mnemonic.Bip39Mnemonic(System.ReadOnlySpan<byte> entropy, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> void
-Nerdbank.Cryptocurrencies.Bip39Mnemonic.Entropy.get -> System.ReadOnlySpan<byte>
-Nerdbank.Cryptocurrencies.Bip39Mnemonic.Password.get -> System.ReadOnlyMemory<char>
-Nerdbank.Cryptocurrencies.Bip39Mnemonic.Seed.get -> System.ReadOnlySpan<byte>
-Nerdbank.Cryptocurrencies.Bip39Mnemonic.SeedPhrase.get -> string!
-Nerdbank.Cryptocurrencies.Bip39Mnemonic.ToString(int words) -> string!
-Nerdbank.Cryptocurrencies.Bip44MultiAccountHD
-Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
-Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change.ChangeAddressChain = 1 -> Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
-Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change.ReceivingAddressChain = 0 -> Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change
+Nerdbank.Cryptocurrencies.Bip32KeyPath
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Append(uint index) -> Nerdbank.Cryptocurrencies.Bip32KeyPath!
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Bip32KeyPath(Nerdbank.Cryptocurrencies.Bip32KeyPath! original) -> void
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Bip32KeyPath(uint index, Nerdbank.Cryptocurrencies.Bip32KeyPath? parent = null) -> void
+Nerdbank.Cryptocurrencies.Bip32KeyPath.CompareTo(Nerdbank.Cryptocurrencies.Bip32KeyPath? other) -> int
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Index.get -> uint
+Nerdbank.Cryptocurrencies.Bip32KeyPath.IsHardened.get -> bool
+Nerdbank.Cryptocurrencies.Bip32KeyPath.IsRooted.get -> bool
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Length.get -> uint
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Parent.get -> Nerdbank.Cryptocurrencies.Bip32KeyPath?
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Steps.get -> System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Bip32KeyPath!>!
+Nerdbank.Cryptocurrencies.Bip32KeyPath.this[uint level].get -> uint
+Nerdbank.Cryptocurrencies.Bip32KeyPath.Truncate(uint length) -> Nerdbank.Cryptocurrencies.Bip32KeyPath!
 Nerdbank.Cryptocurrencies.BitUtilities
 Nerdbank.Cryptocurrencies.Blake2B
 Nerdbank.Cryptocurrencies.Blake2B.Blake2B() -> void
@@ -78,7 +38,6 @@ Nerdbank.Cryptocurrencies.Blake2B.Reset() -> void
 Nerdbank.Cryptocurrencies.Blake2B.Reset(in Nerdbank.Cryptocurrencies.Blake2B.Config config) -> void
 Nerdbank.Cryptocurrencies.Blake2B.Update(System.ReadOnlySpan<byte> data) -> void
 Nerdbank.Cryptocurrencies.CompactSize
-Nerdbank.Cryptocurrencies.CryptoUtilities
 Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.BadPadding = 4 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.BadWordCount = 6 -> Nerdbank.Cryptocurrencies.DecodeError
@@ -162,7 +121,7 @@ Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradingPair(Nerdbank.Cryptocurre
 Nerdbank.Cryptocurrencies.IExtendedKey
 Nerdbank.Cryptocurrencies.IExtendedKey.ChildIndex.get -> uint
 Nerdbank.Cryptocurrencies.IExtendedKey.Depth.get -> byte
-Nerdbank.Cryptocurrencies.IExtendedKey.DerivationPath.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
+Nerdbank.Cryptocurrencies.IExtendedKey.DerivationPath.get -> Nerdbank.Cryptocurrencies.Bip32KeyPath?
 Nerdbank.Cryptocurrencies.IExtendedKey.Derive(uint childIndex) -> Nerdbank.Cryptocurrencies.IExtendedKey!
 Nerdbank.Cryptocurrencies.IKey
 Nerdbank.Cryptocurrencies.IKey.IsTestNet.get -> bool
@@ -173,21 +132,11 @@ Nerdbank.Cryptocurrencies.InvalidKeyException
 Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException() -> void
 Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException(string? message) -> void
 Nerdbank.Cryptocurrencies.InvalidKeyException.InvalidKeyException(string? message, System.Exception? inner) -> void
-Nerdbank.Cryptocurrencies.InvalidKeyException.KeyPath.get -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath?
+Nerdbank.Cryptocurrencies.InvalidKeyException.KeyPath.get -> Nerdbank.Cryptocurrencies.Bip32KeyPath?
 Nerdbank.Cryptocurrencies.InvalidKeyException.KeyPath.init -> void
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.ToString() -> string!
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Derive(uint childIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey!
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Identifier.get -> System.ReadOnlySpan<byte>
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Version.get -> System.ReadOnlySpan<byte>
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.WriteKeyMaterial(System.Span<byte> destination) -> int
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Derive(uint childIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey!
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Identifier.get -> System.ReadOnlySpan<byte>
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.Version.get -> System.ReadOnlySpan<byte>
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPublicKey.WriteKeyMaterial(System.Span<byte> destination) -> int
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Equals(object? obj) -> bool
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.GetHashCode() -> int
-override Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.ToString() -> string!
-override Nerdbank.Cryptocurrencies.Bip39Mnemonic.ToString() -> string!
+override Nerdbank.Cryptocurrencies.Bip32KeyPath.Equals(object? obj) -> bool
+override Nerdbank.Cryptocurrencies.Bip32KeyPath.GetHashCode() -> int
+override Nerdbank.Cryptocurrencies.Bip32KeyPath.ToString() -> string!
 override Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.GetHashCode() -> int
 override Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.ToString() -> string!
 override Nerdbank.Cryptocurrencies.Exchanges.Security.Equals(object? obj) -> bool
@@ -201,31 +150,13 @@ static Nerdbank.Cryptocurrencies.Base58Check.Decode(System.ReadOnlySpan<char> en
 static Nerdbank.Cryptocurrencies.Base58Check.Encode(System.ReadOnlySpan<byte> payload, System.Span<char> chars) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.GetMaxDecodedLength(int charCount) -> int
 static Nerdbank.Cryptocurrencies.Base58Check.GetMaxEncodedLength(int byteCount) -> int
-static Nerdbank.Cryptocurrencies.Base58Check.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out int bytesWritten) -> bool
+static Nerdbank.Cryptocurrencies.Base58Check.TryDecode(System.ReadOnlySpan<char> encoded, System.Span<byte> bytes, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out int bytesWritten) -> bool
 static Nerdbank.Cryptocurrencies.Bech32.GetDecodedLength(System.ReadOnlySpan<char> encoded) -> (int Tag, int Data)?
 static Nerdbank.Cryptocurrencies.Bech32.GetEncodedLength(int tagLength, int dataLength) -> int
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.Decode(System.ReadOnlySpan<char> extendedKeyEncoding) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase!
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedKeyBase? result) -> bool
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Create(Nerdbank.Cryptocurrencies.Bip39Mnemonic! mnemonic, bool testNet = false) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey!
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey.Create(System.ReadOnlySpan<byte> seed, bool testNet = false) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.ExtendedPrivateKey!
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.operator !=(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? left, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? right) -> bool
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.operator ==(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? left, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? right) -> bool
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Parse(System.ReadOnlySpan<char> path) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.TryParse(System.ReadOnlySpan<char> path, out Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? result) -> bool
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Create(int entropyLengthInBits) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Create(int entropyLengthInBits, string? password) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Create(int entropyLengthInBits, System.ReadOnlyMemory<char> password) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Parse(System.ReadOnlySpan<char> seedPhrase) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Parse(System.ReadOnlySpan<char> seedPhrase, string? password) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.Parse(System.ReadOnlySpan<char> seedPhrase, System.ReadOnlyMemory<char> password) -> Nerdbank.Cryptocurrencies.Bip39Mnemonic!
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, string? password, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.TryParse(System.ReadOnlySpan<char> seedPhrase, System.ReadOnlyMemory<char> password, out Nerdbank.Cryptocurrencies.Bip39Mnemonic? mnemonic, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage) -> bool
-static Nerdbank.Cryptocurrencies.Bip39Mnemonic.WordsRequiredForEntropyLength(int entropyLengthInBits) -> int
-static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.CreateKeyPath(uint coinType, uint account, Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.Change change, uint addressIndex) -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint coinType, System.Func<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
-static Nerdbank.Cryptocurrencies.Bip44MultiAccountHD.DiscoverUsedAddressesAsync(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! account, System.Func<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!, System.Threading.Tasks.ValueTask<bool>>! discover, uint addressGapLimit = 20) -> System.Collections.Generic.IAsyncEnumerable<Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!>!
+static Nerdbank.Cryptocurrencies.Bip32KeyPath.operator !=(Nerdbank.Cryptocurrencies.Bip32KeyPath? left, Nerdbank.Cryptocurrencies.Bip32KeyPath? right) -> bool
+static Nerdbank.Cryptocurrencies.Bip32KeyPath.operator ==(Nerdbank.Cryptocurrencies.Bip32KeyPath? left, Nerdbank.Cryptocurrencies.Bip32KeyPath? right) -> bool
+static Nerdbank.Cryptocurrencies.Bip32KeyPath.Parse(System.ReadOnlySpan<char> path) -> Nerdbank.Cryptocurrencies.Bip32KeyPath!
+static Nerdbank.Cryptocurrencies.Bip32KeyPath.TryParse(System.ReadOnlySpan<char> path, out Nerdbank.Cryptocurrencies.Bip32KeyPath? result) -> bool
 static Nerdbank.Cryptocurrencies.BitUtilities.ReadUInt32BE(System.ReadOnlySpan<byte> buffer) -> uint
 static Nerdbank.Cryptocurrencies.BitUtilities.ReadUInt32LE(System.ReadOnlySpan<byte> buffer) -> uint
 static Nerdbank.Cryptocurrencies.BitUtilities.ReadUInt64LE(System.ReadOnlySpan<byte> buffer) -> ulong
@@ -237,7 +168,6 @@ static Nerdbank.Cryptocurrencies.Blake2B.ComputeHash(System.ReadOnlySpan<byte> d
 static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> buffer, out ulong value) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.Encode(ulong value, System.Span<byte> buffer) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.GetEncodedLength(ulong value) -> int
-static Nerdbank.Cryptocurrencies.CryptoUtilities.Derive<TKey>(this TKey! key, Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath! keyPath) -> TKey!
 static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator !=(Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate left, Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate right) -> bool
 static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator ==(Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate left, Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate right) -> bool
 static Nerdbank.Cryptocurrencies.Exchanges.Security.operator !=(Nerdbank.Cryptocurrencies.Exchanges.Security? left, Nerdbank.Cryptocurrencies.Exchanges.Security? right) -> bool
@@ -253,7 +183,7 @@ static Nerdbank.Cryptocurrencies.Exchanges.TradingPair.operator !=(Nerdbank.Cryp
 static Nerdbank.Cryptocurrencies.Exchanges.TradingPair.operator ==(Nerdbank.Cryptocurrencies.Exchanges.TradingPair left, Nerdbank.Cryptocurrencies.Exchanges.TradingPair right) -> bool
 static readonly Nerdbank.Cryptocurrencies.Bech32.Bech32m -> Nerdbank.Cryptocurrencies.Bech32!
 static readonly Nerdbank.Cryptocurrencies.Bech32.Original -> Nerdbank.Cryptocurrencies.Bech32!
-static readonly Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Root -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
+static readonly Nerdbank.Cryptocurrencies.Bip32KeyPath.Root -> Nerdbank.Cryptocurrencies.Bip32KeyPath!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ACM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ADA -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.AEON -> Nerdbank.Cryptocurrencies.Exchanges.Security!
@@ -399,10 +329,10 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZEC -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZEN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZIL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ZRX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
-virtual Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.<Clone>$() -> Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath!
-virtual Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.EqualityContract.get -> System.Type!
-virtual Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.Equals(Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath? other) -> bool
-virtual Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Cryptocurrencies.Bip32KeyPath.<Clone>$() -> Nerdbank.Cryptocurrencies.Bip32KeyPath!
+virtual Nerdbank.Cryptocurrencies.Bip32KeyPath.EqualityContract.get -> System.Type!
+virtual Nerdbank.Cryptocurrencies.Bip32KeyPath.Equals(Nerdbank.Cryptocurrencies.Bip32KeyPath? other) -> bool
+virtual Nerdbank.Cryptocurrencies.Bip32KeyPath.PrintMembers(System.Text.StringBuilder! builder) -> bool
 virtual Nerdbank.Cryptocurrencies.Exchanges.Security.<Clone>$() -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 virtual Nerdbank.Cryptocurrencies.Exchanges.Security.EqualityContract.get -> System.Type!
 virtual Nerdbank.Cryptocurrencies.Exchanges.Security.Equals(Nerdbank.Cryptocurrencies.Exchanges.Security? other) -> bool

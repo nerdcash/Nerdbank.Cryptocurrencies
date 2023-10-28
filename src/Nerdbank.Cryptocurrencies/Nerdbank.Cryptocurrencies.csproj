@@ -5,10 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
-    <PackageReference Include="NBitcoin.Secp256k1" />
   </ItemGroup>
 
   <Import Project="..\SharedSource\SharedSource.projitems" Label="Shared" />

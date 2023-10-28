@@ -53,7 +53,7 @@ public partial class Zip32HDWallet
 			public byte Depth { get; }
 
 			/// <inheritdoc/>
-			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
+			public Bip32KeyPath? DerivationPath { get; init; }
 
 			/// <inheritdoc/>
 			public ZcashNetwork Network => this.FullViewingKey.Network;

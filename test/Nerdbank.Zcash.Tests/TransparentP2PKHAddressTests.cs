@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Bitcoin;
+
 public class TransparentP2PKHAddressTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
@@ -54,11 +56,11 @@ public class TransparentP2PKHAddressTests : TestBase
 			"t1V8GgZ8yf3nVXvkQwdvGN5fo6EPE6CCrAQ",
 		};
 
-		Bip32HDWallet.KeyPath externalChain = new((uint)Bip44MultiAccountHD.Change.ReceivingAddressChain);
+		Bip32KeyPath externalChain = new((uint)Bip44MultiAccountHD.Change.ReceivingAddressChain);
 		for (uint i = 0; i < expectedAddresses.Length; i++)
 		{
-			Bip32HDWallet.KeyPath addrKeyPath = new(i, externalChain);
-			this.logger.WriteLine($"{new Bip32HDWallet.KeyPath(i, addrKeyPath)}");
+			Bip32KeyPath addrKeyPath = new(i, externalChain);
+			this.logger.WriteLine($"{new Bip32KeyPath(i, addrKeyPath)}");
 			Bip32HDWallet.ExtendedPublicKey addrExtendedPublicKey = accountPublicKey.Derive(addrKeyPath);
 
 			TransparentP2PKHReceiver receiver = new(new Zip32HDWallet.Transparent.ExtendedViewingKey(addrExtendedPublicKey, ZcashNetwork.TestNet));

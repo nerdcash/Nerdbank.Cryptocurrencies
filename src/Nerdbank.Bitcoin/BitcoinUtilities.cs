@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
-
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 /// <summary>
 /// Cryptocurrency utility and extension methods.
 /// </summary>
-public static class CryptoUtilities
+public static class BitcoinUtilities
 {
 	/// <summary>
 	/// Derives a new extended private key by following the steps in the specified path.
@@ -22,7 +20,7 @@ public static class CryptoUtilities
 	/// Callers should handle this exception by requesting a new key with an incremented value
 	/// for the child number at the failing position in the key path.
 	/// </exception>
-	public static TKey Derive<TKey>(this TKey key, KeyPath keyPath)
+	public static TKey Derive<TKey>(this TKey key, Bip32KeyPath keyPath)
 		where TKey : class, IExtendedKey
 	{
 		Requires.NotNull(key);
@@ -35,7 +33,7 @@ public static class CryptoUtilities
 
 		TKey result = key;
 		TKey? intermediate = null;
-		foreach (KeyPath step in keyPath.Steps)
+		foreach (Bip32KeyPath step in keyPath.Steps)
 		{
 			try
 			{
@@ -53,5 +51,23 @@ public static class CryptoUtilities
 		}
 
 		return result;
+	}
+
+	/// <summary>
+	/// Returns a bitmask that exposes the specified number of bits in a byte, starting with the most significant bit.
+	/// </summary>
+	/// <param name="msbBits">The number of bits to expose.</param>
+	/// <returns>The bitmask.</returns>
+	internal static byte MaskMSB(int msbBits) => (byte)~MaskLSB(8 - msbBits);
+
+	/// <summary>
+	/// Returns a bitmask that exposes the specified number of bits in a byte, starting with the least significant bit.
+	/// </summary>
+	/// <param name="lsbBits">The number of bits to expose.</param>
+	/// <returns>The bitmask.</returns>
+	internal static byte MaskLSB(int lsbBits)
+	{
+		Requires.Range(lsbBits >= 0 && lsbBits <= 8, nameof(lsbBits));
+		return (byte)((1 << lsbBits) - 1);
 	}
 }

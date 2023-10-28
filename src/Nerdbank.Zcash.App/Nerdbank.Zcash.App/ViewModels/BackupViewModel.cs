@@ -3,7 +3,6 @@
 
 using System.Collections.ObjectModel;
 using Microsoft;
-using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 

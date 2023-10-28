@@ -81,16 +81,16 @@ public static class Base58Check
 	/// </summary>
 	/// <param name="encoded">The encoded representation.</param>
 	/// <param name="bytes">Receives the decoded bytes.</param>
-	/// <param name="decodeResult">Receives the error code of a failed decode operation.</param>
+	/// <param name="decodeError">Receives the error code of a failed decode operation.</param>
 	/// <param name="errorMessage">Receives the error message of a failed decode operation.</param>
 	/// <param name="bytesWritten">Receives the number of bytes written to <paramref name="bytes" />.</param>
 	/// <returns>A value indicating whether decoding was successful.</returns>
-	public static bool TryDecode(ReadOnlySpan<char> encoded, Span<byte> bytes, [NotNullWhen(false)] out DecodeError? decodeResult, [NotNullWhen(false)] out string? errorMessage, out int bytesWritten)
+	public static bool TryDecode(ReadOnlySpan<char> encoded, Span<byte> bytes, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, out int bytesWritten)
 	{
 		Span<byte> rawBytes = stackalloc byte[encoded.Length + ChecksumLength];
 		if (!TryDecodeRaw(encoded, rawBytes, out int decodedCount, out DecodeError? rawDecodeResult, out errorMessage))
 		{
-			decodeResult = rawDecodeResult;
+			decodeError = rawDecodeResult;
 			bytesWritten = 0;
 			return false;
 		}
@@ -98,7 +98,7 @@ public static class Base58Check
 		if (decodedCount < 4)
 		{
 			bytesWritten = 0;
-			decodeResult = DecodeError.InvalidChecksum;
+			decodeError = DecodeError.InvalidChecksum;
 			errorMessage = Strings.DecodeInputTooShort;
 			return false;
 		}
@@ -111,7 +111,7 @@ public static class Base58Check
 		if (!computedChecksum.SequenceEqual(checksum))
 		{
 			bytesWritten = 0;
-			decodeResult = DecodeError.InvalidChecksum;
+			decodeError = DecodeError.InvalidChecksum;
 			errorMessage = Strings.InvalidChecksum;
 			return false;
 		}
@@ -119,13 +119,13 @@ public static class Base58Check
 		if (!payload.TryCopyTo(bytes))
 		{
 			bytesWritten = 0;
-			decodeResult = DecodeError.BufferTooSmall;
+			decodeError = DecodeError.BufferTooSmall;
 			errorMessage = Strings.TargetBufferTooSmall;
 			return false;
 		}
 
 		bytesWritten = payload.Length;
-		decodeResult = null;
+		decodeError = null;
 		errorMessage = null;
 		return true;
 	}
