@@ -4,9 +4,8 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using NBitcoin.Secp256k1;
-using Nerdbank.Cryptocurrencies.Bitcoin;
 
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 public static partial class Bip32HDWallet
 {
@@ -63,6 +62,11 @@ public static partial class Bip32HDWallet
 		public ECPrivKey CryptographicKey => this.Key.CryptographicKey;
 
 		/// <summary>
+		/// Gets the underlying private key that this object extends.
+		/// </summary>
+		public PrivateKey Key { get; }
+
+		/// <summary>
 		/// Gets the public extended key counterpart to this private key.
 		/// </summary>
 		public ExtendedPublicKey PublicKey => this.publicKey ??= new ExtendedPublicKey(this.CryptographicKey.CreatePubKey(), this.ChainCode, this.ParentFingerprint, this.Depth, this.ChildIndex, this.IsTestNet) { DerivationPath = this.DerivationPath };
@@ -79,11 +83,6 @@ public static partial class Bip32HDWallet
 		/// Gets the version header for private keys on testnet.
 		/// </summary>
 		internal static ReadOnlySpan<byte> TestNet => new byte[] { 0x04, 0x35, 0x83, 0x94 };
-
-		/// <summary>
-		/// Gets the underlying private key that this object extends.
-		/// </summary>
-		internal PrivateKey Key { get; }
 
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
@@ -112,7 +111,7 @@ public static partial class Bip32HDWallet
 
 			return new ExtendedPrivateKey(ECPrivKey.Create(masterKey), chainCode, testNet)
 			{
-				DerivationPath = KeyPath.Root,
+				DerivationPath = Bip32KeyPath.Root,
 			};
 		}
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
@@ -122,7 +121,7 @@ public static partial class Bip32HDWallet
 		{
 			Span<byte> hashInput = stackalloc byte[PublicKeyLength + sizeof(uint)];
 			BitUtilities.WriteBE(childIndex, hashInput[PublicKeyLength..]);
-			if ((childIndex & HardenedBit) != 0)
+			if ((childIndex & Bip32KeyPath.HardenedBit) != 0)
 			{
 				this.Key.CryptographicKey.WriteToSpan(hashInput[1..]);
 			}

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
+using Nerdbank.Bitcoin;
 
 namespace Nerdbank.Zcash;
 
@@ -25,7 +25,7 @@ public partial class Zip32HDWallet
 		/// <returns>A master extended spending key.</returns>
 		public static ExtendedSpendingKey Create(ReadOnlySpan<byte> seed, ZcashNetwork network)
 		{
-			return new ExtendedSpendingKey(ExtendedPrivateKey.Create(seed, network.IsTestNet()), network);
+			return new ExtendedSpendingKey(Bip32HDWallet.ExtendedPrivateKey.Create(seed, network.IsTestNet()), network);
 		}
 	}
 }

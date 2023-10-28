@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 /// <summary>
 /// A BIP-39 implementation that can generate new seed phrases and seed binary keys
@@ -221,7 +221,7 @@ public partial class Bip39Mnemonic
 		computedChecksum = computedChecksum[..((int)Math.Ceiling((double)checksumLengthInBits / 8))];
 		if (checksumLengthInBits % 8 > 0)
 		{
-			computedChecksum[^1] &= BitUtilities.MaskMSB(checksumLengthInBits % 8);
+			computedChecksum[^1] &= BitcoinUtilities.MaskMSB(checksumLengthInBits % 8);
 		}
 
 		if (!decodedChecksum.SequenceEqual(computedChecksum))
@@ -334,7 +334,7 @@ public partial class Bip39Mnemonic
 			int unusedLSBs = validBits - useBits;
 
 			// Create a mask for exactly the set of bits we can use from the buffer.
-			byte mask = (byte)(BitUtilities.MaskLSB(useBits) << unusedLSBs);
+			byte mask = (byte)(BitcoinUtilities.MaskLSB(useBits) << unusedLSBs);
 
 			// Now move the bits we can use to the LSB position, truncating the excess LSB.
 			b = (byte)((b & mask) >> unusedLSBs);

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Bitcoin;
 using Nerdbank.Zcash.Orchard;
 
 namespace Nerdbank.Zcash;
@@ -42,7 +43,7 @@ public partial class Zip32HDWallet
 				depth: 0,
 				childIndex: 0)
 			{
-				DerivationPath = Bip32HDWallet.KeyPath.Root,
+				DerivationPath = Bip32KeyPath.Root,
 			};
 		}
 

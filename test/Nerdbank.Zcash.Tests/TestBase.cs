@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Nerdbank.Bitcoin;
 
 public abstract class TestBase
 {

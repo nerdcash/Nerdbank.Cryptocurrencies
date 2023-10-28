@@ -156,22 +156,4 @@ public static class BitUtilities
 
 		return sizeof(ulong);
 	}
-
-	/// <summary>
-	/// Returns a bitmask that exposes the specified number of bits in a byte, starting with the most significant bit.
-	/// </summary>
-	/// <param name="msbBits">The number of bits to expose.</param>
-	/// <returns>The bitmask.</returns>
-	internal static byte MaskMSB(int msbBits) => (byte)~MaskLSB(8 - msbBits);
-
-	/// <summary>
-	/// Returns a bitmask that exposes the specified number of bits in a byte, starting with the least significant bit.
-	/// </summary>
-	/// <param name="lsbBits">The number of bits to expose.</param>
-	/// <returns>The bitmask.</returns>
-	internal static byte MaskLSB(int lsbBits)
-	{
-		Requires.Range(lsbBits >= 0 && lsbBits <= 8, nameof(lsbBits));
-		return (byte)((1 << lsbBits) - 1);
-	}
 }

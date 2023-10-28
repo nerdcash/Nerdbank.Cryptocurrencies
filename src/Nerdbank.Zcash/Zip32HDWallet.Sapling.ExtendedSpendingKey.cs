@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Numerics;
 using Nerdbank.Zcash.Sapling;
 
 namespace Nerdbank.Zcash;
@@ -48,7 +47,7 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
-			public Bip32HDWallet.KeyPath? DerivationPath { get; init; }
+			public Bip32KeyPath? DerivationPath { get; init; }
 
 			/// <summary>
 			/// Gets the extended full viewing key.

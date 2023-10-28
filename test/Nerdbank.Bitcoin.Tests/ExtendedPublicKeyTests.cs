@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
+using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 {
@@ -20,7 +20,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 	{
 		ExtendedPrivateKey m = ExtendedPrivateKey.Create(Convert.FromHexString(vector.SeedAsHex));
 		ExtendedPublicKey current = m.PublicKey;
-		KeyPath keyPath = KeyPath.Root;
+		Bip32KeyPath keyPath = Bip32KeyPath.Root;
 		this.logger.WriteLine($"Initial state: {keyPath}");
 		TestVectorStep step = vector.Steps[0];
 		AssertMatch();
@@ -28,7 +28,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		for (int i = 1; i < vector.Steps.Length; i++)
 		{
 			step = vector.Steps[i];
-			keyPath = new KeyPath(step.ChildIndex, keyPath);
+			keyPath = new Bip32KeyPath(step.ChildIndex, keyPath);
 			if (keyPath.IsHardened)
 			{
 				this.logger.WriteLine($"Step {i}: {keyPath} (skipped due to hardened child)");
@@ -55,7 +55,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 	public void Derive_Hardened()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
-		Assert.Throws<NotSupportedException>(() => master.PublicKey.Derive(2 | HardenedBit));
+		Assert.Throws<NotSupportedException>(() => master.PublicKey.Derive(2 | Bip32KeyPath.HardenedBit));
 	}
 
 	[Fact]
@@ -64,12 +64,12 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
 		string expected = master.PublicKey.Derive(1).Derive(2).Derive(3).ToString();
 
-		ExtendedPublicKey derive12 = master.PublicKey.Derive(KeyPath.Parse("/1/2"));
-		ExtendedPublicKey derive3 = derive12.Derive(KeyPath.Parse("/3"));
+		ExtendedPublicKey derive12 = master.PublicKey.Derive(Bip32KeyPath.Parse("/1/2"));
+		ExtendedPublicKey derive3 = derive12.Derive(Bip32KeyPath.Parse("/3"));
 		AssertEqual(expected, derive3);
 
-		ExtendedPublicKey derive123Unrooted = master.PublicKey.Derive(KeyPath.Parse("/1/2/3"));
-		ExtendedPublicKey derive123Rooted = master.PublicKey.Derive(KeyPath.Parse("m/1/2/3"));
+		ExtendedPublicKey derive123Unrooted = master.PublicKey.Derive(Bip32KeyPath.Parse("/1/2/3"));
+		ExtendedPublicKey derive123Rooted = master.PublicKey.Derive(Bip32KeyPath.Parse("m/1/2/3"));
 		AssertEqual(expected, derive123Unrooted);
 		AssertEqual(expected, derive123Rooted);
 	}
@@ -81,11 +81,11 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		ExtendedPublicKey derived = master.PublicKey.Derive(1);
 
 		// This first simply cannot happen because one cannot derive a sibling key.
-		Assert.Throws<NotSupportedException>(() => derived.Derive(KeyPath.Parse("m/2")));
+		Assert.Throws<NotSupportedException>(() => derived.Derive(Bip32KeyPath.Parse("m/2")));
 
 		// This cannot happen until we decide that since we can match the depth and child number,
 		// we can *assume* the rest of the path is the same and proceed to derive the next step.
-		Assert.Throws<NotSupportedException>(() => derived.Derive(KeyPath.Parse("m/1/2")));
+		Assert.Throws<NotSupportedException>(() => derived.Derive(Bip32KeyPath.Parse("m/1/2")));
 	}
 
 	[Fact]
@@ -108,7 +108,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 	public void DerivationPath()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
-		Assert.Equal(KeyPath.Root, master.DerivationPath);
+		Assert.Equal(Bip32KeyPath.Root, master.DerivationPath);
 		Assert.Equal("m/2", master.Derive(2).DerivationPath?.ToString());
 	}
 }

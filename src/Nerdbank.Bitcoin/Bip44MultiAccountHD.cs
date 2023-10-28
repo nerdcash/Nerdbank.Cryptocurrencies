@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet;
-using static Nerdbank.Cryptocurrencies.Bip32HDWallet.KeyPath;
-
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 /// <summary>
 /// Implements Multi-Account Hierarchy for Deterministic Wallets as defined in
@@ -43,14 +40,14 @@ public static class Bip44MultiAccountHD
 	/// of <c>m / purpose' / coin_type' / account' / change / address_index</c>.
 	/// </summary>
 	/// <param name="coinType">
-	/// <para>The coin type. The <see cref="HardenedBit"/> will be added to this value if it is not specified here.</para>
+	/// <para>The coin type. The <see cref="Bip32KeyPath.HardenedBit"/> will be added to this value if it is not specified here.</para>
 	/// <para>See the <see href="https://github.com/satoshilabs/slips/blob/master/slip-0044.md">registration of recognized coin values</see>.</para>
 	/// </param>
 	/// <param name="account">
 	/// <para>This level splits the key space into independent user identities, so the wallet never mixes the coins across different accounts.</para>
 	/// <para>Users can use these accounts to organize the funds in the same fashion as bank accounts; for donation purposes (where all addresses are considered public), for saving purposes, for common expenses etc.</para>
 	/// <para>Accounts are numbered from index 0 in sequentially increasing manner. This number is used as child index in BIP32 derivation.</para>
-	/// <para>Hardened derivation is used at this level. The <see cref="HardenedBit"/> is added automatically if necessary.</para>
+	/// <para>Hardened derivation is used at this level. The <see cref="Bip32KeyPath.HardenedBit"/> is added automatically if necessary.</para>
 	/// <para>Software should prevent a creation of an account if a previous account does not have a transaction history (meaning none of its addresses have been used before).</para>
 	/// <para>Software needs to discover all used accounts after importing the seed from an external source. Such an algorithm is described in "Account discovery" chapter.</para>
 	/// </param>
@@ -59,15 +56,15 @@ public static class Bip44MultiAccountHD
 	/// External chain is used for addresses that are meant to be visible outside of the wallet
 	/// (e.g. for receiving payments). Internal chain is used for addresses which are not meant to be visible
 	/// outside of the wallet and is used for return transaction change.</para>
-	/// <para>This number should <em>not</em> include the <see cref="HardenedBit"/>.</para>
+	/// <para>This number should <em>not</em> include the <see cref="Bip32KeyPath.HardenedBit"/>.</para>
 	/// </param>
 	/// <param name="addressIndex">
 	/// <para>The address index. Increment this to get a new receiving address that belongs to the same logical account.</para>
 	/// <para>Addresses are numbered from index 0 in sequentially increasing manner. This number is used as child index in BIP32 derivation.</para>
-	/// <para>This number should <em>not</em> include the <see cref="HardenedBit"/>.</para>
+	/// <para>This number should <em>not</em> include the <see cref="Bip32KeyPath.HardenedBit"/>.</para>
 	/// </param>
 	/// <returns>The BIP-44 compliant key path.</returns>
-	public static KeyPath CreateKeyPath(uint coinType, uint account, Change change, uint addressIndex)
+	public static Bip32KeyPath CreateKeyPath(uint coinType, uint account, Change change, uint addressIndex)
 	{
 		// m / purpose' / coin_type' / account' / change / address_index
 		return new(addressIndex, new((uint)change, CreateKeyPath(coinType, account)));
@@ -78,30 +75,30 @@ public static class Bip44MultiAccountHD
 	/// of <c>m / purpose' / coin_type' / account'</c>.
 	/// </summary>
 	/// <inheritdoc cref="CreateKeyPath(uint, uint, Change, uint)"/>
-	public static KeyPath CreateKeyPath(uint coinType, uint account)
+	public static Bip32KeyPath CreateKeyPath(uint coinType, uint account)
 	{
 		// m / purpose' / coin_type' / account'
-		return new(account | HardenedBit, new(coinType | HardenedBit, new(Purpose | HardenedBit, Root)));
+		return new(account | Bip32KeyPath.HardenedBit, new(coinType | Bip32KeyPath.HardenedBit, new(Purpose | Bip32KeyPath.HardenedBit, Bip32KeyPath.Root)));
 	}
 
 	/// <summary>
 	/// Searches for accounts that have been used.
 	/// </summary>
 	/// <param name="coinType">The coin type to search.</param>
-	/// <param name="discover"><inheritdoc cref="DiscoverUsedAddressesAsync(KeyPath, Func{KeyPath, ValueTask{bool}}, uint)" path="/param[@name='discover']" /></param>
-	/// <param name="addressGapLimit"><inheritdoc cref="DiscoverUsedAddressesAsync(KeyPath, Func{KeyPath, ValueTask{bool}}, uint)" path="/param[@name='addressGapLimit']" /></param>
+	/// <param name="discover"><inheritdoc cref="DiscoverUsedAddressesAsync(Bip32KeyPath, Func{Bip32KeyPath, ValueTask{bool}}, uint)" path="/param[@name='discover']" /></param>
+	/// <param name="addressGapLimit"><inheritdoc cref="DiscoverUsedAddressesAsync(Bip32KeyPath, Func{Bip32KeyPath, ValueTask{bool}}, uint)" path="/param[@name='addressGapLimit']" /></param>
 	/// <returns>
 	/// An asynchronous sequence of account-level key paths (i.e. <c>m/44'/coin'/account'</c>) that contain transactions.
 	/// </returns>
-	public static async IAsyncEnumerable<KeyPath> DiscoverUsedAccountsAsync(uint coinType, Func<KeyPath, ValueTask<bool>> discover, uint addressGapLimit = RecommendedAddressGapLimit)
+	public static async IAsyncEnumerable<Bip32KeyPath> DiscoverUsedAccountsAsync(uint coinType, Func<Bip32KeyPath, ValueTask<bool>> discover, uint addressGapLimit = RecommendedAddressGapLimit)
 	{
 		Requires.NotNull(discover);
 
 		const int AccountGapLimit = 1;
 		for (uint accountIndex = 0, consecutiveUnusedAccounts = 1; consecutiveUnusedAccounts <= AccountGapLimit; accountIndex++, consecutiveUnusedAccounts++)
 		{
-			KeyPath accountKeyPath = CreateKeyPath(coinType, accountIndex);
-			await foreach (KeyPath usedAddress in DiscoverUsedAddressesAsync(accountKeyPath, discover, addressGapLimit))
+			Bip32KeyPath accountKeyPath = CreateKeyPath(coinType, accountIndex);
+			await foreach (Bip32KeyPath usedAddress in DiscoverUsedAddressesAsync(accountKeyPath, discover, addressGapLimit))
 			{
 				yield return accountKeyPath;
 
@@ -136,15 +133,15 @@ public static class Bip44MultiAccountHD
 	/// <returns>
 	/// An asynchronous sequence of full key paths (i.e. <c>m/44'/coin'/account'/change/addressIndex</c>) that contain transactions.
 	/// </returns>
-	public static async IAsyncEnumerable<KeyPath> DiscoverUsedAddressesAsync(KeyPath account, Func<KeyPath, ValueTask<bool>> discover, uint addressGapLimit = RecommendedAddressGapLimit)
+	public static async IAsyncEnumerable<Bip32KeyPath> DiscoverUsedAddressesAsync(Bip32KeyPath account, Func<Bip32KeyPath, ValueTask<bool>> discover, uint addressGapLimit = RecommendedAddressGapLimit)
 	{
 		Requires.NotNull(account);
-		Requires.Argument(account.Length == 3 && account[1] == (Purpose | HardenedBit), nameof(account), "This is not an account-level BIP-44 key derivation path.");
+		Requires.Argument(account.Length == 3 && account[1] == (Purpose | Bip32KeyPath.HardenedBit), nameof(account), "This is not an account-level BIP-44 key derivation path.");
 		Requires.NotNull(discover);
 
 		// Always search the external chain, as that is where receiving addresses come from.
 		bool foundAny = false;
-		await foreach (KeyPath usedAddress in SearchChainAsync(new((uint)Change.ReceivingAddressChain, account)))
+		await foreach (Bip32KeyPath usedAddress in SearchChainAsync(new((uint)Change.ReceivingAddressChain, account)))
 		{
 			yield return usedAddress;
 			foundAny = true;
@@ -153,19 +150,19 @@ public static class Bip44MultiAccountHD
 		// If the external chain was used, then the internal "change" chain may have been used as well.
 		if (foundAny)
 		{
-			await foreach (KeyPath usedAddress in SearchChainAsync(new((uint)Change.ChangeAddressChain, account)))
+			await foreach (Bip32KeyPath usedAddress in SearchChainAsync(new((uint)Change.ChangeAddressChain, account)))
 			{
 				yield return usedAddress;
 				foundAny = true;
 			}
 		}
 
-		async IAsyncEnumerable<KeyPath> SearchChainAsync(KeyPath chain)
+		async IAsyncEnumerable<Bip32KeyPath> SearchChainAsync(Bip32KeyPath chain)
 		{
 			// This loops over the address indexes, incrementing the index each time, until it encounters too many unused indexes in a row.
 			for (uint addressIndex = 0, consecutiveUnusedAddresses = 1; consecutiveUnusedAddresses <= addressGapLimit; addressIndex++, consecutiveUnusedAddresses++)
 			{
-				KeyPath keyPath = new(addressIndex, chain);
+				Bip32KeyPath keyPath = new(addressIndex, chain);
 				if (await discover(keyPath).ConfigureAwait(false))
 				{
 					consecutiveUnusedAddresses = 0;

@@ -46,7 +46,7 @@ public class InvalidKeyExceptionTests
 	public void KeyPath_GetSet_KeyPathValue()
 	{
 		// Arrange
-		var keyPath = new Bip32HDWallet.KeyPath(0);
+		var keyPath = new Bip32KeyPath(0);
 		var exception = new InvalidKeyException() { KeyPath = keyPath };
 
 		// Assert

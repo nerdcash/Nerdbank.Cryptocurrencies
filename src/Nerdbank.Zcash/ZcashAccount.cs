@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using static Nerdbank.Zcash.Zip32HDWallet;
+using Nerdbank.Bitcoin;
 
 namespace Nerdbank.Zcash;
 
@@ -15,7 +15,7 @@ public class ZcashAccount
 	/// The number of transparent addresses that are likely to have been generated.
 	/// </summary>
 	/// <remarks>
-	/// TODO: This number should be generated from a call to <see cref="Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint, Func{Bip32HDWallet.KeyPath, ValueTask{bool}}, uint)"/>.
+	/// TODO: This number should be generated from a call to <see cref="Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint, Func{Bip32KeyPath, ValueTask{bool}}, uint)"/>.
 	/// </remarks>
 	private uint transparentAddressesToScanAsync = Bip44MultiAccountHD.RecommendedAddressGapLimit;
 
@@ -31,7 +31,7 @@ public class ZcashAccount
 
 		this.HDDerivation = new(zip32, index);
 
-		Transparent.ExtendedSpendingKey transparent = zip32.CreateTransparentAccount(index);
+		Zip32HDWallet.Transparent.ExtendedSpendingKey transparent = zip32.CreateTransparentAccount(index);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey sapling = zip32.CreateSaplingAccount(index);
 		Zip32HDWallet.Orchard.ExtendedSpendingKey orchard = zip32.CreateOrchardAccount(index);
 
@@ -54,7 +54,7 @@ public class ZcashAccount
 		if (viewingKey is UnifiedViewingKey.Full)
 		{
 			this.FullViewing = new FullViewingKeys(
-				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
+				viewingKey.GetViewingKey<Zip32HDWallet.Transparent.ExtendedViewingKey>(),
 				viewingKey.GetViewingKey<Sapling.DiversifiableFullViewingKey>(),
 				viewingKey.GetViewingKey<Orchard.FullViewingKey>());
 
@@ -63,7 +63,7 @@ public class ZcashAccount
 		else
 		{
 			this.IncomingViewing = new IncomingViewingKeys(
-				viewingKey.GetViewingKey<Transparent.ExtendedViewingKey>(),
+				viewingKey.GetViewingKey<Zip32HDWallet.Transparent.ExtendedViewingKey>(),
 				viewingKey.GetViewingKey<Sapling.DiversifiableIncomingViewingKey>(),
 				viewingKey.GetViewingKey<Orchard.IncomingViewingKey>());
 		}
@@ -305,7 +305,7 @@ public class ZcashAccount
 				return true;
 			}
 
-			Transparent.ExtendedViewingKey? transparentViewing = this.FullViewing?.Transparent ?? this.IncomingViewing.Transparent;
+			Zip32HDWallet.Transparent.ExtendedViewingKey? transparentViewing = this.FullViewing?.Transparent ?? this.IncomingViewing.Transparent;
 			if (transparentViewing is not null)
 			{
 				if (individualAddress.GetPoolReceiver<TransparentP2PKHReceiver>() is { } p2pkhReceiver && transparentViewing.CheckReceiver(p2pkhReceiver, this.transparentAddressesToScanAsync))
@@ -349,7 +349,7 @@ public class ZcashAccount
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
 		internal SpendingKeys(
-			Transparent.ExtendedSpendingKey? transparent,
+			Zip32HDWallet.Transparent.ExtendedSpendingKey? transparent,
 			Zip32HDWallet.Sapling.ExtendedSpendingKey? sapling,
 			Zip32HDWallet.Orchard.ExtendedSpendingKey? orchard)
 		{
@@ -377,7 +377,7 @@ public class ZcashAccount
 		/// <summary>
 		/// Gets the spending key for the transparent pool (<c>m/44'/133'/account'</c>).
 		/// </summary>
-		public Transparent.ExtendedSpendingKey? Transparent { get; }
+		public Zip32HDWallet.Transparent.ExtendedSpendingKey? Transparent { get; }
 
 		/// <summary>
 		/// Gets the spending key for the sapling pool.
@@ -410,13 +410,13 @@ public class ZcashAccount
 		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="spendingKeys"/> is not supported.</exception>
 		internal static SpendingKeys FromKeys(params Zip32HDWallet.IExtendedKey[] spendingKeys)
 		{
-			Transparent.ExtendedSpendingKey? transparent = null;
+			Zip32HDWallet.Transparent.ExtendedSpendingKey? transparent = null;
 			Zip32HDWallet.Sapling.ExtendedSpendingKey? sapling = null;
 			Zip32HDWallet.Orchard.ExtendedSpendingKey? orchard = null;
 
 			foreach (Zip32HDWallet.IExtendedKey key in spendingKeys)
 			{
-				if (key is Transparent.ExtendedSpendingKey t)
+				if (key is Zip32HDWallet.Transparent.ExtendedSpendingKey t)
 				{
 					transparent = t;
 				}
@@ -473,7 +473,7 @@ public class ZcashAccount
 		/// <param name="transparent">A key for the transparent pool.</param>
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
-		internal FullViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.DiversifiableFullViewingKey? sapling, Orchard.FullViewingKey? orchard)
+		internal FullViewingKeys(Zip32HDWallet.Transparent.ExtendedViewingKey? transparent, Sapling.DiversifiableFullViewingKey? sapling, Orchard.FullViewingKey? orchard)
 		{
 			this.Transparent = transparent;
 			this.Sapling = sapling;
@@ -500,7 +500,7 @@ public class ZcashAccount
 		/// <summary>
 		/// Gets the full viewing key for the transparent pool (<c>m/44'/133'/account'</c>).
 		/// </summary>
-		public Transparent.ExtendedViewingKey? Transparent { get; }
+		public Zip32HDWallet.Transparent.ExtendedViewingKey? Transparent { get; }
 
 		/// <summary>
 		/// Gets the full viewing key for the sapling pool.
@@ -533,13 +533,13 @@ public class ZcashAccount
 		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="fullViewingKeys"/> is not supported.</exception>
 		internal static FullViewingKeys FromKeys(params IFullViewingKey[] fullViewingKeys)
 		{
-			Transparent.ExtendedViewingKey? transparent = null;
+			Zip32HDWallet.Transparent.ExtendedViewingKey? transparent = null;
 			Sapling.DiversifiableFullViewingKey? sapling = null;
 			Orchard.FullViewingKey? orchard = null;
 
 			foreach (IFullViewingKey key in fullViewingKeys)
 			{
-				if (key is Transparent.ExtendedViewingKey t)
+				if (key is Zip32HDWallet.Transparent.ExtendedViewingKey t)
 				{
 					transparent = t;
 				}
@@ -602,7 +602,7 @@ public class ZcashAccount
 		/// <param name="transparent">A key for the transparent pool.</param>
 		/// <param name="sapling">A key for the sapling pool.</param>
 		/// <param name="orchard">A key for the orchard pool.</param>
-		internal IncomingViewingKeys(Transparent.ExtendedViewingKey? transparent, Sapling.DiversifiableIncomingViewingKey? sapling, Orchard.IncomingViewingKey? orchard)
+		internal IncomingViewingKeys(Zip32HDWallet.Transparent.ExtendedViewingKey? transparent, Sapling.DiversifiableIncomingViewingKey? sapling, Orchard.IncomingViewingKey? orchard)
 		{
 			this.Transparent = transparent;
 			this.Sapling = sapling;
@@ -621,7 +621,7 @@ public class ZcashAccount
 		/// <summary>
 		/// Gets the incoming viewing key for the transparent pool (<c>m/44'/133'/account'</c>).
 		/// </summary>
-		public Transparent.ExtendedViewingKey? Transparent { get; }
+		public Zip32HDWallet.Transparent.ExtendedViewingKey? Transparent { get; }
 
 		/// <summary>
 		/// Gets the incoming viewing key for the sapling pool.
@@ -647,13 +647,13 @@ public class ZcashAccount
 		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="incomingViewingKeys"/> is not supported.</exception>
 		internal static IncomingViewingKeys FromKeys(params IIncomingViewingKey[] incomingViewingKeys)
 		{
-			Transparent.ExtendedViewingKey? transparent = null;
+			Zip32HDWallet.Transparent.ExtendedViewingKey? transparent = null;
 			Sapling.DiversifiableIncomingViewingKey? sapling = null;
 			Orchard.IncomingViewingKey? orchard = null;
 
 			foreach (IIncomingViewingKey key in incomingViewingKeys)
 			{
-				if (key is Transparent.ExtendedViewingKey t)
+				if (key is Zip32HDWallet.Transparent.ExtendedViewingKey t)
 				{
 					transparent = t;
 				}

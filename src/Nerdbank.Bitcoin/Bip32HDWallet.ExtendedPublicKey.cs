@@ -5,11 +5,10 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using Nerdbank.Cryptocurrencies.Bitcoin;
 using Org.BouncyCastle.Crypto.Digests;
 using ECPubKey = NBitcoin.Secp256k1.ECPubKey;
 
-namespace Nerdbank.Cryptocurrencies;
+namespace Nerdbank.Bitcoin;
 
 public static partial class Bip32HDWallet
 {
@@ -60,6 +59,11 @@ public static partial class Bip32HDWallet
 		public ECPubKey CryptographicKey => this.key.CryptographicKey;
 
 		/// <summary>
+		/// Gets the key.
+		/// </summary>
+		public PublicKey Key => this.key;
+
+		/// <summary>
 		/// Gets the version header for public keys on mainnet.
 		/// </summary>
 		internal static ReadOnlySpan<byte> MainNet => new byte[] { 0x04, 0x88, 0xB2, 0x1E };
@@ -69,18 +73,13 @@ public static partial class Bip32HDWallet
 		/// </summary>
 		internal static ReadOnlySpan<byte> TestNet => new byte[] { 0x04, 0x35, 0x87, 0xCF };
 
-		/// <summary>
-		/// Gets the key.
-		/// </summary>
-		internal PublicKey Key => this.key;
-
 		/// <inheritdoc/>
 		protected override ReadOnlySpan<byte> Version => this.IsTestNet ? TestNet : MainNet;
 
 		/// <inheritdoc/>
 		public override ExtendedPublicKey Derive(uint childIndex)
 		{
-			if ((childIndex & HardenedBit) != 0)
+			if ((childIndex & Bip32KeyPath.HardenedBit) != 0)
 			{
 				throw new NotSupportedException(Strings.CannotDeriveHardenedChildFromPublicKey);
 			}

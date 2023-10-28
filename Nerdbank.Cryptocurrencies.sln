@@ -48,7 +48,9 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedSource", "src\SharedS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.Cli", "src\Nerdbank.Zcash.Cli\Nerdbank.Zcash.Cli.csproj", "{9602994E-CBDB-4202-8001-FD3AE58949E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Bitcoin", "src\Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj", "{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Bitcoin", "src\Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj", "{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Bitcoin.Tests", "test\Nerdbank.Bitcoin.Tests\Nerdbank.Bitcoin.Tests.csproj", "{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -144,6 +146,18 @@ Global
 		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|ARM64.Build.0 = Release|Any CPU
 		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|x64.ActiveCfg = Release|Any CPU
 		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}.Release|x64.Build.0 = Release|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Debug|x64.Build.0 = Debug|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Release|ARM64.Build.0 = Release|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Release|x64.ActiveCfg = Release|Any CPU
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -159,6 +173,7 @@ Global
 		{A6EBBEA8-ABED-4830-B0D0-CC0EB427AB9D} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{9602994E-CBDB-4202-8001-FD3AE58949E8} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
+		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}
