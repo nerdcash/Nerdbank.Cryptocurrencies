@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -13,6 +15,8 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
 	private readonly HDWallet wallet;
 	private bool revealData;
+	private string backupFilePassword = string.Empty;
+	private bool enableHidingPassword = true;
 
 	[Obsolete("Design-time only", error: true)]
 	public BackupViewModel()
@@ -31,6 +35,7 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.BackupCommand = ReactiveCommand.Create(() => { });
 		this.RevealCommand = ReactiveCommand.Create(() => { this.IsRevealed = !this.IsRevealed; });
+		this.GenerateSecurePasswordCommand = ReactiveCommand.Create(this.GenerateSecurePassword);
 
 		Bip39Mnemonic mnemonic = wallet.Zip32.Mnemonic;
 		this.SeedPhrase = mnemonic.SeedPhrase;
@@ -39,6 +44,8 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.BirthdayHeight = wallet.BirthdayHeight;
 		this.MaxAccountIndex = wallet.MaxAccountIndex;
+
+		this.LinkProperty(nameof(this.EnableHidingPassword), nameof(this.ConcealPasswordChar));
 	}
 
 	public string Title => "Backup";
@@ -47,9 +54,40 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string BackupCommandCaption => "Backup to file";
 
-	public string BackupToFileExplanation => "While the information presented above is sufficient to recover your funds in another wallet, you are strongly encouraged to backup the auxiliary data from this wallet into a file. The backup file will NOT include your seed phrase.";
+	public string BackupToFileExplanation => "Backing up your wallet will save your seed phrase, contacts and transaction history, allowing you to restore your wallet completely and quickly on another device.";
 
-	public string BackupSeedPhraseImportant => "It is vital that you copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box). You will need this to recover your funds or recover from your backup file.";
+	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";
+
+	public string BackupFilePasswordCaption => "Protect your backup file with a secure password:";
+
+	public string GenerateSecurePasswordCaption => "Generate secure password";
+
+	public ReactiveCommand<Unit, Unit> GenerateSecurePasswordCommand { get; }
+
+	public string BackupFilePasswordExplanation => "You will need to enter this password when restoring your wallet. If you forget this password, you will not be able to restore your wallet. Anyone with the backup file and the password will be able to spend your Zcash and view all your transactions.";
+
+	public string BackupFilePassword
+	{
+		get => this.backupFilePassword;
+		set
+		{
+			if (this.backupFilePassword != value)
+			{
+				this.EnableHidingPassword = true;
+				this.RaiseAndSetIfChanged(ref this.backupFilePassword, value);
+			}
+		}
+	}
+
+	public string BackupFilePasswordWatermark => "Password";
+
+	public bool EnableHidingPassword
+	{
+		get => this.enableHidingPassword;
+		set => this.RaiseAndSetIfChanged(ref this.enableHidingPassword, value);
+	}
+
+	public string ConcealPasswordChar => this.EnableHidingPassword ? "●" : string.Empty;
 
 	public ReactiveCommand<Unit, Unit> RevealCommand { get; }
 
@@ -98,6 +136,26 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				this.RaisePropertyChanged();
 			}
 		}
+	}
+
+	public void GenerateSecurePassword()
+	{
+		this.BackupFilePassword = GeneratePassword(Zip32HDWallet.MinimumEntropyLengthInBits);
+		this.EnableHidingPassword = false;
+	}
+
+	private static string GeneratePassword(int entropyLengthInBits)
+	{
+		// The character sequence intentionally excludes commonly misread characters.
+		const string validChars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRTUVWXYZ234679!@#$%^&*()_+-=[];':\",.<>?~";
+		StringBuilder password = new(entropyLengthInBits / 8);
+
+		while (password.Length < entropyLengthInBits / 8)
+		{
+			password.Append(validChars[RandomNumberGenerator.GetInt32(validChars.Length)]);
+		}
+
+		return password.ToString();
 	}
 
 	private static SeedPhraseRow[] BreakupSeedPhraseIntoRows(Bip39Mnemonic mnemonic)
