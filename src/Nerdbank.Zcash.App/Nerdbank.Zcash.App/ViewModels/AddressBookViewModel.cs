@@ -54,7 +54,7 @@ public class AddressBookViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		if (newContact is null)
 		{
 			Contact model = new();
-			this.ViewModelServices.ContactManager.Contacts.Add(model);
+			this.ViewModelServices.ContactManager.Add(model);
 			newContact = new ContactViewModel(this, model);
 			this.Contacts.Add(newContact);
 		}

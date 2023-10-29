@@ -14,7 +14,9 @@ namespace Nerdbank.Zcash.App
 	{
 		public static App Instance => (App?)Current ?? throw new InvalidOperationException("No app!");
 
-		public AppSettings Settings { get; } = AppSettings.LoadOrCreate(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "settings.json"), enableAutoSave: true);
+		public static string DataDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+
+		public AppSettings Settings { get; } = AppSettings.LoadOrCreate(Path.Combine(DataDirectory, "settings.json"), enableAutoSave: true);
 
 		/// <inheritdoc/>
 		public override void Initialize()

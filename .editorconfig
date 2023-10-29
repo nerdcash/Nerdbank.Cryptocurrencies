@@ -195,5 +195,11 @@ dotnet_diagnostic.CA1062.severity = warning
 # SA1601: Partial elements should be documented
 dotnet_diagnostic.SA1601.severity = silent
 
+# MsgPack001: Avoid mutable default options
+dotnet_diagnostic.MsgPack001.severity = error
+
+# MsgPack002: Avoid mutable static options
+dotnet_diagnostic.MsgPack002.severity = error
+
 [*.sln]
 indent_style = tab

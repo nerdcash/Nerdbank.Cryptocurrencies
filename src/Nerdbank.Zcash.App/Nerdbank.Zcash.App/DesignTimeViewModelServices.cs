@@ -3,10 +3,8 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
-using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App;
 
@@ -34,9 +32,9 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			this.SelectedAccount = mainAccount;
 
 			// Populate address book.
-			this.ContactManager.Contacts.Add(new Contact { Name = "Andrew Arnott", ReceivingAddress = ZcashAddress.Decode("t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF") });
-			this.ContactManager.Contacts.Add(new Contact { Name = "Jason Arnott", ReceivingAddress = ZcashAddress.Decode("u17kydrnuh9k8dqtud9qugel5ym835xqg8jk5czy2qcxea0zucru7d9w0c9hcq43898l2d993taaqh6vr0u6yskjnn582vyvu8qqk6qyme0z2vfgcclxatca7cx2f45v2n9zfd7hmkwlrw0wt38z9ua2yvgdnvppucyf2cfsxwlyfy339k") });
-			this.ContactManager.Contacts.Add(new Contact { Name = "David Arnott" });
+			this.ContactManager.Add(new Contact { Name = "Andrew Arnott", ReceivingAddress = ZcashAddress.Decode("t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF") });
+			this.ContactManager.Add(new Contact { Name = "Jason Arnott", ReceivingAddress = ZcashAddress.Decode("u17kydrnuh9k8dqtud9qugel5ym835xqg8jk5czy2qcxea0zucru7d9w0c9hcq43898l2d993taaqh6vr0u6yskjnn582vyvu8qqk6qyme0z2vfgcclxatca7cx2f45v2n9zfd7hmkwlrw0wt38z9ua2yvgdnvppucyf2cfsxwlyfy339k") });
+			this.ContactManager.Add(new Contact { Name = "David Arnott" });
 		}
 	}
 
@@ -77,6 +75,17 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	private class DesignTimeContactManager : IContactManager
 	{
-		public ObservableCollection<Contact> Contacts { get; } = new();
+		private ObservableCollection<Contact> contacts = new();
+
+		public DesignTimeContactManager()
+		{
+			this.Contacts = new(this.contacts);
+		}
+
+		public ReadOnlyObservableCollection<Contact> Contacts { get; }
+
+		public void Add(Contact contact) => this.contacts.Add(contact);
+
+		public bool Remove(Contact contact) => this.Remove(contact);
 	}
 }

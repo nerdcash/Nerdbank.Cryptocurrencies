@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using MessagePack;
+using MessagePack.Formatters;
 using Microsoft;
 
 namespace Nerdbank.Zcash.App.Models;
@@ -12,26 +14,58 @@ namespace Nerdbank.Zcash.App.Models;
 /// <summary>
 /// A wallet that contains all the accounts the user wants to track.
 /// </summary>
-public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>
+[MessagePackFormatter(typeof(Formatter))]
+public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersistableData
 {
-	private readonly ObservableCollection<HDWallet> hdWallets = new();
-	private readonly ObservableCollection<Account> loneAccounts = new();
+	private readonly ObservableCollection<HDWallet> hdWallets;
+	private readonly ObservableCollection<Account> loneAccounts;
+	private bool isDirty;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ZcashWallet"/> class.
 	/// </summary>
 	public ZcashWallet()
+		: this(Array.Empty<HDWallet>(), Array.Empty<Account>())
 	{
+	}
+
+	private ZcashWallet(IReadOnlyList<HDWallet> hdWallets, IReadOnlyList<Account> loneAccounts)
+	{
+		this.hdWallets = new(hdWallets);
+		this.loneAccounts = new(loneAccounts);
+
 		this.LoneAccounts = new(this.loneAccounts);
 
 		this.hdWallets.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
 		this.loneAccounts.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
+
+		this.StartWatchingForDirtyChildren(this.hdWallets);
+		this.StartWatchingForDirtyChildren(this.loneAccounts);
 	}
 
 	/// <summary>
 	/// Occurs when a property value changes.
 	/// </summary>
 	public event PropertyChangedEventHandler? PropertyChanged;
+
+	public bool IsDirty
+	{
+		get => this.isDirty;
+		set
+		{
+			if (this.isDirty != value)
+			{
+				if (!value)
+				{
+					this.HDWallets.ClearDirtyFlag();
+					this.LoneAccounts.ClearDirtyFlag();
+				}
+
+				this.isDirty = value;
+				this.OnPropertyChanged();
+			}
+		}
+	}
 
 	/// <summary>
 	/// Gets a value indicating whether the wallet has no lone accounts and no HD wallets (whether or not they are empty).
@@ -71,6 +105,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>
 			{
 				hd = new HDWallet(derivation.Wallet);
 				this.hdWallets.Add(hd);
+				this.StartWatchingForDirtyChild(hd);
 			}
 
 			return hd.AddAccount(account);
@@ -79,6 +114,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>
 		{
 			Account accountModel = new(account, null);
 			this.loneAccounts.Add(accountModel);
+			this.StartWatchingForDirtyChild(accountModel);
 			return accountModel;
 		}
 	}
@@ -112,4 +148,39 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>
 	/// </summary>
 	/// <param name="propertyName">The name of the property that was changed.</param>
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+	private class Formatter : IMessagePackFormatter<ZcashWallet>
+	{
+		public ZcashWallet Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+		{
+			HDWallet[] hdWallets = Array.Empty<HDWallet>();
+			Account[] loneAccounts = Array.Empty<Account>();
+
+			int length = reader.ReadArrayHeader();
+			for (int i = 0; i < length; i++)
+			{
+				switch (i)
+				{
+					case 0:
+						hdWallets = options.Resolver.GetFormatterWithVerify<HDWallet[]>().Deserialize(ref reader, options);
+						break;
+					case 1:
+						loneAccounts = options.Resolver.GetFormatterWithVerify<Account[]>().Deserialize(ref reader, options);
+						break;
+					default:
+						reader.Skip();
+						break;
+				}
+			}
+
+			return new(hdWallets, loneAccounts);
+		}
+
+		public void Serialize(ref MessagePackWriter writer, ZcashWallet value, MessagePackSerializerOptions options)
+		{
+			writer.WriteArrayHeader(2);
+			options.Resolver.GetFormatterWithVerify<IReadOnlyList<HDWallet>>().Serialize(ref writer, value.HDWallets, options);
+			options.Resolver.GetFormatterWithVerify<IReadOnlyList<Account>>().Serialize(ref writer, value.LoneAccounts, options);
+		}
+	}
 }

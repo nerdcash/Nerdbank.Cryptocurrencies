@@ -7,7 +7,11 @@ namespace Nerdbank.Zcash.App;
 
 public interface IContactManager
 {
-	ObservableCollection<Contact> Contacts { get; }
+	ReadOnlyObservableCollection<Contact> Contacts { get; }
+
+	void Add(Contact contact);
+
+	bool Remove(Contact contact);
 
 	bool TryGetContact(ZcashAccount account, DiversifierIndex diversifierIndex, [NotNullWhen(true)] out Contact? contact)
 	{
