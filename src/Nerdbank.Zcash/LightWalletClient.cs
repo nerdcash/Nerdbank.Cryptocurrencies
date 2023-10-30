@@ -164,7 +164,7 @@ public class LightWalletClient : IDisposable
 			LightWalletMethods.LightwalletSync,
 			progress,
 			h => new SyncProgress(LightWalletMethods.LightwalletSyncStatus(h)),
-			cancellationToken);
+			cancellationToken).ConfigureAwait(false);
 
 		return new SyncResult(result);
 	}
@@ -201,7 +201,7 @@ public class LightWalletClient : IDisposable
 			h => LightWalletMethods.LightwalletSendToAddress(h, details),
 			progress,
 			h => new SendProgress(LightWalletMethods.LightwalletSendCheckStatus(h)),
-			cancellationToken);
+			cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -243,7 +243,7 @@ public class LightWalletClient : IDisposable
 	{
 		using (this.TrackProgress(progress, checkProgress))
 		{
-			return await this.InteropAsync(func, cancellationToken);
+			return await this.InteropAsync(func, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -318,7 +318,7 @@ public class LightWalletClient : IDisposable
 		{
 			while (inProgress)
 			{
-				await Task.Delay(this.UpdateFrequency, cts.Token);
+				await Task.Delay(this.UpdateFrequency, cts.Token).ConfigureAwait(false);
 				T status = this.Interop(fetchProgress);
 				progress.Report(status);
 			}

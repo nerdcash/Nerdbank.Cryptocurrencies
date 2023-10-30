@@ -38,7 +38,7 @@ public interface IExchangeRateProvider
 	{
 		Requires.NotNull(acceptableBases);
 
-		IReadOnlySet<TradingPair> availablePairs = await this.GetAvailableTradingPairsAsync(cancellationToken);
+		IReadOnlySet<TradingPair> availablePairs = await this.GetAvailableTradingPairsAsync(cancellationToken).ConfigureAwait(false);
 
 		foreach (Security basis in acceptableBases)
 		{
