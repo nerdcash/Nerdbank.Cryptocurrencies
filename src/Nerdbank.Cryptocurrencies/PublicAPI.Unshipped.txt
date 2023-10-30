@@ -190,6 +190,7 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ALGO -> Nerdbank.Cr
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ARQ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ARRR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ATOM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.AUD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BAND -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BAT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BBS -> Nerdbank.Cryptocurrencies.Exchanges.Security!
@@ -224,6 +225,7 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETH -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETNX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETNXP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.EUR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FBF -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FIL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FLUX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
@@ -255,7 +257,6 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MKR -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MSR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MWC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NAH -> Nerdbank.Cryptocurrencies.Exchanges.Security!
-static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NANO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NBR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NCP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NEO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
@@ -312,6 +313,7 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XLM -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XNO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XNV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XPP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XRN -> Nerdbank.Cryptocurrencies.Exchanges.Security!

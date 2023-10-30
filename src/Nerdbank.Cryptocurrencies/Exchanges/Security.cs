@@ -24,6 +24,7 @@ public record Security(string TickerSymbol, string? Name = null, int Precision =
 	public static readonly Security ARQ = new("ARQ", "ArQmA");
 	public static readonly Security ARRR = new("ARRR", "Pirate", 8);
 	public static readonly Security ATOM = new("ATOM", "Cosmos");
+	public static readonly Security AUD = new("AUD", "Australian Dollar", 2);
 	public static readonly Security BAND = new("BAND", "Band Protocol");
 	public static readonly Security BAT = new("BAT", "Basic Attention Token");
 	public static readonly Security BBS = new("BBS", "BBSCoin");
@@ -58,6 +59,7 @@ public record Security(string TickerSymbol, string? Name = null, int Precision =
 	public static readonly Security ETN = new("ETN", "Electroneum");
 	public static readonly Security ETNX = new("ETNX", "Electronero");
 	public static readonly Security ETNXP = new("ETNXP", "ElectroneroPulse");
+	public static readonly Security EUR = new("EUR", "Euro", 2);
 	public static readonly Security FBF = new("FBF", "FreelaBit");
 	public static readonly Security FIL = new("FIL", "Filecoin");
 	public static readonly Security FLUX = new("FLUX", "Flux");
@@ -89,7 +91,6 @@ public record Security(string TickerSymbol, string? Name = null, int Precision =
 	public static readonly Security MSR = new("MSR", "Masari");
 	public static readonly Security MWC = new("MWC", "MWC");
 	public static readonly Security NAH = new("NAH", "Strayacoin");
-	public static readonly Security NANO = new("NANO", "NANO");
 	public static readonly Security NBR = new("NBR", "Niobio");
 	public static readonly Security NCP = new("NCP", "Newton");
 	public static readonly Security NEO = new("NEO", "NEO");
@@ -146,6 +147,7 @@ public record Security(string TickerSymbol, string? Name = null, int Precision =
 	public static readonly Security XMC = new("XMC", "Monero Classic");
 	public static readonly Security XMR = new("XMR", "Monero");
 	public static readonly Security XMV = new("XMV", "MoneroV");
+	public static readonly Security XNO = new("XNO", "NANO");
 	public static readonly Security XNV = new("XNV", "Nerva");
 	public static readonly Security XPP = new("XPP", "PrivatePay");
 	public static readonly Security XRN = new("XRN", "Saronite");
