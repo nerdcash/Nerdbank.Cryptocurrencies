@@ -84,11 +84,12 @@ Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.OppositeDirection.get -> Nerdba
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.set -> void
 Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider
-Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.FindFirstSupportedTradingPairAsync(Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest, System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Exchanges.Security!>! acceptableBases, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.TradingPair?>
-Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
 Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
 Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider
-Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.DateTimeOffset when, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>!
+Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.DateTimeOffset when, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
+Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider
+Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.FindFirstSupportedTradingPairAsync(Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest, System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Exchanges.Security!>! acceptableBases, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.TradingPair?>
+Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
 Nerdbank.Cryptocurrencies.Exchanges.Security
 Nerdbank.Cryptocurrencies.Exchanges.Security.Amount(decimal amount) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Cryptocurrencies.Exchanges.Security.Deconstruct(out string! TickerSymbol, out string? Name, out int Precision) -> void
@@ -117,6 +118,10 @@ Nerdbank.Cryptocurrencies.Exchanges.TradingPair.OppositeDirection.get -> Nerdban
 Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradeInterest.get -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradingPair() -> void
 Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradingPair(Nerdbank.Cryptocurrencies.Exchanges.Security! basis, Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest) -> void
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.DateTimeOffset when, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance.YahooFinance(System.Net.Http.HttpClient! httpClient) -> void
 Nerdbank.Cryptocurrencies.IExtendedKey
 Nerdbank.Cryptocurrencies.IExtendedKey.ChildIndex.get -> uint
 Nerdbank.Cryptocurrencies.IExtendedKey.Depth.get -> byte

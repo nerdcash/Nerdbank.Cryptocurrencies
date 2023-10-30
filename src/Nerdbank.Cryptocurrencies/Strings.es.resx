@@ -159,4 +159,7 @@
   <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
     <value>La base y el interés comercial deben ser diferentes.</value>
   </data>
+  <data name="HistoricalPriceNotAvailableForThisDate" xml:space="preserve">
+    <value>El precio histórico de este par de trading en ese momento no está disponible.</value>
+  </data>
 </root>
