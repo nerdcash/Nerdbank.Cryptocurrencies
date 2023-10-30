@@ -46,7 +46,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public TopLevel? TopLevel { get; set; }
 
-	public AppSettings Settings => App.Instance.Settings;
+	public AppSettings Settings { get; } = App.Current is not null ? App.Instance.Settings : new AppSettings();
 
 	public ZcashWallet Wallet { get; } = new();
 
