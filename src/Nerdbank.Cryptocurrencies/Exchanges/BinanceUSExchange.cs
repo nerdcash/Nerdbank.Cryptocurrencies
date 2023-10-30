@@ -3,17 +3,18 @@
 
 using System.Collections.Immutable;
 using System.Text.Json;
+using Microsoft.VisualStudio.Threading;
 
 namespace Nerdbank.Cryptocurrencies.Exchanges;
 
 /// <summary>
 /// A Binance.US provider of exchange rates.
 /// </summary>
-public class BinanceUSExchange : IExchangeRateProvider, IDisposable
+public class BinanceUSExchange : IExchangeRateProvider
 {
 	private const string WebApiBaseUri = "https://api.binance.us/api/v3";
 	private readonly HttpClient httpClient;
-	private Lazy<Task<(ImmutableDictionary<TradingPair, string> SymbolTable, ImmutableHashSet<TradingPair> TradingPairs)>> tradingPairLookup;
+	private AsyncLazy<(ImmutableDictionary<TradingPair, string> SymbolTable, ImmutableHashSet<TradingPair> TradingPairs)> tradingPairLookup;
 	private (ImmutableDictionary<string, decimal> Prices, DateTimeOffset AsOf)? prices;
 
 	/// <summary>
@@ -23,7 +24,7 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 	public BinanceUSExchange(HttpClient httpClient)
 	{
 		this.httpClient = httpClient;
-		this.tradingPairLookup = new(() => this.GetTradingPairLookupTableAsync(CancellationToken.None));
+		this.tradingPairLookup = new(() => this.GetTradingPairLookupTableAsync(CancellationToken.None), null);
 	}
 
 	/// <summary>
@@ -32,15 +33,9 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 	public DateTimeOffset? PricesAsOf => this.prices?.AsOf;
 
 	/// <inheritdoc/>
-	public void Dispose()
-	{
-		this.httpClient.Dispose();
-	}
-
-	/// <inheritdoc/>
 	public async ValueTask<IReadOnlySet<TradingPair>> GetAvailableTradingPairsAsync(CancellationToken cancellationToken)
 	{
-		(_, ImmutableHashSet<TradingPair> tradingPairs) = await this.tradingPairLookup.Value;
+		(_, ImmutableHashSet<TradingPair> tradingPairs) = await this.tradingPairLookup.GetValueAsync(cancellationToken).ConfigureAwait(false);
 		return tradingPairs;
 	}
 
@@ -48,7 +43,7 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 	public async ValueTask<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, CancellationToken cancellationToken)
 	{
 		TradingPair exchangeTradingPair;
-		(ImmutableDictionary<TradingPair, string> tradingPairs, _) = await this.tradingPairLookup.Value;
+		(ImmutableDictionary<TradingPair, string> tradingPairs, _) = await this.tradingPairLookup.GetValueAsync(cancellationToken).ConfigureAwait(false);
 		if (tradingPairs.TryGetValue(tradingPair, out string? symbolName))
 		{
 			exchangeTradingPair = tradingPair;
@@ -64,10 +59,10 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 
 		if (this.prices is null)
 		{
-			await this.RefreshPricesAsync(cancellationToken);
+			await this.RefreshPricesAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		ImmutableDictionary<string, decimal> prices = await this.GetPricesAsync(cancellationToken);
+		ImmutableDictionary<string, decimal> prices = await this.GetPricesAsync(cancellationToken).ConfigureAwait(false);
 		if (!prices.TryGetValue(symbolName, out decimal price))
 		{
 			throw new NotSupportedException(Strings.TradingPairNotSupported);
@@ -90,8 +85,8 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 	{
 		ImmutableDictionary<string, decimal>.Builder prices = ImmutableDictionary.CreateBuilder<string, decimal>();
 
-		using Stream responseStream = await this.httpClient.GetStreamAsync("https://api.binance.us/api/v3/ticker/price", cancellationToken);
-		JsonDocument json = await JsonDocument.ParseAsync(responseStream, cancellationToken: cancellationToken);
+		using Stream responseStream = await this.httpClient.GetStreamAsync("https://api.binance.us/api/v3/ticker/price", cancellationToken).ConfigureAwait(false);
+		JsonDocument json = await JsonDocument.ParseAsync(responseStream, cancellationToken: cancellationToken).ConfigureAwait(false);
 		foreach (JsonElement symbolAndPrice in json.RootElement.EnumerateArray())
 		{
 			string candidateSymbol = symbolAndPrice.GetProperty("symbol").GetString() ?? throw new JsonException("symbol property missing.");
@@ -105,7 +100,7 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 	{
 		if (this.prices is null)
 		{
-			await this.RefreshPricesAsync(cancellationToken);
+			await this.RefreshPricesAsync(cancellationToken).ConfigureAwait(false);
 			Assumes.NotNull(this.prices);
 		}
 
@@ -116,8 +111,8 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 	{
 		ImmutableDictionary<TradingPair, string>.Builder result = ImmutableDictionary.CreateBuilder<TradingPair, string>();
 
-		using Stream responseStream = await this.httpClient.GetStreamAsync(WebApiBaseUri + "/exchangeInfo", cancellationToken);
-		using JsonDocument json = await JsonDocument.ParseAsync(responseStream, cancellationToken: cancellationToken);
+		using Stream responseStream = await this.httpClient.GetStreamAsync(WebApiBaseUri + "/exchangeInfo", cancellationToken).ConfigureAwait(false);
+		using JsonDocument json = await JsonDocument.ParseAsync(responseStream, cancellationToken: cancellationToken).ConfigureAwait(false);
 		foreach (JsonElement symbol in json.RootElement.GetProperty("symbols").EnumerateArray())
 		{
 			// https://github.com/binance-us/binance-official-api-docs/blob/master/rest-api.md#terminology
