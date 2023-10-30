@@ -68,7 +68,6 @@ Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt64LE() -> ulong
 Nerdbank.Cryptocurrencies.DecodingReader.RemainingLength.get -> int
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.BinanceUSExchange(System.Net.Http.HttpClient! httpClient) -> void
-Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.Dispose() -> void
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.PricesAsOf.get -> System.DateTimeOffset?

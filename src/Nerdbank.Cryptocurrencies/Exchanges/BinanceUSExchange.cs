@@ -10,7 +10,7 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 /// <summary>
 /// A Binance.US provider of exchange rates.
 /// </summary>
-public class BinanceUSExchange : IExchangeRateProvider, IDisposable
+public class BinanceUSExchange : IExchangeRateProvider
 {
 	private const string WebApiBaseUri = "https://api.binance.us/api/v3";
 	private readonly HttpClient httpClient;
@@ -31,12 +31,6 @@ public class BinanceUSExchange : IExchangeRateProvider, IDisposable
 	/// Gets the time that prices were last refreshed.
 	/// </summary>
 	public DateTimeOffset? PricesAsOf => this.prices?.AsOf;
-
-	/// <inheritdoc/>
-	public void Dispose()
-	{
-		this.httpClient.Dispose();
-	}
 
 	/// <inheritdoc/>
 	public async ValueTask<IReadOnlySet<TradingPair>> GetAvailableTradingPairsAsync(CancellationToken cancellationToken)
