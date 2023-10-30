@@ -28,7 +28,9 @@ public class ReceivingAddress : IDisposable
 
 		this.QRCode = this.CreateQRCode();
 
+#pragma warning disable VSTHRD110 // Observe result of async calls - VSTHRD110 bug that is fixed but not yet released.
 		this.CopyCommand = ReactiveCommand.CreateFromTask(() => viewModelServices.TopLevel?.Clipboard?.SetTextAsync(this.FullText) ?? Task.CompletedTask);
+#pragma warning restore VSTHRD110 // Observe result of async calls
 	}
 
 	public string Header { get; }
