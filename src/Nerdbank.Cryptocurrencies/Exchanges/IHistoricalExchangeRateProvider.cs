@@ -6,7 +6,7 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 /// <summary>
 /// A source of current and historical exchange rates between various crypto and fiat currencies.
 /// </summary>
-public interface IHistoricalExchangeRateProvider : IExchangeRateProvider
+public interface IHistoricalExchangeRateProvider : ITradingPairProvider
 {
 	/// <summary>
 	/// Gets the exchange rate between two currencies at a specific point in time.
@@ -15,6 +15,7 @@ public interface IHistoricalExchangeRateProvider : IExchangeRateProvider
 	/// <param name="when">The point in time to get the exchange rate for.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The exchange rate.</returns>
-	/// <exception cref="NotSupportedException">Thrown when the exchange rate is not available.</exception>
-	Task<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken);
+	/// <exception cref="NotSupportedException">Thrown when the trading pair is not offered from this provider.</exception>
+	/// <exception cref="InvalidOperationException">Thrown when the exchange rate is not available for the requested time.</exception>
+	ValueTask<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken);
 }

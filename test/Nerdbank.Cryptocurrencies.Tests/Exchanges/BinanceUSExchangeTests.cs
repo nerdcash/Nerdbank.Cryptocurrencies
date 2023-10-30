@@ -3,18 +3,13 @@
 
 using Nerdbank.Cryptocurrencies.Exchanges;
 
-public class BinanceUSExchangeTests : TestBase, IDisposable
+public class BinanceUSExchangeTests : TestBase
 {
 	private readonly BinanceUSExchange exchange = new(new HttpClient());
 
 	public BinanceUSExchangeTests(ITestOutputHelper logger)
 		: base(logger)
 	{
-	}
-
-	public void Dispose()
-	{
-		this.exchange.Dispose();
 	}
 
 	[Theory, PairwiseData]

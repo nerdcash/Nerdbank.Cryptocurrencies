@@ -68,7 +68,6 @@ Nerdbank.Cryptocurrencies.DecodingReader.ReadUInt64LE() -> ulong
 Nerdbank.Cryptocurrencies.DecodingReader.RemainingLength.get -> int
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.BinanceUSExchange(System.Net.Http.HttpClient! httpClient) -> void
-Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.Dispose() -> void
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
 Nerdbank.Cryptocurrencies.Exchanges.BinanceUSExchange.PricesAsOf.get -> System.DateTimeOffset?
@@ -85,11 +84,12 @@ Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.OppositeDirection.get -> Nerdba
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.set -> void
 Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider
-Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.FindFirstSupportedTradingPairAsync(Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest, System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Exchanges.Security!>! acceptableBases, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.TradingPair?>
-Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
 Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
 Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider
-Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.DateTimeOffset when, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>!
+Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.DateTimeOffset when, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
+Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider
+Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.FindFirstSupportedTradingPairAsync(Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest, System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Exchanges.Security!>! acceptableBases, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.TradingPair?>
+Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
 Nerdbank.Cryptocurrencies.Exchanges.Security
 Nerdbank.Cryptocurrencies.Exchanges.Security.Amount(decimal amount) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Cryptocurrencies.Exchanges.Security.Deconstruct(out string! TickerSymbol, out string? Name, out int Precision) -> void
@@ -118,6 +118,10 @@ Nerdbank.Cryptocurrencies.Exchanges.TradingPair.OppositeDirection.get -> Nerdban
 Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradeInterest.get -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradingPair() -> void
 Nerdbank.Cryptocurrencies.Exchanges.TradingPair.TradingPair(Nerdbank.Cryptocurrencies.Exchanges.Security! basis, Nerdbank.Cryptocurrencies.Exchanges.Security! tradeInterest) -> void
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.DateTimeOffset when, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
+Nerdbank.Cryptocurrencies.Exchanges.YahooFinance.YahooFinance(System.Net.Http.HttpClient! httpClient) -> void
 Nerdbank.Cryptocurrencies.IExtendedKey
 Nerdbank.Cryptocurrencies.IExtendedKey.ChildIndex.get -> uint
 Nerdbank.Cryptocurrencies.IExtendedKey.Depth.get -> byte
@@ -191,6 +195,7 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ALGO -> Nerdbank.Cr
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ARQ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ARRR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ATOM -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.AUD -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BAND -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BAT -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.BBS -> Nerdbank.Cryptocurrencies.Exchanges.Security!
@@ -225,6 +230,7 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETH -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETN -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETNX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.ETNXP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.EUR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FBF -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FIL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.FLUX -> Nerdbank.Cryptocurrencies.Exchanges.Security!
@@ -256,7 +262,6 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MKR -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MSR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.MWC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NAH -> Nerdbank.Cryptocurrencies.Exchanges.Security!
-static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NANO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NBR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NCP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.NEO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
@@ -313,6 +318,7 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XLM -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMC -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMR -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XMV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XNO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XNV -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XPP -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.XRN -> Nerdbank.Cryptocurrencies.Exchanges.Security!

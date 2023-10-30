@@ -8,7 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Workaround gRPC generating a totally empty source file: https://github.com/protocolbuffers/protobuf/issues/7880#issuecomment-1722294889 -->
-    <EditorConfigFiles Include="..\..\obj\.editorconfig" Link=".editorconfig" />
+    <EditorConfigFiles Include="..\..\obj\.editorconfig" Link="obj\.editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" PrivateAssets="compile" />
@@ -16,6 +16,7 @@
     <PackageReference Include="Grpc.Net.Client" />
     <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" PrivateAssets="compile, analyzers" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
   </ItemGroup>
   <ItemGroup>
