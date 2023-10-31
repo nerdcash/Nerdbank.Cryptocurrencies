@@ -3,29 +3,32 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="Nerdbank.Zcash.App.Views.FirstLaunchView"
              x:DataType="vm:FirstLaunchViewModel">
   <Design.DataContext>
     <vm:FirstLaunchViewModel />
   </Design.DataContext>
 
-  <StackPanel Spacing="15" VerticalAlignment="Center" MaxWidth="400">
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
-    <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
-    <StackPanel Classes="ButtonAndExplanation" HorizontalAlignment="Stretch">
-      <SplitButton Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" HorizontalAlignment="Stretch">
-        <SplitButton.Flyout>
-          <Flyout>
-            <MenuItem Command="{Binding StartNewWalletAdvancedCommand}" Header="{Binding StartNewWalletAdvancedCommandCaption}" />
-          </Flyout>
-        </SplitButton.Flyout>
-      </SplitButton>
-      <TextBlock Text="{Binding StartNewWalletExplanation}" />
+  <ScrollViewer>
+    <StackPanel Spacing="15" VerticalAlignment="Center" MaxWidth="400">
+      <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
+      <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
+      <StackPanel Classes="ButtonAndExplanation" HorizontalAlignment="Stretch">
+        <SplitButton Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" HorizontalAlignment="Stretch">
+          <SplitButton.Flyout>
+            <Flyout>
+              <MenuItem Command="{Binding StartNewWalletAdvancedCommand}" Header="{Binding StartNewWalletAdvancedCommandCaption}" />
+            </Flyout>
+          </SplitButton.Flyout>
+        </SplitButton>
+        <TextBlock Text="{Binding StartNewWalletExplanation}" />
+      </StackPanel>
+      <StackPanel Classes="ButtonAndExplanation">
+        <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
+        <TextBlock Text="{Binding ImportWalletExplanation}" />
+      </StackPanel>
     </StackPanel>
-    <StackPanel Classes="ButtonAndExplanation">
-      <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
-      <TextBlock Text="{Binding ImportWalletExplanation}" />
-    </StackPanel>
-  </StackPanel>
+  </ScrollViewer>
 </UserControl>

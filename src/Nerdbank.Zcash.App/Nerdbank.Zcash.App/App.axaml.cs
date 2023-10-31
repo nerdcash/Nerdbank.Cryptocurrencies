@@ -1,7 +1,6 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -12,11 +11,28 @@ namespace Nerdbank.Zcash.App
 {
 	public partial class App : Application
 	{
+		[Obsolete("Design-time only", error: true)]
+		public App()
+		{
+			this.Settings = new();
+			this.AppPlatformSettings = new()
+			{
+				ConfidentialDataPath = null,
+				NonConfidentialDataPath = null,
+			};
+		}
+
+		public App(AppPlatformSettings platformSettings)
+		{
+			this.AppPlatformSettings = platformSettings;
+			this.Settings = platformSettings.NonConfidentialDataPath is null ? new() : AppSettings.LoadOrCreate(Path.Combine(platformSettings.NonConfidentialDataPath, "settings.json"), enableAutoSave: true);
+		}
+
 		public static App Instance => (App?)Current ?? throw new InvalidOperationException("No app!");
 
-		public static string DataDirectory => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+		public AppSettings Settings { get; }
 
-		public AppSettings Settings { get; } = AppSettings.LoadOrCreate(Path.Combine(DataDirectory, "settings.json"), enableAutoSave: true);
+		public AppPlatformSettings AppPlatformSettings { get; }
 
 		/// <inheritdoc/>
 		public override void Initialize()
