@@ -29,6 +29,10 @@
         <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
         <TextBlock Text="{Binding ImportWalletExplanation}" />
       </StackPanel>
+      <StackPanel Classes="ButtonAndExplanation">
+        <TextBlock Text="{Binding LicenseAcceptance}" />
+        <Button Content="{Binding ViewLicenseCommandCaption}" Command="{Binding ViewLicenseCommand}" HorizontalAlignment="Center" />
+      </StackPanel>
     </StackPanel>
   </ScrollViewer>
 </UserControl>
