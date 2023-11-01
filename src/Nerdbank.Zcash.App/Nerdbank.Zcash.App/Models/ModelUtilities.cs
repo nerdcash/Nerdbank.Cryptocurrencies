@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Nerdbank.Zcash.App.Models;
 
-internal static class ModelUtilities
+internal static partial class ModelUtilities
 {
 	/// <summary>
 	/// Marks an object as dirty when some persistable object it owns becomes dirty.
@@ -88,6 +88,26 @@ internal static class ModelUtilities
 		foreach (IPersistableData member in collection)
 		{
 			member.IsDirty = false;
+		}
+	}
+
+	internal static void SetIsDirty(this IPersistableDataHelper model, ref bool isDirty, bool value)
+	{
+		if (isDirty != value)
+		{
+			if (!value)
+			{
+				model.ClearDirtyFlagOnMembers();
+			}
+
+			isDirty = value;
+			model.OnPropertyChanged(nameof(IPersistableData.IsDirty));
+		}
+		else if (value)
+		{
+			// Always raise this, because getting dirty 'again' when we're already dirty
+			// should still trigger a fresh Save to make sure we don't drop anything.
+			model.OnPropertyChanged(nameof(IPersistableData.IsDirty));
 		}
 	}
 }

@@ -14,7 +14,7 @@ namespace Nerdbank.Zcash.App.Models;
 /// A wallet for all the accounts created from a single seed phrase.
 /// </summary>
 [MessagePackFormatter(typeof(Formatter))]
-public class HDWallet : IPersistableData
+public class HDWallet : IPersistableDataHelper
 {
 	private readonly SortedDictionary<uint, Account> accounts = new();
 	private bool isSeedPhraseBackedUp;
@@ -32,22 +32,7 @@ public class HDWallet : IPersistableData
 	public bool IsDirty
 	{
 		get => this.isDirty;
-		set
-		{
-			if (this.isDirty != value)
-			{
-				if (!value)
-				{
-					foreach (Account account in this.Accounts.Values)
-					{
-						account.IsDirty = false;
-					}
-				}
-
-				this.isDirty = value;
-				this.OnPropertyChanged();
-			}
-		}
+		set => this.SetIsDirty(ref this.isDirty, value);
 	}
 
 	/// <summary>
@@ -112,6 +97,13 @@ public class HDWallet : IPersistableData
 	}
 
 	public bool RemoveAccount(uint index) => this.accounts.Remove(index);
+
+	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
+
+	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
+	{
+		this.Accounts.Values.ClearDirtyFlag();
+	}
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 

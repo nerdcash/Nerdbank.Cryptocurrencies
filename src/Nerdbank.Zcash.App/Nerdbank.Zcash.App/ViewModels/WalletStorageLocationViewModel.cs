@@ -5,11 +5,24 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class WalletStorageLocationViewModel : ViewModelBase
 {
-	public string WalletStorageLocation => $"Wallet storage location: \"{App.Instance.AppPlatformSettings.ConfidentialDataPath}\".";
+	private readonly IViewModelServices viewModelServices;
 
-	public bool WalletIsEncrypted => App.Instance.AppPlatformSettings.ConfidentialDataPathIsEncrypted;
+	[Obsolete("Design-time only.", error: true)]
+	public WalletStorageLocationViewModel()
+		: this(new DesignTimeViewModelServices())
+	{
+	}
 
-	public string WalletEncryptionExplanation => App.Instance.AppPlatformSettings.ConfidentialDataPathIsEncrypted
+	public WalletStorageLocationViewModel(IViewModelServices viewModelServices)
+	{
+		this.viewModelServices = viewModelServices;
+	}
+
+	public string WalletStorageLocation => $"Wallet storage location: \"{this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPath}\".";
+
+	public bool WalletIsEncrypted => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPathIsEncrypted;
+
+	public string WalletEncryptionExplanation => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPathIsEncrypted
 		? "Encryption is active so only your local device account can access your wallet. This guards against other accounts on this computer stealing your wallet.\nViruses and malware that may be running under your same account may still be able to access your wallet."
 		: "Encryption is not available on this device to protect your wallet.";
 }

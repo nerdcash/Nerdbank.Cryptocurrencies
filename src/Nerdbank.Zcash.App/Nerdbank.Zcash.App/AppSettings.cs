@@ -3,20 +3,20 @@
 
 using System.ComponentModel;
 using System.Text.Json;
-using System.Threading.Tasks.Dataflow;
-using Microsoft;
 
 namespace Nerdbank.Zcash.App;
 
-public class AppSettings : IAsyncDisposable, IReactiveObject
+public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings>
 {
-	private ActionBlock<bool>? saveOnceBlock;
 	private bool exchangeRatePerTransactionHasBeenDismissed;
 	private Uri lightServerUrl = new("https://zcash.mysideoftheweb.com:9067/");
+	private bool isDirty;
 
 	public AppSettings()
 	{
+		this.MarkSelfDirtyOnPropertyChanged();
 		this.SubscribePropertyChangedEvents();
+		this.SubscribePropertyChangingEvents();
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
@@ -35,80 +35,17 @@ public class AppSettings : IAsyncDisposable, IReactiveObject
 		set => this.RaiseAndSetIfChanged(ref this.lightServerUrl, value);
 	}
 
-	public static AppSettings LoadOrCreate(string jsonSettingsPath, bool enableAutoSave)
+	public bool IsDirty
 	{
-		AppSettings? result = null;
-		try
-		{
-			if (File.Exists(jsonSettingsPath))
-			{
-				using FileStream stream = File.OpenRead(jsonSettingsPath);
-				result = JsonSerializer.Deserialize(stream, JsonSourceGenerationContext.Default.AppSettings);
-			}
-		}
-		catch (IOException)
-		{
-		}
-		catch (JsonException)
-		{
-		}
-
-		result ??= new();
-		if (enableAutoSave)
-		{
-			result.ConfigureAutoSave(jsonSettingsPath);
-		}
-
-		return result;
+		get => this.isDirty;
+		set => this.RaiseAndSetIfChanged(ref this.isDirty, value);
 	}
 
-	public async Task SaveAsync(string jsonSettingsPath, CancellationToken cancellationToken)
-	{
-		using FileStream stream = new(jsonSettingsPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
-		await JsonSerializer.SerializeAsync(stream, this, JsonSourceGenerationContext.Default.AppSettings, cancellationToken);
-	}
+	public static AppSettings Load(Stream stream) => JsonSerializer.Deserialize(stream, JsonSourceGenerationContext.Default.AppSettings)!;
 
-	public async ValueTask DisposeAsync()
-	{
-		if (this.saveOnceBlock is not null)
-		{
-			this.saveOnceBlock.Complete();
-			await this.saveOnceBlock.Completion;
-		}
-	}
+	public Task SaveAsync(Stream stream, CancellationToken cancellationToken) => JsonSerializer.SerializeAsync(stream, this, JsonSourceGenerationContext.Default.AppSettings, cancellationToken);
 
-	void IReactiveObject.RaisePropertyChanging(PropertyChangingEventArgs args)
-	{
-		this.PropertyChanging?.Invoke(this, args);
-	}
+	void IReactiveObject.RaisePropertyChanging(PropertyChangingEventArgs args) => this.PropertyChanging?.Invoke(this, args);
 
-	void IReactiveObject.RaisePropertyChanged(PropertyChangedEventArgs args)
-	{
-		this.PropertyChanged?.Invoke(this, args);
-	}
-
-	private void ScheduleSave()
-	{
-		this.saveOnceBlock?.Post(true);
-	}
-
-	private void ConfigureAutoSave(string autoSaveFilePath)
-	{
-		Verify.Operation(this.saveOnceBlock is null, "Already auto-saving.");
-
-		// We arrange for async saves to happen with an action block that will never schedule more than one save beyond
-		// whatever async save may already be in progress. Anything more than that would be wasteful.
-		this.saveOnceBlock = new(
-			async _ =>
-			{
-				// Save to a temporary file first, then move it into place.
-				// This ensures that a crash during save doesn't corrupt the file.
-				string tempFilePath = $"{autoSaveFilePath}.new";
-				await this.SaveAsync(tempFilePath, CancellationToken.None);
-				File.Move(tempFilePath, autoSaveFilePath, overwrite: true);
-			},
-			new ExecutionDataflowBlockOptions { BoundedCapacity = 2 });
-
-		this.PropertyChanged += (_, _) => this.ScheduleSave();
-	}
+	void IReactiveObject.RaisePropertyChanged(PropertyChangedEventArgs args) => this.PropertyChanged?.Invoke(this, args);
 }

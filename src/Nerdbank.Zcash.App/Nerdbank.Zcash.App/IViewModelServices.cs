@@ -8,6 +8,8 @@ namespace Nerdbank.Zcash.App;
 
 public interface IViewModelServices : INotifyPropertyChanged
 {
+	App App { get; }
+
 	AppSettings Settings { get; }
 
 	/// <summary>

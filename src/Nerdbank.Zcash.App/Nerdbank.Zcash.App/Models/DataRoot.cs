@@ -9,15 +9,22 @@ using MessagePack.Resolvers;
 
 namespace Nerdbank.Zcash.App.Models;
 
-[MessagePackObject(true)]
-public class DataRoot : IPersistableData
+[MessagePackObject]
+public class DataRoot : ITopLevelPersistableData<DataRoot>, IPersistableDataHelper
 {
+	[IgnoreMember]
+	private ZcashWallet wallet;
+
+	[IgnoreMember]
+	private ContactManager contactManager;
+
+	[IgnoreMember]
 	private bool isDirty;
 
 	public DataRoot()
 	{
-		this.StartWatchingForDirtyChild(this.Wallet);
-		this.StartWatchingForDirtyChild(this.ContactManager);
+		this.StartWatchingForDirtyChild(this.wallet = new());
+		this.StartWatchingForDirtyChild(this.contactManager = new());
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
@@ -45,21 +52,42 @@ public class DataRoot : IPersistableData
 	public bool IsDirty
 	{
 		get => this.isDirty;
+		set => this.SetIsDirty(ref this.isDirty, value);
+	}
+
+	[Key("wallet")]
+	public ZcashWallet Wallet
+	{
+		get => this.wallet;
 		set
 		{
-			if (!value)
-			{
-				this.Wallet.IsDirty = false;
-				this.ContactManager.IsDirty = false;
-			}
-
-			this.isDirty = value;
+			this.wallet = value;
+			this.StartWatchingForDirtyChild(value);
 		}
 	}
 
-	public ZcashWallet Wallet { get; set; } = new();
+	[Key("contactManager")]
+	public ContactManager ContactManager
+	{
+		get => this.contactManager;
+		set
+		{
+			this.contactManager = value;
+			this.StartWatchingForDirtyChild(value);
+		}
+	}
 
-	public ContactManager ContactManager { get; set; } = new();
+	public static DataRoot Load(Stream stream) => MessagePackSerializer.Deserialize<DataRoot>(stream, SerializerOptions);
+
+	public Task SaveAsync(Stream stream, CancellationToken cancellationToken) => MessagePackSerializer.SerializeAsync(stream, this, SerializerOptions, cancellationToken);
+
+	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
+
+	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
+	{
+		this.Wallet.IsDirty = false;
+		this.ContactManager.IsDirty = false;
+	}
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

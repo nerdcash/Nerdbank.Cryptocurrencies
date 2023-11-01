@@ -15,7 +15,7 @@ namespace Nerdbank.Zcash.App.Models;
 /// A wallet that contains all the accounts the user wants to track.
 /// </summary>
 [MessagePackFormatter(typeof(Formatter))]
-public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersistableData
+public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersistableDataHelper
 {
 	private readonly ObservableCollection<HDWallet> hdWallets;
 	private readonly ObservableCollection<Account> loneAccounts;
@@ -51,20 +51,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 	public bool IsDirty
 	{
 		get => this.isDirty;
-		set
-		{
-			if (this.isDirty != value)
-			{
-				if (!value)
-				{
-					this.HDWallets.ClearDirtyFlag();
-					this.LoneAccounts.ClearDirtyFlag();
-				}
-
-				this.isDirty = value;
-				this.OnPropertyChanged();
-			}
-		}
+		set => this.SetIsDirty(ref this.isDirty, value);
 	}
 
 	/// <summary>
@@ -142,6 +129,14 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 
 	/// <inheritdoc/>
 	IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
+
+	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
+	{
+		this.HDWallets.ClearDirtyFlag();
+		this.LoneAccounts.ClearDirtyFlag();
+	}
 
 	/// <summary>
 	/// Raises the <see cref="PropertyChanged"/> event.

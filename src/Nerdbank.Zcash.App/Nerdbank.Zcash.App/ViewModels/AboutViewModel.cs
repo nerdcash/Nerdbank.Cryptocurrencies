@@ -18,6 +18,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 	{
 		IObservable<bool> nonEmptyWallet = viewModelServices.WhenAnyValue(vm => vm.Wallet.IsEmpty, empty => !empty);
 
+		this.WalletStorageLocation = new WalletStorageLocationViewModel(viewModelServices);
 		this.DonateCommand = ReactiveCommand.Create(this.Donate, nonEmptyWallet);
 		this.SupportCommand = ReactiveCommand.Create(() => { });
 		this.viewModelServices = viewModelServices;
@@ -27,7 +28,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public string Message => "This app is a Zcash wallet. It seeks to the most intuitive wallet available, while being reliable, secure, and champion some of the best privacy features Zcash has to offer.";
 
-	public WalletStorageLocationViewModel WalletStorageLocation { get; } = new();
+	public WalletStorageLocationViewModel WalletStorageLocation { get; }
 
 	public string LicenseCaption => "License";
 

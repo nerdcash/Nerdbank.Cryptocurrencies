@@ -40,6 +40,9 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
+	[Obsolete("Design-time only.")] // necessary to avoid the compile error about App() being obsolete
+	public App App { get; } = new();
+
 	public ZcashWallet Wallet { get; } = new();
 
 	public Account? SelectedAccount

@@ -10,7 +10,7 @@ using MessagePack.Formatters;
 namespace Nerdbank.Zcash.App.Models;
 
 [MessagePackFormatter(typeof(Formatter))]
-public class ContactManager : IContactManager, IPersistableData
+public class ContactManager : IContactManager, IPersistableDataHelper
 {
 	private readonly ObservableCollection<Contact> contacts;
 	private bool isDirty;
@@ -32,22 +32,7 @@ public class ContactManager : IContactManager, IPersistableData
 	public bool IsDirty
 	{
 		get => this.isDirty;
-		set
-		{
-			if (this.isDirty != value)
-			{
-				if (!value)
-				{
-					foreach (Contact contact in this.contacts)
-					{
-						contact.IsDirty = false;
-					}
-				}
-
-				this.isDirty = value;
-				this.OnPropertyChanged();
-			}
-		}
+		set => this.SetIsDirty(ref this.isDirty, value);
 	}
 
 	public ReadOnlyObservableCollection<Contact> Contacts { get; }
@@ -72,6 +57,13 @@ public class ContactManager : IContactManager, IPersistableData
 		}
 
 		return false;
+	}
+
+	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
+
+	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
+	{
+		this.contacts.ClearDirtyFlag();
 	}
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

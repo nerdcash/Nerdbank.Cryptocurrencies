@@ -3,9 +3,65 @@
 
 using System.Reactive.Linq;
 
-public abstract class ViewModelTestBase
+public abstract class ViewModelTestBase : IAsyncLifetime
 {
-	protected MainViewModel MainViewModel { get; } = new();
+	private readonly string? testSandboxPath;
+
+	public ViewModelTestBase()
+		: this(persistStateAcrossReinitializations: false)
+	{
+	}
+
+	public ViewModelTestBase(bool persistStateAcrossReinitializations)
+	{
+		if (persistStateAcrossReinitializations)
+		{
+			this.testSandboxPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+			this.PersistedPaths = (Path.Combine(this.testSandboxPath, "settings"), Path.Combine(this.testSandboxPath, "data"));
+		}
+
+		this.MainViewModel = new MainViewModel(this.CreateApp());
+	}
+
+	protected (string Settings, string Data)? PersistedPaths { get; }
+
+	protected App App => this.MainViewModel.App;
+
+	protected MainViewModel MainViewModel { get; set; }
+
+	public virtual Task InitializeAsync()
+	{
+		return Task.CompletedTask;
+	}
+
+	public virtual async Task DisposeAsync()
+	{
+		await this.App.DisposeAsync();
+
+		// Delete the temporary directory we created earlier.
+		if (this.testSandboxPath is not null)
+		{
+			Directory.Delete(this.testSandboxPath, recursive: true);
+		}
+	}
+
+	protected App CreateApp()
+	{
+		AppPlatformSettings appPlatformSettings = new AppPlatformSettings
+		{
+			ConfidentialDataPath = this.PersistedPaths?.Data,
+			NonConfidentialDataPath = this.PersistedPaths?.Settings,
+		};
+
+		App app = new(appPlatformSettings);
+		return app;
+	}
+
+	protected async Task ReinitializeAppAsync()
+	{
+		await this.MainViewModel.App.DisposeAsync();
+		this.MainViewModel = new MainViewModel(this.CreateApp());
+	}
 
 	protected async Task InitializeWalletAsync()
 	{

@@ -14,8 +14,16 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	private Account? selectedAccount;
 	private ObservableAsPropertyHelper<string?> contentTitle;
 
+	[Obsolete("Design-time only.", error: true)]
 	public MainViewModel()
+		: this(new App())
 	{
+	}
+
+	public MainViewModel(App app)
+	{
+		this.App = app;
+
 		this.NavigateBackCommand = ReactiveCommand.Create(
 			() => this.NavigateBack(),
 			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.CanNavigateBack)));
@@ -44,11 +52,13 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.NavigateTo(this.GetHomeViewModel());
 	}
 
+	public App App { get; }
+
 	public TopLevel? TopLevel { get; set; }
 
-	public AppSettings Settings { get; } = App.Current is not null ? App.Instance.Settings : new AppSettings();
+	public AppSettings Settings => this.App.Settings;
 
-	public ZcashWallet Wallet { get; } = new();
+	public ZcashWallet Wallet => this.App.Data.Wallet;
 
 	public Account? SelectedAccount
 	{
@@ -58,7 +68,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
 
-	public IContactManager ContactManager { get; } = new ContactManager();
+	public IContactManager ContactManager => this.App.Data.ContactManager;
 
 	public ViewModelBase? Content
 	{
