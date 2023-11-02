@@ -177,6 +177,9 @@ csharp_prefer_braces = true:silent
 # SA1130: Use lambda syntax
 dotnet_diagnostic.SA1130.severity = silent
 
+# SA1133: Each attribute should be placed on its own set of square brackets
+dotnet_diagnostic.SA1133.severity = silent
+
 # IDE1006: Naming Styles - StyleCop handles these for us
 dotnet_diagnostic.IDE1006.severity = none
 

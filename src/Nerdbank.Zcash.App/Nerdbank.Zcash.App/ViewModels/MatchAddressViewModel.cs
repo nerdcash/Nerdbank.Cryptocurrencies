@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel.DataAnnotations;
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class MatchAddressViewModel : ViewModelBase, IHasTitle
@@ -29,6 +30,7 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 
 	public string AddressCaption => "Zcash address:";
 
+	[Required, ZcashAddress]
 	public string Address { get; set; } = string.Empty;
 
 	public string MatchAddressCommandCaption => "Find match";

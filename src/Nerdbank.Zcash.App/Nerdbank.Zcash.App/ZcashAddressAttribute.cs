@@ -1,0 +1,36 @@
+﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.ComponentModel.DataAnnotations;
+using Nerdbank.Cryptocurrencies;
+
+namespace Nerdbank.Zcash.App;
+
+/// <summary>
+/// A validation attribute to be applied on view model <see cref="string"/> properties that should be a Zcash address.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Parameter, AllowMultiple = true)]
+internal class ZcashAddressAttribute : ValidationAttribute
+{
+	public override bool IsValid(object? value)
+	{
+		if (value is string { Length: > 0 } s)
+		{
+			if (ZcashAddress.TryDecode(s, out DecodeError? errorCode, out string? errorMessage, out _))
+			{
+				this.ErrorMessage = null;
+				return true;
+			}
+			else
+			{
+				this.ErrorMessage = errorMessage;
+			}
+		}
+		else
+		{
+			this.ErrorMessage = null;
+		}
+
+		return false;
+	}
+}

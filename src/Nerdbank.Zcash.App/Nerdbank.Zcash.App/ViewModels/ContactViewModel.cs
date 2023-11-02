@@ -79,6 +79,7 @@ public class ContactViewModel : ViewModelBase
 	/// <summary>
 	/// Gets or sets the Zcash address that may be used to send ZEC to the contact.
 	/// </summary>
+	[ZcashAddress]
 	public string Address
 	{
 		get => this.address;
