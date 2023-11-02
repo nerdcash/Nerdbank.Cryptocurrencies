@@ -3,6 +3,8 @@
 
 using System.Reactive.Linq;
 
+namespace ViewModels;
+
 public class BackupViewModelTests : ViewModelTestBase
 {
 	private BackupViewModel viewModel;

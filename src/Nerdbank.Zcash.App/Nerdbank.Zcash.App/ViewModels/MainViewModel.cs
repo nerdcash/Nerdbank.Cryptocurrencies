@@ -84,35 +84,38 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public bool CanNavigateBack => this.viewStack.Count > 1;
 
-	public ReactiveCommand<Unit, Unit> AboutCommand { get; }
+	public ReactiveCommand<Unit, AboutViewModel> AboutCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> HomeCommand { get; }
+	public ReactiveCommand<Unit, ViewModelBase> HomeCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AddressBookCommand { get; }
+	public ReactiveCommand<Unit, AddressBookViewModel> AddressBookCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
+	public ReactiveCommand<Unit, SettingsViewModel> SettingsCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AddressCheckCommand { get; }
+	public ReactiveCommand<Unit, MatchAddressViewModel> AddressCheckCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AccountsListCommand { get; }
+	public ReactiveCommand<Unit, AccountsViewModel> AccountsListCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AccountBalanceCommand { get; }
+	public ReactiveCommand<Unit, BalanceViewModel> AccountBalanceCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> TransactionHistoryCommand { get; }
+	public ReactiveCommand<Unit, HistoryViewModel> TransactionHistoryCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> SendCommand { get; }
+	public ReactiveCommand<Unit, SendingViewModel> SendCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> ReceiveCommand { get; }
+	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> BackupCommand { get; }
+	public ReactiveCommand<Unit, BackupViewModel> BackupCommand { get; }
 
-	public void ReplaceViewStack(ViewModelBase viewModel)
+	public T ReplaceViewStack<T>(T viewModel)
+		where T : ViewModelBase
 	{
 		this.viewStack.Clear();
 		this.NavigateTo(viewModel);
+		return viewModel;
 	}
 
-	public void NavigateTo(ViewModelBase viewModel)
+	public T NavigateTo<T>(T viewModel)
+		where T : ViewModelBase
 	{
 		if (this.Content != viewModel)
 		{
@@ -125,6 +128,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 			this.viewStack.Push(viewModel);
 			this.RaisePropertyChanged(nameof(this.Content));
 		}
+
+		return viewModel;
 	}
 
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel = null)

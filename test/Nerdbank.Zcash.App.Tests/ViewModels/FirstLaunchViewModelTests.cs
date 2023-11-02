@@ -3,6 +3,8 @@
 
 using System.Reactive.Linq;
 
+namespace ViewModels;
+
 public class FirstLaunchViewModelTests : ViewModelTestBase
 {
 	private readonly ITestOutputHelper logger;

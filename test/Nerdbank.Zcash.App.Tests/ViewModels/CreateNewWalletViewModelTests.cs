@@ -3,6 +3,8 @@
 
 using System.Reactive.Linq;
 
+namespace ViewModels;
+
 public class CreateNewWalletViewModelTests : ViewModelTestBase
 {
 	private readonly CreateNewWalletViewModel viewModel;

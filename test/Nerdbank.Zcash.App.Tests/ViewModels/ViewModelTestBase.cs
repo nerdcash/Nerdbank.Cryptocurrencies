@@ -3,6 +3,8 @@
 
 using System.Reactive.Linq;
 
+namespace ViewModels;
+
 public abstract class ViewModelTestBase : IAsyncLifetime
 {
 	private readonly string? testSandboxPath;

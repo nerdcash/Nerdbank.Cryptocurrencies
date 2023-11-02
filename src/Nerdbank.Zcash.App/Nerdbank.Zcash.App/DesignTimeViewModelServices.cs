@@ -63,12 +63,16 @@ internal class DesignTimeViewModelServices : IViewModelServices
 	{
 	}
 
-	public void NavigateTo(ViewModelBase viewModel)
+	public T NavigateTo<T>(T viewModel)
+		where T : ViewModelBase
 	{
+		return viewModel;
 	}
 
-	public void ReplaceViewStack(ViewModelBase viewModel)
+	public T ReplaceViewStack<T>(T viewModel)
+		where T : ViewModelBase
 	{
+		return viewModel;
 	}
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
