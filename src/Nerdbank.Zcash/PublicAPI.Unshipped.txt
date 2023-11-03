@@ -490,7 +490,7 @@ Nerdbank.Zcash.UnifiedViewingKey.Incoming
 Nerdbank.Zcash.UnifiedViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.UnifiedViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.ZcashAccount
-Nerdbank.Zcash.ZcashAccount.AddressSendsToThisAcount(Nerdbank.Zcash.ZcashAddress! address) -> bool
+Nerdbank.Zcash.ZcashAccount.AddressSendsToThisAccount(Nerdbank.Zcash.ZcashAddress! address) -> bool
 Nerdbank.Zcash.ZcashAccount.BirthdayHeight.get -> ulong?
 Nerdbank.Zcash.ZcashAccount.BirthdayHeight.set -> void
 Nerdbank.Zcash.ZcashAccount.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
@@ -545,6 +545,13 @@ Nerdbank.Zcash.ZcashAccount.ZcashAccount(Nerdbank.Zcash.Zip32HDWallet! zip32, ui
 Nerdbank.Zcash.ZcashAddress
 Nerdbank.Zcash.ZcashAddress.Address.get -> string!
 Nerdbank.Zcash.ZcashAddress.Equals(Nerdbank.Zcash.ZcashAddress? other) -> bool
+Nerdbank.Zcash.ZcashAddress.IsMatch(Nerdbank.Zcash.ZcashAddress! candidate) -> Nerdbank.Zcash.ZcashAddress.Match
+Nerdbank.Zcash.ZcashAddress.Match
+Nerdbank.Zcash.ZcashAddress.Match.MatchingReceiversFound = 1 -> Nerdbank.Zcash.ZcashAddress.Match
+Nerdbank.Zcash.ZcashAddress.Match.MismatchingReceiversFound = -2147483648 -> Nerdbank.Zcash.ZcashAddress.Match
+Nerdbank.Zcash.ZcashAddress.Match.NoMatchingReceiverTypes = 0 -> Nerdbank.Zcash.ZcashAddress.Match
+Nerdbank.Zcash.ZcashAddress.Match.UniqueReceiverTypesInReceivingAddress = 4 -> Nerdbank.Zcash.ZcashAddress.Match
+Nerdbank.Zcash.ZcashAddress.Match.UniqueReceiverTypesInTestAddress = 2 -> Nerdbank.Zcash.ZcashAddress.Match
 Nerdbank.Zcash.ZcashAddress.ZcashAddress(string! address) -> void
 Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.MainNet = 0 -> Nerdbank.Zcash.ZcashNetwork

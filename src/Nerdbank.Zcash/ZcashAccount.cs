@@ -267,7 +267,7 @@ public class ZcashAccount
 	/// To avoid being tricked into reusing such a contrived address and unwittingly diverting ZEC to someone else's wallet,
 	/// <see langword="false"/> is returned if any receiver does not belong to this account.
 	/// </remarks>
-	public bool AddressSendsToThisAcount(ZcashAddress address)
+	public bool AddressSendsToThisAccount(ZcashAddress address)
 	{
 		Requires.NotNull(address);
 
