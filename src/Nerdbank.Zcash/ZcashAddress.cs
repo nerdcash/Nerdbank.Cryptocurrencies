@@ -21,6 +21,47 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 	}
 
 	/// <summary>
+	/// Enumerates the kinds of matches that may occur between two Zcash addresses.
+	/// </summary>
+	/// <remarks>
+	/// In the documentation for each enumerated value, the "test address" is the address passed as an argument to to <see cref="IsMatch(ZcashAddress)"/>
+	/// while the "receiving address" is the address on which <see cref="IsMatch(ZcashAddress)"/> is called.
+	/// </remarks>
+	[Flags]
+	public enum Match
+	{
+		/// <summary>
+		/// The two addresses have no receiver types in common. The addresses do not match at all.
+		/// </summary>
+		NoMatchingReceiverTypes = 0x0,
+
+		/// <summary>
+		/// The two addresses have at least one receiver type in common whose values do not match.
+		/// </summary>
+		/// <remarks>
+		/// If <see cref="MatchingReceiversFound"/> is not set, this is a total mismatch.
+		/// If <see cref="MatchingReceiversFound"/> is also set, this is a partial match and <em>may</em> signify
+		/// a contrived address that is meant to fool someone into sending funds to the wrong person.
+		/// </remarks>
+		MismatchingReceiversFound = unchecked((int)0x80000000),
+
+		/// <summary>
+		/// The two addresses have at least one receiver type in common whose values match.
+		/// </summary>
+		MatchingReceiversFound = 0x1,
+
+		/// <summary>
+		/// The test address contains receiver types not found in the receiving address.
+		/// </summary>
+		UniqueReceiverTypesInTestAddress = 0x2,
+
+		/// <summary>
+		/// The receiving address contains receiver types not found in the test address.
+		/// </summary>
+		UniqueReceiverTypesInReceivingAddress = 0x4,
+	}
+
+	/// <summary>
 	/// Gets the network the address belongs to.
 	/// </summary>
 	/// <exception cref="InvalidAddressException">Thrown if the address is invalid.</exception>
@@ -160,6 +201,62 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 
 	/// <inheritdoc/>
 	public bool Equals(ZcashAddress? other) => this == other || this.Address == other?.Address;
+
+	/// <summary>
+	/// Checks for equivalence between this address and another.
+	/// </summary>
+	/// <param name="candidate">The "test address" to check for equivalence.</param>
+	/// <returns>Receives the quality of the match.</returns>
+	public Match IsMatch(ZcashAddress candidate)
+	{
+		Requires.NotNull(candidate);
+
+		if (this.Equals(candidate))
+		{
+			return Match.MatchingReceiversFound;
+		}
+
+		// Go through each receiver type and see if there is a match.
+		Match match = 0;
+
+		// This must be manually maintained as new receiver types are added.
+		TestReceiver<TransparentP2PKHReceiver>();
+		TestReceiver<TransparentP2SHReceiver>();
+		TestReceiver<SproutReceiver>();
+		TestReceiver<SaplingReceiver>();
+		TestReceiver<OrchardReceiver>();
+
+		return match;
+
+		void TestReceiver<T>()
+			where T : unmanaged, IPoolReceiver
+		{
+			T? thisReceiver = this.GetPoolReceiver<T>();
+			T? candidateReceiver = candidate.GetPoolReceiver<T>();
+			switch ((thisReceiver, candidateReceiver))
+			{
+				case (null, null):
+					break;
+				case (null, not null):
+					match |= Match.UniqueReceiverTypesInTestAddress;
+					break;
+				case (not null, null):
+					match |= Match.UniqueReceiverTypesInReceivingAddress;
+					break;
+				case (not null, not null):
+					if (thisReceiver.Equals(candidateReceiver))
+					{
+						match |= Match.MatchingReceiversFound;
+					}
+					else
+					{
+						match |= Match.MismatchingReceiversFound;
+					}
+
+					break;
+			}
+		}
+	}
 
 	/// <summary>
 	/// Gets the receiver for a particular pool, if embedded in this address.

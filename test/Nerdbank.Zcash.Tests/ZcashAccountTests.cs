@@ -99,16 +99,16 @@ public class ZcashAccountTests : TestBase
 	[Fact]
 	public void AddressSendsToThisAccount_Unified()
 	{
-		Assert.True(this.DefaultAccount.AddressSendsToThisAcount(this.DefaultAccount.DefaultAddress));
-		Assert.True(this.DefaultAccount.AddressSendsToThisAcount(this.DefaultAccount.GetDiversifiedAddress()));
-		Assert.False(this.DefaultAccount.AddressSendsToThisAcount(this.AlternateAccount.DefaultAddress));
+		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.DefaultAddress));
+		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.GetDiversifiedAddress()));
+		Assert.False(this.DefaultAccount.AddressSendsToThisAccount(this.AlternateAccount.DefaultAddress));
 	}
 
 	[Fact]
 	public void AddressSendsToThisAccount_Sapling()
 	{
-		Assert.True(this.DefaultAccount.AddressSendsToThisAcount(this.DefaultAccount.IncomingViewing.Sapling!.DefaultAddress));
-		Assert.False(this.DefaultAccount.AddressSendsToThisAcount(this.AlternateAccount.IncomingViewing.Sapling!.DefaultAddress));
+		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.IncomingViewing.Sapling!.DefaultAddress));
+		Assert.False(this.DefaultAccount.AddressSendsToThisAccount(this.AlternateAccount.IncomingViewing.Sapling!.DefaultAddress));
 	}
 
 	/// <summary>
@@ -125,7 +125,7 @@ public class ZcashAccountTests : TestBase
 		ZcashAddress unfriendly = UnifiedAddress.Create(
 			this.DefaultAccount.IncomingViewing.Orchard!.DefaultAddress,
 			this.AlternateAccount.IncomingViewing.Sapling!.DefaultAddress);
-		Assert.False(this.DefaultAccount.AddressSendsToThisAcount(unfriendly));
+		Assert.False(this.DefaultAccount.AddressSendsToThisAccount(unfriendly));
 	}
 
 	[Fact]
