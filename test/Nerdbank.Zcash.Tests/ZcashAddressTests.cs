@@ -1,6 +1,9 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Bitcoin;
+using static Nerdbank.Zcash.ZcashAddress.Match;
+
 public class ZcashAddressTests : TestBase
 {
 	public static object[][] ValidAddresses => new object[][]
@@ -90,6 +93,14 @@ public class ZcashAddressTests : TestBase
 	}
 
 	[Fact]
+	public void Equality_SameReceiversDifferentEncodings()
+	{
+		ZcashAddress saplingEncoded = ZcashAddress.Decode(ValidSaplingAddress);
+		ZcashAddress unifiedEncoded = UnifiedAddress.Create(saplingEncoded);
+		Assert.NotEqual(saplingEncoded, unifiedEncoded);
+	}
+
+	[Fact]
 	public void HashCodes()
 	{
 		var addr1a = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
@@ -111,5 +122,47 @@ public class ZcashAddressTests : TestBase
 	{
 		string? address = (ZcashAddress?)null;
 		Assert.Null(address);
+	}
+
+	[Theory]
+	[InlineData(ValidUnifiedAddressOrchard)]
+	[InlineData(ValidUnifiedAddressOrchardSapling)]
+	[InlineData(ValidUnifiedAddressSapling)]
+	[InlineData(ValidSaplingAddress)]
+	[InlineData(ValidSproutAddress)]
+	[InlineData(ValidTransparentP2PKHAddress)]
+	[InlineData(ValidTransparentP2SHAddress)]
+	public void IsMatch_ExactMatch(string address)
+	{
+		Assert.Equal(MatchingReceiversFound, ZcashAddress.Decode(address).IsMatch(ZcashAddress.Decode(address)));
+	}
+
+	[Fact]
+	public void IsMatch_ExactMatch_DifferentEncodings()
+	{
+		ZcashAddress saplingEncoded = ZcashAddress.Decode(ValidSaplingAddress);
+		ZcashAddress unifiedEncoded = UnifiedAddress.Create(saplingEncoded);
+		Assert.Equal(MatchingReceiversFound, saplingEncoded.IsMatch(unifiedEncoded));
+		Assert.Equal(MatchingReceiversFound, unifiedEncoded.IsMatch(saplingEncoded));
+	}
+
+	[Fact]
+	public void IsMatch_NoMatch()
+	{
+		Assert.Equal(
+			NoMatchingReceiverTypes | UniqueReceiverTypesInReceivingAddress | UniqueReceiverTypesInTestAddress,
+			ZcashAddress.Decode(ValidUnifiedAddressOrchard).IsMatch(ZcashAddress.Decode(ValidUnifiedAddressSapling)));
+		Assert.Equal(MismatchingReceiversFound, ZcashAddress.Decode(ValidSaplingAddress2).IsMatch(ZcashAddress.Decode(ValidSaplingAddress)));
+	}
+
+	[Fact]
+	public void IsMatch_PartialMatch()
+	{
+		// Construct a case where one receiver matches and the other does not.
+		UnifiedAddress receiver = (UnifiedAddress)ZcashAddress.Decode(ValidUnifiedAddressOrchardSapling);
+		ZcashAddress testAddress = UnifiedAddress.Create(
+			receiver.Receivers.OfType<SaplingAddress>().Single(),
+			Zip32HDWallet.Orchard.Create(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), receiver.Network).DefaultAddress);
+		Assert.Equal(MatchingReceiversFound | MismatchingReceiversFound, receiver.IsMatch(testAddress));
 	}
 }
