@@ -83,7 +83,20 @@ public class ContactViewModel : ViewModelBase
 	public string Address
 	{
 		get => this.address;
-		set => this.RaiseAndSetIfChanged(ref this.address, value);
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.address, value);
+
+			// Update the model if the value is valid.
+			if (string.IsNullOrWhiteSpace(value))
+			{
+				this.Model.ReceivingAddress = null;
+			}
+			else if (ZcashAddress.TryDecode(value, out _, out _, out _))
+			{
+				this.Model.ReceivingAddress = ZcashAddress.Decode(value);
+			}
+		}
 	}
 
 	public string AddressCaption => "Address";

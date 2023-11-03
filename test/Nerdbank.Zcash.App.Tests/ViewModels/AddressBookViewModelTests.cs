@@ -32,13 +32,41 @@ public class AddressBookViewModelTests : ViewModelTestBase
 	}
 
 	[Fact]
-	public void ContactNamePersists()
+	public void PropertiesPersist()
 	{
+		const string name = "Somebody";
+		const string address = "u1vmgf0qhsr0wgn94j8kuzk9ax93c26gs5h39sdsnpn3qg2regvdwjzfzvyg36lg69eds4l6u7ewrh3lt7wrl5p5wax6dgshewwrpanfz3wxd55zayzcels34rdxc3mcwgu9hf4sr2wt6f33crkkwp7d2xpjwlrfetj0y6d2pnhcar0cwz";
 		ContactViewModel contact = this.viewModel.NewContact();
-		contact.Name = "Somebody";
+		contact.Name = name;
+		contact.Address = address;
 
 		// Re-open
 		this.viewModel = new(this.MainViewModel);
-		Assert.Equal("Somebody", this.viewModel.Contacts.Single().Name);
+		ContactViewModel reloadedContact = this.viewModel.Contacts.Single();
+		Assert.Equal(name, reloadedContact.Name);
+		Assert.Equal(address, reloadedContact.Address);
+	}
+
+	[Fact]
+	public void ChangeToInvalidZcashAddressIgnored()
+	{
+		const string name = "Somebody";
+		const string address = "u1vmgf0qhsr0wgn94j8kuzk9ax93c26gs5h39sdsnpn3qg2regvdwjzfzvyg36lg69eds4l6u7ewrh3lt7wrl5p5wax6dgshewwrpanfz3wxd55zayzcels34rdxc3mcwgu9hf4sr2wt6f33crkkwp7d2xpjwlrfetj0y6d2pnhcar0cwz";
+		ContactViewModel contact = this.viewModel.NewContact();
+		contact.Name = name;
+		contact.Address = address;
+		contact.Address = "invalid";
+
+		// Re-open
+		this.viewModel = new(this.MainViewModel);
+		ContactViewModel reloadedContact = this.viewModel.Contacts.Single();
+		Assert.Equal(name, reloadedContact.Name);
+		Assert.Equal(address, reloadedContact.Address);
+
+		// Clear the address and confirm that it's gone.
+		reloadedContact.Address = string.Empty;
+		this.viewModel = new(this.MainViewModel);
+		reloadedContact = this.viewModel.Contacts.Single();
+		Assert.Equal(string.Empty, reloadedContact.Address);
 	}
 }

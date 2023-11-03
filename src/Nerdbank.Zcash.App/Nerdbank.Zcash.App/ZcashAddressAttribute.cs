@@ -9,6 +9,9 @@ namespace Nerdbank.Zcash.App;
 /// <summary>
 /// A validation attribute to be applied on view model <see cref="string"/> properties that should be a Zcash address.
 /// </summary>
+/// <remarks>
+/// An empty value is considered valid, so this attribute may be used in conjunction with <see cref="RequiredAttribute"/>.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Parameter, AllowMultiple = true)]
 internal class ZcashAddressAttribute : ValidationAttribute
 {
@@ -16,14 +19,14 @@ internal class ZcashAddressAttribute : ValidationAttribute
 	{
 		if (value is string { Length: > 0 } s)
 		{
-			if (ZcashAddress.TryDecode(s, out DecodeError? errorCode, out string? errorMessage, out _))
+			if (ZcashAddress.TryDecode(s, out DecodeError? _, out string? _, out _))
 			{
 				this.ErrorMessage = null;
 				return true;
 			}
 			else
 			{
-				this.ErrorMessage = errorMessage;
+				this.ErrorMessage = Strings.InvalidAddress;
 			}
 		}
 		else

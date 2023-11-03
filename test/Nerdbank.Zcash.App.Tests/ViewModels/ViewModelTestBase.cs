@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel.DataAnnotations;
 using System.Reactive.Linq;
 
 namespace ViewModels;
@@ -45,6 +46,15 @@ public abstract class ViewModelTestBase : IAsyncLifetime
 		{
 			Directory.Delete(this.testSandboxPath, recursive: true);
 		}
+	}
+
+	protected static bool ValidateResults(ViewModelBase viewModel, out IReadOnlyList<ValidationResult> errors)
+	{
+		List<ValidationResult> validationResults = new();
+		ValidationContext context = new(viewModel, serviceProvider: null, items: null);
+		bool isValid = Validator.TryValidateObject(viewModel, context, validationResults, true);
+		errors = validationResults;
+		return isValid;
 	}
 
 	protected App CreateApp()

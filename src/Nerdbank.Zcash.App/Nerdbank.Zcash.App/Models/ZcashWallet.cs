@@ -124,6 +124,36 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 		}
 	}
 
+	public bool Remove(Account account, IContactManager? contactManager)
+	{
+		if (account.MemberOf is null)
+		{
+			if (this.loneAccounts.Remove(account))
+			{
+				if (contactManager is not null)
+				{
+					this.ScrubAccountReferenceFromContacts(account.ZcashAccount, contactManager);
+				}
+
+				return true;
+			}
+		}
+		else if (account.ZcashAccount.HDDerivation is not null)
+		{
+			if (account.MemberOf.RemoveAccount(account.ZcashAccount.HDDerivation.Value.AccountIndex))
+			{
+				if (contactManager is not null)
+				{
+					this.ScrubAccountReferenceFromContacts(account.ZcashAccount, contactManager);
+				}
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/// <inheritdoc/>
 	public IEnumerator<Account> GetEnumerator() => this.HDWallets.SelectMany(hd => hd.Accounts.Values).Concat(this.LoneAccounts).GetEnumerator();
 
@@ -143,6 +173,18 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 	/// </summary>
 	/// <param name="propertyName">The name of the property that was changed.</param>
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+	private void ScrubAccountReferenceFromContacts(ZcashAccount account, IContactManager contactManager)
+	{
+		// Enumerate contacts and remove any record of them observing a receiving address from the removed account.
+		if (contactManager is not null)
+		{
+			foreach (Contact contact in contactManager.Contacts)
+			{
+				contact.AssignedAddresses.Remove(account);
+			}
+		}
+	}
 
 	private class Formatter : IMessagePackFormatter<ZcashWallet>
 	{
