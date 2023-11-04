@@ -186,6 +186,15 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 			&& this.Network == other.Network;
 	}
 
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => this.Equals(obj as Zip32HDWallet);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		return HashCode.Combine(this.Network, BitConverter.ToInt32(this.Seed.Span));
+	}
+
 	/// <summary>
 	/// Encodes a <see cref="BigInteger"/> as a byte sequence in little-endian order.
 	/// </summary>

@@ -227,6 +227,12 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
 		Zip32HDWallet wallet2 = new(Mnemonic, ZcashNetwork.TestNet);
 		Assert.Equal(wallet1, wallet2);
+
+		// Test explicitly with the object.Equals override.
+		Assert.True(wallet1.Equals((object?)wallet2));
+
+		// Test GetHashCode too.
+		Assert.Equal(wallet1.GetHashCode(), wallet2.GetHashCode());
 	}
 
 	[Fact]
@@ -235,6 +241,12 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
 		Zip32HDWallet wallet2 = new(Mnemonic, ZcashNetwork.MainNet);
 		Assert.NotEqual(wallet1, wallet2);
+
+		// Test explicitly with the object.Equals override.
+		Assert.False(wallet1.Equals((object?)wallet2));
+
+		// Test GetHashCode too.
+		Assert.NotEqual(wallet1.GetHashCode(), wallet2.GetHashCode());
 	}
 
 	[Fact]
@@ -243,6 +255,9 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
 		Zip32HDWallet wallet2 = new(Mnemonic.Seed, ZcashNetwork.TestNet);
 		Assert.Equal(wallet1, wallet2);
+
+		// Test GetHashCode too.
+		Assert.Equal(wallet1.GetHashCode(), wallet2.GetHashCode());
 	}
 
 	[Fact]
@@ -251,5 +266,11 @@ public class Zip32HDWalletTests : TestBase
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
 		Zip32HDWallet wallet2 = new(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet);
 		Assert.NotEqual(wallet1, wallet2);
+
+		// Test explicitly with the object.Equals override.
+		Assert.False(wallet1.Equals((object?)wallet2));
+
+		// Test GetHashCode too.
+		Assert.NotEqual(wallet1.GetHashCode(), wallet2.GetHashCode());
 	}
 }
