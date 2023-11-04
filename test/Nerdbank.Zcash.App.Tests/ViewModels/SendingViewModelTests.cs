@@ -5,22 +5,17 @@ namespace ViewModels;
 
 public class SendingViewModelTests : ViewModelTestBase
 {
-	private readonly SendingViewModel viewModel;
-
-	public SendingViewModelTests()
-	{
-		this.viewModel = new(this.MainViewModel);
-	}
-
 	[Fact]
 	public async Task InitialValues()
 	{
 		await this.InitializeWalletAsync();
-		Assert.Equal(string.Empty, this.viewModel.RecipientAddress);
-		Assert.Equal("ZEC", this.viewModel.TickerSymbol);
-		Assert.Equal(0m, this.viewModel.Amount);
-		Assert.Null(this.viewModel.Fee);
-		Assert.Equal(0m, this.viewModel.Subtotal.Amount);
-		Assert.Equal(0m, this.viewModel.Total.Amount);
+		SendingViewModel viewModel = new(this.MainViewModel);
+
+		Assert.Equal(string.Empty, viewModel.RecipientAddress);
+		Assert.Equal("ZEC", viewModel.TickerSymbol);
+		Assert.Equal(0m, viewModel.Amount);
+		Assert.Null(viewModel.Fee);
+		Assert.Equal(0m, viewModel.Subtotal.Amount);
+		Assert.Equal(0m, viewModel.Total.Amount);
 	}
 }

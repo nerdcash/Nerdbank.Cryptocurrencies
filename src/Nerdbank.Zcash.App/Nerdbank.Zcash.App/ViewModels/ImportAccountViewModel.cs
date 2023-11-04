@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ImportAccountViewModel : ViewModelBase, IHasTitle
@@ -16,6 +18,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 	private bool inputIsValidKey;
 	private bool isSeed;
 	private bool isPasswordVisible;
+	private string name = string.Empty;
 
 	[Obsolete("Design-time only", error: true)]
 	public ImportAccountViewModel()
@@ -25,14 +28,28 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 
 	public ImportAccountViewModel(IViewModelServices viewModelServices)
 	{
+		this.viewModelServices = viewModelServices;
+		this.ImportCommand = ReactiveCommand.Create(this.Import, this.importCommandEnabled);
+
 		this.LinkProperty(nameof(this.IsSeed), nameof(this.IsTestNetVisible));
 		this.LinkProperty(nameof(this.SeedPassword), nameof(this.SeedPasswordHasWhitespace));
 
-		this.ImportCommand = ReactiveCommand.Create(this.Import, this.importCommandEnabled);
-		this.viewModelServices = viewModelServices;
+		if (viewModelServices.Wallet.IsEmpty)
+		{
+			this.Name = Strings.DefaultNameForFirstAccount;
+		}
 	}
 
 	public string Title => "Import Account";
+
+	public string NameCaption => "Account name";
+
+	[Required]
+	public string Name
+	{
+		get => this.name;
+		set => this.RaiseAndSetIfChanged(ref this.name, value);
+	}
 
 	public string Key
 	{
@@ -104,11 +121,21 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 
 	public string ImportCommandCaption => "Import";
 
-	public ReactiveCommand<Unit, ZcashAccount?> ImportCommand { get; }
+	public ReactiveCommand<Unit, Account?> ImportCommand { get; }
 
-	public ZcashAccount? Import()
+	public Account? Import()
 	{
-		this.TryImportAccount(out ZcashAccount? account);
+		Account? account = null;
+		if (this.TryImportAccount(out ZcashAccount? zcashAccount))
+		{
+			account = new Account(zcashAccount, zcashAccount.HDDerivation is null ? null : new HDWallet(zcashAccount.HDDerivation.Value.Wallet))
+			{
+				Name = this.Name,
+			};
+
+			this.viewModelServices.Wallet.Add(account);
+		}
+
 		return account;
 	}
 

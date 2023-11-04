@@ -12,49 +12,13 @@
   </Design.DataContext>
   <TabControl>
     <TabItem Header="Backup">
-      <ScrollViewer>
-        <StackPanel>
-          <TextBlock Text="{Binding BackupToFileExplanation}"/>
-          <Label Content="{Binding BackupFilePasswordCaption}" Target="{Binding #BackupFilePasswordBox}" />
-          <TextBox Name="BackupFilePasswordBox"
-                   Watermark="{Binding BackupFilePasswordWatermark}"
-                   Classes.revealPasswordButton="{Binding EnableHidingPassword}"
-                   PasswordChar="{Binding ConcealPasswordChar}"
-                   Text="{Binding BackupFilePassword}" />
-          <Button Command="{Binding GenerateSecurePasswordCommand}" Content="{Binding GenerateSecurePasswordCaption}"
-                  HorizontalAlignment="Center"/>
-          <TextBlock Text="{Binding BackupFilePasswordExplanation}" />
-          <Button Command="{Binding BackupCommand}"
-                  Content="{Binding BackupCommandCaption}"
-                  HorizontalAlignment="Center"
-                  Margin="0 10" />
-        </StackPanel>
-      </ScrollViewer>
+      <local:BackupFileView DataContext="{Binding BackupFileViewModel}" />
     </TabItem>
     <TabItem Header="Export">
       <DockPanel>
+        <local:AccountSelector HorizontalAlignment="Center" DockPanel.Dock="Top" />
         <ScrollViewer IsVisible="{Binding IsRevealed}">
-          <StackPanel>
-            <local:AccountSelector HorizontalAlignment="Center" />
-            <TextBlock Text="{Binding BackupSeedPhraseExplanation}" />
-            <Label Content="{Binding SeedPhraseCaption}" Target="{Binding #SeedPhraseGrid}" />
-            <DataGrid ItemsSource="{Binding SeedPhraseRows}" HeadersVisibility="None" Name="SeedPhraseGrid">
-              <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Word1}" />
-                <DataGridTextColumn Binding="{Binding Word2}" />
-                <DataGridTextColumn Binding="{Binding Word3}" />
-              </DataGrid.Columns>
-            </DataGrid>
-            <Grid Margin="10" RowDefinitions="auto, auto, auto" ColumnDefinitions="auto, 10, auto">
-              <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
-              <TextBlock Text="{Binding Password}" Grid.Column="2" />
-              <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
-              <TextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
-              <TextBlock Text="{Binding MaxAccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
-              <TextBlock Text="{Binding MaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
-            </Grid>
-            <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
-          </StackPanel>
+          <ContentControl Content="{Binding ExportAccountViewModel}" />
         </ScrollViewer>
         <Panel IsVisible="{Binding !IsRevealed}">
           <StackPanel VerticalAlignment="Center">

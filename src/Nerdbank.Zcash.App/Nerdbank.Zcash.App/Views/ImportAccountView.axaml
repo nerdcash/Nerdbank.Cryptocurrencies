@@ -12,6 +12,9 @@
 
   <DockPanel>
     <StackPanel>
+      <Label Target="{Binding #NameBox}" Content="{Binding NameCaption}" />
+      <TextBox Name="NameBox" Text="{Binding Name}" />
+
       <Label Target="{Binding #KeyBox}">
         <TextBlock Text="{Binding KeyCaption}" />
       </Label>
@@ -27,7 +30,7 @@
 
       <Label Content="{Binding BirthdayHeightCaption}" Target="{Binding #BirthdayHeightBox}" />
       <NumericUpDown Value="{Binding BirthdayHeight}" Name="BirthdayHeightBox" Minimum="{Binding MinimumBirthdayHeight}" Increment="1" />
-      
+
       <Button Command="{Binding ImportCommand}"
               Content="{Binding ImportCommandCaption}"
               HorizontalAlignment="Center"

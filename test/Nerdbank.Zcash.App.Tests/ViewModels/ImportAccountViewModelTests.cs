@@ -32,12 +32,12 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		this.viewModel.IsTestNet = isTestNet;
 
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
-		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
+		Account? account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
-		Assert.Equal(string.Empty, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
-		Assert.Equal(isTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet, account.Network);
+		Assert.Equal(ValidSeedPhrase, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(string.Empty, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account?.ZcashAccount.HDDerivation?.AccountIndex);
+		Assert.Equal(isTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet, account?.Network);
 	}
 
 	[Fact]
@@ -49,11 +49,11 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.True(this.viewModel.IsPasswordVisible);
 
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
-		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
+		Account? account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
-		Assert.Equal(OneWordPassword, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
+		Assert.Equal(ValidSeedPhrase, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(OneWordPassword, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account?.ZcashAccount.HDDerivation?.AccountIndex);
 	}
 
 	[Fact]
@@ -64,11 +64,11 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.False(this.viewModel.IsPasswordVisible);
 
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
-		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
+		Account? account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
-		Assert.Equal(OneWordPassword, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
+		Assert.Equal(ValidSeedPhrase, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(OneWordPassword, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account?.ZcashAccount.HDDerivation?.AccountIndex);
 	}
 
 	/// <summary>
@@ -94,11 +94,11 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
 
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
-		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
+		Account? account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(ValidSeedPhrase, account.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
-		Assert.Equal(AnotherWordPassword, account.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
-		Assert.Equal<uint?>(0, account.HDDerivation?.AccountIndex);
+		Assert.Equal(ValidSeedPhrase, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.SeedPhrase);
+		Assert.Equal(AnotherWordPassword, account?.ZcashAccount.HDDerivation?.Wallet.Mnemonic?.Password.ToString());
+		Assert.Equal<uint?>(0, account?.ZcashAccount.HDDerivation?.AccountIndex);
 	}
 
 	[Fact]
@@ -115,10 +115,10 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.False(this.viewModel.IsPasswordVisible);
 
 		Assert.True(await this.viewModel.ImportCommand.CanExecute.FirstAsync());
-		ZcashAccount account = await this.viewModel.ImportCommand.Execute().FirstAsync();
+		Account? account = await this.viewModel.ImportCommand.Execute().FirstAsync();
 
-		Assert.Equal(transparentAccount, account.Spending?.Transparent);
-		Assert.Null(account.HDDerivation);
+		Assert.Equal(transparentAccount, account?.ZcashAccount.Spending?.Transparent);
+		Assert.Null(account?.ZcashAccount.HDDerivation);
 	}
 
 	[Fact]

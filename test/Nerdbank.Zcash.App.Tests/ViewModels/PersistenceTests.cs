@@ -19,18 +19,20 @@ public class PersistenceTests : ViewModelTestBase
 		await firstLaunch.StartNewWalletCommand.Execute().FirstAsync();
 
 		HomeScreenViewModel homeScreen = Assert.IsType<HomeScreenViewModel>(this.MainViewModel.Content);
+		Assert.True(homeScreen.IsBackupCommandPromoted);
 		await homeScreen.BackupCommand.Execute().FirstAsync();
 
 		BackupViewModel backup = Assert.IsType<BackupViewModel>(this.MainViewModel.Content);
-		backup.IsSeedPhraseBackedUp = true;
+		ExportHDWalletViewModel exportViewModel = Assert.IsType<ExportHDWalletViewModel>(backup.ExportAccountViewModel);
+		exportViewModel.IsSeedPhraseBackedUp = true;
 		await this.MainViewModel.HomeCommand.Execute().FirstAsync();
 
 		homeScreen = Assert.IsType<HomeScreenViewModel>(this.MainViewModel.Content);
-		Assert.True(homeScreen.IsSeedPhraseBackedUp);
+		Assert.False(homeScreen.IsBackupCommandPromoted);
 
 		// Now 'restart' the program and onfirm that the account still claims to be backed up.
 		await this.ReinitializeAppAsync();
 		homeScreen = Assert.IsType<HomeScreenViewModel>(this.MainViewModel.Content);
-		Assert.True(homeScreen.IsSeedPhraseBackedUp);
+		Assert.False(homeScreen.IsBackupCommandPromoted);
 	}
 }

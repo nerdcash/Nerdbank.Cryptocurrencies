@@ -25,7 +25,7 @@
         </Style>
       </StackPanel.Styles>
       <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
-      <StackPanel Classes="ButtonAndExplanation" IsVisible="{Binding !IsSeedPhraseBackedUp}">
+      <StackPanel Classes="ButtonAndExplanation" IsVisible="{Binding IsBackupCommandPromoted}">
         <Button Command="{Binding BackupCommand}" Content="{Binding BackupCommandCaption}" />
         <TextBlock Text="{Binding BackupExplanation}" />
       </StackPanel>

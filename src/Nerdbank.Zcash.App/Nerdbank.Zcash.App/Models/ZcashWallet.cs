@@ -3,6 +3,7 @@
 
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MessagePack;
@@ -15,7 +16,7 @@ namespace Nerdbank.Zcash.App.Models;
 /// A wallet that contains all the accounts the user wants to track.
 /// </summary>
 [MessagePackFormatter(typeof(Formatter))]
-public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersistableDataHelper
+public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotifyCollectionChanged, IPersistableDataHelper
 {
 	private readonly ObservableCollection<HDWallet> hdWallets;
 	private readonly ObservableCollection<Account> loneAccounts;
@@ -41,6 +42,8 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 
 		this.StartWatchingForDirtyChildren(this.hdWallets);
 		this.StartWatchingForDirtyChildren(this.loneAccounts);
+
+		this.hdWallets.NotifyOnCollectionElementMemberChanged(nameof(HDWallet.IsSeedPhraseBackedUp), (HDWallet? hd) => this.OnPropertyChanged(nameof(this.HDWalletsRequireBackup)));
 	}
 
 	/// <summary>
@@ -48,11 +51,18 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 	/// </summary>
 	public event PropertyChangedEventHandler? PropertyChanged;
 
+	/// <summary>
+	/// Occurs when an account is added or removed from the wallet.
+	/// </summary>
+	public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
 	public bool IsDirty
 	{
 		get => this.isDirty;
 		set => this.SetIsDirty(ref this.isDirty, value);
 	}
+
+	public bool HDWalletsRequireBackup => this.HDWallets.Any(w => !w.IsSeedPhraseBackedUp);
 
 	/// <summary>
 	/// Gets a value indicating whether the wallet has no lone accounts and no HD wallets (whether or not they are empty).
@@ -173,6 +183,12 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 	/// </summary>
 	/// <param name="propertyName">The name of the property that was changed.</param>
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+	/// <summary>
+	/// Raises the <see cref="CollectionChanged"/> event.
+	/// </summary>
+	/// <param name="e">The changed event, which should describe <see cref="Account"/> objects.</param>
+	protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e) => this.CollectionChanged?.Invoke(this, e);
 
 	private void ScrubAccountReferenceFromContacts(Account account, IContactManager contactManager)
 	{

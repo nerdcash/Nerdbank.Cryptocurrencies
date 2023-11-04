@@ -29,7 +29,7 @@ public class ViewModelBaseWithAccountSelectorTests : ViewModelTestBase
 		Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1), taz) { Name = "Savings" };
 		this.MainViewModel.Wallet.Add(mainAccount);
 		this.MainViewModel.Wallet.Add(savingsAccount);
-		this.MainViewModel.SelectedAccount = savingsAccount;
+		this.MainViewModel.MostRecentlyUsedAccount = savingsAccount;
 
 		DerivedView view = new(this.MainViewModel);
 		Assert.Same(savingsAccount, view.SelectedAccount);

@@ -37,8 +37,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		this.viewModelServices = viewModelServices;
 		this.observingContact = observingContact;
 
-		this.receivingAccount = receivingAccount ?? viewModelServices.SelectedAccount!;
-		Requires.Argument(this.receivingAccount is not null, nameof(receivingAccount), "Must be provided when SelectedAccount is null.");
+		this.receivingAccount = receivingAccount ?? viewModelServices.Wallet.First();
 
 		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount);
 		if (this.receivingAccount.ZcashAccount.HasDiversifiableKeys)

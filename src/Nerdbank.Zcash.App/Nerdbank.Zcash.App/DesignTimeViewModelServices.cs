@@ -10,8 +10,6 @@ namespace Nerdbank.Zcash.App;
 
 internal class DesignTimeViewModelServices : IViewModelServices
 {
-	private Account? selectedAccount;
-
 	internal DesignTimeViewModelServices(bool empty = false)
 	{
 		if (!empty)
@@ -21,15 +19,13 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			HDWallet zec = new(new(mnemonic, ZcashNetwork.MainNet));
 			HDWallet taz = new(new(mnemonic, ZcashNetwork.TestNet));
 
-			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0), taz) { Name = "Main" };
+			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0), taz) { Name = Strings.DefaultNameForFirstAccount };
 			Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1), taz) { Name = "Savings" };
 			Account realAccount = new(new ZcashAccount(zec.Zip32, 0), zec) { Name = "Real ZEC" };
 
 			this.Wallet.Add(mainAccount);
 			this.Wallet.Add(savingsAccount);
 			this.Wallet.Add(realAccount);
-
-			this.SelectedAccount = mainAccount;
 
 			// Populate address book.
 			this.ContactManager.Add(new Contact { Name = "Andrew Arnott", ReceivingAddress = ZcashAddress.Decode("t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF") });
@@ -45,13 +41,7 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	public ZcashWallet Wallet { get; } = new();
 
-	public Account? SelectedAccount
-	{
-		get => this.selectedAccount ??= this.Wallet.First();
-		set => this.selectedAccount = value;
-	}
-
-	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
+	public Account? MostRecentlyUsedAccount { get; set; }
 
 	public IContactManager ContactManager { get; } = new DesignTimeContactManager();
 

@@ -13,8 +13,7 @@ public class BackupViewModelTests : ViewModelTestBase
 	{
 		Account defaultAccount = this.MainViewModel.Wallet.Add(
 			new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)));
-		this.MainViewModel.SelectedAccount = defaultAccount;
-		this.viewModel = new(this.MainViewModel, null);
+		this.viewModel = new(this.MainViewModel);
 	}
 
 	[Fact]

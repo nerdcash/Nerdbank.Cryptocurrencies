@@ -11,7 +11,6 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class MainViewModel : ViewModelBase, IViewModelServices
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
-	private Account? selectedAccount;
 	private ObservableAsPropertyHelper<string?> contentTitle;
 
 	[Obsolete("Design-time only.", error: true)]
@@ -30,24 +29,21 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 		this.contentTitle = this.WhenAnyValue<MainViewModel, string?, ViewModelBase?>(vm => vm.Content, content => (content as IHasTitle)?.Title).ToProperty(this, nameof(this.ContentTitle));
 
-		IObservable<bool> accountSelected = this.WhenChanged(vm => vm.SelectedAccount, (vm, a) => a is not null);
-		IObservable<bool> hdWalletSelected = this.WhenChanged(vm => vm.SelectedHDWallet, (vm, w) => w is not null);
 		IObservable<bool> nonEmptyWallet = this.WhenAnyValue(vm => vm.Wallet.IsEmpty, empty => !empty);
 
 		this.AboutCommand = ReactiveCommand.Create(() => this.NavigateTo(new AboutViewModel(this)));
 		this.SettingsCommand = ReactiveCommand.Create(() => this.NavigateTo(new SettingsViewModel(this)));
-		this.AddressBookCommand = ReactiveCommand.Create(() => this.NavigateTo(new AddressBookViewModel(this)), accountSelected);
+		this.AddressBookCommand = ReactiveCommand.Create(() => this.NavigateTo(new AddressBookViewModel(this)));
 		this.AddressCheckCommand = ReactiveCommand.Create(() => this.NavigateTo(new MatchAddressViewModel(this)));
 		this.HomeCommand = ReactiveCommand.Create(() => this.ReplaceViewStack(this.GetHomeViewModel()));
 		this.AccountsListCommand = ReactiveCommand.Create(() => this.NavigateTo(new AccountsViewModel(this)), nonEmptyWallet);
-		this.AccountBalanceCommand = ReactiveCommand.Create(() => this.NavigateTo(new BalanceViewModel(this)), accountSelected);
-		this.TransactionHistoryCommand = ReactiveCommand.Create(() => this.NavigateTo(new HistoryViewModel(this)), accountSelected);
-		this.SendCommand = ReactiveCommand.Create(() => this.NavigateTo(new SendingViewModel(this)), accountSelected);
-		this.ReceiveCommand = ReactiveCommand.Create(() => this.NavigateTo(new ReceivingIntentSelectorViewModel(this)), accountSelected);
-		this.BackupCommand = ReactiveCommand.Create(() => this.NavigateTo(new BackupViewModel(this, this.SelectedHDWallet)), nonEmptyWallet);
+		this.AccountBalanceCommand = ReactiveCommand.Create(() => this.NavigateTo(new BalanceViewModel(this)), nonEmptyWallet);
+		this.TransactionHistoryCommand = ReactiveCommand.Create(() => this.NavigateTo(new HistoryViewModel(this)), nonEmptyWallet);
+		this.SendCommand = ReactiveCommand.Create(() => this.NavigateTo(new SendingViewModel(this)), nonEmptyWallet);
+		this.ReceiveCommand = ReactiveCommand.Create(() => this.NavigateTo(new ReceivingIntentSelectorViewModel(this)), nonEmptyWallet);
+		this.BackupCommand = ReactiveCommand.Create(() => this.NavigateTo(new BackupViewModel(this)), nonEmptyWallet);
 
 		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
-		this.LinkProperty(nameof(this.SelectedAccount), nameof(this.SelectedHDWallet));
 
 		this.NavigateTo(this.GetHomeViewModel());
 	}
@@ -60,13 +56,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public ZcashWallet Wallet => this.App.Data.Wallet;
 
-	public Account? SelectedAccount
-	{
-		get => this.selectedAccount ??= this.Wallet.AllAccounts.SelectMany(g => g).FirstOrDefault();
-		set => this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
-	}
-
-	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
+	public Account? MostRecentlyUsedAccount { get; set; }
 
 	public IContactManager ContactManager => this.App.Data.ContactManager;
 
@@ -141,22 +131,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		}
 	}
 
-	public void NewAccount()
-	{
-		Verify.Operation(this.SelectedHDWallet is not null, "HD wallet must be selected first.");
-		Account newAccount = this.SelectedHDWallet.AddAccount(this.SelectedHDWallet.MaxAccountIndex + 1);
-		this.SelectedAccount = newAccount;
-	}
-
 	protected ViewModelBase GetHomeViewModel()
 	{
 		return this.Wallet.IsEmpty ? new FirstLaunchViewModel(this) : new HomeScreenViewModel(this);
-	}
-
-	private Account FindFirstAccount()
-	{
-		return this.Wallet.HDWallets.SelectMany(w => w.Accounts.Values).FirstOrDefault()
-			?? this.Wallet.LoneAccounts.FirstOrDefault()
-			?? throw new InvalidOperationException();
 	}
 }

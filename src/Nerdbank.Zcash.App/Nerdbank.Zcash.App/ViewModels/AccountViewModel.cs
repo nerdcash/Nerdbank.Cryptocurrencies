@@ -5,7 +5,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class AccountViewModel : ViewModelBase
+public class AccountViewModel : ViewModelBase, IViewModel<Account>
 {
 	private readonly ObservableAsPropertyHelper<SecurityAmount> balance;
 	private bool areKeysRevealed;
@@ -18,6 +18,8 @@ public class AccountViewModel : ViewModelBase
 		this.IncomingViewingKey = account.ZcashAccount.IncomingViewing.UnifiedKey.TextEncoding;
 		this.Account = account;
 	}
+
+	Account IViewModel<Account>.Model => this.Account;
 
 	public Account Account { get; }
 

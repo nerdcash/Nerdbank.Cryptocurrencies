@@ -18,7 +18,7 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public BalanceViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		Security security = this.ViewModelServices.SelectedAccount!.Network.AsSecurity();
+		Security security = this.SelectedAccount?.Network.AsSecurity() ?? Security.ZEC;
 
 		this.anticipatedFees = new(-0.103m, security);
 		this.immatureIncome = new(0.5m, security);
@@ -30,8 +30,6 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public BalanceViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
-		this.SelectedAccount = this.Accounts.FirstOrDefault(viewModelServices.SelectedAccount);
-
 		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
 		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));
 

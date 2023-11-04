@@ -57,9 +57,8 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
 		Zip32HDWallet zip32 = new(mnemonic, ZcashNetwork.MainNet);
 		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
-		accountModel.Name = "Main";
+		accountModel.Name = Strings.DefaultNameForFirstAccount;
 
-		this.viewModelServices.SelectedAccount = this.viewModelServices.Wallet.First();
 		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 	}
 
@@ -80,12 +79,10 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		{
 			if (account is not null)
 			{
-				Account accountModel = this.viewModelServices.Wallet.Add(account);
-
 				// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
-				if (accountModel.MemberOf is not null)
+				if (account.MemberOf is not null)
 				{
-					accountModel.MemberOf.IsSeedPhraseBackedUp = true;
+					account.MemberOf.IsSeedPhraseBackedUp = true;
 				}
 
 				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));

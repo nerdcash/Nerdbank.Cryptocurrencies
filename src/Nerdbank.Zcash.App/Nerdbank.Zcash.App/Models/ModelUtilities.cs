@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Nerdbank.Zcash.App.Models;
@@ -46,6 +47,7 @@ internal static partial class ModelUtilities
 			owner.StartWatchingForDirtyChild(child);
 		}
 
+		// TODO: we should watch each child added to the collection too, so that after a Save, we still get marked dirty when the new child is modified.
 		if (children is INotifyCollectionChanged collection)
 		{
 			owner.MarkSelfDirtyOnCollectionChanged(collection);
@@ -81,6 +83,62 @@ internal static partial class ModelUtilities
 		{
 			data.IsDirty = true;
 		};
+	}
+
+	/// <summary>
+	/// Invokes a delegate when a property on any element in a collection changes, or the collection itself changes.
+	/// </summary>
+	/// <typeparam name="TCollection">The type of the collection.</typeparam>
+	/// <typeparam name="TElement">The type of element stored by the collection.</typeparam>
+	/// <param name="collection">The collection to watch.</param>
+	/// <param name="memberName">The name of the property to watch for changes.</param>
+	/// <param name="elementChanged">The delegate to invoke when the property changes with the element that changed; or invoked with <see langword="null" /> if the collection itself changed.</param>
+	internal static void NotifyOnCollectionElementMemberChanged<TCollection, TElement>(this TCollection collection, string memberName, Action<TElement?> elementChanged)
+		where TCollection : IEnumerable<TElement>, INotifyCollectionChanged
+		where TElement : class, INotifyPropertyChanged
+	{
+		collection.CollectionChanged += (s, e) =>
+		{
+			if (e.NewItems is not null)
+			{
+				foreach (TElement element in e.NewItems)
+				{
+					if (element is not null)
+					{
+						element.PropertyChanged += OnPropertyChanged;
+					}
+				}
+			}
+
+			if (e.OldItems is not null)
+			{
+				foreach (TElement element in e.OldItems)
+				{
+					if (element is not null)
+					{
+						element.PropertyChanged -= OnPropertyChanged;
+					}
+				}
+			}
+
+			elementChanged(null);
+		};
+
+		foreach (TElement element in collection)
+		{
+			if (element is not null)
+			{
+				element.PropertyChanged += OnPropertyChanged;
+			}
+		}
+
+		void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == memberName)
+			{
+				elementChanged((TElement?)sender);
+			}
+		}
 	}
 
 	internal static void ClearDirtyFlag(this IEnumerable<IPersistableData> collection)

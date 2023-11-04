@@ -3,7 +3,6 @@
 
 using System.Collections.ObjectModel;
 using DynamicData;
-using Microsoft;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -24,8 +23,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		this.NewAccountCommand = ReactiveCommand.Create(this.NewAccount);
 		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
 
-		this.Accounts.AddRange(
-			this.viewModelServices.Wallet.AllAccounts.SelectMany(a => a).Select(a => new AccountViewModel(a)));
+		WrapModels(this.viewModelServices.Wallet, this.Accounts, (Account a) => new AccountViewModel(a));
 	}
 
 	public string Title => "Accounts";
@@ -46,11 +44,16 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 
 	public string ImportAccountCommandCaption => "Import account";
 
-	public ImportAccountViewModel ImportAccount() => this.viewModelServices.NavigateTo(new ImportAccountViewModel(this.viewModelServices));
+	public ImportAccountViewModel ImportAccount()
+	{
+		ImportAccountViewModel importAccount = new(this.viewModelServices);
+		importAccount.ImportCommand.Subscribe(_ => this.viewModelServices.NavigateBack(importAccount));
+		return this.viewModelServices.NavigateTo(importAccount);
+	}
 
 	public void NewAccount()
 	{
-		Verify.Operation(this.viewModelServices.SelectedHDWallet is not null, "No HD wallet selected.");
-		this.viewModelServices.SelectedHDWallet.AddAccount(this.viewModelServices.SelectedHDWallet.MaxAccountIndex + 1);
+		////Verify.Operation(this.viewModelServices.SelectedHDWallet is not null, "No HD wallet selected.");
+		////this.viewModelServices.SelectedHDWallet.AddAccount(this.viewModelServices.SelectedHDWallet.MaxAccountIndex + 1);
 	}
 }

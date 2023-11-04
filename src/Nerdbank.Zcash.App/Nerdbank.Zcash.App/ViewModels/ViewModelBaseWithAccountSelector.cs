@@ -9,13 +9,16 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 {
 	protected static readonly Security UnknownSecurity = new(string.Empty);
 	private bool accountPickerIsVisible;
+	private Account? selectedAccount;
 
 	public ViewModelBaseWithAccountSelector(IViewModelServices viewModelServices)
 	{
 		this.ViewModelServices = viewModelServices;
 
-		this.Accounts = viewModelServices.Wallet.AllAccounts.SelectMany(g => g).ToList();
+		this.Accounts = viewModelServices.Wallet.ToList();
 		this.accountPickerIsVisible = this.Accounts.Count > 1;
+
+		this.selectedAccount = viewModelServices.MostRecentlyUsedAccount ?? viewModelServices.Wallet.FirstOrDefault();
 
 		this.LinkProperty(nameof(this.SelectedAccount), nameof(this.SelectedSecurity));
 	}
@@ -26,13 +29,13 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 
 	public Account? SelectedAccount
 	{
-		get => this.ViewModelServices.SelectedAccount;
+		get => this.selectedAccount;
 		set
 		{
-			if (this.ViewModelServices.SelectedAccount != value)
+			if (this.selectedAccount != value)
 			{
-				this.ViewModelServices.SelectedAccount = value;
-				this.RaisePropertyChanged();
+				this.ViewModelServices.MostRecentlyUsedAccount = value;
+				this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
 			}
 		}
 	}

@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class HomeScreenViewModel : ViewModelBase
 {
 	private readonly IViewModelServices viewModelServices;
-	private readonly ObservableAsPropertyHelper<bool> isSeedPhraseBackedUp;
+	private readonly ObservableAsPropertyHelper<bool> isBackupCommandPromoted;
 
 	[Obsolete("Design-time only", error: true)]
 	public HomeScreenViewModel()
@@ -21,19 +21,15 @@ public class HomeScreenViewModel : ViewModelBase
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.isSeedPhraseBackedUp = this.WhenAnyValue(x => x.viewModelServices.SelectedHDWallet!.IsSeedPhraseBackedUp).ToProperty(this, nameof(this.IsSeedPhraseBackedUp));
+		this.isBackupCommandPromoted = this.WhenAnyValue(x => x.viewModelServices.Wallet.HDWalletsRequireBackup).ToProperty(this, nameof(this.IsBackupCommandPromoted));
 
 		this.ReceiveCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new ReceivingIntentSelectorViewModel(viewModelServices)));
 		this.SendCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SendingViewModel(viewModelServices)));
 		this.BalanceCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BalanceViewModel(viewModelServices)));
-		this.BackupCommand = ReactiveCommand.Create(
-			() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices, viewModelServices.SelectedHDWallet)),
-			viewModelServices.WhenAnyValue<IViewModelServices, bool, HDWallet?>(vm => vm.SelectedHDWallet, w => w is not null));
+		this.BackupCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices)));
 	}
 
 	public Bitmap Logo => Resources.ZcashLogo;
-
-	public bool IsSeedPhraseBackedUp => this.isSeedPhraseBackedUp.Value;
 
 	public string ReceiveCommandCaption => "Receive";
 
@@ -52,6 +48,8 @@ public class HomeScreenViewModel : ViewModelBase
 	public ReactiveCommand<Unit, BalanceViewModel> BalanceCommand { get; }
 
 	public string BalanceExplanation => "Check your balance.";
+
+	public bool IsBackupCommandPromoted => this.isBackupCommandPromoted.Value;
 
 	public string BackupCommandCaption => "Backup your wallet";
 

@@ -78,7 +78,7 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 
 	private bool TryMatchOnAccount(ZcashAddress address, [NotNullWhen(true)] out Account? account)
 	{
-		foreach (Account candidate in this.viewModelServices.Wallet.AllAccounts.SelectMany(g => g))
+		foreach (Account candidate in this.viewModelServices.Wallet)
 		{
 			if (candidate.ZcashAccount.AddressSendsToThisAccount(address))
 			{

@@ -18,14 +18,9 @@ public interface IViewModelServices : INotifyPropertyChanged
 	ZcashWallet Wallet { get; }
 
 	/// <summary>
-	/// Gets or sets the active account.
+	/// Gets or sets the most recently used account.
 	/// </summary>
-	Account? SelectedAccount { get; set; }
-
-	/// <summary>
-	/// Gets the HD wallet that contains the <see cref="SelectedAccount"/>, if any.
-	/// </summary>
-	HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
+	Account? MostRecentlyUsedAccount { get; set; }
 
 	/// <summary>
 	/// Gets the persisted collection of contacts.

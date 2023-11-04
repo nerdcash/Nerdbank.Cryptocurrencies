@@ -21,14 +21,14 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public SendingViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.fee = this.ViewModelServices.SelectedAccount is not null ? new(0.0001m, this.ViewModelServices.SelectedAccount.Network.AsSecurity()) : null;
+		this.fee = this.SelectedAccount is not null ? new(0.0001m, this.SelectedAccount.Network.AsSecurity()) : null;
 	}
 
 	public SendingViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
 		this.tickerSymbol = this.WhenAnyValue(
-			vm => vm.ViewModelServices.SelectedAccount,
+			vm => vm.SelectedAccount,
 			a => a?.Network.GetTickerName() ?? UnknownSecurity.TickerSymbol).ToProperty(this, nameof(this.TickerSymbol));
 		this.subtotal = this.WhenAnyValue(
 			vm => vm.Amount,

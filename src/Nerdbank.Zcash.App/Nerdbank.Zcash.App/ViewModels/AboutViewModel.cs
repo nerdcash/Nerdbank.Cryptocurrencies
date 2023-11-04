@@ -42,22 +42,15 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public string DonateCommandCaption => "Donate";
 
-	public ReactiveCommand<Unit, Unit> DonateCommand { get; }
+	public ReactiveCommand<Unit, SendingViewModel> DonateCommand { get; }
 
 	public string Version => ThisAssembly.AssemblyInformationalVersion;
 
 	public string VersionCaption => "You are using version";
 
-	public void Donate()
+	public SendingViewModel Donate() => this.viewModelServices.NavigateTo(new SendingViewModel(this.viewModelServices)
 	{
-		if (this.viewModelServices.SelectedAccount is not null)
-		{
-			SendingViewModel sending = new(this.viewModelServices)
-			{
-				RecipientAddress = DonationReceiver,
-				Memo = Strings.FormatDonationMemo(Strings.AppTitle),
-			};
-			this.viewModelServices.NavigateTo(sending);
-		}
-	}
+		RecipientAddress = DonationReceiver,
+		Memo = Strings.FormatDonationMemo(Strings.AppTitle),
+	});
 }
