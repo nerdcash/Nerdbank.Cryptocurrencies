@@ -20,11 +20,11 @@ public interface IContactManager
 	/// <param name="diversifierIndex">The diversifier index used to generate the receiving address that has been shown to the matching contact.</param>
 	/// <param name="contact">Receives the matching contact, if one is found.</param>
 	/// <returns><see langword="true" /> if a matching contact was found; otherwise <see langword="false" />.</returns>
-	bool TryGetContact(ZcashAccount account, DiversifierIndex diversifierIndex, [NotNullWhen(true)] out Contact? contact)
+	bool TryGetContact(Account account, DiversifierIndex diversifierIndex, [NotNullWhen(true)] out Contact? contact)
 	{
 		foreach (Contact c in this.Contacts)
 		{
-			if (c.AssignedAddresses.TryGetValue(account, out Contact.AssignedSendingAddresses? assignment) && assignment.AssignedDiversifier.Equals(diversifierIndex))
+			if (c.AssignedAddresses.TryGetValue(account, out Contact.AssignedSendingAddresses? assignment) && assignment.Diversifier.Equals(diversifierIndex))
 			{
 				contact = c;
 				return true;

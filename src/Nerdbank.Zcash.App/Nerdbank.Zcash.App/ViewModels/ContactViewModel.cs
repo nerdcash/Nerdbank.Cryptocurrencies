@@ -23,7 +23,7 @@ public class ContactViewModel : ViewModelBase
 		IObservable<bool> hasContactSeenMyDiversifiedAddress = this.WhenAnyValue(
 			vm => vm.addressBook.SelectedAccount,
 			vm => vm.Model.AssignedAddresses,
-			(account, addresses) => account is not null && addresses.ContainsKey(account.ZcashAccount));
+			(account, addresses) => account is not null && addresses.ContainsKey(account));
 
 		IObservable<ZcashAddress?> parsedReceivingAddress = this.WhenAnyValue(
 			vm => vm.Address,

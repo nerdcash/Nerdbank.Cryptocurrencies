@@ -40,10 +40,10 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		this.receivingAccount = receivingAccount ?? viewModelServices.SelectedAccount!;
 		Requires.Argument(this.receivingAccount is not null, nameof(receivingAccount), "Must be provided when SelectedAccount is null.");
 
-		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount.ZcashAccount);
+		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount);
 		if (this.receivingAccount.ZcashAccount.HasDiversifiableKeys)
 		{
-			DiversifierIndex diversifierIndex = this.assignedAddresses?.AssignedDiversifier ?? new(DateTime.UtcNow.Ticks);
+			DiversifierIndex diversifierIndex = this.assignedAddresses?.Diversifier ?? new(DateTime.UtcNow.Ticks);
 			UnifiedAddress unifiedAddress = this.receivingAccount.ZcashAccount.GetDiversifiedAddress(ref diversifierIndex);
 			this.Addresses.Add(new(viewModelServices, unifiedAddress, paymentRequestDetailsViewModel, Strings.UnifiedReceivingAddressHeader));
 
@@ -58,7 +58,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		{
 			// Consume a fresh transparent address for this receiver.
 			// We'll bump the max index up by one if the owner indicates the address was actually 'consumed' by the receiver.
-			this.transparentAddressIndex = this.assignedAddresses?.AssignedTransparentAddressIndex ?? (this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
+			this.transparentAddressIndex = this.assignedAddresses?.TransparentAddressIndex ?? (this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
 			TransparentAddress transparentAddress = this.receivingAccount.ZcashAccount.GetTransparentAddress(this.transparentAddressIndex);
 			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
 		}
@@ -108,7 +108,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	{
 		if (this.DisplayedAddress.Address is TransparentAddress && this.assignedAddresses is not null)
 		{
-			this.assignedAddresses.AssignedTransparentAddressIndex ??= this.transparentAddressIndex;
+			this.assignedAddresses.TransparentAddressIndex ??= this.transparentAddressIndex;
 			if (this.transparentAddressIndex > this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex || this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is null)
 			{
 				this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex = this.transparentAddressIndex;

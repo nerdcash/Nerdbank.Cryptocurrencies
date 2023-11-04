@@ -132,7 +132,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 			{
 				if (contactManager is not null)
 				{
-					this.ScrubAccountReferenceFromContacts(account.ZcashAccount, contactManager);
+					this.ScrubAccountReferenceFromContacts(account, contactManager);
 				}
 
 				return true;
@@ -144,7 +144,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 			{
 				if (contactManager is not null)
 				{
-					this.ScrubAccountReferenceFromContacts(account.ZcashAccount, contactManager);
+					this.ScrubAccountReferenceFromContacts(account, contactManager);
 				}
 
 				return true;
@@ -174,7 +174,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 	/// <param name="propertyName">The name of the property that was changed.</param>
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-	private void ScrubAccountReferenceFromContacts(ZcashAccount account, IContactManager contactManager)
+	private void ScrubAccountReferenceFromContacts(Account account, IContactManager contactManager)
 	{
 		// Enumerate contacts and remove any record of them observing a receiving address from the removed account.
 		if (contactManager is not null)

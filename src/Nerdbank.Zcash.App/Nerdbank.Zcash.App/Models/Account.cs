@@ -11,12 +11,19 @@ namespace Nerdbank.Zcash.App.Models;
 public class Account : ReactiveObject, IPersistableData
 {
 	private readonly ObservableAsPropertyHelper<SecurityAmount> securityBalance;
+	private readonly Guid identity;
 	private string name = string.Empty;
 	private decimal balance;
 	private bool isDirty;
 
 	public Account(ZcashAccount account, HDWallet? memberOf)
+		: this(account, memberOf, Guid.NewGuid())
 	{
+	}
+
+	private Account(ZcashAccount account, HDWallet? memberOf, Guid identity)
+	{
+		this.identity = identity;
 		this.ZcashAccount = account;
 		this.MemberOf = memberOf;
 
@@ -60,14 +67,30 @@ public class Account : ReactiveObject, IPersistableData
 		{
 			options.Security.DepthStep(ref reader);
 
-			HDWallet? owner = ((AppSerializerOptions)options).HDWalletOwner;
+			Account? account;
+			Guid identity = Guid.Empty;
+
+			AppSerializerOptions appOptions = (AppSerializerOptions)options;
+			if (reader.NextMessagePackType != MessagePackType.Array)
+			{
+				// This is just a reference to an existing account.
+				identity = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
+				if (!appOptions.Accounts.TryGetValue(identity, out account))
+				{
+					throw new MessagePackSerializationException("Unknown account identity.");
+				}
+
+				return account;
+			}
+
+			HDWallet? owner = appOptions.HDWalletOwner;
 			Zip32HDWallet? zip32 = null;
 			string name = string.Empty;
 			uint? accountIndex = null;
 			UnifiedViewingKey? uvk = null;
 
 			int length = reader.ReadArrayHeader();
-			if (length < 1)
+			if (length < 2)
 			{
 				throw new MessagePackSerializationException("Invalid Account data.");
 			}
@@ -77,9 +100,12 @@ public class Account : ReactiveObject, IPersistableData
 				switch (i)
 				{
 					case 0:
-						name = reader.ReadString() ?? string.Empty;
+						identity = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
 						break;
 					case 1:
+						name = reader.ReadString() ?? string.Empty;
+						break;
+					case 2:
 						if (owner is not null && reader.NextMessagePackType == MessagePackType.Integer)
 						{
 							accountIndex = reader.ReadUInt32();
@@ -120,19 +146,29 @@ public class Account : ReactiveObject, IPersistableData
 				zcashAccount = new(uvk ?? throw new MessagePackSerializationException("Missing UVK."));
 			}
 
-			Account account = new(zcashAccount, owner)
+			account = new(zcashAccount, owner, identity)
 			{
 				Name = name,
 			};
 
+			appOptions.Accounts.Add(identity, account);
 			return account;
 		}
 
 		public void Serialize(ref MessagePackWriter writer, Account value, MessagePackSerializerOptions options)
 		{
-			HDWallet? owner = ((AppSerializerOptions)options).HDWalletOwner;
+			AppSerializerOptions appOptions = (AppSerializerOptions)options;
+			if (appOptions.Accounts.ContainsKey(value.identity))
+			{
+				// This account has already been serialized elsewhere in the object graph. Just serialize a reference to it.
+				options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.identity, options);
+				return;
+			}
 
-			writer.WriteArrayHeader(2);
+			HDWallet? owner = appOptions.HDWalletOwner;
+
+			writer.WriteArrayHeader(3);
+			options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.identity, options);
 			writer.Write(value.Name);
 			if (value.ZcashAccount.HDDerivation is not null)
 			{
@@ -151,6 +187,8 @@ public class Account : ReactiveObject, IPersistableData
 			{
 				writer.Write(value.ZcashAccount.FullViewing?.UnifiedKey.TextEncoding ?? value.ZcashAccount.IncomingViewing.UnifiedKey.TextEncoding);
 			}
+
+			appOptions.Accounts.Add(value.identity, value);
 		}
 	}
 }

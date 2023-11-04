@@ -58,7 +58,7 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 		{
 			if (this.TryMatchOnAccount(address, out Account? account))
 			{
-				this.TryMatchOnObservingContact(account.ZcashAccount, address, out Contact? receivingContact);
+				this.TryMatchOnObservingContact(account, address, out Contact? receivingContact);
 				this.Match = new MatchResults(account, receivingContact);
 			}
 			else if (this.TryMatchOnContact(address, out Contact? contact, out string? caveats))
@@ -91,15 +91,15 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 		return false;
 	}
 
-	private bool TryMatchOnObservingContact(ZcashAccount account, ZcashAddress address, [NotNullWhen(true)] out Contact? receivingContact)
+	private bool TryMatchOnObservingContact(Account account, ZcashAddress address, [NotNullWhen(true)] out Contact? receivingContact)
 	{
 		foreach (Contact candidate in this.viewModelServices.ContactManager.Contacts)
 		{
 			if (candidate.AssignedAddresses.TryGetValue(account, out Contact.AssignedSendingAddresses? assigned))
 			{
-				if (address is TransparentAddress transparentAddr && assigned.AssignedTransparentAddressIndex is uint idx)
+				if (address is TransparentAddress transparentAddr && assigned.TransparentAddressIndex is uint idx)
 				{
-					if (account.GetTransparentAddress(idx).Equals(transparentAddr))
+					if (account.ZcashAccount.GetTransparentAddress(idx).Equals(transparentAddr))
 					{
 						receivingContact = candidate;
 						return true;
@@ -107,8 +107,8 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 				}
 				else
 				{
-					DiversifierIndex contactDiversifier = assigned.AssignedDiversifier;
-					UnifiedAddress ua = account.GetDiversifiedAddress(ref contactDiversifier);
+					DiversifierIndex contactDiversifier = assigned.Diversifier;
+					UnifiedAddress ua = account.ZcashAccount.GetDiversifiedAddress(ref contactDiversifier);
 					ZcashAddress.Match match = ua.IsMatch(address);
 
 					// Only consider it a match if we match all common receivers, and the test address does *not* include any extra receivers.

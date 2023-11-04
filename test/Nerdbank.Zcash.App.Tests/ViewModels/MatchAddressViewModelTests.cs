@@ -34,8 +34,8 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		ZcashAccount friendsAccount = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet));
 		this.friend.ReceivingAddress = friendsAccount.DefaultAddress;
 
-		Contact.AssignedSendingAddresses assignment = this.friend.GetOrCreateSendingAddressAssignment(this.defaultAccount.ZcashAccount);
-		assignment.AssignedTransparentAddressIndex = 4;
+		Contact.AssignedSendingAddresses assignment = this.friend.GetOrCreateSendingAddressAssignment(this.defaultAccount);
+		assignment.TransparentAddressIndex = 4;
 		this.MainViewModel.ContactManager.Add(this.friend);
 	}
 
@@ -74,7 +74,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnAccount_WithObservingContact_Diversified()
 	{
-		DiversifierIndex idx = this.friend.AssignedAddresses[this.defaultAccount.ZcashAccount].AssignedDiversifier;
+		DiversifierIndex idx = this.friend.AssignedAddresses[this.defaultAccount].Diversifier;
 		this.viewModel.Address = this.defaultAccount.ZcashAccount.GetDiversifiedAddress(ref idx);
 		Assert.Same(this.defaultAccount, this.viewModel.Match?.Account);
 		Assert.Same(this.friend, this.viewModel.Match?.DiversifiedAddressShownToContact);
@@ -85,7 +85,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnAccount_WithObservingContact_Transparent()
 	{
-		uint idx = this.friend.AssignedAddresses[this.defaultAccount.ZcashAccount].AssignedTransparentAddressIndex!.Value;
+		uint idx = this.friend.AssignedAddresses[this.defaultAccount].TransparentAddressIndex!.Value;
 		this.viewModel.Address = this.defaultAccount.ZcashAccount.GetTransparentAddress(idx);
 		Assert.Same(this.defaultAccount, this.viewModel.Match?.Account);
 		Assert.Same(this.friend, this.viewModel.Match?.DiversifiedAddressShownToContact);

@@ -13,4 +13,12 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 	}
 
 	internal HDWallet? HDWalletOwner { get; set; }
+
+	/// <summary>
+	/// Gets a cache of accounts that have been serialized or deserialized.
+	/// </summary>
+	/// <remarks>
+	/// This allows for the same account to be referenced by multiple contacts without serializing the account multiple times.
+	/// </remarks>
+	internal Dictionary<Guid, Account> Accounts { get; } = new();
 }
