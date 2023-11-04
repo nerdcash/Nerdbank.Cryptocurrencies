@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Security.Cryptography;
 using Avalonia.Media.Imaging;
-using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -50,9 +48,9 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	public string StartNewWalletAdvancedCommandCaption => Strings.StartNewWalletAdvancedCommandCaption;
 
-	public ReactiveCommand<Unit, Unit> StartNewWalletAdvancedCommand { get; }
+	public ReactiveCommand<Unit, CreateNewWalletViewModel> StartNewWalletAdvancedCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> ImportWalletCommand { get; }
+	public ReactiveCommand<Unit, ImportAccountViewModel> ImportWalletCommand { get; }
 
 	private void CreateNewAccount()
 	{
@@ -65,12 +63,17 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 	}
 
-	private void CreateNewAccountAdvanced()
+	private CreateNewWalletViewModel CreateNewAccountAdvanced()
 	{
-		this.viewModelServices.NavigateTo(new CreateNewWalletViewModel(this.viewModelServices));
+		CreateNewWalletViewModel newAccountViewModel = new(this.viewModelServices);
+		newAccountViewModel.CreateAccountCommand.Subscribe(account =>
+		{
+			this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
+		});
+		return this.viewModelServices.NavigateTo(newAccountViewModel);
 	}
 
-	private void ImportWallet()
+	private ImportAccountViewModel ImportWallet()
 	{
 		ImportAccountViewModel importAccountViewModel = new(this.viewModelServices);
 		importAccountViewModel.ImportCommand.Subscribe(account =>
@@ -88,7 +91,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 			}
 		});
-		this.viewModelServices.NavigateTo(importAccountViewModel);
+		return this.viewModelServices.NavigateTo(importAccountViewModel);
 	}
 
 	private void ViewLicense()

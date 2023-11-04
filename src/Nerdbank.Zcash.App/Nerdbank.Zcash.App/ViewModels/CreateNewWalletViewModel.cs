@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Text;
-using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -56,19 +55,18 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.isTestNet, value);
 	}
 
-	public string IsTestNetCaption => "Create this on testnet (TAZ). This is NOT real Zcash (ZEC).";
+	public string IsTestNetCaption => "Create this on testnet (TAZ). This is NOT for real Zcash (ZEC).";
 
 	public string CreateAccountButtonText => "Create account";
 
-	public ReactiveCommand<Unit, Unit> CreateAccountCommand { get; }
+	public ReactiveCommand<Unit, Account> CreateAccountCommand { get; }
 
-	private void CreateNewAccount()
+	private Account CreateNewAccount()
 	{
 		// ZIP-32 and the Zcash threat modeling requires (at least) 256-bit seeds (https://discord.com/channels/809218587167293450/972649509651906711/1165400226232803378).
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits, this.Password);
 		Zip32HDWallet zip32 = new(mnemonic, this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
-		this.viewModelServices.Wallet.Add(new ZcashAccount(zip32, 0));
-		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
+		return this.viewModelServices.Wallet.Add(new ZcashAccount(zip32, 0));
 	}
 
 	private void RemoveWhitespace()
