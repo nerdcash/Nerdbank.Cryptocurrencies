@@ -780,6 +780,8 @@ override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequest.ToString() -> st
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.GetHashCode() -> int
 override Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.ToString() -> string!
+override Nerdbank.Zcash.Zip32HDWallet.Equals(object? obj) -> bool
+override Nerdbank.Zcash.Zip32HDWallet.GetHashCode() -> int
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.GetHashCode() -> int
