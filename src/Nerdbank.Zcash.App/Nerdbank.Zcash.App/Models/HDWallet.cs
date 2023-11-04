@@ -3,6 +3,8 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using MessagePack;
+using MessagePack.Formatters;
 using Microsoft;
 using Nerdbank.Cryptocurrencies;
 
@@ -11,18 +13,27 @@ namespace Nerdbank.Zcash.App.Models;
 /// <summary>
 /// A wallet for all the accounts created from a single seed phrase.
 /// </summary>
-public class HDWallet : INotifyPropertyChanged
+[MessagePackFormatter(typeof(Formatter))]
+public class HDWallet : IPersistableDataHelper
 {
 	private readonly SortedDictionary<uint, Account> accounts = new();
 	private bool isSeedPhraseBackedUp;
 	private string name = string.Empty;
+	private bool isDirty;
 
 	public HDWallet(Zip32HDWallet zip32)
 	{
 		this.Zip32 = zip32;
+		this.MarkSelfDirtyOnPropertyChanged();
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
+
+	public bool IsDirty
+	{
+		get => this.isDirty;
+		set => this.SetIsDirty(ref this.isDirty, value);
+	}
 
 	/// <summary>
 	/// Gets or sets an optional name for an HD wallet.
@@ -87,6 +98,13 @@ public class HDWallet : INotifyPropertyChanged
 
 	public bool RemoveAccount(uint index) => this.accounts.Remove(index);
 
+	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
+
+	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
+	{
+		this.Accounts.Values.ClearDirtyFlag();
+	}
+
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 	protected void RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
@@ -95,6 +113,81 @@ public class HDWallet : INotifyPropertyChanged
 		{
 			field = value;
 			this.OnPropertyChanged(propertyName);
+		}
+	}
+
+	private class Formatter : IMessagePackFormatter<HDWallet>
+	{
+		public HDWallet Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+		{
+			options.Security.DepthStep(ref reader);
+
+			HDWallet? wallet = null;
+
+			int length = reader.ReadArrayHeader();
+			if (length < 1)
+			{
+				throw new MessagePackSerializationException("Invalid HD wallet data.");
+			}
+
+			for (int i = 0; i < length; i++)
+			{
+				switch (i)
+				{
+					case 0:
+						Zip32HDWallet zip32 = options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Deserialize(ref reader, options);
+						wallet = new HDWallet(zip32);
+						break;
+					case 1:
+						wallet!.Name = reader.ReadString() ?? string.Empty;
+						break;
+					case 2:
+						wallet!.BirthdayHeight = reader.ReadUInt64();
+						break;
+					case 3:
+						((AppSerializerOptions)options).HDWalletOwner = wallet;
+						Account[] accounts = options.Resolver.GetFormatterWithVerify<Account[]>().Deserialize(ref reader, options);
+						((AppSerializerOptions)options).HDWalletOwner = null;
+
+						foreach (Account account in accounts)
+						{
+							wallet!.AddAccount(account);
+						}
+
+						break;
+					case 4:
+						wallet!.IsSeedPhraseBackedUp = reader.ReadBoolean();
+						break;
+					default:
+						reader.Skip();
+						break;
+				}
+			}
+
+			reader.Depth--;
+
+			return wallet!;
+		}
+
+		public void Serialize(ref MessagePackWriter writer, HDWallet value, MessagePackSerializerOptions options)
+		{
+			writer.WriteArrayHeader(5);
+
+			options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Serialize(ref writer, value.Zip32, options);
+			writer.Write(value.Name);
+			writer.Write(value.BirthdayHeight);
+
+			((AppSerializerOptions)options).HDWalletOwner = value;
+			writer.WriteArrayHeader(value.Accounts.Count);
+			IMessagePackFormatter<Account> accountFormatter = options.Resolver.GetFormatterWithVerify<Account>();
+			foreach (Account account in value.Accounts.Values)
+			{
+				accountFormatter.Serialize(ref writer, account, options);
+			}
+
+			((AppSerializerOptions)options).HDWalletOwner = null;
+
+			writer.Write(value.IsSeedPhraseBackedUp);
 		}
 	}
 }

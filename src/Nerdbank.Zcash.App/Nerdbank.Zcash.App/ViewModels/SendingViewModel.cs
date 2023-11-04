@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel.DataAnnotations;
 using Nerdbank.Cryptocurrencies.Exchanges;
 using ZXing.Mobile;
 
@@ -53,6 +54,7 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string RecipientAddressCaption => "Recipient address:";
 
+	[Required(ErrorMessage = ""), ZcashAddress]
 	public string RecipientAddress
 	{
 		get => this.recipientAddress;

@@ -132,6 +132,9 @@
   <data name="ImportWalletExplanation" xml:space="preserve">
     <value>Choose this if you have a seed phrase (typically 24 words) or a particular key that you've saved from another wallet.</value>
   </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>This isn't a valid Zcash address</value>
+  </data>
   <data name="SaplingReceivingAddressHeader" xml:space="preserve">
     <value>Sapling</value>
   </data>

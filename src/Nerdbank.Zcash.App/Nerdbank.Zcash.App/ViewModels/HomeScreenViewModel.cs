@@ -37,25 +37,25 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public string ReceiveCommandCaption => "Receive";
 
-	public ReactiveCommand<Unit, Unit> ReceiveCommand { get; }
+	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }
 
 	public string ReceiveExplanation => "Help someone send you Zcash by sharing your address with them.";
 
 	public string SendCommandCaption => "Send";
 
-	public ReactiveCommand<Unit, Unit> SendCommand { get; }
+	public ReactiveCommand<Unit, SendingViewModel> SendCommand { get; }
 
 	public string SendExplanation => "Send someone Zcash.";
 
 	public string BalanceCommandCaption => "Balance";
 
-	public ReactiveCommand<Unit, Unit> BalanceCommand { get; }
+	public ReactiveCommand<Unit, BalanceViewModel> BalanceCommand { get; }
 
 	public string BalanceExplanation => "Check your balance.";
 
 	public string BackupCommandCaption => "Backup your wallet";
 
-	public ReactiveCommand<Unit, Unit> BackupCommand { get; }
+	public ReactiveCommand<Unit, BackupViewModel> BackupCommand { get; }
 
 	public string BackupExplanation => "No bank is backing your Zcash for you. If you lose this device, you lose your Zcash. Back up your wallet to protect your Zcash or use it from multiple devices.";
 }

@@ -17,24 +17,24 @@
   <DockPanel>
     <Menu DockPanel.Dock="Top">
       <MenuItem Header="Back" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
-      <MenuItem Header="App">
-        <MenuItem Header="Home" Command="{Binding HomeCommand}" />
-        <MenuItem Header="Address book" Command="{Binding AddressBookCommand}" />
-        <MenuItem Header="Accounts" Command="{Binding AccountsListCommand}" />
+      <MenuItem Header="_App">
+        <MenuItem Header="_Home" Command="{Binding HomeCommand}" />
+        <MenuItem Header="_Address book" Command="{Binding AddressBookCommand}" />
+        <MenuItem Header="A_ccounts" Command="{Binding AccountsListCommand}" />
         <Separator />
-        <MenuItem Header="Settings" Command="{Binding SettingsCommand}" />
-        <MenuItem Header="Backup" Command="{Binding BackupCommand}" />
+        <MenuItem Header="_Settings" Command="{Binding SettingsCommand}" />
+        <MenuItem Header="_Backup" Command="{Binding BackupCommand}" />
         <Separator />
-        <MenuItem Header="About" Command="{Binding AboutCommand}" />
+        <MenuItem Header="Ab_out" Command="{Binding AboutCommand}" />
       </MenuItem>
-      <MenuItem Header="Transactions">
-        <MenuItem Header="Balance" Command="{Binding AccountBalanceCommand}" />
-        <MenuItem Header="History" Command="{Binding TransactionHistoryCommand}" />
-        <MenuItem Header="Send" Command="{Binding SendCommand}" />
-        <MenuItem Header="Receive" Command="{Binding ReceiveCommand}" />
+      <MenuItem Header="_Transactions">
+        <MenuItem Header="_Balance" Command="{Binding AccountBalanceCommand}" />
+        <MenuItem Header="_History" Command="{Binding TransactionHistoryCommand}" />
+        <MenuItem Header="_Send" Command="{Binding SendCommand}" />
+        <MenuItem Header="_Receive" Command="{Binding ReceiveCommand}" />
       </MenuItem>
-      <MenuItem Header="Tools">
-        <MenuItem Header="Address check" Command="{Binding AddressCheckCommand}" />
+      <MenuItem Header="T_ools">
+        <MenuItem Header="_Address check" Command="{Binding AddressCheckCommand}" />
       </MenuItem>
     </Menu>
     <ContentControl Content="{Binding Content}" />

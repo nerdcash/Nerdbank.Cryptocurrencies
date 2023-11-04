@@ -27,11 +27,18 @@ public class AppSettingsTests
 		{
 			File.WriteAllText(jsonSettingsPath, @"{""showHints"":false, ""sampleProperty"":2}");
 
-			AppSettings settings = AppSettings.LoadOrCreate(jsonSettingsPath, enableAutoSave: false);
+			AutoSaveManager<AppSettings> autoSaveManager = AutoSaveManager<AppSettings>.LoadOrCreate(jsonSettingsPath, enableAutoSave: false);
+			AppSettings settings = autoSaveManager.Data;
+
 			Assert.False(settings.ExchangeRatePerTransactionHasBeenDismissed);
+			Assert.False(settings.IsDirty);
+
 			settings.ExchangeRatePerTransactionHasBeenDismissed = true;
 			Assert.True(settings.ExchangeRatePerTransactionHasBeenDismissed);
-			await settings.SaveAsync(jsonSettingsPath, CancellationToken.None);
+			Assert.True(settings.IsDirty);
+
+			await autoSaveManager.SaveAsync(jsonSettingsPath, CancellationToken.None);
+			Assert.False(settings.IsDirty);
 
 			this.Logger.WriteLine(File.ReadAllText(jsonSettingsPath));
 		}
@@ -44,19 +51,22 @@ public class AppSettingsTests
 	[Fact]
 	public async Task AutoSave()
 	{
-		string jsonSettingsPath = Path.GetTempFileName();
+		string jsonSettingsPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 		try
 		{
 			// The file does not yet exist, but this enables auto-save.
-			AppSettings settings = AppSettings.LoadOrCreate(jsonSettingsPath, enableAutoSave: true);
+			var autoSaver = AutoSaveManager<AppSettings>.LoadOrCreate(jsonSettingsPath, enableAutoSave: true);
+			AppSettings settings = autoSaver.Data;
 
 			settings.ExchangeRatePerTransactionHasBeenDismissed = true;
+			Assert.True(settings.IsDirty);
 
 			// Wait for async save to finish.
-			await settings.DisposeAsync();
+			await autoSaver.DisposeAsync();
 			this.Logger.WriteLine(File.ReadAllText(jsonSettingsPath));
+			Assert.False(settings.IsDirty);
 
-			settings = AppSettings.LoadOrCreate(jsonSettingsPath, enableAutoSave: true);
+			settings = AutoSaveManager<AppSettings>.LoadOrCreate(jsonSettingsPath, enableAutoSave: true).Data;
 			Assert.True(settings.ExchangeRatePerTransactionHasBeenDismissed);
 		}
 		finally

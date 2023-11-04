@@ -3,17 +3,18 @@
 
 using System.Reactive.Linq;
 
-public class BackupViewModelTests
+namespace ViewModels;
+
+public class BackupViewModelTests : ViewModelTestBase
 {
-	private MainViewModel mainViewModel = new();
 	private BackupViewModel viewModel;
 
 	public BackupViewModelTests()
 	{
-		Account defaultAccount = this.mainViewModel.Wallet.Add(
+		Account defaultAccount = this.MainViewModel.Wallet.Add(
 			new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)));
-		this.mainViewModel.SelectedAccount = defaultAccount;
-		this.viewModel = new(this.mainViewModel, null);
+		this.MainViewModel.SelectedAccount = defaultAccount;
+		this.viewModel = new(this.MainViewModel, null);
 	}
 
 	[Fact]

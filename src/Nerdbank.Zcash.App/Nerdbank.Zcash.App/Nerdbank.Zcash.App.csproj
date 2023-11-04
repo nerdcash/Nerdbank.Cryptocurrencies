@@ -23,6 +23,8 @@
     <PackageReference Include="Avalonia.ReactiveUI" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+    <PackageReference Include="MessagePack" />
+    <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Nerdbank.QRCodes" />
     <PackageReference Include="ZXing.Net.Mobile" />

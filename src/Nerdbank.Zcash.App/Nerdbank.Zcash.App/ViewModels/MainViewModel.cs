@@ -14,8 +14,16 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	private Account? selectedAccount;
 	private ObservableAsPropertyHelper<string?> contentTitle;
 
+	[Obsolete("Design-time only.", error: true)]
 	public MainViewModel()
+		: this(new App())
 	{
+	}
+
+	public MainViewModel(App app)
+	{
+		this.App = app;
+
 		this.NavigateBackCommand = ReactiveCommand.Create(
 			() => this.NavigateBack(),
 			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.CanNavigateBack)));
@@ -44,11 +52,13 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.NavigateTo(this.GetHomeViewModel());
 	}
 
+	public App App { get; }
+
 	public TopLevel? TopLevel { get; set; }
 
-	public AppSettings Settings { get; } = App.Current is not null ? App.Instance.Settings : new AppSettings();
+	public AppSettings Settings => this.App.Settings;
 
-	public ZcashWallet Wallet { get; } = new();
+	public ZcashWallet Wallet => this.App.Data.Wallet;
 
 	public Account? SelectedAccount
 	{
@@ -58,7 +68,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public HDWallet? SelectedHDWallet => this.SelectedAccount?.MemberOf;
 
-	public IContactManager ContactManager { get; } = new ContactManager();
+	public IContactManager ContactManager => this.App.Data.ContactManager;
 
 	public ViewModelBase? Content
 	{
@@ -74,35 +84,38 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public bool CanNavigateBack => this.viewStack.Count > 1;
 
-	public ReactiveCommand<Unit, Unit> AboutCommand { get; }
+	public ReactiveCommand<Unit, AboutViewModel> AboutCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> HomeCommand { get; }
+	public ReactiveCommand<Unit, ViewModelBase> HomeCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AddressBookCommand { get; }
+	public ReactiveCommand<Unit, AddressBookViewModel> AddressBookCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
+	public ReactiveCommand<Unit, SettingsViewModel> SettingsCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AddressCheckCommand { get; }
+	public ReactiveCommand<Unit, MatchAddressViewModel> AddressCheckCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AccountsListCommand { get; }
+	public ReactiveCommand<Unit, AccountsViewModel> AccountsListCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> AccountBalanceCommand { get; }
+	public ReactiveCommand<Unit, BalanceViewModel> AccountBalanceCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> TransactionHistoryCommand { get; }
+	public ReactiveCommand<Unit, HistoryViewModel> TransactionHistoryCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> SendCommand { get; }
+	public ReactiveCommand<Unit, SendingViewModel> SendCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> ReceiveCommand { get; }
+	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> BackupCommand { get; }
+	public ReactiveCommand<Unit, BackupViewModel> BackupCommand { get; }
 
-	public void ReplaceViewStack(ViewModelBase viewModel)
+	public T ReplaceViewStack<T>(T viewModel)
+		where T : ViewModelBase
 	{
 		this.viewStack.Clear();
 		this.NavigateTo(viewModel);
+		return viewModel;
 	}
 
-	public void NavigateTo(ViewModelBase viewModel)
+	public T NavigateTo<T>(T viewModel)
+		where T : ViewModelBase
 	{
 		if (this.Content != viewModel)
 		{
@@ -115,6 +128,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 			this.viewStack.Push(viewModel);
 			this.RaisePropertyChanged(nameof(this.Content));
 		}
+
+		return viewModel;
 	}
 
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel = null)

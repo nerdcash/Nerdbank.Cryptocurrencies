@@ -4,7 +4,6 @@
 using System.Collections.ObjectModel;
 using DynamicData;
 using Microsoft;
-using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -43,14 +42,11 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 
 	public string NewAccountCommandCaption => "New account";
 
-	public ReactiveCommand<Unit, Unit> ImportAccountCommand { get; }
+	public ReactiveCommand<Unit, ImportAccountViewModel> ImportAccountCommand { get; }
 
 	public string ImportAccountCommandCaption => "Import account";
 
-	public void ImportAccount()
-	{
-		this.viewModelServices.NavigateTo(new ImportAccountViewModel(this.viewModelServices));
-	}
+	public ImportAccountViewModel ImportAccount() => this.viewModelServices.NavigateTo(new ImportAccountViewModel(this.viewModelServices));
 
 	public void NewAccount()
 	{

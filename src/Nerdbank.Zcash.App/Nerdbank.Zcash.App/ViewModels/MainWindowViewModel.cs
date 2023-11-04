@@ -8,7 +8,14 @@ public class MainWindowViewModel : MainViewModel
 	private static readonly string AppTitle = Strings.AppTitle;
 	private ObservableAsPropertyHelper<string> title;
 
+	[Obsolete("Design-time only", error: true)]
 	public MainWindowViewModel()
+		: this(new App())
+	{
+	}
+
+	public MainWindowViewModel(App app)
+		: base(app)
 	{
 		this.title = this.WhenAnyValue<MainWindowViewModel, string, ViewModelBase?>(
 			vm => vm.Content,

@@ -19,11 +19,11 @@ internal class Program
 	// Avalonia configuration, don't remove; also used by visual designer.
 	public static AppBuilder BuildAvaloniaApp()
 	{
-		AppBuilder builder = AppBuilder.Configure<App>()
-				.UsePlatformDetect()
-				.WithInterFont()
-				.LogToTrace()
-				.UseReactiveUI();
+		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings()))
+			.UsePlatformDetect()
+			.WithInterFont()
+			.LogToTrace()
+			.UseReactiveUI();
 
 		// Workaround for transparent Window on win-arm64 (https://github.com/AvaloniaUI/Avalonia/issues/10405)
 		if (OperatingSystem.IsWindows() && RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
@@ -36,5 +36,43 @@ internal class Program
 		}
 
 		return builder;
+	}
+
+	private static AppPlatformSettings PrepareAppPlatformSettings()
+	{
+		string appDataBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nerdbank.Zcash.App");
+		string confidentialDataPath = Path.Combine(appDataBaseDir, "wallets");
+		string nonConfidentialDataPath = Path.Combine(appDataBaseDir, "settings");
+
+		// Find the appropriate path for storing wallets.
+		// Create the directory and try setting it to encrypt its contents via NTFS attributes if available.
+		bool encryptionSuccessful = false;
+		DirectoryInfo dirInfo = Directory.CreateDirectory(confidentialDataPath);
+		if (Directory.Exists(confidentialDataPath))
+		{
+			encryptionSuccessful = (dirInfo.Attributes & FileAttributes.Encrypted) == FileAttributes.Encrypted;
+		}
+		else if (OperatingSystem.IsWindows())
+		{
+			try
+			{
+				File.Encrypt(confidentialDataPath);
+				encryptionSuccessful = true;
+			}
+			catch (PlatformNotSupportedException)
+			{
+				// NTFS encryption not supported on this platform.
+			}
+		}
+
+		// Create the directory for settings.
+		Directory.CreateDirectory(nonConfidentialDataPath);
+
+		return new AppPlatformSettings
+		{
+			ConfidentialDataPathIsEncrypted = encryptionSuccessful,
+			ConfidentialDataPath = confidentialDataPath,
+			NonConfidentialDataPath = nonConfidentialDataPath,
+		};
 	}
 }

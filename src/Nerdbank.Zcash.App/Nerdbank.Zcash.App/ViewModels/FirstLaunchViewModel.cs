@@ -22,6 +22,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		this.StartNewWalletCommand = ReactiveCommand.Create(this.CreateNewAccount);
 		this.StartNewWalletAdvancedCommand = ReactiveCommand.Create(this.CreateNewAccountAdvanced);
 		this.ImportWalletCommand = ReactiveCommand.Create(this.ImportWallet);
+		this.ViewLicenseCommand = ReactiveCommand.Create(this.ViewLicense);
 		this.viewModelServices = viewModelServices;
 	}
 
@@ -38,6 +39,12 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 	public string ImportWalletButtonText => Strings.ImportWalletButtonText;
 
 	public string ImportWalletExplanation => Strings.ImportWalletExplanation;
+
+	public string LicenseAcceptance => "Use of this application expresses agreement to its license terms. Absolutely no warranty is provided.";
+
+	public string ViewLicenseCommandCaption => "View license";
+
+	public ReactiveCommand<Unit, Unit> ViewLicenseCommand { get; }
 
 	public ReactiveCommand<Unit, Unit> StartNewWalletCommand { get; }
 
@@ -82,5 +89,10 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 			}
 		});
 		this.viewModelServices.NavigateTo(importAccountViewModel);
+	}
+
+	private void ViewLicense()
+	{
+		this.viewModelServices.NavigateTo(new AboutViewModel(this.viewModelServices));
 	}
 }

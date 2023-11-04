@@ -3,9 +3,17 @@
 
 using System.Reactive.Linq;
 
-public class MainWindowViewModelTests
+namespace ViewModels;
+
+public class MainWindowViewModelTests : ViewModelTestBase
 {
-	private readonly MainWindowViewModel viewModel = new();
+	private readonly MainWindowViewModel viewModel;
+
+	public MainWindowViewModelTests()
+	{
+		this.viewModel = new MainWindowViewModel(this.CreateApp());
+		this.MainViewModel = this.viewModel;
+	}
 
 	[Fact]
 	public async Task HomeCommandStaysOnFirstLaunchAsync()

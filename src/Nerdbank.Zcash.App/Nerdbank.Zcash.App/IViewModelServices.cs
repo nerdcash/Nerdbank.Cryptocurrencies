@@ -8,6 +8,8 @@ namespace Nerdbank.Zcash.App;
 
 public interface IViewModelServices : INotifyPropertyChanged
 {
+	App App { get; }
+
 	AppSettings Settings { get; }
 
 	/// <summary>
@@ -35,11 +37,14 @@ public interface IViewModelServices : INotifyPropertyChanged
 	/// <summary>
 	/// Pushes a view model onto the view stack.
 	/// </summary>
+	/// <typeparam name="T">The type of the view model.</typeparam>
 	/// <param name="viewModel">The new view model.</param>
+	/// <returns>The <paramref name="viewModel"/> value.</returns>
 	/// <remarks>
 	/// This will no-op if the given view model is already the current view model.
 	/// </remarks>
-	void NavigateTo(ViewModelBase viewModel);
+	T NavigateTo<T>(T viewModel)
+		where T : ViewModelBase;
 
 	/// <summary>
 	/// Pops the current view model off the view stack, effectively moving the view "back" one step.
@@ -50,9 +55,12 @@ public interface IViewModelServices : INotifyPropertyChanged
 	/// <summary>
 	/// Replaces the entire view stack with a new view model.
 	/// </summary>
+	/// <typeparam name="T">The type of the view model.</typeparam>
 	/// <param name="viewModel">The new view model to select.</param>
+	/// <returns>The <paramref name="viewModel"/> value.</returns>
 	/// <remarks>
 	/// This is useful primarily at the start of the app, when the user may not see the main home screen right away due to a first launch experience.
 	/// </remarks>
-	void ReplaceViewStack(ViewModelBase viewModel);
+	T ReplaceViewStack<T>(T viewModel)
+		where T : ViewModelBase;
 }

@@ -3,6 +3,8 @@
 
 using System.Reactive.Linq;
 
+namespace ViewModels;
+
 public class ImportAccountViewModelTests : ViewModelTestBase
 {
 	private const string ValidSeedPhrase = "weapon solid program critic you long skill foot damp kingdom west history car crunch park increase excite hidden bless spot matter razor memory garbage";

@@ -45,7 +45,19 @@ public class AddressBookViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public ContactViewModel? SelectedContact
 	{
 		get => this.selectedContact;
-		set => this.RaiseAndSetIfChanged(ref this.selectedContact, value);
+		set
+		{
+			if (this.selectedContact != value)
+			{
+				// Remove the previously selected contact if it's empty.
+				if (this.selectedContact is not null && this.selectedContact.IsEmpty)
+				{
+					this.DeleteContact(this.selectedContact);
+				}
+
+				this.RaiseAndSetIfChanged(ref this.selectedContact, value);
+			}
+		}
 	}
 
 	public ContactViewModel NewContact()
@@ -54,7 +66,7 @@ public class AddressBookViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		if (newContact is null)
 		{
 			Contact model = new();
-			this.ViewModelServices.ContactManager.Contacts.Add(model);
+			this.ViewModelServices.ContactManager.Add(model);
 			newContact = new ContactViewModel(this, model);
 			this.Contacts.Add(newContact);
 		}
@@ -66,5 +78,6 @@ public class AddressBookViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public void DeleteContact(ContactViewModel contact)
 	{
 		this.Contacts.Remove(contact);
+		this.ViewModelServices.ContactManager.Remove(contact.Model);
 	}
 }

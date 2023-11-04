@@ -17,6 +17,7 @@ Features unique to eZcash over other Zcash wallets include:
 - Better privacy behavior:
   - *Real* auto-shielding. Incoming transparent funds are shielded in a privacy-conscious way.
   - Minimize transaction amount disclosure through auto-balancing of funds between shielded pools.
+  - Automatically encrypts your locally stored wallet (on Windows).
 - Receiving Zcash
   - Payment request URI and QR code support simplifies 
   - Automatically associates all incoming Zcash with the contact that sent it.
