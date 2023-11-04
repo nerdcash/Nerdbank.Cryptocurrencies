@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Reactive.Linq;
+
 namespace ViewModels;
 
 public class AddressBookViewModelTests : ViewModelTestBase
@@ -29,6 +31,30 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		this.viewModel.NewContact();
 		Assert.NotSame(newContact, this.viewModel.SelectedContact);
 		Assert.Equal(2, this.viewModel.Contacts.Count);
+	}
+
+	[Fact]
+	public async Task RemoveContactAsync()
+	{
+		ContactViewModel contact = this.viewModel.NewContact();
+		contact.Name = "Somebody";
+		Assert.Single(this.MainViewModel.ContactManager.Contacts);
+
+		await this.viewModel.DeleteContactCommand.Execute().FirstAsync();
+		Assert.Empty(this.MainViewModel.ContactManager.Contacts);
+	}
+
+	[Fact]
+	public void NewContactRemovedWhenSelectionChangesIfStillEmpty()
+	{
+		ContactViewModel contact1 = this.viewModel.NewContact();
+		contact1.Name = "somebody";
+
+		ContactViewModel contact2 = this.viewModel.NewContact();
+		this.viewModel.SelectedContact = contact1;
+
+		Assert.Same(contact1, Assert.Single(this.viewModel.Contacts));
+		Assert.Same(contact1.Model, Assert.Single(this.MainViewModel.ContactManager.Contacts));
 	}
 
 	[Fact]
