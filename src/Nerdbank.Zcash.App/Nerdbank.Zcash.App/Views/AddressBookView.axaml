@@ -18,7 +18,22 @@
     </StackPanel>
     <DataGrid ItemsSource="{Binding Contacts}" SelectedItem="{Binding SelectedContact}" AutoGenerateColumns="False">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="{Binding NameColumnHeader}" Binding="{Binding Name}" />
+        <DataGridTemplateColumn Header="{Binding NameColumnHeader}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Name}" Margin="6"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+          <DataGridTemplateColumn.CellEditingTemplate>
+            <DataTemplate>
+              <!-- We use our own TextBox instead of a DataGridTextColumn 
+                   so that we get UpdateSourceTrigger=PropertyChanged behavior.
+                   This is important so that switching views without first losing
+                   focus on the editing cell doesn't erase the contact. -->
+              <TextBox Text="{Binding Name}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellEditingTemplate>
+        </DataGridTemplateColumn>
         <DataGridTemplateColumn Header="{Binding SendCommandColumnHeader}" IsReadOnly="True" CanUserSort="False">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>

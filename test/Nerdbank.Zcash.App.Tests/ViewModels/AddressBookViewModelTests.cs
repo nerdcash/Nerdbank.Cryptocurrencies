@@ -45,6 +45,15 @@ public class AddressBookViewModelTests : ViewModelTestBase
 	}
 
 	[Fact]
+	public void Contact_IsEmpty()
+	{
+		ContactViewModel contact = this.viewModel.NewContact();
+		Assert.True(contact.IsEmpty);
+		contact.Name = "Somebody";
+		Assert.False(contact.IsEmpty);
+	}
+
+	[Fact]
 	public void NewContactRemovedWhenSelectionChangesIfStillEmpty()
 	{
 		ContactViewModel contact1 = this.viewModel.NewContact();
@@ -71,6 +80,22 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		ContactViewModel reloadedContact = this.viewModel.Contacts.Single();
 		Assert.Equal(name, reloadedContact.Name);
 		Assert.Equal(address, reloadedContact.Address);
+	}
+
+	[Fact]
+	public async Task AddressAssignmentMade()
+	{
+		await this.InitializeWalletAsync();
+
+		ContactViewModel contact = this.viewModel.NewContact();
+		contact.Name = "Somebody";
+
+		// Navigate to the receiving address that is personalized for this particular contact.
+		ReceivingViewModel receiving = await contact.ShowDiversifiedAddressCommand.Execute().FirstAsync();
+		this.MainViewModel.NavigateBack();
+
+		contact = Assert.Single(this.viewModel.Contacts);
+		Assert.Single(contact.Model.AssignedAddresses);
 	}
 
 	[Fact]

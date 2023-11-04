@@ -37,9 +37,6 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		this.viewModelServices = viewModelServices;
 		this.observingContact = observingContact;
 
-		QRCodeGenerator generator = new();
-		QREncoder encoder = new() { NoPadding = true };
-
 		this.receivingAccount = receivingAccount ?? viewModelServices.SelectedAccount!;
 		Requires.Argument(this.receivingAccount is not null, nameof(receivingAccount), "Must be provided when SelectedAccount is null.");
 

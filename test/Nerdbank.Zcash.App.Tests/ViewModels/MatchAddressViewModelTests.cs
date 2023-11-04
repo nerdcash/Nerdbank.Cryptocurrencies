@@ -30,19 +30,12 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		await this.InitializeWalletAsync();
 		this.defaultAccount = this.App.Data.Wallet.AllAccounts.SelectMany(a => a).First();
 
-		DiversifierIndex diversifierIndex = 5;
-		this.defaultAccount.ZcashAccount.GetDiversifiedAddress(ref diversifierIndex);
-
 		// Generate an account from which to produce a friend's unified address with at least 3 receivers.
 		ZcashAccount friendsAccount = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet));
 		this.friend.ReceivingAddress = friendsAccount.DefaultAddress;
 
-		this.friend.AssignedAddresses[this.defaultAccount.ZcashAccount] = new Contact.AssignedSendingAddresses()
-		{
-			AssignedDiversifier = diversifierIndex,
-			AssignedTransparentAddressIndex = 4,
-		};
-
+		Contact.AssignedSendingAddresses assignment = this.friend.GetOrCreateSendingAddressAssignment(this.defaultAccount.ZcashAccount);
+		assignment.AssignedTransparentAddressIndex = 4;
 		this.MainViewModel.ContactManager.Add(this.friend);
 	}
 

@@ -26,7 +26,14 @@ public class ReceivingAddress : IDisposable
 			this.ShortText = $"{address.Address[..15]}...{address.Address[^15..]}";
 		}
 
-		this.QRCode = this.CreateQRCode();
+		try
+		{
+			this.QRCode = this.CreateQRCode();
+		}
+		catch (InvalidOperationException)
+		{
+			// This fails in unit tests because Avalonia Bitmap can't find required UI services.
+		}
 
 #pragma warning disable VSTHRD110 // Observe result of async calls - VSTHRD110 bug that is fixed but not yet released.
 		this.CopyCommand = ReactiveCommand.CreateFromTask(() => viewModelServices.TopLevel?.Clipboard?.SetTextAsync(this.FullText) ?? Task.CompletedTask);
@@ -35,7 +42,7 @@ public class ReceivingAddress : IDisposable
 
 	public string Header { get; }
 
-	public Bitmap QRCode { get; }
+	public Bitmap? QRCode { get; }
 
 	public ZcashAddress Address { get; }
 
@@ -47,7 +54,7 @@ public class ReceivingAddress : IDisposable
 
 	public void Dispose()
 	{
-		this.QRCode.Dispose();
+		this.QRCode?.Dispose();
 	}
 
 	private Bitmap CreateQRCode()

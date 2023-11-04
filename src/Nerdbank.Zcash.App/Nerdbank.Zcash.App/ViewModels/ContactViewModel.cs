@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Reactive.Linq;
+
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ContactViewModel : ViewModelBase
@@ -10,50 +12,51 @@ public class ContactViewModel : ViewModelBase
 	private readonly ObservableAsPropertyHelper<bool> hasShieldedReceivingAddress;
 	private readonly ObservableAsPropertyHelper<bool> hasAddress;
 	private readonly ObservableAsPropertyHelper<string> sendCommandCaption;
-	private readonly ObservableAsPropertyHelper<bool> isShowDiversifiedAddressButtonVisible;
+	private readonly ObservableAsPropertyHelper<string> hasContactSeenMyDiversifiedAddressCaption;
 	private string address = string.Empty;
-	private string? myAddressShownToContact;
 
 	public ContactViewModel(AddressBookViewModel addressBook, Contact model)
 	{
 		this.addressBook = addressBook;
 		this.Model = model;
 
-		this.WhenAnyValue(
+		IObservable<bool> hasContactSeenMyDiversifiedAddress = this.WhenAnyValue(
+			vm => vm.addressBook.SelectedAccount,
+			vm => vm.Model.AssignedAddresses,
+			(account, addresses) => account is not null && addresses.ContainsKey(account.ZcashAccount));
+
+		IObservable<ZcashAddress?> parsedReceivingAddress = this.WhenAnyValue(
+			vm => vm.Address,
+			a => a.Length > 0 && ZcashAddress.TryDecode(a, out _, out _, out ZcashAddress? address) ? address : null);
+
+		IObservable<bool> hasValidAddress = parsedReceivingAddress.Select(a => a is not null);
+		IObservable<bool> hasShieldedAddress = parsedReceivingAddress.Select(a => a?.HasShieldedReceiver is true);
+
+		this.hasContactSeenMyDiversifiedAddressCaption = hasContactSeenMyDiversifiedAddress.Select(v => v
+			? "✅ This contact has seen your diversified address."
+			: "❌ This contact has not seen your diversified address.")
+			.ToProperty(this, nameof(this.HasContactSeenMyDiversifiedAddressCaption));
+
+		this.isEmpty = this.WhenAnyValue(
 			vm => vm.Name,
 			vm => vm.Address,
-			(n, a) => n.Length == 0 && a.Length == 0)
-			.ToProperty(this, vm => vm.IsEmpty, out this.isEmpty);
-		this.WhenAnyValue(
-			vm => vm.Address,
-			addr => addr is not null && ZcashAddress.TryDecode(addr, out _, out _, out ZcashAddress? address) && address.HasShieldedReceiver)
-			.ToProperty(this, vm => vm.HasShieldedReceivingAddress, out this.hasShieldedReceivingAddress);
-		this.WhenAnyValue(
-			vm => vm.Address,
-			addr => addr is not null && ZcashAddress.TryDecode(addr, out _, out _, out _))
-			.ToProperty(this, vm => vm.HasAddress, out this.hasAddress);
-		this.WhenAnyValue(
-			vm => vm.HasShieldedReceivingAddress,
-			has => has ? "Send 🛡️" : "Send")
-			.ToProperty(this, vm => vm.SendCommandCaption, out this.sendCommandCaption);
-		this.WhenAnyValue<ContactViewModel, bool, string?>(
-			vm => vm.MyAddressShownToContact,
-			shown => shown is null)
-			.ToProperty(this, vm => vm.IsShowDiversifiedAddressButtonVisible, out this.isShowDiversifiedAddressButtonVisible);
+			vm => vm.Model.AssignedAddresses,
+			(n, a, assignments) => n.Length == 0 && a.Length == 0 && assignments.Count == 0)
+			.ToProperty(this, nameof(this.IsEmpty));
+
+		this.hasShieldedReceivingAddress = hasShieldedAddress
+			.ToProperty(this, nameof(this.HasShieldedReceivingAddress));
+		this.hasAddress = hasValidAddress
+			.ToProperty(this, nameof(this.HasAddress));
+		this.sendCommandCaption = hasShieldedAddress.Select(has => has ? "Send 🛡️" : "Send")
+			.ToProperty(this, nameof(this.SendCommandCaption));
 
 		this.ShowDiversifiedAddressCommand = ReactiveCommand.Create(this.ShowDiversifiedAddress);
 
-		IObservable<bool> canSend = this.WhenAnyValue(vm => vm.HasAddress);
-		this.SendCommand = ReactiveCommand.Create(this.Send, canSend);
-
-		this.LinkProperty(nameof(this.MyAddressShownToContact), nameof(this.HasContactSeenMyDiversifiedAddressCaption));
-		this.LinkProperty(nameof(this.MyAddressShownToContact), nameof(this.IsShowDiversifiedAddressButtonVisible));
-		this.LinkProperty(nameof(this.HasShieldedReceivingAddress), nameof(this.SendCommandCaption));
+		this.SendCommand = ReactiveCommand.Create(this.Send, hasValidAddress);
 
 		this.Model.WhenAnyValue(c => c.Name).Subscribe(_ => this.RaisePropertyChanged(nameof(this.Name)));
 		this.Address = this.Model.ReceivingAddress ?? string.Empty;
-
-		// TODO: link up MyAddressShownToContact, considering the selected account that it's relative to may be changed.
 	}
 
 	public Contact Model { get; }
@@ -103,30 +106,17 @@ public class ContactViewModel : ViewModelBase
 
 	public bool HasAddress => this.hasAddress.Value;
 
-	/// <summary>
-	/// Gets or sets an address from the user's wallet that was shared with the contact.
-	/// </summary>
-	/// <remarks>
-	/// This is useful because at a low level, we can detect which diversified address was used to send money to the wallet,
-	/// so by giving each contact a unique diversified address from this user's wallet, we can detect which contact sent money.
-	/// </remarks>
-	public string? MyAddressShownToContact
-	{
-		get => this.myAddressShownToContact;
-		set => this.RaiseAndSetIfChanged(ref this.myAddressShownToContact, value);
-	}
+	public string HasContactSeenMyDiversifiedAddressCaption => this.hasContactSeenMyDiversifiedAddressCaption.Value;
 
-	public string HasContactSeenMyDiversifiedAddressCaption => this.MyAddressShownToContact is null ? "❌ This contact has not seen your diversified address." : "✅ This contact has seen your diversified address.";
-
-	public bool IsShowDiversifiedAddressButtonVisible => this.isShowDiversifiedAddressButtonVisible.Value;
+	public bool IsShowDiversifiedAddressButtonVisible => true;
 
 	public string ShowDiversifiedAddressCommandCaption => "Share my diversified address with this contact";
 
-	public ReactiveCommand<Unit, Unit> ShowDiversifiedAddressCommand { get; }
+	public ReactiveCommand<Unit, ReceivingViewModel> ShowDiversifiedAddressCommand { get; }
 
 	public string SendCommandCaption => this.sendCommandCaption.Value;
 
-	public ReactiveCommand<Unit, Unit> SendCommand { get; }
+	public ReactiveCommand<Unit, SendingViewModel> SendCommand { get; }
 
 	/// <summary>
 	/// Gets a value indicating whether the contact has a shielded receiving address.
@@ -135,22 +125,15 @@ public class ContactViewModel : ViewModelBase
 
 	private IViewModelServices ViewModelServices => this.addressBook.ViewModelServices;
 
-	public void Send()
-	{
-		SendingViewModel sendingViewModel = new(this.ViewModelServices)
+	public SendingViewModel Send() =>
+		this.ViewModelServices.NavigateTo(new SendingViewModel(this.ViewModelServices)
 		{
 			RecipientAddress = this.Address,
-		};
-		this.ViewModelServices.NavigateTo(sendingViewModel);
-	}
+		});
 
-	public void ShowDiversifiedAddress()
-	{
-		ReceivingViewModel receivingViewModel = new(
-			this.ViewModelServices,
-			this.addressBook.SelectedAccount,
-			this.Model,
-			paymentRequestDetailsViewModel: null);
-		this.ViewModelServices.NavigateTo(receivingViewModel);
-	}
+	public ReceivingViewModel ShowDiversifiedAddress() => this.ViewModelServices.NavigateTo(new ReceivingViewModel(
+		this.ViewModelServices,
+		this.addressBook.SelectedAccount,
+		this.Model,
+		paymentRequestDetailsViewModel: null));
 }

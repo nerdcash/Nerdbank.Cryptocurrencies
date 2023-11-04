@@ -181,7 +181,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, IPersis
 		{
 			foreach (Contact contact in contactManager.Contacts)
 			{
-				contact.AssignedAddresses.Remove(account);
+				contact.RemoveSendingAddressAssignment(account);
 			}
 		}
 	}

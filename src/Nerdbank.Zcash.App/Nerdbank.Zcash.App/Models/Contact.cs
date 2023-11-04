@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using MessagePack;
 using MessagePack.Formatters;
 
@@ -9,6 +10,7 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackFormatter(typeof(Formatter))]
 public class Contact : ReactiveObject, IPersistableData
 {
+	private readonly ImmutableDictionary<ZcashAccount, AssignedSendingAddresses>.Builder assignedAddresses = ImmutableDictionary.CreateBuilder<ZcashAccount, AssignedSendingAddresses>();
 	private string name = string.Empty;
 	private ZcashAddress? receivingAddress;
 	private bool isDirty;
@@ -39,7 +41,7 @@ public class Contact : ReactiveObject, IPersistableData
 	/// Finally, users on the contact list are only shown an address from a particular account,
 	/// so it works out to record the address they saw on a per-account basis.
 	/// </remarks>
-	public Dictionary<ZcashAccount, AssignedSendingAddresses> AssignedAddresses { get; } = new();
+	public ImmutableDictionary<ZcashAccount, AssignedSendingAddresses> AssignedAddresses => this.assignedAddresses.ToImmutable();
 
 	public bool IsDirty
 	{
@@ -60,11 +62,22 @@ public class Contact : ReactiveObject, IPersistableData
 			{
 				AssignedDiversifier = diversifierIndex,
 			};
-			this.AssignedAddresses.Add(account, assignment);
-			this.IsDirty = true;
+			this.assignedAddresses.Add(account, assignment);
+			this.RaisePropertyChanged(nameof(this.AssignedAddresses));
 		}
 
 		return assignment;
+	}
+
+	public bool RemoveSendingAddressAssignment(ZcashAccount account)
+	{
+		if (this.assignedAddresses.Remove(account))
+		{
+			this.RaisePropertyChanged(nameof(this.AssignedAddresses));
+			return true;
+		}
+
+		return false;
 	}
 
 	public class AssignedSendingAddresses
