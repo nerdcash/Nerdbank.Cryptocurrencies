@@ -23,7 +23,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		this.NewAccountCommand = ReactiveCommand.Create(this.NewAccount);
 		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
 
-		WrapModels(this.viewModelServices.Wallet, this.Accounts, (Account a) => new AccountViewModel(a));
+		WrapModels(this.viewModelServices.Wallet.Accounts, this.Accounts, (Account a) => new AccountViewModel(a));
 	}
 
 	public string Title => "Accounts";

@@ -36,17 +36,7 @@ public class DataRoot : ITopLevelPersistableData<DataRoot>, IPersistableDataHelp
 	/// The returned object is mutable and is in fact expected to mutate as the serialization/deserialization process progresses.
 	/// It is therefore imperative that each serialization/deserialization operation use a fresh instance of this object.
 	/// </remarks>
-	public static MessagePackSerializerOptions SerializerOptions => new AppSerializerOptions(
-		MessagePackSerializerOptions.Standard.WithResolver(
-			CompositeResolver.Create(
-				new IMessagePackFormatter[]
-				{
-					Zip32HDWalletFormatter.Instance,
-				},
-				new IFormatterResolver[]
-				{
-					StandardResolverAllowPrivate.Instance,
-				})));
+	public static MessagePackSerializerOptions SerializerOptions => new AppSerializerOptions();
 
 	[IgnoreMember]
 	public bool IsDirty

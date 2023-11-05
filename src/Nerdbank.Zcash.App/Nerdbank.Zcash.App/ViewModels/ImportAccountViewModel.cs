@@ -128,7 +128,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 		Account? account = null;
 		if (this.TryImportAccount(out ZcashAccount? zcashAccount))
 		{
-			account = new Account(zcashAccount, zcashAccount.HDDerivation is null ? null : new HDWallet(zcashAccount.HDDerivation.Value.Wallet))
+			account = new Account(zcashAccount)
 			{
 				Name = this.Name,
 			};

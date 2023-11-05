@@ -28,7 +28,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		await base.InitializeAsync();
 
 		await this.InitializeWalletAsync();
-		this.defaultAccount = this.App.Data.Wallet.AllAccounts.SelectMany(a => a).First();
+		this.defaultAccount = this.App.Data.Wallet.Accounts.First();
 
 		// Generate an account from which to produce a friend's unified address with at least 3 receivers.
 		ZcashAccount friendsAccount = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet));

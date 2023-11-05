@@ -28,7 +28,7 @@ public class ExportHDWalletViewModel : ExportAccountViewModelBase
 		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic));
 		this.Password = mnemonic.Password.ToString();
 
-		this.MaxAccountIndex = wallet.MaxAccountIndex;
+		this.MaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(wallet);
 	}
 
 	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";

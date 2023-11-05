@@ -17,19 +17,19 @@ public class ZcashWalletTests : ModelTestBase<ZcashWallet>
 	[Fact]
 	public void SerializeWithHDAndLoneAccounts()
 	{
-		var zip32 = new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet);
+		Zip32HDWallet zip32 = new(Mnemonic, ZcashNetwork.TestNet);
 		Account hd1a = this.Wallet.Add(new ZcashAccount(zip32));
-		Account hd1b = hd1a.MemberOf!.AddAccount(3);
+		Account hd1b = this.Wallet.Add(new ZcashAccount(zip32, 3));
 
 		Account lone1 = this.Wallet.Add(new ZcashAccount(new ZcashAccount(zip32, 5).IncomingViewing.UnifiedKey));
 
 		ZcashWallet deserialized = this.SerializeRoundtrip();
 
 		HDWallet deserializedHD = Assert.Single(deserialized.HDWallets);
-		Account deserializedLone = Assert.Single(deserialized.LoneAccounts);
-		Assert.Equal(2, deserializedHD.Accounts.Count);
-		Assert.True(deserializedHD.Accounts.TryGetValue(0, out Account? deserializedHD1a));
-		Assert.True(deserializedHD.Accounts.TryGetValue(3, out Account? deserializedHD1b));
+		Account deserializedLone = Assert.Single(deserialized.Accounts, a => a.ZcashAccount.HDDerivation is null);
+		Assert.Equal(2, deserialized.Accounts.Count(a => a.ZcashAccount.HDDerivation is not null));
+		Account deserializedHD1a = deserialized.Accounts.Single(a => a.ZcashAccount.HDDerivation is { AccountIndex: 0 });
+		Account deserializedHD1b = deserialized.Accounts.Single(a => a.ZcashAccount.HDDerivation is { AccountIndex: 3 });
 		Assert.Equal<uint?>(0, deserializedHD1a.ZcashAccount.HDDerivation?.AccountIndex);
 		Assert.Equal<uint?>(3, deserializedHD1b.ZcashAccount.HDDerivation?.AccountIndex);
 	}

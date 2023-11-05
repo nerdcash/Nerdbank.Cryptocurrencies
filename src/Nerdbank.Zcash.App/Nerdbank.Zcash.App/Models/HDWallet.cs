@@ -16,7 +16,6 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackFormatter(typeof(Formatter))]
 public class HDWallet : IPersistableDataHelper
 {
-	private readonly SortedDictionary<uint, Account> accounts = new();
 	private bool isSeedPhraseBackedUp;
 	private string name = string.Empty;
 	private bool isDirty;
@@ -61,48 +60,10 @@ public class HDWallet : IPersistableDataHelper
 	/// </summary>
 	public ulong BirthdayHeight { get; set; }
 
-	public IReadOnlyDictionary<uint, Account> Accounts => this.accounts;
-
-	public uint MaxAccountIndex => this.Accounts.Count > 0 ? this.Accounts.Keys.Max() : 0;
-
-	public Account AddAccount(ZcashAccount account)
-	{
-		Account accountModel = new(account, this);
-		this.AddAccount(accountModel);
-		return accountModel;
-	}
-
-	public void AddAccount(Account account)
-	{
-		Requires.Argument(account.MemberOf == this, nameof(account), "This account does not belong to this HD wallet.");
-		Requires.Argument(this.Zip32.Equals(account.ZcashAccount.HDDerivation?.Wallet), nameof(account), "This account does not belong to this HD wallet.");
-		if (this.Accounts.ContainsKey(account.ZcashAccount.HDDerivation.Value.AccountIndex))
-		{
-			throw new ArgumentException("An account with this index already exists.", nameof(account));
-		}
-
-		this.accounts.Add(account.ZcashAccount.HDDerivation.Value.AccountIndex, account);
-	}
-
-	public Account AddAccount(uint index)
-	{
-		if (this.Accounts.ContainsKey(index))
-		{
-			throw new ArgumentException("An account with this index already exists.", nameof(index));
-		}
-
-		Account accountModel = new(new ZcashAccount(this.Zip32, index), this);
-		this.accounts.Add(index, accountModel);
-		return accountModel;
-	}
-
-	public bool RemoveAccount(uint index) => this.accounts.Remove(index);
-
 	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
 
 	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
 	{
-		this.Accounts.Values.ClearDirtyFlag();
 	}
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -145,17 +106,6 @@ public class HDWallet : IPersistableDataHelper
 						wallet!.BirthdayHeight = reader.ReadUInt64();
 						break;
 					case 3:
-						((AppSerializerOptions)options).HDWalletOwner = wallet;
-						Account[] accounts = options.Resolver.GetFormatterWithVerify<Account[]>().Deserialize(ref reader, options);
-						((AppSerializerOptions)options).HDWalletOwner = null;
-
-						foreach (Account account in accounts)
-						{
-							wallet!.AddAccount(account);
-						}
-
-						break;
-					case 4:
 						wallet!.IsSeedPhraseBackedUp = reader.ReadBoolean();
 						break;
 					default:
@@ -166,27 +116,17 @@ public class HDWallet : IPersistableDataHelper
 
 			reader.Depth--;
 
-			return wallet!;
+			wallet!.IsDirty = false;
+			return wallet;
 		}
 
 		public void Serialize(ref MessagePackWriter writer, HDWallet value, MessagePackSerializerOptions options)
 		{
-			writer.WriteArrayHeader(5);
+			writer.WriteArrayHeader(4);
 
 			options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Serialize(ref writer, value.Zip32, options);
 			writer.Write(value.Name);
 			writer.Write(value.BirthdayHeight);
-
-			((AppSerializerOptions)options).HDWalletOwner = value;
-			writer.WriteArrayHeader(value.Accounts.Count);
-			IMessagePackFormatter<Account> accountFormatter = options.Resolver.GetFormatterWithVerify<Account>();
-			foreach (Account account in value.Accounts.Values)
-			{
-				accountFormatter.Serialize(ref writer, account, options);
-			}
-
-			((AppSerializerOptions)options).HDWalletOwner = null;
-
 			writer.Write(value.IsSeedPhraseBackedUp);
 		}
 	}

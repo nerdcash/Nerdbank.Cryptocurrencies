@@ -17,15 +17,16 @@ public class HDWalletTests : ModelTestBase<HDWallet>
 	[Fact]
 	public void Serialize_WithAccounts()
 	{
-		Account account1 = this.Model.AddAccount(1);
-		account1.Name = "Checking";
-
-		Account account3 = this.Model.AddAccount(3);
-		account3.Name = "Savings";
+		this.Model.Name = "My Wallet";
+		this.Model.BirthdayHeight = 123456;
+		this.Model.IsSeedPhraseBackedUp = true;
+		Assert.True(this.Model.IsDirty);
 
 		HDWallet deserialized = this.SerializeRoundtrip();
-		Assert.Equal(this.Model.Accounts.Count, deserialized.Accounts.Count);
-		Assert.Equal(this.Model.Accounts[1].Name, deserialized.Accounts[1].Name);
-		Assert.Equal(this.Model.Accounts[3].Name, deserialized.Accounts[3].Name);
+
+		Assert.Equal(this.Model.Name, deserialized.Name);
+		Assert.Equal(this.Model.BirthdayHeight, deserialized.BirthdayHeight);
+		Assert.Equal(this.Model.IsSeedPhraseBackedUp, deserialized.IsSeedPhraseBackedUp);
+		Assert.False(deserialized.IsDirty);
 	}
 }

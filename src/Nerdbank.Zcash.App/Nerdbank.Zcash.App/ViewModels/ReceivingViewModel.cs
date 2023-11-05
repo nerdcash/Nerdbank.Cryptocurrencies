@@ -23,6 +23,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	private ReceivingAddress displayedAddress;
 
+	[Obsolete("Design-time only", error: true)]
 	public ReceivingViewModel()
 		: this(new DesignTimeViewModelServices(), null, null, null)
 	{
@@ -37,7 +38,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		this.viewModelServices = viewModelServices;
 		this.observingContact = observingContact;
 
-		this.receivingAccount = receivingAccount ?? viewModelServices.Wallet.First();
+		this.receivingAccount = receivingAccount ?? viewModelServices.Wallet.Accounts.First();
 
 		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount);
 		if (this.receivingAccount.ZcashAccount.HasDiversifiableKeys)

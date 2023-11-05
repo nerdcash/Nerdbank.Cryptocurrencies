@@ -19,9 +19,9 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			HDWallet zec = new(new(mnemonic, ZcashNetwork.MainNet));
 			HDWallet taz = new(new(mnemonic, ZcashNetwork.TestNet));
 
-			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0), taz) { Name = Strings.DefaultNameForFirstAccount };
-			Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1), taz) { Name = "Savings" };
-			Account realAccount = new(new ZcashAccount(zec.Zip32, 0), zec) { Name = "Real ZEC" };
+			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.DefaultNameForFirstAccount };
+			Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1)) { Name = "Savings" };
+			Account realAccount = new(new ZcashAccount(zec.Zip32, 0)) { Name = "Real ZEC" };
 
 			this.Wallet.Add(mainAccount);
 			this.Wallet.Add(savingsAccount);

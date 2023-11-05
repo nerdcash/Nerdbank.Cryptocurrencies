@@ -16,10 +16,10 @@ namespace Nerdbank.Zcash.App.Models;
 /// A wallet that contains all the accounts the user wants to track.
 /// </summary>
 [MessagePackFormatter(typeof(Formatter))]
-public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotifyCollectionChanged, IPersistableDataHelper
+public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 {
 	private readonly ObservableCollection<HDWallet> hdWallets;
-	private readonly ObservableCollection<Account> loneAccounts;
+	private readonly ObservableCollection<Account> accounts;
 	private bool isDirty;
 
 	/// <summary>
@@ -30,18 +30,17 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotify
 	{
 	}
 
-	private ZcashWallet(IReadOnlyList<HDWallet> hdWallets, IReadOnlyList<Account> loneAccounts)
+	private ZcashWallet(IReadOnlyList<HDWallet> hdWallets, IReadOnlyList<Account> accounts)
 	{
 		this.hdWallets = new(hdWallets);
-		this.loneAccounts = new(loneAccounts);
+		this.HDWallets = new(this.hdWallets);
 
-		this.LoneAccounts = new(this.loneAccounts);
+		this.accounts = new(accounts);
+		this.Accounts = new(this.accounts);
 
-		this.hdWallets.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
-		this.loneAccounts.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
+		this.accounts.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
 
 		this.StartWatchingForDirtyChildren(this.hdWallets);
-		this.StartWatchingForDirtyChildren(this.loneAccounts);
 
 		this.hdWallets.NotifyOnCollectionElementMemberChanged(nameof(HDWallet.IsSeedPhraseBackedUp), (HDWallet? hd) => this.OnPropertyChanged(nameof(this.HDWalletsRequireBackup)));
 	}
@@ -67,26 +66,35 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotify
 	/// <summary>
 	/// Gets a value indicating whether the wallet has no lone accounts and no HD wallets (whether or not they are empty).
 	/// </summary>
-	public bool IsEmpty => this.HDWallets.Count == 0 && this.LoneAccounts.Count == 0;
+	public bool IsEmpty => this.Accounts.Count == 0;
 
 	/// <summary>
 	/// Gets a collection of all the seed phrase based wallets, which in turn contain accounts created within them.
 	/// </summary>
-	public IReadOnlyList<HDWallet> HDWallets => this.hdWallets;
+	public ReadOnlyObservableCollection<HDWallet> HDWallets { get; }
 
 	/// <summary>
-	/// Gets a collection of the accounts that were imported without a seed phrase.
+	/// Gets the collection of all accounts in the wallet.
 	/// </summary>
-	public ReadOnlyObservableCollection<Account> LoneAccounts { get; }
+	public ReadOnlyObservableCollection<Account> Accounts { get; }
 
-	/// <summary>
-	/// Gets a sequence of all accounts in the wallet.
-	/// </summary>
-	public IEnumerable<IGrouping<HDWallet?, Account>> AllAccounts =>
-		(from hd in this.HDWallets
-		 from account in hd.Accounts.Values
-		 group account by hd into seedPhrase
-		 select seedPhrase).Concat(this.LoneAccounts.GroupBy(a => (HDWallet?)null));
+	public bool TryGetHDWallet(Account account, [NotNullWhen(true)] out HDWallet? wallet) => this.TryGetHDWallet(account.ZcashAccount, out wallet);
+
+	public bool TryGetHDWallet(ZcashAccount account, [NotNullWhen(true)] out HDWallet? wallet)
+	{
+		if (account.HDDerivation?.Wallet is Zip32HDWallet zip32)
+		{
+			wallet = this.HDWallets.FirstOrDefault(w => w.Zip32.Equals(zip32));
+			return wallet is not null;
+		}
+
+		wallet = null;
+		return false;
+	}
+
+	public IEnumerable<Account> GetAccountsUnder(HDWallet hd) => this.Accounts.Where(a => a.ZcashAccount.HDDerivation?.Wallet.Equals(hd.Zip32) is true);
+
+	public uint GetMaxAccountIndex(HDWallet hd) => this.GetAccountsUnder(hd).Max(a => a.ZcashAccount.HDDerivation!.Value.AccountIndex);
 
 	/// <summary>
 	/// Adds an account to the wallet.
@@ -95,87 +103,47 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotify
 	/// <returns>The account model wrapper that is created to wrap the <see cref="ZcashAccount"/>.</returns>
 	public Account Add(ZcashAccount account)
 	{
-		if (account.HDDerivation is { } derivation)
-		{
-			HDWallet? hd = this.HDWallets.FirstOrDefault(w => w.Zip32.Equals(derivation.Wallet));
-			if (hd is null)
-			{
-				hd = new HDWallet(derivation.Wallet);
-				this.hdWallets.Add(hd);
-				this.StartWatchingForDirtyChild(hd);
-			}
-
-			return hd.AddAccount(account);
-		}
-		else
-		{
-			Account accountModel = new(account, null);
-			this.loneAccounts.Add(accountModel);
-			this.StartWatchingForDirtyChild(accountModel);
-			return accountModel;
-		}
+		Account accountModel = new(account);
+		this.Add(accountModel);
+		return accountModel;
 	}
 
 	public void Add(Account account)
 	{
-		Requires.Argument(account.MemberOf is null == account.ZcashAccount.HDDerivation is null, nameof(account), "Account must be either a lone account or a member of a seed phrase wallet.");
+		if (account.ZcashAccount.HDDerivation is { } derivation && !this.TryGetHDWallet(account, out HDWallet? hd))
+		{
+			hd = new HDWallet(derivation.Wallet);
+			this.hdWallets.Add(hd);
+			this.StartWatchingForDirtyChild(hd);
+		}
 
-		if (account.MemberOf is not null)
-		{
-			account.MemberOf.AddAccount(account);
-			if (!this.hdWallets.Contains(account.MemberOf))
-			{
-				this.hdWallets.Add(account.MemberOf);
-			}
-		}
-		else
-		{
-			this.loneAccounts.Add(account);
-		}
+		this.accounts.Add(account);
+		this.StartWatchingForDirtyChild(account);
 	}
+
+	public Account Add(HDWallet hd, uint index) => this.Add(new ZcashAccount(hd.Zip32, index));
 
 	public bool Remove(Account account, IContactManager? contactManager)
 	{
-		if (account.MemberOf is null)
+		if (this.accounts.Remove(account))
 		{
-			if (this.loneAccounts.Remove(account))
+			if (contactManager is not null)
 			{
-				if (contactManager is not null)
-				{
-					this.ScrubAccountReferenceFromContacts(account, contactManager);
-				}
-
-				return true;
+				this.ScrubAccountReferenceFromContacts(account, contactManager);
 			}
-		}
-		else if (account.ZcashAccount.HDDerivation is not null)
-		{
-			if (account.MemberOf.RemoveAccount(account.ZcashAccount.HDDerivation.Value.AccountIndex))
-			{
-				if (contactManager is not null)
-				{
-					this.ScrubAccountReferenceFromContacts(account, contactManager);
-				}
 
-				return true;
-			}
+			return true;
 		}
 
 		return false;
 	}
-
-	/// <inheritdoc/>
-	public IEnumerator<Account> GetEnumerator() => this.HDWallets.SelectMany(hd => hd.Accounts.Values).Concat(this.LoneAccounts).GetEnumerator();
-
-	/// <inheritdoc/>
-	IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
 	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
 
 	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
 	{
 		this.HDWallets.ClearDirtyFlag();
-		this.LoneAccounts.ClearDirtyFlag();
+		this.Accounts.ClearDirtyFlag();
 	}
 
 	/// <summary>
@@ -207,7 +175,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotify
 		public ZcashWallet Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
 		{
 			HDWallet[] hdWallets = Array.Empty<HDWallet>();
-			Account[] loneAccounts = Array.Empty<Account>();
+			Account[] accounts = Array.Empty<Account>();
 
 			int length = reader.ReadArrayHeader();
 			for (int i = 0; i < length; i++)
@@ -218,7 +186,7 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotify
 						hdWallets = options.Resolver.GetFormatterWithVerify<HDWallet[]>().Deserialize(ref reader, options);
 						break;
 					case 1:
-						loneAccounts = options.Resolver.GetFormatterWithVerify<Account[]>().Deserialize(ref reader, options);
+						accounts = options.Resolver.GetFormatterWithVerify<Account[]>().Deserialize(ref reader, options);
 						break;
 					default:
 						reader.Skip();
@@ -226,14 +194,14 @@ public class ZcashWallet : INotifyPropertyChanged, IEnumerable<Account>, INotify
 				}
 			}
 
-			return new(hdWallets, loneAccounts);
+			return new(hdWallets, accounts);
 		}
 
 		public void Serialize(ref MessagePackWriter writer, ZcashWallet value, MessagePackSerializerOptions options)
 		{
 			writer.WriteArrayHeader(2);
 			options.Resolver.GetFormatterWithVerify<IReadOnlyList<HDWallet>>().Serialize(ref writer, value.HDWallets, options);
-			options.Resolver.GetFormatterWithVerify<IReadOnlyList<Account>>().Serialize(ref writer, value.LoneAccounts, options);
+			options.Resolver.GetFormatterWithVerify<IReadOnlyList<Account>>().Serialize(ref writer, value.Accounts, options);
 		}
 	}
 }

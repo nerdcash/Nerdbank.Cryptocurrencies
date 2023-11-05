@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -15,17 +16,17 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 	{
 		this.ViewModelServices = viewModelServices;
 
-		this.Accounts = viewModelServices.Wallet.ToList();
+		this.Accounts = viewModelServices.Wallet.Accounts;
 		this.accountPickerIsVisible = this.Accounts.Count > 1;
 
-		this.selectedAccount = viewModelServices.MostRecentlyUsedAccount ?? viewModelServices.Wallet.FirstOrDefault();
+		this.selectedAccount = viewModelServices.MostRecentlyUsedAccount ?? viewModelServices.Wallet.Accounts.FirstOrDefault();
 
 		this.LinkProperty(nameof(this.SelectedAccount), nameof(this.SelectedSecurity));
 	}
 
 	public IViewModelServices ViewModelServices { get; }
 
-	public IReadOnlyList<Account> Accounts { get; }
+	public ReadOnlyObservableCollection<Account> Accounts { get; }
 
 	public Account? SelectedAccount
 	{

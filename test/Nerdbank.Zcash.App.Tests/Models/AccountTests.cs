@@ -12,7 +12,7 @@ public class AccountTests : ModelTestBase<Account>
 
 	public override Account Model => this.Account;
 
-	public Account Account { get; set; } = new HDWallet(new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet)).AddAccount(1);
+	public Account Account { get; set; } = new(new ZcashAccount(new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet), 1));
 
 	[Fact]
 	public void RoundTrip_HDAccount()
@@ -23,14 +23,14 @@ public class AccountTests : ModelTestBase<Account>
 	[Fact]
 	public void RoundTrip_UFVKAccount()
 	{
-		this.Account = new(new ZcashAccount(this.Account.ZcashAccount.FullViewing!.UnifiedKey), null);
+		this.Account = new(new ZcashAccount(this.Account.ZcashAccount.FullViewing!.UnifiedKey));
 		this.SerializeRoundtrip();
 	}
 
 	[Fact]
 	public void RoundTrip_UIVKAccount()
 	{
-		this.Account = new(new ZcashAccount(this.Account.ZcashAccount.IncomingViewing.UnifiedKey), null);
+		this.Account = new(new ZcashAccount(this.Account.ZcashAccount.IncomingViewing.UnifiedKey));
 		this.SerializeRoundtrip();
 	}
 }

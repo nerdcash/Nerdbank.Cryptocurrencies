@@ -80,9 +80,9 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 			if (account is not null)
 			{
 				// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
-				if (account.MemberOf is not null)
+				if (this.viewModelServices.Wallet.TryGetHDWallet(account, out HDWallet? hdWallet))
 				{
-					account.MemberOf.IsSeedPhraseBackedUp = true;
+					hdWallet.IsSeedPhraseBackedUp = true;
 				}
 
 				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
