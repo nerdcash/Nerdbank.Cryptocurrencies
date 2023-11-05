@@ -20,7 +20,7 @@
         </SplitButton.Flyout>
       </SplitButton>
     </StackPanel>
-    <DataGrid ItemsSource="{Binding Accounts}">
+    <DataGrid ItemsSource="{Binding Accounts}" Name="AccountsGrid">
       <DataGrid.Columns>
         <DataGridTextColumn Header="{Binding AccountNameColumnHeader}" Binding="{Binding Name}" />
         <DataGridTemplateColumn Header="{Binding AccountBalanceColumnHeader}">

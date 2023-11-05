@@ -10,18 +10,24 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 	private readonly ObservableAsPropertyHelper<SecurityAmount> balance;
 	private bool areKeysRevealed;
 
-	public AccountViewModel(Account account)
+	public AccountViewModel(Account account, IViewModelServices viewModelServices)
 	{
 		this.balance = account.WhenAnyValue(a => a.SecurityBalance).ToProperty(this, nameof(this.Balance));
 
 		this.FullViewingKey = account.ZcashAccount.FullViewing?.UnifiedKey.TextEncoding;
 		this.IncomingViewingKey = account.ZcashAccount.IncomingViewing.UnifiedKey.TextEncoding;
 		this.Account = account;
+		if (viewModelServices.Wallet.TryGetHDWallet(account, out HDWallet? wallet))
+		{
+			this.HDWallet = wallet;
+		}
 	}
 
 	Account IViewModel<Account>.Model => this.Account;
 
 	public Account Account { get; }
+
+	public HDWallet? HDWallet { get; }
 
 	public string Name
 	{
