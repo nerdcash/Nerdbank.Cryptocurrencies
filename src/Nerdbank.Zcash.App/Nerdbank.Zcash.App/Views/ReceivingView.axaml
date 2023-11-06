@@ -48,9 +48,10 @@
       </TabControl.ItemTemplate>
       <TabControl.ContentTemplate>
         <DataTemplate x:DataType="{x:Type vm:ReceivingAddress}">
-          <Grid RowDefinitions="*, auto, auto">
-            <Image Source="{Binding QRCode}" Margin="10" />
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+          <Grid RowDefinitions="auto, *, auto, auto">
+            <TextBlock Text="{Binding Subheading}" HorizontalAlignment="Center" />
+            <Image Source="{Binding QRCode}" Margin="10" Grid.Row="1" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
               <TextBlock Text="{Binding ShortText}" VerticalAlignment="Center" />
               <Button Classes="Copy" Background="Transparent" Command="{Binding CopyCommand}">
                 <Button.Content>

@@ -159,6 +159,9 @@
   <data name="StartNewWalletExplanation" xml:space="preserve">
     <value>Choose this if you've never used a Zcash wallet before.</value>
   </data>
+  <data name="TransparentAddressSubheading" xml:space="preserve">
+    <value>When funds are sent to this address, anyone can see the address and amount. They will be shielded upon receipt to improve your privacy.</value>
+  </data>
   <data name="TransparentReceivingAddressHeader" xml:space="preserve">
     <value>Transparent</value>
   </data>

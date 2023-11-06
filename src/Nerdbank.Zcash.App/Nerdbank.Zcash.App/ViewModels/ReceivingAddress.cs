@@ -12,6 +12,11 @@ public class ReceivingAddress : IDisposable
 	public ReceivingAddress(IViewModelServices viewModelServices, ZcashAddress address, PaymentRequestDetailsViewModel? paymentRequestDetails, string header)
 	{
 		this.Header = header;
+		if (address.HasShieldedReceiver)
+		{
+			this.Header = $"{this.Header} 🛡️";
+		}
+
 		this.Address = address;
 
 		if (paymentRequestDetails is not null)
@@ -41,6 +46,8 @@ public class ReceivingAddress : IDisposable
 	}
 
 	public string Header { get; }
+
+	public string? Subheading => !this.Address.HasShieldedReceiver ? Strings.TransparentAddressSubheading : null;
 
 	public Bitmap? QRCode { get; }
 
