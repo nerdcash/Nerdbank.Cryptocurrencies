@@ -41,7 +41,7 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			(subtotal, fee) => fee is null ? subtotal : subtotal + fee.Value)
 			.ToProperty(this, nameof(this.Total));
 
-		this.SendCommand = ReactiveCommand.Create(() => { });
+		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
 		this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
 		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
 		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
@@ -100,6 +100,12 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public ReactiveCommand<Unit, Unit> SendCommand { get; private set; }
 
 	public ReactiveCommand<Unit, Unit> ScanCommand { get; private set; }
+
+	private Task SendAsync()
+	{
+		// Block sending if validation errors exist.
+		return Task.CompletedTask;
+	}
 
 	private async Task ScanAsync()
 	{

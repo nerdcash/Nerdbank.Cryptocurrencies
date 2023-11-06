@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddressNetworkMismatch" xml:space="preserve">
+    <value>This address uses {AddressTicker} on {AddressNetwork}, but the selected account uses {AccountTicker} on {AccountNetwork}.</value>
+  </data>
   <data name="AppGreeting" xml:space="preserve">
     <value>Welcome to eZCash!</value>
   </data>

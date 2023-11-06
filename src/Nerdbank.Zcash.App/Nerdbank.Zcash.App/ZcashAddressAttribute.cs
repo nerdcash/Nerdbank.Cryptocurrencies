@@ -15,14 +15,29 @@ namespace Nerdbank.Zcash.App;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Parameter, AllowMultiple = true)]
 internal class ZcashAddressAttribute : ValidationAttribute
 {
-	public override bool IsValid(object? value)
+	protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
 	{
 		if (value is string { Length: > 0 } s)
 		{
-			if (ZcashAddress.TryDecode(s, out DecodeError? _, out string? _, out _))
+			if (ZcashAddress.TryDecode(s, out DecodeError? _, out string? _, out ZcashAddress? address))
 			{
+				if (validationContext.ObjectInstance is ViewModelBaseWithAccountSelector viewModel)
+				{
+					// We should make sure the Zcash address's network aligns with that of the selected account.
+					// TODO: Verify that the user changing the selected account (and leaving the address alone) removes the validation error in the UI.
+					if (viewModel.SelectedAccount is not null && address.Network != viewModel.SelectedAccount.Network)
+					{
+						this.ErrorMessage = Strings.FormatAddressNetworkMismatch(
+							AddressTicker: address.Network.AsSecurity().TickerSymbol,
+							AddressNetwork: address.Network,
+							AccountTicker: viewModel.SelectedAccount.Network.AsSecurity().TickerSymbol,
+							AccountNetwork: viewModel.SelectedAccount.Network);
+						return new ValidationResult(this.ErrorMessage);
+					}
+				}
+
 				this.ErrorMessage = null;
-				return true;
+				return null;
 			}
 			else
 			{
@@ -34,6 +49,6 @@ internal class ZcashAddressAttribute : ValidationAttribute
 			this.ErrorMessage = null;
 		}
 
-		return false;
+		return new ValidationResult(this.ErrorMessage);
 	}
 }
