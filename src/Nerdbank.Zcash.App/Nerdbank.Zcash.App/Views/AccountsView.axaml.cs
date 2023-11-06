@@ -32,9 +32,9 @@ public partial class AccountsView : ReactiveUserControl<AccountsViewModel>
 
 		void UpdateGroupDescriptions()
 		{
-			if (this.ViewModel!.GroupAccountsByHDWallets)
+			if (this.ViewModel?.GroupAccountsByHDWallets is true)
 			{
-				view.GroupDescriptions.Add(new DataGridPathGroupDescription($"{nameof(AccountViewModel.HDWallet)}.{nameof(HDWallet.Name)}"));
+				view.GroupDescriptions.Add(new DataGridPathGroupDescription($"{nameof(AccountViewModel.GroupName)}"));
 			}
 			else
 			{

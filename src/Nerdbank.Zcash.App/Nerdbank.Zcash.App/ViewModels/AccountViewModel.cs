@@ -19,7 +19,11 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 		this.Account = account;
 		if (viewModelServices.Wallet.TryGetHDWallet(account, out HDWallet? wallet))
 		{
-			this.HDWallet = wallet;
+			this.GroupName = wallet.Name;
+		}
+		else
+		{
+			this.GroupName = Strings.LoneAccountGroupName;
 		}
 	}
 
@@ -27,7 +31,7 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 
 	public Account Account { get; }
 
-	public HDWallet? HDWallet { get; }
+	public string? GroupName { get; }
 
 	public string Name
 	{

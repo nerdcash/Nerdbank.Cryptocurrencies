@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using DynamicData.Binding;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -20,15 +22,15 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.groupAccountsByHDWallets = this.WhenAnyValue(
-			vm => vm.viewModelServices.Wallet.Accounts,
-			accounts => accounts.Select(a => a.ZcashAccount.HDDerivation).Distinct().Skip(1).Any())
-			.ToProperty(this, nameof(this.GroupAccountsByHDWallets));
-
 		this.NewAccountCommand = ReactiveCommand.Create(this.NewAccount);
 		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
 
 		WrapModels(this.viewModelServices.Wallet.Accounts, this.Accounts, (Account a) => new AccountViewModel(a, viewModelServices));
+
+		bool ShouldGroupAccounts() => this.Accounts.Select(a => a.GroupName).Distinct().Skip(1).Any();
+		this.groupAccountsByHDWallets = this.Accounts.ObserveCollectionChanges().Select(
+			_ => ShouldGroupAccounts())
+			.ToProperty(this, nameof(this.GroupAccountsByHDWallets), initialValue: ShouldGroupAccounts());
 	}
 
 	public string Title => "Accounts";

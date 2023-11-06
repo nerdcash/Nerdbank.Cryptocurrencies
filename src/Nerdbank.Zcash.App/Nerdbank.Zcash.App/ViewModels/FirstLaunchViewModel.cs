@@ -58,6 +58,8 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		Zip32HDWallet zip32 = new(mnemonic, ZcashNetwork.MainNet);
 		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
 		accountModel.Name = Strings.DefaultNameForFirstAccount;
+		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
+		wallet.Name = Strings.DefaultNameForFirstHDWallet;
 
 		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 	}

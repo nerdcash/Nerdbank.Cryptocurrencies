@@ -51,6 +51,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
 
+	[Required]
 	public string Key
 	{
 		get => this.key;

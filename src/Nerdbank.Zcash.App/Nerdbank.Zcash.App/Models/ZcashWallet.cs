@@ -41,6 +41,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		this.accounts.CollectionChanged += (_, _) => this.OnPropertyChanged(nameof(this.IsEmpty));
 
 		this.StartWatchingForDirtyChildren(this.hdWallets);
+		this.StartWatchingForDirtyChildren(this.accounts);
 
 		this.hdWallets.NotifyOnCollectionElementMemberChanged(nameof(HDWallet.IsSeedPhraseBackedUp), (HDWallet? hd) => this.OnPropertyChanged(nameof(this.HDWalletsRequireBackup)));
 	}
@@ -120,8 +121,6 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		this.accounts.Add(account);
 		this.StartWatchingForDirtyChild(account);
 	}
-
-	public Account Add(HDWallet hd, uint index) => this.Add(new ZcashAccount(hd.Zip32, index));
 
 	public bool Remove(Account account, IContactManager? contactManager)
 	{

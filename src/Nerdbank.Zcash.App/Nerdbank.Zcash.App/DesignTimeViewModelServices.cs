@@ -19,13 +19,18 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			HDWallet zec = new(new(mnemonic, ZcashNetwork.MainNet));
 			HDWallet taz = new(new(mnemonic, ZcashNetwork.TestNet));
 
-			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.DefaultNameForFirstAccount };
-			Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1)) { Name = "Savings" };
-			Account realAccount = new(new ZcashAccount(zec.Zip32, 0)) { Name = "Real ZEC" };
+			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.DefaultNameForFirstAccount, Balance = 1.23m };
+			Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1)) { Name = "Savings", Balance = 3.45m };
+			Account realAccount = new(new ZcashAccount(zec.Zip32, 0)) { Name = "Real ZEC", Balance = 0.023m };
 
 			this.Wallet.Add(mainAccount);
 			this.Wallet.Add(savingsAccount);
 			this.Wallet.Add(realAccount);
+
+			this.Wallet.TryGetHDWallet(mainAccount, out HDWallet? tazHD);
+			tazHD!.Name = "Play money";
+			this.Wallet.TryGetHDWallet(realAccount, out HDWallet? zecHD);
+			zecHD!.Name = "Real money";
 
 			// Populate address book.
 			this.ContactManager.Add(new Contact { Name = "Andrew Arnott", ReceivingAddress = ZcashAddress.Decode("t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF") });

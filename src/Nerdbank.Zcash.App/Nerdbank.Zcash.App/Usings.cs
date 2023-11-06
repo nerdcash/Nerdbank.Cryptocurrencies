@@ -3,6 +3,7 @@
 
 global using System.Diagnostics.CodeAnalysis;
 global using System.Reactive;
+global using Microsoft;
 global using Nerdbank.Zcash.App.Models;
 global using Nerdbank.Zcash.App.ViewModels;
 global using ReactiveUI;

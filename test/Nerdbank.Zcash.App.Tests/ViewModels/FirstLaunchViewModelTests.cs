@@ -23,5 +23,8 @@ public class FirstLaunchViewModelTests : ViewModelTestBase
 		Account account = Assert.Single(this.MainViewModel.Wallet.Accounts);
 		Assert.False(string.IsNullOrEmpty(account.Name));
 		this.logger.WriteLine(account.Name);
+
+		Assert.True(this.MainViewModel.Wallet.TryGetHDWallet(account, out HDWallet? wallet));
+		Assert.False(string.IsNullOrEmpty(wallet.Name));
 	}
 }

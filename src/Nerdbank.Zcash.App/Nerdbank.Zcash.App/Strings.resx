@@ -126,6 +126,9 @@
   <data name="DefaultNameForFirstAccount" xml:space="preserve">
     <value>Main</value>
   </data>
+  <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
+    <value>Primary seed phrase</value>
+  </data>
   <data name="DonationMemo" xml:space="preserve">
     <value>Thank you for {AppTitle}.</value>
   </data>
@@ -137,6 +140,9 @@
   </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>This isn't a valid Zcash address</value>
+  </data>
+  <data name="LoneAccountGroupName" xml:space="preserve">
+    <value>Imported accounts</value>
   </data>
   <data name="SaplingReceivingAddressHeader" xml:space="preserve">
     <value>Sapling</value>
