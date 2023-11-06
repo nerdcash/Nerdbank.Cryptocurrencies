@@ -2,6 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using DynamicData;
+using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -9,15 +12,24 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 {
 	protected static readonly Security UnknownSecurity = new(string.Empty);
-	private bool accountPickerIsVisible;
+	private readonly ReadOnlyObservableCollection<Account> accounts;
+	private ObservableAsPropertyHelper<bool> accountPickerIsVisible;
 	private Account? selectedAccount;
 
-	public ViewModelBaseWithAccountSelector(IViewModelServices viewModelServices)
+	public ViewModelBaseWithAccountSelector(IViewModelServices viewModelServices, bool showOnlyAccountsWithSpendKeys = false)
 	{
 		this.ViewModelServices = viewModelServices;
 
-		this.Accounts = viewModelServices.Wallet.Accounts;
-		this.accountPickerIsVisible = this.Accounts.Count > 1;
+		SourceList<Account> sl = new(viewModelServices.Wallet.Accounts.AsObservableChangeSet());
+		sl.Connect()
+			.Sort(SortExpressionComparer<Account>.Ascending(a => a.Name))
+			.Filter(a => !showOnlyAccountsWithSpendKeys || a.ZcashAccount.Spending is not null)
+			.Bind(out this.accounts)
+			.Subscribe();
+
+		// The account picker should be visible as soon as the user has more than one account,
+		// even if only one account is available for selection (due to account filtering).
+		this.accountPickerIsVisible = sl.Connect().Select(_ => sl.Count > 1).ToProperty(this, nameof(this.AccountPickerIsVisible));
 
 		this.selectedAccount = viewModelServices.MostRecentlyUsedAccount ?? viewModelServices.Wallet.Accounts.FirstOrDefault();
 
@@ -26,7 +38,7 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 
 	public IViewModelServices ViewModelServices { get; }
 
-	public ReadOnlyObservableCollection<Account> Accounts { get; }
+	public ReadOnlyObservableCollection<Account> Accounts => this.accounts;
 
 	public Account? SelectedAccount
 	{
@@ -41,7 +53,7 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 		}
 	}
 
-	public bool AccountPickerIsVisible => this.accountPickerIsVisible;
+	public bool AccountPickerIsVisible => this.accountPickerIsVisible.Value;
 
 	public Security SelectedSecurity => this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity;
 }

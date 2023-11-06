@@ -25,7 +25,7 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	}
 
 	public SendingViewModel(IViewModelServices viewModelServices)
-		: base(viewModelServices)
+		: base(viewModelServices, showOnlyAccountsWithSpendKeys: true)
 	{
 		this.tickerSymbol = this.WhenAnyValue(
 			vm => vm.SelectedAccount,

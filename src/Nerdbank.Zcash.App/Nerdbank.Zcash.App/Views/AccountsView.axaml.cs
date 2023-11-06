@@ -1,6 +1,7 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
 using Avalonia.Collections;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
@@ -25,6 +26,7 @@ public partial class AccountsView : ReactiveUserControl<AccountsViewModel>
 	private void ArrangeForGroupingAccounts()
 	{
 		DataGridCollectionView view = new(this.AccountsGrid.ItemsSource);
+		view.SortDescriptions.Add(DataGridSortDescription.FromPath(nameof(AccountViewModel.Name), ListSortDirection.Ascending));
 		this.AccountsGrid.ItemsSource = view;
 
 		UpdateGroupDescriptions();
