@@ -72,7 +72,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public bool AddressAssignedToContactIsVisible => this.observingContact is not null;
 
-	public string AddressAssignedToContactExplanation => $"This receiving address is only for {this.observingContact?.Name}";
+	public string AddressAssignedToContactExplanation => $"This receiving address is only for **{this.observingContact?.Name}**.";
 
 	public ReceivingAddress DisplayedAddress
 	{

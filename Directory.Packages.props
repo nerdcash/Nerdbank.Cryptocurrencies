@@ -13,6 +13,7 @@
     <PackageVersion Include="Avalonia.iOS" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
     <PackageVersion Include="MessagePack" Version="2.5.129" />
     <PackageVersion Include="MessagePack.Annotations" Version="2.5.129" />
     <PackageVersion Include="MessagePackAnalyzer" Version="2.5.129" />
