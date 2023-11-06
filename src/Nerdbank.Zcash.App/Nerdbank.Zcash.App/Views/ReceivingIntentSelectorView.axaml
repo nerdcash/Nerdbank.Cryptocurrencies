@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.ReceivingIntentSelectorView"
              x:DataType="vm:ReceivingIntentSelectorViewModel">
@@ -11,6 +12,11 @@
   </Design.DataContext>
   <DockPanel>
     <StackPanel>
+      <Grid ColumnDefinitions="auto, *" IsVisible="{Binding AccountPickerIsVisible}">
+        <Label Content="{Binding ReceivingAccountCaption}" Target="{Binding #ReceivingAccountBox}" VerticalAlignment="Center" />
+        <local:AccountSelector Name="ReceivingAccountBox" Grid.Column="1" />
+      </Grid>
+
       <Label Content="{Binding ReceiverIdentityLabel}" Target="{Binding #ReceiverIdentityBox}" />
       <TextBox Name="ReceiverIdentityBox" Text="{Binding ReceiverIdentity}" />
       <Button Content="{Binding ProceedCaption}" Command="{Binding ProceedCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="5" />

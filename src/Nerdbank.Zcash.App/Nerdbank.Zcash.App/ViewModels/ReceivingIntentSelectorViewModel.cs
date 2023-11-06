@@ -24,6 +24,8 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 
 	public string Title => "Receive Zcash";
 
+	public string ReceivingAccountCaption => "Receiving account:";
+
 	public string ReceiverIdentityLabel => "Who are you sharing your address with?";
 
 	public string ReceiverIdentity

@@ -10,7 +10,15 @@
     <vm:ReceivingViewModel />
   </Design.DataContext>
   <DockPanel>
-    <TextBlock Text="{Binding PaymentReceivedText}" HorizontalAlignment="Center" Margin="0,10" DockPanel.Dock="Bottom" />
+    <TextBlock Text="{Binding PaymentReceivedText}"
+               HorizontalAlignment="Center"
+               Margin="0,10"
+               DockPanel.Dock="Bottom" />
+    <TextBlock Text="{Binding AddressAssignedToContactExplanation}"
+               IsVisible="{Binding AddressAssignedToContactIsVisible}"
+               FontWeight="Bold"
+               HorizontalAlignment="Center"
+               DockPanel.Dock="Bottom"/>
     <TabControl TabStripPlacement="Top"
                 ItemsSource="{Binding Addresses}"
                 SelectedItem="{Binding DisplayedAddress}">
@@ -40,7 +48,7 @@
       </TabControl.ItemTemplate>
       <TabControl.ContentTemplate>
         <DataTemplate x:DataType="{x:Type vm:ReceivingAddress}">
-          <Grid RowDefinitions="*, auto">
+          <Grid RowDefinitions="*, auto, auto">
             <Image Source="{Binding QRCode}" Margin="10" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
               <TextBlock Text="{Binding ShortText}" VerticalAlignment="Center" />
