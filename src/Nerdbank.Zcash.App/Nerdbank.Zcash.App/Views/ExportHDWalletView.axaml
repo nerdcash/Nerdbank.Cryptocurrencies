@@ -21,11 +21,11 @@
     </DataGrid>
     <Grid Margin="10" RowDefinitions="auto, auto, auto" ColumnDefinitions="auto, 10, auto">
       <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
-      <TextBlock Text="{Binding Password}" Grid.Column="2" />
+      <SelectableTextBlock Text="{Binding Password}" Grid.Column="2" />
       <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
-      <TextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
+      <SelectableTextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
       <TextBlock Text="{Binding MaxAccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
-      <TextBlock Text="{Binding MaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
+      <SelectableTextBlock Text="{Binding MaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
     </Grid>
     <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
   </StackPanel>
