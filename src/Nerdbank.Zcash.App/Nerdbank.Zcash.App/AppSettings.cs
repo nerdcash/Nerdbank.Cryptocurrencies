@@ -10,6 +10,7 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 {
 	private bool exchangeRatePerTransactionHasBeenDismissed;
 	private Uri lightServerUrl = new("https://zcash.mysideoftheweb.com:9067/");
+	private Uri lightServerUrlTestNet = new("https://zcash.mysideoftheweb.com:19067/");
 	private bool isDirty;
 
 	public AppSettings()
@@ -33,6 +34,12 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	{
 		get => this.lightServerUrl;
 		set => this.RaiseAndSetIfChanged(ref this.lightServerUrl, value);
+	}
+
+	public Uri LightServerUrlTestNet
+	{
+		get => this.lightServerUrlTestNet;
+		set => this.RaiseAndSetIfChanged(ref this.lightServerUrlTestNet, value);
 	}
 
 	public bool IsDirty

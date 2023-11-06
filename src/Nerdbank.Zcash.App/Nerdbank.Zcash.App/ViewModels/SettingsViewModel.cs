@@ -8,7 +8,8 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class SettingsViewModel : ViewModelBase, IHasTitle
 {
 	private Security alternateCurrency = Security.USD;
-	private string lightServerUrl;
+	private string lightServerUrlMainNet;
+	private string lightServerUrlTestNet;
 	private IViewModelServices viewModelServices;
 
 	[Obsolete("For design-time use only", true)]
@@ -21,7 +22,8 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.lightServerUrl = this.viewModelServices.Settings.LightServerUrl.AbsoluteUri;
+		this.lightServerUrlMainNet = this.viewModelServices.Settings.LightServerUrl.AbsoluteUri;
+		this.lightServerUrlTestNet = this.viewModelServices.Settings.LightServerUrlTestNet.AbsoluteUri;
 	}
 
 	public string Title => "Settings";
@@ -40,14 +42,31 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 	public string AdvancedExpanderHeader => "Advanced";
 
-	public string LightServerUrlCaption => "Light server URL";
+	public string LightServerUrlMainNetCaption => "Light server URL (MainNet)";
 
-	public string LightServerUrl
+	[Uri]
+	public string LightServerUrlMainNet
 	{
-		get => this.lightServerUrl;
+		get => this.lightServerUrlMainNet;
 		set
 		{
-			this.RaiseAndSetIfChanged(ref this.lightServerUrl, value);
+			this.RaiseAndSetIfChanged(ref this.lightServerUrlMainNet, value);
+			if (value.Length > 0 && Uri.TryCreate(value, UriKind.Absolute, out Uri? result))
+			{
+				this.viewModelServices.Settings.LightServerUrl = result;
+			}
+		}
+	}
+
+	public string LightServerUrlTestNetCaption => "Light server URL (TestNet)";
+
+	[Uri]
+	public string LightServerUrlTestNet
+	{
+		get => this.lightServerUrlTestNet;
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.lightServerUrlTestNet, value);
 			if (value.Length > 0 && Uri.TryCreate(value, UriKind.Absolute, out Uri? result))
 			{
 				this.viewModelServices.Settings.LightServerUrl = result;

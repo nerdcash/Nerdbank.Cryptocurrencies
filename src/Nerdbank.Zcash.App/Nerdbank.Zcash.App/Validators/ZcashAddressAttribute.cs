@@ -4,7 +4,7 @@
 using System.ComponentModel.DataAnnotations;
 using Nerdbank.Cryptocurrencies;
 
-namespace Nerdbank.Zcash.App;
+namespace Nerdbank.Zcash.App.Validators;
 
 /// <summary>
 /// A validation attribute to be applied on view model <see cref="string"/> properties that should be a Zcash address.
