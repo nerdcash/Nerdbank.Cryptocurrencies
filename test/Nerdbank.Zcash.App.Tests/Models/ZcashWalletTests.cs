@@ -33,4 +33,17 @@ public class ZcashWalletTests : ModelTestBase<ZcashWallet>
 		Assert.Equal<uint?>(0, deserializedHD1a.ZcashAccount.HDDerivation?.AccountIndex);
 		Assert.Equal<uint?>(3, deserializedHD1b.ZcashAccount.HDDerivation?.AccountIndex);
 	}
+
+	[Fact]
+	public void GetMaxAccountIndex()
+	{
+		Zip32HDWallet zip32 = new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits));
+		Assert.Null(this.Model.GetMaxAccountIndex(new ZcashMnemonic(zip32.Mnemonic!)));
+		Assert.Null(this.Model.GetMaxAccountIndex(new HDWallet(zip32)));
+
+		this.Model.Add(new ZcashAccount(zip32, 3));
+
+		Assert.Equal(3u, this.Model.GetMaxAccountIndex(new ZcashMnemonic(zip32.Mnemonic!)));
+		Assert.Equal(3u, this.Model.GetMaxAccountIndex(new HDWallet(zip32)));
+	}
 }

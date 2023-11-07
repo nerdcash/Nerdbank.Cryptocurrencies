@@ -126,9 +126,9 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 
 	public IEnumerable<HDWallet> GetHDWalletsUnder(ZcashMnemonic mnemonic) => this.HDWallets.Where(hd => hd.Zip32.Mnemonic?.Equals(mnemonic.Bip39) is true);
 
-	public uint GetMaxAccountIndex(HDWallet hd) => this.GetAccountsUnder(hd).Max(a => a.ZcashAccount.HDDerivation!.Value.AccountIndex);
+	public uint? GetMaxAccountIndex(HDWallet hd) => this.GetAccountsUnder(hd).Max(a => a.ZcashAccount.HDDerivation?.AccountIndex);
 
-	public uint GetMaxAccountIndex(ZcashMnemonic mnemonic) => this.GetHDWalletsUnder(mnemonic).SelectMany(this.GetAccountsUnder).Max(a => a.ZcashAccount.HDDerivation!.Value.AccountIndex);
+	public uint? GetMaxAccountIndex(ZcashMnemonic mnemonic) => this.GetHDWalletsUnder(mnemonic).SelectMany(this.GetAccountsUnder).Max(a => a.ZcashAccount.HDDerivation?.AccountIndex);
 
 	public void Add(ZcashMnemonic mnemonic)
 	{

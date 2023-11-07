@@ -27,7 +27,7 @@ public class ExportMnemonicViewModel : ExportAccountViewModelBase
 		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic.Bip39));
 		this.Password = mnemonic.Bip39.Password.ToString();
 
-		this.MaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(mnemonic);
+		this.MaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(mnemonic) ?? 0;
 	}
 
 	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";

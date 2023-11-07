@@ -69,7 +69,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		if (matchingHDWallets.Length == 1)
 		{
 			HDWallet hd = matchingHDWallets[0];
-			uint index = wallet.GetMaxAccountIndex(hd) + 1;
+			uint index = wallet.GetMaxAccountIndex(hd) is uint idx ? idx + 1 : 0;
 			Account account = new Account(new ZcashAccount(hd.Zip32, index))
 			{
 				Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
