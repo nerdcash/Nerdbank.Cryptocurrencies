@@ -212,4 +212,28 @@ public class Bip39MnemonicTests
 		Assert.Throws<ArgumentOutOfRangeException>(() => Bip39Mnemonic.WordsRequiredForEntropyLength(0));
 		Assert.Throws<ArgumentOutOfRangeException>(() => Bip39Mnemonic.WordsRequiredForEntropyLength(-5));
 	}
+
+	[Fact]
+	public void Equality()
+	{
+		string password1a = new string("p");
+		string password1b = new string("p");
+		string password2 = new string("p2");
+
+		// Entropy and password are the same.
+		Bip39Mnemonic oneA = Bip39Mnemonic.Parse(SeedPhrase, password1a);
+		Bip39Mnemonic oneB = Bip39Mnemonic.Parse(SeedPhrase, password1b);
+		Assert.Equal(oneA.GetHashCode(), oneB.GetHashCode());
+		Assert.True(oneA.Equals(oneB));
+
+		// Entropy is the same, but the password is different.
+		Bip39Mnemonic two = Bip39Mnemonic.Parse(SeedPhrase, password2);
+		Assert.NotEqual(oneA.GetHashCode(), two.GetHashCode());
+		Assert.False(oneA.Equals(two));
+
+		// Entropy varies, but password is the same.
+		Bip39Mnemonic three = Bip39Mnemonic.Create(64, password1a);
+		Assert.NotEqual(oneA.GetHashCode(), three.GetHashCode());
+		Assert.False(oneA.Equals(three));
+	}
 }
