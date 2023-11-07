@@ -20,11 +20,16 @@ public class FirstLaunchViewModelTests : ViewModelTestBase
 	public async Task CreateNewWallet()
 	{
 		await this.viewModel.StartNewWalletCommand.Execute().FirstAsync();
-		Account account = Assert.Single(this.MainViewModel.Wallet.Accounts);
-		Assert.False(string.IsNullOrEmpty(account.Name));
-		this.logger.WriteLine(account.Name);
 
-		Assert.True(this.MainViewModel.Wallet.TryGetHDWallet(account, out HDWallet? wallet));
+		Account mainNetAccount = Assert.Single(this.MainViewModel.Wallet.Accounts, a => a.Network == ZcashNetwork.MainNet);
+		Assert.False(string.IsNullOrEmpty(mainNetAccount.Name));
+		this.logger.WriteLine(mainNetAccount.Name);
+
+		Account testNetAccount = Assert.Single(this.MainViewModel.Wallet.Accounts, a => a.Network == ZcashNetwork.TestNet);
+		Assert.False(string.IsNullOrEmpty(testNetAccount.Name));
+		this.logger.WriteLine(testNetAccount.Name);
+
+		Assert.True(this.MainViewModel.Wallet.TryGetHDWallet(mainNetAccount, out HDWallet? wallet));
 		Assert.False(string.IsNullOrEmpty(wallet.Name));
 	}
 }

@@ -4,10 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-             x:Class="Nerdbank.Zcash.App.Views.ExportHDWalletView"
-             x:DataType="vm:ExportHDWalletViewModel">
+             x:Class="Nerdbank.Zcash.App.Views.ExportMnemonicView"
+             x:DataType="vm:ExportMnemonicViewModel">
   <Design.DataContext>
-    <vm:ExportHDWalletViewModel />
+    <vm:ExportMnemonicViewModel />
   </Design.DataContext>
   <StackPanel>
     <TextBlock Text="{Binding BackupSeedPhraseExplanation}" />

@@ -15,18 +15,14 @@ public class HDWalletTests : ModelTestBase<HDWallet>
 	public override HDWallet Model => this.HDWallet;
 
 	[Fact]
-	public void Serialize_WithAccounts()
+	public void Serialize_Roundtrip()
 	{
 		this.Model.Name = "My Wallet";
-		this.Model.BirthdayHeight = 123456;
-		this.Model.IsSeedPhraseBackedUp = true;
 		Assert.True(this.Model.IsDirty);
 
 		HDWallet deserialized = this.SerializeRoundtrip();
 
 		Assert.Equal(this.Model.Name, deserialized.Name);
-		Assert.Equal(this.Model.BirthdayHeight, deserialized.BirthdayHeight);
-		Assert.Equal(this.Model.IsSeedPhraseBackedUp, deserialized.IsSeedPhraseBackedUp);
 		Assert.False(deserialized.IsDirty);
 	}
 }

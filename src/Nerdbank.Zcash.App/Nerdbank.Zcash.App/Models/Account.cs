@@ -73,12 +73,12 @@ public class Account : ReactiveObject, IPersistableData
 				switch (i)
 				{
 					case 0:
-						name = reader.ReadString() ?? string.Empty;
+						name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
 						break;
 					case 1:
 						if (reader.NextMessagePackType == MessagePackType.String)
 						{
-							uvk = UnifiedViewingKey.Decode(reader.ReadString()!);
+							uvk = UnifiedViewingKey.Decode(options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options)!);
 						}
 						else
 						{
@@ -129,7 +129,7 @@ public class Account : ReactiveObject, IPersistableData
 			}
 
 			writer.WriteArrayHeader(value.ZcashAccount.HDDerivation is null ? 2 : 3);
-			writer.Write(value.Name);
+			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
 			if (value.ZcashAccount.HDDerivation is { } derivation)
 			{
 				options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Serialize(ref writer, derivation.Wallet, options);
@@ -137,7 +137,8 @@ public class Account : ReactiveObject, IPersistableData
 			}
 			else
 			{
-				writer.Write(value.ZcashAccount.FullViewing?.UnifiedKey.TextEncoding ?? value.ZcashAccount.IncomingViewing.UnifiedKey.TextEncoding);
+				string v = value.ZcashAccount.FullViewing?.UnifiedKey.TextEncoding ?? value.ZcashAccount.IncomingViewing.UnifiedKey.TextEncoding;
+				options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, v, options);
 			}
 		}
 	}

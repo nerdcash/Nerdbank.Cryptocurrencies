@@ -7,13 +7,12 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ImportAccountViewModel : ViewModelBase, IHasTitle
 {
-	private const ulong SaplingActivationHeight = 419_200;
 	private readonly ObservableBox<bool> importCommandEnabled = new(false);
 	private readonly IViewModelServices viewModelServices;
 	private string key = string.Empty;
 	private string seedPassword = string.Empty;
 	private bool isTestNet;
-	private ulong birthdayHeight = SaplingActivationHeight;
+	private ulong birthdayHeight = AppUtilities.SaplingActivationHeight;
 	private Bip39Mnemonic? mnemonic;
 	private bool inputIsValidKey;
 	private bool isSeed;
@@ -118,7 +117,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 
 	public string BirthdayHeightCaption => "Birthday height";
 
-	public ulong MinimumBirthdayHeight => SaplingActivationHeight;
+	public ulong MinimumBirthdayHeight => AppUtilities.SaplingActivationHeight;
 
 	public string ImportCommandCaption => "Import";
 

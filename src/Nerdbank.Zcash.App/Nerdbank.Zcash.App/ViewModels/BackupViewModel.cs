@@ -27,7 +27,7 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			vm => vm.SelectedAccount,
 			a =>
 				a is null ? null :
-				viewModelServices.Wallet.TryGetHDWallet(a, out HDWallet? hd) ? new ExportHDWalletViewModel(viewModelServices, hd) :
+				viewModelServices.Wallet.TryGetMnemonic(a, out ZcashMnemonic? mnemonic) ? new ExportMnemonicViewModel(viewModelServices, mnemonic) :
 				new ExportLoneAccountViewModel(viewModelServices, a.ZcashAccount))
 			.ToProperty(this, nameof(this.ExportAccountViewModel));
 	}

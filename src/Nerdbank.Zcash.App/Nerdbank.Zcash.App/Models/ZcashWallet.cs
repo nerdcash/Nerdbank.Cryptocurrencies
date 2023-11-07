@@ -18,6 +18,7 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackFormatter(typeof(Formatter))]
 public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 {
+	private readonly ObservableCollection<ZcashMnemonic> mnemonics;
 	private readonly ObservableCollection<HDWallet> hdWallets;
 	private readonly ObservableCollection<Account> accounts;
 	private bool isDirty;
@@ -26,12 +27,15 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 	/// Initializes a new instance of the <see cref="ZcashWallet"/> class.
 	/// </summary>
 	public ZcashWallet()
-		: this(Array.Empty<HDWallet>(), Array.Empty<Account>())
+		: this(Array.Empty<ZcashMnemonic>(), Array.Empty<HDWallet>(), Array.Empty<Account>())
 	{
 	}
 
-	private ZcashWallet(IReadOnlyList<HDWallet> hdWallets, IReadOnlyList<Account> accounts)
+	private ZcashWallet(IReadOnlyList<ZcashMnemonic> mnemonics, IReadOnlyList<HDWallet> hdWallets, IReadOnlyList<Account> accounts)
 	{
+		this.mnemonics = new(mnemonics);
+		this.Mnemonics = new(this.mnemonics);
+
 		this.hdWallets = new(hdWallets);
 		this.HDWallets = new(this.hdWallets);
 
@@ -43,7 +47,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		this.StartWatchingForDirtyChildren(this.hdWallets);
 		this.StartWatchingForDirtyChildren(this.accounts);
 
-		this.hdWallets.NotifyOnCollectionElementMemberChanged(nameof(HDWallet.IsSeedPhraseBackedUp), (HDWallet? hd) => this.OnPropertyChanged(nameof(this.HDWalletsRequireBackup)));
+		this.mnemonics.NotifyOnCollectionElementMemberChanged(nameof(ZcashMnemonic.IsBackedUp), (ZcashMnemonic? hd) => this.OnPropertyChanged(nameof(this.MnemonicsRequireBackup)));
 	}
 
 	/// <summary>
@@ -62,7 +66,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		set => this.SetIsDirty(ref this.isDirty, value);
 	}
 
-	public bool HDWalletsRequireBackup => this.HDWallets.Any(w => !w.IsSeedPhraseBackedUp);
+	public bool MnemonicsRequireBackup => this.mnemonics.Any(w => !w.IsBackedUp);
 
 	/// <summary>
 	/// Gets a value indicating whether the wallet has no lone accounts and no HD wallets (whether or not they are empty).
@@ -70,7 +74,12 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 	public bool IsEmpty => this.Accounts.Count == 0;
 
 	/// <summary>
-	/// Gets a collection of all the seed phrase based wallets, which in turn contain accounts created within them.
+	/// Gets a collection of all the seed phrases that may back HD wallets.
+	/// </summary>
+	public ReadOnlyObservableCollection<ZcashMnemonic> Mnemonics { get; }
+
+	/// <summary>
+	/// Gets a collection of all the seed phrase based wallets.
 	/// </summary>
 	public ReadOnlyObservableCollection<HDWallet> HDWallets { get; }
 
@@ -93,9 +102,50 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		return false;
 	}
 
+	public bool TryGetMnemonic(HDWallet hd, [NotNullWhen(true)] out ZcashMnemonic? mnemonic)
+	{
+		if (hd.Zip32.Mnemonic is not null)
+		{
+			mnemonic = this.mnemonics.FirstOrDefault(m => m.Bip39.Equals(hd.Zip32.Mnemonic));
+			return mnemonic is not null;
+		}
+		else
+		{
+			mnemonic = null;
+			return false;
+		}
+	}
+
+	public bool TryGetMnemonic(Account account, [NotNullWhen(true)] out ZcashMnemonic? mnemonic)
+	{
+		mnemonic = null;
+		return this.TryGetHDWallet(account, out HDWallet? hd) && this.TryGetMnemonic(hd, out mnemonic);
+	}
+
 	public IEnumerable<Account> GetAccountsUnder(HDWallet hd) => this.Accounts.Where(a => a.ZcashAccount.HDDerivation?.Wallet.Equals(hd.Zip32) is true);
 
+	public IEnumerable<HDWallet> GetHDWalletsUnder(ZcashMnemonic mnemonic) => this.HDWallets.Where(hd => hd.Zip32.Mnemonic?.Equals(mnemonic.Bip39) is true);
+
 	public uint GetMaxAccountIndex(HDWallet hd) => this.GetAccountsUnder(hd).Max(a => a.ZcashAccount.HDDerivation!.Value.AccountIndex);
+
+	public uint GetMaxAccountIndex(ZcashMnemonic mnemonic) => this.GetHDWalletsUnder(mnemonic).SelectMany(this.GetAccountsUnder).Max(a => a.ZcashAccount.HDDerivation!.Value.AccountIndex);
+
+	public void Add(ZcashMnemonic mnemonic)
+	{
+		this.mnemonics.Add(mnemonic);
+		this.StartWatchingForDirtyChild(mnemonic);
+	}
+
+	public void Add(HDWallet hd)
+	{
+		if (hd.Zip32.Mnemonic is not null && !this.TryGetMnemonic(hd, out _))
+		{
+			this.Add(new ZcashMnemonic(hd.Zip32.Mnemonic));
+		}
+
+		this.hdWallets.Add(hd);
+		this.StartWatchingForDirtyChild(hd);
+	}
 
 	/// <summary>
 	/// Adds an account to the wallet.
@@ -109,14 +159,12 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		return accountModel;
 	}
 
-	public void Add(HDWallet hd) => this.hdWallets.Add(hd);
-
 	public void Add(Account account)
 	{
-		if (account.ZcashAccount.HDDerivation is { } derivation && !this.TryGetHDWallet(account, out HDWallet? hd))
+		if (account.ZcashAccount.HDDerivation is { } derivation && !this.TryGetHDWallet(account, out _))
 		{
-			hd = new HDWallet(derivation.Wallet);
-			this.hdWallets.Add(hd);
+			HDWallet? hd = new HDWallet(derivation.Wallet);
+			this.Add(hd);
 			this.StartWatchingForDirtyChild(hd);
 		}
 
@@ -175,6 +223,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 	{
 		public ZcashWallet Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
 		{
+			ZcashMnemonic[] mnemonics = Array.Empty<ZcashMnemonic>();
 			HDWallet[] hdWallets = Array.Empty<HDWallet>();
 			Account[] accounts = Array.Empty<Account>();
 
@@ -184,9 +233,12 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 				switch (i)
 				{
 					case 0:
-						hdWallets = options.Resolver.GetFormatterWithVerify<HDWallet[]>().Deserialize(ref reader, options);
+						mnemonics = options.Resolver.GetFormatterWithVerify<ZcashMnemonic[]>().Deserialize(ref reader, options);
 						break;
 					case 1:
+						hdWallets = options.Resolver.GetFormatterWithVerify<HDWallet[]>().Deserialize(ref reader, options);
+						break;
+					case 2:
 						accounts = options.Resolver.GetFormatterWithVerify<Account[]>().Deserialize(ref reader, options);
 						break;
 					default:
@@ -195,12 +247,13 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 				}
 			}
 
-			return new(hdWallets, accounts);
+			return new(mnemonics, hdWallets, accounts);
 		}
 
 		public void Serialize(ref MessagePackWriter writer, ZcashWallet value, MessagePackSerializerOptions options)
 		{
-			writer.WriteArrayHeader(2);
+			writer.WriteArrayHeader(3);
+			options.Resolver.GetFormatterWithVerify<IReadOnlyList<ZcashMnemonic>>().Serialize(ref writer, value.Mnemonics, options);
 			options.Resolver.GetFormatterWithVerify<IReadOnlyList<HDWallet>>().Serialize(ref writer, value.HDWallets, options);
 			options.Resolver.GetFormatterWithVerify<IReadOnlyList<Account>>().Serialize(ref writer, value.Accounts, options);
 		}

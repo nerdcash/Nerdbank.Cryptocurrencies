@@ -177,10 +177,10 @@ public class Contact : ReactiveObject, IPersistableData
 				switch (i)
 				{
 					case 0:
-						name = reader.ReadString() ?? string.Empty;
+						name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
 						break;
 					case 1:
-						if (reader.ReadString() is string address)
+						if (options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) is string address)
 						{
 							receivingAddress = ZcashAddress.Decode(address);
 						}
@@ -208,8 +208,8 @@ public class Contact : ReactiveObject, IPersistableData
 		public void Serialize(ref MessagePackWriter writer, Contact value, MessagePackSerializerOptions options)
 		{
 			writer.WriteArrayHeader(3);
-			writer.Write(value.Name);
-			writer.Write(value.ReceivingAddress);
+			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
+			options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.ReceivingAddress, options);
 			options.Resolver.GetFormatterWithVerify<ImmutableDictionary<Account, AssignedSendingAddresses>>().Serialize(ref writer, value.AssignedAddresses, options);
 		}
 	}

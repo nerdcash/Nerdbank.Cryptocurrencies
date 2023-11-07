@@ -21,7 +21,7 @@ public class HomeScreenViewModel : ViewModelBase
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.isBackupCommandPromoted = this.WhenAnyValue(x => x.viewModelServices.Wallet.HDWalletsRequireBackup).ToProperty(this, nameof(this.IsBackupCommandPromoted));
+		this.isBackupCommandPromoted = this.WhenAnyValue(x => x.viewModelServices.Wallet.MnemonicsRequireBackup).ToProperty(this, nameof(this.IsBackupCommandPromoted));
 
 		this.ReceiveCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new ReceivingIntentSelectorViewModel(viewModelServices)));
 		this.SendCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SendingViewModel(viewModelServices)));

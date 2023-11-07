@@ -5,30 +5,29 @@ using System.Collections.ObjectModel;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ExportHDWalletViewModel : ExportAccountViewModelBase
+public class ExportMnemonicViewModel : ExportAccountViewModelBase
 {
 	private readonly IViewModelServices viewModelServices;
-	private readonly HDWallet wallet;
+	private readonly ZcashMnemonic mnemonic;
 
 	[Obsolete("For design-time use only.", error: true)]
-	public ExportHDWalletViewModel()
-		: this(new DesignTimeViewModelServices(), new HDWallet(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)))
+	public ExportMnemonicViewModel()
+		: this(new DesignTimeViewModelServices(), new ZcashMnemonic())
 	{
 		this.Password = "SomePassword";
 	}
 
-	public ExportHDWalletViewModel(IViewModelServices viewModelServices, HDWallet wallet)
-		: base(viewModelServices, wallet.BirthdayHeight)
+	public ExportMnemonicViewModel(IViewModelServices viewModelServices, ZcashMnemonic mnemonic)
+		: base(viewModelServices, mnemonic.BirthdayHeight)
 	{
 		this.viewModelServices = viewModelServices;
-		this.wallet = wallet;
+		this.mnemonic = mnemonic;
 
-		Bip39Mnemonic mnemonic = wallet.Zip32.Mnemonic!;
-		this.SeedPhrase = mnemonic.SeedPhrase;
-		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic));
-		this.Password = mnemonic.Password.ToString();
+		this.SeedPhrase = mnemonic.Bip39.SeedPhrase;
+		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic.Bip39));
+		this.Password = mnemonic.Bip39.Password.ToString();
 
-		this.MaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(wallet);
+		this.MaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(mnemonic);
 	}
 
 	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";
@@ -51,12 +50,12 @@ public class ExportHDWalletViewModel : ExportAccountViewModelBase
 
 	public bool IsSeedPhraseBackedUp
 	{
-		get => this.wallet.IsSeedPhraseBackedUp;
+		get => this.mnemonic.IsBackedUp;
 		set
 		{
-			if (this.wallet.IsSeedPhraseBackedUp != value)
+			if (this.mnemonic.IsBackedUp != value)
 			{
-				this.wallet.IsSeedPhraseBackedUp = value;
+				this.mnemonic.IsBackedUp = value;
 				this.RaisePropertyChanged();
 			}
 		}

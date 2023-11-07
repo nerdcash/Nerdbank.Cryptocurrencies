@@ -16,7 +16,6 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackFormatter(typeof(Formatter))]
 public class HDWallet : IPersistableDataHelper
 {
-	private bool isSeedPhraseBackedUp;
 	private string name = string.Empty;
 	private bool isDirty;
 
@@ -47,18 +46,7 @@ public class HDWallet : IPersistableDataHelper
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
 
-	public bool IsSeedPhraseBackedUp
-	{
-		get => this.isSeedPhraseBackedUp;
-		set => this.RaiseAndSetIfChanged(ref this.isSeedPhraseBackedUp, value);
-	}
-
 	public Zip32HDWallet Zip32 { get; }
-
-	/// <summary>
-	/// Gets or sets the birthday height for the overall HD wallet.
-	/// </summary>
-	public ulong BirthdayHeight { get; set; }
 
 	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
 
@@ -100,13 +88,7 @@ public class HDWallet : IPersistableDataHelper
 						wallet = new HDWallet(zip32);
 						break;
 					case 1:
-						wallet!.Name = reader.ReadString() ?? string.Empty;
-						break;
-					case 2:
-						wallet!.BirthdayHeight = reader.ReadUInt64();
-						break;
-					case 3:
-						wallet!.IsSeedPhraseBackedUp = reader.ReadBoolean();
+						wallet!.Name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
 						break;
 					default:
 						reader.Skip();
@@ -122,12 +104,10 @@ public class HDWallet : IPersistableDataHelper
 
 		public void Serialize(ref MessagePackWriter writer, HDWallet value, MessagePackSerializerOptions options)
 		{
-			writer.WriteArrayHeader(4);
+			writer.WriteArrayHeader(2);
 
 			options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Serialize(ref writer, value.Zip32, options);
-			writer.Write(value.Name);
-			writer.Write(value.BirthdayHeight);
-			writer.Write(value.IsSeedPhraseBackedUp);
+			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
 		}
 	}
 }

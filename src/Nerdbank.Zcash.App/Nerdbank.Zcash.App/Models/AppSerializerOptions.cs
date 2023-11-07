@@ -80,21 +80,9 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 				{
 					MessagePackReader provisionaryReader = reader.CreatePeekReader();
 					ExtensionHeader extensionHeader = provisionaryReader.ReadExtensionFormatHeader();
-					if (extensionHeader.TypeCode == ReferenceExtensionTypeCode && extensionHeader.Length == 4)
+					if (extensionHeader.TypeCode == ReferenceExtensionTypeCode)
 					{
-						ReadOnlySequence<byte> idBytes = provisionaryReader.ReadRaw(4);
-						int id;
-						if (idBytes.IsSingleSegment)
-						{
-							id = BitConverter.ToInt32(idBytes.FirstSpan);
-						}
-						else
-						{
-							Span<byte> idBytesSpan = stackalloc byte[4];
-							idBytes.CopyTo(idBytesSpan);
-							id = BitConverter.ToInt32(idBytesSpan);
-						}
-
+						int id = provisionaryReader.ReadInt32();
 						reader = provisionaryReader;
 						return (T)(this.owner.deserializedObjects[id] ?? throw new MessagePackSerializationException("Unexpected null element in shared object array. Dependency cycle?"));
 					}
@@ -119,9 +107,9 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 				if (this.owner.serializedObjects.TryGetValue(value, out int referenceId))
 				{
 					// This object has already been written. Skip it this time.
-					writer.WriteExtensionFormatHeader(new ExtensionHeader(ReferenceExtensionTypeCode, 4));
-					BitConverter.TryWriteBytes(writer.GetSpan(4), referenceId);
-					writer.Advance(4);
+					int packLength = MessagePackWriter.GetEncodedLength(referenceId);
+					writer.WriteExtensionFormatHeader(new ExtensionHeader(ReferenceExtensionTypeCode, packLength));
+					writer.Write(referenceId);
 					return;
 				}
 				else

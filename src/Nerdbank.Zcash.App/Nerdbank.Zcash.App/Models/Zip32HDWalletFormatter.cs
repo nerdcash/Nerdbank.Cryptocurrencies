@@ -30,11 +30,11 @@ internal class Zip32HDWalletFormatter : IMessagePackFormatter<Zip32HDWallet>
 
 		if (reader.NextMessagePackType == MessagePackType.String)
 		{
-			string seedPhrase = reader.ReadString()!;
+			string seedPhrase = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 			string? password = null;
 			if (length > 2)
 			{
-				password = reader.ReadString();
+				password = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 			}
 
 			wallet = new Zip32HDWallet(Bip39Mnemonic.Parse(seedPhrase, password), network);
@@ -58,10 +58,10 @@ internal class Zip32HDWalletFormatter : IMessagePackFormatter<Zip32HDWallet>
 		}
 		else
 		{
-			writer.Write(value.Mnemonic.SeedPhrase);
+			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Mnemonic.SeedPhrase, options);
 			if (!value.Mnemonic.Password.IsEmpty)
 			{
-				writer.Write(value.Mnemonic.Password.Span);
+				options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Mnemonic.Password.ToString(), options);
 			}
 		}
 	}
