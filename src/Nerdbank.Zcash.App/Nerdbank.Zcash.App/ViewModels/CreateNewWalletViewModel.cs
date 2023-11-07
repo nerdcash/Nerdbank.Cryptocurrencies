@@ -31,6 +31,8 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 
 	public string Title => "Create new wallet";
 
+	public string Introduction => "A new wallet will be created for you. It will be based on a secret you can write down later to restore your wallet on another device or wallet app.";
+
 	public string PasswordCaption => "Password";
 
 	public string Password
