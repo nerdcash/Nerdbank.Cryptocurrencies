@@ -109,6 +109,8 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		return accountModel;
 	}
 
+	public void Add(HDWallet hd) => this.hdWallets.Add(hd);
+
 	public void Add(Account account)
 	{
 		if (account.ZcashAccount.HDDerivation is { } derivation && !this.TryGetHDWallet(account, out HDWallet? hd))

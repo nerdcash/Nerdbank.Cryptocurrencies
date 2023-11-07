@@ -55,13 +55,20 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 	private void CreateNewAccount()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
-		Zip32HDWallet zip32 = new(mnemonic, ZcashNetwork.MainNet);
-		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
-		accountModel.Name = Strings.DefaultNameForFirstAccount;
-		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
-		wallet.Name = Strings.DefaultNameForFirstHDWallet;
+
+		this.NewAccount(mnemonic, ZcashNetwork.MainNet);
+		this.NewAccount(mnemonic, ZcashNetwork.TestNet);
 
 		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
+	}
+
+	private void NewAccount(Bip39Mnemonic mnemonic, ZcashNetwork network)
+	{
+		Zip32HDWallet zip32 = new(mnemonic, network);
+		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
+		accountModel.Name = Strings.FormatDefaultNameForFirstAccount(network.AsSecurity().TickerSymbol);
+		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
+		wallet.Name = Strings.FormatDefaultNameForFirstHDWallet(zip32.Network);
 	}
 
 	private CreateNewWalletViewModel CreateNewAccountAdvanced()

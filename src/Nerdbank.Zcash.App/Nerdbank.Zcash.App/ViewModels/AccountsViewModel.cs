@@ -22,7 +22,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.NewAccountCommand = ReactiveCommand.Create(this.NewAccount);
+		this.NewAccountCommand = ReactiveCommand.CreateFromTask<ZcashNetwork, Account?>(this.NewAccountAsync);
 		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
 
 		WrapModels(this.viewModelServices.Wallet.Accounts, this.Accounts, (Account a) => new AccountViewModel(a, viewModelServices));
@@ -45,9 +45,11 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 
 	public string AccountIndexColumnHeader => "Index";
 
-	public ReactiveCommand<Unit, Unit> NewAccountCommand { get; }
+	public ReactiveCommand<ZcashNetwork, Account?> NewAccountCommand { get; }
 
-	public string NewAccountCommandCaption => "New account";
+	public string NewAccountMainNetCommandCaption => "New account";
+
+	public string NewAccountTestNetCommandCaption => "New testnet account";
 
 	public ReactiveCommand<Unit, ImportAccountViewModel> ImportAccountCommand { get; }
 
@@ -60,9 +62,22 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		return this.viewModelServices.NavigateTo(importAccount);
 	}
 
-	public void NewAccount()
+	public async Task<Account?> NewAccountAsync(ZcashNetwork network)
 	{
-		////Verify.Operation(this.viewModelServices.SelectedHDWallet is not null, "No HD wallet selected.");
-		////this.viewModelServices.SelectedHDWallet.AddAccount(this.viewModelServices.SelectedHDWallet.MaxAccountIndex + 1);
+		ZcashWallet wallet = this.viewModelServices.Wallet;
+		HDWallet[] matchingHDWallets = wallet.HDWallets.Where(w => w.Zip32.Network == network).ToArray();
+		if (matchingHDWallets.Length == 1)
+		{
+			HDWallet hd = matchingHDWallets[0];
+			uint index = wallet.GetMaxAccountIndex(hd) + 1;
+			Account account = new Account(new ZcashAccount(hd.Zip32, index))
+			{
+				Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
+			};
+			wallet.Add(account);
+			return account;
+		}
+
+		return null;
 	}
 }

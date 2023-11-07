@@ -127,10 +127,10 @@
     <value>eZCash</value>
   </data>
   <data name="DefaultNameForFirstAccount" xml:space="preserve">
-    <value>Main</value>
+    <value>Main {Ticker}</value>
   </data>
   <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
-    <value>Primary seed phrase</value>
+    <value>Alpha {Network}</value>
   </data>
   <data name="DonationMemo" xml:space="preserve">
     <value>Thank you for {AppTitle}.</value>

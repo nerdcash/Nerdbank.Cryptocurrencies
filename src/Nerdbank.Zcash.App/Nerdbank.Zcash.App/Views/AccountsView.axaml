@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
              xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             xmlns:zcash="clr-namespace:Nerdbank.Zcash;assembly=Nerdbank.Zcash"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.AccountsView"
              x:DataType="vm:AccountsViewModel">
@@ -12,9 +13,10 @@
   </Design.DataContext>
   <DockPanel>
     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
-      <SplitButton Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}">
+      <SplitButton Command="{Binding NewAccountCommand}" CommandParameter="{x:Static zcash:ZcashNetwork.MainNet}" Content="{Binding NewAccountMainNetCommandCaption}">
         <SplitButton.Flyout>
           <MenuFlyout Placement="Top">
+            <MenuItem Header="{Binding NewAccountTestNetCommandCaption}" Command="{Binding NewAccountCommand}" CommandParameter="{x:Static zcash:ZcashNetwork.TestNet}" />
             <MenuItem Header="{Binding ImportAccountCommandCaption}" Command="{Binding ImportAccountCommand}" />
           </MenuFlyout>
         </SplitButton.Flyout>

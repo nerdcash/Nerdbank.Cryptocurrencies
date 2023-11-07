@@ -16,21 +16,19 @@ internal class DesignTimeViewModelServices : IViewModelServices
 		{
 			// Populate accounts.
 			Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
-			HDWallet zec = new(new(mnemonic, ZcashNetwork.MainNet));
-			HDWallet taz = new(new(mnemonic, ZcashNetwork.TestNet));
+			HDWallet zec = new(new(mnemonic, ZcashNetwork.MainNet)) { Name = "Real money" };
+			HDWallet taz = new(new(mnemonic, ZcashNetwork.TestNet)) { Name = "Play money" };
 
-			Account mainAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.DefaultNameForFirstAccount, Balance = 1.23m };
-			Account savingsAccount = new(new ZcashAccount(taz.Zip32, 1)) { Name = "Savings", Balance = 3.45m };
+			this.Wallet.Add(zec);
+			this.Wallet.Add(taz);
+
+			Account playMoneyAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.FormatDefaultNameForFirstAccount(taz.Zip32.Network), Balance = 1.23m };
 			Account realAccount = new(new ZcashAccount(zec.Zip32, 0)) { Name = "Real ZEC", Balance = 0.023m };
+			Account savingsAccount = new(new ZcashAccount(zec.Zip32, 1)) { Name = "Savings", Balance = 3.45m };
 
-			this.Wallet.Add(mainAccount);
+			this.Wallet.Add(playMoneyAccount);
 			this.Wallet.Add(savingsAccount);
 			this.Wallet.Add(realAccount);
-
-			this.Wallet.TryGetHDWallet(mainAccount, out HDWallet? tazHD);
-			tazHD!.Name = "Play money";
-			this.Wallet.TryGetHDWallet(realAccount, out HDWallet? zecHD);
-			zecHD!.Name = "Real money";
 
 			// Populate address book.
 			this.ContactManager.Add(new Contact { Name = "Andrew Arnott", ReceivingAddress = ZcashAddress.Decode("t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vF") });
