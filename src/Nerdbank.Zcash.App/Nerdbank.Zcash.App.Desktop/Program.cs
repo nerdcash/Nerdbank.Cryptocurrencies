@@ -3,6 +3,7 @@
 
 using System.Runtime.InteropServices;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 
 namespace Nerdbank.Zcash.App.Desktop;
@@ -40,6 +41,16 @@ internal class Program
 
 	private static AppPlatformSettings PrepareAppPlatformSettings()
 	{
+		if (Design.IsDesignMode)
+		{
+			// When running in the designer, we shouldn't try to access the files on the user's installation.
+			return new()
+			{
+				ConfidentialDataPath = null,
+				NonConfidentialDataPath = null,
+			};
+		}
+
 		string appDataBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nerdbank.Zcash.App");
 		string confidentialDataPath = Path.Combine(appDataBaseDir, "wallets");
 		string nonConfidentialDataPath = Path.Combine(appDataBaseDir, "settings");
