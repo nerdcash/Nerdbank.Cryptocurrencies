@@ -114,9 +114,8 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 				}
 				else
 				{
-					int reservation = this.owner.serializingObjectCounter++;
+					this.owner.serializedObjects.Add(value, this.owner.serializingObjectCounter++);
 					this.owner.inner.GetFormatterWithVerify<T>().Serialize(ref writer, value, options);
-					this.owner.serializedObjects.Add(value, reservation);
 				}
 			}
 		}

@@ -28,7 +28,7 @@ internal class Zip32HDWalletFormatter : IMessagePackFormatter<Zip32HDWallet>
 		ZcashNetwork network = options.Resolver.GetFormatterWithVerify<ZcashNetwork>().Deserialize(ref reader, options);
 		Zip32HDWallet wallet;
 
-		if (reader.NextMessagePackType == MessagePackType.String)
+		if (reader.NextMessagePackType != MessagePackType.Binary)
 		{
 			string seedPhrase = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 			string? password = null;

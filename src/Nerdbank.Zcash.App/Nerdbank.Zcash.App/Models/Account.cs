@@ -60,7 +60,7 @@ public class Account : ReactiveObject, IPersistableData
 			Zip32HDWallet? zip32 = null;
 			string name = string.Empty;
 			uint? accountIndex = null;
-			UnifiedViewingKey? uvk = null;
+			string? uvk = null;
 
 			int length = reader.ReadArrayHeader();
 			if (length < 2)
@@ -76,23 +76,22 @@ public class Account : ReactiveObject, IPersistableData
 						name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
 						break;
 					case 1:
-						if (reader.NextMessagePackType == MessagePackType.String)
-						{
-							uvk = UnifiedViewingKey.Decode(options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options)!);
-						}
-						else
-						{
-							zip32 = options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Deserialize(ref reader, options);
-						}
-
+						uvk = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 						break;
 					case 2:
+						zip32 = options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Deserialize(ref reader, options);
+						break;
+					case 3:
 						if (zip32 is null)
 						{
 							throw new MessagePackSerializationException();
 						}
 
-						accountIndex = reader.ReadUInt32();
+						if (!reader.TryReadNil())
+						{
+							accountIndex = reader.ReadUInt32();
+						}
+
 						break;
 					default:
 						reader.Skip();
@@ -109,7 +108,7 @@ public class Account : ReactiveObject, IPersistableData
 			}
 			else
 			{
-				zcashAccount = new(uvk ?? throw new MessagePackSerializationException("Missing UVK."));
+				zcashAccount = new(UnifiedViewingKey.Decode(uvk ?? throw new MessagePackSerializationException("Missing UVK.")));
 			}
 
 			Account account = new(zcashAccount)
@@ -128,12 +127,15 @@ public class Account : ReactiveObject, IPersistableData
 				return;
 			}
 
-			writer.WriteArrayHeader(value.ZcashAccount.HDDerivation is null ? 2 : 3);
+			writer.WriteArrayHeader(value.ZcashAccount.HDDerivation is null ? 2 : 4);
+
 			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
+
 			if (value.ZcashAccount.HDDerivation is { } derivation)
 			{
-				options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Serialize(ref writer, derivation.Wallet, options);
-				writer.Write(value.ZcashAccount.HDDerivation.Value.AccountIndex);
+				writer.WriteNil();
+				options.Resolver.GetFormatterWithVerify<Zip32HDWallet?>().Serialize(ref writer, derivation.Wallet, options);
+				writer.Write(derivation.AccountIndex);
 			}
 			else
 			{
