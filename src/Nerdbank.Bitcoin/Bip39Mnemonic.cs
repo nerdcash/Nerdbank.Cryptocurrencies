@@ -15,7 +15,7 @@ namespace Nerdbank.Bitcoin;
 /// that can be used to generate deterministic wallets using BIP-0032 or similar methods.
 /// </summary>
 [DebuggerDisplay($"Mnemonic: {{{nameof(SeedPhrase)}}}")]
-public partial class Bip39Mnemonic
+public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 {
 	private static readonly Encoding BinarySeedEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
@@ -261,6 +261,29 @@ public partial class Bip39Mnemonic
 	/// </summary>
 	/// <returns>The seed phrase.</returns>
 	public override string ToString() => this.SeedPhrase;
+
+	/// <inheritdoc/>
+	public override bool Equals(object? obj) => this.Equals(obj as Bip39Mnemonic);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		Encoding passwordEncoding = Encoding.UTF8;
+		Span<byte> bytes = stackalloc byte[this.Entropy.Length + passwordEncoding.GetMaxByteCount(this.Password.Length)];
+		this.Entropy.CopyTo(bytes);
+		int length = this.Entropy.Length + passwordEncoding.GetBytes(this.Password.Span, bytes[this.Entropy.Length..]);
+		Span<byte> hashBuffer = stackalloc byte[32];
+		SHA256.HashData(bytes[..length], hashBuffer);
+		return BitConverter.ToInt32(hashBuffer);
+	}
+
+	/// <inheritdoc/>
+	public bool Equals(Bip39Mnemonic? other)
+	{
+		return other is not null
+			&& this.Password.Span.SequenceEqual(other.Password.Span)
+			&& this.Entropy.SequenceEqual(other.Entropy);
+	}
 
 	/// <summary>
 	/// Returns the first n words of the seed phrase.

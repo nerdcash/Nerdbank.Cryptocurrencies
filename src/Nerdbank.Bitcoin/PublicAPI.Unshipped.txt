@@ -33,6 +33,7 @@ Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.Key.get -> Nerdbank.Bitcoin.Pub
 Nerdbank.Bitcoin.Bip39Mnemonic
 Nerdbank.Bitcoin.Bip39Mnemonic.Bip39Mnemonic(System.ReadOnlySpan<byte> entropy, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> void
 Nerdbank.Bitcoin.Bip39Mnemonic.Entropy.get -> System.ReadOnlySpan<byte>
+Nerdbank.Bitcoin.Bip39Mnemonic.Equals(Nerdbank.Bitcoin.Bip39Mnemonic? other) -> bool
 Nerdbank.Bitcoin.Bip39Mnemonic.Password.get -> System.ReadOnlyMemory<char>
 Nerdbank.Bitcoin.Bip39Mnemonic.Seed.get -> System.ReadOnlySpan<byte>
 Nerdbank.Bitcoin.Bip39Mnemonic.SeedPhrase.get -> string!
@@ -95,6 +96,8 @@ override Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.Derive(uint childIndex
 override Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.Identifier.get -> System.ReadOnlySpan<byte>
 override Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.Version.get -> System.ReadOnlySpan<byte>
 override Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.WriteKeyMaterial(System.Span<byte> destination) -> int
+override Nerdbank.Bitcoin.Bip39Mnemonic.Equals(object? obj) -> bool
+override Nerdbank.Bitcoin.Bip39Mnemonic.GetHashCode() -> int
 override Nerdbank.Bitcoin.Bip39Mnemonic.ToString() -> string!
 override Nerdbank.Bitcoin.BitcoinP2PKHAddress.ToString() -> string!
 override Nerdbank.Bitcoin.RawTransaction.GetHashCode() -> int
