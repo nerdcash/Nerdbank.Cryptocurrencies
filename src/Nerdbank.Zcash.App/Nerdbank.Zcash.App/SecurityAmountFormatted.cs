@@ -16,7 +16,7 @@ public class SecurityAmountFormatted
 	public SecurityAmountFormatted(SecurityAmount securityAmount)
 	{
 		this.Amount = securityAmount;
-		string fullValue = securityAmount.Amount.ToString("N" + securityAmount.Security.Precision);
+		string fullValue = securityAmount.Amount.ToString("N" + (securityAmount.Security?.Precision ?? 0));
 		this.DarkText = fullValue.TrimEnd('0');
 		this.LightText = fullValue.Substring(this.DarkText.Length);
 	}

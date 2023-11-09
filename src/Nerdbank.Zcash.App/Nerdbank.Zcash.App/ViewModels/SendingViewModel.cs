@@ -54,7 +54,7 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string RecipientAddressCaption => "Recipient address:";
 
-	[Required(ErrorMessage = ""), ZcashAddress]
+	[Required, ZcashAddress]
 	public string RecipientAddress
 	{
 		get => this.recipientAddress;
