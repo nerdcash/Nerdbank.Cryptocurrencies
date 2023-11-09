@@ -41,7 +41,7 @@
                 <Image Source="/Assets/qr-code-scan.png" Height="16" />
               </Button.Content>
             </Button>
-            <TextBox Text="{Binding RecipientAddress}" />
+            <TextBox Text="{Binding RecipientAddress}" TextWrapping="Wrap" />
           </DockPanel>
         </StackPanel>
         <WrapPanel>
