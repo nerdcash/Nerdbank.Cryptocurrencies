@@ -39,4 +39,17 @@ public class AccountsViewModelTests : ViewModelTestBase
 		Assert.Equal<uint?>(2, newAccount2.ZcashAccount.HDDerivation?.AccountIndex);
 		Assert.Equal($"Account 2 ({network.AsSecurity().TickerSymbol})", newAccount2.Name);
 	}
+
+	[Fact]
+	public async Task NewAccount_WithMultipleHDWallets()
+	{
+		ZcashNetwork network = ZcashNetwork.MainNet;
+		HDWallet firstHD = Assert.Single(this.MainViewModel.Wallet.HDWallets, w => w.Zip32.Network == network);
+
+		// Create a second HD wallet.
+		this.MainViewModel.Wallet.Add(new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), network)));
+
+		Account newAccount = await this.viewModel.NewAccountCommand.Execute(ZcashNetwork.MainNet).FirstAsync();
+		Assert.Same(firstHD.Zip32, newAccount.ZcashAccount.HDDerivation?.Wallet);
+	}
 }

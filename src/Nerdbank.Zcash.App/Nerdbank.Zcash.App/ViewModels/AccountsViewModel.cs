@@ -22,7 +22,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.NewAccountCommand = ReactiveCommand.CreateFromTask<ZcashNetwork, Account?>(this.NewAccountAsync);
+		this.NewAccountCommand = ReactiveCommand.Create<ZcashNetwork, Account?>(this.NewAccount);
 		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
 
 		WrapModels(this.viewModelServices.Wallet.Accounts, this.Accounts, (Account a) => new AccountViewModel(a, viewModelServices));
@@ -62,22 +62,27 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		return this.viewModelServices.NavigateTo(importAccount);
 	}
 
-	public async Task<Account?> NewAccountAsync(ZcashNetwork network)
+	private Account NewAccount(ZcashNetwork network)
 	{
 		ZcashWallet wallet = this.viewModelServices.Wallet;
-		HDWallet[] matchingHDWallets = wallet.HDWallets.Where(w => w.Zip32.Network == network).ToArray();
-		if (matchingHDWallets.Length == 1)
+
+		// If no HD wallet exists, create one.
+		HDWallet[] hdWallets = wallet.HDWallets.Where(w => w.Zip32.Network == network).ToArray();
+
+		// For now, we'll just pick the first one, which *should* be the primary one.
+		HDWallet? hd = hdWallets.FirstOrDefault();
+		if (hd is null)
 		{
-			HDWallet hd = matchingHDWallets[0];
-			uint index = wallet.GetMaxAccountIndex(hd) is uint idx ? idx + 1 : 0;
-			Account account = new Account(new ZcashAccount(hd.Zip32, index))
-			{
-				Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
-			};
-			wallet.Add(account);
-			return account;
+			hd = new HDWallet(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits)));
+			wallet.Add(hd);
 		}
 
-		return null;
+		uint index = wallet.GetMaxAccountIndex(hd) is uint idx ? idx + 1 : 0;
+		Account account = new Account(new ZcashAccount(hd.Zip32, index))
+		{
+			Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
+		};
+		wallet.Add(account);
+		return account;
 	}
 }
