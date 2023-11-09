@@ -126,6 +126,9 @@
   <data name="AppTitle" xml:space="preserve">
     <value>eZCash</value>
   </data>
+  <data name="BadOrUnsupportedImportKey" xml:space="preserve">
+    <value>This doesn't look like a valid, supported key or seed phrase.</value>
+  </data>
   <data name="DefaultNameForFirstAccountWithTicker" xml:space="preserve">
     <value>Main {Ticker}</value>
   </data>
