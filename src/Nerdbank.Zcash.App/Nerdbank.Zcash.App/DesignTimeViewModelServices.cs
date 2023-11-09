@@ -22,7 +22,7 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			this.Wallet.Add(zec);
 			this.Wallet.Add(taz);
 
-			Account playMoneyAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.FormatDefaultNameForFirstAccount(taz.Zip32.Network), Balance = 1.23m };
+			Account playMoneyAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.FormatDefaultNameForFirstAccountWithTicker(taz.Zip32.Network), Balance = 1.23m };
 			Account realAccount = new(new ZcashAccount(zec.Zip32, 0)) { Name = "Real ZEC", Balance = 0.023m };
 			Account savingsAccount = new(new ZcashAccount(zec.Zip32, 1)) { Name = "Savings", Balance = 3.45m };
 

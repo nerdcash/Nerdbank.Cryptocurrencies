@@ -35,7 +35,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle
 
 		if (viewModelServices.Wallet.IsEmpty)
 		{
-			this.Name = Strings.DefaultNameForFirstAccount;
+			this.Name = Strings.DefaultNameForFirstImportedAccount;
 		}
 	}
 

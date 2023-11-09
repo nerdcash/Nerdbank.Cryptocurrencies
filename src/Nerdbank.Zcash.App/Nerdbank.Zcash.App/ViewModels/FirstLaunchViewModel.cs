@@ -66,7 +66,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 	{
 		Zip32HDWallet zip32 = new(mnemonic, network);
 		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
-		accountModel.Name = Strings.FormatDefaultNameForFirstAccount(network.AsSecurity().TickerSymbol);
+		accountModel.Name = Strings.FormatDefaultNameForFirstAccountWithTicker(network.AsSecurity().TickerSymbol);
 		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
 		wallet.Name = Strings.FormatDefaultNameForFirstHDWallet(zip32.Network);
 	}

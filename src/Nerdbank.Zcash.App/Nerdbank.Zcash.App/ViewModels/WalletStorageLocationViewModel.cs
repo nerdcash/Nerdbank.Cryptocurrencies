@@ -23,6 +23,6 @@ public class WalletStorageLocationViewModel : ViewModelBase
 	public bool WalletIsEncrypted => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPathIsEncrypted;
 
 	public string WalletEncryptionExplanation => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPathIsEncrypted
-		? "Encryption is active so only your local device account can access your wallet. This guards against other accounts on this computer stealing your wallet.\nViruses and malware that may be running under your same account may still be able to access your wallet."
+		? "Encryption is active so only your local device account can access your wallet. This guards against other accounts on this device stealing your wallet.\nViruses and malware that may be running under your same account may still be able to access your wallet."
 		: "Encryption is not available on this device to protect your wallet.";
 }

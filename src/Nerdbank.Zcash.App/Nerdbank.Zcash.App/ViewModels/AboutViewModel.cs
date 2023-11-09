@@ -26,7 +26,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public string Title => $"About {Strings.AppTitle}";
 
-	public string Message => "This app is a Zcash wallet. It seeks to the most intuitive wallet available, while being reliable, secure, and champion some of the best privacy features Zcash has to offer.";
+	public string Message => "This app is a Zcash wallet. It seeks to be the most intuitive wallet available, while being reliable, secure, and a champion of some of the best privacy features Zcash has to offer.";
 
 	public WalletStorageLocationViewModel WalletStorageLocation { get; }
 
