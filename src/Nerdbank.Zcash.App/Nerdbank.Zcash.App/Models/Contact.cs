@@ -87,6 +87,8 @@ public class Contact : ReactiveObject, IPersistableData
 		return false;
 	}
 
+	public override string ToString() => this.Name;
+
 	[MessagePackFormatter(typeof(Formatter))]
 	public class AssignedSendingAddresses
 	{

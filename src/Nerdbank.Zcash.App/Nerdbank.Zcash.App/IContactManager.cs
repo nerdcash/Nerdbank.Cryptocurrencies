@@ -59,4 +59,22 @@ public interface IContactManager
 		contact = null;
 		return ZcashAddress.Match.NoMatchingReceiverTypes;
 	}
+
+	/// <summary>
+	/// Searches for a contact with an exact name match (case-insensitive).
+	/// </summary>
+	/// <param name="name">The name to search for.</param>
+	/// <returns>The contact, if found.</returns>
+	Contact? FindContact(string name)
+	{
+		foreach (Contact candidate in this.Contacts)
+		{
+			if (candidate.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+			{
+				return candidate;
+			}
+		}
+
+		return null;
+	}
 }

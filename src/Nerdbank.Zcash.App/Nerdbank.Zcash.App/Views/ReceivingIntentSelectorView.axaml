@@ -18,7 +18,11 @@
       </Grid>
 
       <Label Content="{Binding ReceiverIdentityLabel}" Target="{Binding #ReceiverIdentityBox}" />
-      <TextBox Name="ReceiverIdentityBox" Text="{Binding ReceiverIdentity}" />
+      <AutoCompleteBox Name="ReceiverIdentityBox"
+                       FilterMode="Contains"
+                       Text="{Binding ReceiverIdentity}"
+                       SelectedItem="{Binding SelectedReceiver}"
+                       ItemsSource="{Binding SuggestedReceivers}"/>
       <Button Content="{Binding ProceedCaption}" Command="{Binding ProceedCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="5" />
 
       <Expander Header="{Binding PaymentRequestCaption}" HorizontalAlignment="Stretch" Margin="0 10 0 0">
