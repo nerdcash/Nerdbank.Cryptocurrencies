@@ -33,7 +33,6 @@
             <local:AccountSelector Name="FromAccountBox" Grid.Column="1" />
           </Grid>
 
-          <!-- Offer address book picker. -->
           <Label Content="{Binding RecipientAddressCaption}" />
           <DockPanel>
             <Button Classes="Scan" Background="Transparent" Command="{Binding ScanCommand}" DockPanel.Dock="Right">
@@ -41,7 +40,12 @@
                 <Image Source="/Assets/qr-code-scan.png" Height="16" />
               </Button.Content>
             </Button>
-            <TextBox Text="{Binding RecipientAddress}" TextWrapping="Wrap" />
+            <AutoCompleteBox Text="{Binding RecipientAddress}"
+                             Watermark="{Binding RecipientBoxWatermark}"
+                             FilterMode="Contains"
+                             ItemsSource="{Binding PossibleRecipients}"
+                             SelectedItem="{Binding SelectedRecipient}"
+                             />
           </DockPanel>
         </StackPanel>
         <WrapPanel>

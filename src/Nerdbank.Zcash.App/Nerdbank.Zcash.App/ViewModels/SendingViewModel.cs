@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using DynamicData;
+using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies.Exchanges;
 using ZXing.Mobile;
 
@@ -12,10 +15,13 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	private readonly ObservableAsPropertyHelper<string> tickerSymbol;
 	private readonly ObservableAsPropertyHelper<SecurityAmount> subtotal;
 	private readonly ObservableAsPropertyHelper<SecurityAmount> total;
+	private ReadOnlyObservableCollection<Contact>? possibleRecipients;
 	private string recipientAddress = string.Empty;
 	private decimal amount;
 	private SecurityAmount? fee;
 	private string memo = string.Empty;
+	private IDisposable? possibleRecipientsSubscription;
+	private Contact? selectedRecipient;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public SendingViewModel()
@@ -41,8 +47,11 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			(subtotal, fee) => fee is null ? subtotal : subtotal + fee.Value)
 			.ToProperty(this, nameof(this.Total));
 
+		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true).Subscribe(_ => this.RefreshRecipientsList());
+
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
 		this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
+
 		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
 		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
 		this.LinkProperty(nameof(this.Fee), nameof(this.Total));
@@ -52,7 +61,9 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string FromAccountCaption => "From account:";
 
-	public string RecipientAddressCaption => "Recipient address:";
+	public string RecipientAddressCaption => "Recipient:";
+
+	public string RecipientBoxWatermark => "Zcash address or contact name";
 
 	[Required, ZcashAddress]
 	public string RecipientAddress
@@ -60,6 +71,14 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		get => this.recipientAddress;
 		set => this.RaiseAndSetIfChanged(ref this.recipientAddress, value);
 	}
+
+	public Contact? SelectedRecipient
+	{
+		get => this.selectedRecipient;
+		set => this.RaiseAndSetIfChanged(ref this.selectedRecipient, value);
+	}
+
+	public ReadOnlyObservableCollection<Contact> PossibleRecipients => this.possibleRecipients ?? throw Assumes.NotReachable();
 
 	public string AmountCaption => "Amount:";
 
@@ -100,6 +119,20 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public ReactiveCommand<Unit, Unit> SendCommand { get; private set; }
 
 	public ReactiveCommand<Unit, Unit> ScanCommand { get; private set; }
+
+	private void RefreshRecipientsList()
+	{
+		this.possibleRecipientsSubscription?.Dispose();
+
+		// Prepare the allowed recipients list from the address book, filtered to those with
+		// receiving addresses on the same network.
+		this.possibleRecipientsSubscription = this.ViewModelServices.ContactManager.Contacts.AsObservableChangeSet()
+			.AutoRefresh(c => c.ReceivingAddress)
+			.Filter(c => c.ReceivingAddress is { } addr && addr.Network == this.SelectedAccount?.Network)
+			.Bind(out this.possibleRecipients)
+			.Subscribe();
+		this.RaisePropertyChanged(nameof(this.PossibleRecipients));
+	}
 
 	private Task SendAsync()
 	{
