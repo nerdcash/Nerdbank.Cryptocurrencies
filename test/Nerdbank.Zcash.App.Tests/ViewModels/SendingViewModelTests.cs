@@ -11,11 +11,11 @@ public class SendingViewModelTests : ViewModelTestBase
 		await this.InitializeWalletAsync();
 		SendingViewModel viewModel = new(this.MainViewModel);
 
-		Assert.Equal(string.Empty, viewModel.RecipientAddress);
-		Assert.Equal("ZEC", viewModel.TickerSymbol);
-		Assert.Equal(0m, viewModel.Amount);
-		Assert.Null(viewModel.Fee);
+		Assert.Equal(string.Empty, viewModel.LineItems[0].RecipientAddress);
+		Assert.Equal("ZEC", viewModel.LineItems[0].TickerSymbol);
+		Assert.Equal(0m, viewModel.LineItems[0].Amount);
+		Assert.Equal(0.0001m, viewModel.Fee.Amount);
 		Assert.Equal(0m, viewModel.Subtotal.Amount);
-		Assert.Equal(0m, viewModel.Total.Amount);
+		Assert.Equal(viewModel.Subtotal.Amount + viewModel.Fee.Amount, viewModel.Total.Amount);
 	}
 }

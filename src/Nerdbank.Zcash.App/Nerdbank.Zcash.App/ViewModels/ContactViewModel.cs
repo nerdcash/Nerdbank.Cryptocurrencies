@@ -125,11 +125,12 @@ public class ContactViewModel : ViewModelBase
 
 	private IViewModelServices ViewModelServices => this.addressBook.ViewModelServices;
 
-	public SendingViewModel Send() =>
-		this.ViewModelServices.NavigateTo(new SendingViewModel(this.ViewModelServices)
-		{
-			RecipientAddress = this.Address,
-		});
+	public SendingViewModel Send()
+	{
+		SendingViewModel viewModel = new(this.ViewModelServices);
+		viewModel.LineItems[0].RecipientAddress = this.Address;
+		return this.ViewModelServices.NavigateTo(viewModel);
+	}
 
 	public ReceivingViewModel ShowDiversifiedAddress() => this.ViewModelServices.NavigateTo(new ReceivingViewModel(
 		this.ViewModelServices,

@@ -48,9 +48,12 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public string VersionCaption => "You are using version";
 
-	public SendingViewModel Donate() => this.viewModelServices.NavigateTo(new SendingViewModel(this.viewModelServices)
+	public SendingViewModel Donate()
 	{
-		RecipientAddress = DonationReceiver,
-		Memo = Strings.FormatDonationMemo(Strings.AppTitle),
-	});
+		SendingViewModel viewModel = new(this.viewModelServices);
+		viewModel.LineItems[0].RecipientAddress = DonationReceiver;
+		viewModel.LineItems[0].Memo = Strings.FormatDonationMemo(Strings.AppTitle);
+
+		return this.viewModelServices.NavigateTo(viewModel);
+	}
 }

@@ -12,113 +12,70 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private readonly ObservableAsPropertyHelper<string> tickerSymbol;
-	private readonly ObservableAsPropertyHelper<SecurityAmount> subtotal;
-	private readonly ObservableAsPropertyHelper<SecurityAmount> total;
+	private readonly ObservableCollection<LineItem> lineItems = new();
+	private readonly ReadOnlyObservableCollection<LineItem> lineItemsReadOnly;
+	private SecurityAmount subtotal;
+	private SecurityAmount total;
 	private ReadOnlyObservableCollection<Contact>? possibleRecipients;
-	private string recipientAddress = string.Empty;
-	private decimal amount;
-	private SecurityAmount? fee;
-	private string memo = string.Empty;
+	private SecurityAmount fee;
 	private IDisposable? possibleRecipientsSubscription;
-	private Contact? selectedRecipient;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public SendingViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.fee = this.SelectedAccount is not null ? new(0.0001m, this.SelectedAccount.Network.AsSecurity()) : null;
+		this.fee = new(0.0001m, this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity);
 	}
 
 	public SendingViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices, showOnlyAccountsWithSpendKeys: true)
 	{
-		this.tickerSymbol = this.WhenAnyValue(
-			vm => vm.SelectedAccount,
-			a => a?.Network.GetTickerName() ?? UnknownSecurity.TickerSymbol).ToProperty(this, nameof(this.TickerSymbol));
-		this.subtotal = this.WhenAnyValue(
-			vm => vm.Amount,
-			vm => vm.SelectedAccount,
-			(amount, account) => new SecurityAmount(amount, account?.ZcashAccount.Network.AsSecurity() ?? UnknownSecurity))
-			.ToProperty(this, nameof(this.Subtotal));
-		this.total = this.WhenAnyValue(
-			vm => vm.Subtotal,
-			vm => vm.Fee,
-			(subtotal, fee) => fee is null ? subtotal : subtotal + fee.Value)
-			.ToProperty(this, nameof(this.Total));
+		this.lineItemsReadOnly = new(this.lineItems);
+		this.AddLineItem();
 
-		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true).Subscribe(_ => this.RefreshRecipientsList());
+		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true).Subscribe(_ => this.OnSelectedAccountChanged());
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
-		this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
-
-		this.LinkProperty(nameof(this.Amount), nameof(this.Subtotal));
-		this.LinkProperty(nameof(this.Subtotal), nameof(this.Total));
-		this.LinkProperty(nameof(this.Fee), nameof(this.Total));
+		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
 	}
 
 	public string Title => "Send Zcash";
 
 	public string FromAccountCaption => "From account:";
 
-	public string RecipientAddressCaption => "Recipient:";
+	public ReadOnlyObservableCollection<LineItem> LineItems => this.lineItemsReadOnly;
 
-	public string RecipientBoxWatermark => "Zcash address or contact name";
+	public string AddLineItemCommandCaption => "➕ Add line item";
 
-	[Required, ZcashAddress]
-	public string RecipientAddress
-	{
-		get => this.recipientAddress;
-		set => this.RaiseAndSetIfChanged(ref this.recipientAddress, value);
-	}
-
-	public Contact? SelectedRecipient
-	{
-		get => this.selectedRecipient;
-		set => this.RaiseAndSetIfChanged(ref this.selectedRecipient, value);
-	}
-
-	public ReadOnlyObservableCollection<Contact> PossibleRecipients => this.possibleRecipients ?? throw Assumes.NotReachable();
-
-	public string AmountCaption => "Amount:";
-
-	public string TickerSymbol => this.tickerSymbol.Value;
-
-	public decimal Amount
-	{
-		get => this.amount;
-		set => this.RaiseAndSetIfChanged(ref this.amount, value);
-	}
+	public ReactiveCommand<Unit, LineItem> AddLineItemCommand { get; }
 
 	public string FeeCaption => "Fee";
 
-	public SecurityAmount? Fee
+	public SecurityAmount Fee
 	{
 		get => this.fee;
-		set => this.RaiseAndSetIfChanged(ref this.fee, value);
+		private set => this.RaiseAndSetIfChanged(ref this.fee, value);
 	}
-
-	public SecurityAmount Subtotal => this.subtotal.Value;
 
 	public string SubtotalCaption => "Subtotal";
 
+	public SecurityAmount Subtotal
+	{
+		get => this.subtotal;
+		private set => this.RaiseAndSetIfChanged(ref this.subtotal, value);
+	}
+
 	public string TotalCaption => "Total";
 
-	public SecurityAmount Total => this.total.Value;
-
-	public string MemoCaption => "Memo:";
-
-	public string Memo
+	public SecurityAmount Total
 	{
-		get => this.memo;
-		set => this.RaiseAndSetIfChanged(ref this.memo, value);
+		get => this.total;
+		private set => this.RaiseAndSetIfChanged(ref this.total, value);
 	}
 
 	public string SendCommandCaption => "📤 Send";
 
-	public ReactiveCommand<Unit, Unit> SendCommand { get; private set; }
-
-	public ReactiveCommand<Unit, Unit> ScanCommand { get; private set; }
+	public ReactiveCommand<Unit, Unit> SendCommand { get; }
 
 	private void RefreshRecipientsList()
 	{
@@ -131,7 +88,12 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			.Filter(c => c.ReceivingAddress is { } addr && addr.Network == this.SelectedAccount?.Network)
 			.Bind(out this.possibleRecipients)
 			.Subscribe();
-		this.RaisePropertyChanged(nameof(this.PossibleRecipients));
+		this.RaisePropertyChangedOnLineItems(nameof(LineItem.PossibleRecipients));
+	}
+
+	private void Remove(LineItem lineItem)
+	{
+		this.lineItems.Remove(lineItem);
 	}
 
 	private Task SendAsync()
@@ -140,20 +102,137 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		return Task.CompletedTask;
 	}
 
-	private async Task ScanAsync()
+	private void RaisePropertyChangedOnLineItems(string propertyName)
 	{
-		try
+		foreach (LineItem lineItem in this.lineItems)
 		{
-			MobileBarcodeScanner scanner = new();
-			MobileBarcodeScanningOptions options = new()
-			{
-			};
-			ZXing.Result result = await scanner.Scan(options);
+			lineItem.RaisePropertyChanged(propertyName);
 		}
-		catch (NotSupportedException)
+	}
+
+	private void LineItem_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+	{
+		LineItem changedLineItem = (LineItem)sender!;
+		switch (e.PropertyName)
 		{
-			// fallback to file picker
-			// TODO
+			case nameof(LineItem.RecipientAddress): // Changing the target pool can change fees.
+			case nameof(LineItem.Amount):
+				this.RecalculateAggregates();
+				break;
+		}
+	}
+
+	private void RecalculateAggregates()
+	{
+		Security security = this.SelectedAccount?.ZcashAccount.Network.AsSecurity() ?? UnknownSecurity;
+
+		this.Subtotal = new SecurityAmount(this.LineItems.Sum(li => li.Amount), security);
+
+		this.Fee = new SecurityAmount(0.0001m, security); // TODO: calculate fee
+
+		this.Total = this.Subtotal + this.Fee;
+	}
+
+	private void OnSelectedAccountChanged()
+	{
+		this.RefreshRecipientsList();
+		this.RecalculateAggregates();
+
+		foreach (LineItem lineItem in this.lineItems)
+		{
+			lineItem.SelectedAccount = this.SelectedAccount;
+		}
+	}
+
+	private LineItem AddLineItem()
+	{
+		LineItem lineItem = new(this);
+		lineItem.PropertyChanged += this.LineItem_PropertyChanged;
+
+		this.lineItems.Add(lineItem);
+		return lineItem;
+	}
+
+	public class LineItem : ViewModelBaseWithAccountSelector
+	{
+		private readonly SendingViewModel owner;
+		private readonly ObservableAsPropertyHelper<string> tickerSymbol;
+		private string memo = string.Empty;
+		private string recipientAddress = string.Empty;
+		private decimal amount;
+		private Contact? selectedRecipient;
+
+		public LineItem(SendingViewModel owner)
+			: base(owner.ViewModelServices, showOnlyAccountsWithSpendKeys: true)
+		{
+			this.owner = owner;
+
+			this.tickerSymbol = this.WhenAnyValue(
+				vm => vm.SelectedAccount,
+				a => a?.Network.GetTickerName() ?? UnknownSecurity.TickerSymbol).ToProperty(this, nameof(this.TickerSymbol));
+
+			this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
+			this.RemoveLineItemCommand = ReactiveCommand.Create(() => this.owner.Remove(this));
+		}
+
+		public string RecipientAddressCaption => "Recipient:";
+
+		public string RecipientBoxWatermark => "Zcash address or contact name";
+
+		[Required, ZcashAddress]
+		public string RecipientAddress
+		{
+			get => this.recipientAddress;
+			set => this.RaiseAndSetIfChanged(ref this.recipientAddress, value);
+		}
+
+		public Contact? SelectedRecipient
+		{
+			get => this.selectedRecipient;
+			set => this.RaiseAndSetIfChanged(ref this.selectedRecipient, value);
+		}
+
+		public ReadOnlyObservableCollection<Contact> PossibleRecipients => this.owner.possibleRecipients ?? throw Assumes.NotReachable();
+
+		public string AmountCaption => "Amount:";
+
+		public decimal Amount
+		{
+			get => this.amount;
+			set => this.RaiseAndSetIfChanged(ref this.amount, value);
+		}
+
+		public string TickerSymbol => this.tickerSymbol.Value;
+
+		public string MemoCaption => "Memo:";
+
+		public string Memo
+		{
+			get => this.memo;
+			set => this.RaiseAndSetIfChanged(ref this.memo, value);
+		}
+
+		public ReactiveCommand<Unit, Unit> ScanCommand { get; }
+
+		public string RemoveLineItemCommandCaption => "❌";
+
+		public ReactiveCommand<Unit, Unit> RemoveLineItemCommand { get; }
+
+		private async Task ScanAsync()
+		{
+			try
+			{
+				MobileBarcodeScanner scanner = new();
+				MobileBarcodeScanningOptions options = new()
+				{
+				};
+				ZXing.Result result = await scanner.Scan(options);
+			}
+			catch (NotSupportedException)
+			{
+				// fallback to file picker
+				// TODO
+			}
 		}
 	}
 }

@@ -1,4 +1,9 @@
-﻿## Views to build
+﻿## Functionality
+
+- zcash: protocol handler to activate send view
+  - Support multiple line items
+
+## Views to build
 
 ## Views to enhance
 
@@ -8,7 +13,7 @@
 - Sending
   - Show value in alternate currency.
   - Allow entry of amount in alternate currency.
-  - Allow multiple recipients.
+  - Support a scan of a zcash: QR code, possibly with multiple recipients
 - Receiving
   - Add sync progress control
   - Create payment request
