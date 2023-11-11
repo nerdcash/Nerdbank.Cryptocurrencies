@@ -80,6 +80,7 @@ Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.Equals(Nerdbank.Cryptocurrencie
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.ExchangeRate() -> void
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.ExchangeRate(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount Basis, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount TradeInterest) -> void
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.InBasisAmount.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.Normalized.get -> Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.OppositeDirection.get -> Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.set -> void

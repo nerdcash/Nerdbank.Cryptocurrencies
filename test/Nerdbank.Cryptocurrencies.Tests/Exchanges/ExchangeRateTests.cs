@@ -144,4 +144,13 @@ public class ExchangeRateTests : TestBase
 		SecurityAmount ltc = zec * usdZec * btcUsd * ethBtc * ltcEth;
 		Assert.Equal(Security.LTC.Amount(1.8m), ltc);
 	}
+
+	[Fact]
+	public void Normalized()
+	{
+		Assert.Equal(Rate(30, 1), Rate(60, 2).Normalized);
+		Assert.Equal(Rate(30, 1), Rate(15, 0.5m).Normalized);
+
+		ExchangeRate Rate(decimal basis, decimal tradeInterest) => new(Security.USD.Amount(basis), Security.ZEC.Amount(tradeInterest));
+	}
 }

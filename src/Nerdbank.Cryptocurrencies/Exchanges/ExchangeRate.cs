@@ -21,6 +21,27 @@ public record struct ExchangeRate(SecurityAmount Basis, SecurityAmount TradeInte
 	public ExchangeRate OppositeDirection => new(this.TradeInterest, this.Basis);
 
 	/// <summary>
+	/// Gets the exchange rate with the <see cref="TradeInterest"/> amount normalized to 1,
+	/// preparing the exchange rate to answer the question "How much of the <see cref="Basis"/> security
+	/// does one unit of <see cref="TradeInterest"/> cost?".
+	/// </summary>
+	public readonly ExchangeRate Normalized
+	{
+		get
+		{
+			if (this.TradeInterest.Amount == 1m)
+			{
+				return this;
+			}
+
+			decimal factor = 1 / this.TradeInterest.Amount;
+			return new(
+				this.Basis.Security.Amount(this.Basis.Amount * factor),
+				this.TradeInterest.Security.Amount(this.TradeInterest.Amount * factor));
+		}
+	}
+
+	/// <summary>
 	/// Converts a particular <see cref="SecurityAmount"/> to one that uses a different <see cref="Security"/> by applying a given exchange rate.
 	/// </summary>
 	/// <param name="amount">The base amount. This can be in either unit described by the <paramref name="exchangeRate"/>.</param>
