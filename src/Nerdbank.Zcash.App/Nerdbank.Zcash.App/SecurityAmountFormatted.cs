@@ -27,5 +27,5 @@ public class SecurityAmountFormatted
 
 	public string LightText { get; }
 
-	public string Units => this.Amount.Security.TickerSymbol;
+	public string Units => this.Amount.Security?.TickerSymbol ?? string.Empty;
 }

@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Reactive.Linq;
 
 namespace ViewModels;
 
 public abstract class ViewModelTestBase : IAsyncLifetime
 {
+	protected static readonly TimeSpan UnexpectedTimeout = Debugger.IsAttached ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(15);
 	private readonly string? testSandboxPath;
 
 	public ViewModelTestBase()
@@ -25,6 +27,8 @@ public abstract class ViewModelTestBase : IAsyncLifetime
 
 		this.MainViewModel = new MainViewModel(this.CreateApp());
 	}
+
+	protected CancellationToken TimeoutToken { get; } = new CancellationTokenSource(UnexpectedTimeout).Token;
 
 	protected (string Settings, string Data)? PersistedPaths { get; }
 

@@ -18,6 +18,7 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> subtotalAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> feeAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
+	private CancellationTokenSource? exchangeRateUpdateTokenSource;
 	private SecurityAmount subtotal;
 	private SecurityAmount total;
 	private ReadOnlyObservableCollection<Contact>? possibleRecipients;
@@ -39,7 +40,7 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.lineItemsReadOnly = new(this.lineItems);
 		this.AddLineItem();
 
-		this.UpdateExchangeRateAsync(CancellationToken.None).Forget();
+		this.StartUpdateExchangeRate();
 
 		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true)
 			.Subscribe(_ => this.OnSelectedAccountChanged());
@@ -47,17 +48,17 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.subtotalAlternate = this.WhenAnyValue(
 			vm => vm.Subtotal,
 			vm => vm.ExchangeRate,
-			(subtotal, rate) => subtotal * rate)
+			(subtotal, rate) => ConvertOrNull(rate, subtotal))
 			.ToProperty(this, nameof(this.SubtotalAlternate));
 		this.feeAlternate = this.WhenAnyValue(
 			vm => vm.Fee,
 			vm => vm.ExchangeRate,
-			(fee, rate) => fee * rate)
+			(fee, rate) => ConvertOrNull(rate, fee))
 			.ToProperty(this, nameof(this.FeeAlternate));
 		this.totalAlternate = this.WhenAnyValue(
 			vm => vm.Total,
 			vm => vm.ExchangeRate,
-			(total, rate) => total * rate)
+			(total, rate) => ConvertOrNull(rate, total))
 			.ToProperty(this, nameof(this.TotalAlternate));
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
@@ -113,6 +114,17 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public string SendCommandCaption => "📤 Send";
 
 	public ReactiveCommand<Unit, Unit> SendCommand { get; }
+
+	private static SecurityAmount? ConvertOrNull(ExchangeRate? rate, SecurityAmount? amount)
+		=> rate is not null && amount is not null && Describes(rate.Value, amount.Value.Security) ? amount * rate : null;
+
+	/// <summary>
+	/// Gets a value indicating whether this exchange rate describes a given security.
+	/// </summary>
+	/// <param name="rate">The exchange rate.</param>
+	/// <param name="security">The security in question.</param>
+	/// <returns><see langword="true"/> if either security described by this exchange rate is the given <paramref name="security"/>; otherwise <see langword="false" />.</returns>
+	private static bool Describes(ExchangeRate rate, Security security) => rate.Basis.Security == security || rate.TradeInterest.Security == security;
 
 	private void RefreshRecipientsList()
 	{
@@ -177,7 +189,7 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		if (this.SelectedAccount?.Network.AsSecurity() != this.ExchangeRate?.TradeInterest.Security)
 		{
-			this.UpdateExchangeRateAsync(CancellationToken.None).Forget();
+			this.StartUpdateExchangeRate();
 		}
 
 		foreach (LineItem lineItem in this.lineItems)
@@ -193,6 +205,13 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.lineItems.Add(lineItem);
 		return lineItem;
+	}
+
+	private void StartUpdateExchangeRate()
+	{
+		this.exchangeRateUpdateTokenSource?.Cancel();
+		this.exchangeRateUpdateTokenSource = new();
+		this.UpdateExchangeRateAsync(this.exchangeRateUpdateTokenSource.Token).Forget();
 	}
 
 	private async ValueTask UpdateExchangeRateAsync(CancellationToken cancellationToken)
@@ -225,9 +244,11 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		private readonly SendingViewModel owner;
 		private readonly ObservableAsPropertyHelper<string> tickerSymbol;
+		private readonly ObservableAsPropertyHelper<string> alternateTickerSymbol;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
 		private decimal amount;
+		private decimal? amountInAlternateCurrency;
 		private Contact? selectedRecipient;
 
 		public LineItem(SendingViewModel owner)
@@ -238,6 +259,29 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			this.tickerSymbol = this.WhenAnyValue(
 				vm => vm.SelectedAccount,
 				a => a?.Network.GetTickerName() ?? UnknownSecurity.TickerSymbol).ToProperty(this, nameof(this.TickerSymbol));
+			this.alternateTickerSymbol = this.WhenAnyValue<LineItem, string, Security>(
+				vm => vm.ViewModelServices.Settings.AlternateCurrency,
+				c => c.TickerSymbol).ToProperty(this, nameof(this.AlternateTickerSymbol));
+
+			bool amountPropagationInProgress = false;
+			this.WhenAnyValue(
+				vm => vm.Amount,
+				vm => vm.SelectedAccount,
+				vm => vm.owner.ExchangeRate,
+				(amount, account, rate) => ComputeAmountInAlternateCurrency(amount, account, rate))
+				.Subscribe(v => UpdateAmountInAlternateCurrency(ref amountPropagationInProgress, () => this.AmountInAlternateCurrency = v?.RoundedAmount));
+			this.WhenAnyValue<LineItem, SecurityAmount?, decimal?, Account?, ExchangeRate?>(
+				vm => vm.AmountInAlternateCurrency,
+				vm => vm.SelectedAccount,
+				vm => vm.owner.ExchangeRate,
+				(amount, account, rate) => amount is not null && account is not null && rate is not null ? ComputeAmountInSelectedCurrency(amount.Value, account, rate.Value) : null)
+				.Subscribe(v =>
+				{
+					if (v is not null)
+					{
+						UpdateAmountInAlternateCurrency(ref amountPropagationInProgress, () => this.Amount = v.Value.RoundedAmount);
+					}
+				});
 
 			this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
 			this.RemoveLineItemCommand = ReactiveCommand.Create(() => this.owner.Remove(this));
@@ -272,6 +316,14 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		public string TickerSymbol => this.tickerSymbol.Value;
 
+		public decimal? AmountInAlternateCurrency
+		{
+			get => this.amountInAlternateCurrency;
+			set => this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrency, value);
+		}
+
+		public string? AlternateTickerSymbol => this.alternateTickerSymbol.Value;
+
 		public string MemoCaption => "Memo:";
 
 		public string Memo
@@ -285,6 +337,28 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		public string RemoveLineItemCommandCaption => "❌";
 
 		public ReactiveCommand<Unit, Unit> RemoveLineItemCommand { get; }
+
+		private static SecurityAmount? ComputeAmountInAlternateCurrency(decimal amountInSelectedCurrency, Account? selectedAccount, ExchangeRate? exchangeRate)
+			=> ConvertOrNull(exchangeRate, selectedAccount?.Network.AsSecurity().Amount(amountInSelectedCurrency));
+
+		private static SecurityAmount ComputeAmountInSelectedCurrency(decimal amountInAlternateCurrency, Account selectedAccount, ExchangeRate exchangeRate)
+			=> ConvertOrNull(exchangeRate, exchangeRate.Basis.Security.Amount(amountInAlternateCurrency))!.Value;
+
+		private static void UpdateAmountInAlternateCurrency(ref bool propagating, Action update)
+		{
+			if (!propagating)
+			{
+				propagating = true;
+				try
+				{
+					update();
+				}
+				finally
+				{
+					propagating = false;
+				}
+			}
+		}
 
 		private async Task ScanAsync()
 		{

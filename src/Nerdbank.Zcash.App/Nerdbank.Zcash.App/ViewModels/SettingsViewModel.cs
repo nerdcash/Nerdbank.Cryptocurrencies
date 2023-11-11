@@ -44,7 +44,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 	public string AlternateCurrencyExplanation => "The alternate currency is used to display the value of Zcash in a more familiar unit. The value of Zcash is volatile, so the value in your alternate currency may change rapidly.";
 
-	public List<Security> AlternateCurrencies { get; } = Security.WellKnown.Values.ToList();
+	public List<Security> AlternateCurrencies { get; } = Security.WellKnown.Values.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
 
 	public string AdvancedExpanderHeader => "Advanced";
 

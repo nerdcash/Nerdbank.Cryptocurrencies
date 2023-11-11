@@ -18,13 +18,13 @@
       <Grid RowDefinitions="*,*,*" ColumnDefinitions="auto,10,auto,30,auto">
         <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" VerticalAlignment="Top" />
         <local:SecurityAmountDisplay Value="{Binding Subtotal}" Grid.Column="2" Grid.Row="0" />
-        <local:SecurityAmountDisplay Value="{Binding SubtotalAlternate}" Grid.Column="4" Grid.Row="0" />
+        <local:SecurityAmountDisplay Value="{Binding SubtotalAlternate}" Grid.Column="4" Grid.Row="0" IsVisible="{Binding SubtotalAlternate, Converter={x:Static ObjectConverters.IsNotNull}}" />
         <TextBlock Text="{Binding FeeCaption}" Grid.Row="1" />
         <local:SecurityAmountDisplay Value="{Binding Fee}" Grid.Column="2" Grid.Row="1" />
-        <local:SecurityAmountDisplay Value="{Binding FeeAlternate}" Grid.Column="4" Grid.Row="1" />
+        <local:SecurityAmountDisplay Value="{Binding FeeAlternate}" Grid.Column="4" Grid.Row="1" IsVisible="{Binding FeeAlternate, Converter={x:Static ObjectConverters.IsNotNull}}" />
         <TextBlock Text="{Binding TotalCaption}" Grid.Row="2" />
         <local:SecurityAmountDisplay Value="{Binding Total}" Grid.Column="2" Grid.Row="2" />
-        <local:SecurityAmountDisplay Value="{Binding TotalAlternate}" Grid.Column="4" Grid.Row="2" />
+        <local:SecurityAmountDisplay Value="{Binding TotalAlternate}" Grid.Column="4" Grid.Row="2" IsVisible="{Binding TotalAlternate, Converter={x:Static ObjectConverters.IsNotNull}}" />
       </Grid>
       <Button Grid.Column="1" Content="{Binding SendCommandCaption}" Command="{Binding SendCommand}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
     </Grid>
@@ -57,6 +57,10 @@
                   <StackPanel Orientation="Horizontal">
                     <TextBox Text="{Binding Amount}" Width="100" />
                     <TextBlock Text="{Binding TickerSymbol}" VerticalAlignment="Center" Margin="5 0 0 0" />
+                    <StackPanel Orientation="Horizontal" IsVisible="{Binding AmountInAlternateCurrency, Converter={x:Static ObjectConverters.IsNotNull}}">
+                      <TextBox Text="{Binding AmountInAlternateCurrency}" Width="100" Margin="20 0 0 0" />
+                      <TextBlock Text="{Binding AlternateTickerSymbol}" VerticalAlignment="Center" Margin="5 0 0 0" />
+                    </StackPanel>
                   </StackPanel>
                 </WrapPanel>
                 <StackPanel>
