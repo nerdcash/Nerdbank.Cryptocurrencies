@@ -53,6 +53,30 @@ public record struct SecurityAmount(decimal Amount, Security Security)
 	/// <returns>The negated amount.</returns>
 	public static SecurityAmount operator -(SecurityAmount right) => new(-right.Amount, right.Security);
 
+	/// <summary>
+	/// Multiplies the amount of a security by a decimal value.
+	/// </summary>
+	/// <param name="left">The amount to multiply.</param>
+	/// <param name="right">The decimal value to multiply by.</param>
+	/// <returns>The product of the multiplication.</returns>
+	public static SecurityAmount operator *(SecurityAmount left, decimal right) => new(left.Amount * right, left.Security);
+
+	/// <summary>
+	/// Multiplies the amount of a security by a decimal value.
+	/// </summary>
+	/// <param name="left">The decimal value to multiply by.</param>
+	/// <param name="right">The amount to multiply.</param>
+	/// <returns>The product of the multiplication.</returns>
+	public static SecurityAmount operator *(decimal left, SecurityAmount right) => right * left;
+
+	/// <summary>
+	/// Divides the amount of a security by a decimal value.
+	/// </summary>
+	/// <param name="left">The amount to divide.</param>
+	/// <param name="right">The decimal value to divide by.</param>
+	/// <returns>The quotient of the division.</returns>
+	public static SecurityAmount operator /(SecurityAmount left, decimal right) => new(left.Amount / right, left.Security);
+
 	/// <inheritdoc/>
 	public override string ToString() => this.Security is not null ? $"{this.Amount.ToString("F" + this.Security.Precision)} {this.Security.TickerSymbol}" : "0";
 }
