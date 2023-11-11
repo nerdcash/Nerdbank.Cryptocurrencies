@@ -162,4 +162,10 @@
   <data name="HistoricalPriceNotAvailableForThisDate" xml:space="preserve">
     <value>El precio histórico de este par de trading en ese momento no está disponible.</value>
   </data>
+  <data name="ExchangeRatesRequireOneCommonSecurity" xml:space="preserve">
+    <value>Los tipos de cambio no tienen ninguna seguridad en común.</value>
+  </data>
+  <data name="ExchangeRatesRequireUniqueSecurities" xml:space="preserve">
+    <value>Los tipos de cambio describen los mismos dos valores.</value>
+  </data>
 </root>

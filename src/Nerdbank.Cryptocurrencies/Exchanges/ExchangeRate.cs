@@ -20,6 +20,85 @@ public record struct ExchangeRate(SecurityAmount Basis, SecurityAmount TradeInte
 	/// </summary>
 	public ExchangeRate OppositeDirection => new(this.TradeInterest, this.Basis);
 
+	/// <summary>
+	/// Converts a particular <see cref="SecurityAmount"/> to one that uses a different <see cref="Security"/> by applying a given exchange rate.
+	/// </summary>
+	/// <param name="amount">The base amount. This can be in either unit described by the <paramref name="exchangeRate"/>.</param>
+	/// <param name="exchangeRate">The exchange rate between the security in <paramref name="amount"/> and one other.</param>
+	/// <returns>The converted <see cref="SecurityAmount"/>.</returns>
+	public static SecurityAmount operator *(SecurityAmount amount, ExchangeRate exchangeRate)
+	{
+		if (exchangeRate.Basis.Security == amount.Security)
+		{
+			return new(amount.Amount * exchangeRate.TradeInterest.Amount / exchangeRate.Basis.Amount, exchangeRate.TradeInterest.Security);
+		}
+		else if (exchangeRate.TradeInterest.Security == amount.Security)
+		{
+			return new(amount.Amount * exchangeRate.Basis.Amount / exchangeRate.TradeInterest.Amount, exchangeRate.Basis.Security);
+		}
+		else
+		{
+			throw new ArgumentException("The exchange rate has no security in common with the amount.");
+		}
+	}
+
+	/// <summary>
+	/// Compute an exchange rate using two others that share exactly one security in common.
+	/// The common security will drop out of the result, leaving the two unique remaining securities
+	/// in the computed exchange rate.
+	/// </summary>
+	/// <param name="left">The first exchange rate. The unique security in this value will be used as the basis of the returned exchange rate.</param>
+	/// <param name="right">The second exchange rate. The unique security in this value will be used as the trade interest of the returned exchange rate.</param>
+	/// <returns>An exchange rate made up of the unique securities in each operand.</returns>
+	/// <exception cref="ArgumentException">Thrown if both arguments have the same pair of securities, or if they have no securities in common.</exception>
+	public static ExchangeRate operator *(ExchangeRate left, ExchangeRate right)
+	{
+		// We want to arrange a unit multiplier situation to convert the unique security in left
+		// to the unique security in right.
+		// To do this, we'll arrange for the unique security on the left as the basis
+		// and the unique security on the right as the trade interest.
+		// We'll then multiply the two exchange rates together to get the result.
+		// If the two securities are the same on both left and right, throw an error.
+		if (left.Basis.Security == right.Basis.Security)
+		{
+			// Flip the right so the common security is the trade interest on the right.
+			right = right.OppositeDirection;
+		}
+		else if (left.TradeInterest.Security == right.TradeInterest.Security)
+		{
+			// Flip the left so that the common security is the basis on the left.
+			left = left.OppositeDirection;
+		}
+		else if (left.Basis.Security == right.TradeInterest.Security)
+		{
+			// This is already the way we want it.
+		}
+		else if (left.TradeInterest.Security == right.Basis.Security)
+		{
+			// It's exactly the opposite of what we want, so flipp both sides.
+			(left, right) = (left.OppositeDirection, right.OppositeDirection);
+		}
+		else
+		{
+			throw new ArgumentException(Strings.ExchangeRatesRequireOneCommonSecurity);
+		}
+
+		// Check to see if what we expect to be the unique securities are also in common.
+		if (left.TradeInterest.Security == right.Basis.Security)
+		{
+			throw new ArgumentException(Strings.ExchangeRatesRequireUniqueSecurities);
+		}
+
+		// Get the common security to also match in amount.
+		decimal ratio = left.Basis.Amount / right.TradeInterest.Amount;
+		right = new ExchangeRate(
+			new SecurityAmount(right.Basis.Amount * ratio, right.Basis.Security),
+			new SecurityAmount(right.TradeInterest.Amount * ratio, right.TradeInterest.Security));
+
+		// We can now drop the common security from the result.
+		return new ExchangeRate(left.TradeInterest, right.Basis);
+	}
+
 	/// <inheritdoc/>
 	public override string ToString() => $"{this.Basis} <=> {this.TradeInterest}";
 }

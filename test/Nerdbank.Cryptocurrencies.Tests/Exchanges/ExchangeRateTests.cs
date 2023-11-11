@@ -40,4 +40,108 @@ public class ExchangeRateTests : TestBase
 		ExchangeRate opposite = rate.OppositeDirection;
 		Assert.Equal(new ExchangeRate(tradeInterest, basis), opposite);
 	}
+
+	[Fact]
+	public void Asset_Times_ExchangeRate()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(30m, Security.USD), new SecurityAmount(1m, Security.ZEC));
+
+		SecurityAmount zec = Security.ZEC.Amount(2);
+		Assert.Equal(Security.USD.Amount(60), zec * usdToZec);
+		Assert.Equal(Security.USD.Amount(60), zec * usdToZec.OppositeDirection);
+	}
+
+	[Fact]
+	public void UnrelatedAsset_Times_ExchangeRate()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(30m, Security.USD), new SecurityAmount(1m, Security.ZEC));
+		Assert.Throws<ArgumentException>(() => Security.BTC.Amount(1) * usdToZec);
+	}
+
+	[Fact]
+	public void ExchangeRate_Times_ExchangeRate1()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
+		ExchangeRate usdToBtc = new(new SecurityAmount(45_000m, Security.USD), new SecurityAmount(1.5m, Security.BTC));
+
+		ExchangeRate zecToBtc = usdToZec * usdToBtc;
+		Assert.Equal(Security.ZEC, zecToBtc.Basis.Security);
+		Assert.Equal(Security.BTC, zecToBtc.TradeInterest.Security);
+
+		SecurityAmount zec = Security.ZEC.Amount(500);
+		SecurityAmount btc = zec * zecToBtc;
+		Assert.Equal(Security.BTC.Amount(0.5m), btc);
+	}
+
+	[Fact]
+	public void ExchangeRate_Times_ExchangeRate2()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
+		ExchangeRate usdToBtc = new(new SecurityAmount(45_000m, Security.USD), new SecurityAmount(1.5m, Security.BTC));
+
+		ExchangeRate zecToBtc = usdToZec * usdToBtc.OppositeDirection;
+		Assert.Equal(Security.ZEC, zecToBtc.Basis.Security);
+		Assert.Equal(Security.BTC, zecToBtc.TradeInterest.Security);
+
+		SecurityAmount zec = Security.ZEC.Amount(500);
+		SecurityAmount btc = zec * zecToBtc;
+		Assert.Equal(Security.BTC.Amount(0.5m), btc);
+	}
+
+	[Fact]
+	public void ExchangeRate_Times_ExchangeRate3()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
+		ExchangeRate usdToBtc = new(new SecurityAmount(45_000m, Security.USD), new SecurityAmount(1.5m, Security.BTC));
+
+		ExchangeRate zecToBtc = usdToZec.OppositeDirection * usdToBtc;
+		Assert.Equal(Security.ZEC, zecToBtc.Basis.Security);
+		Assert.Equal(Security.BTC, zecToBtc.TradeInterest.Security);
+
+		SecurityAmount zec = Security.ZEC.Amount(500);
+		SecurityAmount btc = zec * zecToBtc;
+		Assert.Equal(Security.BTC.Amount(0.5m), btc);
+	}
+
+	[Fact]
+	public void ExchangeRate_Times_ExchangeRate4()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
+		ExchangeRate usdToBtc = new(new SecurityAmount(45_000m, Security.USD), new SecurityAmount(1.5m, Security.BTC));
+
+		ExchangeRate zecToBtc = usdToZec.OppositeDirection * usdToBtc.OppositeDirection;
+		Assert.Equal(Security.ZEC, zecToBtc.Basis.Security);
+		Assert.Equal(Security.BTC, zecToBtc.TradeInterest.Security);
+
+		SecurityAmount zec = Security.ZEC.Amount(500);
+		SecurityAmount btc = zec * zecToBtc;
+		Assert.Equal(Security.BTC.Amount(0.5m), btc);
+	}
+
+	[Fact]
+	public void ExchangeRate_Times_UnrelatedExchangeRate()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
+		ExchangeRate ethToBtc = new(new SecurityAmount(45m, Security.ETH), new SecurityAmount(1.5m, Security.BTC));
+		Assert.Throws<ArgumentException>(() => usdToZec * ethToBtc);
+	}
+
+	[Fact]
+	public void ExchangeRate_Times_ExchangeRateWithSameUnits()
+	{
+		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
+		Assert.Throws<ArgumentException>(() => usdToZec * usdToZec);
+	}
+
+	[Fact]
+	public void ExchangeRateChain()
+	{
+		SecurityAmount zec = Security.ZEC.Amount(5);
+		ExchangeRate usdZec = new(Security.USD.Amount(60m), Security.ZEC.Amount(2m));
+		ExchangeRate btcUsd = new(Security.USD.Amount(45_000m), Security.BTC.Amount(1.5m));
+		ExchangeRate ethBtc = new(Security.ETH.Amount(45m), Security.BTC.Amount(2.5m));
+		ExchangeRate ltcEth = new(Security.LTC.Amount(60m), Security.ETH.Amount(3m));
+		SecurityAmount ltc = zec * usdZec * btcUsd * ethBtc * ltcEth;
+		Assert.Equal(Security.LTC.Amount(1.8m), ltc);
+	}
 }
