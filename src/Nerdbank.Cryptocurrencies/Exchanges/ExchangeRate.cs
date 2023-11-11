@@ -120,6 +120,18 @@ public record struct ExchangeRate(SecurityAmount Basis, SecurityAmount TradeInte
 		return new ExchangeRate(left.TradeInterest, right.Basis);
 	}
 
+	/// <summary>
+	/// Multiplies an exchange rate by some scalar.
+	/// </summary>
+	/// <param name="rate">The exchange rate to multiply.</param>
+	/// <param name="factor">The factor to multiply the exchange rate by.</param>
+	/// <returns>The result of multiplying the exchange rate by the factor.</returns>
+	/// <remarks>
+	/// This does <em>not</em> change the effectual exchange rate, but it <em>does</em> change its representation.
+	/// For example a 2:1 exchange rate multiplied by 2 will result in a 4:2 exchange rate.
+	/// </remarks>
+	public static ExchangeRate operator *(ExchangeRate rate, decimal factor) => new(rate.Basis * factor, rate.TradeInterest * factor);
+
 	/// <inheritdoc/>
 	public override string ToString() => $"{this.Basis} <=> {this.TradeInterest}";
 }

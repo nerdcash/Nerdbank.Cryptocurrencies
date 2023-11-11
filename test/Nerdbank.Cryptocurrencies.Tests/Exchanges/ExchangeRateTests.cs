@@ -146,6 +146,14 @@ public class ExchangeRateTests : TestBase
 	}
 
 	[Fact]
+	public void MultiplyByScalar()
+	{
+		Assert.Equal(Rate(2, 4), Rate(1, 2) * 2);
+
+		ExchangeRate Rate(decimal basis, decimal tradeInterest) => new(Security.USD.Amount(basis), Security.ZEC.Amount(tradeInterest));
+	}
+
+	[Fact]
 	public void Normalized()
 	{
 		Assert.Equal(Rate(30, 1), Rate(60, 2).Normalized);

@@ -174,16 +174,20 @@ static Nerdbank.Cryptocurrencies.CompactSize.Decode(System.ReadOnlySpan<byte> bu
 static Nerdbank.Cryptocurrencies.CompactSize.Encode(ulong value, System.Span<byte> buffer) -> int
 static Nerdbank.Cryptocurrencies.CompactSize.GetEncodedLength(ulong value) -> int
 static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator !=(Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate left, Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate right) -> bool
-static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator ==(Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate left, Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate right) -> bool
+static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator *(Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate rate, decimal factor) -> Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate
 static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator *(Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate left, Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate right) -> Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate
 static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator *(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount amount, Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate exchangeRate) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+static Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.operator ==(Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate left, Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate right) -> bool
 static Nerdbank.Cryptocurrencies.Exchanges.Security.operator !=(Nerdbank.Cryptocurrencies.Exchanges.Security? left, Nerdbank.Cryptocurrencies.Exchanges.Security? right) -> bool
 static Nerdbank.Cryptocurrencies.Exchanges.Security.operator ==(Nerdbank.Cryptocurrencies.Exchanges.Security? left, Nerdbank.Cryptocurrencies.Exchanges.Security? right) -> bool
 static Nerdbank.Cryptocurrencies.Exchanges.Security.WellKnown.get -> System.Collections.Immutable.ImmutableDictionary<string!, Nerdbank.Cryptocurrencies.Exchanges.Security!>!
 static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator !=(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> bool
+static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator *(decimal left, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator *(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, decimal right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator +(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator -(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator -(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator /(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, decimal right) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 static Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.operator ==(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount left, Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount right) -> bool
 static Nerdbank.Cryptocurrencies.Exchanges.StableCoins.GetSecuritiesSharingPeg(Nerdbank.Cryptocurrencies.Exchanges.Security! security) -> System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.Security!>!
 static Nerdbank.Cryptocurrencies.Exchanges.TradingPair.operator !=(Nerdbank.Cryptocurrencies.Exchanges.TradingPair left, Nerdbank.Cryptocurrencies.Exchanges.TradingPair right) -> bool

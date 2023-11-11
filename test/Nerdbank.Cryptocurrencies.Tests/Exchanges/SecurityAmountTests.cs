@@ -41,6 +41,19 @@ public class SecurityAmountTests
 	}
 
 	[Fact]
+	public void Multiply()
+	{
+		Assert.Equal(Security.USD.Amount(15), Security.USD.Amount(5) * 3);
+		Assert.Equal(Security.USD.Amount(15), 3 * Security.USD.Amount(5));
+	}
+
+	[Fact]
+	public void Divide()
+	{
+		Assert.Equal(Security.USD.Amount(15), Security.USD.Amount(45) / 3);
+	}
+
+	[Fact]
 	public void ToString_Formatting()
 	{
 		Assert.Equal("1.20000000 ZEC", new SecurityAmount(1.2m, Security.ZEC).ToString());
