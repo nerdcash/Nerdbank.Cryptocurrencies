@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Cryptocurrencies.Exchanges;
 using ZXing.Mobile;
 
@@ -14,16 +15,21 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
 	private readonly ObservableCollection<LineItem> lineItems = new();
 	private readonly ReadOnlyObservableCollection<LineItem> lineItemsReadOnly;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> subtotalAlternate;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> feeAlternate;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
 	private SecurityAmount subtotal;
 	private SecurityAmount total;
 	private ReadOnlyObservableCollection<Contact>? possibleRecipients;
 	private SecurityAmount fee;
 	private IDisposable? possibleRecipientsSubscription;
+	private ExchangeRate? exchangeRate;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public SendingViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
+		this.LineItems[0].Amount = 1.23m;
 		this.fee = new(0.0001m, this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity);
 	}
 
@@ -33,7 +39,26 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.lineItemsReadOnly = new(this.lineItems);
 		this.AddLineItem();
 
-		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true).Subscribe(_ => this.OnSelectedAccountChanged());
+		this.UpdateExchangeRateAsync(CancellationToken.None).Forget();
+
+		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true)
+			.Subscribe(_ => this.OnSelectedAccountChanged());
+
+		this.subtotalAlternate = this.WhenAnyValue(
+			vm => vm.Subtotal,
+			vm => vm.ExchangeRate,
+			(subtotal, rate) => subtotal * rate)
+			.ToProperty(this, nameof(this.SubtotalAlternate));
+		this.feeAlternate = this.WhenAnyValue(
+			vm => vm.Fee,
+			vm => vm.ExchangeRate,
+			(fee, rate) => fee * rate)
+			.ToProperty(this, nameof(this.FeeAlternate));
+		this.totalAlternate = this.WhenAnyValue(
+			vm => vm.Total,
+			vm => vm.ExchangeRate,
+			(total, rate) => total * rate)
+			.ToProperty(this, nameof(this.TotalAlternate));
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
@@ -49,6 +74,12 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public ReactiveCommand<Unit, LineItem> AddLineItemCommand { get; }
 
+	public ExchangeRate? ExchangeRate
+	{
+		get => this.exchangeRate;
+		set => this.RaiseAndSetIfChanged(ref this.exchangeRate, value);
+	}
+
 	public string FeeCaption => "Fee";
 
 	public SecurityAmount Fee
@@ -56,6 +87,8 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		get => this.fee;
 		private set => this.RaiseAndSetIfChanged(ref this.fee, value);
 	}
+
+	public SecurityAmount? FeeAlternate => this.feeAlternate.Value;
 
 	public string SubtotalCaption => "Subtotal";
 
@@ -65,6 +98,8 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		private set => this.RaiseAndSetIfChanged(ref this.subtotal, value);
 	}
 
+	public SecurityAmount? SubtotalAlternate => this.subtotalAlternate.Value;
+
 	public string TotalCaption => "Total";
 
 	public SecurityAmount Total
@@ -72,6 +107,8 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		get => this.total;
 		private set => this.RaiseAndSetIfChanged(ref this.total, value);
 	}
+
+	public SecurityAmount? TotalAlternate => this.totalAlternate.Value;
 
 	public string SendCommandCaption => "📤 Send";
 
@@ -138,6 +175,11 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.RefreshRecipientsList();
 		this.RecalculateAggregates();
 
+		if (this.SelectedAccount?.Network.AsSecurity() != this.ExchangeRate?.TradeInterest.Security)
+		{
+			this.UpdateExchangeRateAsync(CancellationToken.None).Forget();
+		}
+
 		foreach (LineItem lineItem in this.lineItems)
 		{
 			lineItem.SelectedAccount = this.SelectedAccount;
@@ -151,6 +193,32 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.lineItems.Add(lineItem);
 		return lineItem;
+	}
+
+	private async ValueTask UpdateExchangeRateAsync(CancellationToken cancellationToken)
+	{
+		if (this.SelectedAccount is not null)
+		{
+			IReadOnlySet<Security> alternateSecurities = StableCoins.GetSecuritiesSharingPeg(this.ViewModelServices.Settings.AlternateCurrency);
+			TradingPair? pair = await this.ViewModelServices.ExchangeRateProvider.FindFirstSupportedTradingPairAsync(
+				this.SelectedAccount.Network.AsSecurity(),
+				alternateSecurities,
+				cancellationToken);
+			if (pair is not null)
+			{
+				ExchangeRate rate = await this.ViewModelServices.ExchangeRateProvider.GetExchangeRateAsync(pair.Value, cancellationToken);
+
+				// Only set this if the selected network still matches what we calculated.
+				if (this.SelectedAccount.Network.AsSecurity() == rate.TradeInterest.Security)
+				{
+					this.ExchangeRate = rate;
+				}
+
+				return;
+			}
+		}
+
+		this.ExchangeRate = null;
 	}
 
 	public class LineItem : ViewModelBaseWithAccountSelector

@@ -3,6 +3,7 @@
 
 using System.ComponentModel;
 using Avalonia.Controls;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App;
 
@@ -26,6 +27,16 @@ public interface IViewModelServices : INotifyPropertyChanged
 	/// Gets the persisted collection of contacts.
 	/// </summary>
 	IContactManager ContactManager { get; }
+
+	/// <summary>
+	/// Gets a provider of exchange rates.
+	/// </summary>
+	IExchangeRateProvider ExchangeRateProvider { get; }
+
+	/// <summary>
+	/// Gets a provider of historical exchange rates.
+	/// </summary>
+	IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; }
 
 	TopLevel? TopLevel { get; }
 

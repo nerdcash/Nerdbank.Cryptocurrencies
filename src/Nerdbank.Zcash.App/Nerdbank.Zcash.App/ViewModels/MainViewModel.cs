@@ -3,14 +3,14 @@
 
 using System.Windows.Input;
 using Avalonia.Controls;
-using DynamicData.Binding;
-using Microsoft;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class MainViewModel : ViewModelBase, IViewModelServices
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
+	private readonly HttpClient httpClient = new();
 	private ObservableAsPropertyHelper<string?> contentTitle;
 
 	[Obsolete("Design-time only.", error: true)]
@@ -22,6 +22,9 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public MainViewModel(App app)
 	{
 		this.App = app;
+
+		this.ExchangeRateProvider = new BinanceUSExchange(this.httpClient);
+		this.HistoricalExchangeRateProvider = new YahooFinance(this.httpClient);
 
 		this.NavigateBackCommand = ReactiveCommand.Create(
 			() => this.NavigateBack(),
@@ -59,6 +62,10 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public Account? MostRecentlyUsedAccount { get; set; }
 
 	public IContactManager ContactManager => this.App.Data.ContactManager;
+
+	public IExchangeRateProvider ExchangeRateProvider { get; }
+
+	public IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; }
 
 	public ViewModelBase? Content
 	{

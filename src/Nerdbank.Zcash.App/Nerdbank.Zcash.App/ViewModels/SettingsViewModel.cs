@@ -7,7 +7,6 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SettingsViewModel : ViewModelBase, IHasTitle
 {
-	private Security alternateCurrency = Security.USD;
 	private string lightServerUrlMainNet;
 	private string lightServerUrlTestNet;
 	private IViewModelServices viewModelServices;
@@ -30,8 +29,15 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 	public Security AlternateCurrency
 	{
-		get => this.alternateCurrency;
-		set => this.RaiseAndSetIfChanged(ref this.alternateCurrency, value);
+		get => this.viewModelServices.Settings.AlternateCurrency;
+		set
+		{
+			if (this.AlternateCurrency != value)
+			{
+				this.viewModelServices.Settings.AlternateCurrency = value;
+				this.RaisePropertyChanged();
+			}
+		}
 	}
 
 	public string AlternateCurrencyCaption => "Preferred alternate currency";

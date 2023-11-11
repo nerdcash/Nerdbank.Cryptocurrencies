@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App;
 
@@ -52,6 +54,10 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	public AppSettings Settings { get; } = new();
 
+	public IExchangeRateProvider ExchangeRateProvider { get; } = new MockExchange();
+
+	public IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; } = new MockExchange();
+
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel)
 	{
 	}
@@ -87,5 +93,23 @@ internal class DesignTimeViewModelServices : IViewModelServices
 		public void Add(Contact contact) => this.contacts.Add(contact);
 
 		public bool Remove(Contact contact) => this.Remove(contact);
+	}
+
+	private class MockExchange : IExchangeRateProvider, IHistoricalExchangeRateProvider
+	{
+		public ValueTask<IReadOnlySet<TradingPair>> GetAvailableTradingPairsAsync(CancellationToken cancellationToken)
+		{
+			return new ValueTask<IReadOnlySet<TradingPair>>(ImmutableHashSet.Create(new TradingPair(Security.USD, Security.ZEC)));
+		}
+
+		public ValueTask<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken)
+		{
+			return new(new ExchangeRate(tradingPair.Basis.Amount(10 + (when.Day * 2)), tradingPair.TradeInterest.Amount(1)));
+		}
+
+		public ValueTask<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, CancellationToken cancellationToken)
+		{
+			return new(new ExchangeRate(tradingPair.Basis.Amount(30), tradingPair.TradeInterest.Amount(1)));
+		}
 	}
 }

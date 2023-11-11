@@ -3,12 +3,15 @@
 
 using System.ComponentModel;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App;
 
 public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings>
 {
 	private bool exchangeRatePerTransactionHasBeenDismissed;
+	private Security alternateCurrency = Security.USD;
 	private Uri lightServerUrl = new("https://zcash.mysideoftheweb.com:9067/");
 	private Uri lightServerUrlTestNet = new("https://zcash.mysideoftheweb.com:19067/");
 	private bool isDirty;
@@ -28,6 +31,19 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	{
 		get => this.exchangeRatePerTransactionHasBeenDismissed;
 		set => this.RaiseAndSetIfChanged(ref this.exchangeRatePerTransactionHasBeenDismissed, value);
+	}
+
+	[JsonIgnore]
+	public Security AlternateCurrency
+	{
+		get => this.alternateCurrency;
+		set => this.RaiseAndSetIfChanged(ref this.alternateCurrency, value);
+	}
+
+	public string AlternateCurrencySymbol
+	{
+		get => this.alternateCurrency.TickerSymbol;
+		set => this.AlternateCurrency = Security.WellKnown[value];
 	}
 
 	public Uri LightServerUrl
