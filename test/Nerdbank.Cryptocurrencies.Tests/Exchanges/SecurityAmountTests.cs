@@ -54,6 +54,13 @@ public class SecurityAmountTests
 	}
 
 	[Fact]
+	public void RoundedAmount()
+	{
+		Assert.Equal(1.20m, Security.USD.Amount(1.201m).RoundedAmount);
+		Assert.Equal(1.20m, Security.USD.Amount(1.199m).RoundedAmount);
+	}
+
+	[Fact]
 	public void ToString_Formatting()
 	{
 		Assert.Equal("1.20000000 ZEC", new SecurityAmount(1.2m, Security.ZEC).ToString());

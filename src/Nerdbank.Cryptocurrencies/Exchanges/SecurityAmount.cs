@@ -11,6 +11,11 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 public record struct SecurityAmount(decimal Amount, Security Security)
 {
 	/// <summary>
+	/// Gets the <see cref="Amount"/>, rounded to the precision of the <see cref="Security"/>.
+	/// </summary>
+	public decimal RoundedAmount => Math.Round(this.Amount, this.Security.Precision);
+
+	/// <summary>
 	/// Adds the amounts of the same security.
 	/// </summary>
 	/// <param name="left">The left operand.</param>

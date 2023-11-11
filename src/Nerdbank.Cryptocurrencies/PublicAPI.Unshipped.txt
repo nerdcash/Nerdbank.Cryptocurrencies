@@ -107,6 +107,7 @@ Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Amount.get -> decimal
 Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Amount.set -> void
 Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Deconstruct(out decimal Amount, out Nerdbank.Cryptocurrencies.Exchanges.Security! Security) -> void
 Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Equals(Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount other) -> bool
+Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.RoundedAmount.get -> decimal
 Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Security.get -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.Security.set -> void
 Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount.SecurityAmount() -> void
