@@ -63,7 +63,6 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
 		}
 
-		this.PaymentRequestDetails = new(this.receivingAccount.ZcashAccount.Network.AsSecurity());
 		this.displayedAddress = this.Addresses[0];
 		this.RecordTransparentAddressShownIfApplicable();
 	}
@@ -85,8 +84,6 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	}
 
 	public ObservableCollection<ReceivingAddress> Addresses { get; } = new();
-
-	public PaymentRequestDetailsViewModel PaymentRequestDetails { get; }
 
 	public string AddPaymentRequestCaption => "Payment details";
 

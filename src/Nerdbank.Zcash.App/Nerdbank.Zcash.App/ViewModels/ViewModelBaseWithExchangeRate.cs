@@ -16,8 +16,6 @@ public abstract class ViewModelBaseWithExchangeRate : ViewModelBaseWithAccountSe
 	protected ViewModelBaseWithExchangeRate(IViewModelServices viewModelServices, bool showOnlyAccountsWithSpendKeys = false)
 		: base(viewModelServices, showOnlyAccountsWithSpendKeys)
 	{
-		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true)
-			.Subscribe(_ => this.OnSelectedAccountChanged());
 	}
 
 	public ExchangeRate? ExchangeRate
@@ -70,7 +68,7 @@ public abstract class ViewModelBaseWithExchangeRate : ViewModelBaseWithAccountSe
 		this.UpdateExchangeRateAsync(this.exchangeRateUpdateTokenSource.Token).Forget();
 	}
 
-	private void OnSelectedAccountChanged()
+	protected override void OnSelectedAccountChanged()
 	{
 		if (this.exchangeRateTriggered && this.SelectedAccount?.Network.AsSecurity() != this.exchangeRate?.TradeInterest.Security)
 		{

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Nerdbank.Cryptocurrencies.Exchanges;
-using ReactiveUI;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -10,7 +9,8 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 {
 	private readonly ObservableAsPropertyHelper<string> tickerSymbol;
 	private readonly ObservableAsPropertyHelper<string> alternateTickerSymbol;
-	private decimal amount;
+	private readonly ObservableAsPropertyHelper<bool> isAlternateVisible;
+	private decimal? amount;
 	private decimal? amountInAlternateCurrency;
 
 	[Obsolete("For design-time use only", error: true)]
@@ -49,9 +49,14 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 					UpdateAmountInAlternateCurrency(ref amountPropagationInProgress, () => this.Amount = v.Value.RoundedAmount);
 				}
 			});
+
+		this.isAlternateVisible = this.WhenAnyValue<DualAmountEntryViewModel, bool, ExchangeRate?>(
+			vm => vm.ExchangeRate,
+			rate => rate is not null)
+			.ToProperty(this, nameof(this.IsAlternateVisible));
 	}
 
-	public decimal Amount
+	public decimal? Amount
 	{
 		get => this.amount;
 		set => this.RaiseAndSetIfChanged(ref this.amount, value);
@@ -67,8 +72,10 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 
 	public string? AlternateTickerSymbol => this.alternateTickerSymbol.Value;
 
-	private static SecurityAmount? ComputeAmountInAlternateCurrency(decimal amountInSelectedCurrency, Account? selectedAccount, ExchangeRate? exchangeRate)
-		=> ConvertOrNull(exchangeRate, selectedAccount?.Network.AsSecurity().Amount(amountInSelectedCurrency));
+	public bool IsAlternateVisible => this.isAlternateVisible.Value;
+
+	private static SecurityAmount? ComputeAmountInAlternateCurrency(decimal? amountInSelectedCurrency, Account? selectedAccount, ExchangeRate? exchangeRate)
+		=> ConvertOrNull(exchangeRate, amountInSelectedCurrency is null ? null : selectedAccount?.Network.AsSecurity().Amount(amountInSelectedCurrency.Value));
 
 	private static SecurityAmount ComputeAmountInSelectedCurrency(decimal amountInAlternateCurrency, Account selectedAccount, ExchangeRate exchangeRate)
 		=> ConvertOrNull(exchangeRate, exchangeRate.Basis.Security.Amount(amountInAlternateCurrency))!.Value;

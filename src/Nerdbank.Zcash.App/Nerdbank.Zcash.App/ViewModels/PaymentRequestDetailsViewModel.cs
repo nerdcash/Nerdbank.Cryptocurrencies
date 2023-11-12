@@ -1,26 +1,27 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Cryptocurrencies.Exchanges;
-
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class PaymentRequestDetailsViewModel : ViewModelBase
+public class PaymentRequestDetailsViewModel : ViewModelBaseWithAccountSelector
 {
-	private readonly Security security;
+	private readonly ObservableAsPropertyHelper<bool> isEmpty;
 	private string label = string.Empty;
 	private string memo = string.Empty;
 	private string message = string.Empty;
-	private decimal? amount;
 
-	public PaymentRequestDetailsViewModel(Security security)
+	public PaymentRequestDetailsViewModel(IViewModelServices viewModelServices)
+		: base(viewModelServices)
 	{
-		this.security = security;
+		this.AmountEntry = new DualAmountEntryViewModel(viewModelServices);
 
-		this.LinkProperty(nameof(this.Label), nameof(this.IsEmpty));
-		this.LinkProperty(nameof(this.Message), nameof(this.IsEmpty));
-		this.LinkProperty(nameof(this.Amount), nameof(this.IsEmpty));
-		this.LinkProperty(nameof(this.Memo), nameof(this.IsEmpty));
+		this.isEmpty = this.WhenAnyValue(
+			x => x.Label,
+			x => x.Memo,
+			x => x.Message,
+			x => x.AmountEntry.Amount,
+			(label, memo, message, amount) => label.Length == 0 && memo.Length == 0 && message.Length == 0 && amount is null or 0m)
+			.ToProperty(this, nameof(this.IsEmpty));
 	}
 
 	public string LabelCaption => "Your name:";
@@ -61,27 +62,26 @@ public class PaymentRequestDetailsViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.message, value);
 	}
 
-	public string AmountCaption => $"Invoice amount (in {this.security.TickerSymbol}):";
+	public string AmountCaption => $"Invoice amount:";
 
-	/// <summary>
-	/// Gets or sets the requested amount (in ZEC).
-	/// </summary>
-	public decimal? Amount
-	{
-		get => this.amount;
-		set => this.RaiseAndSetIfChanged(ref this.amount, value);
-	}
+	public DualAmountEntryViewModel AmountEntry { get; }
 
-	public bool IsEmpty => this.Label.Length == 0 && this.Memo.Length == 0 && this.Message.Length == 0 && this.Amount is null or 0m;
+	public bool IsEmpty => this.isEmpty.Value;
 
 	public Zip321PaymentRequestUris.PaymentRequestDetails ToDetails(ZcashAddress recipient)
 	{
 		return new(recipient)
 		{
-			Amount = this.Amount,
+			Amount = this.AmountEntry.Amount,
 			Label = this.Label,
 			Memo = Zcash.Memo.FromMessage(this.Memo),
 			Message = this.Message,
 		};
+	}
+
+	protected override void OnSelectedAccountChanged()
+	{
+		base.OnSelectedAccountChanged();
+		this.AmountEntry.SelectedAccount = this.SelectedAccount;
 	}
 }

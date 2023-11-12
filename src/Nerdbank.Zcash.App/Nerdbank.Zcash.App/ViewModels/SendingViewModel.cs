@@ -37,8 +37,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.lineItemsReadOnly = new(this.lineItems);
 		this.AddLineItem();
 
-		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true)
-			.Subscribe(_ => this.OnSelectedAccountChanged());
+		this.OnSelectedAccountChanged();
 
 		this.subtotalAlternate = this.WhenAnyValue(
 			vm => vm.Subtotal,
@@ -104,6 +103,17 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public ReactiveCommand<Unit, Unit> SendCommand { get; }
 
+	protected override void OnSelectedAccountChanged()
+	{
+		this.RefreshRecipientsList();
+		this.RecalculateAggregates();
+
+		foreach (LineItem lineItem in this.lineItems)
+		{
+			lineItem.AmountEntry.SelectedAccount = lineItem.SelectedAccount = this.SelectedAccount;
+		}
+	}
+
 	private static SecurityAmount? ConvertOrNull(ExchangeRate? rate, SecurityAmount? amount)
 		=> rate is not null && amount is not null && Describes(rate.Value, amount.Value.Security) ? amount * rate : null;
 
@@ -163,22 +173,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	{
 		Security security = this.SelectedAccount?.ZcashAccount.Network.AsSecurity() ?? UnknownSecurity;
 
-		this.Subtotal = new SecurityAmount(this.LineItems.Sum(li => li.Amount), security);
+		this.Subtotal = new SecurityAmount(this.LineItems.Sum(li => li.Amount) ?? 0m, security);
 
 		this.Fee = new SecurityAmount(0.0001m, security); // TODO: calculate fee
 
 		this.Total = this.Subtotal + this.Fee;
-	}
-
-	private void OnSelectedAccountChanged()
-	{
-		this.RefreshRecipientsList();
-		this.RecalculateAggregates();
-
-		foreach (LineItem lineItem in this.lineItems)
-		{
-			lineItem.AmountEntry.SelectedAccount = lineItem.SelectedAccount = this.SelectedAccount;
-		}
 	}
 
 	private LineItem AddLineItem()
@@ -230,7 +229,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public string AmountCaption => "Amount:";
 
-		public decimal Amount
+		public decimal? Amount
 		{
 			get => this.AmountEntry.Amount;
 			set => this.AmountEntry.Amount = value;

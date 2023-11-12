@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using DynamicData.Binding;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -19,7 +20,7 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 	public ReceivingIntentSelectorViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
-		this.PaymentRequestDetails = new PaymentRequestDetailsViewModel(this.SelectedSecurity);
+		this.PaymentRequestDetails = new PaymentRequestDetailsViewModel(viewModelServices);
 
 		this.ProceedCommand = ReactiveCommand.Create(this.Proceed);
 		this.LinkProperty(nameof(this.ReceiverIdentity), nameof(this.ProceedCaption));
@@ -83,5 +84,11 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 			this.SelectedReceiver,
 			this.PaymentRequestDetails.IsEmpty ? null : this.PaymentRequestDetails);
 		this.ViewModelServices.NavigateTo(receivingViewModel);
+	}
+
+	protected override void OnSelectedAccountChanged()
+	{
+		base.OnSelectedAccountChanged();
+		this.PaymentRequestDetails.SelectedAccount = this.SelectedAccount;
 	}
 }

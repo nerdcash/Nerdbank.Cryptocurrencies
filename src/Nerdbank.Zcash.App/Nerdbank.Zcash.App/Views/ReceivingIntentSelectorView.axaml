@@ -28,7 +28,7 @@
       <Expander Header="{Binding PaymentRequestCaption}" HorizontalAlignment="Stretch" Margin="0 10 0 0">
         <StackPanel DataContext="{Binding PaymentRequestDetails}">
           <Label Content="{Binding AmountCaption}" Target="{Binding #AmountBox}" />
-          <TextBox Name="AmountBox" Text="{Binding Amount}" />
+          <local:DualAmountEntryView Name="AmountBox" DataContext="{Binding AmountEntry}" />
           <Label Content="{Binding MessageCaption}" Target="{Binding #MessageBox}" />
           <TextBox Name="MessageBox" Text="{Binding Message}" />
           <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" />

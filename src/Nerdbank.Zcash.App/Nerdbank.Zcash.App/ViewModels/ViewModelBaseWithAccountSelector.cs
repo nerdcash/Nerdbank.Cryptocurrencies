@@ -48,7 +48,9 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 			if (this.selectedAccount != value)
 			{
 				this.ViewModelServices.MostRecentlyUsedAccount = value;
-				this.RaiseAndSetIfChanged(ref this.selectedAccount, value);
+				this.selectedAccount = value;
+				this.RaisePropertyChanged();
+				this.OnSelectedAccountChanged();
 			}
 		}
 	}
@@ -56,4 +58,8 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 	public bool AccountPickerIsVisible => this.accountPickerIsVisible.Value;
 
 	public Security SelectedSecurity => this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity;
+
+	protected virtual void OnSelectedAccountChanged()
+	{
+	}
 }
