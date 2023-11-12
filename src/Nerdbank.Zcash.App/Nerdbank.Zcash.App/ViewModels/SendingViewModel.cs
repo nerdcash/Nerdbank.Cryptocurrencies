@@ -5,32 +5,29 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using DynamicData;
 using DynamicData.Binding;
-using Microsoft.VisualStudio.Threading;
 using Nerdbank.Cryptocurrencies.Exchanges;
 using ZXing.Mobile;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
+public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 {
 	private readonly ObservableCollection<LineItem> lineItems = new();
 	private readonly ReadOnlyObservableCollection<LineItem> lineItemsReadOnly;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> subtotalAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> feeAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
-	private CancellationTokenSource? exchangeRateUpdateTokenSource;
 	private SecurityAmount subtotal;
 	private SecurityAmount total;
 	private ReadOnlyObservableCollection<Contact>? possibleRecipients;
 	private SecurityAmount fee;
 	private IDisposable? possibleRecipientsSubscription;
-	private ExchangeRate? exchangeRate;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public SendingViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.LineItems[0].Amount = 1.23m;
+		this.LineItems[0].AmountEntry.Amount = 1.23m;
 		this.fee = new(0.0001m, this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity);
 	}
 
@@ -39,8 +36,6 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		this.lineItemsReadOnly = new(this.lineItems);
 		this.AddLineItem();
-
-		this.StartUpdateExchangeRate();
 
 		this.WhenPropertyChanged(vm => vm.SelectedAccount, notifyOnInitialValue: true)
 			.Subscribe(_ => this.OnSelectedAccountChanged());
@@ -74,12 +69,6 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public string AddLineItemCommandCaption => "➕ Add line item";
 
 	public ReactiveCommand<Unit, LineItem> AddLineItemCommand { get; }
-
-	public ExchangeRate? ExchangeRate
-	{
-		get => this.exchangeRate;
-		set => this.RaiseAndSetIfChanged(ref this.exchangeRate, value);
-	}
 
 	public string FeeCaption => "Fee";
 
@@ -161,7 +150,6 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	private void LineItem_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
 	{
-		LineItem changedLineItem = (LineItem)sender!;
 		switch (e.PropertyName)
 		{
 			case nameof(LineItem.RecipientAddress): // Changing the target pool can change fees.
@@ -187,14 +175,9 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.RefreshRecipientsList();
 		this.RecalculateAggregates();
 
-		if (this.SelectedAccount?.Network.AsSecurity() != this.ExchangeRate?.TradeInterest.Security)
-		{
-			this.StartUpdateExchangeRate();
-		}
-
 		foreach (LineItem lineItem in this.lineItems)
 		{
-			lineItem.SelectedAccount = this.SelectedAccount;
+			lineItem.AmountEntry.SelectedAccount = lineItem.SelectedAccount = this.SelectedAccount;
 		}
 	}
 
@@ -207,48 +190,11 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		return lineItem;
 	}
 
-	private void StartUpdateExchangeRate()
-	{
-		this.exchangeRateUpdateTokenSource?.Cancel();
-		this.exchangeRateUpdateTokenSource = new();
-		this.UpdateExchangeRateAsync(this.exchangeRateUpdateTokenSource.Token).Forget();
-	}
-
-	private async ValueTask UpdateExchangeRateAsync(CancellationToken cancellationToken)
-	{
-		if (this.SelectedAccount is not null)
-		{
-			IReadOnlySet<Security> alternateSecurities = StableCoins.GetSecuritiesSharingPeg(this.ViewModelServices.Settings.AlternateCurrency);
-			TradingPair? pair = await this.ViewModelServices.ExchangeRateProvider.FindFirstSupportedTradingPairAsync(
-				this.SelectedAccount.Network.AsSecurity(),
-				alternateSecurities,
-				cancellationToken);
-			if (pair is not null)
-			{
-				ExchangeRate rate = await this.ViewModelServices.ExchangeRateProvider.GetExchangeRateAsync(pair.Value, cancellationToken);
-
-				// Only set this if the selected network still matches what we calculated.
-				if (this.SelectedAccount.Network.AsSecurity() == rate.TradeInterest.Security)
-				{
-					this.ExchangeRate = rate;
-				}
-
-				return;
-			}
-		}
-
-		this.ExchangeRate = null;
-	}
-
 	public class LineItem : ViewModelBaseWithAccountSelector
 	{
 		private readonly SendingViewModel owner;
-		private readonly ObservableAsPropertyHelper<string> tickerSymbol;
-		private readonly ObservableAsPropertyHelper<string> alternateTickerSymbol;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
-		private decimal amount;
-		private decimal? amountInAlternateCurrency;
 		private Contact? selectedRecipient;
 
 		public LineItem(SendingViewModel owner)
@@ -256,32 +202,8 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		{
 			this.owner = owner;
 
-			this.tickerSymbol = this.WhenAnyValue(
-				vm => vm.SelectedAccount,
-				a => a?.Network.GetTickerName() ?? UnknownSecurity.TickerSymbol).ToProperty(this, nameof(this.TickerSymbol));
-			this.alternateTickerSymbol = this.WhenAnyValue<LineItem, string, Security>(
-				vm => vm.ViewModelServices.Settings.AlternateCurrency,
-				c => c.TickerSymbol).ToProperty(this, nameof(this.AlternateTickerSymbol));
-
-			bool amountPropagationInProgress = false;
-			this.WhenAnyValue(
-				vm => vm.Amount,
-				vm => vm.SelectedAccount,
-				vm => vm.owner.ExchangeRate,
-				(amount, account, rate) => ComputeAmountInAlternateCurrency(amount, account, rate))
-				.Subscribe(v => UpdateAmountInAlternateCurrency(ref amountPropagationInProgress, () => this.AmountInAlternateCurrency = v?.RoundedAmount));
-			this.WhenAnyValue<LineItem, SecurityAmount?, decimal?, Account?, ExchangeRate?>(
-				vm => vm.AmountInAlternateCurrency,
-				vm => vm.SelectedAccount,
-				vm => vm.owner.ExchangeRate,
-				(amount, account, rate) => amount is not null && account is not null && rate is not null ? ComputeAmountInSelectedCurrency(amount.Value, account, rate.Value) : null)
-				.Subscribe(v =>
-				{
-					if (v is not null)
-					{
-						UpdateAmountInAlternateCurrency(ref amountPropagationInProgress, () => this.Amount = v.Value.RoundedAmount);
-					}
-				});
+			this.AmountEntry = new DualAmountEntryViewModel(owner.ViewModelServices);
+			this.AmountEntry.WhenPropertyChanged(e => e.Amount).Subscribe(_ => this.RaisePropertyChanged(nameof(this.Amount)));
 
 			this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
 			this.RemoveLineItemCommand = ReactiveCommand.Create(() => this.owner.Remove(this));
@@ -310,19 +232,11 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		public decimal Amount
 		{
-			get => this.amount;
-			set => this.RaiseAndSetIfChanged(ref this.amount, value);
+			get => this.AmountEntry.Amount;
+			set => this.AmountEntry.Amount = value;
 		}
 
-		public string TickerSymbol => this.tickerSymbol.Value;
-
-		public decimal? AmountInAlternateCurrency
-		{
-			get => this.amountInAlternateCurrency;
-			set => this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrency, value);
-		}
-
-		public string? AlternateTickerSymbol => this.alternateTickerSymbol.Value;
+		public DualAmountEntryViewModel AmountEntry { get; }
 
 		public string MemoCaption => "Memo:";
 
@@ -337,28 +251,6 @@ public class SendingViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		public string RemoveLineItemCommandCaption => "❌";
 
 		public ReactiveCommand<Unit, Unit> RemoveLineItemCommand { get; }
-
-		private static SecurityAmount? ComputeAmountInAlternateCurrency(decimal amountInSelectedCurrency, Account? selectedAccount, ExchangeRate? exchangeRate)
-			=> ConvertOrNull(exchangeRate, selectedAccount?.Network.AsSecurity().Amount(amountInSelectedCurrency));
-
-		private static SecurityAmount ComputeAmountInSelectedCurrency(decimal amountInAlternateCurrency, Account selectedAccount, ExchangeRate exchangeRate)
-			=> ConvertOrNull(exchangeRate, exchangeRate.Basis.Security.Amount(amountInAlternateCurrency))!.Value;
-
-		private static void UpdateAmountInAlternateCurrency(ref bool propagating, Action update)
-		{
-			if (!propagating)
-			{
-				propagating = true;
-				try
-				{
-					update();
-				}
-				finally
-				{
-					propagating = false;
-				}
-			}
-		}
 
 		private async Task ScanAsync()
 		{

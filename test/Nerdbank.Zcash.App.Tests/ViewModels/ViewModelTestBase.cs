@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reactive.Linq;
+using Mocks;
 
 namespace ViewModels;
 
@@ -25,7 +27,11 @@ public abstract class ViewModelTestBase : IAsyncLifetime
 			this.PersistedPaths = (Path.Combine(this.testSandboxPath, "settings"), Path.Combine(this.testSandboxPath, "data"));
 		}
 
-		this.MainViewModel = new MainViewModel(this.CreateApp());
+		this.MainViewModel = new MainViewModel(this.CreateApp())
+		{
+			ExchangeRateProvider = new MockExchangeRateProvider(),
+			HistoricalExchangeRateProvider = new MockExchangeRateProvider(),
+		};
 	}
 
 	protected CancellationToken TimeoutToken { get; } = new CancellationTokenSource(UnexpectedTimeout).Token;
@@ -59,6 +65,38 @@ public abstract class ViewModelTestBase : IAsyncLifetime
 		bool isValid = Validator.TryValidateObject(viewModel, context, validationResults, true);
 		errors = validationResults;
 		return isValid;
+	}
+
+	protected static Task WatchForAsync<T>(T owner, string propertyName, Func<bool> tester, CancellationToken cancellationToken)
+		where T : INotifyPropertyChanged
+	{
+		if (tester())
+		{
+			return Task.CompletedTask;
+		}
+
+		CancellationTokenRegistration ctr = default;
+
+		TaskCompletionSource<bool> tcs = new();
+		owner.PropertyChanged += OnPropertyChange;
+
+		ctr = cancellationToken.Register(() =>
+		{
+			owner.PropertyChanged -= OnPropertyChange;
+			tcs.TrySetCanceled(cancellationToken);
+		});
+
+		return tcs.Task;
+
+		void OnPropertyChange(object? sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == propertyName && tester())
+			{
+				owner.PropertyChanged -= OnPropertyChange;
+				tcs.TrySetResult(true);
+				ctr.Dispose();
+			}
+		}
 	}
 
 	protected App CreateApp()

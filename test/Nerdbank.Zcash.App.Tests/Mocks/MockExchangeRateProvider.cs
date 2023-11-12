@@ -7,7 +7,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Mocks;
 
-internal class MockExchangeRateProvider : IExchangeRateProvider
+internal class MockExchangeRateProvider : IExchangeRateProvider, IHistoricalExchangeRateProvider
 {
 	internal const decimal ZecPriceUsd = 30.50m;
 
@@ -22,5 +22,11 @@ internal class MockExchangeRateProvider : IExchangeRateProvider
 	{
 		await this.PauseExchangeRateFetch.WaitAsync(cancellationToken);
 		return new ExchangeRate(tradingPair.Basis.Amount(ZecPriceUsd), tradingPair.TradeInterest.Amount(1));
+	}
+
+	public async ValueTask<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken)
+	{
+		await this.PauseExchangeRateFetch.WaitAsync(cancellationToken);
+		return new ExchangeRate(tradingPair.Basis.Amount(ZecPriceUsd + when.Day), tradingPair.TradeInterest.Amount(1));
 	}
 }

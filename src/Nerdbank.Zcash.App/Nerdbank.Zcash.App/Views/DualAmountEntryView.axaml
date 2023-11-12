@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="50"
+             x:Class="Nerdbank.Zcash.App.Views.DualAmountEntryView"
+             x:DataType="vm:DualAmountEntryViewModel">
+  <Design.DataContext>
+    <vm:DualAmountEntryViewModel />
+  </Design.DataContext>
+  <StackPanel Orientation="Horizontal">
+    <TextBox Text="{Binding Amount}" Width="100" />
+    <TextBlock Text="{Binding TickerSymbol}" VerticalAlignment="Center" Margin="5 0 0 0" />
+    <StackPanel Orientation="Horizontal" IsVisible="{Binding AmountInAlternateCurrency, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <TextBox Text="{Binding AmountInAlternateCurrency}" Width="100" Margin="20 0 0 0" />
+      <TextBlock Text="{Binding AlternateTickerSymbol}" VerticalAlignment="Center" Margin="5 0 0 0" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>
