@@ -9,12 +9,10 @@
   <Design.DataContext>
     <vm:DualAmountEntryViewModel />
   </Design.DataContext>
-  <StackPanel Orientation="Horizontal">
-    <TextBox Text="{Binding Amount}" Width="100" />
-    <TextBlock Text="{Binding TickerSymbol}" VerticalAlignment="Center" Margin="5 0 0 0" />
-    <StackPanel Orientation="Horizontal" IsVisible="{Binding IsAlternateVisible}">
-      <TextBox Text="{Binding AmountInAlternateCurrency}" Width="100" Margin="20 0 0 0" />
-      <TextBlock Text="{Binding AlternateTickerSymbol}" VerticalAlignment="Center" Margin="5 0 0 0" />
-    </StackPanel>
-  </StackPanel>
+  <Grid ColumnDefinitions="*,auto,*,auto">
+    <TextBox Text="{Binding Amount}" Margin="0 0 5 0" />
+    <TextBlock Text="{Binding TickerSymbol}" VerticalAlignment="Center" Grid.Column="1" Margin="0 0 20 0" />
+    <TextBox Text="{Binding AmountInAlternateCurrency}" IsVisible="{Binding IsAlternateVisible}" Grid.Column="2" Margin="0 0 5 0" />
+    <TextBlock Text="{Binding AlternateTickerSymbol}" VerticalAlignment="Center" IsVisible="{Binding IsAlternateVisible}" Grid.Column="3" />
+  </Grid>
 </UserControl>

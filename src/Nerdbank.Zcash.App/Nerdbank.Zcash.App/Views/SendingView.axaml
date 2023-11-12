@@ -52,10 +52,10 @@
                                    SelectedItem="{Binding SelectedRecipient}"
                              />
                 </DockPanel>
-                <WrapPanel Margin="0 5">
+                <Grid ColumnDefinitions="auto, *" Margin="0 5">
                   <Label Content="{Binding AmountCaption}" VerticalAlignment="Center" />
-                  <local:DualAmountEntryView DataContext="{Binding AmountEntry}" />
-                </WrapPanel>
+                  <local:DualAmountEntryView DataContext="{Binding AmountEntry}" Grid.Column="1" />
+                </Grid>
                 <StackPanel>
                   <Label Content="{Binding MemoCaption}" Target="{Binding #MemoTextBox}" />
                   <TextBox Name="MemoTextBox"
