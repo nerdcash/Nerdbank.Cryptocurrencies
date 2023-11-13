@@ -11,6 +11,7 @@
     <vm:HistoryViewModel />
   </Design.DataContext>
   <DockPanel>
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
     <local:AccountSelector DockPanel.Dock="Top" HorizontalAlignment="Center" />
     <Grid Background="LightYellow" IsVisible="{Binding ExchangeRateExplanationIsVisible}" DockPanel.Dock="Bottom" ColumnDefinitions="*,auto">
       <TextBlock Text="{Binding ExchangeRateExplanation}" Padding="5" />

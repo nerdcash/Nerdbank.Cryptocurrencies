@@ -11,7 +11,7 @@
     <vm:BalanceViewModel />
   </Design.DataContext>
   <DockPanel>
-    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" />
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
     <ScrollViewer VerticalAlignment="Center" Grid.Row="1">
       <StackPanel>
         <StackPanel.Styles>

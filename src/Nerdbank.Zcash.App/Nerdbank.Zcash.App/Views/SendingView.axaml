@@ -11,9 +11,7 @@
     <vm:SendingViewModel />
   </Design.DataContext>
   <DockPanel>
-    <!-- TODO: this should be in a repeater control of some sort,
-         so we can allow multiple recipients to be either manually entered
-         or automatically initialized based on scanning a multi-pay payment request.-->
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*, auto">
       <Grid RowDefinitions="*,*,*" ColumnDefinitions="auto,10,auto,30,auto">
         <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" VerticalAlignment="Top" />

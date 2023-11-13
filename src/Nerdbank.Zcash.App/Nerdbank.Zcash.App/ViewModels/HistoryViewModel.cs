@@ -41,6 +41,8 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string Title => "History";
 
+	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+
 	public ObservableCollection<TransactionViewModel> Transactions { get; } = new();
 
 	public string WhenColumnHeader => "When";

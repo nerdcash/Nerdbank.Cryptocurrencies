@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
              xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
              x:Class="Nerdbank.Zcash.App.Views.ReceivingView"
@@ -11,6 +12,7 @@
     <vm:ReceivingViewModel />
   </Design.DataContext>
   <DockPanel>
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />
     <TextBlock Text="{Binding PaymentReceivedText}"
                HorizontalAlignment="Center"
                Margin="0,10"

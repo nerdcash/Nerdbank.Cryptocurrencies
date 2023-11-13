@@ -69,6 +69,8 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public string Title => "Receive Zcash";
 
+	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+
 	public bool AddressAssignedToContactIsVisible => this.observingContact is not null;
 
 	public string AddressAssignedToContactExplanation => $"This receiving address is only for **{this.observingContact?.Name}**.";

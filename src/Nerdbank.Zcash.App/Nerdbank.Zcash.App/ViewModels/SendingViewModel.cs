@@ -61,6 +61,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public string Title => "Send Zcash";
 
+	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+
 	public string FromAccountCaption => "From account:";
 
 	public ReadOnlyObservableCollection<LineItem> LineItems => this.lineItemsReadOnly;
