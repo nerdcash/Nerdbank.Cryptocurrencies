@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataErrorInfo
 {
-	private readonly Dictionary<string, ValidationResult[]> errors = new(StringComparer.Ordinal);
 	private readonly ObservableBox<bool> importCommandEnabled = new(false);
 	private readonly IViewModelServices viewModelServices;
 	private string key = string.Empty;
@@ -22,7 +19,6 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	private bool isSeed;
 	private bool isPasswordVisible;
 	private string name = string.Empty;
-	private bool hasErrors;
 
 	[Obsolete("Design-time only", error: true)]
 	public ImportAccountViewModel()
@@ -43,8 +39,6 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 			this.Name = Strings.DefaultNameForFirstImportedAccount;
 		}
 	}
-
-	public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
 	public string Title => "Import Account";
 
@@ -130,12 +124,6 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public ReactiveCommand<Unit, Account?> ImportCommand { get; }
 
-	public bool HasErrors
-	{
-		get => this.hasErrors;
-		private set => this.RaiseAndSetIfChanged(ref this.hasErrors, value);
-	}
-
 	public Account? Import()
 	{
 		Account? account = null;
@@ -150,35 +138,6 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		}
 
 		return account;
-	}
-
-	public IEnumerable GetErrors(string? propertyName)
-	{
-		if (propertyName is not null && this.errors.TryGetValue(propertyName, out ValidationResult[]? results))
-		{
-			return results;
-		}
-
-		return Enumerable.Empty<ValidationResult>();
-	}
-
-	protected virtual void OnErrorsChanged(DataErrorsChangedEventArgs e) => this.ErrorsChanged?.Invoke(this, e);
-
-	private void RecordValidationError(string? message, [CallerMemberName] string? propertyName = null)
-	{
-		Requires.NotNull(propertyName!);
-		if (message is null)
-		{
-			if (this.errors.Remove(propertyName))
-			{
-				this.OnErrorsChanged(new DataErrorsChangedEventArgs(propertyName));
-			}
-		}
-		else
-		{
-			this.errors[propertyName] = new ValidationResult[] { new(message) };
-			this.OnErrorsChanged(new DataErrorsChangedEventArgs(propertyName));
-		}
 	}
 
 	private void OnKeyChanged()
