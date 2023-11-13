@@ -13,11 +13,12 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 	private static readonly IFormatterResolver ShareableResolver = CompositeResolver.Create(
 		new IMessagePackFormatter[]
 		{
+			ZcashAccountFormatter.Instance,
 			Zip32HDWalletFormatter.Instance,
 		},
 		new IFormatterResolver[]
 		{
-			StandardResolverAllowPrivate.Instance,
+			StandardResolver.Instance,
 		});
 
 	internal AppSerializerOptions()

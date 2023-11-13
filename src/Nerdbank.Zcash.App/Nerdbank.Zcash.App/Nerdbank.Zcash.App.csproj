@@ -10,6 +10,11 @@
 
   <ItemGroup>
     <None Remove="Resources\**\*.png" />
+    <None Remove="MessagePackAnalyzer.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="MessagePackAnalyzer.json" />
   </ItemGroup>
 
   <ItemGroup>
