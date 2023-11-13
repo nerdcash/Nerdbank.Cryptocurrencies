@@ -31,19 +31,19 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public Bitmap Logo => Resources.ZcashLogo;
 
-	public string ReceiveCommandCaption => "Receive";
+	public string ReceiveCommandCaption => "📥 Receive";
 
 	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }
 
 	public string ReceiveExplanation => "Help someone send you Zcash by sharing your address with them.";
 
-	public string SendCommandCaption => "Send";
+	public string SendCommandCaption => "📤 Send";
 
 	public ReactiveCommand<Unit, SendingViewModel> SendCommand { get; }
 
 	public string SendExplanation => "Send someone Zcash.";
 
-	public string BalanceCommandCaption => "Balance";
+	public string BalanceCommandCaption => "⚖️ Balance";
 
 	public ReactiveCommand<Unit, BalanceViewModel> BalanceCommand { get; }
 
@@ -51,7 +51,7 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public bool IsBackupCommandPromoted => this.isBackupCommandPromoted.Value;
 
-	public string BackupCommandCaption => "Backup your wallet";
+	public string BackupCommandCaption => "🗻 Backup your wallet";
 
 	public ReactiveCommand<Unit, BackupViewModel> BackupCommand { get; }
 
