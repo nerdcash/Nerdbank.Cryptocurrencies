@@ -156,6 +156,9 @@
   <data name="SaplingReceivingAddressHeader" xml:space="preserve">
     <value>Sapling</value>
   </data>
+  <data name="ServerNetworkMismatch" xml:space="preserve">
+    <value>This URL serves the {0} network.</value>
+  </data>
   <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
     <value>Create a new wallet (advanced)...</value>
   </data>
