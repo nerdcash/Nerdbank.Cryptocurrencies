@@ -32,6 +32,8 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		this.HideExchangeRateExplanationCommand = ReactiveCommand.Create(() => { this.ViewModelServices.Settings.ExchangeRatePerTransactionHasBeenDismissed = true; });
 
+		this.SyncProgress = new SyncProgressData(this);
+
 		this.exchangeRatePerTransactionHasBeenDismissed = viewModelServices.Settings.WhenAnyValue(s => s.ExchangeRatePerTransactionHasBeenDismissed, d => !d)
 			.ToProperty(this, nameof(this.ExchangeRateExplanationIsVisible));
 
@@ -41,7 +43,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string Title => "History";
 
-	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+	public SyncProgressData SyncProgress { get; }
 
 	public ObservableCollection<TransactionViewModel> Transactions { get; } = new();
 

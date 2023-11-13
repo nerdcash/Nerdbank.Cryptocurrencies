@@ -30,6 +30,8 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public BalanceViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
+		this.SyncProgress = new SyncProgressData(this);
+
 		this.LinkProperty(nameof(this.SpendableBalance), nameof(this.IsBalanceBreakdownVisible));
 		this.LinkProperty(nameof(this.Balance), nameof(this.IsBalanceBreakdownVisible));
 
@@ -44,7 +46,7 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.LinkProperty(nameof(this.AnticipatedFees), nameof(this.IsAnticipatedFeesVisible));
 	}
 
-	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+	public SyncProgressData SyncProgress { get; }
 
 	public string Title => "Balance";
 

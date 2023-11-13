@@ -37,6 +37,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.lineItemsReadOnly = new(this.lineItems);
 		this.AddLineItem();
 
+		this.SyncProgress = new SyncProgressData(this);
+
 		this.OnSelectedAccountChanged();
 
 		this.subtotalAlternate = this.WhenAnyValue(
@@ -61,7 +63,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public string Title => "Send Zcash";
 
-	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+	public SyncProgressData SyncProgress { get; }
 
 	public string FromAccountCaption => "From account:";
 

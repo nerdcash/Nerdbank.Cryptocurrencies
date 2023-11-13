@@ -40,6 +40,8 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 		this.receivingAccount = receivingAccount ?? viewModelServices.Wallet.Accounts.First();
 
+		this.SyncProgress = new SyncProgressData(this.viewModelServices) { Account = this.receivingAccount };
+
 		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount);
 		if (this.receivingAccount.ZcashAccount.HasDiversifiableKeys)
 		{
@@ -69,7 +71,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public string Title => "Receive Zcash";
 
-	public SyncProgressData SyncProgress { get; } = new SyncProgressData();
+	public SyncProgressData SyncProgress { get; }
 
 	public bool AddressAssignedToContactIsVisible => this.observingContact is not null;
 
