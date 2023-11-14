@@ -55,11 +55,6 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 	/// </summary>
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	/// <summary>
-	/// Occurs when an account is added or removed from the wallet.
-	/// </summary>
-	public event NotifyCollectionChangedEventHandler? CollectionChanged;
-
 	public bool IsDirty
 	{
 		get => this.isDirty;
@@ -200,12 +195,6 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 	/// </summary>
 	/// <param name="propertyName">The name of the property that was changed.</param>
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-	/// <summary>
-	/// Raises the <see cref="CollectionChanged"/> event.
-	/// </summary>
-	/// <param name="e">The changed event, which should describe <see cref="Account"/> objects.</param>
-	protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e) => this.CollectionChanged?.Invoke(this, e);
 
 	private void ScrubAccountReferenceFromContacts(Account account, IContactManager contactManager)
 	{
