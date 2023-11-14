@@ -83,7 +83,7 @@ public partial class App : Application, IAsyncDisposable
 		}
 	}
 
-	private static AppPlatformSettings CreateDesignTimeAppPlatformSettings()
+	internal static AppPlatformSettings CreateDesignTimeAppPlatformSettings()
 	{
 		return new()
 		{

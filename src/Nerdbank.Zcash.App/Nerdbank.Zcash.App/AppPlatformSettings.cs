@@ -9,17 +9,17 @@ namespace Nerdbank.Zcash.App;
 public class AppPlatformSettings
 {
 	/// <summary>
-	/// Gets or sets the path to the directory where wallet data should be stored.
+	/// Gets the path to the directory where wallet data should be stored.
 	/// </summary>
-	public required string? ConfidentialDataPath { get; set; }
+	public required string? ConfidentialDataPath { get; init; }
 
 	/// <summary>
-	/// Gets or sets the path to the directory where non-confidential application data should be stored.
+	/// Gets the path to the directory where non-confidential application data should be stored.
 	/// </summary>
-	public required string? NonConfidentialDataPath { get; set; }
+	public required string? NonConfidentialDataPath { get; init; }
 
 	/// <summary>
-	/// Gets or sets a value indicating whether the path to the directory where wallet data should be stored is encrypted.
+	/// Gets a value indicating whether the path to the directory where wallet data should be stored is encrypted.
 	/// </summary>
-	public bool ConfidentialDataPathIsEncrypted { get; set; }
+	public bool ConfidentialDataPathIsEncrypted { get; init; }
 }

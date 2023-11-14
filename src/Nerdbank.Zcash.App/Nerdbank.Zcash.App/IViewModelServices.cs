@@ -7,36 +7,14 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App;
 
-public interface IViewModelServices : INotifyPropertyChanged
+public interface IViewModelServices : IAppServices, INotifyPropertyChanged
 {
 	App App { get; }
-
-	AppSettings Settings { get; }
-
-	/// <summary>
-	/// Gets the wallet data model.
-	/// </summary>
-	ZcashWallet Wallet { get; }
 
 	/// <summary>
 	/// Gets or sets the most recently used account.
 	/// </summary>
 	Account? MostRecentlyUsedAccount { get; set; }
-
-	/// <summary>
-	/// Gets the persisted collection of contacts.
-	/// </summary>
-	IContactManager ContactManager { get; }
-
-	/// <summary>
-	/// Gets a provider of exchange rates.
-	/// </summary>
-	IExchangeRateProvider ExchangeRateProvider { get; }
-
-	/// <summary>
-	/// Gets a provider of historical exchange rates.
-	/// </summary>
-	IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; }
 
 	TopLevel? TopLevel { get; }
 

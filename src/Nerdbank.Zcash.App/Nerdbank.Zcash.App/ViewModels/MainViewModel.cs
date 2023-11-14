@@ -55,6 +55,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public TopLevel? TopLevel { get; set; }
 
+	public AppPlatformSettings AppPlatformSettings => this.App.AppPlatformSettings;
+
 	public AppSettings Settings => this.App.Settings;
 
 	public ZcashWallet Wallet => this.App.Data.Wallet;

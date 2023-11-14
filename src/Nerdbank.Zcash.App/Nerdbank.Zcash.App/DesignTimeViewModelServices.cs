@@ -44,6 +44,8 @@ internal class DesignTimeViewModelServices : IViewModelServices
 	[Obsolete("Design-time only.")] // necessary to avoid the compile error about App() being obsolete
 	public App App { get; } = new();
 
+	public AppPlatformSettings AppPlatformSettings { get; } = App.CreateDesignTimeAppPlatformSettings();
+
 	public ZcashWallet Wallet { get; } = new();
 
 	public Account? MostRecentlyUsedAccount { get; set; }
