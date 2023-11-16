@@ -507,10 +507,10 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 		}
 
 		[UnscopedRef]
-		internal readonly ReadOnlySpan<byte> Entropy => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.entropy[0]), this.entropyLength);
+		internal readonly ReadOnlySpan<byte> Entropy => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.entropy[0]), this.entropyLength);
 
 		[UnscopedRef]
-		internal readonly ReadOnlySpan<byte> Seed => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.seed[0]), SeedLengthInBytes);
+		internal readonly ReadOnlySpan<byte> Seed => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.seed[0]), SeedLengthInBytes);
 
 		[UnscopedRef]
 		internal Span<byte> EntropyWritable => MemoryMarshal.CreateSpan(ref this.entropy[0], this.entropyLength);
