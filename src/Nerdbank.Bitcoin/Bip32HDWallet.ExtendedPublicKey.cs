@@ -143,7 +143,7 @@ public static partial class Bip32HDWallet
 				identifier.CopyTo(this.IdentifierWritable);
 			}
 
-			internal readonly ReadOnlySpan<byte> Identifier => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(this.identifier[0]), IdentifierLength);
+			internal readonly ReadOnlySpan<byte> Identifier => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.identifier[0]), IdentifierLength);
 
 			private Span<byte> IdentifierWritable => MemoryMarshal.CreateSpan(ref this.identifier[0], IdentifierLength);
 		}
