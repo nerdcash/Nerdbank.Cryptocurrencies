@@ -25,12 +25,12 @@ public static partial class Bip32HDWallet
 		/// Initializes a new instance of the <see cref="ExtendedPublicKey"/> class.
 		/// </summary>
 		/// <param name="key">The public key.</param>
-		/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
-		/// <param name="parentFingerprint"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='parentFingerprint']"/></param>
-		/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='depth']"/></param>
-		/// <param name="childIndex"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='childIndex']"/></param>
-		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(ReadOnlySpan{byte}, ReadOnlySpan{byte}, byte, uint, bool)" path="/param[@name='testNet']"/></param>
-		protected internal ExtendedPublicKey(ECPubKey key, ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet)
+		/// <param name="chainCode"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in ParentFingerprint, byte, uint, bool)" path="/param[@name='chainCode']"/></param>
+		/// <param name="parentFingerprint"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in ParentFingerprint, byte, uint, bool)" path="/param[@name='parentFingerprint']"/></param>
+		/// <param name="depth"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in ParentFingerprint, byte, uint, bool)" path="/param[@name='depth']"/></param>
+		/// <param name="childIndex"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in ParentFingerprint, byte, uint, bool)" path="/param[@name='childIndex']"/></param>
+		/// <param name="testNet"><inheritdoc cref="ExtendedKeyBase(in ChainCode, in ParentFingerprint, byte, uint, bool)" path="/param[@name='testNet']"/></param>
+		protected internal ExtendedPublicKey(ECPubKey key, in ChainCode chainCode, in ParentFingerprint parentFingerprint, byte depth, uint childIndex, bool testNet)
 			: base(chainCode, parentFingerprint, depth, childIndex, testNet)
 		{
 			Requires.NotNull(key);
@@ -91,7 +91,7 @@ public static partial class Bip32HDWallet
 			Span<byte> hashOutput = stackalloc byte[512 / 8];
 			HMACSHA512.HashData(this.ChainCode, hashInput, hashOutput);
 			Span<byte> childKeyAdd = hashOutput[..32];
-			Span<byte> childChainCode = hashOutput[32..];
+			ref readonly ChainCode childChainCode = ref ChainCode.From(hashOutput[32..]);
 
 			// From the spec:
 			// In case parse256(IL) ≥ n or Ki is the point at infinity, the resulting key is invalid,
@@ -103,7 +103,7 @@ public static partial class Bip32HDWallet
 
 			byte childDepth = checked((byte)(this.Depth + 1));
 
-			return new ExtendedPublicKey(pubKey, childChainCode, this.Identifier[..4], childDepth, childIndex, this.IsTestNet)
+			return new ExtendedPublicKey(pubKey, childChainCode, ParentFingerprint.From(this.Identifier[..4]), childDepth, childIndex, this.IsTestNet)
 			{
 				DerivationPath = this.DerivationPath?.Append(childIndex),
 			};
