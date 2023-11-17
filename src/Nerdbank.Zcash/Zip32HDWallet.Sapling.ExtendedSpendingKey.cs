@@ -48,7 +48,7 @@ public partial class Zip32HDWallet
 				this.ChildIndex = childIndex;
 
 				this.FullViewingKey = new(
-					Zcash.Sapling.FullViewingKey.Create(key.Ask.Value, key.Nsk.Value, key.Ovk.Value, key.Network),
+					Zcash.Sapling.FullViewingKey.Create(key.Ask, key.Nsk, key.Ovk, key.Network),
 					key.Dk);
 			}
 
@@ -244,7 +244,7 @@ public partial class Zip32HDWallet
 				return other is not null
 					&& this.ChainCode.Equals(other.ChainCode)
 					&& this.ExpandedSpendingKey.Equals(other.ExpandedSpendingKey)
-					&& this.Dk.Value.SequenceEqual(other.Dk.Value)
+					&& this.Dk.Equals(other.Dk)
 					&& this.ParentFullViewingKeyTag.Equals(other.ParentFullViewingKeyTag)
 					&& this.Depth == other.Depth
 					&& this.ChildIndex == other.ChildIndex
@@ -284,7 +284,7 @@ public partial class Zip32HDWallet
 				length += BitUtilities.WriteLE(this.ChildIndex, result[length..]);
 				length += this.ChainCode[..].CopyToRetLength(result[length..]);
 				length += this.ExpandedSpendingKey.ToBytes(result[length..]);
-				length += this.Dk.Value.CopyToRetLength(result[length..]);
+				length += this.Dk[..].CopyToRetLength(result[length..]);
 				Assumes.True(length == 169);
 				return length;
 			}

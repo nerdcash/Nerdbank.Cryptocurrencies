@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.FixedLengthStructs;
-
 namespace Nerdbank.Zcash.Sapling;
 
 /// <summary>
@@ -117,7 +115,7 @@ public class IncomingViewingKey : IZcashKey, IEquatable<IncomingViewingKey>, IKe
 	public bool Equals(IncomingViewingKey? other)
 	{
 		return other is not null
-			&& this.Ivk.Value.SequenceEqual(other.Ivk.Value)
+			&& this.Ivk.Equals(other.Ivk)
 			&& this.Network == other.Network;
 	}
 
@@ -129,7 +127,7 @@ public class IncomingViewingKey : IZcashKey, IEquatable<IncomingViewingKey>, IKe
 	{
 		HashCode result = default;
 		result.Add(this.Network);
-		result.AddBytes(this.Ivk.Value);
+		result.AddBytes(this.Ivk);
 		return result.ToHashCode();
 	}
 
@@ -173,7 +171,7 @@ public class IncomingViewingKey : IZcashKey, IEquatable<IncomingViewingKey>, IKe
 	internal int Encode(Span<byte> rawEncoding)
 	{
 		int written = 0;
-		written += this.Ivk.Value.CopyToRetLength(rawEncoding[written..]);
+		written += this.Ivk[..].CopyToRetLength(rawEncoding[written..]);
 		return written;
 	}
 }

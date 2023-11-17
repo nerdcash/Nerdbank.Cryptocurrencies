@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using NBitcoin.Secp256k1;
-using Nerdbank.Zcash.FixedLengthStructs;
-using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 namespace Nerdbank.Bitcoin;
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.FixedLengthStructs;
-
 namespace Nerdbank.Zcash.Sapling;
 
 /// <summary>
@@ -55,7 +53,7 @@ public class ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>, ISpendingKey
 		ZcashUtilities.PRFexpand(spendingKey, PrfExpandCodes.SaplingDk, expandOutput);
 		this.dk = new(expandOutput[..32]);
 		this.FullViewingKey = new(
-			Sapling.FullViewingKey.Create(this.Ask.Value, this.Nsk.Value, this.Ovk.Value, network),
+			Sapling.FullViewingKey.Create(this.Ask, this.Nsk, this.Ovk, network),
 			this.Dk);
 	}
 
@@ -102,9 +100,9 @@ public class ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>, ISpendingKey
 	public bool Equals(ExpandedSpendingKey? other)
 	{
 		return other is not null
-			&& this.Ask.Value.SequenceEqual(other.Ask.Value)
-			&& this.Nsk.Value.SequenceEqual(other.Nsk.Value)
-			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value);
+			&& this.Ask.Equals(other.Ask)
+			&& this.Nsk.Equals(other.Nsk)
+			&& this.Ovk.Equals(other.Ovk);
 	}
 
 	/// <summary>
@@ -127,9 +125,9 @@ public class ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>, ISpendingKey
 	internal int ToBytes(Span<byte> result)
 	{
 		int written = 0;
-		written += this.Ask.Value.CopyToRetLength(result[written..]);
-		written += this.Nsk.Value.CopyToRetLength(result[written..]);
-		written += this.Ovk.Value.CopyToRetLength(result[written..]);
+		written += this.Ask[..].CopyToRetLength(result[written..]);
+		written += this.Nsk[..].CopyToRetLength(result[written..]);
+		written += this.Ovk[..].CopyToRetLength(result[written..]);
 		Assumes.True(written == 96);
 		return written;
 	}

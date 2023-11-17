@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.FixedLengthStructs;
-
 namespace Nerdbank.Zcash.Sapling;
 
 /// <summary>
@@ -13,6 +11,9 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 {
 	private const string Bech32MainNetworkHRP = "zviews";
 	private const string Bech32TestNetworkHRP = "zviewtestsapling";
+	private readonly SubgroupPoint ak;
+	private readonly NullifierDerivingKey nk;
+	private readonly OutgoingViewingKey ovk;
 	private string? textEncoding;
 
 	/// <summary>
@@ -22,12 +23,12 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	/// <param name="nk">The nullifier deriving key.</param>
 	/// <param name="viewingKey">The incoming viewing key.</param>
 	/// <param name="ovk">The outgoing viewing key.</param>
-	internal FullViewingKey(SubgroupPoint ak, NullifierDerivingKey nk, IncomingViewingKey viewingKey, OutgoingViewingKey ovk)
+	internal FullViewingKey(in SubgroupPoint ak, in NullifierDerivingKey nk, IncomingViewingKey viewingKey, in OutgoingViewingKey ovk)
 	{
-		this.Ak = ak;
-		this.Nk = nk;
+		this.ak = ak;
+		this.nk = nk;
 		this.IncomingViewingKey = viewingKey;
-		this.Ovk = ovk;
+		this.ovk = ovk;
 	}
 
 	/// <summary>
@@ -69,17 +70,17 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	/// <summary>
 	/// Gets the Ak subgroup point.
 	/// </summary>
-	internal SubgroupPoint Ak { get; }
+	internal ref readonly SubgroupPoint Ak => ref this.ak;
 
 	/// <summary>
 	/// Gets the nullifier deriving key.
 	/// </summary>
-	internal NullifierDerivingKey Nk { get; }
+	internal ref readonly NullifierDerivingKey Nk => ref this.nk;
 
 	/// <summary>
 	/// Gets the outgoing viewing key.
 	/// </summary>
-	internal OutgoingViewingKey Ovk { get; }
+	internal ref readonly OutgoingViewingKey Ovk => ref this.ovk;
 
 	private string DebuggerDisplay => this.TextEncoding;
 
@@ -134,10 +135,10 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	public bool Equals(FullViewingKey? other)
 	{
 		return other is not null
-			&& this.Ak.Value.SequenceEqual(other.Ak.Value)
-			&& this.Nk.Value.SequenceEqual(other.Nk.Value)
+			&& this.Ak.Equals(other.Ak)
+			&& this.Nk.Equals(other.Nk)
 			&& this.IncomingViewingKey.Equals(other.IncomingViewingKey)
-			&& this.Ovk.Value.SequenceEqual(other.Ovk.Value);
+			&& this.Ovk.Equals(other.Ovk);
 	}
 
 	/// <inheritdoc/>
@@ -148,9 +149,9 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	{
 		HashCode result = default;
 		result.Add(this.Network);
-		result.AddBytes(this.Ak.Value);
-		result.AddBytes(this.Nk.Value);
-		result.AddBytes(this.Ovk.Value);
+		result.AddBytes(this.Ak);
+		result.AddBytes(this.Nk);
+		result.AddBytes(this.Ovk);
 		result.Add(this.IncomingViewingKey);
 		return result.ToHashCode();
 	}
@@ -217,9 +218,9 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	internal int Encode(Span<byte> rawEncoding)
 	{
 		int written = 0;
-		written += this.Ak.Value.CopyToRetLength(rawEncoding[written..]);
-		written += this.Nk.Value.CopyToRetLength(rawEncoding[written..]);
-		written += this.Ovk.Value.CopyToRetLength(rawEncoding[written..]);
+		written += this.Ak[..].CopyToRetLength(rawEncoding[written..]);
+		written += this.Nk[..].CopyToRetLength(rawEncoding[written..]);
+		written += this.Ovk[..].CopyToRetLength(rawEncoding[written..]);
 		return written;
 	}
 

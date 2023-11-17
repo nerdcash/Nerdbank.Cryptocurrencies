@@ -46,7 +46,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
-	int IUnifiedEncodingElement.UnifiedDataLength => this.Dk.Value.Length + this.Ivk.Value.Length;
+	int IUnifiedEncodingElement.UnifiedDataLength => this.Dk[..].Length + this.Ivk[..].Length;
 
 	/// <inheritdoc/>
 	public string TextEncoding => this.textEncoding ??= UnifiedViewingKey.Incoming.Create(this);
@@ -54,12 +54,12 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <summary>
 	/// Gets the diversifier key.
 	/// </summary>
-	internal DiversifierKey Dk => new(this.rawEncoding[..32]);
+	internal ref readonly DiversifierKey Dk => ref DiversifierKey.From(this.rawEncoding[..32]);
 
 	/// <summary>
 	/// Gets the key agreement private key.
 	/// </summary>
-	internal KeyAgreementPrivateKey Ivk => new(this.rawEncoding[32..]);
+	internal ref readonly KeyAgreementPrivateKey Ivk => ref KeyAgreementPrivateKey.From(this.rawEncoding[32..]);
 
 	/// <summary>
 	/// Gets the raw encoding of this incoming viewing key.
@@ -235,8 +235,8 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	internal int Encode(Span<byte> buffer)
 	{
 		int written = 0;
-		written += this.Dk.Value.CopyToRetLength(buffer[written..]);
-		written += this.Ivk.Value.CopyToRetLength(buffer[written..]);
+		written += this.Dk[..].CopyToRetLength(buffer[written..]);
+		written += this.Ivk[..].CopyToRetLength(buffer[written..]);
 		return written;
 	}
 
