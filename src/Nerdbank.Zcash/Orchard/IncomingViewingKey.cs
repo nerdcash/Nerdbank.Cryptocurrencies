@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.FixedLengthStructs;
+using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash.Orchard;
 
@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash.Orchard;
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, IEquatable<IncomingViewingKey>, IKeyWithTextEncoding
 {
-	private readonly Bytes64 rawEncoding;
+	private readonly RawEncodingBuffer rawEncoding;
 
 	private string? textEncoding;
 
@@ -54,17 +54,17 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <summary>
 	/// Gets the diversifier key.
 	/// </summary>
-	internal DiversifierKey Dk => new(this.rawEncoding.Value[..32]);
+	internal DiversifierKey Dk => new(this.rawEncoding[..32]);
 
 	/// <summary>
 	/// Gets the key agreement private key.
 	/// </summary>
-	internal KeyAgreementPrivateKey Ivk => new(this.rawEncoding.Value[32..]);
+	internal KeyAgreementPrivateKey Ivk => new(this.rawEncoding[32..]);
 
 	/// <summary>
 	/// Gets the raw encoding of this incoming viewing key.
 	/// </summary>
-	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding.Value;
+	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding;
 
 	private string DebuggerDisplay => this.DefaultAddress;
 
@@ -113,7 +113,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	public OrchardReceiver CreateReceiver(DiversifierIndex diversifierIndex)
 	{
 		Span<byte> rawReceiver = stackalloc byte[43];
-		if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex, rawReceiver) != 0)
+		if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding, diversifierIndex, rawReceiver) != 0)
 		{
 			throw new InvalidKeyException(Strings.InvalidKey);
 		}
@@ -173,7 +173,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	{
 		return other is not null
 			&& this.Network == other.Network
-			&& this.rawEncoding.Value.SequenceEqual(other.rawEncoding.Value);
+			&& this.rawEncoding.Equals(other.rawEncoding);
 	}
 
 	/// <inheritdoc/>
@@ -184,7 +184,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	{
 		HashCode result = default;
 		result.Add(this.Network);
-		result.AddBytes(this.rawEncoding.Value);
+		result.AddBytes(this.rawEncoding);
 		return result.ToHashCode();
 	}
 
@@ -238,5 +238,31 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 		written += this.Dk.Value.CopyToRetLength(buffer[written..]);
 		written += this.Ivk.Value.CopyToRetLength(buffer[written..]);
 		return written;
+	}
+
+	[InlineArray(Length)]
+	private struct RawEncodingBuffer : IEquatable<RawEncodingBuffer>
+	{
+		public const int Length = 64;
+
+		private byte element;
+
+		internal RawEncodingBuffer(ReadOnlySpan<byte> value)
+		{
+			value.CopyToWithLengthCheck(this);
+		}
+
+		/// <summary>
+		/// Returns a strongly-typed struct over a span of bytes without incuring the cost of a memory copy.
+		/// </summary>
+		/// <param name="value">The bytes containing the value. This should have a length equal to <see cref="Length"/>.</param>
+		/// <returns>The strongly-typed element.</returns>
+		public static ref readonly RawEncodingBuffer From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, RawEncodingBuffer>(value));
+
+		/// <inheritdoc/>
+		bool IEquatable<RawEncodingBuffer>.Equals(RawEncodingBuffer other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc cref="IEquatable{T}.Equals"/>
+		public readonly bool Equals(in RawEncodingBuffer other) => this[..].SequenceEqual(other);
 	}
 }
