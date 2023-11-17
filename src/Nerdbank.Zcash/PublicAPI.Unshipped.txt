@@ -91,15 +91,17 @@ Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksDone.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksDone.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksTotal.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.BlocksTotal.init -> void
-Nerdbank.Zcash.LightWalletClient.SyncProgress.Deconstruct(out string? LastError, out ulong StartBlock, out ulong EndBlock, out ulong BlocksDone, out ulong TxnScanDone, out ulong BlocksTotal, out ulong BatchNum, out ulong BatchTotal) -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.Deconstruct(out string? LastError, out ulong StartBlock, out ulong EndBlock, out ulong BlocksDone, out ulong TxnScanDone, out ulong BlocksTotal, out ulong BatchNum, out ulong BatchTotal, out bool InProgress) -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.EndBlock.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.EndBlock.init -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.InProgress.get -> bool
+Nerdbank.Zcash.LightWalletClient.SyncProgress.InProgress.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.LastError.get -> string?
 Nerdbank.Zcash.LightWalletClient.SyncProgress.LastError.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.StartBlock.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.StartBlock.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.SyncProgress(Nerdbank.Zcash.LightWalletClient.SyncProgress! original) -> void
-Nerdbank.Zcash.LightWalletClient.SyncProgress.SyncProgress(string? LastError, ulong StartBlock, ulong EndBlock, ulong BlocksDone, ulong TxnScanDone, ulong BlocksTotal, ulong BatchNum, ulong BatchTotal) -> void
+Nerdbank.Zcash.LightWalletClient.SyncProgress.SyncProgress(string? LastError, ulong StartBlock, ulong EndBlock, ulong BlocksDone, ulong TxnScanDone, ulong BlocksTotal, ulong BatchNum, ulong BatchTotal, bool InProgress) -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress.TxnScanDone.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.TxnScanDone.init -> void
 Nerdbank.Zcash.LightWalletClient.SyncResult
