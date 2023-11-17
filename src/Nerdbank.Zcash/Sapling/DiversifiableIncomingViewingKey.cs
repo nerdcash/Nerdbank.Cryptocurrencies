@@ -80,7 +80,7 @@ public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncod
 	{
 		Span<byte> receiverBytes = stackalloc byte[SaplingReceiver.Length];
 		Span<byte> diversifierIndexSpan = stackalloc byte[11];
-		diversifierIndex.Value.CopyTo(diversifierIndexSpan);
+		diversifierIndex[..].CopyTo(diversifierIndexSpan);
 		if (NativeMethods.TryGetSaplingReceiver(this.Ivk.Value, this.Dk.Value, diversifierIndexSpan, receiverBytes) != 0)
 		{
 			receiver = null;

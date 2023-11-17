@@ -2,6 +2,7 @@
 abstract Nerdbank.Zcash.ZcashAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 abstract Nerdbank.Zcash.ZcashAddress.HasShieldedReceiver.get -> bool
 abstract Nerdbank.Zcash.ZcashAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+const Nerdbank.Zcash.DiversifierIndex.Length = 11 -> int
 const Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.Length = 32 -> int
 const Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag.Length = 4 -> int
 const Nerdbank.Zcash.Zip32HDWallet.MinimumEntropyLengthInBits = 256 -> int
@@ -10,9 +11,8 @@ Nerdbank.Zcash.DiversifierIndex.DiversifierIndex() -> void
 Nerdbank.Zcash.DiversifierIndex.DiversifierIndex(System.Numerics.BigInteger value) -> void
 Nerdbank.Zcash.DiversifierIndex.DiversifierIndex(System.ReadOnlySpan<byte> value) -> void
 Nerdbank.Zcash.DiversifierIndex.DiversifierIndex(ulong value) -> void
-Nerdbank.Zcash.DiversifierIndex.Equals(Nerdbank.Zcash.DiversifierIndex other) -> bool
+Nerdbank.Zcash.DiversifierIndex.Equals(in Nerdbank.Zcash.DiversifierIndex other) -> bool
 Nerdbank.Zcash.DiversifierIndex.ToBigInteger() -> System.Numerics.BigInteger
-Nerdbank.Zcash.DiversifierIndex.Value.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.IFullViewingKey
 Nerdbank.Zcash.IFullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.IIncomingViewingKey!
 Nerdbank.Zcash.IIncomingViewingKey
@@ -786,6 +786,7 @@ override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.GetHashCod
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Derive(uint childIndex) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey!
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.GetHashCode() -> int
+static Nerdbank.Zcash.DiversifierIndex.From(System.ReadOnlySpan<byte> value) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(System.Numerics.BigInteger diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.DiversifierIndex.implicit operator Nerdbank.Zcash.DiversifierIndex(ulong diversifierIndex) -> Nerdbank.Zcash.DiversifierIndex
 static Nerdbank.Zcash.LightWalletClient.GetLatestBlockHeightAsync(System.Uri! lightWalletServerUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>

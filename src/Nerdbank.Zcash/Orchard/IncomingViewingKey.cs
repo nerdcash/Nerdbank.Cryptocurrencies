@@ -113,7 +113,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	public OrchardReceiver CreateReceiver(DiversifierIndex diversifierIndex)
 	{
 		Span<byte> rawReceiver = stackalloc byte[43];
-		if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex.Value, rawReceiver) != 0)
+		if (NativeMethods.TryGetOrchardRawPaymentAddress(this.rawEncoding.Value, diversifierIndex, rawReceiver) != 0)
 		{
 			throw new InvalidKeyException(Strings.InvalidKey);
 		}

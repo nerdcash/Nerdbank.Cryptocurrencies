@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Numerics;
-using Nerdbank.Zcash.FixedLengthStructs;
+using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
 
@@ -11,9 +10,15 @@ namespace Nerdbank.Zcash;
 /// A buffer that contains the diversifier index (i.e. the unencrypted diversifier)
 /// used to generate diversified addresses in sapling and orchard pools.
 /// </summary>
+[InlineArray(Length)]
 public struct DiversifierIndex : IEquatable<DiversifierIndex>
 {
-	private readonly Bytes11 value;
+	/// <summary>
+	/// The length of the value in bytes.
+	/// </summary>
+	public const int Length = 11;
+
+	private byte element;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifierIndex"/> struct.
@@ -21,7 +26,7 @@ public struct DiversifierIndex : IEquatable<DiversifierIndex>
 	/// <param name="value">The diversifier index value. This must be an 11-byte buffer.</param>
 	public DiversifierIndex(ReadOnlySpan<byte> value)
 	{
-		value.CopyToWithLengthCheck(this.value.ValueWritable, nameof(value));
+		value.CopyToWithLengthCheck(this, nameof(value));
 	}
 
 	/// <summary>
@@ -34,7 +39,7 @@ public struct DiversifierIndex : IEquatable<DiversifierIndex>
 	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="value"/> is negative.</exception>
 	public DiversifierIndex(BigInteger value)
 	{
-		if (!value.TryWriteBytes(this.value.ValueWritable, out _, isUnsigned: true))
+		if (!value.TryWriteBytes(this, out _, isUnsigned: true))
 		{
 			throw new ArgumentException("Index must fit within 11 bytes.", nameof(value));
 		}
@@ -46,14 +51,8 @@ public struct DiversifierIndex : IEquatable<DiversifierIndex>
 	/// <param name="value">The diversifier index.</param>
 	public DiversifierIndex(ulong value)
 	{
-		BitUtilities.WriteLE(value, this.value.ValueWritable);
+		BitUtilities.WriteLE(value, this);
 	}
-
-	/// <summary>
-	/// Gets the writable diversifier index buffer.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> Value => this.value.Value;
 
 	/// <summary>
 	/// Creates a <see cref="DiversifierIndex"/> value based on a <see cref="BigInteger"/>.
@@ -71,17 +70,24 @@ public struct DiversifierIndex : IEquatable<DiversifierIndex>
 	public static implicit operator DiversifierIndex(ulong diversifierIndex) => new(diversifierIndex);
 
 	/// <summary>
+	/// Returns a strongly-typed struct over a span of bytes without incuring the cost of a memory copy.
+	/// </summary>
+	/// <param name="value">The bytes containing the value. This should have a length equal to <see cref="Length"/>.</param>
+	/// <returns>The strongly-typed element.</returns>
+	public static ref readonly DiversifierIndex From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, DiversifierIndex>(value));
+
+	/// <summary>
 	/// Creates a big integer based on this diversifier index value.
 	/// </summary>
 	/// <returns>The big integer.</returns>
-	public readonly BigInteger ToBigInteger() => new BigInteger(this.Value, isUnsigned: true);
+	public readonly BigInteger ToBigInteger() => new BigInteger(this, isUnsigned: true);
 
 	/// <inheritdoc/>
-	public bool Equals(DiversifierIndex other) => this.value.Value.SequenceEqual(other.value.Value);
+	bool IEquatable<DiversifierIndex>.Equals(DiversifierIndex other) => this[..].SequenceEqual(other);
+
+	/// <inheritdoc cref="IEquatable{T}.Equals"/>
+	public readonly bool Equals(in DiversifierIndex other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc/>
-	public override string ToString()
-	{
-		return Convert.ToHexString(this.Value);
-	}
+	public override string ToString() => Convert.ToHexString(this);
 }
