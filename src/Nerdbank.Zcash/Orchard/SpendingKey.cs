@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.FixedLengthStructs;
-
 namespace Nerdbank.Zcash.Orchard;
 
 /// <summary>
@@ -65,7 +63,7 @@ public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 					ZcashNetwork.TestNet => Bech32mTestNetworkHRP,
 					_ => throw new NotSupportedException(),
 				};
-				int charLength = Bech32.Bech32m.Encode(hrp, this.value.Value, encodedChars);
+				int charLength = Bech32.Bech32m.Encode(hrp, this.value, encodedChars);
 				this.textEncoding = new string(encodedChars[..charLength]);
 			}
 
@@ -82,7 +80,7 @@ public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 	/// <summary>
 	/// Gets the buffer. Always 32 bytes in length.
 	/// </summary>
-	internal ReadOnlySpan<byte> Value => this.value.Value;
+	internal ReadOnlySpan<byte> Value => this.value;
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination) => this.Value.CopyToRetLength(destination);

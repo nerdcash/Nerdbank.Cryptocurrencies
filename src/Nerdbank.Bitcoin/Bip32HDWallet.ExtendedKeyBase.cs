@@ -3,8 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Secp = NBitcoin.Secp256k1;
 
 namespace Nerdbank.Bitcoin;
@@ -18,10 +16,8 @@ public static partial class Bip32HDWallet
 	/// <seealso cref="ExtendedPublicKey"/>
 	public abstract class ExtendedKeyBase : IExtendedKey, IKeyWithTextEncoding
 	{
-		private const int ChainCodeLength = 32;
-		private const int ParentFingerprintLength = 4;
-
-		private readonly FixedArrays fixedArrays;
+		private readonly ParentFingerprint parentFingerprint;
+		private readonly ChainCode chainCode;
 
 		/// <summary>
 		/// Backing field for the <see cref="TextEncoding"/> property.
@@ -37,9 +33,10 @@ public static partial class Bip32HDWallet
 		/// <param name="depth">The depth of the parent key, plus 1.</param>
 		/// <param name="childIndex">The index used when deriving this key.</param>
 		/// <param name="testNet"><see langword="true" /> if this key is for use on a testnet; <see langword="false" /> otherwise.</param>
-		internal ExtendedKeyBase(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet)
+		internal ExtendedKeyBase(in ChainCode chainCode, in ParentFingerprint parentFingerprint, byte depth, uint childIndex, bool testNet)
 		{
-			this.fixedArrays = new(chainCode, parentFingerprint);
+			this.chainCode = chainCode;
+			this.parentFingerprint = parentFingerprint;
 			this.Depth = depth;
 			this.ChildIndex = childIndex;
 			this.IsTestNet = testNet;
@@ -106,12 +103,12 @@ public static partial class Bip32HDWallet
 		/// <summary>
 		/// Gets the first 32-bits of the <see cref="Identifier"/> of the parent key.
 		/// </summary>
-		protected ReadOnlySpan<byte> ParentFingerprint => this.fixedArrays.ParentFingerprint;
+		protected ref readonly ParentFingerprint ParentFingerprint => ref this.parentFingerprint;
 
 		/// <summary>
 		/// Gets the chain code for this key.
 		/// </summary>
-		protected ReadOnlySpan<byte> ChainCode => this.fixedArrays.ChainCode;
+		protected ref readonly ChainCode ChainCode => ref this.chainCode;
 
 		/// <summary>
 		/// Gets a 4-byte version used in the binary representation of this extended key.
@@ -177,9 +174,9 @@ public static partial class Bip32HDWallet
 			bytes = bytes[..bytesWritten];
 			ReadOnlySpan<byte> version = bytes[..4];
 			byte depth = bytes[4];
-			ReadOnlySpan<byte> parentFingerprint = bytes[5..9];
+			ref readonly ParentFingerprint parentFingerprint = ref ParentFingerprint.From(bytes[5..9]);
 			uint childIndex = BitUtilities.ReadUInt32BE(bytes[9..13]);
-			ReadOnlySpan<byte> chainCode = bytes.Slice(13, ChainCodeLength);
+			ref readonly ChainCode chainCode = ref ChainCode.From(bytes.Slice(13, ChainCode.Length));
 			ReadOnlySpan<byte> keyMaterial = bytes[^PublicKeyLength..];
 
 			if (depth == 0)
@@ -191,7 +188,7 @@ public static partial class Bip32HDWallet
 					return false;
 				}
 
-				if (!parentFingerprint.SequenceEqual("\0\0\0\0"u8))
+				if (!parentFingerprint.Equals(default))
 				{
 					decodeError = DecodeError.InvalidDerivationData;
 					errorMessage = "The key claims to be a master key but has non-zero parent fingerprint.";
@@ -288,39 +285,12 @@ public static partial class Bip32HDWallet
 
 			bytesWritten += this.Version.CopyToRetLength(destination);
 			destination[bytesWritten++] = this.Depth;
-			bytesWritten += this.ParentFingerprint.CopyToRetLength(destination[bytesWritten..]);
+			bytesWritten += this.ParentFingerprint[..].CopyToRetLength(destination[bytesWritten..]);
 			bytesWritten += BitUtilities.WriteBE(this.ChildIndex, destination[bytesWritten..]);
-			bytesWritten += this.fixedArrays.ChainCode.CopyToRetLength(destination[bytesWritten..]);
+			bytesWritten += this.ChainCode[..].CopyToRetLength(destination[bytesWritten..]);
 			bytesWritten += this.WriteKeyMaterial(destination[bytesWritten..]);
 
 			return bytesWritten;
-		}
-
-		private unsafe struct FixedArrays
-		{
-			private fixed byte chainCode[ChainCodeLength];
-			private fixed byte parentFingerprint[ParentFingerprintLength];
-
-			internal FixedArrays(ReadOnlySpan<byte> chainCode, ReadOnlySpan<byte> parentFingerprint)
-			{
-				Requires.Argument(chainCode.Length == ChainCodeLength, nameof(chainCode), null);
-				Requires.Argument(parentFingerprint.Length is 0 or ParentFingerprintLength, nameof(parentFingerprint), null);
-
-				chainCode.CopyTo(this.ChainCodeWritable);
-				parentFingerprint.CopyTo(this.ParentFingerprintWritable);
-			}
-
-			[UnscopedRef]
-			internal readonly ReadOnlySpan<byte> ChainCode => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.chainCode[0]), ChainCodeLength);
-
-			[UnscopedRef]
-			internal readonly ReadOnlySpan<byte> ParentFingerprint => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.parentFingerprint[0]), ParentFingerprintLength);
-
-			[UnscopedRef]
-			private Span<byte> ChainCodeWritable => MemoryMarshal.CreateSpan(ref this.chainCode[0], ChainCodeLength);
-
-			[UnscopedRef]
-			private Span<byte> ParentFingerprintWritable => MemoryMarshal.CreateSpan(ref this.parentFingerprint[0], ParentFingerprintLength);
 		}
 	}
 }

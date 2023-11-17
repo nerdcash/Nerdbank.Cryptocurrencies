@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using static Nerdbank.Bitcoin.Bip32HDWallet;
+
 namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
@@ -13,17 +15,17 @@ public partial class Zip32HDWallet
 		/// <summary>
 		/// Gets the key's fingerprint.
 		/// </summary>
-		FullViewingKeyFingerprint Fingerprint { get; }
+		ref readonly FullViewingKeyFingerprint Fingerprint { get; }
 
 		/// <summary>
 		/// Gets the first 32-bits of the fingerprint of the parent key.
 		/// </summary>
-		FullViewingKeyTag ParentFullViewingKeyTag { get; }
+		ref readonly FullViewingKeyTag ParentFullViewingKeyTag { get; }
 
 		/// <summary>
 		/// Gets the chain code for this key.
 		/// </summary>
-		ChainCode ChainCode { get; }
+		ref readonly ChainCode ChainCode { get; }
 
 		/// <inheritdoc cref="Cryptocurrencies.IExtendedKey"/>
 		new IExtendedKey Derive(uint childIndex);

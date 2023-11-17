@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using NBitcoin.Secp256k1;
-using Nerdbank.Cryptocurrencies;
-using Nerdbank.Zcash.FixedLengthStructs;
 
 namespace Nerdbank.Zcash.Transparent;
 
@@ -49,7 +47,7 @@ public class PrivateKey : ISpendingKey, IKeyWithTextEncoding, IZcashKey
 	/// <summary>
 	/// Gets the private key data.
 	/// </summary>
-	public ReadOnlySpan<byte> KeyMaterial => this.privateKey.Value;
+	public ReadOnlySpan<byte> KeyMaterial => this.privateKey;
 
 	/// <summary>
 	/// Gets the Zcash network this key is used on.

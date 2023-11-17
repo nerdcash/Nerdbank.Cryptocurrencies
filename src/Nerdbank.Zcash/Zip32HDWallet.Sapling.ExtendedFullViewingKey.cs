@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Nerdbank.Zcash.Sapling;
+using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -18,6 +19,9 @@ public partial class Zip32HDWallet
 			private const string Bech32MainNetworkHRP = "zxviews";
 			private const string Bech32TestNetworkHRP = "zxviewtestsapling";
 
+			private readonly FullViewingKeyFingerprint fingerprint;
+			private readonly FullViewingKeyTag parentFullViewingKeyTag;
+			private readonly ChainCode chainCode;
 			private string? textEncoding;
 
 			/// <summary>
@@ -31,20 +35,21 @@ public partial class Zip32HDWallet
 			internal ExtendedFullViewingKey(DiversifiableFullViewingKey key, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex)
 			{
 				this.FullViewingKey = key;
-				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
-				this.ChainCode = chainCode;
+				this.fingerprint = GetFingerprint(key);
+				this.parentFullViewingKeyTag = parentFullViewingKeyTag;
+				this.chainCode = chainCode;
 				this.ChildIndex = childIndex;
 				this.Depth = depth;
 			}
 
 			/// <inheritdoc/>
-			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey);
+			public ref readonly FullViewingKeyFingerprint Fingerprint => ref this.fingerprint;
 
 			/// <inheritdoc/>
-			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
+			public ref readonly FullViewingKeyTag ParentFullViewingKeyTag => ref this.parentFullViewingKeyTag;
 
 			/// <inheritdoc/>
-			public ChainCode ChainCode { get; }
+			public ref readonly ChainCode ChainCode => ref this.chainCode;
 
 			/// <inheritdoc/>
 			public uint ChildIndex { get; }
@@ -191,8 +196,8 @@ public partial class Zip32HDWallet
 			{
 				return other is not null
 					&& this.FullViewingKey.Equals(other.FullViewingKey)
-					&& this.ChainCode.Value.SequenceEqual(other.ChainCode.Value)
-					&& this.ParentFullViewingKeyTag.Value.SequenceEqual(other.ParentFullViewingKeyTag.Value)
+					&& this.ChainCode.Equals(other.ChainCode)
+					&& this.ParentFullViewingKeyTag.Equals(other.ParentFullViewingKeyTag)
 					&& this.Depth == other.Depth
 					&& this.ChildIndex == other.ChildIndex
 					&& this.Network == other.Network;
@@ -228,11 +233,11 @@ public partial class Zip32HDWallet
 			{
 				int length = 0;
 				result[length++] = this.Depth;
-				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
+				length += this.ParentFullViewingKeyTag[..].CopyToRetLength(result[length..]);
 				length += BitUtilities.WriteLE(this.ChildIndex, result[length..]);
-				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
+				length += this.ChainCode[..].CopyToRetLength(result[length..]);
 				length += this.FullViewingKey.Encode(result[length..]);
-				length += this.Dk.Value.CopyToRetLength(result[length..]);
+				length += this.Dk[..].CopyToRetLength(result[length..]);
 				Assumes.True(length == 169);
 				return length;
 			}

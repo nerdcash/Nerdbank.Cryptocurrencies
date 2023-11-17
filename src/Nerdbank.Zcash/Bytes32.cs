@@ -3,13 +3,13 @@
 
 using System.Runtime.InteropServices;
 
-namespace Nerdbank.Zcash.Orchard;
+namespace Nerdbank.Zcash;
 
 /// <summary>
-/// A spend validating key.
+/// A 32-byte buffer.
 /// </summary>
 [InlineArray(Length)]
-internal struct SpendValidatingKey : IEquatable<SpendValidatingKey>
+internal struct Bytes32 : IEquatable<Bytes32>
 {
 	/// <summary>
 	/// The length of the value in bytes.
@@ -19,10 +19,10 @@ internal struct SpendValidatingKey : IEquatable<SpendValidatingKey>
 	private byte element;
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="SpendValidatingKey"/> struct.
+	/// Initializes a new instance of the <see cref="Bytes32"/> struct.
 	/// </summary>
 	/// <param name="value">The bytes containing the value. This should have a length equal to <see cref="Length"/>.</param>
-	public SpendValidatingKey(ReadOnlySpan<byte> value)
+	internal Bytes32(ReadOnlySpan<byte> value)
 	{
 		value.CopyToWithLengthCheck(this);
 	}
@@ -32,11 +32,11 @@ internal struct SpendValidatingKey : IEquatable<SpendValidatingKey>
 	/// </summary>
 	/// <param name="value">The bytes containing the value. This should have a length equal to <see cref="Length"/>.</param>
 	/// <returns>The strongly-typed element.</returns>
-	public static ref readonly SpendValidatingKey From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, SpendValidatingKey>(value));
+	public static ref readonly Bytes32 From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, Bytes32>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<SpendValidatingKey>.Equals(SpendValidatingKey other) => this[..].SequenceEqual(other);
+	bool IEquatable<Bytes32>.Equals(Bytes32 other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
-	public readonly bool Equals(in SpendValidatingKey other) => this[..].SequenceEqual(other);
+	public readonly bool Equals(in Bytes32 other) => this[..].SequenceEqual(other);
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Nerdbank.Zcash.Orchard;
+using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -17,6 +18,9 @@ public partial class Zip32HDWallet
 		{
 			private const string Bech32MainNetworkHRP = "secret-orchard-extsk-main";
 			private const string Bech32TestNetworkHRP = "secret-orchard-extsk-test";
+			private readonly FullViewingKeyTag parentFullViewingKeyTag;
+			private readonly FullViewingKeyFingerprint fingerprint;
+			private readonly ChainCode chainCode;
 			private string? textEncoding;
 
 			/// <summary>
@@ -30,8 +34,9 @@ public partial class Zip32HDWallet
 			internal ExtendedSpendingKey(in SpendingKey spendingKey, in ChainCode chainCode, in FullViewingKeyTag parentFullViewingKeyTag, byte depth, uint childIndex)
 			{
 				this.SpendingKey = spendingKey;
-				this.ChainCode = chainCode;
-				this.ParentFullViewingKeyTag = parentFullViewingKeyTag;
+				this.fingerprint = GetFingerprint(spendingKey.FullViewingKey);
+				this.chainCode = chainCode;
+				this.parentFullViewingKeyTag = parentFullViewingKeyTag;
 				this.Depth = depth;
 				this.ChildIndex = childIndex;
 			}
@@ -58,13 +63,13 @@ public partial class Zip32HDWallet
 			/// <summary>
 			/// Gets the fingerprint for this key.
 			/// </summary>
-			public FullViewingKeyFingerprint Fingerprint => GetFingerprint(this.FullViewingKey);
+			public ref readonly FullViewingKeyFingerprint Fingerprint => ref this.fingerprint;
 
 			/// <inheritdoc/>
-			public FullViewingKeyTag ParentFullViewingKeyTag { get; }
+			public ref readonly FullViewingKeyTag ParentFullViewingKeyTag => ref this.parentFullViewingKeyTag;
 
 			/// <inheritdoc/>
-			public ChainCode ChainCode { get; }
+			public ref readonly ChainCode ChainCode => ref this.chainCode;
 
 			/// <inheritdoc/>
 			public uint ChildIndex { get; }
@@ -170,8 +175,8 @@ public partial class Zip32HDWallet
 			{
 				return other is not null
 					&& this.SpendingKey.Value.SequenceEqual(other.SpendingKey.Value)
-					&& this.ChainCode.Value.SequenceEqual(other.ChainCode.Value)
-					&& this.ParentFullViewingKeyTag.Value.SequenceEqual(other.ParentFullViewingKeyTag.Value)
+					&& this.ChainCode.Equals(other.ChainCode)
+					&& this.ParentFullViewingKeyTag.Equals(other.ParentFullViewingKeyTag)
 					&& this.Depth == other.Depth
 					&& this.ChildIndex == other.ChildIndex
 					&& this.Network == other.Network;
@@ -191,7 +196,7 @@ public partial class Zip32HDWallet
 				bytesWritten += this.SpendingKey.Value.CopyToRetLength(bytes);
 				bytesWritten += I2LEOSP(childIndex, bytes.Slice(bytesWritten, 4));
 				Span<byte> i = stackalloc byte[64];
-				ZcashUtilities.PRFexpand(this.ChainCode.Value, PrfExpandCodes.OrchardZip32Child, bytes, i);
+				ZcashUtilities.PRFexpand(this.ChainCode, PrfExpandCodes.OrchardZip32Child, bytes, i);
 				Span<byte> spendingKey = i[0..32];
 				ChainCode chainCode = new(i[32..]);
 
@@ -199,7 +204,7 @@ public partial class Zip32HDWallet
 				return new ExtendedSpendingKey(
 					key,
 					chainCode,
-					parentFullViewingKeyTag: GetFingerprint(this.FullViewingKey).Tag,
+					parentFullViewingKeyTag: this.Fingerprint.Tag,
 					depth: checked((byte)(this.Depth + 1)),
 					childIndex)
 				{
@@ -237,9 +242,9 @@ public partial class Zip32HDWallet
 			{
 				int length = 0;
 				length += I2LEOSP(this.Depth, result[length..]);
-				length += this.ParentFullViewingKeyTag.Value.CopyToRetLength(result[length..]);
+				length += this.ParentFullViewingKeyTag[..].CopyToRetLength(result[length..]);
 				length += I2LEOSP(this.ChildIndex, result[length..]);
-				length += this.ChainCode.Value.CopyToRetLength(result[length..]);
+				length += this.ChainCode[..].CopyToRetLength(result[length..]);
 				length += this.SpendingKey.Value.CopyToRetLength(result[length..]);
 				Assumes.True(length == 73);
 				return length;

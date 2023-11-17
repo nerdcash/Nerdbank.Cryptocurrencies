@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.FixedLengthStructs;
+using System.Runtime.CompilerServices;
 
 namespace Nerdbank.Zcash;
 
@@ -22,7 +22,7 @@ public struct Memo : IEquatable<Memo>
 	/// <param name="memoBytes">The memo bytes. Must be at most 512 bytes. Fewer bytes will lead to padding zeros to fill 512 bytes.</param>
 	public Memo(ReadOnlySpan<byte> memoBytes)
 	{
-		this.bytes = new(memoBytes, allowShorterInput: true);
+		memoBytes.CopyTo(this.bytes);
 	}
 
 	/// <summary>
@@ -46,8 +46,8 @@ public struct Memo : IEquatable<Memo>
 	/// </remarks>
 	public string? Message
 	{
-		readonly get => Zip302MemoFormat.TryDecodeMessage(this.bytes.Value, out string? text) ? text : null;
-		set => Zip302MemoFormat.EncodeMessage(value, this.bytes.ValueWritable);
+		readonly get => Zip302MemoFormat.TryDecodeMessage(this.bytes, out string? text) ? text : null;
+		set => Zip302MemoFormat.EncodeMessage(value, this.bytes);
 	}
 
 	/// <summary>
@@ -59,23 +59,23 @@ public struct Memo : IEquatable<Memo>
 	public ReadOnlySpan<byte> ProprietaryData
 	{
 		[UnscopedRef]
-		readonly get => Zip302MemoFormat.DetectMemoFormat(this.bytes.Value) == Zip302MemoFormat.MemoFormat.ProprietaryData ? this.bytes.Value[1..] : default;
-		set => Zip302MemoFormat.EncodeProprietaryData(value, this.bytes.ValueWritable);
+		readonly get => Zip302MemoFormat.DetectMemoFormat(this.bytes) == Zip302MemoFormat.MemoFormat.ProprietaryData ? this.bytes[1..] : default;
+		set => Zip302MemoFormat.EncodeProprietaryData(value, this.bytes);
 	}
 
 	/// <summary>
 	/// Gets the raw 512 byte memo.
 	/// </summary>
 	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> RawBytes => this.bytes.Value;
+	public readonly ReadOnlySpan<byte> RawBytes => this.bytes;
 
 	/// <summary>
 	/// Gets a value indicating whether this memo is empty.
 	/// </summary>
-	public readonly bool IsEmpty => Zip302MemoFormat.DetectMemoFormat(this.bytes.Value) == Zip302MemoFormat.MemoFormat.NoMemo;
+	public readonly bool IsEmpty => Zip302MemoFormat.DetectMemoFormat(this.bytes) == Zip302MemoFormat.MemoFormat.NoMemo;
 
 	/// <inheritdoc cref="Zip302MemoFormat.DetectMemoFormat"/>
-	public readonly Zip302MemoFormat.MemoFormat MemoFormat => Zip302MemoFormat.DetectMemoFormat(this.bytes.Value);
+	public readonly Zip302MemoFormat.MemoFormat MemoFormat => Zip302MemoFormat.DetectMemoFormat(this.bytes);
 
 	private readonly string DebuggerDisplay => this.ToString(useQuotesAroundMessage: true);
 
@@ -87,10 +87,10 @@ public struct Memo : IEquatable<Memo>
 	public static Memo FromMessage(string? message) => message is null ? NoMemo : new Memo() { Message = message };
 
 	/// <inheritdoc cref="Zip302MemoFormat.EncodeNoMemo"/>
-	public void Clear() => Zip302MemoFormat.EncodeNoMemo(this.bytes.ValueWritable);
+	public void Clear() => Zip302MemoFormat.EncodeNoMemo(this.bytes);
 
 	/// <inheritdoc/>
-	public readonly bool Equals(Memo other) => this.bytes.Value.SequenceEqual(other.bytes.Value);
+	public readonly bool Equals(Memo other) => this.bytes[..].SequenceEqual(other.bytes);
 
 	/// <inheritdoc/>
 	public readonly override string ToString() => this.ToString(useQuotesAroundMessage: false);
@@ -104,5 +104,11 @@ public struct Memo : IEquatable<Memo>
 			Zip302MemoFormat.MemoFormat.ProprietaryData => $"Proprietary data: {Convert.ToHexString(this.ProprietaryData)}",
 			_ => "(unrecognized format)",
 		};
+	}
+
+	[InlineArray(512)]
+	private struct Bytes512
+	{
+		private byte element0;
 	}
 }

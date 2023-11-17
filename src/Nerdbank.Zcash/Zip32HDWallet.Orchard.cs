@@ -3,6 +3,7 @@
 
 using Nerdbank.Bitcoin;
 using Nerdbank.Zcash.Orchard;
+using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -34,7 +35,7 @@ public partial class Zip32HDWallet
 			Blake2B.ComputeHash(seed, blakeOutput, new Blake2B.Config { Personalization = "ZcashIP32Orchard"u8, OutputSizeInBytes = blakeOutput.Length });
 
 			SpendingKey spendingKey = new(blakeOutput[..32], network);
-			ChainCode chainCode = new(blakeOutput[32..]);
+			ref readonly ChainCode chainCode = ref ChainCode.From(blakeOutput[32..]);
 
 			return new ExtendedSpendingKey(
 				spendingKey,
@@ -52,7 +53,7 @@ public partial class Zip32HDWallet
 		/// </summary>
 		/// <param name="fullViewingKey">The full viewing key.</param>
 		/// <returns>The viewing key's fingerprint.</returns>
-		internal static FullViewingKeyFingerprint GetFingerprint(FullViewingKey fullViewingKey)
+		private static FullViewingKeyFingerprint GetFingerprint(FullViewingKey fullViewingKey)
 		{
 			Requires.NotNull(fullViewingKey);
 
