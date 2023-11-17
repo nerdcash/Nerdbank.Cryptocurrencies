@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using NBitcoin.Secp256k1;
-using Nerdbank.Zcash.FixedLengthStructs;
 
 namespace Nerdbank.Zcash.Transparent;
 
@@ -11,7 +10,7 @@ namespace Nerdbank.Zcash.Transparent;
 /// </summary>
 public class PublicKey : IZcashKey, IFullViewingKey
 {
-	private readonly Bytes33 keyMaterial;
+	private readonly PublicKeyMaterial keyMaterial;
 	private readonly int keyLength;
 
 	/// <summary>
@@ -21,7 +20,7 @@ public class PublicKey : IZcashKey, IFullViewingKey
 	/// <param name="network">The zcash network this key will be used on.</param>
 	public PublicKey(ReadOnlySpan<byte> publicKey, ZcashNetwork network)
 	{
-		this.keyMaterial = new(publicKey, allowShorterInput: true);
+		publicKey.CopyTo(this.keyMaterial);
 		this.keyLength = publicKey.Length;
 		this.Network = network;
 
@@ -37,9 +36,7 @@ public class PublicKey : IZcashKey, IFullViewingKey
 	{
 		Requires.NotNull(publicKey);
 
-		Span<byte> keyMaterial = stackalloc byte[33];
-		publicKey.WriteToSpan(compressed: true, keyMaterial, out int bytesWritten);
-		this.keyMaterial = new(keyMaterial, allowShorterInput: true);
+		publicKey.WriteToSpan(compressed: true, this.keyMaterial, out int bytesWritten);
 
 		this.DefaultAddress = new TransparentP2PKHAddress(new TransparentP2PKHReceiver(this), this.Network);
 	}
@@ -52,19 +49,15 @@ public class PublicKey : IZcashKey, IFullViewingKey
 	{
 		Requires.NotNull(publicKey);
 
-		Span<byte> keyMaterial = stackalloc byte[33];
-		publicKey.CryptographicKey.WriteToSpan(compressed: true, keyMaterial, out this.keyLength);
-		this.keyMaterial = new(keyMaterial, allowShorterInput: true);
-
+		publicKey.CryptographicKey.WriteToSpan(compressed: true, this.keyMaterial, out this.keyLength);
 		this.Network = publicKey.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
-
 		this.DefaultAddress = new TransparentP2PKHAddress(new TransparentP2PKHReceiver(this), this.Network);
 	}
 
 	/// <summary>
 	/// Gets the public key.
 	/// </summary>
-	public ReadOnlySpan<byte> KeyMaterial => this.keyMaterial.Value[..this.keyLength];
+	public ReadOnlySpan<byte> KeyMaterial => this.keyMaterial[..this.keyLength];
 
 	/// <inheritdoc/>
 	public ZcashNetwork Network { get; }
@@ -74,4 +67,11 @@ public class PublicKey : IZcashKey, IFullViewingKey
 
 	/// <inheritdoc/>
 	public IIncomingViewingKey IncomingViewingKey => this;
+
+	[InlineArray(Length)]
+	private struct PublicKeyMaterial
+	{
+		public const int Length = 33;
+		private byte element;
+	}
 }
