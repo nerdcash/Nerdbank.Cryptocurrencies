@@ -11,8 +11,6 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public static class ZcashUtilities
 {
-	private static readonly Security ZECTestNet = Security.ZEC with { TickerSymbol = "TAZ", Name = "Zcash (testnet)" };
-
 	/// <summary>
 	/// Gets the ticker symbol to use iven a Zcash network (e.g. ZEC or TAZ).
 	/// </summary>
@@ -40,7 +38,7 @@ public static class ZcashUtilities
 		return network switch
 		{
 			ZcashNetwork.MainNet => Security.ZEC,
-			ZcashNetwork.TestNet => ZECTestNet,
+			ZcashNetwork.TestNet => Security.TAZ,
 			_ => throw new ArgumentException(Strings.FormatUnrecognizedNetwork(network), nameof(network)),
 		};
 	}

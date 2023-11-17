@@ -13,8 +13,9 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 /// <param name="TickerSymbol">The ticker symbol for the security (e.g. BTC, ZEC, or USD).</param>
 /// <param name="Name">The conversational name of the security (e.g. Bitcoin, Zcash, or US Dollars).</param>
 /// <param name="Precision">The number of digits after the decimal point that may be required to represent the smallest divisible fraction of the security.</param>
+/// <param name="IsTestNet">A value indicating whether this security is only used on test networks.</param>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public record Security(string TickerSymbol, string? Name = null, int Precision = 8)
+public record Security(string TickerSymbol, string? Name = null, int Precision = 8, bool IsTestNet = false)
 {
 #pragma warning disable CS1591, SA1600
 	public static readonly Security ACM = new("ACM", "Actinium");
@@ -123,6 +124,7 @@ public record Security(string TickerSymbol, string? Name = null, int Precision =
 	public static readonly Security SOLACE = new("SOLACE", "Solacecoin");
 	public static readonly Security STORJ = new("STORJ", "Storj");
 	public static readonly Security SUMO = new("SUMO", "Sumokoin");
+	public static readonly Security TAZ = new("TAZ", "Zcash (testnet)", IsTestNet: true);
 	public static readonly Security TRTL = new("TRTL", "TurtleCoin");
 	public static readonly Security TUBE = new("TUBE", "BitTube");
 	public static readonly Security UNI = new("UNI", "Uniswap");

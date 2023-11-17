@@ -504,6 +504,7 @@ public class LightWalletClient : IDisposable
 	/// <param name="BlocksTotal">The total number of blocks.</param>
 	/// <param name="BatchNum">The batch number currently being scanned.</param>
 	/// <param name="BatchTotal">The number of batches that the current scan operation is divided into.</param>
+	/// <param name="InProgress">A value indicating whether the sync is still in progress.</param>
 	public record SyncProgress(
 		string? LastError,
 		ulong StartBlock,
@@ -512,7 +513,8 @@ public class LightWalletClient : IDisposable
 		ulong TxnScanDone,
 		ulong BlocksTotal,
 		ulong BatchNum,
-		ulong BatchTotal)
+		ulong BatchTotal,
+		bool InProgress)
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SyncProgress"/> class
@@ -520,7 +522,7 @@ public class LightWalletClient : IDisposable
 		/// </summary>
 		/// <param name="copyFrom">The data to copy from.</param>
 		internal SyncProgress(SyncStatus copyFrom)
-			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal)
+			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal, copyFrom.inProgress)
 		{
 		}
 	}
