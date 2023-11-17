@@ -140,8 +140,8 @@ public class ExpandedSpendingKey : IEquatable<ExpandedSpendingKey>, ISpendingKey
 	/// <returns>The serialized form.</returns>
 	internal Bytes96 ToBytes()
 	{
-		Span<byte> bytes = stackalloc byte[96];
-		this.ToBytes(bytes);
-		return new(bytes);
+		Bytes96 result = default;
+		this.ToBytes(result);
+		return result;
 	}
 }

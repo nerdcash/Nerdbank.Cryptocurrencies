@@ -232,8 +232,8 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	/// </remarks>
 	internal Bytes96 ToBytes()
 	{
-		Span<byte> result = stackalloc byte[96];
+		Bytes96 result = default;
 		this.Encode(result);
-		return new(result);
+		return result;
 	}
 }

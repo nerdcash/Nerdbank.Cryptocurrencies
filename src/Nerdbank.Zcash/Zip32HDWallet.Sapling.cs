@@ -51,9 +51,10 @@ public partial class Zip32HDWallet
 		{
 			Requires.NotNull(fullViewingKey);
 
-			Span<byte> fingerprint = stackalloc byte[32];
-			Blake2B.ComputeHash(fullViewingKey.ToBytes().Value, fingerprint, new Blake2B.Config { Personalization = "ZcashSaplingFVFP"u8, OutputSizeInBytes = 32 });
-			return new(fingerprint);
+			FullViewingKeyFingerprint fingerprint = default;
+			Bytes96 rawEncoding = fullViewingKey.ToBytes();
+			Blake2B.ComputeHash(rawEncoding, fingerprint, new Blake2B.Config { Personalization = "ZcashSaplingFVFP"u8, OutputSizeInBytes = 32 });
+			return fingerprint;
 		}
 	}
 }

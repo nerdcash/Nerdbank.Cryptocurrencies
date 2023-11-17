@@ -89,11 +89,12 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 	/// </remarks>
 	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
 	{
+		Bytes96 rawEncoding = this.ToBytes();
 		Span<byte> diversifierSpan = stackalloc byte[11];
-		switch (NativeMethods.DecryptSaplingDiversifier(this.ToBytes().Value, this.Dk.Value, receiver.Span, diversifierSpan, out _))
+		switch (NativeMethods.DecryptSaplingDiversifier(rawEncoding, this.Dk.Value, receiver.Span, diversifierSpan, out _))
 		{
 			case 0:
-				diversifierIndex = new(diversifierSpan);
+				diversifierIndex = DiversifierIndex.From(diversifierSpan);
 				return true;
 			case 1:
 				diversifierIndex = null;

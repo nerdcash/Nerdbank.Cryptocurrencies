@@ -51,22 +51,22 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	/// <summary>
 	/// Gets the spend validating key.
 	/// </summary>
-	internal SpendValidatingKey Ak => new(this.rawEncoding.Value[0..32]);
+	internal SpendValidatingKey Ak => new(this.rawEncoding[0..32]);
 
 	/// <summary>
 	/// Gets the nullifier deriving key.
 	/// </summary>
-	internal NullifierDerivingKey Nk => new(this.rawEncoding.Value[32..64]);
+	internal NullifierDerivingKey Nk => new(this.rawEncoding[32..64]);
 
 	/// <summary>
 	/// Gets the commit randomness.
 	/// </summary>
-	internal CommitIvkRandomness Rivk => new(this.rawEncoding.Value[64..]);
+	internal CommitIvkRandomness Rivk => new(this.rawEncoding[64..]);
 
 	/// <summary>
 	/// Gets the 96-byte raw encoding of this key.
 	/// </summary>
-	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding.Value;
+	internal ReadOnlySpan<byte> RawEncoding => this.rawEncoding;
 
 	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress.ToString();
 
@@ -134,7 +134,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	public bool Equals(FullViewingKey? other)
 	{
 		return other is not null
-			&& this.rawEncoding.Value.SequenceEqual(other.rawEncoding.Value)
+			&& this.rawEncoding.Equals(other.rawEncoding)
 			&& this.Network == other.Network;
 	}
 
@@ -146,7 +146,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	{
 		HashCode result = default;
 		result.Add(this.Network);
-		result.AddBytes(this.rawEncoding.Value);
+		result.AddBytes(this.rawEncoding);
 		return result.ToHashCode();
 	}
 
@@ -154,7 +154,7 @@ public class FullViewingKey : IUnifiedEncodingElement, IFullViewingKey, IEquatab
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
 	{
 		int written = 0;
-		written += this.rawEncoding.Value.CopyToRetLength(destination[written..]);
+		written += this.rawEncoding[..].CopyToRetLength(destination[written..]);
 		return written;
 	}
 
