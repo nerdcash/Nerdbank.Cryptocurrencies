@@ -5,7 +5,7 @@ using System.Buffers;
 using MessagePack;
 using MessagePack.Formatters;
 
-namespace Nerdbank.Zcash.App.Models;
+namespace Nerdbank.Zcash.App.Formatters;
 
 internal class Zip32HDWalletFormatter : IMessagePackFormatter<Zip32HDWallet>
 {

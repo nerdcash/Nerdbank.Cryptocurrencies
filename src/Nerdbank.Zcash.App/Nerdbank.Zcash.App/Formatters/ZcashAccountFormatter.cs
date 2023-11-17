@@ -4,7 +4,7 @@
 using MessagePack;
 using MessagePack.Formatters;
 
-namespace Nerdbank.Zcash.App.Models;
+namespace Nerdbank.Zcash.App.Formatters;
 
 internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 {
@@ -22,19 +22,22 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 			return;
 		}
 
+		writer.WriteArrayHeader(4);
 		if (value.HDDerivation is { } derivation)
 		{
-			writer.WriteArrayHeader(3);
 			writer.WriteNil();
 			options.Resolver.GetFormatterWithVerify<Zip32HDWallet?>().Serialize(ref writer, derivation.Wallet, options);
 			writer.Write(derivation.AccountIndex);
 		}
 		else
 		{
-			writer.WriteArrayHeader(1);
 			string v = value.FullViewing?.UnifiedKey.TextEncoding ?? value.IncomingViewing.UnifiedKey.TextEncoding;
 			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, v, options);
+			writer.WriteNil();
+			writer.WriteNil();
 		}
+
+		options.Resolver.GetFormatterWithVerify<ulong?>().Serialize(ref writer, value.BirthdayHeight, options);
 	}
 
 	public ZcashAccount? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
@@ -47,6 +50,7 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 		string? uvk = null;
 		Zip32HDWallet? zip32 = null;
 		uint? accountIndex = null;
+		ulong? birthdayHeight = null;
 
 		options.Security.DepthStep(ref reader);
 		int length = reader.ReadArrayHeader();
@@ -72,7 +76,9 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 					}
 
 					break;
-
+				case 3:
+					birthdayHeight = options.Resolver.GetFormatterWithVerify<ulong?>().Deserialize(ref reader, options);
+					break;
 				default:
 					reader.Skip();
 					break;
@@ -83,6 +89,9 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 
 		return zip32 is not null
 			? new ZcashAccount(zip32, accountIndex ?? throw new MessagePackSerializationException("Missing account index."))
-			: new ZcashAccount(UnifiedViewingKey.Decode(uvk ?? throw new MessagePackSerializationException("Missing UVK.")));
+			: new ZcashAccount(UnifiedViewingKey.Decode(uvk ?? throw new MessagePackSerializationException("Missing UVK.")))
+		{
+			BirthdayHeight = birthdayHeight,
+		};
 	}
 }

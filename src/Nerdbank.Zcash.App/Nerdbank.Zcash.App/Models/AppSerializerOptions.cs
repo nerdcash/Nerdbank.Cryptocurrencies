@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Buffers;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using Nerdbank.Zcash.App.Formatters;
 
 namespace Nerdbank.Zcash.App.Models;
 
@@ -13,7 +13,9 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 	private static readonly IFormatterResolver ShareableResolver = CompositeResolver.Create(
 		new IMessagePackFormatter[]
 		{
+			SecurityAmountFormatter.Instance,
 			ZcashAccountFormatter.Instance,
+			ZcashAddressFormatter.Instance,
 			Zip32HDWalletFormatter.Instance,
 		},
 		new IFormatterResolver[]
