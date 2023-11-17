@@ -93,13 +93,15 @@ Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.FindFirstSupportedTradi
 Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
 Nerdbank.Cryptocurrencies.Exchanges.Security
 Nerdbank.Cryptocurrencies.Exchanges.Security.Amount(decimal amount) -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
-Nerdbank.Cryptocurrencies.Exchanges.Security.Deconstruct(out string! TickerSymbol, out string? Name, out int Precision) -> void
+Nerdbank.Cryptocurrencies.Exchanges.Security.Deconstruct(out string! TickerSymbol, out string? Name, out int Precision, out bool IsTestNet) -> void
+Nerdbank.Cryptocurrencies.Exchanges.Security.IsTestNet.get -> bool
+Nerdbank.Cryptocurrencies.Exchanges.Security.IsTestNet.init -> void
 Nerdbank.Cryptocurrencies.Exchanges.Security.Name.get -> string?
 Nerdbank.Cryptocurrencies.Exchanges.Security.Name.init -> void
 Nerdbank.Cryptocurrencies.Exchanges.Security.Precision.get -> int
 Nerdbank.Cryptocurrencies.Exchanges.Security.Precision.init -> void
 Nerdbank.Cryptocurrencies.Exchanges.Security.Security(Nerdbank.Cryptocurrencies.Exchanges.Security! original) -> void
-Nerdbank.Cryptocurrencies.Exchanges.Security.Security(string! TickerSymbol, string? Name = null, int Precision = 8) -> void
+Nerdbank.Cryptocurrencies.Exchanges.Security.Security(string! TickerSymbol, string? Name = null, int Precision = 8, bool IsTestNet = false) -> void
 Nerdbank.Cryptocurrencies.Exchanges.Security.TickerSymbol.get -> string!
 Nerdbank.Cryptocurrencies.Exchanges.Security.TickerSymbol.init -> void
 Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
@@ -302,6 +304,7 @@ static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SOL -> Nerdbank.Cry
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SOLACE -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.STORJ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.SUMO -> Nerdbank.Cryptocurrencies.Exchanges.Security!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.TAZ -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.TRTL -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.TUBE -> Nerdbank.Cryptocurrencies.Exchanges.Security!
 static readonly Nerdbank.Cryptocurrencies.Exchanges.Security.UNI -> Nerdbank.Cryptocurrencies.Exchanges.Security!
