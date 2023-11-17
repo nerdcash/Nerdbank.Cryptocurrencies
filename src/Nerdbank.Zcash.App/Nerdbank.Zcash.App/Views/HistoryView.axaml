@@ -33,10 +33,10 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="{Binding FiatAmountColumnHeader}">
+        <DataGridTemplateColumn Header="{Binding AlternateAmountColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding FiatAmountFormatted}" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Consolas" />
+              <local:SecurityAmountDisplay Value="{Binding AlternateAmount}" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -71,12 +72,32 @@ public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 		};
 	}
 
-	private protected static void WrapModels<TModelCollection, TModel, TViewModel>(TModelCollection models, ObservableCollection<TViewModel> viewModels, Func<TModel, TViewModel> wrapper)
+	protected void LinkProperty(INotifyPropertyChanged model, string basePropertyName, string dependentPropertyName)
+	{
+		model.PropertyChanged += (sender, e) =>
+		{
+			if (e.PropertyName == basePropertyName)
+			{
+				this.RaisePropertyChanged(dependentPropertyName);
+			}
+		};
+	}
+
+	private protected static IDisposable WrapModels<TModelCollection, TModel, TViewModel>(TModelCollection models, ObservableCollection<TViewModel> viewModels, Func<TModel, TViewModel> wrapper)
 		where TModelCollection : IEnumerable<TModel>, INotifyCollectionChanged
 		where TModel : class
 		where TViewModel : class, IViewModel<TModel>
 	{
-		models.CollectionChanged += (s, e) =>
+		models.CollectionChanged += OnCollectionChanged;
+
+		foreach (TModel model in models)
+		{
+			viewModels.Add(wrapper(model));
+		}
+
+		return Disposable.Create(() => models.CollectionChanged -= OnCollectionChanged);
+
+		void OnCollectionChanged(object? s, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.NewItems is not null)
 			{
@@ -96,11 +117,6 @@ public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 					}
 				}
 			}
-		};
-
-		foreach (TModel model in models)
-		{
-			viewModels.Add(wrapper(model));
 		}
 	}
 }

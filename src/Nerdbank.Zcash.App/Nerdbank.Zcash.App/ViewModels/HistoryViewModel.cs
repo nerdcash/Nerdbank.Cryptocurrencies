@@ -9,8 +9,8 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
+	private IDisposable? transactionsSubscription;
 	private ObservableAsPropertyHelper<bool> exchangeRatePerTransactionHasBeenDismissed;
-
 	private TransactionViewModel? selectedTransaction;
 
 	[Obsolete("For design-time use only", error: true)]
@@ -19,9 +19,9 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		this.Transactions.AddRange(new TransactionViewModel[]
 		{
-			new() { Amount = ZEC(1.2345m), RunningBalance = ZEC(1.2345m), IsIncoming = true, OtherPartyName = "Andrew Arnott", Memo = "For the pizza", TransactionId = "12345abc", When = DateTimeOffset.Now - TimeSpan.FromDays(200) },
-			new() { Amount = ZEC(-0.5m), RunningBalance = ZEC(1.2345m - 0.5m), IsIncoming = false, OtherPartyName = "Red Rock Cafe", Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now - TimeSpan.FromDays(35) },
-			new() { Amount = ZEC(2m), RunningBalance = ZEC(1.2345m - 0.5m + 2m), IsIncoming = true, OtherPartyName = "Employer", Memo = "Paycheck", TransactionId = "236ba", When = DateTimeOffset.Now - TimeSpan.FromDays(2) },
+			new(new ZcashTransaction { Memo = "For the pizza", TransactionId = "12345abc", When = DateTimeOffset.Now - TimeSpan.FromDays(200), Amount = ZEC(1.2345m), IsIncoming = true }, this.ViewModelServices) { RunningBalance = ZEC(1.2345m), OtherPartyName = "Andrew Arnott" },
+			new(new ZcashTransaction { Amount = ZEC(-0.5m), IsIncoming = false,  Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now - TimeSpan.FromDays(35) }, this.ViewModelServices) { RunningBalance = ZEC(1.2345m - 0.5m),  OtherPartyName = "Red Rock Cafe" },
+			new(new ZcashTransaction { Amount = ZEC(2m), IsIncoming = true, Memo = "Paycheck", TransactionId = "236ba", When = DateTimeOffset.Now - TimeSpan.FromDays(2) }, this.ViewModelServices) { RunningBalance = ZEC(1.2345m - 0.5m + 2m), OtherPartyName = "Employer" },
 		});
 
 		SecurityAmount ZEC(decimal amount) => this.SelectedSecurity.Amount(amount);
@@ -39,6 +39,8 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
+
+		this.OnSelectedAccountChanged();
 	}
 
 	public string Title => "History";
@@ -51,7 +53,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string AmountColumnHeader => this.SelectedSecurity.TickerSymbol;
 
-	public string FiatAmountColumnHeader => "USD";
+	public string AlternateAmountColumnHeader => "Alternate";
 
 	public string OtherPartyNameColumnHeader => "Name";
 
@@ -74,4 +76,20 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public ReactiveCommand<Unit, Unit> HideExchangeRateExplanationCommand { get; }
 
 	public string HideExchangeRateExplanationCommandCaption => "Got it";
+
+	protected override void OnSelectedAccountChanged()
+	{
+		base.OnSelectedAccountChanged();
+
+		this.transactionsSubscription?.Dispose();
+		this.Transactions.Clear();
+		this.transactionsSubscription = null;
+		if (this.SelectedAccount is not null)
+		{
+			this.transactionsSubscription = WrapModels<ReadOnlyObservableCollection<ZcashTransaction>, ZcashTransaction, TransactionViewModel>(
+				this.SelectedAccount.Transactions,
+				this.Transactions,
+				model => new TransactionViewModel(model, this.ViewModelServices));
+		}
+	}
 }

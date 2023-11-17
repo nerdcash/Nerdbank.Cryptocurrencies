@@ -11,11 +11,12 @@ namespace Nerdbank.Zcash.App;
 
 public partial class App : Application, IAsyncDisposable
 {
-	private const string DataFileName = "data.msgpack";
+	private const string DataFileName = "wallet.dat";
 	private const string SettingsJsonFileName = "settings.json";
 
 	private readonly AutoSaveManager<AppSettings>? appSettingsManager;
 	private readonly AutoSaveManager<DataRoot>? dataRootManager;
+	private readonly WalletSyncManager? walletSyncManager;
 
 	[Obsolete("Design-time only", error: true)]
 	public App()
@@ -32,6 +33,11 @@ public partial class App : Application, IAsyncDisposable
 
 		this.Settings = this.appSettingsManager?.Data ?? new AppSettings();
 		this.Data = this.dataRootManager?.Data ?? new DataRoot();
+
+		if (platformSettings.ConfidentialDataPath is not null)
+		{
+			this.walletSyncManager = new WalletSyncManager(platformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager);
+		}
 	}
 
 	public AppSettings Settings { get; }
@@ -56,6 +62,15 @@ public partial class App : Application, IAsyncDisposable
 			{
 				DataContext = mainViewModel = new MainWindowViewModel(this),
 			};
+
+			// Give ourselves a chance to clean up nicely.
+			desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+			desktop.MainWindow.Closed += async (_, _) =>
+			{
+				await this.DisposeAsync();
+				desktop.Shutdown();
+			};
+
 			mainViewModel.TopLevel = TopLevel.GetTopLevel(desktop.MainWindow);
 		}
 		else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
@@ -72,6 +87,11 @@ public partial class App : Application, IAsyncDisposable
 
 	public async ValueTask DisposeAsync()
 	{
+		if (this.walletSyncManager is not null)
+		{
+			await this.walletSyncManager.DisposeAsync();
+		}
+
 		if (this.appSettingsManager is not null)
 		{
 			await this.appSettingsManager.DisposeAsync();
@@ -81,6 +101,11 @@ public partial class App : Application, IAsyncDisposable
 		{
 			await this.dataRootManager.DisposeAsync();
 		}
+	}
+
+	public void StartSync()
+	{
+		this.walletSyncManager?.StartSyncing(this.Data.Wallet);
 	}
 
 	internal static AppPlatformSettings CreateDesignTimeAppPlatformSettings()

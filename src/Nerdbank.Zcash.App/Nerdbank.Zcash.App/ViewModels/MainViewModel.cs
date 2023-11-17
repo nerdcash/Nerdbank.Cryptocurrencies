@@ -49,6 +49,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
 
 		this.NavigateTo(this.GetHomeViewModel());
+
+		this.App.StartSync();
 	}
 
 	public App App { get; }

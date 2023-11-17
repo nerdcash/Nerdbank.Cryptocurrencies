@@ -1,44 +1,42 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Globalization;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class TransactionViewModel : ViewModelBase
+public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
-	private uint? blockNumber = 2_200_235;
-	private DateTimeOffset? when = DateTimeOffset.Now;
-	private string otherPartyName = string.Empty;
+	private readonly IViewModelServices viewModelServices;
 	private SecurityAmount runningBalance;
-	private string mutableMemo = string.Empty;
 
-	public TransactionViewModel()
+	public TransactionViewModel(ZcashTransaction transaction, IViewModelServices viewModelServices)
 	{
+		this.Model = transaction;
+		this.viewModelServices = viewModelServices;
+
+		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
+		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
+		this.LinkProperty(transaction, nameof(transaction.MutableMemo), nameof(this.MutableMemo));
+		this.LinkProperty(transaction, nameof(transaction.OtherPartyName), nameof(this.OtherPartyName));
+
 		this.LinkProperty(nameof(this.When), nameof(this.WhenColumnFormatted));
 		this.LinkProperty(nameof(this.When), nameof(this.WhenDetailedFormatted));
 	}
 
-	public uint? BlockNumber
-	{
-		get => this.blockNumber;
-		set => this.RaiseAndSetIfChanged(ref this.blockNumber, value);
-	}
+	public ZcashTransaction Model { get; }
+
+	public uint? BlockNumber => this.Model.BlockNumber;
 
 	public string BlockNumberFormatted => $"{this.BlockNumber:N0}";
 
 	public string BlockNumberCaption => "Block #";
 
-	public required string TransactionId { get; init; }
+	public string TransactionId => this.Model.TransactionId;
 
 	public string TransactionIdCaption => "Transaction ID";
 
-	public DateTimeOffset? When
-	{
-		get => this.when;
-		set => this.RaiseAndSetIfChanged(ref this.when, value);
-	}
+	public DateTimeOffset? When => this.Model.When;
 
 	public string WhenColumnFormatted
 	{
@@ -68,33 +66,23 @@ public class TransactionViewModel : ViewModelBase
 
 	public string WhenCaption => "When";
 
-	public required SecurityAmount Amount { get; init; }
-
-	public decimal FiatAmount => this.Amount.Amount * 30;
-
-	public string FiatAmountFormatted
-	{
-		get
-		{
-			NumberFormatInfo customFormat = (NumberFormatInfo)CultureInfo.CurrentCulture.NumberFormat.Clone();
-			customFormat.CurrencyNegativePattern = 1; // Change negative sign pattern to negative sign (-10)
-			return this.FiatAmount.ToString("C", customFormat);
-		}
-	}
+	public SecurityAmount Amount => this.Model.Amount;
 
 	public string AmountCaption => "Amount";
 
-	public ZcashAddress? OtherPartyAddress { get; init; } = ZcashAddress.Decode("u1wwsl42efxdj727vfcgmcf7wgxdqjjen4wqu79666ujf4qj4sqgezjemnaf23dlsgct3etneqrf2py2qws0lt2jfxv0n9cx5yr7l9vwa4hqvcznu0kxz90vpz4tgrd327wl4s875883w0rq6zjkp67c6qthdwwa6kcw8pv3699sfy27qa");
+	public SecurityAmount? AlternateAmount => this.Amount * this.Model.ExchangeRate;
+
+	public ZcashAddress? OtherPartyAddress => this.Model.OtherPartyAddress;
 
 	public string OtherPartyName
 	{
-		get => this.otherPartyName;
-		set => this.RaiseAndSetIfChanged(ref this.otherPartyName, value);
+		get => this.Model.OtherPartyName;
+		set => this.Model.OtherPartyName = value;
 	}
 
 	public string OtherPartyNameCaption => "Name";
 
-	public string? Memo { get; init; }
+	public string? Memo => this.Model.Memo;
 
 	public string MemoCaption => "Shared Memo";
 
@@ -102,11 +90,11 @@ public class TransactionViewModel : ViewModelBase
 
 	public string MutableMemo
 	{
-		get => this.mutableMemo;
-		set => this.RaiseAndSetIfChanged(ref this.mutableMemo, value);
+		get => this.Model.MutableMemo;
+		set => this.Model.MutableMemo = value;
 	}
 
-	public required bool IsIncoming { get; init; }
+	public bool IsIncoming => this.Model.IsIncoming;
 
 	public SecurityAmount RunningBalance
 	{

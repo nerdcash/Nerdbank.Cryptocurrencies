@@ -9,11 +9,12 @@ public class SyncProgressData : ViewModelBase
 {
 	private readonly IViewModelServices viewModelServices;
 	private Account? account;
+	private IDisposable? accountSyncSubscription;
 
 	private bool isSyncInProgress;
-	private uint from;
-	private uint to;
-	private uint current;
+	private ulong from;
+	private ulong to;
+	private ulong current;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public SyncProgressData()
@@ -39,7 +40,11 @@ public class SyncProgressData : ViewModelBase
 	public Account? Account
 	{
 		get => this.account;
-		set => this.RaiseAndSetIfChanged(ref this.account, value);
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.account, value);
+			this.SubscribeToSyncUpdates(value);
+		}
 	}
 
 	public string SyncInProgressCaption => "Sync in progress";
@@ -50,21 +55,34 @@ public class SyncProgressData : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.isSyncInProgress, value);
 	}
 
-	public uint From
+	public ulong From
 	{
 		get => this.from;
 		set => this.RaiseAndSetIfChanged(ref this.from, value);
 	}
 
-	public uint To
+	public ulong To
 	{
 		get => this.to;
 		set => this.RaiseAndSetIfChanged(ref this.to, value);
 	}
 
-	public uint Current
+	public ulong Current
 	{
 		get => this.current;
 		set => this.RaiseAndSetIfChanged(ref this.current, value);
+	}
+
+	internal void Apply(LightWalletClient.SyncProgress? progress)
+	{
+		this.IsSyncInProgress = progress?.InProgress is true;
+		this.To = progress?.BatchTotal ?? 0;
+		this.Current = progress?.BatchNum ?? 0;
+	}
+
+	private void SubscribeToSyncUpdates(Account? newAccount)
+	{
+		this.accountSyncSubscription?.Dispose();
+		this.accountSyncSubscription = newAccount?.WhenAnyValue(vm => vm.SyncProgress).Subscribe(this.Apply);
 	}
 }

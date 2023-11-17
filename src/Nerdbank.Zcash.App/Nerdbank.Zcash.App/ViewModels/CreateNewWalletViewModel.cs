@@ -25,7 +25,7 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		IObservable<bool> containsWhitespace = this.WhenAnyValue(x => x.Password, x => x.Any(char.IsWhiteSpace));
 		this.passwordContainsWhitespace = containsWhitespace.ToProperty(this, nameof(this.PasswordContainsWhitespace));
 
-		this.CreateAccountCommand = ReactiveCommand.Create(this.CreateNewAccount);
+		this.CreateAccountCommand = ReactiveCommand.CreateFromTask(this.CreateNewAccountAsync);
 		this.RemoveWhitespaceCommand = ReactiveCommand.Create(this.RemoveWhitespace, containsWhitespace);
 	}
 
@@ -63,12 +63,17 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 
 	public ReactiveCommand<Unit, Account> CreateAccountCommand { get; }
 
-	private Account CreateNewAccount()
+	private async Task<Account> CreateNewAccountAsync()
 	{
 		// ZIP-32 and the Zcash threat modeling requires (at least) 256-bit seeds (https://discord.com/channels/809218587167293450/972649509651906711/1165400226232803378).
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits, this.Password);
 		Zip32HDWallet zip32 = new(mnemonic, this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
-		return this.viewModelServices.Wallet.Add(new ZcashAccount(zip32, 0));
+		ZcashAccount account = new(zip32, 0);
+
+		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(zip32.Network), CancellationToken.None);
+		account.BirthdayHeight = await client.GetLatestBlockHeightAsync(CancellationToken.None);
+
+		return this.viewModelServices.Wallet.Add(account);
 	}
 
 	private void RemoveWhitespace()
