@@ -14,9 +14,11 @@ public partial class App : Application, IAsyncDisposable
 	private const string DataFileName = "wallet.dat";
 	private const string SettingsJsonFileName = "settings.json";
 
-	private readonly AutoSaveManager<AppSettings>? appSettingsManager;
-	private readonly AutoSaveManager<DataRoot>? dataRootManager;
-	private readonly WalletSyncManager? walletSyncManager;
+	private AutoSaveManager<AppSettings>? appSettingsManager;
+	private AppSettings? settings;
+	private DataRoot? data;
+	private AutoSaveManager<DataRoot>? dataRootManager;
+	private WalletSyncManager? walletSyncManager;
 
 	[Obsolete("Design-time only", error: true)]
 	public App()
@@ -27,22 +29,11 @@ public partial class App : Application, IAsyncDisposable
 	public App(AppPlatformSettings platformSettings)
 	{
 		this.AppPlatformSettings = platformSettings;
-
-		this.appSettingsManager = platformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(platformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
-		this.dataRootManager = platformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(platformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
-
-		this.Settings = this.appSettingsManager?.Data ?? new AppSettings();
-		this.Data = this.dataRootManager?.Data ?? new DataRoot();
-
-		if (platformSettings.ConfidentialDataPath is not null)
-		{
-			this.walletSyncManager = new WalletSyncManager(platformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager);
-		}
 	}
 
-	public AppSettings Settings { get; }
+	public AppSettings Settings => this.settings ?? throw new InvalidOperationException();
 
-	public DataRoot Data { get; }
+	public DataRoot Data => this.data ?? throw new InvalidOperationException();
 
 	public AppPlatformSettings AppPlatformSettings { get; }
 
@@ -55,6 +46,16 @@ public partial class App : Application, IAsyncDisposable
 	/// <inheritdoc/>
 	public override void OnFrameworkInitializationCompleted()
 	{
+		this.appSettingsManager = this.AppPlatformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
+		this.dataRootManager = this.AppPlatformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
+		this.settings = this.appSettingsManager?.Data ?? new AppSettings();
+		this.data = this.dataRootManager?.Data ?? new DataRoot();
+
+		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
+		{
+			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager);
+		}
+
 		MainViewModel mainViewModel;
 		if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 		{

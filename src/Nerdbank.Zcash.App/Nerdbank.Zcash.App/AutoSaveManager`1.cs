@@ -94,7 +94,11 @@ public class AutoSaveManager<T> : IAsyncDisposable
 				await this.SaveCoreAsync(tempFilePath, CancellationToken.None);
 				File.Move(tempFilePath, autoSaveFilePath, overwrite: true);
 			},
-			new ExecutionDataflowBlockOptions { BoundedCapacity = 2 });
+			new ExecutionDataflowBlockOptions
+			{
+				BoundedCapacity = 2,
+				TaskScheduler = TaskScheduler.FromCurrentSynchronizationContext(),
+			});
 
 		this.Data.PropertyChanged += (sender, args) =>
 		{
