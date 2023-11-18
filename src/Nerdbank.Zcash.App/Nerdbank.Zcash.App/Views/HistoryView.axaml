@@ -53,15 +53,15 @@
         <DataTemplate x:DataType="vm:TransactionViewModel">
           <Grid RowDefinitions="auto,auto,auto,auto,auto" ColumnDefinitions="auto,*">
             <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" />
-            <TextBox Text="{Binding Memo}" Name="MemoBox" Grid.Column="1"/>
-            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}"  Grid.Row="1"/>
+            <SelectableTextBlock Text="{Binding Memo}" Name="MemoBox" Grid.Column="1" />
+            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="1"/>
             <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1" Grid.Row="1" />
-            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" VerticalAlignment="Center" Grid.Row="2" />
-            <TextBox Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="2" Grid.Column="1" IsReadOnly="True" />
+            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="2" />
+            <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="2" Grid.Column="1" />
             <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="3" />
-            <TextBox Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" IsReadOnly="True" />
+            <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="3" Grid.Column="1" />
             <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" Grid.Row="4" />
-            <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="4" Grid.Column="1" />
           </Grid>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
