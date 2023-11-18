@@ -100,6 +100,9 @@ public class Account : ReactiveObject, IPersistableData
 	}
 
 	[IgnoreMember]
+	public LightWalletClient? LightWalletClient { get; internal set; }
+
+	[IgnoreMember]
 	public LightWalletClient.SyncProgress? SyncProgress
 	{
 		get => this.syncProgress;
@@ -111,20 +114,23 @@ public class Account : ReactiveObject, IPersistableData
 		uint highestBlockNumber = 0;
 		foreach (LightWalletClient.Transaction transaction in transactions)
 		{
-			Debug.Assert(!this.TransactionsMutable.Any(t => t.TransactionId == transaction.TransactionId), "We already have this transaction.");
-
-			ZcashTransaction tx = new ZcashTransaction
+			// TODO: support transactions coming in multiple times.
+			// Transactions in the mempool may appear multiple times.
+			if (!this.TransactionsMutable.Any(t => t.TransactionId == transaction.TransactionId))
 			{
-				BlockNumber = transaction.IsUnconfirmed ? null : transaction.BlockNumber,
-				TransactionId = transaction.TransactionId,
-				IsIncoming = transaction.IsIncoming,
-				When = transaction.When,
-				Amount = this.Network.AsSecurity().Amount(transaction.NetChange),
-				//Memo = transaction.Notes[0].Memo,
-			};
+				ZcashTransaction tx = new ZcashTransaction
+				{
+					BlockNumber = transaction.IsUnconfirmed ? null : transaction.BlockNumber,
+					TransactionId = transaction.TransactionId,
+					IsIncoming = transaction.IsIncoming,
+					When = transaction.When,
+					Amount = this.Network.AsSecurity().Amount(transaction.NetChange),
+					//Memo = transaction.Notes[0].Memo,
+				};
 
-			highestBlockNumber = Math.Max(highestBlockNumber, tx.BlockNumber ?? 0);
-			this.TransactionsMutable.Add(tx);
+				highestBlockNumber = Math.Max(highestBlockNumber, tx.BlockNumber ?? 0);
+				this.TransactionsMutable.Add(tx);
+			}
 		}
 
 		if (upToBlockNumber > this.LastBlockHeight)

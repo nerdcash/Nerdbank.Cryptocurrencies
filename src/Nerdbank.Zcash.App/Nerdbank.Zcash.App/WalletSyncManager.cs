@@ -88,6 +88,7 @@ public class WalletSyncManager : IAsyncDisposable
 
 			// Initialize the native wallet that will be responsible for syncing this account.
 			this.client = this.CreateClient();
+			account.LightWalletClient = this.client;
 
 			// Import any transactions that we already know about.
 			this.ImportTransactions(null);

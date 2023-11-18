@@ -3,6 +3,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using DynamicData;
 using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies.Exchanges;
@@ -148,10 +149,31 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.lineItems.Remove(lineItem);
 	}
 
-	private Task SendAsync()
+	private async Task SendAsync(CancellationToken cancellationToken)
 	{
-		// Block sending if validation errors exist.
-		return Task.CompletedTask;
+		// TODO: Block sending if validation errors exist.
+		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
+
+		List<LightWalletClient.TransactionSendItem> lineItems =
+		[
+			.. from li in this.LineItems
+			   let to = ZcashAddress.Decode(li.RecipientAddress)
+			   select new LightWalletClient.TransactionSendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo)),
+		];
+
+		Progress<LightWalletClient.SendProgress> progress = new(ProgressUpdate);
+		await this.SelectedAccount.LightWalletClient.SendAsync(
+			lineItems,
+			new Progress<LightWalletClient.SendProgress>(ProgressUpdate),
+			cancellationToken);
+
+		void ProgressUpdate(LightWalletClient.SendProgress progress)
+		{
+			if (progress.Total > 0)
+			{
+				Debug.WriteLine($"Sending {progress.Progress}/{progress.Total} ({progress.Progress * 100 / progress.Total}%)");
+			}
+		}
 	}
 
 	private void RaisePropertyChangedOnLineItems(string propertyName)
