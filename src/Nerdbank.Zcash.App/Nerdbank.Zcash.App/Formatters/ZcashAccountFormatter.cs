@@ -87,11 +87,10 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 
 		reader.Depth--;
 
-		return zip32 is not null
+		ZcashAccount result = zip32 is not null
 			? new ZcashAccount(zip32, accountIndex ?? throw new MessagePackSerializationException("Missing account index."))
-			: new ZcashAccount(UnifiedViewingKey.Decode(uvk ?? throw new MessagePackSerializationException("Missing UVK.")))
-		{
-			BirthdayHeight = birthdayHeight,
-		};
+			: new ZcashAccount(UnifiedViewingKey.Decode(uvk ?? throw new MessagePackSerializationException("Missing UVK.")));
+		result.BirthdayHeight = birthdayHeight;
+		return result;
 	}
 }

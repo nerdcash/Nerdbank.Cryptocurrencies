@@ -158,6 +158,15 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 	{
 		if (account.ZcashAccount.HDDerivation is { } derivation && !this.TryGetHDWallet(account, out _))
 		{
+			if (!this.TryGetMnemonic(account, out ZcashMnemonic? mnemonic) && derivation.Wallet.Mnemonic is not null && account.ZcashAccount.BirthdayHeight is not null)
+			{
+				mnemonic = new ZcashMnemonic(derivation.Wallet.Mnemonic)
+				{
+					BirthdayHeight = account.ZcashAccount.BirthdayHeight.Value,
+				};
+				this.Add(mnemonic);
+			}
+
 			HDWallet? hd = new HDWallet(derivation.Wallet);
 			this.Add(hd);
 			this.StartWatchingForDirtyChild(hd);

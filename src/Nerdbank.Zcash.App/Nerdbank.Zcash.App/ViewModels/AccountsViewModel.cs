@@ -22,7 +22,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.NewAccountCommand = ReactiveCommand.Create<ZcashNetwork, Account?>(this.NewAccount);
+		this.NewAccountCommand = ReactiveCommand.CreateFromTask<ZcashNetwork, Account?>(this.NewAccountAsync);
 		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
 
 		WrapModels(this.viewModelServices.Wallet.Accounts, this.Accounts, (Account a) => new AccountViewModel(a, viewModelServices));
@@ -62,9 +62,20 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		return this.viewModelServices.NavigateTo(importAccount);
 	}
 
-	private Account NewAccount(ZcashNetwork network)
+	private async Task<Account?> NewAccountAsync(ZcashNetwork network, CancellationToken cancellationToken)
 	{
 		ZcashWallet wallet = this.viewModelServices.Wallet;
+
+		// Prefer the first mnemonic the user entered.
+		ZcashMnemonic? mnemonic = wallet.Mnemonics.FirstOrDefault();
+		if (mnemonic is null)
+		{
+			using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
+			mnemonic = new()
+			{
+				BirthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken),
+			};
+		}
 
 		// If no HD wallet exists, create one.
 		HDWallet[] hdWallets = wallet.HDWallets.Where(w => w.Zip32.Network == network).ToArray();
@@ -73,7 +84,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		HDWallet? hd = hdWallets.FirstOrDefault();
 		if (hd is null)
 		{
-			hd = new HDWallet(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits)));
+			hd = new HDWallet(new Zip32HDWallet(mnemonic.Bip39, network));
 			wallet.Add(hd);
 		}
 
@@ -81,6 +92,10 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		Account account = new Account(new ZcashAccount(hd.Zip32, index))
 		{
 			Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
+			ZcashAccount =
+			{
+				BirthdayHeight = mnemonic.BirthdayHeight,
+			},
 		};
 		wallet.Add(account);
 		return account;
