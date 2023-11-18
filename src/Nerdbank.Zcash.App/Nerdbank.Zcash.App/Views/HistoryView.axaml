@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
              xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.HistoryView"
              x:DataType="vm:HistoryViewModel">
   <Design.DataContext>
@@ -52,16 +52,16 @@
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:TransactionViewModel">
           <Grid RowDefinitions="auto,auto,auto,auto,auto" ColumnDefinitions="auto,*">
-            <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" />
-            <SelectableTextBlock Text="{Binding Memo}" Name="MemoBox" Grid.Column="1" />
-            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="1"/>
-            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1" Grid.Row="1" />
-            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="2" />
-            <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="2" Grid.Column="1" />
+            <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" Grid.Row="0" />
+            <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="0" Grid.Column="1" />
+            <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" Grid.Row="1" />
+            <SelectableTextBlock Text="{Binding Memo}" Name="MemoBox" Grid.Row="1" Grid.Column="1" />
+            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="2"/>
+            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1" Grid.Row="2" />
             <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="3" />
             <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="3" Grid.Column="1" />
-            <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" Grid.Row="4" />
-            <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="4" Grid.Column="1" />
+            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="4" />
+            <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="4" Grid.Column="1" />
           </Grid>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>

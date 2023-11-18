@@ -19,9 +19,9 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		this.Transactions.AddRange(new TransactionViewModel[]
 		{
-			new(new ZcashTransaction { Memo = "For the pizza", TransactionId = "12345abc", When = DateTimeOffset.Now - TimeSpan.FromDays(200), Amount = ZEC(1.2345m), IsIncoming = true }, this.ViewModelServices) { RunningBalance = ZEC(1.2345m), OtherPartyName = "Andrew Arnott" },
-			new(new ZcashTransaction { Amount = ZEC(-0.5m), IsIncoming = false,  Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now - TimeSpan.FromDays(35) }, this.ViewModelServices) { RunningBalance = ZEC(1.2345m - 0.5m),  OtherPartyName = "Red Rock Cafe" },
-			new(new ZcashTransaction { Amount = ZEC(2m), IsIncoming = true, Memo = "Paycheck", TransactionId = "236ba", When = DateTimeOffset.Now - TimeSpan.FromDays(2) }, this.ViewModelServices) { RunningBalance = ZEC(1.2345m - 0.5m + 2m), OtherPartyName = "Employer" },
+			new(new ZcashTransaction { Memo = "For the pizza", TransactionId = "12345abc", When = DateTimeOffset.Now - TimeSpan.FromDays(200), Amount = ZEC(1.2345m), IsIncoming = true }, this.ViewModelServices) { OtherPartyName = "Andrew Arnott" },
+			new(new ZcashTransaction { Amount = ZEC(-0.5m), IsIncoming = false,  Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now - TimeSpan.FromDays(35) }, this.ViewModelServices) { OtherPartyName = "Red Rock Cafe" },
+			new(new ZcashTransaction { Amount = ZEC(2m), IsIncoming = true, Memo = "Paycheck", TransactionId = "236ba", When = DateTimeOffset.Now - TimeSpan.FromDays(2) }, this.ViewModelServices) { OtherPartyName = "Employer" },
 		});
 
 		SecurityAmount ZEC(decimal amount) => this.SelectedSecurity.Amount(amount);
