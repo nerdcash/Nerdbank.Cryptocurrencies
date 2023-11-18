@@ -75,7 +75,10 @@ public class SyncProgressData : ViewModelBase
 
 	internal void Apply(LightWalletClient.SyncProgress? progress)
 	{
-		this.IsSyncInProgress = progress?.InProgress is true;
+		// InProgress randomly returns false, even when sync is in progress.
+		// We don't want to flash the UI.
+		this.IsSyncInProgress = progress is not null;
+
 		this.To = progress?.BatchTotal ?? 0;
 		this.Current = progress?.BatchNum ?? 0;
 	}
