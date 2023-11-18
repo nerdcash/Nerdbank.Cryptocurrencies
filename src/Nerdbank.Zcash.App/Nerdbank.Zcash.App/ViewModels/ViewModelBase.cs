@@ -83,7 +83,7 @@ public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 		};
 	}
 
-	private protected static IDisposable WrapModels<TModelCollection, TModel, TViewModel>(TModelCollection models, ObservableCollection<TViewModel> viewModels, Func<TModel, TViewModel> wrapper)
+	private protected static IDisposable WrapModels<TModelCollection, TModel, TViewModel>(TModelCollection models, IList<TViewModel> viewModels, Func<TModel, TViewModel> wrapper)
 		where TModelCollection : IEnumerable<TModel>, INotifyCollectionChanged
 		where TModel : class
 		where TViewModel : class, IViewModel<TModel>

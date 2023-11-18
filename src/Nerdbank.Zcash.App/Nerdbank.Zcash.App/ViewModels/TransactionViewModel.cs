@@ -99,6 +99,32 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	public SecurityAmount RunningBalance
 	{
 		get => this.runningBalance;
-		set => this.RaiseAndSetIfChanged(ref this.runningBalance, value);
+		internal set => this.RaiseAndSetIfChanged(ref this.runningBalance, value);
+	}
+
+	internal class DateComparer : IComparer<TransactionViewModel>, IOptimizedComparer<TransactionViewModel>
+	{
+		private DateComparer()
+		{
+		}
+
+		public static DateComparer Instance { get; } = new();
+
+		public int Compare(TransactionViewModel? x, TransactionViewModel? y)
+		{
+			if (x is null)
+			{
+				return y is null ? 0 : -1;
+			}
+
+			if (y is null)
+			{
+				return 1;
+			}
+
+			return (x.When ?? DateTimeOffset.MaxValue).CompareTo(y.When ?? DateTimeOffset.MaxValue);
+		}
+
+		public bool IsPropertySignificant(string propertyName) => propertyName == nameof(TransactionViewModel.When);
 	}
 }

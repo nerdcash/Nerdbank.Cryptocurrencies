@@ -109,7 +109,7 @@ public class Account : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.syncProgress, value);
 	}
 
-	internal void AddTransactions(IEnumerable<LightWalletClient.Transaction> transactions, uint? upToBlockNumber)
+	public void AddTransactions(IEnumerable<LightWalletClient.Transaction> transactions, uint? upToBlockNumber)
 	{
 		uint highestBlockNumber = 0;
 		foreach (LightWalletClient.Transaction transaction in transactions)

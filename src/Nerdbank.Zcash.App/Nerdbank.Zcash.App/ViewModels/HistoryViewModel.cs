@@ -41,13 +41,16 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
 
 		this.OnSelectedAccountChanged();
+
+		this.UpdateBalances();
+		this.Transactions.CollectionChanged += this.Transactions_CollectionChanged;
 	}
 
 	public string Title => "History";
 
 	public SyncProgressData SyncProgress { get; }
 
-	public ObservableCollection<TransactionViewModel> Transactions { get; } = new();
+	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionViewModel.DateComparer.Instance);
 
 	public string WhenColumnHeader => "When";
 
@@ -90,6 +93,34 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				this.SelectedAccount.Transactions,
 				this.Transactions,
 				model => new TransactionViewModel(model, this.ViewModelServices));
+		}
+	}
+
+	private void Transactions_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+	{
+		if (e.NewStartingIndex >= 0)
+		{
+			if (e.OldStartingIndex >= 0)
+			{
+				this.UpdateBalances(Math.Min(e.NewStartingIndex, e.OldStartingIndex));
+			}
+			else
+			{
+				this.UpdateBalances(e.NewStartingIndex);
+			}
+		}
+		else if (e.OldStartingIndex >= 0)
+		{
+			this.UpdateBalances(e.OldStartingIndex);
+		}
+	}
+
+	private void UpdateBalances(int startIndex = 0)
+	{
+		SecurityAmount runningBalance = startIndex > 0 ? this.Transactions[startIndex - 1].RunningBalance : this.SelectedSecurity.Amount(0);
+		for (int i = startIndex; i < this.Transactions.Count; i++)
+		{
+			this.Transactions[i].RunningBalance = runningBalance += this.Transactions[i].Amount;
 		}
 	}
 }
