@@ -9,7 +9,6 @@
     <Import_RootNamespace>Nerdbank.Cryptocurrencies</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)FixedLengthStructs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SharedCryptoUtilities.cs" />
   </ItemGroup>
 </Project>

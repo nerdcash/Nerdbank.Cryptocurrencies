@@ -3,10 +3,16 @@ abstract Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.Derive(uint childIndex) 
 abstract Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.Identifier.get -> System.ReadOnlySpan<byte>
 abstract Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.Version.get -> System.ReadOnlySpan<byte>
 abstract Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.WriteKeyMaterial(System.Span<byte> destination) -> int
+const Nerdbank.Bitcoin.Bip32HDWallet.ChainCode.Length = 32 -> int
+const Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint.Length = 4 -> int
 const Nerdbank.Bitcoin.Bip44MultiAccountHD.RecommendedAddressGapLimit = 20 -> uint
 Nerdbank.Bitcoin.Bip32HDWallet
+Nerdbank.Bitcoin.Bip32HDWallet.ChainCode
+Nerdbank.Bitcoin.Bip32HDWallet.ChainCode.ChainCode() -> void
+Nerdbank.Bitcoin.Bip32HDWallet.ChainCode.ChainCode(System.ReadOnlySpan<byte> value) -> void
+Nerdbank.Bitcoin.Bip32HDWallet.ChainCode.Equals(in Nerdbank.Bitcoin.Bip32HDWallet.ChainCode other) -> bool
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase
-Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.ChainCode.get -> System.ReadOnlySpan<byte>
+Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.ChainCode.get -> Nerdbank.Bitcoin.Bip32HDWallet.ChainCode
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.ChildIndex.get -> uint
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.DebuggerDisplay.get -> string!
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.Depth.get -> byte
@@ -14,22 +20,26 @@ Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.DerivationPath.get -> Nerdbank.Cr
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.DerivationPath.init -> void
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.ExtendedKeyBase(Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase! copyFrom) -> void
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.IsTestNet.get -> bool
-Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.ParentFingerprint.get -> System.ReadOnlySpan<byte>
+Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.ParentFingerprint.get -> Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.TextEncoding.get -> string!
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.WriteBytes(System.Span<byte> destination) -> int
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.CryptographicKey.get -> NBitcoin.Secp256k1.ECPrivKey!
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.Dispose() -> void
-Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(NBitcoin.Secp256k1.ECPrivKey! key, System.ReadOnlySpan<byte> chainCode, bool testNet) -> void
-Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(NBitcoin.Secp256k1.ECPrivKey! key, System.ReadOnlySpan<byte> chainCode, System.ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet) -> void
+Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(NBitcoin.Secp256k1.ECPrivKey! key, in Nerdbank.Bitcoin.Bip32HDWallet.ChainCode chainCode, bool testNet) -> void
+Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(NBitcoin.Secp256k1.ECPrivKey! key, in Nerdbank.Bitcoin.Bip32HDWallet.ChainCode chainCode, in Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint parentFingerprint, byte depth, uint childIndex, bool testNet) -> void
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.ExtendedPrivateKey(Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey! copyFrom) -> void
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.Key.get -> Nerdbank.Bitcoin.PrivateKey!
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.PublicKey.get -> Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey!
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.CryptographicKey.get -> NBitcoin.Secp256k1.ECPubKey!
-Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.ExtendedPublicKey(NBitcoin.Secp256k1.ECPubKey! key, System.ReadOnlySpan<byte> chainCode, System.ReadOnlySpan<byte> parentFingerprint, byte depth, uint childIndex, bool testNet) -> void
+Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.ExtendedPublicKey(NBitcoin.Secp256k1.ECPubKey! key, in Nerdbank.Bitcoin.Bip32HDWallet.ChainCode chainCode, in Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint parentFingerprint, byte depth, uint childIndex, bool testNet) -> void
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.ExtendedPublicKey(Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey! copyFrom) -> void
 Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey.Key.get -> Nerdbank.Bitcoin.PublicKey!
+Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint
+Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint.Equals(in Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint other) -> bool
+Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint.ParentFingerprint() -> void
+Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint.ParentFingerprint(System.ReadOnlySpan<byte> value) -> void
 Nerdbank.Bitcoin.Bip39Mnemonic
 Nerdbank.Bitcoin.Bip39Mnemonic.Bip39Mnemonic(System.ReadOnlySpan<byte> entropy, System.ReadOnlyMemory<char> password = default(System.ReadOnlyMemory<char>)) -> void
 Nerdbank.Bitcoin.Bip39Mnemonic.Entropy.get -> System.ReadOnlySpan<byte>
@@ -104,10 +114,12 @@ override Nerdbank.Bitcoin.RawTransaction.GetHashCode() -> int
 override Nerdbank.Bitcoin.RawTransaction.Outpoint.GetHashCode() -> int
 override Nerdbank.Bitcoin.RawTransaction.TxIn.GetHashCode() -> int
 override Nerdbank.Bitcoin.RawTransaction.TxOut.GetHashCode() -> int
+static Nerdbank.Bitcoin.Bip32HDWallet.ChainCode.From(System.ReadOnlySpan<byte> value) -> Nerdbank.Bitcoin.Bip32HDWallet.ChainCode
 static Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.Decode(System.ReadOnlySpan<char> extendedKeyEncoding) -> Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase!
 static Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Bitcoin.Bip32HDWallet.ExtendedKeyBase? result) -> bool
 static Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.Create(Nerdbank.Bitcoin.Bip39Mnemonic! mnemonic, bool testNet = false) -> Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey!
 static Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey.Create(System.ReadOnlySpan<byte> seed, bool testNet = false) -> Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPrivateKey!
+static Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint.From(System.ReadOnlySpan<byte> value) -> Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint
 static Nerdbank.Bitcoin.Bip39Mnemonic.Create(int entropyLengthInBits) -> Nerdbank.Bitcoin.Bip39Mnemonic!
 static Nerdbank.Bitcoin.Bip39Mnemonic.Create(int entropyLengthInBits, string? password) -> Nerdbank.Bitcoin.Bip39Mnemonic!
 static Nerdbank.Bitcoin.Bip39Mnemonic.Create(int entropyLengthInBits, System.ReadOnlyMemory<char> password) -> Nerdbank.Bitcoin.Bip39Mnemonic!

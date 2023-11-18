@@ -3,8 +3,8 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using NBitcoin.Secp256k1;
-using Nerdbank.Zcash.FixedLengthStructs;
 
 namespace Nerdbank.Bitcoin;
 
@@ -14,7 +14,7 @@ namespace Nerdbank.Bitcoin;
 [DebuggerDisplay($"{{{nameof(TextEncoding)},nq}}")]
 public class BitcoinP2PKHAddress
 {
-	private readonly Bytes20 publicKeyHash;
+	private readonly PublicKeyHashArray publicKeyHash;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="BitcoinP2PKHAddress"/> class.
@@ -69,7 +69,7 @@ public class BitcoinP2PKHAddress
 	/// <summary>
 	/// Gets the public key hash of this address.
 	/// </summary>
-	public ReadOnlySpan<byte> PublicKeyHash => this.publicKeyHash.Value;
+	public ReadOnlySpan<byte> PublicKeyHash => this.publicKeyHash;
 
 	/// <summary>
 	/// Tries to decode a Bitcoin address.
@@ -124,4 +124,30 @@ public class BitcoinP2PKHAddress
 
 	/// <inheritdoc/>
 	public override string ToString() => this.TextEncoding;
+
+	[InlineArray(Length)]
+	private struct PublicKeyHashArray : IEquatable<PublicKeyHashArray>
+	{
+		public const int Length = 20;
+
+		private byte element;
+
+		internal PublicKeyHashArray(ReadOnlySpan<byte> value)
+		{
+			value.CopyToWithLengthCheck(this);
+		}
+
+		/// <summary>
+		/// Returns a strongly-typed struct over a span of bytes without incuring the cost of a memory copy.
+		/// </summary>
+		/// <param name="value">The bytes containing the value. This should have a length equal to <see cref="Length"/>.</param>
+		/// <returns>The strongly-typed element.</returns>
+		public static ref readonly PublicKeyHashArray From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, PublicKeyHashArray>(value));
+
+		/// <inheritdoc/>
+		bool IEquatable<PublicKeyHashArray>.Equals(PublicKeyHashArray other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc cref="IEquatable{T}.Equals"/>
+		public readonly bool Equals(in PublicKeyHashArray other) => this[..].SequenceEqual(other);
+	}
 }

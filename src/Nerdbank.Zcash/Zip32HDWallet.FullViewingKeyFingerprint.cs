@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Zcash.FixedLengthStructs;
+using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 namespace Nerdbank.Zcash;
 
@@ -10,31 +10,35 @@ public partial class Zip32HDWallet
 	/// <summary>
 	/// The fingerprint for a full viewing key. Guaranteed to be unique.
 	/// </summary>
-	public readonly struct FullViewingKeyFingerprint : IEquatable<FullViewingKeyFingerprint>
+	[InlineArray(Length)]
+	public struct FullViewingKeyFingerprint : IEquatable<FullViewingKeyFingerprint>
 	{
-		private readonly Bytes32 value;
+		/// <summary>
+		/// The length of the value in bytes.
+		/// </summary>
+		public const int Length = 32;
+
+		private byte element;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FullViewingKeyFingerprint"/> struct.
 		/// </summary>
-		/// <param name="value">The 32-byte fingerprint.</param>
+		/// <param name="value">The bytes containing the value. This should have a length equal to <see cref="Length"/>.</param>
 		public FullViewingKeyFingerprint(ReadOnlySpan<byte> value)
 		{
-			this.value = new(value);
+			value.CopyToWithLengthCheck(this);
 		}
-
-		/// <summary>
-		/// Gets the buffer. Always 32 bytes in length.
-		/// </summary>
-		[UnscopedRef]
-		public readonly ReadOnlySpan<byte> Value => this.value.Value;
 
 		/// <summary>
 		/// Gets the first 4 bytes of the fingerprint.
 		/// </summary>
-		public readonly FullViewingKeyTag Tag => new(this.value.Value[..4]);
+		[UnscopedRef]
+		public ref readonly FullViewingKeyTag Tag => ref FullViewingKeyTag.From(this[..4]);
 
 		/// <inheritdoc/>
-		public bool Equals(FullViewingKeyFingerprint other) => this.Value.SequenceEqual(other.Value);
+		bool IEquatable<FullViewingKeyFingerprint>.Equals(FullViewingKeyFingerprint other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc cref="IEquatable{T}.Equals"/>
+		public readonly bool Equals(in FullViewingKeyFingerprint other) => this[..].SequenceEqual(other);
 	}
 }
