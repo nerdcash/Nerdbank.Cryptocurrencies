@@ -114,11 +114,17 @@ public class Account : ReactiveObject, IPersistableData
 		uint highestBlockNumber = 0;
 		foreach (LightWalletClient.Transaction transaction in transactions)
 		{
-			// TODO: support transactions coming in multiple times.
-			// Transactions in the mempool may appear multiple times.
-			if (!this.TransactionsMutable.Any(t => t.TransactionId == transaction.TransactionId))
+			ZcashTransaction? tx = this.TransactionsMutable.FirstOrDefault(t => t.TransactionId == transaction.TransactionId);
+			if (tx is not null)
 			{
-				ZcashTransaction tx = new ZcashTransaction
+				// We already have this transaction
+				// Copy over elements that can change over time.
+				tx.BlockNumber = transaction.IsUnconfirmed ? null : transaction.BlockNumber;
+				tx.When = transaction.When;
+			}
+			else
+			{
+				tx = new ZcashTransaction
 				{
 					BlockNumber = transaction.IsUnconfirmed ? null : transaction.BlockNumber,
 					TransactionId = transaction.TransactionId,
@@ -128,9 +134,10 @@ public class Account : ReactiveObject, IPersistableData
 					//Memo = transaction.Notes[0].Memo,
 				};
 
-				highestBlockNumber = Math.Max(highestBlockNumber, tx.BlockNumber ?? 0);
 				this.TransactionsMutable.Add(tx);
 			}
+
+			highestBlockNumber = Math.Max(highestBlockNumber, tx.BlockNumber ?? 0);
 		}
 
 		if (upToBlockNumber > this.LastBlockHeight)
