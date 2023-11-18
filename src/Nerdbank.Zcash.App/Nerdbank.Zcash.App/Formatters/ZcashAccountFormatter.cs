@@ -65,13 +65,13 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 					zip32 = options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Deserialize(ref reader, options);
 					break;
 				case 2:
-					if (zip32 is null)
-					{
-						throw new MessagePackSerializationException();
-					}
-
 					if (!reader.TryReadNil())
 					{
+						if (zip32 is null)
+						{
+							throw new MessagePackSerializationException();
+						}
+
 						accountIndex = reader.ReadUInt32();
 					}
 

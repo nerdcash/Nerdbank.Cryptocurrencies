@@ -108,6 +108,7 @@ public abstract class ViewModelTestBase : IAsyncLifetime
 		};
 
 		App app = new(appPlatformSettings);
+		app.InitializeFields();
 		return app;
 	}
 

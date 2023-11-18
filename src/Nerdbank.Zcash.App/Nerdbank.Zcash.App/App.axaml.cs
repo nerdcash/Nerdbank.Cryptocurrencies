@@ -46,15 +46,7 @@ public partial class App : Application, IAsyncDisposable
 	/// <inheritdoc/>
 	public override void OnFrameworkInitializationCompleted()
 	{
-		this.appSettingsManager = this.AppPlatformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
-		this.dataRootManager = this.AppPlatformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
-		this.settings = this.appSettingsManager?.Data ?? new AppSettings();
-		this.data = this.dataRootManager?.Data ?? new DataRoot();
-
-		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
-		{
-			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager);
-		}
+		this.InitializeFields();
 
 		MainViewModel mainViewModel;
 		if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -84,6 +76,22 @@ public partial class App : Application, IAsyncDisposable
 		}
 
 		base.OnFrameworkInitializationCompleted();
+	}
+
+	/// <summary>
+	/// Initializes an application. Useful for unit tests to directly call.
+	/// </summary>
+	public void InitializeFields()
+	{
+		this.appSettingsManager = this.AppPlatformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
+		this.dataRootManager = this.AppPlatformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
+		this.settings = this.appSettingsManager?.Data ?? new AppSettings();
+		this.data = this.dataRootManager?.Data ?? new DataRoot();
+
+		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
+		{
+			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager);
+		}
 	}
 
 	public async ValueTask DisposeAsync()
