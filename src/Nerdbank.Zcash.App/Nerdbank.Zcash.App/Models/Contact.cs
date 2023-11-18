@@ -110,7 +110,6 @@ public class Contact : ReactiveObject, IPersistableData
 
 				DiversifierIndex diversifierIndex = default;
 				uint? transparentIndex = null;
-				Span<byte> diversifierSpan = stackalloc byte[diversifierIndex.Value.Length];
 
 				for (int i = 0; i < length; i++)
 				{
@@ -124,8 +123,7 @@ public class Contact : ReactiveObject, IPersistableData
 							}
 							else
 							{
-								diversifierBytes.CopyTo(diversifierSpan);
-								diversifierIndex = new DiversifierIndex(diversifierSpan);
+								diversifierBytes.CopyTo(diversifierIndex);
 							}
 
 							break;
@@ -151,9 +149,10 @@ public class Contact : ReactiveObject, IPersistableData
 			{
 				writer.WriteArrayHeader(value.TransparentAddressIndex.HasValue ? 2 : 1);
 
-				writer.WriteBinHeader(value.Diversifier.Value.Length);
-				value.Diversifier.Value.CopyTo(writer.GetSpan(value.Diversifier.Value.Length));
-				writer.Advance(value.Diversifier.Value.Length);
+				DiversifierIndex diversifier = value.Diversifier;
+				writer.WriteBinHeader(DiversifierIndex.Length);
+				diversifier[..].CopyTo(writer.GetSpan(DiversifierIndex.Length));
+				writer.Advance(DiversifierIndex.Length);
 
 				if (value.TransparentAddressIndex.HasValue)
 				{

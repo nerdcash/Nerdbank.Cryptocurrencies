@@ -157,7 +157,7 @@ public class WalletSyncManager : IAsyncDisposable
 		/// </summary>
 		private async ValueTask ShutdownWalletAsync()
 		{
-			this.shutdownTokenSource.Cancel();
+			await this.shutdownTokenSource.CancelAsync();
 			if (this.syncResult is { IsCompleted: false })
 			{
 				await this.syncResult.NoThrowAwaitable();
