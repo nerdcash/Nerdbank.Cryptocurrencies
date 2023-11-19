@@ -3,7 +3,6 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using MessagePack;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -16,10 +15,15 @@ public class Account : ReactiveObject, IPersistableData
 	private string? zingoWalletFileName;
 	private string name = string.Empty;
 	private decimal balance;
+	private decimal spendableBalance;
+	private decimal unconfirmedBalance;
 	private bool isDirty;
 	private LightWalletClient.SyncProgress? syncProgress;
 	private uint lastBlockHeight;
 	private ObservableCollection<ZcashTransaction> transactionsMutable = new();
+	private decimal anticipatedFees;
+	private decimal unspendableChange;
+	private decimal immatureIncome;
 
 	public Account(ZcashAccount account)
 	{
@@ -57,11 +61,72 @@ public class Account : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
 
+	/// <summary>
+	/// Gets or sets the sum of <see cref="SpendableBalance"/>, <see cref="UnspendableChange"/>, <see cref="ImmatureIncome"/> and the (negative) <see cref="AnticipatedFees"/> values.
+	/// </summary>
 	[IgnoreMember]
 	public decimal Balance
 	{
 		get => this.balance;
 		set => this.RaiseAndSetIfChanged(ref this.balance, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the sum of all unspent notes that have sufficient confirmations to be spent.
+	/// </summary>
+	/// <remarks>
+	/// For enhanced privacy, the minimum number of required confirmations to spend a note is usually greater than one.
+	/// </remarks>
+	[IgnoreMember]
+	public decimal SpendableBalance
+	{
+		get => this.spendableBalance;
+		set => this.RaiseAndSetIfChanged(ref this.spendableBalance, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the amount of the user's own funds that are unspendable until the change note that carries them
+	/// has sufficient confirmations to move back into <see cref="SpendableBalance"/>.
+	/// </summary>
+	[IgnoreMember]
+	public decimal UnspendableChange
+	{
+		get => this.unspendableChange;
+		set => this.RaiseAndSetIfChanged(ref this.unspendableChange, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the sum of all UTXOs or under-confirmed (shielded) notes.
+	/// </summary>
+	/// <remarks>
+	/// Transparent funds are always in this category, awaiting auto-shielding.
+	/// Shielded funds may also appear in this category until they have sufficient confirmations to qualify as <see cref="SpendableBalance"/>.
+	/// </remarks>
+	[IgnoreMember]
+	public decimal ImmatureIncome
+	{
+		get => this.immatureIncome;
+		set => this.RaiseAndSetIfChanged(ref this.immatureIncome, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the minimum amount that <em>must</em> be spent in fees to spend the <see cref="Balance"/>.
+	/// </summary>
+	[IgnoreMember]
+	public decimal AnticipatedFees
+	{
+		get => this.anticipatedFees;
+		set => this.RaiseAndSetIfChanged(ref this.anticipatedFees, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the amount of incoming funds that are in the mempool, excluding change notes counted by <see cref="UnspendableChange"/>.
+	/// </summary>
+	[IgnoreMember]
+	public decimal UnconfirmedBalance
+	{
+		get => this.unconfirmedBalance;
+		set => this.RaiseAndSetIfChanged(ref this.unconfirmedBalance, value);
 	}
 
 	[IgnoreMember]
