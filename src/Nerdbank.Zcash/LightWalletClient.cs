@@ -13,6 +13,17 @@ namespace Nerdbank.Zcash;
 public class LightWalletClient : IDisposable
 {
 	/// <summary>
+	/// The number of confirmations required to spend a note.
+	/// </summary>
+	/// <remarks>
+	/// While only one confirmation is technically required by the protocol,
+	/// more confirmations make reorgs less likely to invalidate a transaction that spends a note.
+	/// Since spending a note requires revealing a nullifier, more than one attempt to spend a note
+	/// allows folks who are watching the mempool to detect that the same spender is behind each attempt.
+	/// </remarks>
+	public const int MinimumConfirmations = 3;
+
+	/// <summary>
 	/// The number of ZATs in a ZEC.
 	/// </summary>
 	internal const uint ZatsPerZEC = 100_000_000;
@@ -61,7 +72,8 @@ public class LightWalletClient : IDisposable
 					walletPath,
 					walletName,
 					logName,
-					watchMemPool),
+					watchMemPool,
+					MinimumConfirmations),
 				walletInfo)),
 			ownsHandle: true);
 	}
@@ -91,7 +103,8 @@ public class LightWalletClient : IDisposable
 					walletPath,
 					walletName,
 					logName,
-					watchMemPool))),
+					watchMemPool,
+					MinimumConfirmations))),
 			ownsHandle: true);
 	}
 

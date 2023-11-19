@@ -19,7 +19,7 @@ internal struct RustBuffer {
 
     public static RustBuffer Alloc(int size) {
         return _UniffiHelpers.RustCall((ref RustCallStatus status) => {
-            var buffer = _UniFFILib.ffi_LightWallet_abfe_rustbuffer_alloc(size, ref status);
+            var buffer = _UniFFILib.ffi_LightWallet_796f_rustbuffer_alloc(size, ref status);
             if (buffer.data == IntPtr.Zero) {
                 throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
             }
@@ -29,7 +29,7 @@ internal struct RustBuffer {
 
     public static void Free(RustBuffer buffer) {
         _UniffiHelpers.RustCall((ref RustCallStatus status) => {
-            _UniFFILib.ffi_LightWallet_abfe_rustbuffer_free(buffer, ref status);
+            _UniFFILib.ffi_LightWallet_796f_rustbuffer_free(buffer, ref status);
         });
     }
 
@@ -396,87 +396,87 @@ static class _UniFFILib {
         }
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong LightWallet_abfe_lightwallet_get_block_height(RustBuffer @serverUri,
+    public static extern ulong LightWallet_796f_lightwallet_get_block_height(RustBuffer @serverUri,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong LightWallet_abfe_lightwallet_initialize(RustBuffer @config,RustBuffer @walletInfo,
+    public static extern ulong LightWallet_796f_lightwallet_initialize(RustBuffer @config,RustBuffer @walletInfo,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong LightWallet_abfe_lightwallet_initialize_from_disk(RustBuffer @config,
+    public static extern ulong LightWallet_796f_lightwallet_initialize_from_disk(RustBuffer @config,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern sbyte LightWallet_abfe_lightwallet_deinitialize(ulong @handle,
+    public static extern sbyte LightWallet_796f_lightwallet_deinitialize(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer LightWallet_abfe_lightwallet_sync(ulong @handle,
+    public static extern RustBuffer LightWallet_796f_lightwallet_sync(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern void LightWallet_abfe_lightwallet_sync_interrupt(ulong @handle,
+    public static extern void LightWallet_796f_lightwallet_sync_interrupt(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer LightWallet_abfe_lightwallet_sync_status(ulong @handle,
+    public static extern RustBuffer LightWallet_796f_lightwallet_sync_status(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong LightWallet_abfe_lightwallet_get_birthday_height(ulong @handle,
+    public static extern ulong LightWallet_796f_lightwallet_get_birthday_height(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong LightWallet_abfe_last_synced_height(ulong @handle,
+    public static extern ulong LightWallet_796f_last_synced_height(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer LightWallet_abfe_lightwallet_get_transactions(ulong @handle,uint @startingBlock,
+    public static extern RustBuffer LightWallet_796f_lightwallet_get_transactions(ulong @handle,uint @startingBlock,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer LightWallet_abfe_lightwallet_send_to_address(ulong @handle,RustBuffer @sendDetails,
+    public static extern RustBuffer LightWallet_796f_lightwallet_send_to_address(ulong @handle,RustBuffer @sendDetails,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer LightWallet_abfe_lightwallet_send_check_status(ulong @handle,
+    public static extern RustBuffer LightWallet_796f_lightwallet_send_check_status(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer LightWallet_abfe_lightwallet_get_balances(ulong @handle,
+    public static extern RustBuffer LightWallet_796f_lightwallet_get_balances(ulong @handle,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_abfe_rustbuffer_alloc(int @size,
+    public static extern RustBuffer ffi_LightWallet_796f_rustbuffer_alloc(int @size,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_abfe_rustbuffer_from_bytes(ForeignBytes @bytes,
+    public static extern RustBuffer ffi_LightWallet_796f_rustbuffer_from_bytes(ForeignBytes @bytes,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern void ffi_LightWallet_abfe_rustbuffer_free(RustBuffer @buf,
+    public static extern void ffi_LightWallet_796f_rustbuffer_free(RustBuffer @buf,
     ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_abfe_rustbuffer_reserve(RustBuffer @buf,int @additional,
+    public static extern RustBuffer ffi_LightWallet_796f_rustbuffer_reserve(RustBuffer @buf,int @additional,
     ref RustCallStatus _uniffi_out_err
     );
 
@@ -673,7 +673,8 @@ public record Config (
     String @dataDir, 
     String @walletName, 
     String @logName, 
-    Boolean @monitorMempool
+    Boolean @monitorMempool, 
+    UInt32 @minimumConfirmations
 ) {
 }
 
@@ -687,7 +688,8 @@ class FfiConverterTypeConfig: FfiConverterRustBuffer<Config> {
             FfiConverterString.INSTANCE.Read(stream),
             FfiConverterString.INSTANCE.Read(stream),
             FfiConverterString.INSTANCE.Read(stream),
-            FfiConverterBoolean.INSTANCE.Read(stream)
+            FfiConverterBoolean.INSTANCE.Read(stream),
+            FfiConverterUInt.INSTANCE.Read(stream)
         );
     }
 
@@ -698,7 +700,8 @@ class FfiConverterTypeConfig: FfiConverterRustBuffer<Config> {
             FfiConverterString.INSTANCE.AllocationSize(value.@dataDir) +
             FfiConverterString.INSTANCE.AllocationSize(value.@walletName) +
             FfiConverterString.INSTANCE.AllocationSize(value.@logName) +
-            FfiConverterBoolean.INSTANCE.AllocationSize(value.@monitorMempool);
+            FfiConverterBoolean.INSTANCE.AllocationSize(value.@monitorMempool) +
+            FfiConverterUInt.INSTANCE.AllocationSize(value.@minimumConfirmations);
     }
 
     public override void Write(Config value, BigEndianStream stream) {
@@ -708,6 +711,7 @@ class FfiConverterTypeConfig: FfiConverterRustBuffer<Config> {
             FfiConverterString.INSTANCE.Write(value.@walletName, stream);
             FfiConverterString.INSTANCE.Write(value.@logName, stream);
             FfiConverterBoolean.INSTANCE.Write(value.@monitorMempool, stream);
+            FfiConverterUInt.INSTANCE.Write(value.@minimumConfirmations, stream);
     }
 }
 
@@ -1549,7 +1553,7 @@ public static class LightWalletMethods {
     public static UInt64 LightwalletGetBlockHeight(String @serverUri) {
         return FfiConverterULong.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_get_block_height(FfiConverterString.INSTANCE.Lower(@serverUri), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_get_block_height(FfiConverterString.INSTANCE.Lower(@serverUri), ref _status)
 ));
     }
 
@@ -1557,7 +1561,7 @@ public static class LightWalletMethods {
     public static UInt64 LightwalletInitialize(Config @config, WalletInfo @walletInfo) {
         return FfiConverterULong.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_initialize(FfiConverterTypeConfig.INSTANCE.Lower(@config), FfiConverterTypeWalletInfo.INSTANCE.Lower(@walletInfo), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_initialize(FfiConverterTypeConfig.INSTANCE.Lower(@config), FfiConverterTypeWalletInfo.INSTANCE.Lower(@walletInfo), ref _status)
 ));
     }
 
@@ -1565,14 +1569,14 @@ public static class LightWalletMethods {
     public static UInt64 LightwalletInitializeFromDisk(Config @config) {
         return FfiConverterULong.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_initialize_from_disk(FfiConverterTypeConfig.INSTANCE.Lower(@config), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_initialize_from_disk(FfiConverterTypeConfig.INSTANCE.Lower(@config), ref _status)
 ));
     }
 
     public static Boolean LightwalletDeinitialize(UInt64 @handle) {
         return FfiConverterBoolean.INSTANCE.Lift(
     _UniffiHelpers.RustCall( (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_deinitialize(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_deinitialize(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
@@ -1580,7 +1584,7 @@ public static class LightWalletMethods {
     public static SyncResult LightwalletSync(UInt64 @handle) {
         return FfiConverterTypeSyncResult.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_sync(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_sync(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
@@ -1588,7 +1592,7 @@ public static class LightWalletMethods {
     public static void LightwalletSyncInterrupt(UInt64 @handle) {
         
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_sync_interrupt(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_sync_interrupt(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 );
     }
 
@@ -1596,7 +1600,7 @@ public static class LightWalletMethods {
     public static SyncStatus LightwalletSyncStatus(UInt64 @handle) {
         return FfiConverterTypeSyncStatus.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_sync_status(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_sync_status(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
@@ -1604,7 +1608,7 @@ public static class LightWalletMethods {
     public static UInt64 LightwalletGetBirthdayHeight(UInt64 @handle) {
         return FfiConverterULong.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_get_birthday_height(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_get_birthday_height(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
@@ -1612,7 +1616,7 @@ public static class LightWalletMethods {
     public static UInt64 LastSyncedHeight(UInt64 @handle) {
         return FfiConverterULong.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_last_synced_height(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_last_synced_height(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
@@ -1620,7 +1624,7 @@ public static class LightWalletMethods {
     public static List<Transaction> LightwalletGetTransactions(UInt64 @handle, UInt32 @startingBlock) {
         return FfiConverterSequenceTypeTransaction.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_get_transactions(FfiConverterULong.INSTANCE.Lower(@handle), FfiConverterUInt.INSTANCE.Lower(@startingBlock), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_get_transactions(FfiConverterULong.INSTANCE.Lower(@handle), FfiConverterUInt.INSTANCE.Lower(@startingBlock), ref _status)
 ));
     }
 
@@ -1628,7 +1632,7 @@ public static class LightWalletMethods {
     public static String LightwalletSendToAddress(UInt64 @handle, List<TransactionSendDetail> @sendDetails) {
         return FfiConverterString.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_send_to_address(FfiConverterULong.INSTANCE.Lower(@handle), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_send_to_address(FfiConverterULong.INSTANCE.Lower(@handle), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
 ));
     }
 
@@ -1636,7 +1640,7 @@ public static class LightWalletMethods {
     public static SendUpdate LightwalletSendCheckStatus(UInt64 @handle) {
         return FfiConverterTypeSendUpdate.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_send_check_status(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_send_check_status(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
@@ -1644,7 +1648,7 @@ public static class LightWalletMethods {
     public static PoolBalances LightwalletGetBalances(UInt64 @handle) {
         return FfiConverterTypePoolBalances.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletError.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.LightWallet_abfe_lightwallet_get_balances(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.LightWallet_796f_lightwallet_get_balances(FfiConverterULong.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 

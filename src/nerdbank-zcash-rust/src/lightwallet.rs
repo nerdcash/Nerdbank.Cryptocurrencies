@@ -90,6 +90,7 @@ pub struct Config {
     pub wallet_name: String,
     pub log_name: String,
     pub monitor_mempool: bool,
+    pub minimum_confirmations: u32,
 }
 
 pub struct WalletInfo {
@@ -114,7 +115,7 @@ fn prepare_config(config: Config) -> Result<ZingoConfig, LightWalletError> {
     })?;
     zingo_config.wallet_name = config.wallet_name.into();
     zingo_config.logfile_name = config.log_name.into();
-    zingo_config.reorg_buffer_offset = 2; // 2+1=3 confirmations before notes can be spent.
+    zingo_config.reorg_buffer_offset = config.minimum_confirmations - 1; // zingolib requires this number, plus 1
 
     Ok(zingo_config)
 }

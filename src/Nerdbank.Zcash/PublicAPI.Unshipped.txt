@@ -3,6 +3,7 @@ abstract Nerdbank.Zcash.ZcashAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolRe
 abstract Nerdbank.Zcash.ZcashAddress.HasShieldedReceiver.get -> bool
 abstract Nerdbank.Zcash.ZcashAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 const Nerdbank.Zcash.DiversifierIndex.Length = 11 -> int
+const Nerdbank.Zcash.LightWalletClient.MinimumConfirmations = 3 -> int
 const Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.Length = 32 -> int
 const Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag.Length = 4 -> int
 const Nerdbank.Zcash.Zip32HDWallet.MinimumEntropyLengthInBits = 256 -> int

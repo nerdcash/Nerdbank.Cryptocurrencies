@@ -17,6 +17,7 @@ dictionary Config {
 	string wallet_name;
 	string log_name;
 	boolean monitor_mempool;
+	u32 minimum_confirmations;
 };
 
 dictionary WalletInfo {
