@@ -108,6 +108,16 @@ dictionary PoolBalances {
 	u64? transparent_balance;
 };
 
+dictionary UserBalances {
+    u64 spendable;
+    u64 immature_change;
+    u64 minimum_fees;
+    u64 immature_income;
+    u64 fairy_dust;
+    u64 incoming;
+    u64 incoming_fairy_dust;
+};
+
 namespace LightWallet {
 	[Throws=LightWalletError]
 	u64 lightwallet_get_block_height(string server_uri);
@@ -146,4 +156,7 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	PoolBalances lightwallet_get_balances(u64 handle);
+	
+	[Throws=LightWalletError]
+	UserBalances lightwallet_get_user_balances(u64 handle);
 };
