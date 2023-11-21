@@ -146,4 +146,6 @@ public class Account : ReactiveObject, IPersistableData
 			this.LastBlockHeight = highestBlockNumber;
 		}
 	}
+
+	public override string ToString() => this.Name;
 }

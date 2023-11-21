@@ -4,6 +4,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies.Exchanges;
@@ -20,7 +21,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
 	private SecurityAmount subtotal;
 	private SecurityAmount total;
-	private ReadOnlyObservableCollection<Contact>? possibleRecipients;
+	private ReadOnlyObservableCollection<object>? possibleRecipients;
 	private SecurityAmount fee;
 	private IDisposable? possibleRecipientsSubscription;
 
@@ -134,11 +135,23 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	{
 		this.possibleRecipientsSubscription?.Dispose();
 
+		// Go ahead and 'capture' the current value of SelectedAccount, since it may change
+		// but the filters we're setting up below should not change till we re-execute this code.
+		Account? selectedAccount = this.SelectedAccount;
+
+		// The user should be able to select one of their own accounts to send to.
+		IObservable<IChangeSet<object>> accounts = this.ViewModelServices.Wallet.Accounts.AsObservableChangeSet()
+			.Filter(a => a != selectedAccount && a.Network == selectedAccount?.Network)
+			.Transform(a => a as object);
+
 		// Prepare the allowed recipients list from the address book, filtered to those with
 		// receiving addresses on the same network.
-		this.possibleRecipientsSubscription = this.ViewModelServices.ContactManager.Contacts.AsObservableChangeSet()
+		IObservable<IChangeSet<object>> contacts = this.ViewModelServices.ContactManager.Contacts.AsObservableChangeSet()
 			.AutoRefresh(c => c.ReceivingAddress)
-			.Filter(c => c.ReceivingAddress is { } addr && addr.Network == this.SelectedAccount?.Network)
+			.Filter(c => c.ReceivingAddress is { } addr && addr.Network == selectedAccount?.Network)
+			.Transform(c => c as object);
+
+		this.possibleRecipientsSubscription = accounts.Merge(contacts)
 			.Bind(out this.possibleRecipients)
 			.Subscribe();
 		this.RaisePropertyChangedOnLineItems(nameof(LineItem.PossibleRecipients));
@@ -154,12 +167,17 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		// TODO: Block sending if validation errors exist.
 		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
 
-		List<LightWalletClient.TransactionSendItem> lineItems =
-		[
-			.. from li in this.LineItems
-			   let to = ZcashAddress.Decode(li.RecipientAddress)
-			   select new LightWalletClient.TransactionSendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo)),
-		];
+		IEnumerable<LightWalletClient.TransactionSendItem> lineItemsPrep =
+			from li in this.LineItems
+			let to = li.SelectedRecipient switch
+			{
+				Contact contact => contact.ReceivingAddress ?? throw new InvalidOperationException("Missing address for contact"),
+				Account account => account.ZcashAccount.DefaultAddress,
+				null => ZcashAddress.Decode(li.RecipientAddress),
+				_ => throw new InvalidOperationException($"Unknown type of selected recipient: {li.SelectedRecipient.GetType().Name}"),
+			}
+			select new LightWalletClient.TransactionSendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
+		List<LightWalletClient.TransactionSendItem> lineItems = lineItemsPrep.ToList();
 
 		Progress<LightWalletClient.SendProgress> progress = new(ProgressUpdate);
 		await this.SelectedAccount.LightWalletClient.SendAsync(
@@ -220,7 +238,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		private readonly SendingViewModel owner;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
-		private Contact? selectedRecipient;
+		private object? selectedRecipient;
 
 		public LineItem(SendingViewModel owner)
 			: base(owner.ViewModelServices, showOnlyAccountsWithSpendKeys: true)
@@ -245,13 +263,13 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			set => this.RaiseAndSetIfChanged(ref this.recipientAddress, value);
 		}
 
-		public Contact? SelectedRecipient
+		public object? SelectedRecipient
 		{
 			get => this.selectedRecipient;
 			set => this.RaiseAndSetIfChanged(ref this.selectedRecipient, value);
 		}
 
-		public ReadOnlyObservableCollection<Contact> PossibleRecipients => this.owner.possibleRecipients ?? throw Assumes.NotReachable();
+		public ReadOnlyObservableCollection<object> PossibleRecipients => this.owner.possibleRecipients ?? throw Assumes.NotReachable();
 
 		public string AmountCaption => "Amount:";
 

@@ -2,14 +2,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:Nerdbank.Zcash.App.Models"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
              xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             xmlns:sys="using:System"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.SendingView"
              x:DataType="vm:SendingViewModel">
   <Design.DataContext>
     <vm:SendingViewModel />
   </Design.DataContext>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="{x:Type models:Contact}">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="🧑🏻‍🦱" Margin="0 0 5 0" />
+        <TextBlock Text="{Binding Name}" />
+      </StackPanel>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type models:Account}">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="🧾" Margin="0 0 5 0" />
+        <TextBlock Text="{Binding Name}" />
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.DataTemplates>
   <DockPanel>
     <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*, auto">
@@ -47,8 +63,13 @@
                                    Watermark="{Binding RecipientBoxWatermark}"
                                    FilterMode="Contains"
                                    ItemsSource="{Binding PossibleRecipients}"
-                                   SelectedItem="{Binding SelectedRecipient}"
-                             />
+                                   SelectedItem="{Binding SelectedRecipient}">
+                    <AutoCompleteBox.ItemTemplate>
+                      <DataTemplate>
+                        <ContentControl Content="{Binding}" x:DataType="sys:Object" />
+                      </DataTemplate>
+                    </AutoCompleteBox.ItemTemplate>
+                  </AutoCompleteBox>
                 </DockPanel>
                 <Grid ColumnDefinitions="auto, *" Margin="0 5">
                   <Label Content="{Binding AmountCaption}" VerticalAlignment="Center" />
