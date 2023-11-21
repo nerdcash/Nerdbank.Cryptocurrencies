@@ -7,20 +7,20 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private ObservableAsPropertyHelper<SecurityAmount?> balance;
-	private ObservableAsPropertyHelper<SecurityAmount?> spendableBalance;
+	private ObservableAsPropertyHelper<SecurityAmount> balance;
+	private ObservableAsPropertyHelper<SecurityAmount> spendableBalance;
 	private ObservableAsPropertyHelper<bool> isBalanceBreakdownVisible;
 
-	private ObservableAsPropertyHelper<SecurityAmount?> anticipatedFees;
+	private ObservableAsPropertyHelper<SecurityAmount> anticipatedFees;
 	private ObservableAsPropertyHelper<bool> isAnticipatedFeesVisible;
 
 	private ObservableAsPropertyHelper<bool> isUnconfirmedIncomeVisible;
-	private ObservableAsPropertyHelper<SecurityAmount?> unconfirmedIncome;
+	private ObservableAsPropertyHelper<SecurityAmount> unconfirmedIncome;
 
-	private ObservableAsPropertyHelper<SecurityAmount?> unspendableChange;
+	private ObservableAsPropertyHelper<SecurityAmount> unspendableChange;
 	private ObservableAsPropertyHelper<bool> isUnspendableChangeVisible;
 
-	private ObservableAsPropertyHelper<SecurityAmount?> immatureIncome;
+	private ObservableAsPropertyHelper<SecurityAmount> immatureIncome;
 	private ObservableAsPropertyHelper<bool> isImmatureIncomeVisible;
 
 	[Obsolete("For design-time use only.", error: true)]
@@ -29,12 +29,17 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		Account account = this.SelectedAccount ?? throw new InvalidOperationException();
 
-		account.AnticipatedFees = -0.103m;
-		account.ImmatureIncome = 0.5m;
-		account.UnconfirmedBalance = 1.2m;
-		account.SpendableBalance = 10.100m;
-		account.UnspendableChange = 0.023m;
-		account.Balance = account.SpendableBalance + account.UnspendableChange + account.ImmatureIncome + account.AnticipatedFees;
+		Security security = account.Network.AsSecurity();
+		account.Balance = new LightWalletClient.UserBalances
+		{
+			MinimumFees = security.Amount(-0.103m),
+			ImmatureIncome = security.Amount(0.5m),
+			Incoming = security.Amount(1.2m),
+			Spendable = security.Amount(10.100m),
+			ImmatureChange = security.Amount(0.023m),
+			FairyDust = security.Amount(0.00000000m),
+			IncomingFairyDust = security.Amount(0.00000000m),
+		};
 	}
 
 	public BalanceViewModel(IViewModelServices viewModelServices)
@@ -45,11 +50,11 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.balance = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
-			(a, b) => a?.Network.AsSecurity().Amount(b)).ToProperty(this, nameof(this.Balance));
+			(a, b) => b.MainBalance).ToProperty(this, nameof(this.Balance));
 		this.spendableBalance = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
-			vm => vm.SelectedAccount!.SpendableBalance,
-			(a, b) => a?.Network.AsSecurity().Amount(b)).ToProperty(this, nameof(this.SpendableBalance));
+			vm => vm.SelectedAccount!.Balance,
+			(a, b) => b.Spendable).ToProperty(this, nameof(this.SpendableBalance));
 		this.isBalanceBreakdownVisible = this.WhenAnyValue(
 			vm => vm.Balance,
 			vm => vm.SpendableBalance,
@@ -57,32 +62,32 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.unspendableChange = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
-			vm => vm.SelectedAccount!.UnspendableChange,
-			(a, b) => a?.Network.AsSecurity().Amount(b)).ToProperty(this, nameof(this.UnspendableChange));
+			vm => vm.SelectedAccount!.Balance,
+			(a, b) => b.ImmatureChange).ToProperty(this, nameof(this.UnspendableChange));
 		this.isUnspendableChangeVisible = this.WhenAnyValue(
 			vm => vm.UnspendableChange,
 			c => c?.Amount > 0).ToProperty(this, nameof(this.IsUnspendableChangeVisible));
 
 		this.unconfirmedIncome = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
-			vm => vm.SelectedAccount!.UnconfirmedBalance,
-			(a, b) => a?.Network.AsSecurity().Amount(b)).ToProperty(this, nameof(this.UnconfirmedIncome));
+			vm => vm.SelectedAccount!.Balance,
+			(a, b) => b.Incoming).ToProperty(this, nameof(this.UnconfirmedIncome));
 		this.isUnconfirmedIncomeVisible = this.WhenAnyValue(
 			vm => vm.UnconfirmedIncome,
 			i => i?.Amount > 0).ToProperty(this, nameof(this.IsUnconfirmedIncomeVisible));
 
 		this.anticipatedFees = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
-			vm => vm.SelectedAccount!.AnticipatedFees,
-			(a, b) => a?.Network.AsSecurity().Amount(b)).ToProperty(this, nameof(this.AnticipatedFees));
+			vm => vm.SelectedAccount!.Balance,
+			(a, b) => b.MinimumFees).ToProperty(this, nameof(this.AnticipatedFees));
 		this.isAnticipatedFeesVisible = this.WhenAnyValue(
 			vm => vm.AnticipatedFees,
 			f => f?.Amount < 0).ToProperty(this, nameof(this.IsAnticipatedFeesVisible));
 
 		this.immatureIncome = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
-			vm => vm.SelectedAccount!.ImmatureIncome,
-			(a, b) => a?.Network.AsSecurity().Amount(b)).ToProperty(this, nameof(this.ImmatureIncome));
+			vm => vm.SelectedAccount!.Balance,
+			(a, b) => b.ImmatureIncome).ToProperty(this, nameof(this.ImmatureIncome));
 		this.isImmatureIncomeVisible = this.WhenAnyValue(
 			vm => vm.ImmatureIncome,
 			i => i?.Amount > 0).ToProperty(this, nameof(this.IsImmatureIncomeVisible));

@@ -24,9 +24,21 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			this.Wallet.Add(zec);
 			this.Wallet.Add(taz);
 
-			Account playMoneyAccount = new(new ZcashAccount(taz.Zip32, 0)) { Name = Strings.FormatDefaultNameForFirstAccountWithTicker(taz.Zip32.Network), Balance = 1.23m };
-			Account realAccount = new(new ZcashAccount(zec.Zip32, 0)) { Name = "Real ZEC", Balance = 0.023m };
-			Account savingsAccount = new(new ZcashAccount(zec.Zip32, 1)) { Name = "Savings", Balance = 3.45m };
+			Account playMoneyAccount = NewAccount(taz, 0, Strings.FormatDefaultNameForFirstAccountWithTicker(taz.Zip32.Network), 1.23m);
+			Account realAccount = NewAccount(zec, 0, "Real ZEC", 0.023m);
+			Account savingsAccount = NewAccount(zec, 1, "Savings", 3.45m);
+
+			Account NewAccount(HDWallet wallet, uint index, string name, decimal spendableBalance)
+			{
+				return new(new ZcashAccount(wallet.Zip32, index))
+				{
+					Name = name,
+					Balance = new()
+					{
+						Spendable = wallet.Zip32.Network.AsSecurity().Amount(spendableBalance),
+					},
+				};
+			}
 
 			this.Wallet.Add(playMoneyAccount);
 			this.Wallet.Add(savingsAccount);

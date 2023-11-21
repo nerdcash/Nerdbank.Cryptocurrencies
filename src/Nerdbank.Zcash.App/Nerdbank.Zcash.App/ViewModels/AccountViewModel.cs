@@ -12,7 +12,7 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 
 	public AccountViewModel(Account account, IViewModelServices viewModelServices)
 	{
-		this.balance = account.WhenAnyValue(a => a.SecurityBalance).ToProperty(this, nameof(this.Balance));
+		this.balance = account.WhenAnyValue(a => a.Balance.MainBalance).ToProperty(this, nameof(this.Balance));
 
 		this.FullViewingKey = account.ZcashAccount.FullViewing?.UnifiedKey.TextEncoding;
 		this.IncomingViewingKey = account.ZcashAccount.IncomingViewing.UnifiedKey.TextEncoding;

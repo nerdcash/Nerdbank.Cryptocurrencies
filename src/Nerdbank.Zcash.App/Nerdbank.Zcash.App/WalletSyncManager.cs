@@ -152,15 +152,7 @@ public class WalletSyncManager : IAsyncDisposable
 			List<LightWalletClient.Transaction> txs = this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1);
 			this.Account.AddTransactions(txs, lastDownloadedBlock);
 
-			// TODO:
-			// Balance = this.spendableBalance + this.unspendableChange + this.immatureIncome + this.anticipatedFees
-			LightWalletClient.PoolBalances balances = this.client.GetPoolBalances();
-			this.Account.Balance = balances.Transparent?.Balance + balances.Sapling?.Balance + balances.Orchard?.Balance ?? 0;
-			this.Account.SpendableBalance = balances.Sapling?.SpendableBalance + balances.Orchard?.SpendableBalance ?? 0;
-			//this.Account.AnticipatedFees
-			//this.Account.UnspendableChange
-			//this.Account.ImmatureIncome
-			this.Account.UnconfirmedBalance = balances.Sapling?.UnverifiedBalance + balances.Orchard?.UnverifiedBalance ?? 0;
+			this.Account.Balance = this.client.GetUserBalances();
 		}
 
 		/// <summary>
