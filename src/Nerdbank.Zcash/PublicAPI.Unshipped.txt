@@ -179,16 +179,16 @@ Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance(d
 Nerdbank.Zcash.LightWalletClient.UpdateFrequency.get -> System.TimeSpan
 Nerdbank.Zcash.LightWalletClient.UpdateFrequency.set -> void
 Nerdbank.Zcash.LightWalletClient.UserBalances
-Nerdbank.Zcash.LightWalletClient.UserBalances.FairyDust.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
-Nerdbank.Zcash.LightWalletClient.UserBalances.FairyDust.init -> void
+Nerdbank.Zcash.LightWalletClient.UserBalances.Dust.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Zcash.LightWalletClient.UserBalances.Dust.init -> void
 Nerdbank.Zcash.LightWalletClient.UserBalances.ImmatureChange.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Zcash.LightWalletClient.UserBalances.ImmatureChange.init -> void
 Nerdbank.Zcash.LightWalletClient.UserBalances.ImmatureIncome.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Zcash.LightWalletClient.UserBalances.ImmatureIncome.init -> void
 Nerdbank.Zcash.LightWalletClient.UserBalances.Incoming.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Zcash.LightWalletClient.UserBalances.Incoming.init -> void
-Nerdbank.Zcash.LightWalletClient.UserBalances.IncomingFairyDust.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
-Nerdbank.Zcash.LightWalletClient.UserBalances.IncomingFairyDust.init -> void
+Nerdbank.Zcash.LightWalletClient.UserBalances.IncomingDust.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
+Nerdbank.Zcash.LightWalletClient.UserBalances.IncomingDust.init -> void
 Nerdbank.Zcash.LightWalletClient.UserBalances.MainBalance.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Zcash.LightWalletClient.UserBalances.MinimumFees.get -> Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount
 Nerdbank.Zcash.LightWalletClient.UserBalances.MinimumFees.init -> void
