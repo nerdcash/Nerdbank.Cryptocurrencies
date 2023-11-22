@@ -126,7 +126,12 @@ public class WalletSyncManager : IAsyncDisposable
 				// Oddly, EndBlock tends to be lower than StartBlock. But since I don't know why that is
 				// or whether it'll stay that way, we'll just take the Min of the two.
 				// We subtract one from the min because we don't know if even a single block in this batch is done.
-				this.ImportTransactions(checked((uint)Math.Min(progress.EndBlock, progress.StartBlock) - 1));
+				// Avoid OverflowException by ensuring the result is non-negative.
+				if (progress.StartBlock > 0 && progress.EndBlock > 0)
+				{
+					this.ImportTransactions(checked((uint)Math.Min(progress.EndBlock, progress.StartBlock) - 1));
+				}
+
 				this.Account.SyncProgress = progress;
 			});
 
