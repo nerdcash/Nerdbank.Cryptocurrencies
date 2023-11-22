@@ -488,9 +488,9 @@ public class LightWalletClient : IDisposable
 			this.ImmatureChange = security.Amount(ZatsToZEC(balances.immatureChange));
 			this.MinimumFees = -security.Amount(ZatsToZEC(balances.minimumFees));
 			this.ImmatureIncome = security.Amount(ZatsToZEC(balances.immatureIncome));
-			this.FairyDust = security.Amount(ZatsToZEC(balances.fairyDust));
+			this.Dust = security.Amount(ZatsToZEC(balances.dust));
 			this.Incoming = security.Amount(ZatsToZEC(balances.incoming));
-			this.IncomingFairyDust = security.Amount(ZatsToZEC(balances.incomingFairyDust));
+			this.IncomingDust = security.Amount(ZatsToZEC(balances.incomingDust));
 		}
 
 		/// <summary>
@@ -510,7 +510,7 @@ public class LightWalletClient : IDisposable
 		/// <remarks>
 		/// <para>
 		/// Expected fees are *not* deducted from this value, but the app may do so by subtracting `minimum_fees`.
-		/// `fairy_dust` is excluded from this value.
+		/// `dust` is excluded from this value.
 		/// </para>
 		/// <para>
 		/// For enhanced privacy, the minimum number of required confirmations to spend a note is usually greater than one.
@@ -531,7 +531,7 @@ public class LightWalletClient : IDisposable
 		/// </summary>
 		/// <remarks>
 		/// Balances described by other fields in this struct are not included because they are not confirmed,
-		/// they may amount to fairy dust, or because as `immature` funds they may require shielding which has a cost
+		/// they may amount to dust, or because as `immature` funds they may require shielding which has a cost
 		/// and can change the amount of fees required to spend them (e.g. 3 UTXOs shielded together become only 1 note).
 		/// </remarks>
 		public SecurityAmount MinimumFees { get; init; }
@@ -539,7 +539,7 @@ public class LightWalletClient : IDisposable
 		/// <summary>
 		/// Gets the sum of non-change notes with a non-zero confirmation count that is less than the minimum required for spending,
 		/// and all UTXOs (considering that UTXOs must be shielded before spending).
-		/// `fairy_dust` is excluded from this value.
+		/// `dust` is excluded from this value.
 		/// </summary>
 		/// <remarks>
 		/// As funds mature, this may not be the exact amount added to `spendable`, since the process of maturing
@@ -551,18 +551,18 @@ public class LightWalletClient : IDisposable
 		/// Gets the sum of all *confirmed* UTXOs and notes that are worth less than the fee to spend them,
 		/// making them essentially inaccessible.
 		/// </summary>
-		public SecurityAmount FairyDust { get; init; }
+		public SecurityAmount Dust { get; init; }
 
 		/// <summary>
 		/// Gets the sum of all *unconfirmed* UTXOs and notes that are not change.
-		/// This value includes any applicable `incoming_fairy_dust`.
+		/// This value includes any applicable `incoming_dust`.
 		/// </summary>
 		public SecurityAmount Incoming { get; init; }
 
 		/// <summary>
-		/// Gets the sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as fairy dust.
+		/// Gets the sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as dust.
 		/// </summary>
-		public SecurityAmount IncomingFairyDust { get; init; }
+		public SecurityAmount IncomingDust { get; init; }
 	}
 
 	/// <summary>

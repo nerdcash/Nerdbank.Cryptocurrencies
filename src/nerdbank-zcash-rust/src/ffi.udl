@@ -113,9 +113,9 @@ dictionary UserBalances {
     u64 immature_change;
     u64 minimum_fees;
     u64 immature_income;
-    u64 fairy_dust;
+    u64 dust;
     u64 incoming;
-    u64 incoming_fairy_dust;
+    u64 incoming_dust;
 };
 
 namespace LightWallet {
