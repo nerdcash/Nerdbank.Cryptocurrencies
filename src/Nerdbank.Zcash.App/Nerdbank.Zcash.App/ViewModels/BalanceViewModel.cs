@@ -37,8 +37,8 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			Incoming = security.Amount(1.2m),
 			Spendable = security.Amount(10.100m),
 			ImmatureChange = security.Amount(0.023m),
-			FairyDust = security.Amount(0.00000000m),
-			IncomingFairyDust = security.Amount(0.00000000m),
+			Dust = security.Amount(0.00000000m),
+			IncomingDust = security.Amount(0.00000000m),
 		};
 	}
 
