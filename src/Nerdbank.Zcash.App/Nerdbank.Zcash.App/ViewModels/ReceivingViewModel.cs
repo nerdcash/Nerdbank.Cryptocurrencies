@@ -12,13 +12,9 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 {
 	private readonly IViewModelServices viewModelServices;
-
 	private readonly Contact? observingContact;
-
 	private readonly Contact.AssignedSendingAddresses? assignedAddresses;
-
 	private readonly uint transparentAddressIndex;
-
 	private readonly Account receivingAccount;
 
 	private ReceivingAddress displayedAddress;
@@ -65,6 +61,8 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
 		}
 
+		this.IsTestNetWarningVisible = this.receivingAccount.Network != ZcashNetwork.MainNet;
+
 		this.displayedAddress = this.Addresses[0];
 		this.RecordTransparentAddressShownIfApplicable();
 	}
@@ -72,6 +70,12 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	public string Title => "Receive Zcash";
 
 	public SyncProgressData SyncProgress { get; }
+
+	public string AccountName => this.receivingAccount.Name;
+
+	public string TestNetWarning => Strings.TestNetIsWorthlessWarning;
+
+	public bool IsTestNetWarningVisible { get; }
 
 	public bool AddressAssignedToContactIsVisible => this.observingContact is not null;
 

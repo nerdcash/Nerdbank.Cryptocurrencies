@@ -19,6 +19,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> subtotalAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> feeAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
+	private readonly ObservableAsPropertyHelper<bool> isTestNetWarningVisible;
 	private SecurityAmount subtotal;
 	private SecurityAmount total;
 	private ReadOnlyObservableCollection<object>? possibleRecipients;
@@ -59,6 +60,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			(total, rate) => ConvertOrNull(rate, total))
 			.ToProperty(this, nameof(this.TotalAlternate));
 
+		this.isTestNetWarningVisible = this.WhenAnyValue(vm => vm.SelectedAccount)
+			.Select(account => account?.Network != ZcashNetwork.MainNet)
+			.ToProperty(this, nameof(this.IsTestNetWarningVisible));
+
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
 	}
@@ -68,6 +73,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public SyncProgressData SyncProgress { get; }
 
 	public string FromAccountCaption => "From account:";
+
+	public string TestNetWarning => Strings.TestNetIsWorthlessWarning;
+
+	public bool IsTestNetWarningVisible => this.isTestNetWarningVisible.Value;
 
 	public ReadOnlyObservableCollection<LineItem> LineItems => this.lineItemsReadOnly;
 
