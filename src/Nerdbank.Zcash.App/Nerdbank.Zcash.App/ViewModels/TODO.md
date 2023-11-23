@@ -3,6 +3,11 @@
 - Windows app installer
 - zcash: protocol handler to activate send view
   - Support multiple line items
+- Setting to disable downloading too many blocks on metered networks.
+- PERF: Optimize startup
+  - AOT messagepack formatters
+  - R2R assemblies with mibc data
+  - Defer initializing LightClient until after the UI has loaded.
 
 ## Views to build
 
@@ -17,8 +22,11 @@
   - Show amount in exchange rate that was current as of the transaction time.
   - Add Amount detail that shows the value transferred excluding the fee.
   - Add a To: field to show which receiving address was used (for in and outbound transactions).
+  - Convert When column to local time.
+  - Fix transaction amounts that are wrong in YWallet account.
 - Sending
   - Support a scan of a zcash: QR code, possibly with multiple recipients
+  - Enable transferring "everything" in the wallet (i.e. make working with fees easier when it's near the total).
 - Receiving
   - Show a real indicator of a recent receipt of funds.
 - Address book
