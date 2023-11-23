@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Nerdbank.Cryptocurrencies.Exchanges;
+namespace Nerdbank.Cryptocurrencies;
 
 /// <summary>
 /// A particular crypto or fiat currency.

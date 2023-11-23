@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 
-namespace Nerdbank.Cryptocurrencies.Exchanges;
+namespace Nerdbank.Cryptocurrencies;
 
 /// <summary>
 /// Utilities for working with stable coins.
