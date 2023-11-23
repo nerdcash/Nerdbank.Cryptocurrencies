@@ -113,18 +113,18 @@ pub struct WalletInfo {
 /// "Balance" | `spendable` - `minimum_fees` + `immature_change` + `immature_income`
 /// "Incoming" | `incoming`
 ///
-/// If fairy dust is sent to the wallet, the simpler view's Incoming balance would include it,
+/// If dust is sent to the wallet, the simpler view's Incoming balance would include it,
 /// only for it to evaporate when confirmed.
 /// But incoming can always evaporate (e.g. a transaction expires before confirmation),
 /// and the alternatives being to either hide that a transmission was made at all, or to include
-/// the fairy dust in other balances could be more misleading.
+/// the dust in other balances could be more misleading.
 ///
-/// An app *could* choose to prominently warn the user if a significant proportion of the incoming balance is fairy dust,
+/// An app *could* choose to prominently warn the user if a significant proportion of the incoming balance is dust,
 /// although this event seems very unlikely since it will cost the sender *more* than the amount the recipient is expecting
 /// to 'fool' them into thinking they are receiving value.
 /// The more likely scenario is that the sender is trying to send a small amount of value as a new user and doesn't realize
 /// the value is too small to be useful.
-/// A good Zcash wallet should prevent sending fairy dust in the first place.
+/// A good Zcash wallet should prevent sending dust in the first place.
 pub struct UserBalances {
     /// Available for immediate spending.
     /// Expected fees are *not* deducted from this value, but the app may do so by subtracting `minimum_fees`.
@@ -140,7 +140,7 @@ pub struct UserBalances {
     /// This fee assumes all funds will be sent to a single note.
     ///
     /// Balances described by other fields in this struct are not included because they are not confirmed,
-    /// they may amount to fairy dust, or because as `immature_income` funds they may require shielding which has a cost
+    /// they may amount to dust, or because as `immature_income` funds they may require shielding which has a cost
     /// and can change the amount of fees required to spend them (e.g. 3 UTXOs shielded together become only 1 note).
     pub minimum_fees: u64,
 
@@ -154,14 +154,14 @@ pub struct UserBalances {
 
     /// The sum of all *confirmed* UTXOs and notes that are worth less than the fee to spend them,
     /// making them essentially inaccessible.
-    pub fairy_dust: u64,
+    pub dust: u64,
 
     /// The sum of all *unconfirmed* UTXOs and notes that are not change.
     /// This value includes any applicable `incoming_fairy_dust`.
     pub incoming: u64,
 
-    /// The sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as fairy dust.
-    pub incoming_fairy_dust: u64,
+    /// The sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as dust.
+    pub incoming_dust: u64,
 }
 
 fn prepare_config(config: Config) -> Result<ZingoConfig, LightWalletError> {
@@ -498,17 +498,14 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
         immature_change: 0,
         minimum_fees: 0,
         immature_income: 0,
-        fairy_dust: 0,
+        dust: 0,
         incoming: 0,
-        incoming_fairy_dust: 0,
+        incoming_dust: 0,
     };
 
     RT.block_on(async move {
         // anchor height is the highest block height that contains income that are considered spendable.
         let anchor_height = lightclient.wallet.get_anchor_height().await;
-
-        // Calculate minimum ZIP-317 compliant fee
-        balances.minimum_fees = MARGINAL_FEE; // The receiving note.
 
         lightclient
             .wallet
@@ -526,7 +523,8 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                 let mut useful_value = 0;
                 let mut fairy_dust_value = 0;
                 let mut utxo_value = 0;
-                let mut note_count = 0;
+                let mut inbound_note_count_nodust = 0;
+                let mut change_note_count = 0;
 
                 tx.orchard_notes
                     .iter()
@@ -535,11 +533,11 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                         let value = n.note.value().inner();
                         if !incoming && n.is_change {
                             change += value;
-                            note_count += 1;
+                            change_note_count += 1;
                         } else if incoming {
                             if value > MARGINAL_FEE {
                                 useful_value += value;
-                                note_count += 1;
+                                inbound_note_count_nodust += 1;
                             } else {
                                 fairy_dust_value += value;
                             }
@@ -553,11 +551,11 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                         let value = n.note.value().inner();
                         if !incoming && n.is_change {
                             change += value;
-                            note_count += 1;
+                            change_note_count += 1;
                         } else if incoming {
                             if value > MARGINAL_FEE {
                                 useful_value += value;
-                                note_count += 1;
+                                inbound_note_count_nodust += 1;
                             } else {
                                 fairy_dust_value += value;
                             }
@@ -572,32 +570,42 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                         if incoming {
                             if n.value > MARGINAL_FEE {
                                 utxo_value += n.value;
-                                note_count += 1;
+                                inbound_note_count_nodust += 1;
                             } else {
                                 fairy_dust_value += n.value;
                             }
                         }
                     });
 
+                // The fee field only tracks mature income and change.
+                balances.minimum_fees += change_note_count * MARGINAL_FEE;
+                if mature {
+                    balances.minimum_fees += inbound_note_count_nodust * MARGINAL_FEE;
+                }
+
                 if mature {
                     // Spendable
                     balances.spendable += useful_value + change;
-                    balances.fairy_dust += fairy_dust_value;
+                    balances.dust += fairy_dust_value;
                     balances.immature_income += utxo_value; // UTXOs are always immature, since they should be shielded before spending.
-                    balances.minimum_fees += note_count * MARGINAL_FEE;
                 } else if !tx.unconfirmed {
                     // Confirmed, but not yet spendable
                     balances.immature_income += useful_value + utxo_value;
                     balances.immature_change += change;
-                    balances.fairy_dust += fairy_dust_value;
-                    balances.minimum_fees += note_count * MARGINAL_FEE;
+                    balances.dust += fairy_dust_value;
                 } else {
                     // Unconfirmed
                     balances.immature_change += change;
                     balances.incoming += useful_value + utxo_value;
-                    balances.incoming_fairy_dust += fairy_dust_value;
+                    balances.incoming_dust += fairy_dust_value;
                 }
             });
+
+        // Add the minimum fee for the receiving note,
+        // but only if there exists notes to spend in the buckets that are covered by the minimum_fee.
+        if balances.minimum_fees > 0 {
+            balances.minimum_fees += MARGINAL_FEE; // The receiving note.
+        }
 
         Ok(balances)
     })
