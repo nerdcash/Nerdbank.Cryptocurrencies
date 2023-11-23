@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Specialized;
+using System.Threading.Tasks.Dataflow;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Zcash.App.Models;
 using IAsyncDisposable = System.IAsyncDisposable;
@@ -90,9 +91,6 @@ public class WalletSyncManager : IAsyncDisposable
 			this.client = this.CreateClient();
 			account.LightWalletClient = this.client;
 
-			// Import any transactions that we already know about.
-			this.ImportTransactions(null);
-
 			// Start the process of keeping in sync with new transactions.
 			this.syncResult = this.DownloadAsync(this.shutdownTokenSource.Token);
 		}
@@ -118,6 +116,33 @@ public class WalletSyncManager : IAsyncDisposable
 
 		private async Task DownloadAsync(CancellationToken cancellationToken)
 		{
+			// Import any transactions that we already know about.
+			await this.ImportTransactionsAsync(null, cancellationToken);
+
+			// Arrange for importing transactions from native to managed to happen in parallel to our downloading them from Internet to native.
+			// The native side uses locks and suffers from lock contention when it's processing large batches,
+			// so we don't want to block the UI thread waiting on the call to import the transactions.
+			// We also don't want the periodic Progress updates to lead to concurrent calls to import transactions
+			// as that would just compound the problem.
+			// This ActionBlock is designed specially to import everything up to the latest periodic Progress,
+			// to do so on the UI thread, and to ensure that only one more request to do so is queued up at a time.
+			uint latestBlockSynced = 0;
+			ActionBlock<bool> getTransactionsBlock = new(
+				async _ =>
+				{
+					if (latestBlockSynced > this.Account.LastBlockHeight)
+					{
+						await this.ImportTransactionsAsync(latestBlockSynced, cancellationToken);
+					}
+				},
+				new ExecutionDataflowBlockOptions
+				{
+					CancellationToken = cancellationToken,
+					BoundedCapacity = 2,
+					TaskScheduler = TaskScheduler.FromCurrentSynchronizationContext(),
+					SingleProducerConstrained = true,
+				});
+
 			Progress<LightWalletClient.SyncProgress> progress = new(progress =>
 			{
 				// We have no idea where we are in current 'batch' (since one sync happens in many batches),
@@ -129,7 +154,12 @@ public class WalletSyncManager : IAsyncDisposable
 				// Avoid OverflowException by ensuring the result is non-negative.
 				if (progress.StartBlock > 0 && progress.EndBlock > 0)
 				{
-					this.ImportTransactions(checked((uint)Math.Min(progress.EndBlock, progress.StartBlock) - 1));
+					// Enqueue the request.
+					// If the ActionBlock is already processing a request, and another request is already queued,
+					// this request will be dropped, but in such a way that the queued request will observe the latest
+					// value of this captured variable, so it'll do all the work we need.
+					latestBlockSynced = Math.Max(latestBlockSynced, checked((uint)Math.Min(progress.EndBlock, progress.StartBlock) - 1));
+					getTransactionsBlock.Post(true);
 				}
 
 				this.Account.SyncProgress = progress;
@@ -138,7 +168,7 @@ public class WalletSyncManager : IAsyncDisposable
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				LightWalletClient.SyncResult result = await this.client.DownloadTransactionsAsync(progress, cancellationToken);
-				this.ImportTransactions(checked((uint)result.LatestBlock));
+				await this.ImportTransactionsAsync(checked((uint)result.LatestBlock), cancellationToken);
 				this.Account.SyncProgress = null;
 
 				// Either restart the sync immediately if we're already behind the tip of the chain,
@@ -149,15 +179,18 @@ public class WalletSyncManager : IAsyncDisposable
 					await Task.Delay(SyncFrequency, this.shutdownTokenSource.Token);
 				}
 			}
+
+			getTransactionsBlock.Complete();
+			await getTransactionsBlock.Completion;
 		}
 
-		private void ImportTransactions(uint? lastDownloadedBlock)
+		private async Task ImportTransactionsAsync(uint? lastDownloadedBlock, CancellationToken cancellationToken)
 		{
 			// TODO: handle re-orgs and rewrite/invalidate the necessary transactions.
-			List<LightWalletClient.Transaction> txs = this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1);
+			List<LightWalletClient.Transaction> txs = await Task.Run(() => this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1), cancellationToken);
 			this.Account.AddTransactions(txs, lastDownloadedBlock);
 
-			this.Account.Balance = this.client.GetUserBalances();
+			this.Account.Balance = await Task.Run(this.client.GetUserBalances, cancellationToken);
 		}
 
 		/// <summary>
