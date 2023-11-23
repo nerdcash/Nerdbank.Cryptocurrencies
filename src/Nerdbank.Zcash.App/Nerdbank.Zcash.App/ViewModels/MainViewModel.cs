@@ -110,6 +110,11 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public T ReplaceViewStack<T>(T viewModel)
 		where T : ViewModelBase
 	{
+		foreach (ViewModelBase vm in this.viewStack)
+		{
+			(vm as IDisposable)?.Dispose();
+		}
+
 		this.viewStack.Clear();
 		this.NavigateTo(viewModel);
 		return viewModel;
@@ -123,7 +128,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 			if (viewModel.GetType() == this.Content?.GetType())
 			{
 				// Don't push the same view model type onto the stack twice.
-				this.viewStack.Pop();
+				(this.viewStack.Pop() as IDisposable)?.Dispose();
 			}
 
 			this.viewStack.Push(viewModel);
@@ -137,7 +142,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	{
 		if (this.viewStack.Count > 1 && (ifCurrentViewModel is null || this.viewStack.Peek() == ifCurrentViewModel))
 		{
-			this.viewStack.Pop();
+			(this.viewStack.Pop() as IDisposable)?.Dispose();
 			this.RaisePropertyChanged(nameof(this.Content));
 		}
 	}

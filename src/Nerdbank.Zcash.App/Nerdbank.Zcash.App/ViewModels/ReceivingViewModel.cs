@@ -17,7 +17,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	private readonly uint transparentAddressIndex;
 	private readonly Account receivingAccount;
 
-	private ReceivingAddress displayedAddress;
+	private ReceivingAddress? displayedAddress;
 
 	[Obsolete("Design-time only", error: true)]
 	public ReceivingViewModel()
@@ -81,7 +81,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public string AddressAssignedToContactExplanation => $"This receiving address is only for **{this.observingContact?.Name}**.";
 
-	public ReceivingAddress DisplayedAddress
+	public ReceivingAddress? DisplayedAddress
 	{
 		get => this.displayedAddress;
 		set
@@ -115,7 +115,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	private void RecordTransparentAddressShownIfApplicable()
 	{
-		if (this.DisplayedAddress.Address is TransparentAddress && this.assignedAddresses is not null)
+		if (this.DisplayedAddress?.Address is TransparentAddress && this.assignedAddresses is not null)
 		{
 			this.assignedAddresses.TransparentAddressIndex ??= this.transparentAddressIndex;
 			if (this.transparentAddressIndex > this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex || this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is null)
