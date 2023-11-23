@@ -83,4 +83,15 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	}
 
 	private string DebuggerDisplay => $"{this.TransactionId} ({this.Amount})";
+
+	/// <summary>
+	/// Gets the incoming amount in this transaction that was received with one of the receivers in a particular address.
+	/// </summary>
+	/// <param name="address">The address of interest.</param>
+	/// <returns>The sum of the amounts in the notes destined for the given address.</returns>
+	public SecurityAmount GetAmountReceivedUsingAddress(ZcashAddress address)
+	{
+		// TODO: implement this filter when we actually store memos.
+		return this.Amount;
+	}
 }

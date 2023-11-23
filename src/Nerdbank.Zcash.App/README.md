@@ -21,6 +21,7 @@ Features unique to eZcash over other Zcash wallets include:
 - Receiving Zcash
   - Payment request URI and QR code support simplifies 
   - Automatically associates all incoming Zcash with the contact that sent it.
+  - Show incoming Zcash directly on the receiving screen that was sent to that particular diversified address, so you know when you've been paid.
 - Sending Zcash
   - Multi-payee support avoids the confirmation delay that can slow down paying multiple people at a time.
   - ZIP-317 fee calculation ensures transactions are confirmed quickly and reliably.

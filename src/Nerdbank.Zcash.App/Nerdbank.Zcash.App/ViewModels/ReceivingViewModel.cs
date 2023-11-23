@@ -2,10 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
-using Avalonia.Media.Imaging;
-using Microsoft;
-using Nerdbank.QRCodes;
-using QRCoder;
+using System.Globalization;
+using System.Reactive.Linq;
+using System.Text;
+using DynamicData.Binding;
+using Microsoft.VisualStudio.Threading;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -16,6 +18,10 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	private readonly Contact.AssignedSendingAddresses? assignedAddresses;
 	private readonly uint transparentAddressIndex;
 	private readonly Account receivingAccount;
+	private readonly CancellationTokenSource disposalTokenSource = new();
+	private readonly ZcashAddress unifiedWithTransparent;
+	private string? paymentReceivedText;
+	private ObservableAsPropertyHelper<ZcashTransaction?> lastTransactionReceived;
 
 	private ReceivingAddress? displayedAddress;
 
@@ -39,11 +45,13 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		this.SyncProgress = new SyncProgressData(this.viewModelServices) { Account = this.receivingAccount };
 
 		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount);
+		List<ZcashAddress> rawReceiverAddresses = new();
 		if (this.receivingAccount.ZcashAccount.HasDiversifiableKeys)
 		{
 			DiversifierIndex diversifierIndex = this.assignedAddresses?.Diversifier ?? new(DateTime.UtcNow.Ticks);
 			UnifiedAddress unifiedAddress = this.receivingAccount.ZcashAccount.GetDiversifiedAddress(ref diversifierIndex);
 			this.Addresses.Add(new(viewModelServices, unifiedAddress, paymentRequestDetailsViewModel, Strings.UnifiedReceivingAddressHeader));
+			rawReceiverAddresses.AddRange(unifiedAddress.Receivers);
 
 			if (unifiedAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver)
 			{
@@ -59,9 +67,18 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			this.transparentAddressIndex = this.assignedAddresses?.TransparentAddressIndex ?? (this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
 			TransparentAddress transparentAddress = this.receivingAccount.ZcashAccount.GetTransparentAddress(this.transparentAddressIndex);
 			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
+			rawReceiverAddresses.Add(transparentAddress);
 		}
 
+		this.unifiedWithTransparent = UnifiedAddress.Create(rawReceiverAddresses);
+
 		this.IsTestNetWarningVisible = this.receivingAccount.Network != ZcashNetwork.MainNet;
+
+		// Watch for incoming transactions.
+		this.lastTransactionReceived = this.receivingAccount.Transactions.ObserveCollectionChanges()
+			.Select(_ => this.FindLastReceivedTransaction())
+			.ToProperty(this, nameof(this.LastTransactionReceived), initialValue: this.FindLastReceivedTransaction());
+		this.KeepLastTransactionMessageFreshAsync().Forget();
 
 		this.displayedAddress = this.Addresses[0];
 		this.RecordTransparentAddressShownIfApplicable();
@@ -101,10 +118,19 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 	/// as they're waiting, we should show them transactions even from the mempool.
 	/// If it has few confirmations, we should show that too.
 	/// </summary>
-	public string PaymentReceivedText => $"You received {this.DisplayedAddress.Address.Network.AsSecurity().Amount(0.1m)} at this address 5 seconds ago";
+	public string? PaymentReceivedText
+	{
+		get => this.paymentReceivedText;
+		private set => this.RaiseAndSetIfChanged(ref this.paymentReceivedText, value);
+	}
+
+	public ZcashTransaction? LastTransactionReceived => this.lastTransactionReceived.Value;
 
 	public void Dispose()
 	{
+		this.disposalTokenSource.Cancel();
+		this.disposalTokenSource.Dispose();
+
 		foreach (ReceivingAddress address in this.Addresses)
 		{
 			address.Dispose();
@@ -122,6 +148,59 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			{
 				this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex = this.transparentAddressIndex;
 			}
+		}
+	}
+
+	private ZcashTransaction? FindLastReceivedTransaction()
+	{
+		// When we report the amount sent, we want to filter it down to just what was sent to the address(es) actually displayed by this view.
+		// This informs the user when the person they are showing the address to has actually sent them something, rather than misinform them
+		// when a payment came in from someone else.
+		return this.receivingAccount.Transactions
+			.Where(t => t.IsIncoming && t.GetAmountReceivedUsingAddress(this.unifiedWithTransparent).Amount > 0)
+			.OrderByDescending(t => t.When)
+			.Take(1)
+			.FirstOrDefault();
+	}
+
+	private string? ComputeLastTransactionReceivedTime(ZcashTransaction? lastTransaction)
+	{
+		if (lastTransaction is null)
+		{
+			return null;
+		}
+
+		StringBuilder builder = new();
+
+		// When we report the amount sent, we want to filter it down to just what was sent to the address(es) actually displayed by this view.
+		SecurityAmount amount = lastTransaction.GetAmountReceivedUsingAddress(this.unifiedWithTransparent);
+		builder.Append(CultureInfo.CurrentCulture, $"You received {amount} at this address");
+
+		TimeSpan? age = DateTime.UtcNow - lastTransaction.When;
+		if (age is not null)
+		{
+			builder.Append(CultureInfo.CurrentCulture, $" {AppUtilities.FriendlyTimeSpan(age.Value)}");
+		}
+
+		uint confirmations = (this.receivingAccount.LastBlockHeight - lastTransaction.BlockNumber) ?? 0;
+		if (confirmations > 0)
+		{
+			builder.Append(CultureInfo.CurrentCulture, $", confirmed {confirmations} times.");
+		}
+		else
+		{
+			builder.Append(" (unconfirmed).");
+		}
+
+		return builder.ToString();
+	}
+
+	private async Task KeepLastTransactionMessageFreshAsync()
+	{
+		while (!this.disposalTokenSource.IsCancellationRequested)
+		{
+			this.PaymentReceivedText = this.ComputeLastTransactionReceivedTime(this.LastTransactionReceived);
+			await Task.Delay(1000, this.disposalTokenSource.Token);
 		}
 	}
 }

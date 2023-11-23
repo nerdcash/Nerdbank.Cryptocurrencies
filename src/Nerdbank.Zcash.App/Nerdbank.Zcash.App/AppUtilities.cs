@@ -85,6 +85,26 @@ public static class AppUtilities
 		return (originalIndex, newIndex);
 	}
 
+	internal static string FriendlyTimeSpan(TimeSpan timeSpan)
+	{
+		if (timeSpan.TotalSeconds < 90)
+		{
+			return $"{timeSpan.TotalSeconds:0} seconds ago";
+		}
+		else if (timeSpan.TotalMinutes < 90)
+		{
+			return $"{timeSpan.TotalMinutes:0} minutes ago";
+		}
+		else if (timeSpan.TotalHours < 24)
+		{
+			return $"{timeSpan.TotalHours:0} hours ago";
+		}
+		else
+		{
+			return $"{timeSpan.TotalDays:0} days ago";
+		}
+	}
+
 	/// <summary>
 	/// Searches a range of elements in the sorted <see cref="IReadOnlyList{T}"/>
 	/// for an element using the specified comparer and returns the zero-based index

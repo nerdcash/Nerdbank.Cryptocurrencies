@@ -20,7 +20,7 @@
 - Sending
   - Support a scan of a zcash: QR code, possibly with multiple recipients
 - Receiving
-  - Add sync progress control
+  - Show a real indicator of a recent receipt of funds.
 - Address book
   - Add QR code scanner for storing contact address.
 - Backup

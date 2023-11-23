@@ -4,7 +4,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using MessagePack;
-using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.Models;
 
