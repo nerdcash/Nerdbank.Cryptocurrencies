@@ -6,6 +6,13 @@ using static Nerdbank.Zcash.ZcashAddress.Match;
 
 public class ZcashAddressTests : TestBase
 {
+	private readonly ITestOutputHelper logger;
+
+	public ZcashAddressTests(ITestOutputHelper logger)
+	{
+		this.logger = logger;
+	}
+
 	public static object[][] ValidAddresses => new object[][]
 	{
 		new object[] { ValidUnifiedAddressOrchardSapling },
@@ -160,9 +167,11 @@ public class ZcashAddressTests : TestBase
 	{
 		// Construct a case where one receiver matches and the other does not.
 		UnifiedAddress receiver = (UnifiedAddress)ZcashAddress.Decode(ValidUnifiedAddressOrchardSapling);
+		Bip39Mnemonic randomMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
+		this.logger.WriteLine(randomMnemonic.SeedPhrase);
 		ZcashAddress testAddress = UnifiedAddress.Create(
 			receiver.Receivers.OfType<SaplingAddress>().Single(),
-			Zip32HDWallet.Orchard.Create(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), receiver.Network).DefaultAddress);
+			Zip32HDWallet.Orchard.Create(randomMnemonic, receiver.Network).DefaultAddress);
 		Assert.Equal(MatchingReceiversFound | MismatchingReceiversFound, receiver.IsMatch(testAddress));
 	}
 }
