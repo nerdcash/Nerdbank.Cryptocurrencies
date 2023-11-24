@@ -24,7 +24,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, string txid, string otherPartyName)
 		{
 			ImmutableArray<Transaction.SendItem> sends = amount < 0
-				? ImmutableArray.Create(new Transaction.SendItem { Amount = amount, Memo = Memo.FromMessage(memo) })
+				? ImmutableArray.Create(new Transaction.SendItem { Amount = -amount, Memo = Memo.FromMessage(memo) })
 				: ImmutableArray<Transaction.SendItem>.Empty;
 			ImmutableArray<Transaction.RecvItem> receives = amount > 0
 				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
@@ -39,6 +39,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 					Security = this.viewModel.SelectedSecurity,
 					SendItems = sends,
 					RecvItems = receives,
+					Fee = -0.0001m,
 				},
 				this.MainViewModel);
 		}

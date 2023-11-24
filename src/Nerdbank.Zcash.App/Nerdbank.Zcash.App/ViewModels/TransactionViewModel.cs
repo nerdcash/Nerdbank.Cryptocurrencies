@@ -79,6 +79,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string AmountCaption => "Amount";
 
+	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.Model.Security.Amount(fee) : null;
+
+	public string FeeCaption => "Fee";
+
 	public SecurityAmount? AlternateAmount => this.Amount * this.Model.ExchangeRate;
 
 	public ZcashAddress? OtherPartyAddress => this.Model.OtherPartyAddress;

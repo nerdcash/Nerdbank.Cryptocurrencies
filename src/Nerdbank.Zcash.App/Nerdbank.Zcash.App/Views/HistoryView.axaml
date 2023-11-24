@@ -51,17 +51,19 @@
       </DataGrid.Columns>
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:TransactionViewModel">
-          <Grid RowDefinitions="auto,auto,auto,auto,auto" ColumnDefinitions="auto,*">
+          <Grid RowDefinitions="auto,auto,auto,auto,auto,auto" ColumnDefinitions="auto,*">
             <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" Grid.Row="0" />
             <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="0" Grid.Column="1" />
             <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" Grid.Row="1" />
             <SelectableTextBlock Text="{Binding Memo}" Name="MemoBox" Grid.Row="1" Grid.Column="1" />
             <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="2"/>
             <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1" Grid.Row="2" />
-            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="3" />
-            <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="3" Grid.Column="1" />
-            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="4" />
-            <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="4" Grid.Column="1" />
+            <Label Content="{Binding FeeCaption}" Target="{Binding #FeeBox}" Grid.Row="3" />
+            <local:SecurityAmountDisplay Value="{Binding Fee}" IsUnitsVisible="False" Name="FeeBox" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" />
+            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="4" />
+            <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="4" Grid.Column="1" />
+            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="5" />
+            <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="5" Grid.Column="1" />
           </Grid>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>

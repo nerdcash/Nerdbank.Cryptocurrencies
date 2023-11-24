@@ -127,7 +127,7 @@ public class Account : ReactiveObject, IPersistableData
 					RecvItems = transaction.Notes.Where(r => !r.IsChange).ToImmutableArray(),
 					SendItems = transaction.Sends,
 					Security = this.Network.AsSecurity(),
-					Fee = transaction.IsIncoming ? null : this.Network.AsSecurity().Amount(-transaction.Fee),
+					Fee = transaction.IsIncoming ? null : -transaction.Fee,
 				};
 
 				this.TransactionsMutable.Add(tx);

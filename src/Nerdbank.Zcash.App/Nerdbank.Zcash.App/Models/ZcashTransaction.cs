@@ -20,7 +20,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	private string mutableMemo = string.Empty;
 	private ExchangeRate? exchangeRate;
 	private string otherPartyName = string.Empty;
-	private SecurityAmount? fee;
+	private decimal? fee;
 
 	public ZcashTransaction()
 	{
@@ -47,19 +47,19 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	}
 
 	[IgnoreMember]
-	public SecurityAmount Amount => this.amount ??= this.Security.Amount(this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount)) + (this.Fee ?? default);
+	public SecurityAmount Amount => this.amount ??= this.Security.Amount(this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount) + (this.Fee ?? 0));
 
 	/// <summary>
 	/// Gets the fee paid for this transaction, if known.
 	/// </summary>
 	/// <value>When specified, this is represented as a negative value.</value>
 	[Key(4)]
-	public SecurityAmount? Fee
+	public decimal? Fee
 	{
 		get => this.fee;
 		init
 		{
-			Requires.Range(value is not SecurityAmount { Amount: > 0 }, nameof(value), "Non-positive values only.");
+			Requires.Range(value is not > 0, nameof(value), "Non-positive values only.");
 			this.fee = value;
 		}
 	}

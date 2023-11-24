@@ -27,7 +27,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, string txid, string otherPartyName)
 		{
 			ImmutableArray<Transaction.SendItem> sends = amount < 0
-				? ImmutableArray.Create(new Transaction.SendItem { Amount = amount, Memo = Memo.FromMessage(memo) })
+				? ImmutableArray.Create(new Transaction.SendItem { Amount = -amount, Memo = Memo.FromMessage(memo) })
 				: ImmutableArray<Transaction.SendItem>.Empty;
 			ImmutableArray<Transaction.RecvItem> receives = amount > 0
 				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
@@ -36,6 +36,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,
+					Fee = amount > 0 ? null : -0.0001m,
 					TransactionId = txid,
 					When = DateTimeOffset.UtcNow - age,
 					OtherPartyName = otherPartyName,
