@@ -56,6 +56,12 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 				return string.Empty;
 			}
 
+			// If this happened today, just display the time.
+			if (this.When.Value.Date == DateTimeOffset.Now.Date)
+			{
+				return $"{this.When:h:mm tt}";
+			}
+
 			int daysAgo = (DateTimeOffset.UtcNow - this.When.Value).Days;
 			if (daysAgo < 7)
 			{
