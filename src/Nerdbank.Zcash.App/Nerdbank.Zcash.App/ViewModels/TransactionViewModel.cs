@@ -45,7 +45,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string TransactionIdCaption => "Transaction ID";
 
-	public DateTimeOffset? When => this.Model.When;
+	public DateTimeOffset? When => this.Model.When?.ToLocalTime();
 
 	public string WhenColumnFormatted
 	{
