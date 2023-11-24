@@ -4,7 +4,6 @@
 using System.Collections.Specialized;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.VisualStudio.Threading;
-using Nerdbank.Zcash.App.Models;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Nerdbank.Zcash.App;
@@ -187,7 +186,7 @@ public class WalletSyncManager : IAsyncDisposable
 		private async Task ImportTransactionsAsync(uint? lastDownloadedBlock, CancellationToken cancellationToken)
 		{
 			// TODO: handle re-orgs and rewrite/invalidate the necessary transactions.
-			List<LightWalletClient.Transaction> txs = await Task.Run(() => this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1), cancellationToken);
+			List<Transaction> txs = await Task.Run(() => this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1), cancellationToken);
 			this.Account.AddTransactions(txs, lastDownloadedBlock);
 
 			this.Account.Balance = await Task.Run(this.client.GetUserBalances, cancellationToken);

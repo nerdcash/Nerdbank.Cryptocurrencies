@@ -12,7 +12,7 @@ public class Account : ReactiveObject, IPersistableData
 {
 	private string? zingoWalletFileName;
 	private string name = string.Empty;
-	private LightWalletClient.UserBalances balance;
+	private AccountBalances balance;
 	private bool isDirty;
 	private LightWalletClient.SyncProgress? syncProgress;
 	private uint lastBlockHeight;
@@ -21,7 +21,7 @@ public class Account : ReactiveObject, IPersistableData
 	public Account(ZcashAccount account)
 	{
 		this.ZcashAccount = account;
-		this.balance = new LightWalletClient.UserBalances { };
+		this.balance = new AccountBalances { };
 
 		this.transactionsMutable = new ObservableCollection<ZcashTransaction>();
 		this.Transactions = new ReadOnlyObservableCollection<ZcashTransaction>(this.transactionsMutable);
@@ -54,7 +54,7 @@ public class Account : ReactiveObject, IPersistableData
 	/// Gets or sets the balances that are useful to convey to the user.
 	/// </summary>
 	[IgnoreMember]
-	public LightWalletClient.UserBalances Balance
+	public AccountBalances Balance
 	{
 		get => this.balance;
 		set => this.RaiseAndSetIfChanged(ref this.balance, value);
@@ -102,10 +102,10 @@ public class Account : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.syncProgress, value);
 	}
 
-	public void AddTransactions(IEnumerable<LightWalletClient.Transaction> transactions, uint? upToBlockNumber)
+	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber)
 	{
 		uint highestBlockNumber = 0;
-		foreach (LightWalletClient.Transaction transaction in transactions)
+		foreach (Transaction transaction in transactions)
 		{
 			ZcashTransaction? tx = this.TransactionsMutable.FirstOrDefault(t => t.TransactionId == transaction.TransactionId);
 			if (tx is not null)

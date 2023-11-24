@@ -3,7 +3,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
-using Nerdbank.Cryptocurrencies.Exchanges;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.Views;
 

@@ -46,18 +46,18 @@ internal class HistoryCommand : SyncFirstCommandBase
 			return exitCode;
 		}
 
-		List<LightWalletClient.Transaction> txs = client.GetDownloadedTransactions(this.StartingBlock);
-		foreach (LightWalletClient.Transaction tx in txs)
+		List<Transaction> txs = client.GetDownloadedTransactions(this.StartingBlock);
+		foreach (Transaction tx in txs)
 		{
 			this.Console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.BlockNumber} Txid: {tx.TransactionId}");
 			const string indentation = "                      ";
 
-			foreach (LightWalletClient.TransactionSendItem send in tx.Sends)
+			foreach (Transaction.SendItem send in tx.Sends)
 			{
 				this.Console.WriteLine($"{indentation} -{send.Amount,13:N8} {send.Memo} {send.RecipientUA ?? send.ToAddress}");
 			}
 
-			foreach (LightWalletClient.TransactionRecvItem recv in tx.Notes)
+			foreach (Transaction.RecvItem recv in tx.Notes)
 			{
 				if (!recv.IsChange)
 				{

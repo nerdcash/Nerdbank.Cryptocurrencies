@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Threading;
-using Nerdbank.Cryptocurrencies.Exchanges;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 

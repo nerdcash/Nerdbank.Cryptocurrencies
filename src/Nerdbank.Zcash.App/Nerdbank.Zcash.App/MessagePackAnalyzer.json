@@ -1,5 +1,5 @@
 ﻿[
-	"Nerdbank.Cryptocurrencies.Exchanges.SecurityAmount",
+	"Nerdbank.Cryptocurrencies.SecurityAmount",
 	"Nerdbank.Zcash.ZcashAccount",
 	"Nerdbank.Zcash.ZcashAddress"
 ]

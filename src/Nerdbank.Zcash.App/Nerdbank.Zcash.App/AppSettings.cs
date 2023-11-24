@@ -4,7 +4,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Nerdbank.Cryptocurrencies.Exchanges;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App;
 

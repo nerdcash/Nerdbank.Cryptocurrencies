@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using MessagePack;
+using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.Models;

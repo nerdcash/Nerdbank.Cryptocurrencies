@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Cryptocurrencies.Exchanges;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -30,7 +30,7 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		Account account = this.SelectedAccount ?? throw new InvalidOperationException();
 
 		Security security = account.Network.AsSecurity();
-		account.Balance = new LightWalletClient.UserBalances
+		account.Balance = new AccountBalances
 		{
 			MinimumFees = security.Amount(-0.103m),
 			ImmatureIncome = security.Amount(0.5m),

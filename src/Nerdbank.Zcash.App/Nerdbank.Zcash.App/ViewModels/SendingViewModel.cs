@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
+using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 using ZXing.Mobile;
 
@@ -176,7 +177,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		// TODO: Block sending if validation errors exist.
 		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
 
-		IEnumerable<LightWalletClient.TransactionSendItem> lineItemsPrep =
+		IEnumerable<Transaction.SendItem> lineItemsPrep =
 			from li in this.LineItems
 			let to = li.SelectedRecipient switch
 			{
@@ -185,8 +186,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 				null => ZcashAddress.Decode(li.RecipientAddress),
 				_ => throw new InvalidOperationException($"Unknown type of selected recipient: {li.SelectedRecipient.GetType().Name}"),
 			}
-			select new LightWalletClient.TransactionSendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
-		List<LightWalletClient.TransactionSendItem> lineItems = lineItemsPrep.ToList();
+			select new Transaction.SendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
+		List<Transaction.SendItem> lineItems = lineItemsPrep.ToList();
 
 		Progress<LightWalletClient.SendProgress> progress = new(ProgressUpdate);
 		await this.SelectedAccount.LightWalletClient.SendAsync(

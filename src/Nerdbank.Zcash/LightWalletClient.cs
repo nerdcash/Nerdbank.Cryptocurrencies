@@ -3,15 +3,16 @@
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using Nerdbank.Cryptocurrencies.Exchanges;
 using uniffi.LightWallet;
+using static Nerdbank.Zcash.Transaction;
+using static Nerdbank.Zcash.ZcashUtilities;
 
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// Exposes functionality of a lightwallet client.
 /// </summary>
-public class LightWalletClient : IDisposable
+public partial class LightWalletClient : IDisposable
 {
 	/// <summary>
 	/// The number of confirmations required to spend a note.
@@ -23,11 +24,6 @@ public class LightWalletClient : IDisposable
 	/// allows folks who are watching the mempool to detect that the same spender is behind each attempt.
 	/// </remarks>
 	public const int MinimumConfirmations = 3;
-
-	/// <summary>
-	/// The number of ZATs in a ZEC.
-	/// </summary>
-	internal const uint ZatsPerZEC = 100_000_000;
 
 	private readonly Uri serverUrl;
 	private readonly ZcashAccount? account;
@@ -191,7 +187,7 @@ public class LightWalletClient : IDisposable
 	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
 	{
 		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock))
-			.Select(t => new Transaction(t, this.Network))
+			.Select(t => CreateTransaction(t, this.Network))
 			.OrderBy(t => t.When)
 			.ToList();
 	}
@@ -203,7 +199,7 @@ public class LightWalletClient : IDisposable
 	/// <param name="progress">An optional receiver for progress updates.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The transaction ID.</returns>
-	public async Task<string> SendAsync(IReadOnlyCollection<TransactionSendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
+	public async Task<string> SendAsync(IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
 	{
 		Requires.NotNullOrEmpty(payments);
 
@@ -228,15 +224,13 @@ public class LightWalletClient : IDisposable
 	/// Gets user balances.
 	/// </summary>
 	/// <returns>Pool balances.</returns>
-	public UserBalances GetUserBalances() => new(this.Network.AsSecurity(), this.Interop(LightWalletMethods.LightwalletGetUserBalances));
+	public AccountBalances GetUserBalances() => new(this.Network.AsSecurity(), this.Interop(LightWalletMethods.LightwalletGetUserBalances));
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
 		this.handle.Dispose();
 	}
-
-	private static decimal ZatsToZEC(ulong zats) => (decimal)zats / ZatsPerZEC;
 
 	private static ChainType ToChainType(ZcashNetwork network)
 	{
@@ -258,6 +252,37 @@ public class LightWalletClient : IDisposable
 
 		return list;
 	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SendItem"/> class.
+	/// </summary>
+	/// <param name="d">The uniffi data to copy from.</param>
+	private static SendItem CreateSendItem(TransactionSendDetail d)
+		=> new(ZcashAddress.Decode(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray())) { RecipientUA = d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Decode(d.recipientUa) };
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="RecvItem"/> class.
+	/// </summary>
+	/// <param name="d">The uniffi sapling note.</param>
+	/// <param name="network">The network that the transaction is on.</param>
+	private static RecvItem CreateRecvItem(SaplingNote d, ZcashNetwork network)
+		=> new(new SaplingAddress(new SaplingReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="RecvItem"/> class.
+	/// </summary>
+	/// <param name="d">The uniffi orchard note.</param>
+	/// <param name="network">The network that the transaction is on.</param>
+	private static RecvItem CreateRecvItem(OrchardNote d, ZcashNetwork network)
+		=> new(new OrchardAddress(new OrchardReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="Transaction"/> class.
+	/// </summary>
+	/// <param name="t">The uniffi transaction to copy data from.</param>
+	/// <param name="network">The network this transaction is on.</param>
+	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
+		=> new(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => CreateSendItem(s)).ToImmutableArray(), t.saplingNotes.Select(s => CreateRecvItem(s, network)).Concat(t.orchardNotes.Select(o => CreateRecvItem(o, network))).ToImmutableArray(), t.isIncoming);
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{
@@ -352,69 +377,6 @@ public class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// Describes an individual spend in a transaction.
-	/// </summary>
-	/// <param name="Amount">The amount spent.</param>
-	/// <param name="ToAddress">The receiver of this ZEC.</param>
-	/// <param name="RecipientUA">The full UA that was used when spending this, as recorded in the private change memo.</param>
-	/// <param name="Memo">The memo included for this recipient.</param>
-	public record struct TransactionSendItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo, UnifiedAddress? RecipientUA = null)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionSendItem"/> class.
-		/// </summary>
-		/// <param name="d">The uniffi data to copy from.</param>
-		internal TransactionSendItem(TransactionSendDetail d)
-			: this(ZcashAddress.Decode(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Decode(d.recipientUa))
-		{
-		}
-	}
-
-	/// <summary>
-	/// Describes an individual note received in a transaction.
-	/// </summary>
-	/// <param name="ToAddress">The address the note is addressed to. This will be the specific diversified address used. If a <see cref="UnifiedAddress"/>, it will have only one receiver, even if the address used by the sender originally had multiple receivers.</param>
-	/// <param name="Amount">The amount received.</param>
-	/// <param name="Memo">The memo included in the note.</param>
-	/// <param name="IsChange">A value indicating whether this note represents "change" returned to the wallet in an otherwise outbound transaction.</param>
-	public record struct TransactionRecvItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo, bool IsChange)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionRecvItem"/> class.
-		/// </summary>
-		/// <param name="d">The uniffi sapling note.</param>
-		/// <param name="network">The network that the transaction is on.</param>
-		internal TransactionRecvItem(SaplingNote d, ZcashNetwork network)
-			: this(new SaplingAddress(new SaplingReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionRecvItem"/> class.
-		/// </summary>
-		/// <param name="d">The uniffi orchard note.</param>
-		/// <param name="network">The network that the transaction is on.</param>
-		internal TransactionRecvItem(OrchardNote d, ZcashNetwork network)
-			: this(new OrchardAddress(new OrchardReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange)
-		{
-		}
-
-		/// <summary>
-		/// Gets the pool that received this note.
-		/// </summary>
-		public Pool Pool
-		{
-			get => this.ToAddress switch
-			{
-				TransparentAddress => Pool.Transparent,
-				SaplingAddress => Pool.Sapling,
-				OrchardAddress => Pool.Orchard,
-				_ => throw new NotSupportedException(),
-			};
-		}
-	}
-
-	/// <summary>
 	/// The balances that applies to the transparent pool for a particular account.
 	/// </summary>
 	/// <param name="Balance">The pool balance.</param>
@@ -462,107 +424,6 @@ public class LightWalletClient : IDisposable
 				balances.orchardBalance.HasValue ? new(balances.orchardBalance.Value, balances.verifiedOrchardBalance!.Value, balances.unverifiedOrchardBalance!.Value, balances.spendableOrchardBalance!.Value) : null)
 		{
 		}
-	}
-
-	/// <summary>
-	/// Describes account balances in a user-friendly way.
-	/// </summary>
-	public record UserBalances
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="UserBalances"/> class.
-		/// </summary>
-		public UserBalances()
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="UserBalances"/> class.
-		/// </summary>
-		/// <param name="security">The security that these balances are measured in.</param>
-		/// <param name="balances">The balances from the native module to copy from.</param>
-		[SetsRequiredMembers]
-		internal UserBalances(Security security, uniffi.LightWallet.UserBalances balances)
-		{
-			this.Spendable = security.Amount(ZatsToZEC(balances.spendable));
-			this.ImmatureChange = security.Amount(ZatsToZEC(balances.immatureChange));
-			this.MinimumFees = -security.Amount(ZatsToZEC(balances.minimumFees));
-			this.ImmatureIncome = security.Amount(ZatsToZEC(balances.immatureIncome));
-			this.Dust = security.Amount(ZatsToZEC(balances.dust));
-			this.Incoming = security.Amount(ZatsToZEC(balances.incoming));
-			this.IncomingDust = security.Amount(ZatsToZEC(balances.incomingDust));
-		}
-
-		/// <summary>
-		/// Gets the main balance to display to the user.
-		/// </summary>
-		/// <value>
-		/// This is the sum of <see cref="Spendable"/>, <see cref="MinimumFees"/>, <see cref="ImmatureChange"/>, and <see cref="ImmatureIncome"/>.
-		/// </value>
-		/// <remarks>
-		/// The other high-level balance to show is usually <see cref="Incoming"/>, if it is positive.
-		/// </remarks>
-		public SecurityAmount MainBalance => this.Spendable + this.MinimumFees + this.ImmatureChange + this.ImmatureIncome;
-
-		/// <summary>
-		/// Gets the funds available for immediate spending.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// Expected fees are *not* deducted from this value, but the app may do so by subtracting `minimum_fees`.
-		/// `dust` is excluded from this value.
-		/// </para>
-		/// <para>
-		/// For enhanced privacy, the minimum number of required confirmations to spend a note is usually greater than one.
-		/// This value is controlled by <see cref="MinimumConfirmations"/>.
-		/// </para>
-		/// </remarks>
-		public SecurityAmount Spendable { get; init; }
-
-		/// <summary>
-		/// Gets the sum of the change notes that have insufficient confirmations to be spent.
-		/// </summary>
-		public SecurityAmount ImmatureChange { get; init; }
-
-		/// <summary>
-		/// Gets the minimum fees that can be expected to spend all `spendable + immature_change` funds in the wallet,
-		/// expressed as a negative value.
-		/// This fee assumes all funds will be sent to a single note.
-		/// </summary>
-		/// <remarks>
-		/// Balances described by other fields in this struct are not included because they are not confirmed,
-		/// they may amount to dust, or because as `immature` funds they may require shielding which has a cost
-		/// and can change the amount of fees required to spend them (e.g. 3 UTXOs shielded together become only 1 note).
-		/// </remarks>
-		public SecurityAmount MinimumFees { get; init; }
-
-		/// <summary>
-		/// Gets the sum of non-change notes with a non-zero confirmation count that is less than the minimum required for spending,
-		/// and all UTXOs (considering that UTXOs must be shielded before spending).
-		/// `dust` is excluded from this value.
-		/// </summary>
-		/// <remarks>
-		/// As funds mature, this may not be the exact amount added to `spendable`, since the process of maturing
-		/// may require shielding, which has a cost.
-		/// </remarks>
-		public SecurityAmount ImmatureIncome { get; init; }
-
-		/// <summary>
-		/// Gets the sum of all *confirmed* UTXOs and notes that are worth less than the fee to spend them,
-		/// making them essentially inaccessible.
-		/// </summary>
-		public SecurityAmount Dust { get; init; }
-
-		/// <summary>
-		/// Gets the sum of all *unconfirmed* UTXOs and notes that are not change.
-		/// This value includes any applicable `incoming_dust`.
-		/// </summary>
-		public SecurityAmount Incoming { get; init; }
-
-		/// <summary>
-		/// Gets the sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as dust.
-		/// </summary>
-		public SecurityAmount IncomingDust { get; init; }
 	}
 
 	/// <summary>
@@ -645,53 +506,6 @@ public class LightWalletClient : IDisposable
 		internal SyncProgress(SyncStatus copyFrom)
 			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal, copyFrom.inProgress)
 		{
-		}
-	}
-
-	/// <summary>
-	/// Describes a Zcash transaction.
-	/// </summary>
-	/// <param name="TransactionId">The transaction ID.</param>
-	/// <param name="BlockNumber">The block that mined this transaction.</param>
-	/// <param name="When">The timestamp on this transaction.</param>
-	/// <param name="IsUnconfirmed">A value indicating whether this transaction is stil waiting in the mempool, unmined.</param>
-	/// <param name="Spent">The amount of ZEC that was spent in this transaction.</param>
-	/// <param name="Received">The amount of ZEC that was received in this transaction.</param>
-	/// <param name="Sends">A collection of individual spend details with amounts and recipients belonging to this transaction.</param>
-	/// <param name="Notes">Notes received in this transaction.</param>
-	/// <param name="IsIncoming"><see langword="true"/> if the transaction was sent by a different wallet; <see langword="false" /> otherwise.</param>
-	public record Transaction(string TransactionId, uint BlockNumber, DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, ImmutableArray<TransactionSendItem> Sends, ImmutableArray<TransactionRecvItem> Notes, bool IsIncoming)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="Transaction"/> class.
-		/// </summary>
-		/// <param name="t">The uniffi transaction to copy data from.</param>
-		/// <param name="network">The network this transaction is on.</param>
-		internal Transaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
-			: this(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => new TransactionSendItem(s)).ToImmutableArray(), t.saplingNotes.Select(s => new TransactionRecvItem(s, network)).Concat(t.orchardNotes.Select(o => new TransactionRecvItem(o, network))).ToImmutableArray(), t.isIncoming)
-		{
-		}
-
-		/// <summary>
-		/// Gets the net balance change applied by this transaction.
-		/// </summary>
-		public decimal NetChange => this.Received - this.Spent;
-
-		/// <summary>
-		/// Gets the transaction fee.
-		/// </summary>
-		public decimal Fee
-		{
-			get
-			{
-				if (this.IsIncoming)
-				{
-					// https://github.com/zingolabs/zingolib/issues/553
-					throw new NotSupportedException("ZingoLib doesn't expose the transaction details necessary to calculate the fee for incoming transactions.");
-				}
-
-				return this.Spent - this.Received - this.Sends.Sum(s => s.Amount);
-			}
 		}
 	}
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using uniffi.LightWallet;
 using LightWalletException = uniffi.LightWallet.LightWalletException;
 using UniException = uniffi.LightWallet.LightWalletException;
 
@@ -100,7 +99,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 	[Fact]
 	public void GetDownloadedTransactions_Empty()
 	{
-		List<LightWalletClient.Transaction> transactions = this.client.GetDownloadedTransactions(0);
+		List<Nerdbank.Zcash.Transaction> transactions = this.client.GetDownloadedTransactions(0);
 		Assert.Empty(transactions);
 	}
 
@@ -113,7 +112,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 	[Fact]
 	public async Task SendAsync_EmptySendsList()
 	{
-		List<LightWalletClient.TransactionSendItem> sends = new();
+		List<Nerdbank.Zcash.Transaction.SendItem> sends = new();
 		ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => this.client.SendAsync(sends, null, this.TimeoutToken));
 		this.logger.WriteLine(ex.ToString());
 	}
@@ -122,9 +121,9 @@ public class LightWalletClientTests : TestBase, IDisposable
 	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
 	public async Task SendAsync_InsufficientFunds()
 	{
-		List<LightWalletClient.TransactionSendItem> sends = new()
+		List<Nerdbank.Zcash.Transaction.SendItem> sends = new()
 		{
-			new LightWalletClient.TransactionSendItem(DefaultAccount.DefaultAddress, 1.0m, default),
+			new Nerdbank.Zcash.Transaction.SendItem(DefaultAccount.DefaultAddress, 1.0m, default),
 		};
 		UniException.Other ex = await Assert.ThrowsAsync<UniException.Other>(() =>
 		this.client.SendAsync(

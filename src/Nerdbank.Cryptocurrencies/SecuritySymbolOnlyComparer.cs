@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Nerdbank.Cryptocurrencies.Exchanges;
+namespace Nerdbank.Cryptocurrencies;
 
 /// <summary>
 /// Tests equality between <see cref="Security"/> values based only on their <see cref="Security.TickerSymbol"/> property.

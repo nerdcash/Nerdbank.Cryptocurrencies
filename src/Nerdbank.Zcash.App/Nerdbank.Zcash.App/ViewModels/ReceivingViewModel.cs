@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 using System.Text;
 using DynamicData.Binding;
 using Microsoft.VisualStudio.Threading;
-using Nerdbank.Cryptocurrencies.Exchanges;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 

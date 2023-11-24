@@ -3,7 +3,7 @@
 
 using MessagePack;
 using MessagePack.Formatters;
-using Nerdbank.Cryptocurrencies.Exchanges;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.Formatters;
 
