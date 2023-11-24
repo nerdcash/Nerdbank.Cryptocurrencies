@@ -1,5 +1,8 @@
 ﻿[
+	"Nerdbank.Cryptocurrencies.Security",
 	"Nerdbank.Cryptocurrencies.SecurityAmount",
+	"Nerdbank.Zcash.Transaction.RecvItem",
+	"Nerdbank.Zcash.Transaction.SendItem",
 	"Nerdbank.Zcash.ZcashAccount",
 	"Nerdbank.Zcash.ZcashAddress"
 ]

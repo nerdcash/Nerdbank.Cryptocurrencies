@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using MessagePack;
@@ -123,8 +124,10 @@ public class Account : ReactiveObject, IPersistableData
 					TransactionId = transaction.TransactionId,
 					IsIncoming = transaction.IsIncoming,
 					When = transaction.When,
-					Amount = this.Network.AsSecurity().Amount(transaction.NetChange),
-					//Memo = transaction.Notes[0].Memo,
+					RecvItems = transaction.Notes.Where(r => !r.IsChange).ToImmutableArray(),
+					SendItems = transaction.Sends,
+					Security = this.Network.AsSecurity(),
+					Fee = transaction.IsIncoming ? null : this.Network.AsSecurity().Amount(-transaction.Fee),
 				};
 
 				this.TransactionsMutable.Add(tx);

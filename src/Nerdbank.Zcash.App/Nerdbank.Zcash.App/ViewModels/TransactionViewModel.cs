@@ -15,6 +15,15 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		this.Model = transaction;
 		this.viewModelServices = viewModelServices;
 
+		if (transaction.SendItems.Length == 1)
+		{
+			this.Memo = transaction.SendItems[0].Memo.Message;
+		}
+		else if (transaction.RecvItems.Length == 1)
+		{
+			this.Memo = transaction.RecvItems[0].Memo.Message;
+		}
+
 		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
 		this.LinkProperty(transaction, nameof(transaction.MutableMemo), nameof(this.MutableMemo));
@@ -82,7 +91,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string OtherPartyNameCaption => "Name";
 
-	public string? Memo => this.Model.Memo;
+	public string? Memo { get; }
 
 	public string MemoCaption => "Shared Memo";
 

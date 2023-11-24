@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using MessagePack;
 using Nerdbank.Cryptocurrencies;
@@ -8,16 +9,18 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.Models;
 
-[DebuggerDisplay($"{{{nameof(DebuggerDisplay)}}},nq")]
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 [MessagePackObject]
 public class ZcashTransaction : ReactiveObject, IPersistableData
 {
+	private SecurityAmount? amount;
 	private uint? blockNumber;
 	private DateTimeOffset? when;
 	private bool isDirty;
 	private string mutableMemo = string.Empty;
 	private ExchangeRate? exchangeRate;
 	private string otherPartyName = string.Empty;
+	private SecurityAmount? fee;
 
 	public ZcashTransaction()
 	{
@@ -43,31 +46,49 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.when, value);
 	}
 
+	[IgnoreMember]
+	public SecurityAmount Amount => this.amount ??= this.Security.Amount(this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount)) + (this.Fee ?? default);
+
+	/// <summary>
+	/// Gets the fee paid for this transaction, if known.
+	/// </summary>
+	/// <value>When specified, this is represented as a negative value.</value>
 	[Key(4)]
-	public required SecurityAmount Amount { get; init; }
+	public SecurityAmount? Fee
+	{
+		get => this.fee;
+		init
+		{
+			Requires.Range(value is not SecurityAmount { Amount: > 0 }, nameof(value), "Non-positive values only.");
+			this.fee = value;
+		}
+	}
 
 	[Key(5)]
-	public decimal? Fee { get; init; }
-
-	[Key(6)]
-	public string? Memo { get; init; }
-
-	[Key(7)]
 	public string MutableMemo
 	{
 		get => this.mutableMemo;
 		set => this.RaiseAndSetIfChanged(ref this.mutableMemo, value);
 	}
 
-	[Key(8)]
+	[Key(6)]
 	public string OtherPartyName
 	{
 		get => this.otherPartyName;
 		set => this.RaiseAndSetIfChanged(ref this.otherPartyName, value);
 	}
 
-	[Key(9), MaybeNull]
+	[Key(7), MaybeNull]
 	public ZcashAddress OtherPartyAddress { get; init; }
+
+	[Key(8)]
+	public ImmutableArray<Transaction.SendItem> SendItems { get; init; }
+
+	[Key(9)]
+	public ImmutableArray<Transaction.RecvItem> RecvItems { get; init; }
+
+	[Key(10)]
+	public required Security Security { get; init; }
 
 	[IgnoreMember]
 	public ExchangeRate? ExchangeRate
@@ -92,7 +113,10 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	/// <returns>The sum of the amounts in the notes destined for the given address.</returns>
 	public SecurityAmount GetAmountReceivedUsingAddress(ZcashAddress address)
 	{
-		// TODO: implement this filter when we actually store memos.
-		return this.Amount;
+		IEnumerable<decimal> matchingNoteAmounts =
+			from item in this.RecvItems
+			where item.ToAddress.IsMatch(address).HasFlag(ZcashAddress.Match.MatchingReceiversFound)
+			select item.Amount;
+		return this.Amount.Security.Amount(matchingNoteAmounts.Sum());
 	}
 }

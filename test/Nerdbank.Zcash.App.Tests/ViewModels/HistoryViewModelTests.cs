@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using DynamicData;
-using Nerdbank.Cryptocurrencies.Exchanges;
+using System.Collections.Immutable;
 
 namespace ViewModels;
 
@@ -17,10 +16,32 @@ public class HistoryViewModelTests : ViewModelTestBase
 		{
 			// These transactions are deliberately NOT inserted in date-order, because we test
 			// the sorting function in one of the tests.
-			new(new ZcashTransaction { Amount = this.ZEC(-0.5m), IsIncoming = false,  Memo = "Hot Chocolate", TransactionId = "1e62b7", When = DateTimeOffset.Now - TimeSpan.FromDays(35) }, this.MainViewModel) { OtherPartyName = "Red Rock Cafe" },
-			new(new ZcashTransaction { Memo = "For the pizza", TransactionId = "12345abc", When = DateTimeOffset.Now - TimeSpan.FromDays(200), Amount = this.ZEC(1.2345m), IsIncoming = true }, this.MainViewModel) { OtherPartyName = "Andrew Arnott" },
-			new(new ZcashTransaction { Amount = this.ZEC(2m), IsIncoming = true, Memo = "Paycheck", TransactionId = "236ba", When = DateTimeOffset.Now - TimeSpan.FromDays(2) }, this.MainViewModel) { OtherPartyName = "Employer" },
+			MockTx(-0.5m, "Hot Chocolate", TimeSpan.FromDays(35), "1e62b7", "Red Rock Cafe"),
+			MockTx(1.2345m, "For the pizza", TimeSpan.FromDays(200), "12345abc", "Andrew Arnott"),
+			MockTx(2m, "Paycheck", TimeSpan.FromDays(2), "236ba", "Employer"),
 		});
+
+		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, string txid, string otherPartyName)
+		{
+			ImmutableArray<Transaction.SendItem> sends = amount < 0
+				? ImmutableArray.Create(new Transaction.SendItem { Amount = amount, Memo = Memo.FromMessage(memo) })
+				: ImmutableArray<Transaction.SendItem>.Empty;
+			ImmutableArray<Transaction.RecvItem> receives = amount > 0
+				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
+				: ImmutableArray<Transaction.RecvItem>.Empty;
+			return new TransactionViewModel(
+				new ZcashTransaction
+				{
+					IsIncoming = amount > 0,
+					TransactionId = txid,
+					When = DateTimeOffset.UtcNow - age,
+					OtherPartyName = otherPartyName,
+					Security = this.viewModel.SelectedSecurity,
+					SendItems = sends,
+					RecvItems = receives,
+				},
+				this.MainViewModel);
+		}
 	}
 
 	[Fact]

@@ -182,7 +182,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			builder.Append(CultureInfo.CurrentCulture, $" {AppUtilities.FriendlyTimeSpan(age.Value)}");
 		}
 
-		uint confirmations = (this.receivingAccount.LastBlockHeight - lastTransaction.BlockNumber) ?? 0;
+		uint confirmations = (this.receivingAccount.LastBlockHeight - lastTransaction.BlockNumber) + 1 ?? 0;
 		if (confirmations > 0)
 		{
 			builder.Append(CultureInfo.CurrentCulture, $", confirmed {confirmations} times.");

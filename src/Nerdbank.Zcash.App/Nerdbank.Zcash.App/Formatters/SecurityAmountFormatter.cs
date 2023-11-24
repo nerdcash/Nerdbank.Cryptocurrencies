@@ -31,12 +31,7 @@ internal class SecurityAmountFormatter : IMessagePackFormatter<SecurityAmount>
 					amount = options.Resolver.GetFormatterWithVerify<decimal>().Deserialize(ref reader, options);
 					break;
 				case 1:
-					string ticker = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-					if (!Security.WellKnown.TryGetValue(ticker, out security))
-					{
-						throw new MessagePackSerializationException($"Unrecognized security ticker symbol: {ticker}");
-					}
-
+					security = options.Resolver.GetFormatterWithVerify<Security>().Deserialize(ref reader, options);
 					break;
 				default:
 					reader.Skip();
@@ -58,6 +53,6 @@ internal class SecurityAmountFormatter : IMessagePackFormatter<SecurityAmount>
 	{
 		writer.WriteArrayHeader(2);
 		options.Resolver.GetFormatterWithVerify<decimal>().Serialize(ref writer, value.Amount, options);
-		options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Security.TickerSymbol, options);
+		options.Resolver.GetFormatterWithVerify<Security>().Serialize(ref writer, value.Security, options);
 	}
 }
