@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Cryptocurrencies.Exchanges;
-using static Nerdbank.Zcash.Zip32HDWallet;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -11,6 +8,11 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public static class ZcashUtilities
 {
+	/// <summary>
+	/// The number of ZATs in a ZEC.
+	/// </summary>
+	internal const uint ZatsPerZEC = 100_000_000;
+
 	/// <summary>
 	/// Gets the ticker symbol to use iven a Zcash network (e.g. ZEC or TAZ).
 	/// </summary>
@@ -108,6 +110,13 @@ public static class ZcashUtilities
 
 		return key is not null;
 	}
+
+	/// <summary>
+	/// Converts ZATs to ZEC.
+	/// </summary>
+	/// <param name="zats">The amount in ZATs.</param>
+	/// <returns>The amount in ZEC.</returns>
+	internal static decimal ZatsToZEC(ulong zats) => (decimal)zats / ZatsPerZEC;
 
 	/// <summary>
 	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.

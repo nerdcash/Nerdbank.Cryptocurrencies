@@ -68,7 +68,7 @@ internal class SendCommand : SyncFirstCommandBase
 			return exitCode;
 		}
 
-		LightWalletClient.TransactionSendItem item = new(this.Recipient, this.Amount, Zcash.Memo.FromMessage(this.Memo));
+		Transaction.SendItem item = new(this.Recipient, this.Amount, Zcash.Memo.FromMessage(this.Memo));
 		string txid = await client.SendAsync(
 			new[] { item },
 			new Progress<LightWalletClient.SendProgress>(p =>
