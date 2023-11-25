@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-	<data name="BadSeedPhraseLength" xml:space="preserve">
+  <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>La longitud de la frase semilla debe ser de al menos 24 y un múltiplo de 3.</value>
   </data>
   <data name="SeedPhrasePrompt" xml:space="preserve">
@@ -147,7 +147,7 @@
   <data name="OfflineOptionDescription" xml:space="preserve">
     <value>Suprime todas las comunicaciones de red. En particular, esto eliminará la visualización de la altura de cumpleaños para la nueva cuenta.</value>
   </data>
-	<data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
+  <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
     <value>El número de palabras en la frase semilla generada. Debe ser 24 o más, y un múltiplo de 3.</value>
   </data>
   <data name="TestNetOptionDescription" xml:space="preserve">
@@ -239,5 +239,14 @@
   </data>
   <data name="HistoryStartingBlockOptionDescription" xml:space="preserve">
     <value>El primer bloque cuyas transacciones deben incluirse en la lista de transacciones.</value>
+  </data>
+  <data name="ImportAccountCommandDescription" xml:space="preserve">
+    <value>Crea una nueva cuenta basada en una clave de visualización.</value>
+  </data>
+  <data name="KeyArgumentDescription" xml:space="preserve">
+    <value>La clave de visualización en la que basar la nueva cuenta.</value>
+  </data>
+  <data name="UnrecognizedKeyFormat" xml:space="preserve">
+    <value>Este formato de clave no se reconoce.</value>
   </data>
 </root>
