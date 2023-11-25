@@ -126,8 +126,7 @@ public class Account : ReactiveObject, IPersistableData
 					When = transaction.When,
 					RecvItems = transaction.Notes.Where(r => !r.IsChange).ToImmutableArray(),
 					SendItems = transaction.Sends,
-					Security = this.Network.AsSecurity(),
-					Fee = transaction.IsIncoming ? null : -transaction.Fee,
+					////Fee = transaction.IsIncoming ? null : -transaction.Fee, // ZingoLib is still buggy
 				};
 
 				this.TransactionsMutable.Add(tx);

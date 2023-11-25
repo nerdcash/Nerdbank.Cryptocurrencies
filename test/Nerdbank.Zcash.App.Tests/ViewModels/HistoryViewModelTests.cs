@@ -30,13 +30,13 @@ public class HistoryViewModelTests : ViewModelTestBase
 				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
 				: ImmutableArray<Transaction.RecvItem>.Empty;
 			return new TransactionViewModel(
+				this.viewModel.SelectedSecurity,
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,
 					TransactionId = txid,
 					When = DateTimeOffset.UtcNow - age,
 					OtherPartyName = otherPartyName,
-					Security = this.viewModel.SelectedSecurity,
 					SendItems = sends,
 					RecvItems = receives,
 					Fee = -0.0001m,

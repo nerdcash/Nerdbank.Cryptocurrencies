@@ -126,6 +126,8 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public ZcashTransaction? LastTransactionReceived => this.lastTransactionReceived.Value;
 
+	private Security SelectedSecurity => this.receivingAccount.Network.AsSecurity();
+
 	public void Dispose()
 	{
 		this.disposalTokenSource.Cancel();
@@ -157,7 +159,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		// This informs the user when the person they are showing the address to has actually sent them something, rather than misinform them
 		// when a payment came in from someone else.
 		return this.receivingAccount.Transactions
-			.Where(t => t.IsIncoming && t.GetAmountReceivedUsingAddress(this.unifiedWithTransparent).Amount > 0)
+			.Where(t => t.IsIncoming && t.GetAmountReceivedUsingAddress(this.unifiedWithTransparent) > 0)
 			.OrderByDescending(t => t.When)
 			.Take(1)
 			.FirstOrDefault();
@@ -173,7 +175,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		StringBuilder builder = new();
 
 		// When we report the amount sent, we want to filter it down to just what was sent to the address(es) actually displayed by this view.
-		SecurityAmount amount = lastTransaction.GetAmountReceivedUsingAddress(this.unifiedWithTransparent);
+		SecurityAmount amount = this.SelectedSecurity.Amount(lastTransaction.GetAmountReceivedUsingAddress(this.unifiedWithTransparent));
 		builder.Append(CultureInfo.CurrentCulture, $"You received {amount} at this address");
 
 		TimeSpan? age = DateTime.UtcNow - lastTransaction.When;

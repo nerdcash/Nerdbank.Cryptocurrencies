@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using MessagePack;
-using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.Models;
@@ -13,7 +12,6 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackObject]
 public class ZcashTransaction : ReactiveObject, IPersistableData
 {
-	private SecurityAmount? amount;
 	private uint? blockNumber;
 	private DateTimeOffset? when;
 	private bool isDirty;
@@ -47,7 +45,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	}
 
 	[IgnoreMember]
-	public SecurityAmount Amount => this.amount ??= this.Security.Amount(this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount) + (this.Fee ?? 0));
+	public decimal NetChange => this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount) + (this.Fee ?? 0);
 
 	/// <summary>
 	/// Gets the fee paid for this transaction, if known.
@@ -87,9 +85,6 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	[Key(9)]
 	public ImmutableArray<Transaction.RecvItem> RecvItems { get; init; }
 
-	[Key(10)]
-	public required Security Security { get; init; }
-
 	[IgnoreMember]
 	public ExchangeRate? ExchangeRate
 	{
@@ -104,19 +99,19 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.isDirty, value);
 	}
 
-	private string DebuggerDisplay => $"{this.TransactionId} ({this.Amount})";
+	private string DebuggerDisplay => $"{this.TransactionId} ({this.NetChange})";
 
 	/// <summary>
 	/// Gets the incoming amount in this transaction that was received with one of the receivers in a particular address.
 	/// </summary>
 	/// <param name="address">The address of interest.</param>
 	/// <returns>The sum of the amounts in the notes destined for the given address.</returns>
-	public SecurityAmount GetAmountReceivedUsingAddress(ZcashAddress address)
+	public decimal GetAmountReceivedUsingAddress(ZcashAddress address)
 	{
 		IEnumerable<decimal> matchingNoteAmounts =
 			from item in this.RecvItems
 			where item.ToAddress.IsMatch(address).HasFlag(ZcashAddress.Match.MatchingReceiversFound)
 			select item.Amount;
-		return this.Amount.Security.Amount(matchingNoteAmounts.Sum());
+		return matchingNoteAmounts.Sum();
 	}
 }

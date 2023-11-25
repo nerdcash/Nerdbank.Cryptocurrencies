@@ -33,6 +33,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
 				: ImmutableArray<Transaction.RecvItem>.Empty;
 			return new TransactionViewModel(
+				this.SelectedSecurity,
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,
@@ -40,7 +41,6 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 					TransactionId = txid,
 					When = DateTimeOffset.UtcNow - age,
 					OtherPartyName = otherPartyName,
-					Security = this.SelectedSecurity,
 					SendItems = sends,
 					RecvItems = receives,
 				},
@@ -113,7 +113,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			this.transactionsSubscription = WrapModels<ReadOnlyObservableCollection<ZcashTransaction>, ZcashTransaction, TransactionViewModel>(
 				this.SelectedAccount.Transactions,
 				this.Transactions,
-				model => new TransactionViewModel(model, this.ViewModelServices));
+				model => new TransactionViewModel(this.SelectedSecurity, model, this.ViewModelServices));
 		}
 	}
 

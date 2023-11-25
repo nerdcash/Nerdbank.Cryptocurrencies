@@ -7,11 +7,13 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
+	private readonly Security security;
 	private readonly IViewModelServices viewModelServices;
 	private SecurityAmount runningBalance;
 
-	public TransactionViewModel(ZcashTransaction transaction, IViewModelServices viewModelServices)
+	public TransactionViewModel(Security security, ZcashTransaction transaction, IViewModelServices viewModelServices)
 	{
+		this.security = security;
 		this.Model = transaction;
 		this.viewModelServices = viewModelServices;
 
@@ -81,11 +83,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string WhenCaption => "When";
 
-	public SecurityAmount Amount => this.Model.Amount;
+	public SecurityAmount Amount => this.security.Amount(this.Model.NetChange);
 
 	public string AmountCaption => "Amount";
 
-	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.Model.Security.Amount(fee) : null;
+	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.security.Amount(fee) : null;
 
 	public string FeeCaption => "Fee";
 
