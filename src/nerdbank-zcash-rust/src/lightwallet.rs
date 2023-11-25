@@ -128,7 +128,7 @@ pub struct WalletInfo {
 pub struct UserBalances {
     /// Available for immediate spending.
     /// Expected fees are *not* deducted from this value, but the app may do so by subtracting `minimum_fees`.
-    /// `fairy_dust` is excluded from this value.
+    /// `dust` is excluded from this value.
     ///
     /// For enhanced privacy, the minimum number of required confirmations to spend a note is usually greater than one.
     pub spendable: u64,
@@ -146,7 +146,7 @@ pub struct UserBalances {
 
     /// The sum of non-change notes with a non-zero confirmation count that is less than the minimum required for spending,
     /// and all UTXOs (considering that UTXOs must be shielded before spending).
-    /// `fairy_dust` is excluded from this value.
+    /// `dust` is excluded from this value.
     ///
     /// As funds mature, this may not be the exact amount added to `spendable`, since the process of maturing
     /// may require shielding, which has a cost.
@@ -157,7 +157,7 @@ pub struct UserBalances {
     pub dust: u64,
 
     /// The sum of all *unconfirmed* UTXOs and notes that are not change.
-    /// This value includes any applicable `incoming_fairy_dust`.
+    /// This value includes any applicable `incoming_dust`.
     pub incoming: u64,
 
     /// The sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as dust.
@@ -521,7 +521,7 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
 
                 let mut change = 0;
                 let mut useful_value = 0;
-                let mut fairy_dust_value = 0;
+                let mut dust_value = 0;
                 let mut utxo_value = 0;
                 let mut inbound_note_count_nodust = 0;
                 let mut change_note_count = 0;
@@ -539,7 +539,7 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                                 useful_value += value;
                                 inbound_note_count_nodust += 1;
                             } else {
-                                fairy_dust_value += value;
+                                dust_value += value;
                             }
                         }
                     });
@@ -557,7 +557,7 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                                 useful_value += value;
                                 inbound_note_count_nodust += 1;
                             } else {
-                                fairy_dust_value += value;
+                                dust_value += value;
                             }
                         }
                     });
@@ -572,7 +572,7 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                                 utxo_value += n.value;
                                 inbound_note_count_nodust += 1;
                             } else {
-                                fairy_dust_value += n.value;
+                                dust_value += n.value;
                             }
                         }
                     });
@@ -586,18 +586,18 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                 if mature {
                     // Spendable
                     balances.spendable += useful_value + change;
-                    balances.dust += fairy_dust_value;
+                    balances.dust += dust_value;
                     balances.immature_income += utxo_value; // UTXOs are always immature, since they should be shielded before spending.
                 } else if !tx.unconfirmed {
                     // Confirmed, but not yet spendable
                     balances.immature_income += useful_value + utxo_value;
                     balances.immature_change += change;
-                    balances.dust += fairy_dust_value;
+                    balances.dust += dust_value;
                 } else {
                     // Unconfirmed
                     balances.immature_change += change;
                     balances.incoming += useful_value + utxo_value;
-                    balances.incoming_dust += fairy_dust_value;
+                    balances.incoming_dust += dust_value;
                 }
             });
 
