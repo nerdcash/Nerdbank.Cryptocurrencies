@@ -135,11 +135,17 @@
   <data name="HistoryStartingBlockOptionDescription" xml:space="preserve">
     <value>The first block whose transactions should be included in the transaction list.</value>
   </data>
+  <data name="ImportAccountCommandDescription" xml:space="preserve">
+    <value>Creates a new account based on a viewing key.</value>
+  </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>Error parsing address: "{address}". {error}</value>
   </data>
   <data name="InvalidSeedPhrase" xml:space="preserve">
     <value>Invalid seed phrase.</value>
+  </data>
+  <data name="KeyArgumentDescription" xml:space="preserve">
+    <value>The viewing key to base the new account on.</value>
   </data>
   <data name="LightServerUrlOptionDescription" xml:space="preserve">
     <value>The URL to the lightwallet server to query for the block chain length for purposes of printing a birthday height. The default varies by whether generating for mainnet or testnet.</value>
@@ -236,6 +242,9 @@
   </data>
   <data name="UAParseCommandDescription" xml:space="preserve">
     <value>Parses a UA into its component receiver addresses.</value>
+  </data>
+  <data name="UnrecognizedKeyFormat" xml:space="preserve">
+    <value>This key format is unrecognized.</value>
   </data>
   <data name="WalletPathArgumentDescription" xml:space="preserve">
     <value>The path to the wallet file.</value>
