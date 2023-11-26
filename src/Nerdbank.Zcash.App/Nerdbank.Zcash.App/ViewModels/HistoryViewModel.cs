@@ -3,14 +3,18 @@
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Cryptocurrencies;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
+	private Security alternateSecurity;
 	private IDisposable? transactionsSubscription;
 	private ObservableAsPropertyHelper<bool> exchangeRatePerTransactionHasBeenDismissed;
+	private ObservableAsPropertyHelper<bool> isAlternateAmountColumnVisible;
 	private TransactionViewModel? selectedTransaction;
 
 	[Obsolete("For design-time use only", error: true)]
@@ -33,7 +37,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
 				: ImmutableArray<Transaction.RecvItem>.Empty;
 			return new TransactionViewModel(
-				this.SelectedSecurity,
+				new TradingPair(Security.USD, this.SelectedSecurity),
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,
@@ -51,6 +55,10 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public HistoryViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
+		// Snapshot the alternate currency so that we don't have to worry about it changing out from under us.
+		// Users who change it will have to reinitialize this view to get the new alternate currency values.
+		this.alternateSecurity = viewModelServices.Settings.AlternateCurrency;
+
 		this.HideExchangeRateExplanationCommand = ReactiveCommand.Create(() => { this.ViewModelServices.Settings.ExchangeRatePerTransactionHasBeenDismissed = true; });
 
 		this.SyncProgress = new SyncProgressData(this);
@@ -58,12 +66,17 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.exchangeRatePerTransactionHasBeenDismissed = viewModelServices.Settings.WhenAnyValue(s => s.ExchangeRatePerTransactionHasBeenDismissed, d => !d)
 			.ToProperty(this, nameof(this.ExchangeRateExplanationIsVisible));
 
+		this.isAlternateAmountColumnVisible = this.WhenAnyValue(
+			vm => vm.SelectedSecurity,
+			s => !s.IsTestNet).ToProperty(this, nameof(this.IsAlternateAmountColumnVisible));
+
 		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
 
 		this.OnSelectedAccountChanged();
 
 		this.UpdateBalances();
+		this.FillInMissingAlternateCurrencyValuesAsync(this.Transactions.ToList(), CancellationToken.None).Forget();
 		this.Transactions.CollectionChanged += this.Transactions_CollectionChanged;
 	}
 
@@ -77,7 +90,9 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string AmountColumnHeader => this.SelectedSecurity.TickerSymbol;
 
-	public string AlternateAmountColumnHeader => "Alternate";
+	public string AlternateAmountColumnHeader => this.alternateSecurity.TickerSymbol;
+
+	public bool IsAlternateAmountColumnVisible => this.isAlternateAmountColumnVisible.Value;
 
 	public string OtherPartyNameColumnHeader => "Name";
 
@@ -105,15 +120,34 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		base.OnSelectedAccountChanged();
 
+		this.alternateSecurity = this.ViewModelServices.Settings.AlternateCurrency;
+
 		this.transactionsSubscription?.Dispose();
 		this.Transactions.Clear();
 		this.transactionsSubscription = null;
 		if (this.SelectedAccount is not null)
 		{
+			TradingPair tradingPair = new(this.alternateSecurity, this.SelectedSecurity);
 			this.transactionsSubscription = WrapModels<ReadOnlyObservableCollection<ZcashTransaction>, ZcashTransaction, TransactionViewModel>(
 				this.SelectedAccount.Transactions,
 				this.Transactions,
-				model => new TransactionViewModel(this.SelectedSecurity, model, this.ViewModelServices));
+				model => new TransactionViewModel(tradingPair, model, this.ViewModelServices));
+		}
+	}
+
+	private async ValueTask FillInMissingAlternateCurrencyValuesAsync(IEnumerable<TransactionViewModel> transactions, CancellationToken cancellationToken)
+	{
+		TradingPair tradingPair = new(this.alternateSecurity, this.SelectedSecurity);
+		foreach (TransactionViewModel tx in transactions)
+		{
+			if (tx.AlternateAmount is null && tx.When is not null)
+			{
+				ExchangeRate? rate = await this.ViewModelServices.ExchangeData.GetExchangeRateAsync(this.ViewModelServices.HistoricalExchangeRateProvider, tx.When.Value, tradingPair, cancellationToken);
+				if (rate is not null)
+				{
+					tx.AlternateAmount = tx.Amount * rate;
+				}
+			}
 		}
 	}
 
@@ -133,6 +167,12 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		else if (e.OldStartingIndex >= 0)
 		{
 			this.UpdateBalances(e.OldStartingIndex);
+		}
+
+		// Fill in missing alternate currency values.
+		if (e.NewItems is not null)
+		{
+			this.FillInMissingAlternateCurrencyValuesAsync(e.NewItems.Cast<TransactionViewModel>(), CancellationToken.None).Forget();
 		}
 	}
 

@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <RustOutputDir>$(RepoRootPath)obj/src/nerdbank-zcash-rust/$(Configuration.ToLower())/</RustOutputDir>
+    <RustOutputDir>$(RepoRootPath)obj/src/nerdbank-zcash-rust/release/</RustOutputDir>
   </PropertyGroup>
   <!-- This file is imported both by the packaging project and by the test project.
        In the case of the packaging project, which targets AnyCPU, we want all native files included.

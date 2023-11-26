@@ -69,6 +69,8 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	public AppSettings Settings { get; } = new();
 
+	public ExchangeRateRecord ExchangeData { get; } = new();
+
 	public IExchangeRateProvider ExchangeRateProvider { get; } = new MockExchange();
 
 	public IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; } = new MockExchange();

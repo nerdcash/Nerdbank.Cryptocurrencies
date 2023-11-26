@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace ViewModels;
 
@@ -30,7 +31,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
 				: ImmutableArray<Transaction.RecvItem>.Empty;
 			return new TransactionViewModel(
-				this.viewModel.SelectedSecurity,
+				new TradingPair(Security.USD, this.viewModel.SelectedSecurity),
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,

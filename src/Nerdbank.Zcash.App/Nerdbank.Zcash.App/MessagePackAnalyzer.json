@@ -1,4 +1,6 @@
 ﻿[
+	"Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate",
+	"Nerdbank.Cryptocurrencies.Exchanges.TradingPair",
 	"Nerdbank.Cryptocurrencies.Security",
 	"Nerdbank.Cryptocurrencies.SecurityAmount",
 	"Nerdbank.Zcash.Transaction.RecvItem",

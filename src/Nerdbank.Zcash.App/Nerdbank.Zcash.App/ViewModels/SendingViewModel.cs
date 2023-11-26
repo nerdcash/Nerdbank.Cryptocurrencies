@@ -190,10 +190,14 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		List<Transaction.SendItem> lineItems = lineItemsPrep.ToList();
 
 		Progress<LightWalletClient.SendProgress> progress = new(ProgressUpdate);
-		await this.SelectedAccount.LightWalletClient.SendAsync(
+		string txid = await this.SelectedAccount.LightWalletClient.SendAsync(
 			lineItems,
 			new Progress<LightWalletClient.SendProgress>(ProgressUpdate),
 			cancellationToken);
+
+		// Record the transaction immediately, with the exchange rate that we displayed (if applicable).
+		// Storing the exchange rate may be challenging if the transaction When value isn't yet immutable.
+		//// TODO: code here.
 
 		void ProgressUpdate(LightWalletClient.SendProgress progress)
 		{

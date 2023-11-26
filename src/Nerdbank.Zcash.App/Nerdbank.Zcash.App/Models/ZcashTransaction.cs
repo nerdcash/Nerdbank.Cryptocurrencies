@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using MessagePack;
-using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.Models;
 
@@ -16,7 +15,6 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	private DateTimeOffset? when;
 	private bool isDirty;
 	private string mutableMemo = string.Empty;
-	private ExchangeRate? exchangeRate;
 	private string otherPartyName = string.Empty;
 	private decimal? fee;
 
@@ -84,13 +82,6 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 
 	[Key(9)]
 	public ImmutableArray<Transaction.RecvItem> RecvItems { get; init; }
-
-	[IgnoreMember]
-	public ExchangeRate? ExchangeRate
-	{
-		get => this.exchangeRate;
-		set => this.RaiseAndSetIfChanged(ref this.exchangeRate, value);
-	}
 
 	[IgnoreMember]
 	public bool IsDirty

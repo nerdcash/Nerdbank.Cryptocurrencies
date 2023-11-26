@@ -4,8 +4,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MessagePack;
-using MessagePack.Formatters;
-using MessagePack.Resolvers;
 
 namespace Nerdbank.Zcash.App.Models;
 
@@ -21,10 +19,14 @@ public class DataRoot : ITopLevelPersistableData<DataRoot>, IPersistableDataHelp
 	[IgnoreMember]
 	private bool isDirty;
 
+	[IgnoreMember]
+	private ExchangeRateRecord exchangeRates;
+
 	public DataRoot()
 	{
 		this.StartWatchingForDirtyChild(this.wallet = new());
 		this.StartWatchingForDirtyChild(this.contactManager = new());
+		this.StartWatchingForDirtyChild(this.exchangeRates = new());
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
@@ -63,6 +65,17 @@ public class DataRoot : ITopLevelPersistableData<DataRoot>, IPersistableDataHelp
 		set
 		{
 			this.contactManager = value;
+			this.StartWatchingForDirtyChild(value);
+		}
+	}
+
+	[Key("exchangeRates")]
+	public ExchangeRateRecord ExchangeRates
+	{
+		get => this.exchangeRates;
+		set
+		{
+			this.exchangeRates = value;
 			this.StartWatchingForDirtyChild(value);
 		}
 	}

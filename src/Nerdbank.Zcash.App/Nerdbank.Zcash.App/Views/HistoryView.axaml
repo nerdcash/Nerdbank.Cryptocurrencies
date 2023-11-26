@@ -19,13 +19,12 @@
     </Grid>
     <DataGrid ItemsSource="{Binding Transactions}"
               SelectedItem="{Binding SelectedTransaction}"
-              IsReadOnly="True"
               Name="HistoryGrid"
               Grid.Row="1"
               Background="AliceBlue">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="{Binding WhenColumnHeader}" Binding="{Binding WhenColumnFormatted}" SortMemberPath="When" />
-        <DataGridTextColumn Header="{Binding OtherPartyNameColumnHeader}" Binding="{Binding OtherPartyName}" />
+        <DataGridTextColumn Header="{Binding WhenColumnHeader}" Binding="{Binding WhenColumnFormatted}" SortMemberPath="When" IsReadOnly="True" />
+        <DataGridTextColumn Header="{Binding OtherPartyNameColumnHeader}" Binding="{Binding OtherPartyName}" IsReadOnly="True" />
         <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -33,12 +32,17 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="{Binding AlternateAmountColumnHeader}">
+        <DataGridTemplateColumn Header="{Binding AlternateAmountColumnHeader}" IsVisible="{Binding IsAlternateAmountColumnVisible}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding AlternateAmount}" />
+              <local:SecurityAmountDisplay Value="{Binding AlternateAmount}" IsUnitsVisible="False" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
+          <DataGridTemplateColumn.CellEditingTemplate>
+            <DataTemplate>
+              <TextBox Text="{Binding AlternateAmountUserEdit}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellEditingTemplate>
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="{Binding MemoColumnHeader}" Binding="{Binding Memo}" IsVisible="False" CanUserSort="False" />
         <DataGridTemplateColumn Header="{Binding RunningBalanceColumnHeader}" CanUserSort="False">

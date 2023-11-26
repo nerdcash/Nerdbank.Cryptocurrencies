@@ -3,7 +3,6 @@
 
 using System.ComponentModel;
 using Avalonia.Controls;
-using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App;
 

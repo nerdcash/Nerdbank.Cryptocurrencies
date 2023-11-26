@@ -22,6 +22,11 @@ public interface IAppServices
 	IContactManager ContactManager { get; }
 
 	/// <summary>
+	/// Gets the record of exchange rates that go with actual transactions.
+	/// </summary>
+	ExchangeRateRecord ExchangeData { get; }
+
+	/// <summary>
 	/// Gets a provider of exchange rates.
 	/// </summary>
 	IExchangeRateProvider ExchangeRateProvider { get; }

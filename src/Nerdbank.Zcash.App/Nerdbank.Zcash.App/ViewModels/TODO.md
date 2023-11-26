@@ -20,7 +20,6 @@
 - Transactions history
   - Add column to indicate unconfirmed or low confirmed transactions
   - Allow re-sending an expired transaction.
-  - Show amount in exchange rate that was current as of the transaction time.
   - Add Amount detail that shows the value transferred excluding the fee.
   - Add a To: field to show which receiving address was used (for in and outbound transactions).
   - Fix transaction amounts that are wrong in YWallet account.

@@ -2,18 +2,20 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Nerdbank.Cryptocurrencies;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
-	private readonly Security security;
+	private readonly TradingPair tradingPair;
 	private readonly IViewModelServices viewModelServices;
 	private SecurityAmount runningBalance;
+	private SecurityAmount? alternateAmount;
 
-	public TransactionViewModel(Security security, ZcashTransaction transaction, IViewModelServices viewModelServices)
+	public TransactionViewModel(TradingPair tradingPair, ZcashTransaction transaction, IViewModelServices viewModelServices)
 	{
-		this.security = security;
+		this.tradingPair = tradingPair;
 		this.Model = transaction;
 		this.viewModelServices = viewModelServices;
 
@@ -33,6 +35,13 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 		this.LinkProperty(nameof(this.When), nameof(this.WhenColumnFormatted));
 		this.LinkProperty(nameof(this.When), nameof(this.WhenDetailedFormatted));
+
+		this.LinkProperty(nameof(this.AlternateAmount), nameof(this.AlternateAmountUserEdit));
+
+		if (transaction.When is not null && viewModelServices.ExchangeData.TryGetExchangeRate(transaction.When.Value, tradingPair, out ExchangeRate exchangeRate))
+		{
+			this.AlternateAmount = this.Amount * exchangeRate;
+		}
 	}
 
 	public ZcashTransaction Model { get; }
@@ -83,15 +92,37 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string WhenCaption => "When";
 
-	public SecurityAmount Amount => this.security.Amount(this.Model.NetChange);
+	public SecurityAmount Amount => this.Security.Amount(this.Model.NetChange);
 
 	public string AmountCaption => "Amount";
 
-	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.security.Amount(fee) : null;
+	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.Security.Amount(fee) : null;
 
 	public string FeeCaption => "Fee";
 
-	public SecurityAmount? AlternateAmount => this.Amount * this.Model.ExchangeRate;
+	public SecurityAmount? AlternateAmount
+	{
+		get => this.alternateAmount;
+		internal set => this.RaiseAndSetIfChanged(ref this.alternateAmount, value);
+	}
+
+	public decimal? AlternateAmountUserEdit
+	{
+		get => this.AlternateAmount?.Amount;
+		set
+		{
+			this.AlternateAmount = value is null ? null : this.Security.Amount(value.Value);
+
+			// Record the exchange rate.
+			if (value is not null && this.When is not null)
+			{
+				ExchangeRate rate = new(this.AlternateSecurity.Amount(value.Value), this.Amount);
+				this.viewModelServices.ExchangeData.SetExchangeRate(this.When.Value, rate);
+			}
+
+			this.RaisePropertyChanged();
+		}
+	}
 
 	public ZcashAddress? OtherPartyAddress => this.Model.OtherPartyAddress;
 
@@ -122,6 +153,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		get => this.runningBalance;
 		internal set => this.RaiseAndSetIfChanged(ref this.runningBalance, value);
 	}
+
+	private Security Security => this.tradingPair.TradeInterest;
+
+	private Security AlternateSecurity => this.tradingPair.Basis;
 
 	internal class DateComparer : IComparer<TransactionViewModel>, IOptimizedComparer<TransactionViewModel>
 	{

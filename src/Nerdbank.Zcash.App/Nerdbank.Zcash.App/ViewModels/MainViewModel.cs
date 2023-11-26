@@ -67,6 +67,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public IContactManager ContactManager => this.App.Data.ContactManager;
 
+	public ExchangeRateRecord ExchangeData => this.App.Data.ExchangeRates;
+
 	public IExchangeRateProvider ExchangeRateProvider { get; set; }
 
 	public IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; set; }
