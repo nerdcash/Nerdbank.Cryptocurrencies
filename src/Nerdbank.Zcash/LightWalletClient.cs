@@ -236,8 +236,8 @@ public partial class LightWalletClient : IDisposable
 	{
 		return network switch
 		{
-			ZcashNetwork.MainNet => ChainType.MAINNET,
-			ZcashNetwork.TestNet => ChainType.TESTNET,
+			ZcashNetwork.MainNet => ChainType.Mainnet,
+			ZcashNetwork.TestNet => ChainType.Testnet,
 			_ => throw new ArgumentException(),
 		};
 	}

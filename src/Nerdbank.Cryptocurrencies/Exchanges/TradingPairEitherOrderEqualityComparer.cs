@@ -23,8 +23,10 @@ public class TradingPairEitherOrderEqualityComparer : IEqualityComparer<TradingP
 	/// <inheritdoc/>
 	public int GetHashCode(TradingPair obj)
 	{
-		return StringComparer.OrdinalIgnoreCase.Compare(obj.Basis.TickerSymbol, obj.TradeInterest.TickerSymbol) < 0
-			? StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Basis.TickerSymbol)
-			: StringComparer.OrdinalIgnoreCase.GetHashCode(obj.TradeInterest.TickerSymbol);
+		(string first, string second) = StringComparer.OrdinalIgnoreCase.Compare(obj.Basis.TickerSymbol, obj.TradeInterest.TickerSymbol) < 0
+			? (obj.Basis.TickerSymbol, obj.TradeInterest.TickerSymbol)
+			: (obj.TradeInterest.TickerSymbol, obj.Basis.TickerSymbol);
+
+		return HashCode.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(first), StringComparer.OrdinalIgnoreCase.GetHashCode(second));
 	}
 }
