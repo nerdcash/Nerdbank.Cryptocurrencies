@@ -6,12 +6,12 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 /// <summary>
 /// An equality comparer for <see cref="TradingPair"/> that considers the order of the <see cref="TradingPair.Basis"/> and <see cref="TradingPair.TradeInterest"/> properties to be irrelevant.
 /// </summary>
-internal class TradingPairEitherOrderEqualityComparer : IEqualityComparer<TradingPair>
+public class TradingPairEitherOrderEqualityComparer : IEqualityComparer<TradingPair>
 {
 	/// <summary>
 	/// Gets the singleton instance.
 	/// </summary>
-	internal static readonly TradingPairEitherOrderEqualityComparer Instance = new();
+	public static readonly TradingPairEitherOrderEqualityComparer Instance = new();
 
 	private TradingPairEitherOrderEqualityComparer()
 	{
@@ -23,8 +23,10 @@ internal class TradingPairEitherOrderEqualityComparer : IEqualityComparer<Tradin
 	/// <inheritdoc/>
 	public int GetHashCode(TradingPair obj)
 	{
-		return StringComparer.OrdinalIgnoreCase.Compare(obj.Basis.TickerSymbol, obj.TradeInterest.TickerSymbol) < 0
-			? StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Basis.TickerSymbol)
-			: StringComparer.OrdinalIgnoreCase.GetHashCode(obj.TradeInterest.TickerSymbol);
+		(string first, string second) = StringComparer.OrdinalIgnoreCase.Compare(obj.Basis.TickerSymbol, obj.TradeInterest.TickerSymbol) < 0
+			? (obj.Basis.TickerSymbol, obj.TradeInterest.TickerSymbol)
+			: (obj.TradeInterest.TickerSymbol, obj.Basis.TickerSymbol);
+
+		return HashCode.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(first), StringComparer.OrdinalIgnoreCase.GetHashCode(second));
 	}
 }

@@ -161,4 +161,11 @@ public class ExchangeRateTests : TestBase
 
 		ExchangeRate Rate(decimal basis, decimal tradeInterest) => new(Security.USD.Amount(basis), Security.ZEC.Amount(tradeInterest));
 	}
+
+	[Fact]
+	public void TradingPair()
+	{
+		ExchangeRate rate = new(Security.USD.Amount(30), Security.ZEC.Amount(1));
+		Assert.Equal(new TradingPair(Security.USD, Security.ZEC), rate.TradingPair);
+	}
 }
