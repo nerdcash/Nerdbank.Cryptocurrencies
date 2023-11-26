@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-uniffi = { version = "0.23.0", features = [ "build" ] }
+uniffi = { version = "0.24.0", features = [ "build" ] }
 
 [dependencies]
 ff = "0.13.0"
@@ -21,7 +21,7 @@ orchard = "0.6.0"
 pasta_curves = "0.5.1"
 thiserror = "1.0.47"
 tokio = "1.32.0"
-uniffi = "0.23.0"
+uniffi = "0.24.0"
 zcash_primitives = { git = "https://github.com/zingolabs/librustzcash.git", tag = "zingo_rc.2" }
 zingoconfig = { path = "../../external/zingolib/zingoconfig", default-features = true }
 zingolib = { path = "../../external/zingolib/zingolib", default-features = true }
