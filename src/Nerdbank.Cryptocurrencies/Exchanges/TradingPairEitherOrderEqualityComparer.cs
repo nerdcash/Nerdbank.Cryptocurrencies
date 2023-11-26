@@ -6,12 +6,12 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 /// <summary>
 /// An equality comparer for <see cref="TradingPair"/> that considers the order of the <see cref="TradingPair.Basis"/> and <see cref="TradingPair.TradeInterest"/> properties to be irrelevant.
 /// </summary>
-internal class TradingPairEitherOrderEqualityComparer : IEqualityComparer<TradingPair>
+public class TradingPairEitherOrderEqualityComparer : IEqualityComparer<TradingPair>
 {
 	/// <summary>
 	/// Gets the singleton instance.
 	/// </summary>
-	internal static readonly TradingPairEitherOrderEqualityComparer Instance = new();
+	public static readonly TradingPairEitherOrderEqualityComparer Instance = new();
 
 	private TradingPairEitherOrderEqualityComparer()
 	{

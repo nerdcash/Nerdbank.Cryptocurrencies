@@ -11,6 +11,11 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 public record struct ExchangeRate(SecurityAmount Basis, SecurityAmount TradeInterest)
 {
 	/// <summary>
+	/// Gets the trading pair that this exchange rate represents.
+	/// </summary>
+	public TradingPair TradingPair => new(this.Basis.Security, this.TradeInterest.Security);
+
+	/// <summary>
 	/// Gets the cost of the <see cref="Basis"/> security for exactly one unit of <see cref="TradeInterest"/>.
 	/// </summary>
 	public SecurityAmount InBasisAmount => this.Basis.Security.Amount(this.Basis.Amount / this.TradeInterest.Amount);

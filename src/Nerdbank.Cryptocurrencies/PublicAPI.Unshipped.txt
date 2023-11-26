@@ -84,6 +84,7 @@ Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.Normalized.get -> Nerdbank.Cryp
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.OppositeDirection.get -> Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.get -> Nerdbank.Cryptocurrencies.SecurityAmount
 Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradeInterest.set -> void
+Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate.TradingPair.get -> Nerdbank.Cryptocurrencies.Exchanges.TradingPair
 Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider
 Nerdbank.Cryptocurrencies.Exchanges.IExchangeRateProvider.GetExchangeRateAsync(Nerdbank.Cryptocurrencies.Exchanges.TradingPair tradingPair, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate>
 Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider
@@ -91,6 +92,9 @@ Nerdbank.Cryptocurrencies.Exchanges.IHistoricalExchangeRateProvider.GetExchangeR
 Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider
 Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.FindFirstSupportedTradingPairAsync(Nerdbank.Cryptocurrencies.Security! tradeInterest, System.Collections.Generic.IEnumerable<Nerdbank.Cryptocurrencies.Security!>! acceptableBases, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Cryptocurrencies.Exchanges.TradingPair?>
 Nerdbank.Cryptocurrencies.Exchanges.ITradingPairProvider.GetAvailableTradingPairsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlySet<Nerdbank.Cryptocurrencies.Exchanges.TradingPair>!>
+Nerdbank.Cryptocurrencies.Exchanges.TradingPairEitherOrderEqualityComparer
+Nerdbank.Cryptocurrencies.Exchanges.TradingPairEitherOrderEqualityComparer.Equals(Nerdbank.Cryptocurrencies.Exchanges.TradingPair x, Nerdbank.Cryptocurrencies.Exchanges.TradingPair y) -> bool
+Nerdbank.Cryptocurrencies.Exchanges.TradingPairEitherOrderEqualityComparer.GetHashCode(Nerdbank.Cryptocurrencies.Exchanges.TradingPair obj) -> int
 Nerdbank.Cryptocurrencies.Security
 Nerdbank.Cryptocurrencies.Security.Amount(decimal amount) -> Nerdbank.Cryptocurrencies.SecurityAmount
 Nerdbank.Cryptocurrencies.Security.Deconstruct(out string! TickerSymbol, out string? Name, out int Precision, out bool IsTestNet) -> void
@@ -198,6 +202,7 @@ static Nerdbank.Cryptocurrencies.Exchanges.TradingPair.operator ==(Nerdbank.Cryp
 static readonly Nerdbank.Cryptocurrencies.Bech32.Bech32m -> Nerdbank.Cryptocurrencies.Bech32!
 static readonly Nerdbank.Cryptocurrencies.Bech32.Original -> Nerdbank.Cryptocurrencies.Bech32!
 static readonly Nerdbank.Cryptocurrencies.Bip32KeyPath.Root -> Nerdbank.Cryptocurrencies.Bip32KeyPath!
+static readonly Nerdbank.Cryptocurrencies.Exchanges.TradingPairEitherOrderEqualityComparer.Instance -> Nerdbank.Cryptocurrencies.Exchanges.TradingPairEitherOrderEqualityComparer!
 static readonly Nerdbank.Cryptocurrencies.Security.ACM -> Nerdbank.Cryptocurrencies.Security!
 static readonly Nerdbank.Cryptocurrencies.Security.ADA -> Nerdbank.Cryptocurrencies.Security!
 static readonly Nerdbank.Cryptocurrencies.Security.AEON -> Nerdbank.Cryptocurrencies.Security!

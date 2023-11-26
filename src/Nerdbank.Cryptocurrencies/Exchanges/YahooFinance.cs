@@ -102,8 +102,16 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 				{
 					string[] cells = line.Split(',');
 					DateOnly when = DateOnly.FromDateTime(DateTime.Parse(cells[0], CultureInfo.InvariantCulture));
-					decimal open = decimal.Parse(cells[1], CultureInfo.InvariantCulture);
-					decimal close = decimal.Parse(cells[4], CultureInfo.InvariantCulture);
+					if (!decimal.TryParse(cells[1], CultureInfo.InvariantCulture, out decimal open))
+					{
+						continue;
+					}
+
+					if (!decimal.TryParse(cells[4], CultureInfo.InvariantCulture, out decimal close))
+					{
+						continue;
+					}
+
 					decimal mid = (open + close) / 2;
 					prices.Add(
 						when,
