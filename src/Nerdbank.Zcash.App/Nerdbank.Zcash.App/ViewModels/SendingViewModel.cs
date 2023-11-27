@@ -3,7 +3,6 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -33,6 +32,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	{
 		this.LineItems[0].AmountEntry.Amount = 1.23m;
 		this.fee = new(0.0001m, this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity);
+		this.SendProgress.To = 2;
+		this.SendProgress.Current = 1;
 	}
 
 	public SendingViewModel(IViewModelServices viewModelServices)
@@ -42,6 +43,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.AddLineItem();
 
 		this.SyncProgress = new SyncProgressData(this);
+		this.SendProgress = new SendProgressData(this.ViewModelServices);
 
 		this.OnSelectedAccountChanged();
 
@@ -72,6 +74,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public string Title => "Send Zcash";
 
 	public SyncProgressData SyncProgress { get; }
+
+	public SendProgressData SendProgress { get; }
 
 	public string FromAccountCaption => "From account:";
 
@@ -189,23 +193,15 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			select new Transaction.SendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
 		List<Transaction.SendItem> lineItems = lineItemsPrep.ToList();
 
-		Progress<LightWalletClient.SendProgress> progress = new(ProgressUpdate);
 		string txid = await this.SelectedAccount.LightWalletClient.SendAsync(
 			lineItems,
-			new Progress<LightWalletClient.SendProgress>(ProgressUpdate),
+			new Progress<LightWalletClient.SendProgress>(this.SendProgress.Apply),
 			cancellationToken);
+		this.SendProgress.Clear();
 
 		// Record the transaction immediately, with the exchange rate that we displayed (if applicable).
 		// Storing the exchange rate may be challenging if the transaction When value isn't yet immutable.
 		//// TODO: code here.
-
-		void ProgressUpdate(LightWalletClient.SendProgress progress)
-		{
-			if (progress.Total > 0)
-			{
-				Debug.WriteLine($"Sending {progress.Progress}/{progress.Total} ({progress.Progress * 100 / progress.Total}%)");
-			}
-		}
 	}
 
 	private void RaisePropertyChangedOnLineItems(string propertyName)

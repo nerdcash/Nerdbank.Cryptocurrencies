@@ -5,25 +5,20 @@ using DynamicData.Binding;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class SyncProgressData : ViewModelBase
+public class SyncProgressData : ProgressData
 {
 	private readonly IViewModelServices viewModelServices;
 	private Account? account;
 	private IDisposable? accountSyncSubscription;
 
-	private bool isSyncInProgress;
-	private ulong from;
-	private ulong to;
-	private ulong current;
-
 	[Obsolete("For design-time use only.", error: true)]
 	public SyncProgressData()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.isSyncInProgress = true;
-		this.from = 2_100_803;
-		this.to = 2_200_350;
-		this.current = 2_180_100;
+		this.IsInProgress = true;
+		this.From = 2_100_803;
+		this.To = 2_200_350;
+		this.Current = 2_180_100;
 	}
 
 	public SyncProgressData(IViewModelServices viewModelServices)
@@ -47,37 +42,13 @@ public class SyncProgressData : ViewModelBase
 		}
 	}
 
-	public string SyncInProgressCaption => "Sync in progress";
-
-	public bool IsSyncInProgress
-	{
-		get => this.isSyncInProgress;
-		set => this.RaiseAndSetIfChanged(ref this.isSyncInProgress, value);
-	}
-
-	public ulong From
-	{
-		get => this.from;
-		set => this.RaiseAndSetIfChanged(ref this.from, value);
-	}
-
-	public ulong To
-	{
-		get => this.to;
-		set => this.RaiseAndSetIfChanged(ref this.to, value);
-	}
-
-	public ulong Current
-	{
-		get => this.current;
-		set => this.RaiseAndSetIfChanged(ref this.current, value);
-	}
+	public override string Caption => "Sync in progress";
 
 	internal void Apply(LightWalletClient.SyncProgress? progress)
 	{
 		// InProgress randomly returns false, even when sync is in progress.
 		// We don't want to flash the UI.
-		this.IsSyncInProgress = progress is not null;
+		this.IsInProgress = progress is not null;
 
 		this.To = progress?.BatchTotal ?? 0;
 		this.Current = progress?.BatchNum ?? 0;
