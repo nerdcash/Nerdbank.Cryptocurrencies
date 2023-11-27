@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
+using DynamicData;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -10,6 +12,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
 	private readonly TradingPair tradingPair;
 	private readonly IViewModelServices viewModelServices;
+	private readonly ObservableCollection<LineItem> lineItems = new();
 	private SecurityAmount runningBalance;
 	private SecurityAmount? alternateAmount;
 
@@ -18,6 +21,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		this.tradingPair = tradingPair;
 		this.Model = transaction;
 		this.viewModelServices = viewModelServices;
+		this.LineItems = new ReadOnlyObservableCollection<LineItem>(this.lineItems);
 
 		if (transaction.SendItems.Length == 1)
 		{
@@ -27,6 +31,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		{
 			this.Memo = transaction.RecvItems[0].Memo.Message;
 		}
+
+		this.InitializeMemos();
 
 		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
@@ -136,6 +142,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string? Memo { get; }
 
+	public bool IsSingleLineItem => this.LineItems.Count == 1;
+
 	public string MemoCaption => "Shared Memo";
 
 	public string MutableMemoCaption => "Private Memo";
@@ -145,6 +153,12 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		get => this.Model.MutableMemo;
 		set => this.Model.MutableMemo = value;
 	}
+
+	public string LineItemsCaption => "Line Items";
+
+	public ReadOnlyObservableCollection<LineItem> LineItems { get; }
+
+	public string AmountColumnHeader => "Amount";
 
 	public bool IsIncoming => this.Model.IsIncoming;
 
@@ -157,6 +171,32 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	private Security Security => this.tradingPair.TradeInterest;
 
 	private Security AlternateSecurity => this.tradingPair.Basis;
+
+	private void InitializeMemos()
+	{
+		if (this.Model.SendItems.Length > 0)
+		{
+			this.lineItems.AddRange(this.Model.SendItems.Select(i => new LineItem(this.Security.Amount(-i.Amount), i.Memo.Message)));
+		}
+		else if (this.Model.RecvItems.Length > 0)
+		{
+			if (this.Model.RecvItems.Length == 2)
+			{
+				// Look for a common pattern of splitting a payment across two pools. If that's what this is, just report the two line items as one.
+				Transaction.RecvItem first = this.Model.RecvItems[0];
+				Transaction.RecvItem second = this.Model.RecvItems[1];
+				if (first.Memo.Equals(second.Memo) && first.Pool != second.Pool)
+				{
+					this.lineItems.Add(new LineItem(this.Security.Amount(first.Amount + second.Amount), first.Memo.Message));
+					return;
+				}
+			}
+
+			this.lineItems.AddRange(this.Model.RecvItems.Select(i => new LineItem(this.Security.Amount(i.Amount), i.Memo.Message)));
+		}
+	}
+
+	public record LineItem(SecurityAmount Amount, string? Memo);
 
 	internal class DateComparer : IComparer<TransactionViewModel>, IOptimizedComparer<TransactionViewModel>
 	{
