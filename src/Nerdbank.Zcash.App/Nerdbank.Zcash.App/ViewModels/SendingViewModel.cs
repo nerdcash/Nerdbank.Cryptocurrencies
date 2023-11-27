@@ -193,10 +193,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			select new Transaction.SendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
 		List<Transaction.SendItem> lineItems = lineItemsPrep.ToList();
 
-		string txid = await this.SelectedAccount.LightWalletClient.SendAsync(
+		Task<string> sendTask = this.SelectedAccount.LightWalletClient.SendAsync(
 			lineItems,
 			new Progress<LightWalletClient.SendProgress>(this.SendProgress.Apply),
 			cancellationToken);
+		this.ViewModelServices.RegisterSendTransactionTask(sendTask);
+		string txid = await sendTask;
 		this.SendProgress.Clear();
 
 		// Record the transaction immediately, with the exchange rate that we displayed (if applicable).

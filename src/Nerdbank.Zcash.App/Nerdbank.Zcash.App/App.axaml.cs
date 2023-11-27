@@ -14,6 +14,7 @@ public partial class App : Application, IAsyncDisposable
 	private const string DataFileName = "wallet.dat";
 	private const string SettingsJsonFileName = "settings.json";
 
+	private readonly List<Task> sendTransactionTasks = new();
 	private AutoSaveManager<AppSettings>? appSettingsManager;
 	private AppSettings? settings;
 	private DataRoot? data;
@@ -96,6 +97,8 @@ public partial class App : Application, IAsyncDisposable
 
 	public async ValueTask DisposeAsync()
 	{
+		await this.WaitForSendsAsync();
+
 		if (this.walletSyncManager is not null)
 		{
 			await this.walletSyncManager.DisposeAsync();
@@ -117,6 +120,12 @@ public partial class App : Application, IAsyncDisposable
 		this.walletSyncManager?.StartSyncing(this.Data.Wallet);
 	}
 
+	public void RegisterSendTransactionTask(Task sendTask)
+	{
+		this.sendTransactionTasks.Add(sendTask);
+		_ = sendTask.ContinueWith(this.sendTransactionTasks.Remove, TaskScheduler.FromCurrentSynchronizationContext());
+	}
+
 	internal static AppPlatformSettings CreateDesignTimeAppPlatformSettings()
 	{
 		return new()
@@ -124,5 +133,13 @@ public partial class App : Application, IAsyncDisposable
 			ConfidentialDataPath = null,
 			NonConfidentialDataPath = null,
 		};
+	}
+
+	private async Task WaitForSendsAsync()
+	{
+		while (this.sendTransactionTasks.Count > 0)
+		{
+			await Task.WhenAll(this.sendTransactionTasks).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+		}
 	}
 }
