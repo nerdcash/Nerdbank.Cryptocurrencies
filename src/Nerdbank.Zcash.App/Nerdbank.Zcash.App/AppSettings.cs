@@ -27,6 +27,7 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 
 	public event PropertyChangingEventHandler? PropertyChanging;
 
+	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
 	public bool ExchangeRatePerTransactionHasBeenDismissed
 	{
 		get => this.exchangeRatePerTransactionHasBeenDismissed;
@@ -58,6 +59,7 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 		set => this.RaiseAndSetIfChanged(ref this.lightServerUrlTestNet, value);
 	}
 
+	[JsonIgnore]
 	public bool IsDirty
 	{
 		get => this.isDirty;
