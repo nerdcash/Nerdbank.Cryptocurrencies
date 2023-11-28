@@ -54,7 +54,7 @@ public partial class LightWalletClient : IDisposable
 
 		Span<byte> uskBytes = stackalloc byte[500];
 		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
-		List<byte>? uskBytesList = uskBytesLength == 0 ? null : ToByteList(uskBytes[..uskBytesLength]);
+		byte[]? uskBytesList = uskBytesLength == 0 ? null : uskBytes[..uskBytesLength].ToArray();
 
 		WalletInfo walletInfo = new(
 			account.Spending is null ? account.FullViewing.UnifiedKey : null,
@@ -204,7 +204,7 @@ public partial class LightWalletClient : IDisposable
 		Requires.NotNullOrEmpty(payments);
 
 		List<TransactionSendDetail> details = payments
-			.Select(p => new TransactionSendDetail(p.ToAddress, (ulong)(p.Amount * ZatsPerZEC), null, p.Memo.RawBytes.ToArray().ToList()))
+			.Select(p => new TransactionSendDetail(p.ToAddress, (ulong)(p.Amount * ZatsPerZEC), null, p.Memo.RawBytes.ToArray()))
 			.ToList();
 
 		return await this.InteropAsync(
@@ -240,17 +240,6 @@ public partial class LightWalletClient : IDisposable
 			ZcashNetwork.TestNet => ChainType.Testnet,
 			_ => throw new ArgumentException(),
 		};
-	}
-
-	private static List<byte> ToByteList(ReadOnlySpan<byte> buffer)
-	{
-		List<byte> list = new(buffer.Length);
-		for (int i = 0; i < buffer.Length; i++)
-		{
-			list.Add(buffer[i]);
-		}
-
-		return list;
 	}
 
 	/// <summary>
