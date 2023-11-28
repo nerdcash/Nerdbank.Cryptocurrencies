@@ -24,6 +24,8 @@ public partial class App : Application, IAsyncDisposable
 	public App()
 		: this(CreateDesignTimeAppPlatformSettings())
 	{
+		Assumes.NotNull(SynchronizationContext.Current);
+		this.InitializeFields();
 	}
 
 	public App(AppPlatformSettings platformSettings)
@@ -83,6 +85,11 @@ public partial class App : Application, IAsyncDisposable
 	/// </summary>
 	public void InitializeFields()
 	{
+		if (this.appSettingsManager is not null)
+		{
+			return;
+		}
+
 		this.appSettingsManager = this.AppPlatformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
 		this.dataRootManager = this.AppPlatformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
 		this.settings = this.appSettingsManager?.Data ?? new AppSettings();
