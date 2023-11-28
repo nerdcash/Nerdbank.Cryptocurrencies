@@ -32,8 +32,6 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	{
 		this.LineItems[0].AmountEntry.Amount = 1.23m;
 		this.fee = new(0.0001m, this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity);
-		this.SendProgress.To = 2;
-		this.SendProgress.Current = 1;
 	}
 
 	public SendingViewModel(IViewModelServices viewModelServices)
@@ -43,7 +41,6 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.AddLineItem();
 
 		this.SyncProgress = new SyncProgressData(this);
-		this.SendProgress = new SendProgressData(this.ViewModelServices);
 
 		this.OnSelectedAccountChanged();
 
@@ -67,15 +64,18 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			.Select(account => account?.Network != ZcashNetwork.MainNet)
 			.ToProperty(this, nameof(this.IsTestNetWarningVisible));
 
-		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
+		// ZingoLib does not support sending more than one transaction at once.
+		IObservable<bool> canSend = this.WhenAnyValue(
+			vm => vm.SelectedAccount!.SendProgress.IsInProgress,
+			sending => !sending);
+
+		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
 	}
 
 	public string Title => "Send Zcash";
 
 	public SyncProgressData SyncProgress { get; }
-
-	public SendProgressData SendProgress { get; }
 
 	public string FromAccountCaption => "From account:";
 
@@ -195,11 +195,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		Task<string> sendTask = this.SelectedAccount.LightWalletClient.SendAsync(
 			lineItems,
-			new Progress<LightWalletClient.SendProgress>(this.SendProgress.Apply),
+			new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
 			cancellationToken);
 		this.ViewModelServices.RegisterSendTransactionTask(sendTask);
 		string txid = await sendTask;
-		this.SendProgress.Clear();
+		this.SelectedAccount.SendProgress.Complete();
 
 		// Record the transaction immediately, with the exchange rate that we displayed (if applicable).
 		// Storing the exchange rate may be challenging if the transaction When value isn't yet immutable.

@@ -28,7 +28,6 @@
   </UserControl.DataTemplates>
   <DockPanel>
     <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
-    <local:SyncHeaderControl DataContext="{Binding SendProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*, auto">
       <Grid RowDefinitions="*,*,*" ColumnDefinitions="auto,10,auto,30,auto">
         <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" VerticalAlignment="Top" />

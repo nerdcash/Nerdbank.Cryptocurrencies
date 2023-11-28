@@ -5,16 +5,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SendProgressData : ProgressData
 {
-	[Obsolete("For design-time use only.", error: true)]
 	public SendProgressData()
-		: this(new DesignTimeViewModelServices())
-	{
-		this.IsInProgress = true;
-		this.Current = 1;
-		this.To = 2;
-	}
-
-	public SendProgressData(IViewModelServices viewModelServices)
 	{
 	}
 

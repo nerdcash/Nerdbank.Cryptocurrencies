@@ -28,6 +28,8 @@
   - Support a scan of a zcash: QR code, possibly with multiple recipients
   - Enable transferring "everything" in the wallet (i.e. make working with fees easier when it's near the total).
   - Add private (mutable) memo field at the transaction level.
+  - Enable Send only when the form is valid.
+  - Handle insufficient fund scenarios.
 - Receiving
   - Show a real indicator of a recent receipt of funds.
 - Address book
