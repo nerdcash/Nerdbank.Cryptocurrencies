@@ -98,6 +98,14 @@ try {
         $RestoreArguments += '--interactive'
     }
 
+    if (!$NoRestore -and $PSCmdlet.ShouldProcess(".NET workloads", "Restore")) {
+        Write-Host "Restoring applicable .NET workloads" -ForegroundColor $HeaderColor
+        dotnet workload restore
+        if ($lastexitcode -ne 0) {
+            throw "Failure while restoring workloads."
+        }
+    }
+
     if (!$NoRestore -and $PSCmdlet.ShouldProcess("NuGet packages", "Restore")) {
         Write-Host "Restoring NuGet packages" -ForegroundColor $HeaderColor
         dotnet restore @RestoreArguments
