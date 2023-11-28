@@ -171,7 +171,10 @@ public static class ZcashUtilities
 	/// <returns>The number of bytes written to <paramref name="output"/>. Always 64.</returns>
 	internal static int PRFexpand(ReadOnlySpan<byte> first, PrfExpandCodes domainSpecifier, ReadOnlySpan<byte> second, Span<byte> output)
 	{
-		Requires.Argument(output.Length >= 64, nameof(output), SharedStrings.FormatUnexpectedLength(64, output.Length));
+		if (output.Length < 64)
+		{
+			throw new ArgumentException(SharedStrings.FormatUnexpectedLength(64, output.Length), nameof(output));
+		}
 
 		// Rather than copy the input data into a single buffer, we could use an instance of Blake2B and call Update on it once for each input buffer.
 		Span<byte> buffer = stackalloc byte[first.Length + 1 + second.Length];

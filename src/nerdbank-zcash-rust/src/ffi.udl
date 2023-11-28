@@ -22,7 +22,7 @@ dictionary Config {
 
 dictionary WalletInfo {
 	string? ufvk;
-	sequence<u8>? unified_spending_key;
+	bytes? unified_spending_key;
 	u64 birthday_height;
 };
 
@@ -66,23 +66,23 @@ dictionary Transaction {
 
 dictionary SaplingNote {
 	u64 value;
-	sequence<u8> memo;
+	bytes memo;
 	boolean is_change;
-	sequence<u8> recipient;
+	bytes recipient;
 };
 
 dictionary OrchardNote {
 	u64 value;
-	sequence<u8> memo;
+	bytes memo;
 	boolean is_change;
-	sequence<u8> recipient;
+	bytes recipient;
 };
 
 dictionary TransactionSendDetail {
 	string to_address;
 	u64 value;
 	string? recipient_ua;
-	sequence<u8> memo;
+	bytes memo;
 };
 
 dictionary SendUpdate {

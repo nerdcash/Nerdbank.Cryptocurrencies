@@ -98,7 +98,11 @@ public static class Zip302MemoFormat
 	public static void EncodeProprietaryData(ReadOnlySpan<byte> data, Span<byte> memo)
 	{
 		ThrowIfUnexpectedMemoSize(memo);
-		Requires.Argument(data.Length <= 511, nameof(data), Strings.FormatLengthOutsideExpectedRange(0, 511, data.Length));
+
+		if (data.Length > 511)
+		{
+			throw new ArgumentException(Strings.FormatLengthOutsideExpectedRange(0, 511, data.Length), nameof(data));
+		}
 
 		memo[0] = 0xFF;
 		data.CopyTo(memo[1..]);
@@ -135,7 +139,11 @@ public static class Zip302MemoFormat
 	public static bool TryDecodeProprietaryData(ReadOnlySpan<byte> memo, Span<byte> data)
 	{
 		ThrowIfUnexpectedMemoSize(memo);
-		Requires.Argument(data.Length == 511, nameof(data), SharedStrings.FormatUnexpectedLength(511, data.Length));
+
+		if (data.Length != 511)
+		{
+			throw new ArgumentException(SharedStrings.FormatUnexpectedLength(511, data.Length), nameof(data));
+		}
 
 		if (memo[0] != 0xFF)
 		{
@@ -166,6 +174,9 @@ public static class Zip302MemoFormat
 
 	private static void ThrowIfUnexpectedMemoSize(ReadOnlySpan<byte> memo)
 	{
-		Requires.Argument(memo.Length == 512, nameof(memo), SharedStrings.FormatUnexpectedLength(512, memo.Length));
+		if (memo.Length != 512)
+		{
+			throw new ArgumentException(SharedStrings.FormatUnexpectedLength(512, memo.Length), nameof(memo));
+		}
 	}
 }

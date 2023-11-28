@@ -44,13 +44,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Cryptocurrencies.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.Web", "src\Nerdbank.Zcash.Web\Nerdbank.Zcash.Web.csproj", "{F6767CA9-4D7B-439E-A419-A0797D3BCEFA}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedSource", "src\SharedSource\SharedSource.shproj", "{A6EBBEA8-ABED-4830-B0D0-CC0EB427AB9D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.Cli", "src\Nerdbank.Zcash.Cli\Nerdbank.Zcash.Cli.csproj", "{9602994E-CBDB-4202-8001-FD3AE58949E8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Bitcoin", "src\Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj", "{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nerdbank.Bitcoin.Tests", "test\Nerdbank.Bitcoin.Tests\Nerdbank.Bitcoin.Tests.csproj", "{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Bitcoin.Tests", "test\Nerdbank.Bitcoin.Tests\Nerdbank.Bitcoin.Tests.csproj", "{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.App", "src\Nerdbank.Zcash.App\Nerdbank.Zcash.App\Nerdbank.Zcash.App.csproj", "{7D84F827-D81E-47FE-A4A9-07B3761BAE78}"
 EndProject
@@ -259,7 +257,6 @@ Global
 		{777CF9A5-26F4-42BA-9ECB-5ED6B75D988C} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{46FE7AFC-B261-46A7-9AEC-4EF580608D28} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
 		{F6767CA9-4D7B-439E-A419-A0797D3BCEFA} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
-		{A6EBBEA8-ABED-4830-B0D0-CC0EB427AB9D} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{9602994E-CBDB-4202-8001-FD3AE58949E8} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{D4E12AEF-A9DA-464A-8C0B-B8241FC492D4} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
@@ -272,11 +269,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\SharedSource\SharedSource.projitems*{5edc775a-ba1b-48d8-9f62-645612c30cf0}*SharedItemsImports = 5
-		src\SharedSource\SharedSource.projitems*{777cf9a5-26f4-42ba-9ecb-5ed6b75d988c}*SharedItemsImports = 5
-		src\SharedSource\SharedSource.projitems*{a6ebbea8-abed-4830-b0d0-cc0eb427ab9d}*SharedItemsImports = 13
-		src\SharedSource\SharedSource.projitems*{d4e12aef-a9da-464a-8c0b-b8241fc492d4}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

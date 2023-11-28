@@ -22,7 +22,7 @@ internal struct RustBuffer {
 
     public static RustBuffer Alloc(int size) {
         return _UniffiHelpers.RustCall((ref RustCallStatus status) => {
-            var buffer = _UniFFILib.ffi_LightWallet_rustbuffer_alloc(size, ref status);
+            var buffer = _UniFFILib.ffi_nerdbank_zcash_rust_rustbuffer_alloc(size, ref status);
             if (buffer.data == IntPtr.Zero) {
                 throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
             }
@@ -32,7 +32,7 @@ internal struct RustBuffer {
 
     public static void Free(RustBuffer buffer) {
         _UniffiHelpers.RustCall((ref RustCallStatus status) => {
-            _UniFFILib.ffi_LightWallet_rustbuffer_free(buffer, ref status);
+            _UniFFILib.ffi_nerdbank_zcash_rust_rustbuffer_free(buffer, ref status);
         });
     }
 
@@ -417,229 +417,441 @@ static class _UniFFILib {
         }
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong uniffi_LightWallet_fn_func_lightwallet_get_block_height(RustBuffer @serverUri,ref RustCallStatus _uniffi_out_err
+    public static extern ulong uniffi_nerdbank_zcash_rust_fn_func_last_synced_height(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong uniffi_LightWallet_fn_func_lightwallet_initialize(RustBuffer @config,RustBuffer @walletInfo,ref RustCallStatus _uniffi_out_err
+    public static extern sbyte uniffi_nerdbank_zcash_rust_fn_func_lightwallet_deinitialize(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong uniffi_LightWallet_fn_func_lightwallet_initialize_from_disk(RustBuffer @config,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_balances(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern sbyte uniffi_LightWallet_fn_func_lightwallet_deinitialize(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern ulong uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_height(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_LightWallet_fn_func_lightwallet_sync(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern ulong uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_block_height(RustBuffer @serverUri,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern void uniffi_LightWallet_fn_func_lightwallet_sync_interrupt(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_transactions(ulong @handle,uint @startingBlock,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_LightWallet_fn_func_lightwallet_sync_status(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_user_balances(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong uniffi_LightWallet_fn_func_lightwallet_get_birthday_height(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern ulong uniffi_nerdbank_zcash_rust_fn_func_lightwallet_initialize(RustBuffer @config,RustBuffer @walletInfo,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ulong uniffi_LightWallet_fn_func_last_synced_height(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern ulong uniffi_nerdbank_zcash_rust_fn_func_lightwallet_initialize_from_disk(RustBuffer @config,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_LightWallet_fn_func_lightwallet_get_transactions(ulong @handle,uint @startingBlock,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_send_check_status(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_LightWallet_fn_func_lightwallet_send_to_address(ulong @handle,RustBuffer @sendDetails,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_send_to_address(ulong @handle,RustBuffer @sendDetails,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_LightWallet_fn_func_lightwallet_send_check_status(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_LightWallet_fn_func_lightwallet_get_balances(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern void uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync_interrupt(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_LightWallet_fn_func_lightwallet_get_user_balances(ulong @handle,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync_status(ulong @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_rustbuffer_alloc(int @size,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_alloc(int @size,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_rustbuffer_from_bytes(ForeignBytes @bytes,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_from_bytes(ForeignBytes @bytes,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern void ffi_LightWallet_rustbuffer_free(RustBuffer @buf,ref RustCallStatus _uniffi_out_err
+    public static extern void ffi_nerdbank_zcash_rust_rustbuffer_free(RustBuffer @buf,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer ffi_LightWallet_rustbuffer_reserve(RustBuffer @buf,int @additional,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_reserve(RustBuffer @buf,int @additional,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_get_block_height(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_continuation_callback_set(IntPtr @callback
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_initialize(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u8(IntPtr @handle,IntPtr @uniffiCallback
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_initialize_from_disk(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u8(IntPtr @handle
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_deinitialize(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u8(IntPtr @handle
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_sync(
+    public static extern byte ffi_nerdbank_zcash_rust_rust_future_complete_u8(IntPtr @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_sync_interrupt(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i8(IntPtr @handle,IntPtr @uniffiCallback
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_sync_status(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i8(IntPtr @handle
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_get_birthday_height(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i8(IntPtr @handle
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_last_synced_height(
+    public static extern sbyte ffi_nerdbank_zcash_rust_rust_future_complete_i8(IntPtr @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_get_transactions(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u16(IntPtr @handle,IntPtr @uniffiCallback
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_send_to_address(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u16(IntPtr @handle
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_send_check_status(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u16(IntPtr @handle
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_get_balances(
+    public static extern ushort ffi_nerdbank_zcash_rust_rust_future_complete_u16(IntPtr @handle,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern ushort uniffi_LightWallet_checksum_func_lightwallet_get_user_balances(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i16(IntPtr @handle,IntPtr @uniffiCallback
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern uint ffi_LightWallet_uniffi_contract_version(
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i16(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i16(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern short ffi_nerdbank_zcash_rust_rust_future_complete_i16(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u32(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u32(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u32(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern uint ffi_nerdbank_zcash_rust_rust_future_complete_u32(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i32(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i32(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i32(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern int ffi_nerdbank_zcash_rust_rust_future_complete_i32(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u64(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u64(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u64(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ulong ffi_nerdbank_zcash_rust_rust_future_complete_u64(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i64(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i64(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i64(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern long ffi_nerdbank_zcash_rust_rust_future_complete_i64(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_f32(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_f32(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_f32(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern float ffi_nerdbank_zcash_rust_rust_future_complete_f32(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_f64(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_f64(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_f64(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern double ffi_nerdbank_zcash_rust_rust_future_complete_f64(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_pointer(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_pointer(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_pointer(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern SafeHandle ffi_nerdbank_zcash_rust_rust_future_complete_pointer(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_rust_buffer(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_rust_buffer(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_rust_buffer(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern RustBuffer ffi_nerdbank_zcash_rust_rust_future_complete_rust_buffer(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_void(IntPtr @handle,IntPtr @uniffiCallback
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_void(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_free_void(IntPtr @handle
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern void ffi_nerdbank_zcash_rust_rust_future_complete_void(IntPtr @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_last_synced_height(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_deinitialize(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_balances(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_height(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_block_height(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_transactions(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_user_balances(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_initialize(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_initialize_from_disk(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send_check_status(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send_to_address(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync_interrupt(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync_status(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
+    public static extern uint ffi_nerdbank_zcash_rust_uniffi_contract_version(
     );
 
     
 
     static void uniffiCheckContractApiVersion() {
-        var scaffolding_contract_version = _UniFFILib.ffi_LightWallet_uniffi_contract_version();
-        if (22 != scaffolding_contract_version) {
-            throw new UniffiContractVersionException($"uniffi.LightWallet: uniffi bindings expected version `22`, library returned `{scaffolding_contract_version}`");
+        var scaffolding_contract_version = _UniFFILib.ffi_nerdbank_zcash_rust_uniffi_contract_version();
+        if (24 != scaffolding_contract_version) {
+            throw new UniffiContractVersionException($"uniffi.LightWallet: uniffi bindings expected version `24`, library returned `{scaffolding_contract_version}`");
         }
     }
 
     static void uniffiCheckApiChecksums() {
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_get_block_height();
-            if (checksum != 49887) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_get_block_height` checksum `49887`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_last_synced_height();
+            if (checksum != 25139) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_last_synced_height` checksum `25139`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_initialize();
-            if (checksum != 26860) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_initialize` checksum `26860`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_deinitialize();
+            if (checksum != 58314) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_deinitialize` checksum `58314`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_initialize_from_disk();
-            if (checksum != 499) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_initialize_from_disk` checksum `499`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_balances();
+            if (checksum != 9991) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_balances` checksum `9991`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_deinitialize();
-            if (checksum != 38054) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_deinitialize` checksum `38054`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_height();
+            if (checksum != 29297) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_height` checksum `29297`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_sync();
-            if (checksum != 2570) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_sync` checksum `2570`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_block_height();
+            if (checksum != 43659) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_block_height` checksum `43659`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_sync_interrupt();
-            if (checksum != 21623) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_sync_interrupt` checksum `21623`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_transactions();
+            if (checksum != 19209) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_transactions` checksum `19209`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_sync_status();
-            if (checksum != 40674) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_sync_status` checksum `40674`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_user_balances();
+            if (checksum != 16835) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_user_balances` checksum `16835`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_get_birthday_height();
-            if (checksum != 53204) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_get_birthday_height` checksum `53204`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_initialize();
+            if (checksum != 33769) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_initialize` checksum `33769`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_last_synced_height();
-            if (checksum != 26604) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_last_synced_height` checksum `26604`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_initialize_from_disk();
+            if (checksum != 21332) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_initialize_from_disk` checksum `21332`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_get_transactions();
-            if (checksum != 26683) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_get_transactions` checksum `26683`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send_check_status();
+            if (checksum != 39023) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send_check_status` checksum `39023`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_send_to_address();
-            if (checksum != 46101) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_send_to_address` checksum `46101`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send_to_address();
+            if (checksum != 32038) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send_to_address` checksum `32038`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_send_check_status();
-            if (checksum != 21498) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_send_check_status` checksum `21498`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync();
+            if (checksum != 16500) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync` checksum `16500`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_get_balances();
-            if (checksum != 20608) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_get_balances` checksum `20608`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync_interrupt();
+            if (checksum != 28267) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync_interrupt` checksum `28267`, library returned `{checksum}`");
             }
         }
         {
-            var checksum = _UniFFILib.uniffi_LightWallet_checksum_func_lightwallet_get_user_balances();
-            if (checksum != 36950) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_LightWallet_checksum_func_lightwallet_get_user_balances` checksum `36950`, library returned `{checksum}`");
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync_status();
+            if (checksum != 5904) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync_status` checksum `5904`, library returned `{checksum}`");
             }
         }
     }
@@ -649,32 +861,6 @@ static class _UniFFILib {
 
 #pragma warning disable 8625
 
-
-
-
-class FfiConverterUInt8: FfiConverter<byte, byte> {
-    public static FfiConverterUInt8 INSTANCE = new FfiConverterUInt8();
-
-    public override byte Lift(byte value) {
-        return value;
-    }
-
-    public override byte Read(BigEndianStream stream) {
-        return stream.ReadByte();
-    }
-
-    public override byte Lower(byte value) {
-        return value;
-    }
-
-    public override int AllocationSize(byte value) {
-        return 1;
-    }
-
-    public override void Write(byte value, BigEndianStream stream) {
-        stream.WriteByte(value);
-    }
-}
 
 
 
@@ -829,6 +1015,27 @@ class FfiConverterString: FfiConverter<string, RustBuffer> {
 
 
 
+
+class FfiConverterByteArray: FfiConverterRustBuffer<byte[]> {
+    public static FfiConverterByteArray INSTANCE = new FfiConverterByteArray();
+
+    public override byte[] Read(BigEndianStream stream) {
+        var length = stream.ReadInt();
+        return stream.ReadBytes(length);
+    }
+
+    public override int AllocationSize(byte[] value) {
+        return 4 + value.Length;
+    }
+
+    public override void Write(byte[] value, BigEndianStream stream) {
+        stream.WriteInt(value.Length);
+        stream.WriteBytes(value);
+    }
+}
+
+
+
 public record Config (
     String @serverUri, 
     ChainType @chainType, 
@@ -881,9 +1088,9 @@ class FfiConverterTypeConfig: FfiConverterRustBuffer<Config> {
 
 public record OrchardNote (
     ulong @value, 
-    List<byte> @memo, 
+    byte[] @memo, 
     bool @isChange, 
-    List<byte> @recipient
+    byte[] @recipient
 ) {
 }
 
@@ -893,25 +1100,25 @@ class FfiConverterTypeOrchardNote: FfiConverterRustBuffer<OrchardNote> {
     public override OrchardNote Read(BigEndianStream stream) {
         return new OrchardNote(
             FfiConverterUInt64.INSTANCE.Read(stream),
-            FfiConverterSequenceUInt8.INSTANCE.Read(stream),
+            FfiConverterByteArray.INSTANCE.Read(stream),
             FfiConverterBoolean.INSTANCE.Read(stream),
-            FfiConverterSequenceUInt8.INSTANCE.Read(stream)
+            FfiConverterByteArray.INSTANCE.Read(stream)
         );
     }
 
     public override int AllocationSize(OrchardNote value) {
         return
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@value) +
-            FfiConverterSequenceUInt8.INSTANCE.AllocationSize(value.@memo) +
+            FfiConverterByteArray.INSTANCE.AllocationSize(value.@memo) +
             FfiConverterBoolean.INSTANCE.AllocationSize(value.@isChange) +
-            FfiConverterSequenceUInt8.INSTANCE.AllocationSize(value.@recipient);
+            FfiConverterByteArray.INSTANCE.AllocationSize(value.@recipient);
     }
 
     public override void Write(OrchardNote value, BigEndianStream stream) {
             FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
-            FfiConverterSequenceUInt8.INSTANCE.Write(value.@memo, stream);
+            FfiConverterByteArray.INSTANCE.Write(value.@memo, stream);
             FfiConverterBoolean.INSTANCE.Write(value.@isChange, stream);
-            FfiConverterSequenceUInt8.INSTANCE.Write(value.@recipient, stream);
+            FfiConverterByteArray.INSTANCE.Write(value.@recipient, stream);
     }
 }
 
@@ -977,9 +1184,9 @@ class FfiConverterTypePoolBalances: FfiConverterRustBuffer<PoolBalances> {
 
 public record SaplingNote (
     ulong @value, 
-    List<byte> @memo, 
+    byte[] @memo, 
     bool @isChange, 
-    List<byte> @recipient
+    byte[] @recipient
 ) {
 }
 
@@ -989,25 +1196,25 @@ class FfiConverterTypeSaplingNote: FfiConverterRustBuffer<SaplingNote> {
     public override SaplingNote Read(BigEndianStream stream) {
         return new SaplingNote(
             FfiConverterUInt64.INSTANCE.Read(stream),
-            FfiConverterSequenceUInt8.INSTANCE.Read(stream),
+            FfiConverterByteArray.INSTANCE.Read(stream),
             FfiConverterBoolean.INSTANCE.Read(stream),
-            FfiConverterSequenceUInt8.INSTANCE.Read(stream)
+            FfiConverterByteArray.INSTANCE.Read(stream)
         );
     }
 
     public override int AllocationSize(SaplingNote value) {
         return
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@value) +
-            FfiConverterSequenceUInt8.INSTANCE.AllocationSize(value.@memo) +
+            FfiConverterByteArray.INSTANCE.AllocationSize(value.@memo) +
             FfiConverterBoolean.INSTANCE.AllocationSize(value.@isChange) +
-            FfiConverterSequenceUInt8.INSTANCE.AllocationSize(value.@recipient);
+            FfiConverterByteArray.INSTANCE.AllocationSize(value.@recipient);
     }
 
     public override void Write(SaplingNote value, BigEndianStream stream) {
             FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
-            FfiConverterSequenceUInt8.INSTANCE.Write(value.@memo, stream);
+            FfiConverterByteArray.INSTANCE.Write(value.@memo, stream);
             FfiConverterBoolean.INSTANCE.Write(value.@isChange, stream);
-            FfiConverterSequenceUInt8.INSTANCE.Write(value.@recipient, stream);
+            FfiConverterByteArray.INSTANCE.Write(value.@recipient, stream);
     }
 }
 
@@ -1229,7 +1436,7 @@ public record TransactionSendDetail (
     String @toAddress, 
     ulong @value, 
     String? @recipientUa, 
-    List<byte> @memo
+    byte[] @memo
 ) {
 }
 
@@ -1241,7 +1448,7 @@ class FfiConverterTypeTransactionSendDetail: FfiConverterRustBuffer<TransactionS
             FfiConverterString.INSTANCE.Read(stream),
             FfiConverterUInt64.INSTANCE.Read(stream),
             FfiConverterOptionalString.INSTANCE.Read(stream),
-            FfiConverterSequenceUInt8.INSTANCE.Read(stream)
+            FfiConverterByteArray.INSTANCE.Read(stream)
         );
     }
 
@@ -1250,14 +1457,14 @@ class FfiConverterTypeTransactionSendDetail: FfiConverterRustBuffer<TransactionS
             FfiConverterString.INSTANCE.AllocationSize(value.@toAddress) +
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@value) +
             FfiConverterOptionalString.INSTANCE.AllocationSize(value.@recipientUa) +
-            FfiConverterSequenceUInt8.INSTANCE.AllocationSize(value.@memo);
+            FfiConverterByteArray.INSTANCE.AllocationSize(value.@memo);
     }
 
     public override void Write(TransactionSendDetail value, BigEndianStream stream) {
             FfiConverterString.INSTANCE.Write(value.@toAddress, stream);
             FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
             FfiConverterOptionalString.INSTANCE.Write(value.@recipientUa, stream);
-            FfiConverterSequenceUInt8.INSTANCE.Write(value.@memo, stream);
+            FfiConverterByteArray.INSTANCE.Write(value.@memo, stream);
     }
 }
 
@@ -1315,7 +1522,7 @@ class FfiConverterTypeUserBalances: FfiConverterRustBuffer<UserBalances> {
 
 public record WalletInfo (
     String? @ufvk, 
-    List<byte>? @unifiedSpendingKey, 
+    byte[]? @unifiedSpendingKey, 
     ulong @birthdayHeight
 ) {
 }
@@ -1326,7 +1533,7 @@ class FfiConverterTypeWalletInfo: FfiConverterRustBuffer<WalletInfo> {
     public override WalletInfo Read(BigEndianStream stream) {
         return new WalletInfo(
             FfiConverterOptionalString.INSTANCE.Read(stream),
-            FfiConverterOptionalSequenceUInt8.INSTANCE.Read(stream),
+            FfiConverterOptionalByteArray.INSTANCE.Read(stream),
             FfiConverterUInt64.INSTANCE.Read(stream)
         );
     }
@@ -1334,13 +1541,13 @@ class FfiConverterTypeWalletInfo: FfiConverterRustBuffer<WalletInfo> {
     public override int AllocationSize(WalletInfo value) {
         return
             FfiConverterOptionalString.INSTANCE.AllocationSize(value.@ufvk) +
-            FfiConverterOptionalSequenceUInt8.INSTANCE.AllocationSize(value.@unifiedSpendingKey) +
+            FfiConverterOptionalByteArray.INSTANCE.AllocationSize(value.@unifiedSpendingKey) +
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@birthdayHeight);
     }
 
     public override void Write(WalletInfo value, BigEndianStream stream) {
             FfiConverterOptionalString.INSTANCE.Write(value.@ufvk, stream);
-            FfiConverterOptionalSequenceUInt8.INSTANCE.Write(value.@unifiedSpendingKey, stream);
+            FfiConverterOptionalByteArray.INSTANCE.Write(value.@unifiedSpendingKey, stream);
             FfiConverterUInt64.INSTANCE.Write(value.@birthdayHeight, stream);
     }
 }
@@ -1533,70 +1740,31 @@ class FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
 
 
 
-class FfiConverterOptionalSequenceUInt8: FfiConverterRustBuffer<List<byte>?> {
-    public static FfiConverterOptionalSequenceUInt8 INSTANCE = new FfiConverterOptionalSequenceUInt8();
+class FfiConverterOptionalByteArray: FfiConverterRustBuffer<byte[]?> {
+    public static FfiConverterOptionalByteArray INSTANCE = new FfiConverterOptionalByteArray();
 
-    public override List<byte>? Read(BigEndianStream stream) {
+    public override byte[]? Read(BigEndianStream stream) {
         if (stream.ReadByte() == 0) {
             return null;
         }
-        return FfiConverterSequenceUInt8.INSTANCE.Read(stream);
+        return FfiConverterByteArray.INSTANCE.Read(stream);
     }
 
-    public override int AllocationSize(List<byte>? value) {
+    public override int AllocationSize(byte[]? value) {
         if (value == null) {
             return 1;
         } else {
-            return 1 + FfiConverterSequenceUInt8.INSTANCE.AllocationSize((List<byte>)value);
+            return 1 + FfiConverterByteArray.INSTANCE.AllocationSize((byte[])value);
         }
     }
 
-    public override void Write(List<byte>? value, BigEndianStream stream) {
+    public override void Write(byte[]? value, BigEndianStream stream) {
         if (value == null) {
             stream.WriteByte(0);
         } else {
             stream.WriteByte(1);
-            FfiConverterSequenceUInt8.INSTANCE.Write((List<byte>)value, stream);
+            FfiConverterByteArray.INSTANCE.Write((byte[])value, stream);
         }
-    }
-}
-
-
-
-
-class FfiConverterSequenceUInt8: FfiConverterRustBuffer<List<byte>> {
-    public static FfiConverterSequenceUInt8 INSTANCE = new FfiConverterSequenceUInt8();
-
-    public override List<byte> Read(BigEndianStream stream) {
-        var length = stream.ReadInt();
-        var result = new List<byte>(length);
-        for (int i = 0; i < length; i++) {
-            result.Add(FfiConverterUInt8.INSTANCE.Read(stream));
-        }
-        return result;
-    }
-
-    public override int AllocationSize(List<byte> value) {
-        var sizeForLength = 4;
-
-        // details/1-empty-list-as-default-method-parameter.md
-        if (value == null) {
-            return sizeForLength;
-        }
-
-        var sizeForItems = value.Select(item => FfiConverterUInt8.INSTANCE.AllocationSize(item)).Sum();
-        return sizeForLength + sizeForItems;
-    }
-
-    public override void Write(List<byte> value, BigEndianStream stream) {
-        // details/1-empty-list-as-default-method-parameter.md
-        if (value == null) {
-            stream.WriteInt(0);
-            return;
-        }
-
-        stream.WriteInt(value.Count);
-        value.ForEach(item => FfiConverterUInt8.INSTANCE.Write(item, stream));
     }
 }
 
@@ -1758,97 +1926,17 @@ class FfiConverterSequenceTypeTransactionSendDetail: FfiConverterRustBuffer<List
 #pragma warning restore 8625
 public static class LightWalletMethods {
     /// <exception cref="LightWalletException"></exception>
-    public static ulong LightwalletGetBlockHeight(String @serverUri) {
+    public static ulong LastSyncedHeight(ulong @handle) {
         return FfiConverterUInt64.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_get_block_height(FfiConverterString.INSTANCE.Lower(@serverUri), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static ulong LightwalletInitialize(Config @config, WalletInfo @walletInfo) {
-        return FfiConverterUInt64.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_initialize(FfiConverterTypeConfig.INSTANCE.Lower(@config), FfiConverterTypeWalletInfo.INSTANCE.Lower(@walletInfo), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static ulong LightwalletInitializeFromDisk(Config @config) {
-        return FfiConverterUInt64.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_initialize_from_disk(FfiConverterTypeConfig.INSTANCE.Lower(@config), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_last_synced_height(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
     public static bool LightwalletDeinitialize(ulong @handle) {
         return FfiConverterBoolean.INSTANCE.Lift(
     _UniffiHelpers.RustCall( (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_deinitialize(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static SyncResult LightwalletSync(ulong @handle) {
-        return FfiConverterTypeSyncResult.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_sync(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static void LightwalletSyncInterrupt(ulong @handle) {
-        
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_sync_interrupt(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
-);
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static SyncStatus LightwalletSyncStatus(ulong @handle) {
-        return FfiConverterTypeSyncStatus.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_sync_status(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static ulong LightwalletGetBirthdayHeight(ulong @handle) {
-        return FfiConverterUInt64.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_get_birthday_height(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static ulong LastSyncedHeight(ulong @handle) {
-        return FfiConverterUInt64.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_last_synced_height(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static List<Transaction> LightwalletGetTransactions(ulong @handle, uint @startingBlock) {
-        return FfiConverterSequenceTypeTransaction.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_get_transactions(FfiConverterUInt64.INSTANCE.Lower(@handle), FfiConverterUInt32.INSTANCE.Lower(@startingBlock), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static String LightwalletSendToAddress(ulong @handle, List<TransactionSendDetail> @sendDetails) {
-        return FfiConverterString.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_send_to_address(FfiConverterUInt64.INSTANCE.Lower(@handle), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
-));
-    }
-
-    /// <exception cref="LightWalletException"></exception>
-    public static SendUpdate LightwalletSendCheckStatus(ulong @handle) {
-        return FfiConverterTypeSendUpdate.INSTANCE.Lift(
-    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_send_check_status(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_deinitialize(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
@@ -1856,7 +1944,31 @@ public static class LightWalletMethods {
     public static PoolBalances LightwalletGetBalances(ulong @handle) {
         return FfiConverterTypePoolBalances.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_get_balances(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_balances(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static ulong LightwalletGetBirthdayHeight(ulong @handle) {
+        return FfiConverterUInt64.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_height(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static ulong LightwalletGetBlockHeight(String @serverUri) {
+        return FfiConverterUInt64.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_block_height(FfiConverterString.INSTANCE.Lower(@serverUri), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static List<Transaction> LightwalletGetTransactions(ulong @handle, uint @startingBlock) {
+        return FfiConverterSequenceTypeTransaction.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_transactions(FfiConverterUInt64.INSTANCE.Lower(@handle), FfiConverterUInt32.INSTANCE.Lower(@startingBlock), ref _status)
 ));
     }
 
@@ -1864,7 +1976,63 @@ public static class LightWalletMethods {
     public static UserBalances LightwalletGetUserBalances(ulong @handle) {
         return FfiConverterTypeUserBalances.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_LightWallet_fn_func_lightwallet_get_user_balances(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_user_balances(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static ulong LightwalletInitialize(Config @config, WalletInfo @walletInfo) {
+        return FfiConverterUInt64.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_initialize(FfiConverterTypeConfig.INSTANCE.Lower(@config), FfiConverterTypeWalletInfo.INSTANCE.Lower(@walletInfo), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static ulong LightwalletInitializeFromDisk(Config @config) {
+        return FfiConverterUInt64.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_initialize_from_disk(FfiConverterTypeConfig.INSTANCE.Lower(@config), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static SendUpdate LightwalletSendCheckStatus(ulong @handle) {
+        return FfiConverterTypeSendUpdate.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_send_check_status(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static String LightwalletSendToAddress(ulong @handle, List<TransactionSendDetail> @sendDetails) {
+        return FfiConverterString.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_send_to_address(FfiConverterUInt64.INSTANCE.Lower(@handle), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static SyncResult LightwalletSync(ulong @handle) {
+        return FfiConverterTypeSyncResult.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static void LightwalletSyncInterrupt(ulong @handle) {
+        
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync_interrupt(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+);
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static SyncStatus LightwalletSyncStatus(ulong @handle) {
+        return FfiConverterTypeSyncStatus.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync_status(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 
