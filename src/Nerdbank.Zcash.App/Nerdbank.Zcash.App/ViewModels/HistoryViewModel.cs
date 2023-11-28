@@ -13,7 +13,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
 	private Security alternateSecurity;
 	private IDisposable? transactionsSubscription;
-	private ObservableAsPropertyHelper<bool> exchangeRatePerTransactionHasBeenDismissed;
+	private ObservableAsPropertyHelper<bool> exchangeRateExplanationIsVisible;
 	private ObservableAsPropertyHelper<bool> isAlternateAmountColumnVisible;
 	private TransactionViewModel? selectedTransaction;
 
@@ -63,7 +63,11 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.SyncProgress = new SyncProgressData(this);
 
-		this.exchangeRatePerTransactionHasBeenDismissed = viewModelServices.Settings.WhenAnyValue(s => s.ExchangeRatePerTransactionHasBeenDismissed, d => !d)
+		this.exchangeRateExplanationIsVisible = this.WhenAnyValue(
+			vm => vm.ViewModelServices.Settings.ExchangeRatePerTransactionHasBeenDismissed,
+			vm => vm.SelectedSecurity.IsTestNet,
+			vm => vm.Transactions.Count,
+			(dismissed, isTestNet, txCount) => !dismissed && !isTestNet && txCount > 0)
 			.ToProperty(this, nameof(this.ExchangeRateExplanationIsVisible));
 
 		this.isAlternateAmountColumnVisible = this.WhenAnyValue(
@@ -110,7 +114,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string ExchangeRateExplanation => "The value in fiat currency is based on the exchange rate at the time of each transaction.";
 
-	public bool ExchangeRateExplanationIsVisible => this.exchangeRatePerTransactionHasBeenDismissed.Value;
+	public bool ExchangeRateExplanationIsVisible => this.exchangeRateExplanationIsVisible.Value;
 
 	public ReactiveCommand<Unit, Unit> HideExchangeRateExplanationCommand { get; }
 
