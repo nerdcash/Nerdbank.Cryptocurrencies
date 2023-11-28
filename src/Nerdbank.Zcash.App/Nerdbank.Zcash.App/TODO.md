@@ -11,6 +11,7 @@
 - Receiving screen: why doesn't an incoming transaction appear before its first confirmation?
 - Keep zingolib current with the number of T addresses that have been generated.
 - Auto-shielding
+  - Including of transparent fund-only accounts that are imported. They need a designated 'shield to' account selection.
 
 ## Views to build
 

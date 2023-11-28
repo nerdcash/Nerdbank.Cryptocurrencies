@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - main
+    - app
     - validate/*
     tags:
     - 'v*.*'
