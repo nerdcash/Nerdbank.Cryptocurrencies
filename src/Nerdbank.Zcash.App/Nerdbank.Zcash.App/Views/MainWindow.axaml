@@ -37,6 +37,7 @@
         <MenuItem Header="_Address check" Command="{Binding AddressCheckCommand}" />
       </MenuItem>
     </Menu>
+    <views:SyncHeaderControl DataContext="{Binding SendProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />
     <ContentControl Content="{Binding Content}" />
   </DockPanel>
 </Window>

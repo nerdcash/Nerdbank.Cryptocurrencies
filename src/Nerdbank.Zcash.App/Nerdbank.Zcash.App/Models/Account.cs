@@ -103,6 +103,9 @@ public class Account : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.syncProgress, value);
 	}
 
+	[IgnoreMember]
+	public SendProgressData SendProgress { get; } = new();
+
 	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber)
 	{
 		uint highestBlockNumber = 0;

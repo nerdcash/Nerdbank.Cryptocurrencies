@@ -5,14 +5,14 @@
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="35"
              x:Class="Nerdbank.Zcash.App.Views.SyncHeaderControl"
-             x:DataType="vm:SyncProgressData">
+             x:DataType="vm:ProgressData">
   <Design.DataContext>
-    <vm:SyncProgressData />
+    <vm:ProgressData />
   </Design.DataContext>
-  <Grid IsVisible="{Binding IsSyncInProgress}">
+  <Grid IsVisible="{Binding IsInProgress}">
     <Rectangle Fill="Orange" />
     <StackPanel>
-      <TextBlock Text="{Binding SyncInProgressCaption}" HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" />
       <ProgressBar Value="{Binding Current}" Minimum="{Binding From}" Maximum="{Binding To}" ShowProgressText="True" />
     </StackPanel>
   </Grid>

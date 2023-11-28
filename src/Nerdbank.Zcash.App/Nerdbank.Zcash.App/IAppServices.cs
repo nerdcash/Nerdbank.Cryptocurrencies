@@ -35,4 +35,10 @@ public interface IAppServices
 	/// Gets a provider of historical exchange rates.
 	/// </summary>
 	IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; }
+
+	/// <summary>
+	/// Tracks a transaction send operation, to ensure the process does not exit before it has completed broadcasting.
+	/// </summary>
+	/// <param name="sendTask">The task representing the operation.</param>
+	void RegisterSendTransactionTask(Task sendTask);
 }

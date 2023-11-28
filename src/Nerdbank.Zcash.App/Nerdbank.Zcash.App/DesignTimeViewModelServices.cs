@@ -75,6 +75,10 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	public IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; } = new MockExchange();
 
+	public void RegisterSendTransactionTask(Task sendTask)
+	{
+	}
+
 	public void NavigateBack(ViewModelBase? ifCurrentViewModel)
 	{
 	}

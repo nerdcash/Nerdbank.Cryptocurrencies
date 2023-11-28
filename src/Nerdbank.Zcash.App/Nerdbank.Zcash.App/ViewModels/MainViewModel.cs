@@ -109,6 +109,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public ReactiveCommand<Unit, BackupViewModel> BackupCommand { get; }
 
+	public void RegisterSendTransactionTask(Task sendTask) => this.App.RegisterSendTransactionTask(sendTask);
+
 	public T ReplaceViewStack<T>(T viewModel)
 		where T : ViewModelBase
 	{

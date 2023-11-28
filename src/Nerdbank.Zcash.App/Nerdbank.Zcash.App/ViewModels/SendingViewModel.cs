@@ -3,7 +3,6 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -65,7 +64,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			.Select(account => account?.Network != ZcashNetwork.MainNet)
 			.ToProperty(this, nameof(this.IsTestNetWarningVisible));
 
-		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync);
+		// ZingoLib does not support sending more than one transaction at once.
+		IObservable<bool> canSend = this.WhenAnyValue(
+			vm => vm.SelectedAccount!.SendProgress.IsInProgress,
+			sending => !sending);
+
+		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
 	}
 
@@ -189,23 +193,17 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			select new Transaction.SendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
 		List<Transaction.SendItem> lineItems = lineItemsPrep.ToList();
 
-		Progress<LightWalletClient.SendProgress> progress = new(ProgressUpdate);
-		string txid = await this.SelectedAccount.LightWalletClient.SendAsync(
+		Task<string> sendTask = this.SelectedAccount.LightWalletClient.SendAsync(
 			lineItems,
-			new Progress<LightWalletClient.SendProgress>(ProgressUpdate),
+			new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
 			cancellationToken);
+		this.ViewModelServices.RegisterSendTransactionTask(sendTask);
+		string txid = await sendTask;
+		this.SelectedAccount.SendProgress.Complete();
 
 		// Record the transaction immediately, with the exchange rate that we displayed (if applicable).
 		// Storing the exchange rate may be challenging if the transaction When value isn't yet immutable.
 		//// TODO: code here.
-
-		void ProgressUpdate(LightWalletClient.SendProgress progress)
-		{
-			if (progress.Total > 0)
-			{
-				Debug.WriteLine($"Sending {progress.Progress}/{progress.Total} ({progress.Progress * 100 / progress.Total}%)");
-			}
-		}
 	}
 
 	private void RaisePropertyChangedOnLineItems(string propertyName)
