@@ -82,7 +82,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 			Uri? result = null;
 			if (value.Length > 0 && Uri.TryCreate(value, UriKind.Absolute, out result))
 			{
-				this.viewModelServices.Settings.LightServerUrl = result;
+				this.viewModelServices.Settings.LightServerUrlTestNet = result;
 			}
 
 			this.BeginConfirmServerNetwork(result, ZcashNetwork.TestNet);
