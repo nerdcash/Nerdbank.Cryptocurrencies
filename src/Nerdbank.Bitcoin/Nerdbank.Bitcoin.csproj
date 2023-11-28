@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\SharedSource\**\*.cs" LinkBase="SharedSource" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" />
   </ItemGroup>
 
@@ -16,7 +20,5 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
     <PackageReference Include="NBitcoin.Secp256k1" />
   </ItemGroup>
-
-  <Import Project="..\SharedSource\SharedSource.projitems" Label="Shared" />
 
 </Project>

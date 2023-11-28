@@ -11,6 +11,9 @@
     <EditorConfigFiles Include="..\..\obj\.editorconfig" Link="obj\.editorconfig" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedSource\**\*.cs" LinkBase="SharedSource" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" PrivateAssets="compile" />
     <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="Grpc.Net.Client" />
@@ -23,6 +26,5 @@
     <ProjectReference Include="..\Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj" />
     <ProjectReference Include="..\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" PrivateAssets="compile" />
   </ItemGroup>
-  <Import Project="..\SharedSource\SharedSource.projitems" Label="Shared" />
   <Import Project="NativeBindings.targets" />
 </Project>
