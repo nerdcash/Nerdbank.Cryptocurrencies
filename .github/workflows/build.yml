@@ -165,7 +165,7 @@ jobs:
         --secret '${{ secrets.CODESIGN_SECRET }}'
         --name 'Nerdbank.Streams'
         --descriptionUrl 'https://github.com/nerdcash/Nerdbank.Cryptocurrencies'
-      if: success() && github.event_name != 'pull_request'
+      if: success() && github.event_name != 'pull_request' && github.repository == 'nerdcash/Nerdbank.Cryptocurrencies'
       shell: pwsh
 
     - name: 📢 Upload build_logs
