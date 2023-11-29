@@ -164,7 +164,7 @@ jobs:
         --user '${{ secrets.CODESIGN_USERNAME }}'
         --secret '${{ secrets.CODESIGN_SECRET }}'
         --name 'Nerdbank.Streams'
-        --descriptionUrl 'https://github.com/dotnet/Nerdbank.Cryptocurrencies'
+        --descriptionUrl 'https://github.com/nerdcash/Nerdbank.Cryptocurrencies'
       if: success() && github.event_name != 'pull_request'
       shell: pwsh
 

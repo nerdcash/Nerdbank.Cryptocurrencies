@@ -4,6 +4,25 @@
 
 * Parse and construct Zcash addresses, including transparent, shielded and unified addresses.
 * Extract the receivers from unified addresses and others.
+* Diversifiable addresses.
+* Generate or import Zcash accounts backed by HD wallets or individual keys.
+
+### Light client functionality
+
+* Programmatically receive or spend Zcash.
+* Supports Orchard, Sapling and Transparent pools.
+* Zcash CLI allows you to download and send transactions with simple commands and no programming.
+* User-friendly balances that helps an app to illustrate spendable funds vs. other funds that are held by the user but are not yet available for spending.
+* Supports spending and full viewing keys. (Incoming viewing keys coming later.)
+
+### Implemented ZIPs
+
+* ZIP-32 HD Wallets
+* ZIP-173 Bech-32 Format
+* ZIP-225 Version 5 Transaction Format
+* ZIP-302 Memos
+* ZIP-321 Payment request URIs
+* and more (indirectly, through rust crates that we use)
 
 This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Unified_Address_library_for_NET.pdf) by the 🛡️ [Zcash Foundation](https://twitter.com/ZcashFoundation).
 
@@ -32,4 +51,3 @@ UnifiedAddress unified = UnifiedAddress.Create(new[]
 });
 string myUnified = unified.ToString();
 ```
-
