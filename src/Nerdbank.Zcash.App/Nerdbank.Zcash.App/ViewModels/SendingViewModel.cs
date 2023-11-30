@@ -21,6 +21,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> feeAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
 	private readonly ObservableAsPropertyHelper<bool> isTestNetWarningVisible;
+	private readonly ObservableAsPropertyHelper<bool> isSendingInProgress;
+	private string? errorMessage;
+	private string? sendSuccessfulMessage;
 	private string mutableMemo = string.Empty;
 	private SecurityAmount subtotal;
 	private SecurityAmount total;
@@ -67,6 +70,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			.ToProperty(this, nameof(this.IsTestNetWarningVisible));
 
 		// ZingoLib does not support sending more than one transaction at once.
+		this.isSendingInProgress = this.WhenAnyValue(vm => vm.SelectedAccount!.SendProgress.IsInProgress)
+			.ToProperty(this, nameof(this.IsSendingInProgress));
 		IObservable<bool> canSend = this.WhenAnyValue(
 			vm => vm.SelectedAccount!.SendProgress.IsInProgress,
 			sending => !sending);
@@ -74,6 +79,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
 	}
+
+	public bool IsSendingInProgress => this.isSendingInProgress.Value;
 
 	public string Title => "Send Zcash";
 
@@ -132,6 +139,18 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public string SendCommandCaption => "📤 Send";
 
 	public ReactiveCommand<Unit, Unit> SendCommand { get; }
+
+	public string? ErrorMessage
+	{
+		get => this.errorMessage;
+		set => this.RaiseAndSetIfChanged(ref this.errorMessage, value);
+	}
+
+	public string? SendSuccessfulMessage
+	{
+		get => this.sendSuccessfulMessage;
+		set => this.RaiseAndSetIfChanged(ref this.sendSuccessfulMessage, value);
+	}
 
 	protected override void OnSelectedAccountChanged()
 	{
@@ -225,22 +244,51 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		this.SelectedAccount.AddProvisionalTransaction(tx);
 
-		Task sendTask = SendHelperAsync();
+		Task sendTask = SendCriticalHelperAsync();
 		this.ViewModelServices.RegisterSendTransactionTask(sendTask);
-		await sendTask;
+		try
+		{
+			await sendTask;
+
+			// Clear the form for the next send.
+			this.Clear();
+
+			// Display a successful message momentarily.
+			this.SendSuccessfulMessage = $"{this.Subtotal} sent successfully.";
+			await Task.Delay(3000);
+			this.SendSuccessfulMessage = null;
+		}
+		catch (Exception ex)
+		{
+			this.ErrorMessage = ex.Message;
+		}
 
 		// If the user closes the main window, the window will hide but the process will run
 		// until this method completes.
-		async Task SendHelperAsync()
+		async Task SendCriticalHelperAsync()
 		{
 			// This assignment helps ensure that we promote the right provisional transaction
 			// at the conclusion of the send operation.
-			tx.TransactionId = await this.SelectedAccount.LightWalletClient.SendAsync(
-				lineItems,
-				new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
-				cancellationToken);
-			this.SelectedAccount.SendProgress.Complete();
+			try
+			{
+				this.ErrorMessage = null;
+				tx.TransactionId = await this.SelectedAccount.LightWalletClient.SendAsync(
+					lineItems,
+					new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
+					cancellationToken);
+			}
+			finally
+			{
+				this.SelectedAccount.SendProgress.Complete();
+			}
 		}
+	}
+
+	private void Clear()
+	{
+		this.lineItems.Clear();
+		this.AddLineItem();
+		this.RecalculateAggregates();
 	}
 
 	private void RaisePropertyChangedOnLineItems(string propertyName)
