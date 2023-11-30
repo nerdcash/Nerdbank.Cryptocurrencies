@@ -55,6 +55,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public App App { get; }
 
+	public bool IsScanCommandAvailable => false;
+
 	public TopLevel? TopLevel { get; set; }
 
 	public AppPlatformSettings AppPlatformSettings => this.App.AppPlatformSettings;

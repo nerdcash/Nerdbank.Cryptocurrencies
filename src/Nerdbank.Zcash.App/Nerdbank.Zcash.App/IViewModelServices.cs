@@ -10,6 +10,8 @@ public interface IViewModelServices : IAppServices, INotifyPropertyChanged
 {
 	App App { get; }
 
+	bool IsScanCommandAvailable { get; }
+
 	/// <summary>
 	/// Gets or sets the most recently used account.
 	/// </summary>

@@ -303,6 +303,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public ReactiveCommand<Unit, Unit> ScanCommand { get; }
 
+		public bool IsScanCommandAvailable => this.ViewModelServices.IsScanCommandAvailable;
+
 		public string RemoveLineItemCommandCaption => "❌";
 
 		public ReactiveCommand<Unit, Unit> RemoveLineItemCommand { get; }

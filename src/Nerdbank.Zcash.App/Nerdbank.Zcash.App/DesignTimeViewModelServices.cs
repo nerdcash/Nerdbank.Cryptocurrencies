@@ -75,6 +75,8 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 	public IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; } = new MockExchange();
 
+	public bool IsScanCommandAvailable => true;
+
 	public void RegisterSendTransactionTask(Task sendTask)
 	{
 	}

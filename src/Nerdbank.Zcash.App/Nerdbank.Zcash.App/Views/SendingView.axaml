@@ -58,7 +58,7 @@
               <StackPanel Background="LightCyan" Margin="0 10">
                 <Label Content="{Binding RecipientAddressCaption}" />
                 <DockPanel>
-                  <Button Classes="Scan" Background="Transparent" Command="{Binding ScanCommand}" DockPanel.Dock="Right">
+                  <Button Classes="Scan" Background="Transparent" Command="{Binding ScanCommand}" DockPanel.Dock="Right" IsVisible="{Binding IsScanCommandAvailable}">
                     <Button.Content>
                       <Image Source="/Assets/qr-code-scan.png" Height="16" />
                     </Button.Content>
