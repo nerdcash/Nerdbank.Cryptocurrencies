@@ -142,8 +142,11 @@ jobs:
         name: rust
         path: obj/src/nerdbank-zcash-rust/
 
-    - name: 🛠 build
-      run: dotnet pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+    - name: 🛠 build (x64)
+      run: dotnet build -t:build,pack -p:Platform=x64 --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/build_x64.binlog"
+
+    - name: 🛠 build (arm64)
+      run: dotnet build -t:build -p:Platform=ARM64 --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/build_arm64.binlog"
 
     - name: ⚙ Update pipeline variables based on build outputs
       run: azure-pipelines/variables/_pipelines.ps1
@@ -187,6 +190,18 @@ jobs:
       with:
         name: deployables
         path: ${{ runner.temp }}/_artifacts/deployables
+      if: always()
+    - name: 📢 Upload windows-desktop-app-ARM64
+      uses: actions/upload-artifact@v1
+      with:
+        name: windows-desktop-app-ARM64
+        path: ${{ runner.temp }}/_artifacts/windows-desktop-app-ARM64
+      if: always()
+    - name: 📢 Upload windows-desktop-app-x64
+      uses: actions/upload-artifact@v1
+      with:
+        name: windows-desktop-app-x64
+        path: ${{ runner.temp }}/_artifacts/windows-desktop-app-x64
       if: always()
 
     - name: 🚀 Push NuGet packages

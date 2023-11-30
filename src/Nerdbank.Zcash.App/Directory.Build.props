@@ -1,7 +1,7 @@
 <Project>
-  <!-- Include and reference README in nuget package, if a README is in the project directory. -->
   <PropertyGroup>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
