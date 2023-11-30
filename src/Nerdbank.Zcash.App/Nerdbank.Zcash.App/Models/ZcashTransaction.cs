@@ -11,19 +11,37 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackObject]
 public class ZcashTransaction : ReactiveObject, IPersistableData
 {
+	internal const string ProvisionalTransactionId = "";
+	private string txid = string.Empty;
 	private uint? blockNumber;
 	private DateTimeOffset? when;
 	private bool isDirty;
 	private string mutableMemo = string.Empty;
 	private string otherPartyName = string.Empty;
 	private decimal? fee;
+	private ImmutableArray<Transaction.SendItem> sendItems = ImmutableArray<Transaction.SendItem>.Empty;
+	private ImmutableArray<Transaction.RecvItem> recvItems = ImmutableArray<Transaction.RecvItem>.Empty;
 
 	public ZcashTransaction()
 	{
 	}
 
 	[Key(0)]
-	public required string TransactionId { get; init; }
+	public required string TransactionId
+	{
+		get => this.txid;
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.txid, value);
+			this.RaisePropertyChanged(nameof(this.IsProvisionalTransaction));
+		}
+	}
+
+	/// <summary>
+	/// Gets a value indicating whether this transaction is provisional, i.e. it has not yet been mined into a block.
+	/// </summary>
+	[IgnoreMember]
+	public bool IsProvisionalTransaction => this.TransactionId == ProvisionalTransactionId;
 
 	[Key(1)]
 	public uint? BlockNumber
@@ -78,10 +96,18 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 	public ZcashAddress OtherPartyAddress { get; init; }
 
 	[Key(8)]
-	public ImmutableArray<Transaction.SendItem> SendItems { get; init; }
+	public ImmutableArray<Transaction.SendItem> SendItems
+	{
+		get => this.sendItems;
+		set => this.RaiseAndSetIfChanged(ref this.sendItems, value);
+	}
 
 	[Key(9)]
-	public ImmutableArray<Transaction.RecvItem> RecvItems { get; init; }
+	public ImmutableArray<Transaction.RecvItem> RecvItems
+	{
+		get => this.recvItems;
+		set => this.RaiseAndSetIfChanged(ref this.recvItems, value);
+	}
 
 	[IgnoreMember]
 	public bool IsDirty

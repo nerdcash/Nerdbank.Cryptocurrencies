@@ -99,6 +99,11 @@
           Command="{Binding AddLineItemCommand}"
           Content="{Binding AddLineItemCommandCaption}"
           HorizontalAlignment="Center" />
+        <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" />
+        <TextBox Name="MutableMemoBox" 
+                 Text="{Binding MutableMemo}"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap" />
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

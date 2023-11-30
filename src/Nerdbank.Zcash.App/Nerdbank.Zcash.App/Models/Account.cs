@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using MessagePack;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.Models;
 
@@ -106,18 +107,56 @@ public class Account : ReactiveObject, IPersistableData
 	[IgnoreMember]
 	public SendProgressData SendProgress { get; } = new();
 
-	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber)
+	/// <summary>
+	/// Adds a outgoing transaction to the list of transactions,
+	/// even before it has been fully created and broadcast by the lightwallet client library.
+	/// </summary>
+	/// <param name="transaction">The provisional transaction.</param>
+	public void AddProvisionalTransaction(ZcashTransaction transaction)
+	{
+		Requires.Argument(transaction.IsProvisionalTransaction, nameof(transaction), "Must be a provisional transaction.");
+		this.TransactionsMutable.Add(transaction);
+	}
+
+	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber, ExchangeRateRecord exchangeRateRecord, AppSettings appSettings)
 	{
 		uint highestBlockNumber = 0;
 		foreach (Transaction transaction in transactions)
 		{
 			ZcashTransaction? tx = this.TransactionsMutable.FirstOrDefault(t => t.TransactionId == transaction.TransactionId);
+			if (tx is null)
+			{
+				// Although no transaction had a matching txid, this may match a
+				// provisional transaction, in which case, we should fill in the details.
+				tx = this.TransactionsMutable.FirstOrDefault(t => t.IsProvisionalTransaction && t.SendItems.FirstOrDefault() is Transaction.SendItem si1 &&
+					transaction.Sends.Any(si2 => Equals_AllowApproximateRecipientMatch(si1, si2)));
+			}
+
 			if (tx is not null)
 			{
 				// We already have this transaction
-				// Copy over elements that can change over time.
+				// Copy over elements that can change as a transaction gets confirmed or transitions from being provisional.
 				tx.BlockNumber = transaction.IsUnconfirmed ? null : transaction.BlockNumber;
-				tx.When = transaction.When;
+
+				// If we're finalizing a provisional transaction, fill in extra details.
+				// The transaction ID itself may have been filled in by the send view model,
+				// even if some of the other details haven't been fleshed out by importing the transaction from the rust side.
+				tx.TransactionId = transaction.TransactionId;
+				tx.RecvItems = transaction.Notes.Where(r => !r.IsChange).ToImmutableArray();
+				tx.SendItems = transaction.Sends;
+
+				// Take special care to migrate the exchange rate from the provisional transaction's timestamp to the confirmed one.
+				if (tx.When != transaction.When)
+				{
+					TradingPair pair = new(appSettings.AlternateCurrency, this.ZcashAccount.Network.AsSecurity());
+					if (tx.When.HasValue && exchangeRateRecord.TryGetExchangeRate(tx.When.Value, pair, out ExchangeRate rate))
+					{
+						exchangeRateRecord.SetExchangeRate(transaction.When, rate);
+					}
+
+					// Only set the When property *after* we've considered updating the exchange rate record.
+					tx.When = transaction.When;
+				}
 			}
 			else
 			{
@@ -152,4 +191,13 @@ public class Account : ReactiveObject, IPersistableData
 	}
 
 	public override string ToString() => this.Name;
+
+	private static bool Equals_AllowApproximateRecipientMatch(Transaction.SendItem left, Transaction.SendItem right)
+	{
+		// We allow the ToAddress to match approximately because if it was originally given
+		// as a compound unified address, the transaction we download will have only one receiver.
+		return left.Amount == right.Amount
+			&& left.Memo.Equals(right.Memo)
+			&& left.ToAddress.IsMatch(right.ToAddress).HasFlag(ZcashAddress.Match.MatchingReceiversFound);
+	}
 }

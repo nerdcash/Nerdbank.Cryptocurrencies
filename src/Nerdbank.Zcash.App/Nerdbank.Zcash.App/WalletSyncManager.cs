@@ -14,15 +14,17 @@ public class WalletSyncManager : IAsyncDisposable
 	private readonly ZcashWallet wallet;
 	private readonly AppSettings settings;
 	private readonly IContactManager contactManager;
+	private readonly ExchangeRateRecord exchangeRateRecord;
 	private Dictionary<Account, Tracker> trackers = new();
 	private bool syncStarted;
 
-	public WalletSyncManager(string confidentialDataPath, ZcashWallet wallet, AppSettings settings, IContactManager contactManager)
+	public WalletSyncManager(string confidentialDataPath, ZcashWallet wallet, AppSettings settings, IContactManager contactManager, ExchangeRateRecord exchangeRateRecord)
 	{
 		this.confidentialDataPath = confidentialDataPath;
 		this.wallet = wallet;
 		this.settings = settings;
 		this.contactManager = contactManager;
+		this.exchangeRateRecord = exchangeRateRecord;
 	}
 
 	public async ValueTask DisposeAsync()
@@ -187,7 +189,7 @@ public class WalletSyncManager : IAsyncDisposable
 		{
 			// TODO: handle re-orgs and rewrite/invalidate the necessary transactions.
 			List<Transaction> txs = await Task.Run(() => this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1), cancellationToken);
-			this.Account.AddTransactions(txs, lastDownloadedBlock);
+			this.Account.AddTransactions(txs, lastDownloadedBlock, this.owner.exchangeRateRecord, this.owner.settings);
 
 			this.Account.Balance = await Task.Run(this.client.GetUserBalances, cancellationToken);
 		}

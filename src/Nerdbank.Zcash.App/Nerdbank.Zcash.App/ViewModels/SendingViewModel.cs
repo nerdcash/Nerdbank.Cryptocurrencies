@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reactive.Linq;
@@ -20,6 +21,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> feeAlternate;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
 	private readonly ObservableAsPropertyHelper<bool> isTestNetWarningVisible;
+	private string mutableMemo = string.Empty;
 	private SecurityAmount subtotal;
 	private SecurityAmount total;
 	private ReadOnlyObservableCollection<object>? possibleRecipients;
@@ -82,6 +84,14 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public string TestNetWarning => Strings.TestNetIsWorthlessWarning;
 
 	public bool IsTestNetWarningVisible => this.isTestNetWarningVisible.Value;
+
+	public string MutableMemoCaption => "Private memo";
+
+	public string MutableMemo
+	{
+		get => this.mutableMemo;
+		set => this.RaiseAndSetIfChanged(ref this.mutableMemo, value);
+	}
 
 	public ReadOnlyObservableCollection<LineItem> LineItems => this.lineItemsReadOnly;
 
@@ -191,19 +201,46 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 				_ => throw new InvalidOperationException($"Unknown type of selected recipient: {li.SelectedRecipient.GetType().Name}"),
 			}
 			select new Transaction.SendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
-		List<Transaction.SendItem> lineItems = lineItemsPrep.ToList();
+		ImmutableArray<Transaction.SendItem> lineItems = lineItemsPrep.ToImmutableArray();
 
-		Task<string> sendTask = this.SelectedAccount.LightWalletClient.SendAsync(
-			lineItems,
-			new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
-			cancellationToken);
+		// Create a draft transaction in the account right away.
+		// This will store the mutable memo, exchange rate, and other metadata that
+		// isn't going to come back from the light wallet server.
+		// In the event of an aborted send, or an expired transaction,
+		// the user can use this draft transaction to try sending again later.
+		ZcashTransaction tx = new()
+		{
+			TransactionId = ZcashTransaction.ProvisionalTransactionId,
+			MutableMemo = this.MutableMemo,
+			IsIncoming = false,
+			When = DateTimeOffset.UtcNow,
+			SendItems = lineItems,
+		};
+
+		// Record the exchange rate that we showed the user, if applicable.
+		if (this.ExchangeRate.HasValue)
+		{
+			this.ViewModelServices.ExchangeData.SetExchangeRate(tx.When.Value, this.ExchangeRate.Value);
+		}
+
+		this.SelectedAccount.AddProvisionalTransaction(tx);
+
+		Task sendTask = SendHelperAsync();
 		this.ViewModelServices.RegisterSendTransactionTask(sendTask);
-		string txid = await sendTask;
-		this.SelectedAccount.SendProgress.Complete();
+		await sendTask;
 
-		// Record the transaction immediately, with the exchange rate that we displayed (if applicable).
-		// Storing the exchange rate may be challenging if the transaction When value isn't yet immutable.
-		//// TODO: code here.
+		// If the user closes the main window, the window will hide but the process will run
+		// until this method completes.
+		async Task SendHelperAsync()
+		{
+			// This assignment helps ensure that we promote the right provisional transaction
+			// at the conclusion of the send operation.
+			tx.TransactionId = await this.SelectedAccount.LightWalletClient.SendAsync(
+				lineItems,
+				new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
+				cancellationToken);
+			this.SelectedAccount.SendProgress.Complete();
+		}
 	}
 
 	private void RaisePropertyChangedOnLineItems(string propertyName)
@@ -293,7 +330,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public DualAmountEntryViewModel AmountEntry { get; }
 
-		public string MemoCaption => "Memo:";
+		public string MemoCaption => "Memo (shared with recipient):";
 
 		public string Memo
 		{

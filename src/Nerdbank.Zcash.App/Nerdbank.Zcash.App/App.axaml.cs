@@ -98,7 +98,7 @@ public partial class App : Application, IAsyncDisposable
 
 		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
 		{
-			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager);
+			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager, this.Data.ExchangeRates);
 		}
 	}
 
