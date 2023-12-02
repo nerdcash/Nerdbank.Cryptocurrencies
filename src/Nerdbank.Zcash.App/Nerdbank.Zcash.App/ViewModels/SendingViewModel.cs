@@ -74,7 +74,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			.ToProperty(this, nameof(this.IsSendingInProgress));
 		IObservable<bool> canSend = this.WhenAnyValue(
 			vm => vm.SelectedAccount!.SendProgress.IsInProgress,
-			sending => !sending);
+			vm => vm.SelectedAccount!.Balance.Spendable,
+			vm => vm.Total,
+			(sending, spendableBalance, total) => !sending && spendableBalance.Amount >= total.Amount);
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
@@ -319,6 +321,25 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.Fee = new SecurityAmount(0.0001m, security); // TODO: calculate fee
 
 		this.Total = this.Subtotal + this.Fee;
+
+		if (this.Total.Amount > this.SelectedAccount?.Balance.Spendable.Amount)
+		{
+			// In preparing these error messages, we specifically do *not* disclose the user's actual balance
+			// because the user's payee may be looking at the screen as well, and the payee shouldn't be privy
+			// to the sender's balance.
+			if (this.Total.Amount > this.SelectedAccount.Balance.MainBalance.Amount + this.SelectedAccount.Balance.Incoming.Amount)
+			{
+				this.ErrorMessage = "Insufficient funds to cover this expenditure. Please consult the Balance view.";
+			}
+			else
+			{
+				this.ErrorMessage = "Insufficient spendable funds. Enough funds are expected to be spendable to cover this expenditure within a few minutes. Check the Balance view for details.";
+			}
+		}
+		else
+		{
+			this.ErrorMessage = null;
+		}
 	}
 
 	private LineItem AddLineItem()
