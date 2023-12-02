@@ -22,6 +22,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
 	private readonly ObservableAsPropertyHelper<bool> isTestNetWarningVisible;
 	private readonly ObservableAsPropertyHelper<bool> isSendingInProgress;
+	private bool isValid;
 	private string? errorMessage;
 	private string? sendSuccessfulMessage;
 	private string mutableMemo = string.Empty;
@@ -76,7 +77,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount!.SendProgress.IsInProgress,
 			vm => vm.SelectedAccount!.Balance.Spendable,
 			vm => vm.Total,
-			(sending, spendableBalance, total) => !sending && spendableBalance.Amount >= total.Amount);
+			vm => vm.IsValid,
+			(sending, spendableBalance, total, valid) => valid && !sending && spendableBalance.Amount >= total.Amount);
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
@@ -87,6 +89,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public string Title => "Send Zcash";
 
 	public SyncProgressData SyncProgress { get; }
+
+	public bool IsValid
+	{
+		get => this.isValid;
+		private set => this.RaiseAndSetIfChanged(ref this.isValid, value);
+	}
 
 	public string FromAccountCaption => "From account:";
 
@@ -202,11 +210,6 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.RaisePropertyChangedOnLineItems(nameof(LineItem.PossibleRecipients));
 	}
 
-	private void Remove(LineItem lineItem)
-	{
-		this.lineItems.Remove(lineItem);
-	}
-
 	private async Task SendAsync(CancellationToken cancellationToken)
 	{
 		// TODO: Block sending if validation errors exist.
@@ -214,13 +217,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		IEnumerable<Transaction.SendItem> lineItemsPrep =
 			from li in this.LineItems
-			let to = li.SelectedRecipient switch
-			{
-				Contact contact => contact.ReceivingAddress ?? throw new InvalidOperationException("Missing address for contact"),
-				Account account => account.ZcashAccount.DefaultAddress,
-				null => ZcashAddress.Decode(li.RecipientAddress),
-				_ => throw new InvalidOperationException($"Unknown type of selected recipient: {li.SelectedRecipient.GetType().Name}"),
-			}
+			let to = li.RecipientAddressParsed
 			select new Transaction.SendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
 		ImmutableArray<Transaction.SendItem> lineItems = lineItemsPrep.ToImmutableArray();
 
@@ -308,8 +305,17 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			case nameof(LineItem.RecipientAddress): // Changing the target pool can change fees.
 			case nameof(LineItem.Amount):
 				this.RecalculateAggregates();
+				this.UpdateIsValidProperty();
+				break;
+			case nameof(LineItem.IsValid):
+				this.UpdateIsValidProperty();
 				break;
 		}
+	}
+
+	private void UpdateIsValidProperty()
+	{
+		this.IsValid = this.LineItems.Count > 0 && this.LineItems.All(li => li.IsValid);
 	}
 
 	private void RecalculateAggregates()
@@ -348,12 +354,22 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		lineItem.PropertyChanged += this.LineItem_PropertyChanged;
 
 		this.lineItems.Add(lineItem);
+		this.UpdateIsValidProperty();
 		return lineItem;
+	}
+
+	private void Remove(LineItem lineItem)
+	{
+		this.lineItems.Remove(lineItem);
+		this.RecalculateAggregates();
+		this.UpdateIsValidProperty();
 	}
 
 	public class LineItem : ViewModelBaseWithAccountSelector
 	{
 		private readonly SendingViewModel owner;
+		private readonly ObservableAsPropertyHelper<ZcashAddress?> recipientAddressParsed;
+		private readonly ObservableAsPropertyHelper<bool> isValid;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
 		private object? selectedRecipient;
@@ -368,7 +384,26 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 			this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
 			this.RemoveLineItemCommand = ReactiveCommand.Create(() => this.owner.Remove(this));
+
+			this.recipientAddressParsed = this.WhenAnyValue(
+				vm => vm.SelectedRecipient,
+				vm => vm.RecipientAddress,
+				(selected, addr) => selected switch
+				{
+					Contact contact => contact.ReceivingAddress ?? throw new InvalidOperationException("Missing address for contact"),
+					Account account => account.ZcashAccount.DefaultAddress,
+					null => ZcashAddress.TryDecode(addr, out _, out _, out ZcashAddress? parsed) ? parsed : null,
+					_ => throw new InvalidOperationException("Unexpected recipient type"),
+				}).ToProperty(this, nameof(this.RecipientAddressParsed));
+
+			this.isValid = this.WhenAnyValue(
+				vm => vm.Amount,
+				vm => vm.RecipientAddressParsed,
+				(amount, addr) => amount.HasValue && addr is not null)
+				.ToProperty(this, nameof(this.IsValid));
 		}
+
+		public bool IsValid => this.isValid.Value;
 
 		public string RecipientAddressCaption => "Recipient:";
 
@@ -388,6 +423,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		}
 
 		public ReadOnlyObservableCollection<object> PossibleRecipients => this.owner.possibleRecipients ?? throw Assumes.NotReachable();
+
+		public ZcashAddress? RecipientAddressParsed => this.recipientAddressParsed.Value;
 
 		public string AmountCaption => "Amount:";
 
