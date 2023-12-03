@@ -45,9 +45,9 @@ public interface IContactManager
 	{
 		foreach (Contact candidate in this.Contacts)
 		{
-			if (candidate.ReceivingAddress is not null)
+			foreach (ZcashAddress addr in candidate.ReceivingAddresses)
 			{
-				ZcashAddress.Match match = candidate.ReceivingAddress.IsMatch(receivingAddress);
+				ZcashAddress.Match match = addr.IsMatch(receivingAddress);
 				if (match.HasFlag(ZcashAddress.Match.MatchingReceiversFound))
 				{
 					contact = candidate;

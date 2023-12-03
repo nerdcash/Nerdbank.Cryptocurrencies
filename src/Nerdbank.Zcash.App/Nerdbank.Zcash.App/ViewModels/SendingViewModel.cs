@@ -200,8 +200,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		// Prepare the allowed recipients list from the address book, filtered to those with
 		// receiving addresses on the same network.
 		IObservable<IChangeSet<object>> contacts = this.ViewModelServices.ContactManager.Contacts.AsObservableChangeSet()
-			.AutoRefresh(c => c.ReceivingAddress)
-			.Filter(c => c.ReceivingAddress is { } addr && addr.Network == selectedAccount?.Network)
+			.Filter(c => c.ReceivingAddresses.Any(addr => addr.Network == selectedAccount?.Network))
 			.Transform(c => c as object);
 
 		this.possibleRecipientsSubscription = accounts.Merge(contacts)
@@ -390,7 +389,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 				vm => vm.RecipientAddress,
 				(selected, addr) => selected switch
 				{
-					Contact contact => contact.ReceivingAddress ?? throw new InvalidOperationException("Missing address for contact"),
+					Contact contact => contact.GetReceivingAddress(this.owner.SelectedAccount!.Network) ?? throw new InvalidOperationException("Missing address for contact"),
 					Account account => account.ZcashAccount.DefaultAddress,
 					null => ZcashAddress.TryDecode(addr, out _, out _, out ZcashAddress? parsed) ? parsed : null,
 					_ => throw new InvalidOperationException("Unexpected recipient type"),

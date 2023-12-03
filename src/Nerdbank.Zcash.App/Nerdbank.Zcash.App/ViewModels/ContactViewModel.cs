@@ -13,7 +13,8 @@ public class ContactViewModel : ViewModelBase
 	private readonly ObservableAsPropertyHelper<bool> hasAddress;
 	private readonly ObservableAsPropertyHelper<string> sendCommandCaption;
 	private readonly ObservableAsPropertyHelper<string> hasContactSeenMyDiversifiedAddressCaption;
-	private string address = string.Empty;
+	private readonly ObservableBox<bool> canSend = new(false);
+	private string addresses = string.Empty;
 
 	public ContactViewModel(AddressBookViewModel addressBook, Contact model)
 	{
@@ -25,12 +26,14 @@ public class ContactViewModel : ViewModelBase
 			vm => vm.Model.AssignedAddresses,
 			(account, addresses) => account is not null && addresses.ContainsKey(account));
 
-		IObservable<ZcashAddress?> parsedReceivingAddress = this.WhenAnyValue(
-			vm => vm.Address,
-			a => a.Length > 0 && ZcashAddress.TryDecode(a, out _, out _, out ZcashAddress? address) ? address : null);
+		this.addresses = string.Join(' ', this.Model.ReceivingAddresses);
 
-		IObservable<bool> hasValidAddress = parsedReceivingAddress.Select(a => a is not null);
-		IObservable<bool> hasShieldedAddress = parsedReceivingAddress.Select(a => a?.HasShieldedReceiver is true);
+		IObservable<ZcashAddress[]> parsedReceivingAddresses = this.WhenAnyValue(
+			vm => vm.Addresses,
+			a => a?.Split(ZcashAddressAttribute.WhitespaceCharacters, StringSplitOptions.RemoveEmptyEntries).SelectMany(slice => ZcashAddress.TryDecode(slice, out _, out _, out ZcashAddress? address) ? new[] { address } : Array.Empty<ZcashAddress>()).ToArray() ?? Array.Empty<ZcashAddress>());
+
+		IObservable<bool> hasValidAddress = parsedReceivingAddresses.Select(a => a.Length > 0);
+		IObservable<bool> hasShieldedAddress = parsedReceivingAddresses.Select(a => a.Any(b => b.HasShieldedReceiver is true));
 
 		this.hasContactSeenMyDiversifiedAddressCaption = hasContactSeenMyDiversifiedAddress.Select(v => v
 			? "✅ This contact has seen your diversified address."
@@ -39,9 +42,9 @@ public class ContactViewModel : ViewModelBase
 
 		this.isEmpty = this.WhenAnyValue(
 			vm => vm.Name,
-			vm => vm.Address,
+			vm => vm.Addresses,
 			vm => vm.Model.AssignedAddresses,
-			(n, a, assignments) => n.Length == 0 && a.Length == 0 && assignments.Count == 0)
+			(n, addresses, assignments) => n.Length == 0 && string.IsNullOrWhiteSpace(addresses) && assignments.Count == 0)
 			.ToProperty(this, nameof(this.IsEmpty));
 
 		this.hasShieldedReceivingAddress = hasShieldedAddress
@@ -53,10 +56,10 @@ public class ContactViewModel : ViewModelBase
 
 		this.ShowDiversifiedAddressCommand = ReactiveCommand.Create(this.ShowDiversifiedAddress);
 
-		this.SendCommand = ReactiveCommand.Create(this.Send, hasValidAddress);
+		this.UpdateCanSend();
+		this.SendCommand = ReactiveCommand.Create(this.Send, this.canSend);
 
 		this.Model.WhenAnyValue(c => c.Name).Subscribe(_ => this.RaisePropertyChanged(nameof(this.Name)));
-		this.Address = this.Model.ReceivingAddress ?? string.Empty;
 	}
 
 	public Contact Model { get; }
@@ -80,25 +83,44 @@ public class ContactViewModel : ViewModelBase
 	}
 
 	/// <summary>
-	/// Gets or sets the Zcash address that may be used to send ZEC to the contact.
+	/// Gets or sets a list of space-delimited Zcash addresses that may be used to send Zcash to the contact.
 	/// </summary>
-	[ZcashAddress]
-	public string Address
+	[ZcashAddress(AllowMultiple = true)]
+	public string Addresses
 	{
-		get => this.address;
+		get => this.addresses;
 		set
 		{
-			this.RaiseAndSetIfChanged(ref this.address, value);
+			this.RaiseAndSetIfChanged(ref this.addresses, value);
 
 			// Update the model if the value is valid.
 			if (string.IsNullOrWhiteSpace(value))
 			{
-				this.Model.ReceivingAddress = null;
+				this.Model.ReceivingAddresses.Clear();
 			}
-			else if (ZcashAddress.TryDecode(value, out _, out _, out _))
+			else
 			{
-				this.Model.ReceivingAddress = ZcashAddress.Decode(value);
+				HashSet<ZcashAddress> parsedAddresses = new();
+				bool invalidAddressesFound = false;
+				foreach (string slice in value.Split(ZcashAddressAttribute.WhitespaceCharacters, StringSplitOptions.RemoveEmptyEntries))
+				{
+					if (ZcashAddress.TryDecode(slice, out _, out _, out ZcashAddress? address))
+					{
+						parsedAddresses.Add(address);
+					}
+					else
+					{
+						invalidAddressesFound = true;
+					}
+				}
+
+				if (!invalidAddressesFound)
+				{
+					this.Model.ReceivingAddresses.AddOrRemoveToMatch(parsedAddresses);
+				}
 			}
+
+			this.UpdateCanSend();
 		}
 	}
 
@@ -128,7 +150,8 @@ public class ContactViewModel : ViewModelBase
 	public SendingViewModel Send()
 	{
 		SendingViewModel viewModel = new(this.ViewModelServices);
-		viewModel.LineItems[0].RecipientAddress = this.Address;
+		ZcashNetwork network = this.addressBook.SelectedAccount?.Network ?? throw new InvalidOperationException();
+		viewModel.LineItems[0].SelectedRecipient = this.Model;
 		return this.ViewModelServices.NavigateTo(viewModel);
 	}
 
@@ -137,4 +160,14 @@ public class ContactViewModel : ViewModelBase
 		this.addressBook.SelectedAccount,
 		this.Model,
 		paymentRequestDetailsViewModel: null));
+
+	internal void OnSelectedAccountChanged()
+	{
+		this.UpdateCanSend();
+	}
+
+	private void UpdateCanSend()
+	{
+		this.canSend.Value = this.addressBook.SelectedAccount?.Network is ZcashNetwork net && this.Model.ReceivingAddresses.Any(a => a.Network == net);
+	}
 }

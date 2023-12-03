@@ -32,7 +32,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 
 		// Generate an account from which to produce a friend's unified address with at least 3 receivers.
 		ZcashAccount friendsAccount = new(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet));
-		this.friend.ReceivingAddress = friendsAccount.DefaultAddress;
+		this.friend.ReceivingAddresses.Add(friendsAccount.DefaultAddress);
 
 		Contact.AssignedSendingAddresses assignment = this.friend.GetOrCreateSendingAddressAssignment(this.defaultAccount);
 		assignment.TransparentAddressIndex = 4;
@@ -99,7 +99,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnContact_ExactMatch()
 	{
-		this.viewModel.Address = this.friend.ReceivingAddress!.Address;
+		this.viewModel.Address = this.friend.ReceivingAddresses[0].Address;
 		Assert.Same(this.friend, this.viewModel.Match?.Contact);
 		Assert.Null(this.viewModel.Match?.Account);
 		Assert.Null(this.viewModel.Match?.DiversifiedAddressShownToContact);
@@ -112,7 +112,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnContact_MatchOneReceiverOfCompoundUnified()
 	{
-		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddress!;
+		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddresses[0];
 		this.viewModel.Address = new OrchardAddress(friendUA.GetPoolReceiver<OrchardReceiver>()!.Value, friendUA.Network);
 		Assert.Same(this.friend, this.viewModel.Match?.Contact);
 		Assert.Null(this.viewModel.Match?.Account);
@@ -126,7 +126,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnContact_MatchTwoReceiversOfCompoundUnified()
 	{
-		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddress!;
+		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddresses[0];
 		this.viewModel.Address = UnifiedAddress.Create(
 			new OrchardAddress(friendUA.GetPoolReceiver<OrchardReceiver>()!.Value, friendUA.Network),
 			new SaplingAddress(friendUA.GetPoolReceiver<SaplingReceiver>()!.Value, friendUA.Network));
@@ -143,7 +143,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnContact_ReceiverMismatch()
 	{
-		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddress!;
+		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddresses[0];
 		SaplingAddress strangerSapling = Zip32HDWallet.Sapling.Create(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), friendUA.Network).DefaultAddress;
 
 		this.viewModel.Address = UnifiedAddress.Create(

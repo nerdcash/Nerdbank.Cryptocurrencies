@@ -3,8 +3,10 @@
 
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using MessagePack;
 using MessagePack.Formatters;
+using MessagePack.Resolvers;
 
 namespace Nerdbank.Zcash.App.Models;
 
@@ -12,19 +14,20 @@ namespace Nerdbank.Zcash.App.Models;
 public class Contact : ReactiveObject, IPersistableData
 {
 	private readonly ImmutableDictionary<Account, AssignedSendingAddresses>.Builder assignedAddresses;
+	private readonly ObservableCollection<ZcashAddress> receivingAddresses;
 	private string name = string.Empty;
-	private ZcashAddress? receivingAddress;
 	private bool isDirty;
 
 	public Contact()
-		: this(ImmutableDictionary<Account, AssignedSendingAddresses>.Empty)
+		: this(ImmutableDictionary<Account, AssignedSendingAddresses>.Empty, new ObservableCollection<ZcashAddress>())
 	{
 		this.MarkSelfDirtyOnPropertyChanged();
 	}
 
-	private Contact(ImmutableDictionary<Account, AssignedSendingAddresses> assignedAddresses)
+	private Contact(ImmutableDictionary<Account, AssignedSendingAddresses> assignedAddresses, ObservableCollection<ZcashAddress> receivingAddresses)
 	{
 		this.assignedAddresses = assignedAddresses.ToBuilder();
+		this.receivingAddresses = receivingAddresses;
 	}
 
 	public string Name
@@ -33,11 +36,10 @@ public class Contact : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
 
-	public ZcashAddress? ReceivingAddress
-	{
-		get => this.receivingAddress;
-		set => this.RaiseAndSetIfChanged(ref this.receivingAddress, value);
-	}
+	/// <summary>
+	/// Gets the collection of receiving addresses we know of for this contact.
+	/// </summary>
+	public ObservableCollection<ZcashAddress> ReceivingAddresses => this.receivingAddresses;
 
 	/// <summary>
 	/// Gets the addresses that have been assigned to this contact for sending to the wallet owner.
@@ -88,6 +90,13 @@ public class Contact : ReactiveObject, IPersistableData
 	}
 
 	public override string ToString() => this.Name;
+
+	/// <summary>
+	/// Gets the recommended receiving address to use to send Zcash to this contact.
+	/// </summary>
+	/// <param name="network">The network to be used to send the funds.</param>
+	/// <returns>The address to use, if any applicable address is set on this contact.</returns>
+	public ZcashAddress? GetReceivingAddress(ZcashNetwork network) => this.ReceivingAddresses.FirstOrDefault(a => a.Network == network);
 
 	[MessagePackFormatter(typeof(Formatter))]
 	public class AssignedSendingAddresses
@@ -162,6 +171,12 @@ public class Contact : ReactiveObject, IPersistableData
 		}
 	}
 
+	/// <summary>
+	/// A custom formatter for <see cref="Contact"/>.
+	/// </summary>
+	/// <remarks>
+	/// This formatter is necessary because we need to initialize a private field, and we don't use <see cref="DynamicObjectResolverAllowPrivate"/>.
+	/// </remarks>
 	private class Formatter : IMessagePackFormatter<Contact>
 	{
 		public Contact Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
@@ -169,7 +184,7 @@ public class Contact : ReactiveObject, IPersistableData
 			options.Security.DepthStep(ref reader);
 
 			string name = string.Empty;
-			ZcashAddress? receivingAddress = null;
+			ObservableCollection<ZcashAddress>? receivingAddresses = null;
 			ImmutableDictionary<Account, AssignedSendingAddresses> assignedAddresses = ImmutableDictionary<Account, AssignedSendingAddresses>.Empty;
 
 			int length = reader.ReadArrayHeader();
@@ -181,11 +196,7 @@ public class Contact : ReactiveObject, IPersistableData
 						name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
 						break;
 					case 1:
-						if (options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) is string address)
-						{
-							receivingAddress = ZcashAddress.Decode(address);
-						}
-
+						receivingAddresses = options.Resolver.GetFormatterWithVerify<ObservableCollection<ZcashAddress>>().Deserialize(ref reader, options);
 						break;
 					case 2:
 						assignedAddresses = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<Account, AssignedSendingAddresses>>().Deserialize(ref reader, options);
@@ -198,10 +209,9 @@ public class Contact : ReactiveObject, IPersistableData
 
 			reader.Depth--;
 
-			return new(assignedAddresses)
+			return new(assignedAddresses, receivingAddresses ?? new())
 			{
 				Name = name,
-				ReceivingAddress = receivingAddress,
 				IsDirty = false,
 			};
 		}
@@ -210,7 +220,7 @@ public class Contact : ReactiveObject, IPersistableData
 		{
 			writer.WriteArrayHeader(3);
 			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
-			options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.ReceivingAddress, options);
+			options.Resolver.GetFormatterWithVerify<ObservableCollection<ZcashAddress>>().Serialize(ref writer, value.ReceivingAddresses, options);
 			options.Resolver.GetFormatterWithVerify<ImmutableDictionary<Account, AssignedSendingAddresses>>().Serialize(ref writer, value.AssignedAddresses, options);
 		}
 	}
