@@ -72,6 +72,58 @@ public class ZcashAccountTests : TestBase
 	}
 
 	[Fact]
+	public void TryGetDiversifierIndex_SaplingReceiver()
+	{
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+		DiversifierIndex expectedIndex = 50;
+		UnifiedAddress diversified = account.GetDiversifiedAddress(ref expectedIndex);
+
+		Assert.True(account.TryGetDiversifierIndex(new SaplingAddress(diversified.GetPoolReceiver<SaplingReceiver>()!.Value, diversified.Network), out DiversifierIndex? actualIndex));
+		Assert.Equal(expectedIndex, actualIndex);
+	}
+
+	[Fact]
+	public void TryGetDiversifierIndex_OrchardReceiver()
+	{
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+		DiversifierIndex expectedIndex = 50;
+		UnifiedAddress diversified = account.GetDiversifiedAddress(ref expectedIndex);
+
+		Assert.True(account.TryGetDiversifierIndex(new OrchardAddress(diversified.GetPoolReceiver<OrchardReceiver>()!.Value, diversified.Network), out DiversifierIndex? actualIndex));
+		Assert.Equal(expectedIndex, actualIndex);
+	}
+
+	[Fact]
+	public void TryGetDiversifierIndex_DualReceiverMatch()
+	{
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+		DiversifierIndex expectedIndex = 50;
+		UnifiedAddress diversified = account.GetDiversifiedAddress(ref expectedIndex);
+
+		Assert.True(account.TryGetDiversifierIndex(diversified, out DiversifierIndex? actualIndex));
+		Assert.Equal(expectedIndex, actualIndex);
+	}
+
+	[Fact]
+	public void TryGetDiversifierIndex_DualReceiverMismatch()
+	{
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+
+		DiversifierIndex expectedIndex1 = 50;
+		UnifiedAddress diversified1 = account.GetDiversifiedAddress(ref expectedIndex1);
+
+		DiversifierIndex expectedIndex2 = 150;
+		UnifiedAddress diversified2 = account.GetDiversifiedAddress(ref expectedIndex2);
+
+		UnifiedAddress mixedUA = UnifiedAddress.Create(
+			new SaplingAddress(diversified1.GetPoolReceiver<SaplingReceiver>()!.Value, diversified1.Network),
+			new OrchardAddress(diversified2.GetPoolReceiver<OrchardReceiver>()!.Value, diversified2.Network));
+
+		Assert.False(account.TryGetDiversifierIndex(mixedUA, out DiversifierIndex? actualIndex));
+		Assert.Null(actualIndex);
+	}
+
+	[Fact]
 	public void GetTransparentAddress()
 	{
 		Assert.Equal<uint?>(0, this.DefaultAccount.MaxTransparentAddressIndex);

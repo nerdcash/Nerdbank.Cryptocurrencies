@@ -234,6 +234,49 @@ public class ZcashAccount
 	}
 
 	/// <summary>
+	/// Gets the diversifier index for a given address, if the address came from this account.
+	/// </summary>
+	/// <param name="address">The address.</param>
+	/// <param name="index">Receives the diversifier index used to construct this address.</param>
+	/// <returns><see langword="true" /> if the address came from this account and the diversifier could be decrypted; otherwise <see langword="false" />.</returns>
+	/// <remarks>
+	/// If the <paramref name="address"/> contains multiple diversifiable receivers,
+	/// the diversifier index will only be reported from this method if it matches for all such receivers.
+	/// </remarks>
+	public bool TryGetDiversifierIndex(ZcashAddress address, [NotNullWhen(true)] out DiversifierIndex? index)
+	{
+		Requires.NotNull(address, nameof(address));
+
+		DiversifierIndex? orchardIndex = null;
+		if (address.GetPoolReceiver<OrchardReceiver>() is { } orchard && this.IncomingViewing.Orchard is not null)
+		{
+			this.IncomingViewing.Orchard.TryGetDiversifierIndex(orchard, out orchardIndex);
+		}
+
+		DiversifierIndex? saplingIndex = null;
+		if (address.GetPoolReceiver<SaplingReceiver>() is { } sapling && this.IncomingViewing.Sapling is not null)
+		{
+			this.IncomingViewing.Sapling.TryGetDiversifierIndex(sapling, out saplingIndex);
+		}
+
+		if (orchardIndex is not null && saplingIndex is not null)
+		{
+			// If both are present, they must match.
+			if (!orchardIndex.Value.Equals(saplingIndex.Value))
+			{
+				index = null;
+				return false;
+			}
+
+			index = orchardIndex;
+			return true;
+		}
+
+		index = orchardIndex.HasValue ? orchardIndex.Value : saplingIndex;
+		return index is not null;
+	}
+
+	/// <summary>
 	/// Gets a transparent address that sends ZEC to this account.
 	/// </summary>
 	/// <param name="index">
