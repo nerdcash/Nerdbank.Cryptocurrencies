@@ -125,6 +125,17 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 
 	public uint? GetMaxAccountIndex(ZcashMnemonic mnemonic) => this.GetHDWalletsUnder(mnemonic).SelectMany(this.GetAccountsUnder).Max(a => a.ZcashAccount.HDDerivation?.AccountIndex);
 
+	public bool TryGetAccountThatReceives(ZcashAddress receivingAddress, [NotNullWhen(true)] out Account? account)
+	{
+		account = this.Accounts.FirstOrDefault(a => a.ZcashAccount.AddressSendsToThisAccount(receivingAddress));
+		return account is not null;
+	}
+
+	public IEnumerable<Account> GetAccountsContainingTransaction(string transactionId)
+	{
+		return this.Accounts.Where(a => a.Transactions.Any(tx => tx.TransactionId == transactionId));
+	}
+
 	public void Add(ZcashMnemonic mnemonic)
 	{
 		this.mnemonics.Add(mnemonic);

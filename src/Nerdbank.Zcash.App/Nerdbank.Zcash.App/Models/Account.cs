@@ -118,7 +118,7 @@ public class Account : ReactiveObject, IPersistableData
 		this.TransactionsMutable.Add(transaction);
 	}
 
-	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber, ExchangeRateRecord exchangeRateRecord, AppSettings appSettings)
+	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber, ExchangeRateRecord exchangeRateRecord, AppSettings appSettings, ZcashWallet wallet, IContactManager contactManager)
 	{
 		uint highestBlockNumber = 0;
 		foreach (Transaction transaction in transactions)
@@ -128,7 +128,7 @@ public class Account : ReactiveObject, IPersistableData
 			{
 				// Although no transaction had a matching txid, this may match a
 				// provisional transaction, in which case, we should fill in the details.
-				tx = this.TransactionsMutable.FirstOrDefault(t => t.IsProvisionalTransaction && t.SendItems.FirstOrDefault() is Transaction.SendItem si1 &&
+				tx = this.TransactionsMutable.FirstOrDefault(t => t.IsProvisionalTransaction && t.SendItems.FirstOrDefault() is { } si1 &&
 					transaction.Sends.Any(si2 => Equals_AllowApproximateRecipientMatch(si1, si2)));
 			}
 
@@ -142,8 +142,6 @@ public class Account : ReactiveObject, IPersistableData
 				// The transaction ID itself may have been filled in by the send view model,
 				// even if some of the other details haven't been fleshed out by importing the transaction from the rust side.
 				tx.TransactionId = transaction.TransactionId;
-				tx.RecvItems = transaction.Notes.Where(r => !r.IsChange).ToImmutableArray();
-				tx.SendItems = transaction.Sends;
 
 				// Take special care to migrate the exchange rate from the provisional transaction's timestamp to the confirmed one.
 				if (tx.When != transaction.When)
@@ -166,13 +164,17 @@ public class Account : ReactiveObject, IPersistableData
 					TransactionId = transaction.TransactionId,
 					IsIncoming = transaction.IsIncoming,
 					When = transaction.When,
-					RecvItems = transaction.Notes.Where(r => !r.IsChange).ToImmutableArray(),
-					SendItems = transaction.Sends,
+					RecvItems = [.. from recv in transaction.Notes
+									where !recv.IsChange
+									select new ZcashTransaction.LineItem(recv)],
+					SendItems = transaction.Sends.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
 					////Fee = transaction.IsIncoming ? null : -transaction.Fee, // ZingoLib is still buggy
 				};
 
 				this.TransactionsMutable.Add(tx);
 			}
+
+			this.AssignOtherParty(tx, wallet, contactManager);
 
 			highestBlockNumber = Math.Max(highestBlockNumber, tx.BlockNumber ?? 0);
 		}
@@ -192,12 +194,45 @@ public class Account : ReactiveObject, IPersistableData
 
 	public override string ToString() => this.Name;
 
-	private static bool Equals_AllowApproximateRecipientMatch(Transaction.SendItem left, Transaction.SendItem right)
+	private static bool Equals_AllowApproximateRecipientMatch(ZcashTransaction.LineItem left, Transaction.SendItem right)
 	{
 		// We allow the ToAddress to match approximately because if it was originally given
 		// as a compound unified address, the transaction we download will have only one receiver.
 		return left.Amount == right.Amount
 			&& left.Memo.Equals(right.Memo)
 			&& left.ToAddress.IsMatch(right.ToAddress).HasFlag(ZcashAddress.Match.MatchingReceiversFound);
+	}
+
+	/// <summary>
+	/// Assigns the <see cref="ZcashTransaction.LineItem.OtherParty"/> properties on a given transaction based on the addresses
+	/// used in the transaction, if a match can be found.
+	/// </summary>
+	/// <param name="transaction">The transaction to adjust.</param>
+	/// <param name="wallet">The collection of accounts that may be referenced.</param>
+	/// <param name="contactManager">The contact manager.</param>
+	private void AssignOtherParty(ZcashTransaction transaction, ZcashWallet wallet, IContactManager contactManager)
+	{
+		foreach (ZcashTransaction.LineItem sendItem in transaction.SendItems)
+		{
+			if (sendItem is { OtherParty: null, OtherPartyName: null })
+			{
+				if (contactManager.FindContact(sendItem.ToAddress, out Contact? contact) == ZcashAddress.Match.MatchingReceiversFound)
+				{
+					sendItem.OtherParty = contact;
+				}
+			}
+		}
+
+		foreach (ZcashTransaction.LineItem recvItem in transaction.RecvItems)
+		{
+			if (recvItem is { OtherParty: null, OtherPartyName: null })
+			{
+				// Detect the sender by the address they used to reach us.
+				if (contactManager.TryGetContact(this, recvItem.ToAddress, out Contact? contact))
+				{
+					recvItem.OtherParty = contact;
+				}
+			}
+		}
 	}
 }

@@ -189,7 +189,7 @@ public class WalletSyncManager : IAsyncDisposable
 		{
 			// TODO: handle re-orgs and rewrite/invalidate the necessary transactions.
 			List<Transaction> txs = await Task.Run(() => this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1), cancellationToken);
-			this.Account.AddTransactions(txs, lastDownloadedBlock, this.owner.exchangeRateRecord, this.owner.settings);
+			this.Account.AddTransactions(txs, lastDownloadedBlock, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
 
 			this.Account.Balance = await Task.Run(this.client.GetUserBalances, cancellationToken);
 		}

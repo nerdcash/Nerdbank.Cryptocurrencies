@@ -14,20 +14,35 @@ public interface IContactManager
 	bool Remove(Contact contact);
 
 	/// <summary>
-	/// Searches for a contact that has been shown a particular diversified address from the given account.
+	/// Searches for a contact that has been shown a particular address a the given account.
 	/// </summary>
 	/// <param name="account">The account whose receiving address has been shown to the matching contact.</param>
-	/// <param name="diversifierIndex">The diversifier index used to generate the receiving address that has been shown to the matching contact.</param>
+	/// <param name="sendingAddress">The address that may have been assigned to one of the contacts in the address book for purposes of sending funds into this wallet.</param>
 	/// <param name="contact">Receives the matching contact, if one is found.</param>
 	/// <returns><see langword="true" /> if a matching contact was found; otherwise <see langword="false" />.</returns>
-	bool TryGetContact(Account account, DiversifierIndex diversifierIndex, [NotNullWhen(true)] out Contact? contact)
+	bool TryGetContact(Account account, ZcashAddress sendingAddress, [NotNullWhen(true)] out Contact? contact)
 	{
+		account.ZcashAccount.TryGetDiversifierIndex(sendingAddress, out DiversifierIndex? index);
+
 		foreach (Contact c in this.Contacts)
 		{
-			if (c.AssignedAddresses.TryGetValue(account, out Contact.AssignedSendingAddresses? assignment) && assignment.Diversifier.Equals(diversifierIndex))
+			if (c.AssignedAddresses.TryGetValue(account, out Contact.AssignedSendingAddresses? assignment))
 			{
-				contact = c;
-				return true;
+				if (index is not null && assignment.Diversifier.Equals(index.Value))
+				{
+					contact = c;
+					return true;
+				}
+
+				if (assignment.TransparentAddressIndex is uint transparentIndex)
+				{
+					TransparentAddress tAddr = account.ZcashAccount.GetTransparentAddress(transparentIndex);
+					if (sendingAddress.IsMatch(tAddr).HasFlag(ZcashAddress.Match.MatchingReceiversFound))
+					{
+						contact = c;
+						return true;
+					}
+				}
 			}
 		}
 

@@ -231,7 +231,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			MutableMemo = this.MutableMemo,
 			IsIncoming = false,
 			When = DateTimeOffset.UtcNow,
-			SendItems = lineItems,
+			SendItems = [.. lineItems.Select(li => new ZcashTransaction.LineItem(li))],
 		};
 
 		// Record the exchange rate that we showed the user, if applicable.

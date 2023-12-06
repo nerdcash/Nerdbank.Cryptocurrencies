@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using DynamicData;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
@@ -30,12 +31,12 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, string txid, string otherPartyName)
 		{
-			ImmutableArray<Transaction.SendItem> sends = amount < 0
-				? ImmutableArray.Create(new Transaction.SendItem { Amount = -amount, Memo = Memo.FromMessage(memo) })
-				: ImmutableArray<Transaction.SendItem>.Empty;
-			ImmutableArray<Transaction.RecvItem> receives = amount > 0
-				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
-				: ImmutableArray<Transaction.RecvItem>.Empty;
+			ImmutableArray<ZcashTransaction.LineItem> sends = amount < 0
+				? [new ZcashTransaction.LineItem { Amount = -amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1N7bGKWqoWVrv4XGSzrfUsoKkCxNFAutQZ") }]
+				: [];
+			ImmutableArray<ZcashTransaction.LineItem> receives = amount > 0
+				? [new ZcashTransaction.LineItem { Amount = amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1XkdzRXnCguCQtrigDUtgyz5SVtLYaAXBi") }]
+				: [];
 			return new TransactionViewModel(
 				new TradingPair(Security.USD, this.SelectedSecurity),
 				new ZcashTransaction
@@ -44,11 +45,13 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 					Fee = amount > 0 ? null : -0.0001m,
 					TransactionId = txid,
 					When = DateTimeOffset.UtcNow - age,
-					OtherPartyName = otherPartyName,
 					SendItems = sends,
 					RecvItems = receives,
 				},
-				this.ViewModelServices);
+				this)
+			{
+				OtherPartyName = otherPartyName,
+			};
 		}
 	}
 
@@ -135,7 +138,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			this.transactionsSubscription = WrapModels<ReadOnlyObservableCollection<ZcashTransaction>, ZcashTransaction, TransactionViewModel>(
 				this.SelectedAccount.Transactions,
 				this.Transactions,
-				model => new TransactionViewModel(tradingPair, model, this.ViewModelServices));
+				model => new TransactionViewModel(tradingPair, model, this));
 		}
 	}
 
