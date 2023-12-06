@@ -80,4 +80,14 @@ public class AddressBookViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.Contacts.Remove(contact);
 		this.ViewModelServices.ContactManager.Remove(contact.Model);
 	}
+
+	protected override void OnSelectedAccountChanged()
+	{
+		base.OnSelectedAccountChanged();
+
+		foreach (ContactViewModel contact in this.Contacts)
+		{
+			contact.OnSelectedAccountChanged();
+		}
+	}
 }

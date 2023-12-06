@@ -24,12 +24,12 @@ public class HistoryViewModelTests : ViewModelTestBase
 
 		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, string txid, string otherPartyName)
 		{
-			ImmutableArray<Transaction.SendItem> sends = amount < 0
-				? ImmutableArray.Create(new Transaction.SendItem { Amount = -amount, Memo = Memo.FromMessage(memo) })
-				: ImmutableArray<Transaction.SendItem>.Empty;
-			ImmutableArray<Transaction.RecvItem> receives = amount > 0
-				? ImmutableArray.Create(new Transaction.RecvItem { Amount = amount, Memo = Memo.FromMessage(memo) })
-				: ImmutableArray<Transaction.RecvItem>.Empty;
+			ImmutableArray<ZcashTransaction.LineItem> sends = amount < 0
+				? [new ZcashTransaction.LineItem { Amount = -amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1N7bGKWqoWVrv4XGSzrfUsoKkCxNFAutQZ") }]
+				: [];
+			ImmutableArray<ZcashTransaction.LineItem> receives = amount > 0
+				? [new ZcashTransaction.LineItem { Amount = amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1XkdzRXnCguCQtrigDUtgyz5SVtLYaAXBi") }]
+				: [];
 			return new TransactionViewModel(
 				new TradingPair(Security.USD, this.viewModel.SelectedSecurity),
 				new ZcashTransaction
@@ -37,12 +37,14 @@ public class HistoryViewModelTests : ViewModelTestBase
 					IsIncoming = amount > 0,
 					TransactionId = txid,
 					When = DateTimeOffset.UtcNow - age,
-					OtherPartyName = otherPartyName,
 					SendItems = sends,
 					RecvItems = receives,
 					Fee = -0.0001m,
 				},
-				this.MainViewModel);
+				this.viewModel)
+			{
+				OtherPartyName = otherPartyName,
+			};
 		}
 	}
 

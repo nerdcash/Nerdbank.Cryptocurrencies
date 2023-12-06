@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
+using DynamicData;
+
 namespace Nerdbank.Zcash.App;
 
 public static class AppUtilities
@@ -42,6 +45,36 @@ public static class AppUtilities
 
 		list.Insert(index, item);
 		return index;
+	}
+
+	/// <summary>
+	/// Adds or removes elements from a collection to match the contents of another.
+	/// </summary>
+	/// <typeparam name="T">The type of the elements in the collections.</typeparam>
+	/// <param name="target">The collection to be modified to match.</param>
+	/// <param name="matchContentOf">The template collection whose content should be applied to <paramref name="target"/>.</param>
+	/// <remarks>
+	/// <para>This method is useful when the <paramref name="target"/> collection is a <see cref="ObservableCollection{T}"/> and you want to
+	/// add or remove only the elements necessary to make it match some new content.</para>
+	/// <para>This method does <em>not</em> change the order of existing elements in <paramref name="target"/>, and all unique elements in <paramref name="matchContentOf"/> are added to the end of the <paramref name="target"/> list.</para>
+	/// </remarks>
+	internal static void AddOrRemoveToMatch<T>(this IList<T> target, IEnumerable<T> matchContentOf)
+	{
+		HashSet<T> set = matchContentOf is HashSet<T> h ? h : new(matchContentOf);
+		for (int i = target.Count - 1; i >= 0; i--)
+		{
+			if (set.Contains(target[i]))
+			{
+				set.Remove(target[i]);
+			}
+			else
+			{
+				target.RemoveAt(i);
+			}
+		}
+
+		// What remains in the set are the extra elements that should be added.
+		target.AddRange(set);
 	}
 
 	/// <summary>
