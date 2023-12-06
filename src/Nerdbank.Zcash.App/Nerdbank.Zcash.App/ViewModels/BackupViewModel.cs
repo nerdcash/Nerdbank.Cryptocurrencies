@@ -40,12 +40,12 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public ReactiveCommand<Unit, Unit> RevealCommand { get; }
 
-	public string RevealCommandCaption => "Reveal seed phrase";
+	public string RevealCommandCaption => "Reveal secrets";
 
 	public List<string> RevealCautions => new()
 	{
-		"🕵🏼 Revealing your seed phrase on a screen may compromise your security. If you are in a public place, you should not reveal your seed phrase.",
-		"📷 If you take a screenshot of your seed phrase, your backup may be viewed by other apps or uploaded to the cloud. You can make a safe backup with physical paper and pen and storing it in a secure location.",
+		"🕵🏼 Revealing your seed phrase or keys on a screen may compromise your security if you are in a public place.",
+		"📷 If you take a screenshot of these secrets, your backup may be viewed by other apps or uploaded to the cloud. You can make a safe backup with physical paper and pen and storing it in a secure location.",
 	};
 
 	public bool IsRevealed
