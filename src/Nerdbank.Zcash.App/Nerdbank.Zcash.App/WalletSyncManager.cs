@@ -213,7 +213,11 @@ public class WalletSyncManager : IAsyncDisposable
 			// If this account hasn't had a native wallet created yet, assign a random filename to it.
 			if (this.Account.WalletFileName is null)
 			{
-				this.Account.WalletFileName = $"account.{Path.GetRandomFileName()}.dat";
+				string keyType =
+					this.Account.ZcashAccount.Spending is not null ? "sk" :
+					this.Account.ZcashAccount.FullViewing is not null ? "fvk" :
+					"ivk";
+				this.Account.WalletFileName = $"account.{this.Account.ZcashAccount.DefaultAddress.Address[..10]}...{this.Account.ZcashAccount.DefaultAddress.Address[^10..]}-{keyType}.dat";
 			}
 
 			return new(
