@@ -5,8 +5,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MessagePack;
 using MessagePack.Formatters;
-using Microsoft;
-using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App.Models;
 
@@ -45,6 +43,10 @@ public class HDWallet : IPersistableDataHelper
 		get => this.name;
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
+
+	public ZcashNetwork Network => this.Zip32.Network;
+
+	public Bip39Mnemonic? Mnemonic => this.Zip32.Mnemonic;
 
 	public Zip32HDWallet Zip32 { get; }
 

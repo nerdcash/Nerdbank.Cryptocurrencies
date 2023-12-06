@@ -17,7 +17,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	public FirstLaunchViewModel(IViewModelServices viewModelServices)
 	{
-		this.StartNewWalletCommand = ReactiveCommand.Create(this.CreateNewAccount);
+		this.StartNewWalletCommand = ReactiveCommand.CreateFromTask(this.CreateNewAccountAsync);
 		this.StartNewWalletAdvancedCommand = ReactiveCommand.Create(this.CreateNewAccountAdvanced);
 		this.ImportWalletCommand = ReactiveCommand.Create(this.ImportWallet);
 		this.ViewLicenseCommand = ReactiveCommand.Create(this.ViewLicense);
@@ -52,20 +52,23 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	public ReactiveCommand<Unit, ImportAccountViewModel> ImportWalletCommand { get; }
 
-	private void CreateNewAccount()
+	private async Task CreateNewAccountAsync(CancellationToken cancellationToken)
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
 
-		this.NewAccount(mnemonic, ZcashNetwork.MainNet);
-		this.NewAccount(mnemonic, ZcashNetwork.TestNet);
+		await this.NewAccountAsync(mnemonic, ZcashNetwork.MainNet, cancellationToken);
+		await this.NewAccountAsync(mnemonic, ZcashNetwork.TestNet, cancellationToken);
 
 		this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
 	}
 
-	private void NewAccount(Bip39Mnemonic mnemonic, ZcashNetwork network)
+	private async Task NewAccountAsync(Bip39Mnemonic mnemonic, ZcashNetwork network, CancellationToken cancellationToken)
 	{
+		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
+		ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
+
 		Zip32HDWallet zip32 = new(mnemonic, network);
-		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32));
+		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32) { BirthdayHeight = birthdayHeight });
 		accountModel.Name = Strings.FormatDefaultNameForFirstAccountWithTicker(network.AsSecurity().TickerSymbol);
 		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
 		wallet.Name = Strings.FormatDefaultNameForFirstHDWallet(zip32.Network);
