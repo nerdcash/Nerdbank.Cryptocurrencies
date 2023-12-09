@@ -70,16 +70,15 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		HDWallet? hd = wallet.HDWallets.FirstOrDefault();
 		if (hd is null)
 		{
-			using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-			ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
-
 			hd = new HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits))
 			{
-				BirthdayHeight = birthdayHeight,
 				Name = Strings.DefaultNameForFirstHDWallet,
 			};
 			wallet.Add(hd);
 		}
+
+		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
+		ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
 
 		uint index = wallet.GetMaxAccountIndex(hd, network) is uint idx ? idx + 1 : 0;
 		Account account = new Account(new ZcashAccount(hd.GetZip32HDWalletByNetwork(network), index))
@@ -87,7 +86,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 			Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
 			ZcashAccount =
 			{
-				BirthdayHeight = hd.BirthdayHeight,
+				BirthdayHeight = birthdayHeight,
 			},
 		};
 		wallet.Add(account);

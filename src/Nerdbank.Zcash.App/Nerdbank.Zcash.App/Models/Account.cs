@@ -15,7 +15,7 @@ public class Account : ReactiveObject, IPersistableData
 	private string? zingoWalletFileName;
 	private string name = string.Empty;
 	private AccountBalances balance;
-	private bool isDirty;
+	private bool isDirty = true;
 	private LightWalletClient.SyncProgress? syncProgress;
 	private uint lastBlockHeight;
 	private ObservableCollection<ZcashTransaction> transactionsMutable = new();

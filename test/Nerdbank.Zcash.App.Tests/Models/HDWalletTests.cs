@@ -10,7 +10,7 @@ public class HDWalletTests : ModelTestBase<HDWallet>
 	{
 	}
 
-	public HDWallet HDWallet { get; set; } = new(Mnemonic) { BirthdayHeight = 123456, Name = "Test HD" };
+	public HDWallet HDWallet { get; set; } = new(Mnemonic) { Name = "Test HD" };
 
 	public override HDWallet Model => this.HDWallet;
 
@@ -23,7 +23,6 @@ public class HDWalletTests : ModelTestBase<HDWallet>
 		HDWallet deserialized = this.SerializeRoundtrip();
 
 		Assert.Equal(this.Model.Name, deserialized.Name);
-		Assert.Equal(this.Model.BirthdayHeight, deserialized.BirthdayHeight);
 		Assert.Equal(this.Model.MainNet, deserialized.MainNet);
 		Assert.Equal(this.Model.TestNet, deserialized.TestNet);
 		Assert.Equal(this.Model.IsBackedUp, deserialized.IsBackedUp);

@@ -5,34 +5,43 @@ using System.Collections.ObjectModel;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ExportHDWalletViewModel : ExportAccountViewModelBase
+public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 {
 	private readonly IViewModelServices viewModelServices;
-	private readonly HDWallet hd;
+	private readonly Account account;
+	private readonly Bip39Mnemonic mnemonic;
+	private readonly HDWallet? hdWallet;
 
 	[Obsolete("For design-time use only.", error: true)]
-	public ExportHDWalletViewModel()
-		: this(new DesignTimeViewModelServices(), HDWallet.DesignTimeWallet)
+	public ExportSeedBasedAccountViewModel()
+		: this(new DesignTimeViewModelServices(), new Account(new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits)))) { Name = "Design-time account" })
 	{
 		this.Password = "SomePassword";
 	}
 
-	public ExportHDWalletViewModel(IViewModelServices viewModelServices, HDWallet hd)
-		: base(viewModelServices, hd.BirthdayHeight)
+	public ExportSeedBasedAccountViewModel(IViewModelServices viewModelServices, Account account)
+		: base(viewModelServices, account.ZcashAccount.BirthdayHeight)
 	{
+		Bip39Mnemonic? mnemonic = account.ZcashAccount.HDDerivation?.Wallet.Mnemonic;
+		Requires.Argument(mnemonic is not null, nameof(account), "Only seed phrase derived accounts are supported here.");
+		this.mnemonic = mnemonic;
+		if (viewModelServices.Wallet.TryGetHDWallet(account, out HDWallet? hd))
+		{
+			this.hdWallet = hd;
+		}
+
 		this.viewModelServices = viewModelServices;
-		this.hd = hd;
+		this.account = account;
 
-		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(hd.Mnemonic));
-		this.Password = hd.Mnemonic.Password.ToString();
+		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic));
+		this.Password = mnemonic.Password.ToString();
 
-		this.MainNetMaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(hd, ZcashNetwork.MainNet);
-		this.TestNetMaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(hd, ZcashNetwork.TestNet);
+		this.AccountIndex = account.ZcashAccount.HDDerivation!.Value.AccountIndex;
 	}
 
 	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";
 
-	public string SeedPhrase => this.hd.Mnemonic.SeedPhrase;
+	public string SeedPhrase => this.mnemonic.SeedPhrase;
 
 	public string SeedPhraseCaption => "Seed phrase";
 
@@ -42,24 +51,20 @@ public class ExportHDWalletViewModel : ExportAccountViewModelBase
 
 	public string Password { get; init; } = string.Empty;
 
-	public string MainNetMaxAccountIndexCaption => "Max account index (MainNet)";
+	public string AccountIndexCaption => "Account index";
 
-	public string TestNetMaxAccountIndexCaption => "Max account index (TestNet)";
-
-	public uint? MainNetMaxAccountIndex { get; init; }
-
-	public uint? TestNetMaxAccountIndex { get; init; }
+	public uint AccountIndex { get; init; }
 
 	public string IsSeedPhraseBackedUpCaption => "I have copied down my seed phrase (and password)";
 
 	public bool IsSeedPhraseBackedUp
 	{
-		get => this.hd.IsBackedUp;
+		get => this.hdWallet?.IsBackedUp ?? false;
 		set
 		{
-			if (this.hd.IsBackedUp != value)
+			if (this.hdWallet is not null && this.hdWallet.IsBackedUp != value)
 			{
-				this.hd.IsBackedUp = value;
+				this.hdWallet.IsBackedUp = value;
 				this.RaisePropertyChanged();
 			}
 		}

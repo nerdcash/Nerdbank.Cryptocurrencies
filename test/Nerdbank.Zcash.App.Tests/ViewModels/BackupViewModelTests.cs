@@ -12,7 +12,7 @@ public class BackupViewModelTests : ViewModelTestBase
 	public BackupViewModelTests()
 	{
 		Account defaultAccount = this.MainViewModel.Wallet.Add(
-			new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)));
+			new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)) { BirthdayHeight = 123456 });
 		this.viewModel = new(this.MainViewModel);
 	}
 

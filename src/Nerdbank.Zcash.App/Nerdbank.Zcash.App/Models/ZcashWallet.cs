@@ -17,7 +17,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 {
 	private readonly ObservableCollection<HDWallet> hdWallets;
 	private readonly ObservableCollection<Account> accounts;
-	private bool isDirty;
+	private bool isDirty = true;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ZcashWallet"/> class.
@@ -120,11 +120,12 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 
 	public void Add(Account account)
 	{
+		Requires.Argument(account.ZcashAccount.BirthdayHeight is not null, nameof(account), "Set birthday height first.");
+
 		if (account.ZcashAccount.HDDerivation is { Wallet.Mnemonic: { } mnemonic } && !this.TryGetHDWallet(account, out _))
 		{
 			HDWallet? hd = new HDWallet(mnemonic)
 			{
-				BirthdayHeight = account.ZcashAccount.BirthdayHeight ?? AppUtilities.SaplingActivationHeight,
 				Name = $"{account.Name} HD",
 			};
 			this.Add(hd);
@@ -200,7 +201,9 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 				}
 			}
 
-			return new(hdWallets, accounts);
+			ZcashWallet result = new(hdWallets, accounts);
+			result.isDirty = false;
+			return result;
 		}
 
 		public void Serialize(ref MessagePackWriter writer, ZcashWallet value, MessagePackSerializerOptions options)

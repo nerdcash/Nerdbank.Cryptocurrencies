@@ -28,7 +28,7 @@ public abstract class ModelTestBase<T>
 	[Fact]
 	public void IsDirty_Default()
 	{
-		Assert.False(this.Model.IsDirty);
+		Assert.True(this.Model.IsDirty);
 	}
 
 	protected T SerializeRoundtrip()

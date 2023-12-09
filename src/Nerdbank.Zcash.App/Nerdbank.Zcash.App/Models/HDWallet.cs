@@ -14,8 +14,6 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackObject]
 public class HDWallet : IPersistableDataHelper
 {
-	internal static readonly HDWallet DesignTimeWallet = new(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits)) { BirthdayHeight = AppUtilities.SaplingActivationHeight, Name = "Design Time Wallet" };
-
 	private string name = string.Empty;
 	private bool isDirty;
 	private bool isBackedUp;
@@ -48,26 +46,20 @@ public class HDWallet : IPersistableDataHelper
 	public Bip39Mnemonic Mnemonic => this.MainNet.Mnemonic!;
 
 	/// <summary>
-	/// Gets the birthday height for the mnemonic.
-	/// </summary>
-	[Key(1)]
-	public required ulong BirthdayHeight { get; init; }
-
-	/// <summary>
 	/// Gets or sets an optional name for an HD wallet.
 	/// </summary>
 	/// <remarks>
 	/// HD wallets should have names when there are more than one of them so they can be grouped together in the UI
 	/// and the user can understand the groupings.
 	/// </remarks>
-	[Key(2)]
+	[Key(1)]
 	public required string Name
 	{
 		get => this.name;
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
 
-	[Key(3)]
+	[Key(2)]
 	public bool IsBackedUp
 	{
 		get => this.isBackedUp;

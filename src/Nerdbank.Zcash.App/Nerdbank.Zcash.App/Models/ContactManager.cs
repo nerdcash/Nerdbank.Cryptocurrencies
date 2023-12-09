@@ -13,7 +13,7 @@ namespace Nerdbank.Zcash.App.Models;
 public class ContactManager : IContactManager, IPersistableDataHelper
 {
 	private readonly ObservableCollection<Contact> contacts;
-	private bool isDirty;
+	private bool isDirty = true;
 
 	public ContactManager()
 		: this(Array.Empty<Contact>())
@@ -92,7 +92,9 @@ public class ContactManager : IContactManager, IPersistableDataHelper
 
 			reader.Depth--;
 
-			return new(contacts);
+			ContactManager result = new(contacts);
+			result.IsDirty = false;
+			return result;
 		}
 
 		public void Serialize(ref MessagePackWriter writer, ContactManager value, MessagePackSerializerOptions options)

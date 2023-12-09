@@ -24,9 +24,9 @@ public class ViewModelBaseWithAccountSelectorTests : ViewModelTestBase
 	public void SelectedAccount_DefaultsToAppSelection()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
-		HDWallet hd = new(mnemonic) { BirthdayHeight = 123456, Name = "Test HD" };
-		Account mainAccount = new(new ZcashAccount(hd.TestNet, 0)) { Name = "Main" };
-		Account savingsAccount = new(new ZcashAccount(hd.TestNet, 1)) { Name = "Savings" };
+		Zip32HDWallet zip32 = new(mnemonic, ZcashNetwork.TestNet);
+		Account mainAccount = new(new ZcashAccount(zip32, 0) { BirthdayHeight = 123456 }) { Name = "Main" };
+		Account savingsAccount = new(new ZcashAccount(zip32, 1) { BirthdayHeight = 123456 }) { Name = "Savings" };
 		this.MainViewModel.Wallet.Add(mainAccount);
 		this.MainViewModel.Wallet.Add(savingsAccount);
 		this.MainViewModel.MostRecentlyUsedAccount = savingsAccount;

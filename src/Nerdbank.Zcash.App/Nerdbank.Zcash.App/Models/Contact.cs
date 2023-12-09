@@ -16,7 +16,7 @@ public class Contact : ReactiveObject, IPersistableData
 	private readonly ImmutableDictionary<Account, AssignedSendingAddresses>.Builder assignedAddresses;
 	private readonly ObservableCollection<ZcashAddress> receivingAddresses;
 	private string name = string.Empty;
-	private bool isDirty;
+	private bool isDirty = true;
 
 	public Contact()
 		: this(ImmutableDictionary<Account, AssignedSendingAddresses>.Empty, new ObservableCollection<ZcashAddress>())

@@ -49,7 +49,7 @@ public class AccountsViewModelTests : ViewModelTestBase
 		Zip32HDWallet zip32 = firstHD.GetZip32HDWalletByNetwork(network);
 
 		// Create a second HD wallet.
-		this.MainViewModel.Wallet.Add(new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), network)));
+		this.MainViewModel.Wallet.Add(new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), network)) { BirthdayHeight = 123456 });
 
 		Account newAccount = await this.viewModel.NewAccountCommand.Execute(ZcashNetwork.MainNet).FirstAsync();
 		Assert.Same(zip32, newAccount.ZcashAccount.HDDerivation?.Wallet);
