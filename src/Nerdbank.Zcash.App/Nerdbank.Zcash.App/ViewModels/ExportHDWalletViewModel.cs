@@ -5,34 +5,34 @@ using System.Collections.ObjectModel;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ExportMnemonicViewModel : ExportAccountViewModelBase
+public class ExportHDWalletViewModel : ExportAccountViewModelBase
 {
 	private readonly IViewModelServices viewModelServices;
-	private readonly ZcashMnemonic mnemonic;
+	private readonly HDWallet hd;
 
 	[Obsolete("For design-time use only.", error: true)]
-	public ExportMnemonicViewModel()
-		: this(new DesignTimeViewModelServices(), new ZcashMnemonic())
+	public ExportHDWalletViewModel()
+		: this(new DesignTimeViewModelServices(), HDWallet.DesignTimeWallet)
 	{
 		this.Password = "SomePassword";
 	}
 
-	public ExportMnemonicViewModel(IViewModelServices viewModelServices, ZcashMnemonic mnemonic)
-		: base(viewModelServices, mnemonic.BirthdayHeight)
+	public ExportHDWalletViewModel(IViewModelServices viewModelServices, HDWallet hd)
+		: base(viewModelServices, hd.BirthdayHeight)
 	{
 		this.viewModelServices = viewModelServices;
-		this.mnemonic = mnemonic;
+		this.hd = hd;
 
-		this.SeedPhrase = mnemonic.Bip39.SeedPhrase;
-		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic.Bip39));
-		this.Password = mnemonic.Bip39.Password.ToString();
+		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(hd.Mnemonic));
+		this.Password = hd.Mnemonic.Password.ToString();
 
-		this.MaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(mnemonic) ?? 0;
+		this.MainNetMaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(hd, ZcashNetwork.MainNet);
+		this.TestNetMaxAccountIndex = viewModelServices.Wallet.GetMaxAccountIndex(hd, ZcashNetwork.TestNet);
 	}
 
 	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";
 
-	public string SeedPhrase { get; init; } = string.Empty;
+	public string SeedPhrase => this.hd.Mnemonic.SeedPhrase;
 
 	public string SeedPhraseCaption => "Seed phrase";
 
@@ -42,20 +42,24 @@ public class ExportMnemonicViewModel : ExportAccountViewModelBase
 
 	public string Password { get; init; } = string.Empty;
 
-	public string MaxAccountIndexCaption => "Max account index";
+	public string MainNetMaxAccountIndexCaption => "Max account index (MainNet)";
 
-	public uint MaxAccountIndex { get; init; }
+	public string TestNetMaxAccountIndexCaption => "Max account index (TestNet)";
+
+	public uint? MainNetMaxAccountIndex { get; init; }
+
+	public uint? TestNetMaxAccountIndex { get; init; }
 
 	public string IsSeedPhraseBackedUpCaption => "I have copied down my seed phrase (and password)";
 
 	public bool IsSeedPhraseBackedUp
 	{
-		get => this.mnemonic.IsBackedUp;
+		get => this.hd.IsBackedUp;
 		set
 		{
-			if (this.mnemonic.IsBackedUp != value)
+			if (this.hd.IsBackedUp != value)
 			{
-				this.mnemonic.IsBackedUp = value;
+				this.hd.IsBackedUp = value;
 				this.RaisePropertyChanged();
 			}
 		}

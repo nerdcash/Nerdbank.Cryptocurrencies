@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-             x:Class="Nerdbank.Zcash.App.Views.ExportMnemonicView"
-             x:DataType="vm:ExportMnemonicViewModel">
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
+             x:Class="Nerdbank.Zcash.App.Views.ExportHDWalletView"
+             x:DataType="vm:ExportHDWalletViewModel">
   <Design.DataContext>
-    <vm:ExportMnemonicViewModel />
+    <vm:ExportHDWalletViewModel />
   </Design.DataContext>
   <StackPanel>
     <TextBlock Text="{Binding BackupSeedPhraseExplanation}" />
@@ -19,13 +19,15 @@
         <DataGridTextColumn Binding="{Binding Word3}" />
       </DataGrid.Columns>
     </DataGrid>
-    <Grid Margin="10" RowDefinitions="auto, auto, auto" ColumnDefinitions="auto, 10, auto">
+    <Grid Margin="10" RowDefinitions="auto, auto, auto, auto" ColumnDefinitions="auto, 10, auto">
       <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
       <SelectableTextBlock Text="{Binding Password}" Grid.Column="2" />
       <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
       <SelectableTextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
-      <TextBlock Text="{Binding MaxAccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
-      <SelectableTextBlock Text="{Binding MaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
+      <TextBlock Text="{Binding MainNetMaxAccountIndexCaption}" Grid.Row="2" Grid.Column="0" IsVisible="{Binding MainNetMaxAccountIndex, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <SelectableTextBlock Text="{Binding MainNetMaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" IsVisible="{Binding MainNetMaxAccountIndex, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <TextBlock Text="{Binding TestNetMaxAccountIndexCaption}" Grid.Row="3" Grid.Column="0" IsVisible="{Binding TestNetMaxAccountIndex, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <SelectableTextBlock Text="{Binding TestNetMaxAccountIndex,StringFormat=N0}" Grid.Row="3" Grid.Column="2" IsVisible="{Binding TestNetMaxAccountIndex, Converter={x:Static ObjectConverters.IsNotNull}}" />
     </Grid>
     <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
   </StackPanel>

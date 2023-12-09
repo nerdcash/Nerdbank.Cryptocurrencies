@@ -10,19 +10,23 @@ public class HDWalletTests : ModelTestBase<HDWallet>
 	{
 	}
 
-	public HDWallet HDWallet { get; set; } = new(new Zip32HDWallet(Mnemonic));
+	public HDWallet HDWallet { get; set; } = new(Mnemonic) { BirthdayHeight = 123456, Name = "Test HD" };
 
 	public override HDWallet Model => this.HDWallet;
 
 	[Fact]
 	public void Serialize_Roundtrip()
 	{
-		this.Model.Name = "My Wallet";
+		this.Model.IsBackedUp = true;
 		Assert.True(this.Model.IsDirty);
 
 		HDWallet deserialized = this.SerializeRoundtrip();
 
 		Assert.Equal(this.Model.Name, deserialized.Name);
+		Assert.Equal(this.Model.BirthdayHeight, deserialized.BirthdayHeight);
+		Assert.Equal(this.Model.MainNet, deserialized.MainNet);
+		Assert.Equal(this.Model.TestNet, deserialized.TestNet);
+		Assert.Equal(this.Model.IsBackedUp, deserialized.IsBackedUp);
 		Assert.False(deserialized.IsDirty);
 	}
 }

@@ -13,6 +13,7 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 	private static readonly IFormatterResolver ShareableResolver = CompositeResolver.Create(
 		new IMessagePackFormatter[]
 		{
+			Bip39MnemonicFormatter.Instance,
 			ExchangeRateFormatter.Instance,
 			MemoFormatter.Instance,
 			SecurityAmountFormatter.Instance,

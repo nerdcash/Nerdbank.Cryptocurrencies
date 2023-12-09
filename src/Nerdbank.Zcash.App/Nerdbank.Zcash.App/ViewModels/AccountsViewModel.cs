@@ -66,35 +66,28 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	{
 		ZcashWallet wallet = this.viewModelServices.Wallet;
 
-		// Prefer the first mnemonic the user entered.
-		ZcashMnemonic? mnemonic = wallet.Mnemonics.FirstOrDefault();
-		if (mnemonic is null)
-		{
-			using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-			mnemonic = new()
-			{
-				BirthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken),
-			};
-		}
-
-		// If no HD wallet exists, create one.
-		HDWallet[] hdWallets = wallet.HDWallets.Where(w => w.Zip32.Network == network).ToArray();
-
-		// For now, we'll just pick the first one, which *should* be the primary one.
-		HDWallet? hd = hdWallets.FirstOrDefault();
+		// Prefer the first HD wallet the user entered.
+		HDWallet? hd = wallet.HDWallets.FirstOrDefault();
 		if (hd is null)
 		{
-			hd = new HDWallet(new Zip32HDWallet(mnemonic.Bip39, network));
+			using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
+			ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
+
+			hd = new HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits))
+			{
+				BirthdayHeight = birthdayHeight,
+				Name = Strings.DefaultNameForFirstHDWallet,
+			};
 			wallet.Add(hd);
 		}
 
-		uint index = wallet.GetMaxAccountIndex(hd) is uint idx ? idx + 1 : 0;
-		Account account = new Account(new ZcashAccount(hd.Zip32, index))
+		uint index = wallet.GetMaxAccountIndex(hd, network) is uint idx ? idx + 1 : 0;
+		Account account = new Account(new ZcashAccount(hd.GetZip32HDWalletByNetwork(network), index))
 		{
 			Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
 			ZcashAccount =
 			{
-				BirthdayHeight = mnemonic.BirthdayHeight,
+				BirthdayHeight = hd.BirthdayHeight,
 			},
 		};
 		wallet.Add(account);

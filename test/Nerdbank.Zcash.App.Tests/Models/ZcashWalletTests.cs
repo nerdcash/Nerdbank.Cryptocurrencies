@@ -37,13 +37,11 @@ public class ZcashWalletTests : ModelTestBase<ZcashWallet>
 	[Fact]
 	public void GetMaxAccountIndex()
 	{
-		Zip32HDWallet zip32 = new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits));
-		Assert.Null(this.Model.GetMaxAccountIndex(new ZcashMnemonic(zip32.Mnemonic!)));
-		Assert.Null(this.Model.GetMaxAccountIndex(new HDWallet(zip32)));
+		HDWallet hd = new(Mnemonic) { BirthdayHeight = 123456, Name = "HD Test" };
+		Assert.Null(this.Model.GetMaxAccountIndex(hd, ZcashNetwork.MainNet));
 
-		this.Model.Add(new ZcashAccount(zip32, 3));
+		this.Model.Add(new ZcashAccount(hd.MainNet, 3));
 
-		Assert.Equal(3u, this.Model.GetMaxAccountIndex(new ZcashMnemonic(zip32.Mnemonic!)));
-		Assert.Equal(3u, this.Model.GetMaxAccountIndex(new HDWallet(zip32)));
+		Assert.Equal(3u, this.Model.GetMaxAccountIndex(hd, ZcashNetwork.MainNet));
 	}
 }

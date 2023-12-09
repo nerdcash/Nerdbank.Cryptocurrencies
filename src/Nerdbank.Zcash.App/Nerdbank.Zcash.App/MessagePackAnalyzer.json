@@ -1,4 +1,5 @@
 ﻿[
+	"Nerdbank.Bitcoin.Bip39Mnemonic",
 	"Nerdbank.Cryptocurrencies.Exchanges.ExchangeRate",
 	"Nerdbank.Cryptocurrencies.Exchanges.TradingPair",
 	"Nerdbank.Cryptocurrencies.Security",

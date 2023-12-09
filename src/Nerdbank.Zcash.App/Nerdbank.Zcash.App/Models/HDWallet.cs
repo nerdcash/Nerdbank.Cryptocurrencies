@@ -11,25 +11,47 @@ namespace Nerdbank.Zcash.App.Models;
 /// <summary>
 /// A wallet for all the accounts created from a single seed phrase.
 /// </summary>
-[MessagePackFormatter(typeof(Formatter))]
+[MessagePackObject]
 public class HDWallet : IPersistableDataHelper
 {
+	internal static readonly HDWallet DesignTimeWallet = new(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits)) { BirthdayHeight = AppUtilities.SaplingActivationHeight, Name = "Design Time Wallet" };
+
 	private string name = string.Empty;
 	private bool isDirty;
+	private bool isBackedUp;
 
-	public HDWallet(Zip32HDWallet zip32)
+	[SerializationConstructor]
+	public HDWallet(Bip39Mnemonic mnemonic)
 	{
-		this.Zip32 = zip32;
+		this.MainNet = new Zip32HDWallet(mnemonic, ZcashNetwork.MainNet);
+		this.TestNet = new Zip32HDWallet(mnemonic, ZcashNetwork.TestNet);
+
 		this.MarkSelfDirtyOnPropertyChanged();
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
+	[IgnoreMember]
+	public Zip32HDWallet MainNet { get; }
+
+	[IgnoreMember]
+	public Zip32HDWallet TestNet { get; }
+
+	[IgnoreMember]
 	public bool IsDirty
 	{
 		get => this.isDirty;
 		set => this.SetIsDirty(ref this.isDirty, value);
 	}
+
+	[Key(0)]
+	public Bip39Mnemonic Mnemonic => this.MainNet.Mnemonic!;
+
+	/// <summary>
+	/// Gets the birthday height for the mnemonic.
+	/// </summary>
+	[Key(1)]
+	public required ulong BirthdayHeight { get; init; }
 
 	/// <summary>
 	/// Gets or sets an optional name for an HD wallet.
@@ -38,17 +60,26 @@ public class HDWallet : IPersistableDataHelper
 	/// HD wallets should have names when there are more than one of them so they can be grouped together in the UI
 	/// and the user can understand the groupings.
 	/// </remarks>
-	public string Name
+	[Key(2)]
+	public required string Name
 	{
 		get => this.name;
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
 
-	public ZcashNetwork Network => this.Zip32.Network;
+	[Key(3)]
+	public bool IsBackedUp
+	{
+		get => this.isBackedUp;
+		set => this.RaiseAndSetIfChanged(ref this.isBackedUp, value);
+	}
 
-	public Bip39Mnemonic? Mnemonic => this.Zip32.Mnemonic;
-
-	public Zip32HDWallet Zip32 { get; }
+	public Zip32HDWallet GetZip32HDWalletByNetwork(ZcashNetwork network) => network switch
+	{
+		ZcashNetwork.MainNet => this.MainNet,
+		ZcashNetwork.TestNet => this.TestNet,
+		_ => throw new ArgumentException(),
+	};
 
 	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
 
@@ -64,52 +95,6 @@ public class HDWallet : IPersistableDataHelper
 		{
 			field = value;
 			this.OnPropertyChanged(propertyName);
-		}
-	}
-
-	private class Formatter : IMessagePackFormatter<HDWallet>
-	{
-		public HDWallet Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-		{
-			options.Security.DepthStep(ref reader);
-
-			HDWallet? wallet = null;
-
-			int length = reader.ReadArrayHeader();
-			if (length < 1)
-			{
-				throw new MessagePackSerializationException("Invalid HD wallet data.");
-			}
-
-			for (int i = 0; i < length; i++)
-			{
-				switch (i)
-				{
-					case 0:
-						Zip32HDWallet zip32 = options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Deserialize(ref reader, options);
-						wallet = new HDWallet(zip32);
-						break;
-					case 1:
-						wallet!.Name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
-						break;
-					default:
-						reader.Skip();
-						break;
-				}
-			}
-
-			reader.Depth--;
-
-			wallet!.IsDirty = false;
-			return wallet;
-		}
-
-		public void Serialize(ref MessagePackWriter writer, HDWallet value, MessagePackSerializerOptions options)
-		{
-			writer.WriteArrayHeader(2);
-
-			options.Resolver.GetFormatterWithVerify<Zip32HDWallet>().Serialize(ref writer, value.Zip32, options);
-			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
 		}
 	}
 }

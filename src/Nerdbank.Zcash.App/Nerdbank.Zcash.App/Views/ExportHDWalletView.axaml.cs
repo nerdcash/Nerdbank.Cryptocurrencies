@@ -5,9 +5,9 @@ using Avalonia.Controls;
 
 namespace Nerdbank.Zcash.App.Views;
 
-public partial class ExportMnemonicView : UserControl
+public partial class ExportHDWalletView : UserControl
 {
-	public ExportMnemonicView()
+	public ExportHDWalletView()
 	{
 		this.InitializeComponent();
 	}

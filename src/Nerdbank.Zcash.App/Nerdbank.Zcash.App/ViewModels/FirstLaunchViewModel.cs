@@ -71,7 +71,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32) { BirthdayHeight = birthdayHeight });
 		accountModel.Name = Strings.FormatDefaultNameForFirstAccountWithTicker(network.AsSecurity().TickerSymbol);
 		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
-		wallet.Name = Strings.FormatDefaultNameForFirstHDWallet(zip32.Network);
+		wallet.Name = Strings.DefaultNameForFirstHDWallet;
 	}
 
 	private CreateNewWalletViewModel CreateNewAccountAdvanced()
@@ -92,9 +92,9 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 			if (account is not null)
 			{
 				// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
-				if (this.viewModelServices.Wallet.TryGetMnemonic(account, out ZcashMnemonic? mnemonic))
+				if (this.viewModelServices.Wallet.TryGetHDWallet(account, out HDWallet? hd))
 				{
-					mnemonic.IsBackedUp = true;
+					hd.IsBackedUp = true;
 				}
 
 				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));
