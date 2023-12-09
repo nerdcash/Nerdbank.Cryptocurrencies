@@ -28,5 +28,7 @@
       <SelectableTextBlock Text="{Binding AccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
     </Grid>
     <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
+    <TextBlock Text="{Binding ShowViewingKeysExplanation}" />
+    <Button Command="{Binding ShowViewingKeysCommand}" Content="{Binding ShowViewingKeysCommandCaption}" />
   </StackPanel>
 </UserControl>

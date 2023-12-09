@@ -10,6 +10,7 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
 	private readonly ObservableAsPropertyHelper<ViewModelBase?> exportAccountViewModel;
 	private bool revealData;
+	private int selectedTaxIndex;
 
 	[Obsolete("Design-time only", error: true)]
 	public BackupViewModel()
@@ -33,6 +34,12 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	}
 
 	public string Title => "Backup";
+
+	public int SelectedTaxIndex
+	{
+		get => this.selectedTaxIndex;
+		set => this.RaiseAndSetIfChanged(ref this.selectedTaxIndex, value);
+	}
 
 	public BackupFileViewModel BackupFileViewModel { get; }
 

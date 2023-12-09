@@ -10,7 +10,7 @@
   <Design.DataContext>
     <vm:BackupViewModel />
   </Design.DataContext>
-  <TabControl>
+  <TabControl SelectedIndex="{Binding SelectedTaxIndex}">
     <TabItem Header="Backup">
       <local:BackupFileView DataContext="{Binding BackupFileViewModel}" />
     </TabItem>

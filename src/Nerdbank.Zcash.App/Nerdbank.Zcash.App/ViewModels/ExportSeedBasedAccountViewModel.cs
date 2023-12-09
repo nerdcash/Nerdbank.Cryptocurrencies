@@ -37,6 +37,8 @@ public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 		this.Password = mnemonic.Password.ToString();
 
 		this.AccountIndex = account.ZcashAccount.HDDerivation!.Value.AccountIndex;
+
+		this.ShowViewingKeysCommand = ReactiveCommand.Create(this.ShowViewingKeys);
 	}
 
 	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";
@@ -68,6 +70,17 @@ public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 				this.RaisePropertyChanged();
 			}
 		}
+	}
+
+	public string ShowViewingKeysExplanation => "Viewing keys can be shared to irrevocably grant another wallet or person the ability to view all your past and future transactions for this account, without granting the ability to spend your money.";
+
+	public string ShowViewingKeysCommandCaption => "Show viewing keys";
+
+	public ReactiveCommand<Unit, Unit> ShowViewingKeysCommand { get; }
+
+	public void ShowViewingKeys()
+	{
+		this.viewModelServices.NavigateTo(new ExportLoneAccountViewModel(this.viewModelServices, this.account.ZcashAccount));
 	}
 
 	private static SeedPhraseRow[] BreakupSeedPhraseIntoRows(Bip39Mnemonic mnemonic)
