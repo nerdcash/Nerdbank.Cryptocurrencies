@@ -22,6 +22,13 @@ public static class AppUtilities
 		_ => throw new NotSupportedException(),
 	};
 
+	internal static async ValueTask<ulong> GetChainLengthAsync(IViewModelServices viewModelServices, ZcashNetwork network, CancellationToken cancellationToken)
+	{
+		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
+		ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
+		return birthdayHeight;
+	}
+
 	/// <inheritdoc cref="BinarySearch{T}(IReadOnlyList{T}, int, int, T, IComparer{T}?)"/>
 	internal static int BinarySearch<T>(this IReadOnlyList<T> sortedList, T item, IComparer<T>? comparer = null) => BinarySearch(sortedList, 0, sortedList.Count, item, comparer);
 

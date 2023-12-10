@@ -23,7 +23,7 @@ public class PersistenceTests : ViewModelTestBase
 		await homeScreen.BackupCommand.Execute().FirstAsync();
 
 		BackupViewModel backup = Assert.IsType<BackupViewModel>(this.MainViewModel.Content);
-		ExportMnemonicViewModel exportViewModel = Assert.IsType<ExportMnemonicViewModel>(backup.ExportAccountViewModel);
+		ExportSeedBasedAccountViewModel exportViewModel = Assert.IsType<ExportSeedBasedAccountViewModel>(backup.ExportAccountViewModel);
 		exportViewModel.IsSeedPhraseBackedUp = true;
 		await this.MainViewModel.HomeCommand.Execute().FirstAsync();
 

@@ -64,14 +64,13 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	private async Task NewAccountAsync(Bip39Mnemonic mnemonic, ZcashNetwork network, CancellationToken cancellationToken)
 	{
-		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-		ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
+		ulong birthdayHeight = await AppUtilities.GetChainLengthAsync(this.viewModelServices, network, cancellationToken);
 
 		Zip32HDWallet zip32 = new(mnemonic, network);
 		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32) { BirthdayHeight = birthdayHeight });
 		accountModel.Name = Strings.FormatDefaultNameForFirstAccountWithTicker(network.AsSecurity().TickerSymbol);
 		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
-		wallet.Name = Strings.FormatDefaultNameForFirstHDWallet(zip32.Network);
+		wallet.Name = Strings.DefaultNameForFirstHDWallet;
 	}
 
 	private CreateNewWalletViewModel CreateNewAccountAdvanced()
@@ -92,9 +91,9 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 			if (account is not null)
 			{
 				// The user imported the wallet to begin with, so they evidently have a copy somewhere else.
-				if (this.viewModelServices.Wallet.TryGetMnemonic(account, out ZcashMnemonic? mnemonic))
+				if (this.viewModelServices.Wallet.TryGetHDWallet(account, out HDWallet? hd))
 				{
-					mnemonic.IsBackedUp = true;
+					hd.IsBackedUp = true;
 				}
 
 				this.viewModelServices.ReplaceViewStack(new HomeScreenViewModel(this.viewModelServices));

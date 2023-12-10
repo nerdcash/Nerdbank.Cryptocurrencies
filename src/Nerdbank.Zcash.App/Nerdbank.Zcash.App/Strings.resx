@@ -133,7 +133,7 @@
     <value>Main {Ticker}</value>
   </data>
   <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
-    <value>Alpha {Network}</value>
+    <value>Main HD</value>
   </data>
   <data name="DefaultNameForFirstImportedAccount" xml:space="preserve">
     <value>Main</value>

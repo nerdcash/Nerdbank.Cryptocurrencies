@@ -48,9 +48,15 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 
 	public bool IsIndexVisible => this.Account.ZcashAccount.HDDerivation is not null;
 
-	public string IndexCaption => "Account index: ";
+	public string IndexCaption => "Account index:";
 
 	public uint? Index => this.Account.ZcashAccount.HDDerivation?.AccountIndex;
+
+	public bool IsBirthdayHeightVisible => this.Account.ZcashAccount.BirthdayHeight is not null;
+
+	public string BirthdayHeightCaption => "Birthday height:";
+
+	public ulong? BirthdayHeight => this.Account.ZcashAccount.BirthdayHeight;
 
 	public SecurityAmount Balance => this.balance.Value;
 

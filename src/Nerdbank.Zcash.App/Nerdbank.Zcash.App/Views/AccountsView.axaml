@@ -13,10 +13,9 @@
   </Design.DataContext>
   <DockPanel>
     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
-      <SplitButton Command="{Binding NewAccountCommand}" CommandParameter="{x:Static zcash:ZcashNetwork.MainNet}" Content="{Binding NewAccountMainNetCommandCaption}">
+      <SplitButton Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}">
         <SplitButton.Flyout>
           <MenuFlyout Placement="Top">
-            <MenuItem Header="{Binding NewAccountTestNetCommandCaption}" Command="{Binding NewAccountCommand}" CommandParameter="{x:Static zcash:ZcashNetwork.TestNet}" />
             <MenuItem Header="{Binding ImportAccountCommandCaption}" Command="{Binding ImportAccountCommand}" />
           </MenuFlyout>
         </SplitButton.Flyout>
@@ -35,17 +34,16 @@
       </DataGrid.Columns>
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:AccountViewModel">
-          <StackPanel>
+          <StackPanel Margin="10 5">
             <StackPanel Orientation="Horizontal" IsVisible="{Binding IsIndexVisible}">
               <TextBlock Text="{Binding IndexCaption}" />
+              <TextBlock Text=" " />
               <TextBlock Text="{Binding Index}" />
             </StackPanel>
-            <ToggleButton Content="{Binding RevealKeysCommandCaption}" IsChecked="{Binding AreKeysRevealed}" />
-            <StackPanel IsVisible="{Binding AreKeysRevealed}">
-              <Label Content="{Binding FullViewingKeyCaption}" Target="{Binding #FullViewingKeyBox}" />
-              <TextBox Name="FullViewingKeyBox" IsReadOnly="True" Text="{Binding FullViewingKey}" HorizontalAlignment="Stretch" />
-              <Label Content="{Binding IncomingViewingKeyCaption}" Target="{Binding #IncomingViewingKeyBox}" />
-              <TextBox Name="IncomingViewingKeyBox" IsReadOnly="True" Text="{Binding IncomingViewingKey}" HorizontalAlignment="Stretch" />
+            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsBirthdayHeightVisible}">
+              <TextBlock Text="{Binding BirthdayHeightCaption}" />
+              <TextBlock Text=" " />
+              <TextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" />
             </StackPanel>
           </StackPanel>
         </DataTemplate>

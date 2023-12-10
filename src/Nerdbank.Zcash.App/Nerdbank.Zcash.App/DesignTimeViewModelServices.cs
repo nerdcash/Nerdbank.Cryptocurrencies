@@ -19,24 +19,21 @@ internal class DesignTimeViewModelServices : IViewModelServices
 		{
 			// Populate accounts.
 			Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
-			HDWallet zec = new(new(mnemonic, ZcashNetwork.MainNet)) { Name = "Real money" };
-			HDWallet taz = new(new(mnemonic, ZcashNetwork.TestNet)) { Name = "Play money" };
+			Zip32HDWallet mainNet = new(mnemonic, ZcashNetwork.MainNet);
+			Zip32HDWallet testNet = new(mnemonic, ZcashNetwork.TestNet);
 
-			this.Wallet.Add(zec);
-			this.Wallet.Add(taz);
+			Account playMoneyAccount = NewAccount(testNet, 0, Strings.FormatDefaultNameForFirstAccountWithTicker(ZcashNetwork.TestNet), 1.23m);
+			Account realAccount = NewAccount(mainNet, 0, "Real ZEC", 0.023m);
+			Account savingsAccount = NewAccount(mainNet, 1, "Savings", 3.45m);
 
-			Account playMoneyAccount = NewAccount(taz, 0, Strings.FormatDefaultNameForFirstAccountWithTicker(taz.Zip32.Network), 1.23m);
-			Account realAccount = NewAccount(zec, 0, "Real ZEC", 0.023m);
-			Account savingsAccount = NewAccount(zec, 1, "Savings", 3.45m);
-
-			Account NewAccount(HDWallet wallet, uint index, string name, decimal spendableBalance)
+			Account NewAccount(Zip32HDWallet zip32, uint index, string name, decimal spendableBalance)
 			{
-				return new(new ZcashAccount(wallet.Zip32, index))
+				return new(new ZcashAccount(zip32, index) { BirthdayHeight = 123456 })
 				{
 					Name = name,
 					Balance = new()
 					{
-						Spendable = wallet.Zip32.Network.AsSecurity().Amount(spendableBalance),
+						Spendable = zip32.Network.AsSecurity().Amount(spendableBalance),
 					},
 				};
 			}

@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.Models;
 
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 [MessagePackObject]
-public class ZcashTransaction : ReactiveObject, IPersistableData
+public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 {
 	internal const string ProvisionalTransactionId = "";
 	private string txid = string.Empty;
@@ -128,6 +128,17 @@ public class ZcashTransaction : ReactiveObject, IPersistableData
 			where item.ToAddress.IsMatch(address).HasFlag(ZcashAddress.Match.MatchingReceiversFound)
 			select item.Amount;
 		return matchingNoteAmounts.Sum();
+	}
+
+	void IPersistableDataHelper.ClearDirtyFlagOnMembers()
+	{
+		this.SendItems.ClearDirtyFlag();
+		this.RecvItems.ClearDirtyFlag();
+	}
+
+	void IPersistableDataHelper.OnPropertyChanged(string propertyName)
+	{
+		this.RaisePropertyChanged(propertyName);
 	}
 
 	/// <summary>

@@ -11,3 +11,6 @@ dotnet_diagnostic.CA1062.severity = silent
 
 # VSTHRD101: Avoid unsupported async void methods
 dotnet_diagnostic.VSTHRD101.severity = suggestion
+
+# VSTHRD012: Provide an instance of JoinableTaskFactory when possible
+dotnet_diagnostic.VSTHRD012.severity = none

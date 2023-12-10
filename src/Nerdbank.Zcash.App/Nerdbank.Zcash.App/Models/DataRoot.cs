@@ -17,7 +17,7 @@ public class DataRoot : ITopLevelPersistableData<DataRoot>, IPersistableDataHelp
 	private ContactManager contactManager;
 
 	[IgnoreMember]
-	private bool isDirty;
+	private bool isDirty = true;
 
 	[IgnoreMember]
 	private ExchangeRateRecord exchangeRates;

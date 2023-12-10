@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-             x:Class="Nerdbank.Zcash.App.Views.ExportMnemonicView"
-             x:DataType="vm:ExportMnemonicViewModel">
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
+             x:Class="Nerdbank.Zcash.App.Views.ExportSeedBasedAccountView"
+             x:DataType="vm:ExportSeedBasedAccountViewModel">
   <Design.DataContext>
-    <vm:ExportMnemonicViewModel />
+    <vm:ExportSeedBasedAccountViewModel />
   </Design.DataContext>
   <StackPanel>
     <TextBlock Text="{Binding BackupSeedPhraseExplanation}" />
@@ -24,9 +24,11 @@
       <SelectableTextBlock Text="{Binding Password}" Grid.Column="2" />
       <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
       <SelectableTextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
-      <TextBlock Text="{Binding MaxAccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
-      <SelectableTextBlock Text="{Binding MaxAccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
+      <TextBlock Text="{Binding AccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
+      <SelectableTextBlock Text="{Binding AccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
     </Grid>
     <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
+    <TextBlock Text="{Binding ShowViewingKeysExplanation}" />
+    <Button Command="{Binding ShowViewingKeysCommand}" Content="{Binding ShowViewingKeysCommandCaption}" />
   </StackPanel>
 </UserControl>

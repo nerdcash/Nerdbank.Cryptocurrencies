@@ -18,10 +18,10 @@ public class ZcashWalletTests : ModelTestBase<ZcashWallet>
 	public void SerializeWithHDAndLoneAccounts()
 	{
 		Zip32HDWallet zip32 = new(Mnemonic, ZcashNetwork.TestNet);
-		Account hd1a = this.Wallet.Add(new ZcashAccount(zip32));
-		Account hd1b = this.Wallet.Add(new ZcashAccount(zip32, 3));
+		Account hd1a = this.Wallet.Add(new ZcashAccount(zip32) { BirthdayHeight = 123456 });
+		Account hd1b = this.Wallet.Add(new ZcashAccount(zip32, 3) { BirthdayHeight = 123456 });
 
-		Account lone1 = this.Wallet.Add(new ZcashAccount(new ZcashAccount(zip32, 5).IncomingViewing.UnifiedKey));
+		Account lone1 = this.Wallet.Add(new ZcashAccount(new ZcashAccount(zip32, 5).IncomingViewing.UnifiedKey) { BirthdayHeight = 123456 });
 
 		ZcashWallet deserialized = this.SerializeRoundtrip();
 
@@ -37,13 +37,11 @@ public class ZcashWalletTests : ModelTestBase<ZcashWallet>
 	[Fact]
 	public void GetMaxAccountIndex()
 	{
-		Zip32HDWallet zip32 = new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits));
-		Assert.Null(this.Model.GetMaxAccountIndex(new ZcashMnemonic(zip32.Mnemonic!)));
-		Assert.Null(this.Model.GetMaxAccountIndex(new HDWallet(zip32)));
+		HDWallet hd = new(Mnemonic) { Name = "HD Test" };
+		Assert.Null(this.Model.GetMaxAccountIndex(hd, ZcashNetwork.MainNet));
 
-		this.Model.Add(new ZcashAccount(zip32, 3));
+		this.Model.Add(new ZcashAccount(hd.MainNet, 3) { BirthdayHeight = 123456 });
 
-		Assert.Equal(3u, this.Model.GetMaxAccountIndex(new ZcashMnemonic(zip32.Mnemonic!)));
-		Assert.Equal(3u, this.Model.GetMaxAccountIndex(new HDWallet(zip32)));
+		Assert.Equal(3u, this.Model.GetMaxAccountIndex(hd, ZcashNetwork.MainNet));
 	}
 }

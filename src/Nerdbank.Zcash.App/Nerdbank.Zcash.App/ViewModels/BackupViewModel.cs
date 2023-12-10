@@ -10,6 +10,7 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
 	private readonly ObservableAsPropertyHelper<ViewModelBase?> exportAccountViewModel;
 	private bool revealData;
+	private int selectedTaxIndex;
 
 	[Obsolete("Design-time only", error: true)]
 	public BackupViewModel()
@@ -27,12 +28,18 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			vm => vm.SelectedAccount,
 			a =>
 				a is null ? null :
-				viewModelServices.Wallet.TryGetMnemonic(a, out ZcashMnemonic? mnemonic) ? new ExportMnemonicViewModel(viewModelServices, mnemonic) :
+				viewModelServices.Wallet.TryGetHDWallet(a, out HDWallet? hd) ? new ExportSeedBasedAccountViewModel(viewModelServices, a) :
 				new ExportLoneAccountViewModel(viewModelServices, a.ZcashAccount))
 			.ToProperty(this, nameof(this.ExportAccountViewModel));
 	}
 
 	public string Title => "Backup";
+
+	public int SelectedTaxIndex
+	{
+		get => this.selectedTaxIndex;
+		set => this.RaiseAndSetIfChanged(ref this.selectedTaxIndex, value);
+	}
 
 	public BackupFileViewModel BackupFileViewModel { get; }
 

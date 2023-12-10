@@ -20,7 +20,7 @@ public class ExchangeRateRecord : IPersistableDataHelper
 	private readonly Dictionary<TradingPair, SortedDictionary<DateTimeOffset, ExchangeRate>> dataTables;
 
 	[IgnoreMember]
-	private bool isDirty;
+	private bool isDirty = true;
 
 	public ExchangeRateRecord()
 		: this(CreateDataTables())
@@ -160,7 +160,9 @@ public class ExchangeRateRecord : IPersistableDataHelper
 
 			reader.Depth--;
 
-			return new ExchangeRateRecord(dataTables);
+			ExchangeRateRecord result = new(dataTables);
+			result.isDirty = false;
+			return result;
 		}
 
 		public void Serialize(ref MessagePackWriter writer, ExchangeRateRecord value, MessagePackSerializerOptions options)
