@@ -610,3 +610,49 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
         Ok(balances)
     })
 }
+
+pub struct BirthdayHeights {
+    /// The original birthday height given at account creation if non-zero,
+    /// otherwise the block number of the first transaction if any,
+    /// otherwise the sapling activation height.
+    pub original_birthday_height: u64,
+    /// The block number of the first transaction if any,
+    /// otherwise the sapling activation height.
+    pub birthday_height: u64,
+    /// The block number of the oldest unspent note or UTXO, if any.
+    pub rebirth_height: Option<u64>,
+}
+
+pub fn lightwallet_get_birthday_heights(handle: u64) -> Result<BirthdayHeights, LightWalletError> {
+    let lightclient = get_lightclient(handle)?;
+    Ok(RT.block_on(async move {
+        let mut block_number_with_oldest_unspent_note_or_utxo = None;
+        lightclient
+            .wallet
+            .transactions()
+            .read()
+            .await
+            .current
+            .iter()
+            .for_each(|(_, tx)| {
+                if tx.orchard_notes.iter().any(|n| n.spent().is_none())
+                    || tx.sapling_notes.iter().any(|n| n.spent().is_none())
+                    || tx.received_utxos.iter().any(|n| n.spent.is_none())
+                {
+                    if block_number_with_oldest_unspent_note_or_utxo.is_none() {
+                        block_number_with_oldest_unspent_note_or_utxo = Some(tx.block_height);
+                    } else if tx.block_height
+                        < block_number_with_oldest_unspent_note_or_utxo.unwrap()
+                    {
+                        block_number_with_oldest_unspent_note_or_utxo = Some(tx.block_height);
+                    }
+                }
+            });
+
+        BirthdayHeights {
+            original_birthday_height: lightclient.wallet.get_birthday().await,
+            birthday_height: lightclient.wallet.get_first_transaction_block().await,
+            rebirth_height: block_number_with_oldest_unspent_note_or_utxo.map(u64::from),
+        }
+    }))
+}
