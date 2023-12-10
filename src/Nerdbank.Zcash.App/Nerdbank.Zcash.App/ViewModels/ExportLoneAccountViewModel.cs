@@ -7,15 +7,15 @@ public class ExportLoneAccountViewModel : ExportAccountViewModelBase
 {
 	[Obsolete("For design-time use only.", error: true)]
 	public ExportLoneAccountViewModel()
-		: this(new DesignTimeViewModelServices(), new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet)))
+		: this(new DesignTimeViewModelServices(), new Account(new ZcashAccount(new Zip32HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits), ZcashNetwork.TestNet))))
 	{
 	}
 
-	public ExportLoneAccountViewModel(IViewModelServices viewModelServices, ZcashAccount account)
-		: base(viewModelServices, account.BirthdayHeight)
+	public ExportLoneAccountViewModel(IViewModelServices viewModelServices, Account account)
+		: base(viewModelServices, account)
 	{
-		this.FullViewingKey = account.FullViewing?.UnifiedKey;
-		this.IncomingViewingKey = account.IncomingViewing?.UnifiedKey;
+		this.FullViewingKey = account.ZcashAccount.FullViewing?.UnifiedKey;
+		this.IncomingViewingKey = account.ZcashAccount.IncomingViewing?.UnifiedKey;
 	}
 
 	public string FullViewingKeyCaption => "Full viewing key";

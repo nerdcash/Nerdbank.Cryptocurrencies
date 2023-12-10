@@ -192,6 +192,11 @@ public class WalletSyncManager : IAsyncDisposable
 			this.Account.AddTransactions(txs, lastDownloadedBlock, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
 
 			this.Account.Balance = await Task.Run(this.client.GetUserBalances, cancellationToken);
+
+			uniffi.LightWallet.BirthdayHeights birthdayHeights = this.client.GetBirthdayHeights();
+			this.Account.RebirthHeight = birthdayHeights.rebirthHeight;
+			this.Account.OptimizedBirthdayHeight = birthdayHeights.birthdayHeight;
+			this.Account.ZcashAccount.BirthdayHeight = birthdayHeights.originalBirthdayHeight;
 		}
 
 		/// <summary>

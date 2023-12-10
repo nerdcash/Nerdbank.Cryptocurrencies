@@ -19,13 +19,21 @@
         <DataGridTextColumn Binding="{Binding Word3}" />
       </DataGrid.Columns>
     </DataGrid>
-    <Grid Margin="10" RowDefinitions="auto, auto, auto" ColumnDefinitions="auto, 10, auto">
+    <Grid Margin="10" RowDefinitions="auto, auto, auto, auto, auto" ColumnDefinitions="auto, 10, auto">
       <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
       <SelectableTextBlock Text="{Binding Password}" Grid.Column="2" />
+
       <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
       <SelectableTextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
-      <TextBlock Text="{Binding AccountIndexCaption}" Grid.Row="2" Grid.Column="0" />
-      <SelectableTextBlock Text="{Binding AccountIndex,StringFormat=N0}" Grid.Row="2" Grid.Column="2" />
+
+      <TextBlock Text="{Binding OptimizedBirthdayHeightCaption}" Grid.Row="2" Grid.Column="0" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <SelectableTextBlock Text="{Binding OptimizedBirthdayHeight,StringFormat=N0}" Grid.Row="2" Grid.Column="2" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+      <TextBlock Text="{Binding RebirthHeightCaption}" Grid.Row="3" Grid.Column="0" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <SelectableTextBlock Text="{Binding RebirthHeight,StringFormat=N0}" Grid.Row="3" Grid.Column="2" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+      <TextBlock Text="{Binding AccountIndexCaption}" Grid.Row="4" Grid.Column="0" />
+      <SelectableTextBlock Text="{Binding AccountIndex,StringFormat=N0}" Grid.Row="4" Grid.Column="2" />
     </Grid>
     <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
     <TextBlock Text="{Binding ShowViewingKeysExplanation}" />

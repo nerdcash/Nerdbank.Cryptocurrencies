@@ -8,7 +8,6 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 {
 	private readonly IViewModelServices viewModelServices;
-	private readonly Account account;
 	private readonly Bip39Mnemonic mnemonic;
 	private readonly HDWallet? hdWallet;
 
@@ -20,7 +19,7 @@ public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 	}
 
 	public ExportSeedBasedAccountViewModel(IViewModelServices viewModelServices, Account account)
-		: base(viewModelServices, account.ZcashAccount.BirthdayHeight)
+		: base(viewModelServices, account)
 	{
 		Bip39Mnemonic? mnemonic = account.ZcashAccount.HDDerivation?.Wallet.Mnemonic;
 		Requires.Argument(mnemonic is not null, nameof(account), "Only seed phrase derived accounts are supported here.");
@@ -31,7 +30,6 @@ public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 		}
 
 		this.viewModelServices = viewModelServices;
-		this.account = account;
 
 		this.SeedPhraseRows = new(BreakupSeedPhraseIntoRows(mnemonic));
 		this.Password = mnemonic.Password.ToString();
@@ -80,7 +78,7 @@ public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 
 	public void ShowViewingKeys()
 	{
-		this.viewModelServices.NavigateTo(new ExportLoneAccountViewModel(this.viewModelServices, this.account.ZcashAccount));
+		this.viewModelServices.NavigateTo(new ExportLoneAccountViewModel(this.viewModelServices, this.Account));
 	}
 
 	private static SeedPhraseRow[] BreakupSeedPhraseIntoRows(Bip39Mnemonic mnemonic)
