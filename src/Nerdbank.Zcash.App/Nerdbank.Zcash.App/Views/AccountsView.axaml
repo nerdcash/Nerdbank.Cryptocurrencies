@@ -13,10 +13,9 @@
   </Design.DataContext>
   <DockPanel>
     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
-      <SplitButton Command="{Binding NewAccountCommand}" CommandParameter="{x:Static zcash:ZcashNetwork.MainNet}" Content="{Binding NewAccountMainNetCommandCaption}">
+      <SplitButton Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}">
         <SplitButton.Flyout>
           <MenuFlyout Placement="Top">
-            <MenuItem Header="{Binding NewAccountTestNetCommandCaption}" Command="{Binding NewAccountCommand}" CommandParameter="{x:Static zcash:ZcashNetwork.TestNet}" />
             <MenuItem Header="{Binding ImportAccountCommandCaption}" Command="{Binding ImportAccountCommand}" />
           </MenuFlyout>
         </SplitButton.Flyout>

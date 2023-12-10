@@ -22,7 +22,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
-		this.NewAccountCommand = ReactiveCommand.CreateFromTask<ZcashNetwork, Account?>(this.NewAccountAsync);
+		this.NewAccountCommand = ReactiveCommand.Create(this.NewAccount);
 		this.ImportAccountCommand = ReactiveCommand.Create(this.ImportAccount);
 
 		WrapModels(this.viewModelServices.Wallet.Accounts, this.Accounts, (Account a) => new AccountViewModel(a, viewModelServices));
@@ -45,11 +45,9 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 
 	public string AccountIndexColumnHeader => "Index";
 
-	public ReactiveCommand<ZcashNetwork, Account?> NewAccountCommand { get; }
+	public ReactiveCommand<Unit, Unit> NewAccountCommand { get; }
 
-	public string NewAccountMainNetCommandCaption => "New account";
-
-	public string NewAccountTestNetCommandCaption => "New testnet account";
+	public string NewAccountCommandCaption => "New account";
 
 	public ReactiveCommand<Unit, ImportAccountViewModel> ImportAccountCommand { get; }
 
@@ -62,34 +60,8 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		return this.viewModelServices.NavigateTo(importAccount);
 	}
 
-	private async Task<Account?> NewAccountAsync(ZcashNetwork network, CancellationToken cancellationToken)
+	private void NewAccount()
 	{
-		ZcashWallet wallet = this.viewModelServices.Wallet;
-
-		// Prefer the first HD wallet the user entered.
-		HDWallet? hd = wallet.HDWallets.FirstOrDefault();
-		if (hd is null)
-		{
-			hd = new HDWallet(Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits))
-			{
-				Name = Strings.DefaultNameForFirstHDWallet,
-			};
-			wallet.Add(hd);
-		}
-
-		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-		ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
-
-		uint index = wallet.GetMaxAccountIndex(hd, network) is uint idx ? idx + 1 : 0;
-		Account account = new Account(new ZcashAccount(hd.GetZip32HDWalletByNetwork(network), index))
-		{
-			Name = $"Account {index} ({network.AsSecurity().TickerSymbol})",
-			ZcashAccount =
-			{
-				BirthdayHeight = birthdayHeight,
-			},
-		};
-		wallet.Add(account);
-		return account;
+		this.viewModelServices.NavigateTo(new CreateNewAccountDetailsViewModel(this.viewModelServices));
 	}
 }

@@ -64,8 +64,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	private async Task NewAccountAsync(Bip39Mnemonic mnemonic, ZcashNetwork network, CancellationToken cancellationToken)
 	{
-		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-		ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
+		ulong birthdayHeight = await AppUtilities.GetChainLengthAsync(this.viewModelServices, network, cancellationToken);
 
 		Zip32HDWallet zip32 = new(mnemonic, network);
 		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32) { BirthdayHeight = birthdayHeight });
