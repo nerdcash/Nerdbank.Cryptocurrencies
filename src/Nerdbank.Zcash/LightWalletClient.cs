@@ -122,6 +122,7 @@ public partial class LightWalletClient : IDisposable
 	/// The birthday height is the length of the blockchain when the account was created.
 	/// It serves to reduce initial sync times when this account is imported into another wallet.
 	/// </remarks>
+	/// <seealso cref="GetBirthdayHeights"/>
 	public ulong BirthdayHeight => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeight);
 
 	/// <summary>
@@ -142,6 +143,15 @@ public partial class LightWalletClient : IDisposable
 			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
 			cancellationToken));
 	}
+
+	/// <summary>
+	/// Gets the various forms of birthday heights relevant to this account.
+	/// </summary>
+	/// <returns>The birthday heights.</returns>
+	/// <remarks>
+	/// The resulting struct contains fields which may be influenced by the completeness of the sync to the blockchain.
+	/// </remarks>
+	public BirthdayHeights GetBirthdayHeights() => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeights);
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);

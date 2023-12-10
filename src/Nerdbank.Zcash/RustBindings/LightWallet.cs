@@ -433,6 +433,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_heights(ulong @handle,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern ulong uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_block_height(RustBuffer @serverUri,ref RustCallStatus _uniffi_out_err
     );
 
@@ -717,6 +721,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_heights(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_block_height(
     );
 
@@ -792,6 +800,12 @@ static class _UniFFILib {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_height();
             if (checksum != 29297) {
                 throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_height` checksum `29297`, library returned `{checksum}`");
+            }
+        }
+        {
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_heights();
+            if (checksum != 36095) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_heights` checksum `36095`, library returned `{checksum}`");
             }
         }
         {
@@ -1031,6 +1045,40 @@ class FfiConverterByteArray: FfiConverterRustBuffer<byte[]> {
     public override void Write(byte[] value, BigEndianStream stream) {
         stream.WriteInt(value.Length);
         stream.WriteBytes(value);
+    }
+}
+
+
+
+public record BirthdayHeights (
+    ulong @originalBirthdayHeight, 
+    ulong @birthdayHeight, 
+    ulong? @rebirthHeight
+) {
+}
+
+class FfiConverterTypeBirthdayHeights: FfiConverterRustBuffer<BirthdayHeights> {
+    public static FfiConverterTypeBirthdayHeights INSTANCE = new FfiConverterTypeBirthdayHeights();
+
+    public override BirthdayHeights Read(BigEndianStream stream) {
+        return new BirthdayHeights(
+            FfiConverterUInt64.INSTANCE.Read(stream),
+            FfiConverterUInt64.INSTANCE.Read(stream),
+            FfiConverterOptionalUInt64.INSTANCE.Read(stream)
+        );
+    }
+
+    public override int AllocationSize(BirthdayHeights value) {
+        return
+            FfiConverterUInt64.INSTANCE.AllocationSize(value.@originalBirthdayHeight) +
+            FfiConverterUInt64.INSTANCE.AllocationSize(value.@birthdayHeight) +
+            FfiConverterOptionalUInt64.INSTANCE.AllocationSize(value.@rebirthHeight);
+    }
+
+    public override void Write(BirthdayHeights value, BigEndianStream stream) {
+            FfiConverterUInt64.INSTANCE.Write(value.@originalBirthdayHeight, stream);
+            FfiConverterUInt64.INSTANCE.Write(value.@birthdayHeight, stream);
+            FfiConverterOptionalUInt64.INSTANCE.Write(value.@rebirthHeight, stream);
     }
 }
 
@@ -1953,6 +2001,14 @@ public static class LightWalletMethods {
         return FfiConverterUInt64.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
     _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_height(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static BirthdayHeights LightwalletGetBirthdayHeights(ulong @handle) {
+        return FfiConverterTypeBirthdayHeights.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_heights(FfiConverterUInt64.INSTANCE.Lower(@handle), ref _status)
 ));
     }
 

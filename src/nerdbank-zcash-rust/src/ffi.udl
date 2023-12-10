@@ -109,13 +109,19 @@ dictionary PoolBalances {
 };
 
 dictionary UserBalances {
-    u64 spendable;
-    u64 immature_change;
-    u64 minimum_fees;
-    u64 immature_income;
-    u64 dust;
-    u64 incoming;
-    u64 incoming_dust;
+	u64 spendable;
+	u64 immature_change;
+	u64 minimum_fees;
+	u64 immature_income;
+	u64 dust;
+	u64 incoming;
+	u64 incoming_dust;
+};
+
+dictionary BirthdayHeights{
+	u64 original_birthday_height;
+	u64 birthday_height;
+	u64? rebirth_height;
 };
 
 namespace LightWallet {
@@ -159,4 +165,7 @@ namespace LightWallet {
 	
 	[Throws=LightWalletError]
 	UserBalances lightwallet_get_user_balances(u64 handle);
+
+	[Throws=LightWalletError]
+	BirthdayHeights lightwallet_get_birthday_heights(u64 handle);
 };
