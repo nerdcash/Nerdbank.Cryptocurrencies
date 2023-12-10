@@ -15,6 +15,8 @@ public class Account : ReactiveObject, IPersistableData
 	private string? zingoWalletFileName;
 	private string name = string.Empty;
 	private AccountBalances balance;
+	private ulong? rebirthHeight;
+	private ulong? optimizedBirthdayHeight;
 	private bool isDirty = true;
 	private LightWalletClient.SyncProgress? syncProgress;
 	private uint lastBlockHeight;
@@ -74,6 +76,38 @@ public class Account : ReactiveObject, IPersistableData
 	{
 		get => this.lastBlockHeight;
 		set => this.RaiseAndSetIfChanged(ref this.lastBlockHeight, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the "rebirth height" for this account.
+	/// </summary>
+	/// <value>A block height, or <see langword="null" /> if no transaction providing unspent inputs exists.</value>
+	/// <remarks>
+	/// The "rebirth height" is the block height that could be given as the birthday height when importing this account
+	/// elsewhere, such that all spendable funds are available, although transaction history that contains
+	/// already-spent funds may be missed.
+	/// It is defined at the number of the block that contains the oldest unspent note or UTXO on the account.
+	/// </remarks>
+	[Key(5)]
+	public ulong? RebirthHeight
+	{
+		get => this.rebirthHeight;
+		set => this.RaiseAndSetIfChanged(ref this.rebirthHeight, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the number of the first block that this account has any transactions in.
+	/// </summary>
+	/// <value>A block height, or <see langword="null" /> if no transaction has been discovered on the block chain for this account.</value>
+	/// <remarks>
+	/// This value will always be at least the <see cref="ZcashAccount.BirthdayHeight"/>,
+	/// since any transaction earlier than that block height would have been missed in the sync.
+	/// </remarks>
+	[Key(6)]
+	public ulong? OptimizedBirthdayHeight
+	{
+		get => this.optimizedBirthdayHeight;
+		set => this.RaiseAndSetIfChanged(ref this.optimizedBirthdayHeight, value);
 	}
 
 	[IgnoreMember]

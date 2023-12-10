@@ -29,7 +29,7 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			a =>
 				a is null ? null :
 				viewModelServices.Wallet.TryGetHDWallet(a, out HDWallet? hd) ? new ExportSeedBasedAccountViewModel(viewModelServices, a) :
-				new ExportLoneAccountViewModel(viewModelServices, a.ZcashAccount))
+				new ExportLoneAccountViewModel(viewModelServices, a))
 			.ToProperty(this, nameof(this.ExportAccountViewModel));
 	}
 

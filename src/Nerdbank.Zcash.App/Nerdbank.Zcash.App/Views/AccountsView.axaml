@@ -27,27 +27,12 @@
         <DataGridTemplateColumn Header="{Binding AccountBalanceColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding Balance}" Margin="4" />
+              <local:SecurityAmountDisplay Value="{Binding Balance}" Margin="4 4 4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <DataGridTextColumn Header="{Binding AccountIndexColumnHeader}" Binding="{Binding Index}" />
       </DataGrid.Columns>
-      <DataGrid.RowDetailsTemplate>
-        <DataTemplate x:DataType="vm:AccountViewModel">
-          <StackPanel Margin="10 5">
-            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsIndexVisible}">
-              <TextBlock Text="{Binding IndexCaption}" />
-              <TextBlock Text=" " />
-              <TextBlock Text="{Binding Index}" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" IsVisible="{Binding IsBirthdayHeightVisible}">
-              <TextBlock Text="{Binding BirthdayHeightCaption}" />
-              <TextBlock Text=" " />
-              <TextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" />
-            </StackPanel>
-          </StackPanel>
-        </DataTemplate>
-      </DataGrid.RowDetailsTemplate>
     </DataGrid>
   </DockPanel>
 </UserControl>
