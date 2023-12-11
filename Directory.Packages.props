@@ -18,7 +18,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.8.14" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
-    <PackageVersion Include="NBitcoin.Secp256k1" Version="3.1.1" />
+    <PackageVersion Include="NBitcoin.Secp256k1" Version="3.1.2" />
     <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.9-beta" />
     <PackageVersion Include="QRCoder" Version="1.4.3" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
