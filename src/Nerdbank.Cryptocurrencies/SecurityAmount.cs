@@ -13,7 +13,7 @@ public record struct SecurityAmount(decimal Amount, Security Security)
 	/// <summary>
 	/// Gets the <see cref="Amount"/>, rounded to the precision of the <see cref="Security"/>.
 	/// </summary>
-	public decimal RoundedAmount => Math.Round(this.Amount, this.Security.Precision);
+	public decimal RoundedAmount => this.Security is null ? this.Amount : Math.Round(this.Amount, this.Security.Precision);
 
 	/// <summary>
 	/// Adds the amounts of the same security.
