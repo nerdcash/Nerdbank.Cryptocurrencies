@@ -2,26 +2,31 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Nerdbank.Cryptocurrencies;
+using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
+public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 {
-	private ObservableAsPropertyHelper<SecurityAmount> balance;
-	private ObservableAsPropertyHelper<SecurityAmount> spendableBalance;
-	private ObservableAsPropertyHelper<bool> isBalanceBreakdownVisible;
+	private readonly ObservableAsPropertyHelper<bool> isSwitchCurrencyCommandVisible;
 
-	private ObservableAsPropertyHelper<SecurityAmount> anticipatedFees;
-	private ObservableAsPropertyHelper<bool> isAnticipatedFeesVisible;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> balance;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> spendableBalance;
+	private readonly ObservableAsPropertyHelper<bool> isBalanceBreakdownVisible;
 
-	private ObservableAsPropertyHelper<bool> isUnconfirmedIncomeVisible;
-	private ObservableAsPropertyHelper<SecurityAmount> unconfirmedIncome;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> anticipatedFees;
+	private readonly ObservableAsPropertyHelper<bool> isAnticipatedFeesVisible;
 
-	private ObservableAsPropertyHelper<SecurityAmount> unspendableChange;
-	private ObservableAsPropertyHelper<bool> isUnspendableChangeVisible;
+	private readonly ObservableAsPropertyHelper<bool> isUnconfirmedIncomeVisible;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> unconfirmedIncome;
 
-	private ObservableAsPropertyHelper<SecurityAmount> immatureIncome;
-	private ObservableAsPropertyHelper<bool> isImmatureIncomeVisible;
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> unspendableChange;
+	private readonly ObservableAsPropertyHelper<bool> isUnspendableChangeVisible;
+
+	private readonly ObservableAsPropertyHelper<SecurityAmount?> immatureIncome;
+	private readonly ObservableAsPropertyHelper<bool> isImmatureIncomeVisible;
+
+	private bool showAlternateCurrency;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public BalanceViewModel()
@@ -50,11 +55,15 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.balance = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
-			(a, b) => b.MainBalance).ToProperty(this, nameof(this.Balance));
+			vm => vm.ShowAlternateCurrency,
+			vm => vm.ExchangeRate,
+			(a, b, alt, x) => X(x, alt, b.MainBalance)).ToProperty(this, nameof(this.Balance));
 		this.spendableBalance = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
-			(a, b) => b.Spendable).ToProperty(this, nameof(this.SpendableBalance));
+			vm => vm.ShowAlternateCurrency,
+			vm => vm.ExchangeRate,
+			(a, b, alt, x) => X(x, alt, b.Spendable)).ToProperty(this, nameof(this.SpendableBalance));
 		this.isBalanceBreakdownVisible = this.WhenAnyValue(
 			vm => vm.Balance,
 			vm => vm.SpendableBalance,
@@ -63,7 +72,9 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.unspendableChange = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
-			(a, b) => b.ImmatureChange).ToProperty(this, nameof(this.UnspendableChange));
+			vm => vm.ShowAlternateCurrency,
+			vm => vm.ExchangeRate,
+			(a, b, alt, x) => X(x, alt, b.ImmatureChange)).ToProperty(this, nameof(this.UnspendableChange));
 		this.isUnspendableChangeVisible = this.WhenAnyValue(
 			vm => vm.UnspendableChange,
 			c => c?.Amount > 0).ToProperty(this, nameof(this.IsUnspendableChangeVisible));
@@ -71,7 +82,9 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.unconfirmedIncome = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
-			(a, b) => b.Incoming).ToProperty(this, nameof(this.UnconfirmedIncome));
+			vm => vm.ShowAlternateCurrency,
+			vm => vm.ExchangeRate,
+			(a, b, alt, x) => X(x, alt, b.Incoming)).ToProperty(this, nameof(this.UnconfirmedIncome));
 		this.isUnconfirmedIncomeVisible = this.WhenAnyValue(
 			vm => vm.UnconfirmedIncome,
 			i => i?.Amount > 0).ToProperty(this, nameof(this.IsUnconfirmedIncomeVisible));
@@ -79,7 +92,9 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.anticipatedFees = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
-			(a, b) => b.MinimumFees).ToProperty(this, nameof(this.AnticipatedFees));
+			vm => vm.ShowAlternateCurrency,
+			vm => vm.ExchangeRate,
+			(a, b, alt, x) => X(x, alt, b.MinimumFees)).ToProperty(this, nameof(this.AnticipatedFees));
 		this.isAnticipatedFeesVisible = this.WhenAnyValue(
 			vm => vm.AnticipatedFees,
 			f => f?.Amount < 0).ToProperty(this, nameof(this.IsAnticipatedFeesVisible));
@@ -87,10 +102,20 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.immatureIncome = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
-			(a, b) => b.ImmatureIncome).ToProperty(this, nameof(this.ImmatureIncome));
+			vm => vm.ShowAlternateCurrency,
+			vm => vm.ExchangeRate,
+			(a, b, alt, x) => X(x, alt, b.ImmatureIncome)).ToProperty(this, nameof(this.ImmatureIncome));
 		this.isImmatureIncomeVisible = this.WhenAnyValue(
 			vm => vm.ImmatureIncome,
 			i => i?.Amount > 0).ToProperty(this, nameof(this.IsImmatureIncomeVisible));
+
+		this.isSwitchCurrencyCommandVisible = this.WhenAnyValue(
+			vm => vm.SelectedAccount,
+			a => a?.Network == ZcashNetwork.MainNet).ToProperty(this, nameof(this.IsSwitchCurrencyVisible));
+
+		this.SwitchCurrencyCommand = ReactiveCommand.Create(this.SwitchCurrency);
+
+		static SecurityAmount? X(ExchangeRate? exchangeRate, bool showAlternateCurrency, SecurityAmount nativeAmount) => showAlternateCurrency && exchangeRate.HasValue && nativeAmount.Security is not null ? nativeAmount * exchangeRate : nativeAmount;
 	}
 
 	public SyncProgressData SyncProgress { get; }
@@ -140,4 +165,21 @@ public class BalanceViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public string UnspendableChangeCaption => "🪢 Tied up";
 
 	public string UnspendableChangeExplanation => "Recent spends can tie up some of your Zcash for a few minutes.";
+
+	public bool ShowAlternateCurrency
+	{
+		get => this.showAlternateCurrency;
+		set => this.RaiseAndSetIfChanged(ref this.showAlternateCurrency, value);
+	}
+
+	/// <summary>
+	/// Gets the command that switches the view between Zcash and the user's selected alternate currency.
+	/// </summary>
+	public ReactiveCommand<Unit, Unit> SwitchCurrencyCommand { get; }
+
+	public string SwitchCurrencyCaption => "💱 Switch currency";
+
+	public bool IsSwitchCurrencyVisible => this.isSwitchCurrencyCommandVisible.Value;
+
+	private void SwitchCurrency() => this.ShowAlternateCurrency = !this.ShowAlternateCurrency;
 }
