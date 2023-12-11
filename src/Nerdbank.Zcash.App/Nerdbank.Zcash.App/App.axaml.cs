@@ -1,6 +1,7 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -23,15 +24,16 @@ public partial class App : Application, IAsyncDisposable
 
 	[Obsolete("Design-time only", error: true)]
 	public App()
-		: this(CreateDesignTimeAppPlatformSettings())
+		: this(CreateDesignTimeAppPlatformSettings(), new DesignTimePlatformServices())
 	{
 		Assumes.NotNull(SynchronizationContext.Current);
 		this.InitializeFields();
 	}
 
-	public App(AppPlatformSettings platformSettings)
+	public App(AppPlatformSettings platformSettings, IPlatformServices platformServices)
 	{
 		this.AppPlatformSettings = platformSettings;
+		this.PlatformServices = platformServices;
 	}
 
 	public AppSettings Settings => this.settings ?? throw new InvalidOperationException();
@@ -39,6 +41,8 @@ public partial class App : Application, IAsyncDisposable
 	public DataRoot Data => this.data ?? throw new InvalidOperationException();
 
 	public AppPlatformSettings AppPlatformSettings { get; }
+
+	public IPlatformServices PlatformServices { get; }
 
 	/// <inheritdoc/>
 	public override void Initialize()
@@ -98,7 +102,7 @@ public partial class App : Application, IAsyncDisposable
 
 		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
 		{
-			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager, this.Data.ExchangeRates);
+			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager, this.Data.ExchangeRates, this.PlatformServices);
 		}
 	}
 
@@ -148,5 +152,18 @@ public partial class App : Application, IAsyncDisposable
 		{
 			await Task.WhenAll(this.sendTransactionTasks).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 		}
+	}
+
+	private class DesignTimePlatformServices : IPlatformServices
+	{
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public bool IsOnACPower => false;
+
+		public bool IsNetworkMetered => false;
+
+		public IDisposable? RequestSleepDeferral() => null;
+
+		protected virtual void OnPropertyChanged(PropertyChangedEventArgs e) => this.PropertyChanged?.Invoke(this, e);
 	}
 }

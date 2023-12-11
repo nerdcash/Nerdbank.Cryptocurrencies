@@ -20,7 +20,7 @@ internal class Program
 	// Avalonia configuration, don't remove; also used by visual designer.
 	public static AppBuilder BuildAvaloniaApp()
 	{
-		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings()))
+		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), new WindowsPlatformServices()))
 			.UsePlatformDetect()
 			.WithInterFont()
 			.LogToTrace()

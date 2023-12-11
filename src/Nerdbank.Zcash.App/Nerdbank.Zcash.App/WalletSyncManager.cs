@@ -11,6 +11,7 @@ namespace Nerdbank.Zcash.App;
 public class WalletSyncManager : IAsyncDisposable
 {
 	private readonly string confidentialDataPath;
+	private readonly IPlatformServices platformServices;
 	private readonly ZcashWallet wallet;
 	private readonly AppSettings settings;
 	private readonly IContactManager contactManager;
@@ -18,13 +19,14 @@ public class WalletSyncManager : IAsyncDisposable
 	private Dictionary<Account, Tracker> trackers = new();
 	private bool syncStarted;
 
-	public WalletSyncManager(string confidentialDataPath, ZcashWallet wallet, AppSettings settings, IContactManager contactManager, ExchangeRateRecord exchangeRateRecord)
+	public WalletSyncManager(string confidentialDataPath, ZcashWallet wallet, AppSettings settings, IContactManager contactManager, ExchangeRateRecord exchangeRateRecord, IPlatformServices platformServices)
 	{
 		this.confidentialDataPath = confidentialDataPath;
 		this.wallet = wallet;
 		this.settings = settings;
 		this.contactManager = contactManager;
 		this.exchangeRateRecord = exchangeRateRecord;
+		this.platformServices = platformServices;
 	}
 
 	public async ValueTask DisposeAsync()
@@ -166,9 +168,15 @@ public class WalletSyncManager : IAsyncDisposable
 				this.Account.SyncProgress = progress;
 			});
 
+			bool caughtUp = false;
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				LightWalletClient.SyncResult result = await this.client.DownloadTransactionsAsync(progress, cancellationToken);
+				LightWalletClient.SyncResult result;
+				using (caughtUp ? null : this.owner.platformServices.RequestSleepDeferral())
+				{
+					result = await this.client.DownloadTransactionsAsync(progress, cancellationToken);
+				}
+
 				await this.ImportTransactionsAsync(checked((uint)result.LatestBlock), cancellationToken);
 				this.Account.SyncProgress = null;
 
@@ -177,7 +185,12 @@ public class WalletSyncManager : IAsyncDisposable
 				ulong tip = await this.client.GetLatestBlockHeightAsync(this.shutdownTokenSource.Token);
 				if (tip == result.LatestBlock)
 				{
+					caughtUp = true;
 					await Task.Delay(SyncFrequency, this.shutdownTokenSource.Token);
+				}
+				else
+				{
+					caughtUp = false;
 				}
 			}
 
