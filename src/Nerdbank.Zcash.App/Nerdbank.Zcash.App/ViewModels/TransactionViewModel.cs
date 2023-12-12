@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
@@ -20,16 +21,12 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		this.Model = transaction;
 		this.owner = owner;
 
-		if (transaction.SendItems.Length == 1)
-		{
-			this.Memo = transaction.SendItems[0].Memo.Message;
-		}
-		else if (transaction.RecvItems.Length == 1)
-		{
-			this.Memo = transaction.RecvItems[0].Memo.Message;
-		}
-
 		this.LineItems = this.InitializeLineItems();
+
+		if (this.LineItems.Count == 1)
+		{
+			this.Memo = this.LineItems[0].Memo;
+		}
 
 		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
@@ -228,23 +225,29 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		List<LineItem> lineItems = new(this.Model.SendItems.Length + this.Model.RecvItems.Length);
 		if (this.Model.SendItems.Length > 0)
 		{
-			lineItems.AddRange(this.Model.SendItems.Select(i => new LineItem(this, i)));
+			AddLineItems(this.Model.SendItems);
 		}
 		else if (this.Model.RecvItems.Length > 0)
 		{
-			if (this.Model.RecvItems.Length == 2)
+			AddLineItems(this.Model.RecvItems);
+		}
+
+		void AddLineItems(ImmutableArray<ZcashTransaction.LineItem> items)
+		{
+			if (items.Length == 2)
 			{
-				// Look for a common pattern of splitting a payment across two pools. If that's what this is, just report the two line items as one.
-				ZcashTransaction.LineItem first = this.Model.RecvItems[0];
-				ZcashTransaction.LineItem second = this.Model.RecvItems[1];
+				// Look for a common pattern of splitting a payment across two pools.
+				// If that's what this is, just report the two line items as one.
+				ZcashTransaction.LineItem first = items[0];
+				ZcashTransaction.LineItem second = items[1];
 				if (first.Memo.Equals(second.Memo) && first.Pool != second.Pool)
 				{
 					lineItems.Add(new LineItem(this, first, second));
-					return new(lineItems);
+					return;
 				}
 			}
 
-			lineItems.AddRange(this.Model.RecvItems.Select(i => new LineItem(this, i)));
+			lineItems.AddRange(items.Select(i => new LineItem(this, i)));
 		}
 
 		return new(lineItems);
