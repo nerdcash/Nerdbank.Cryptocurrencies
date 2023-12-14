@@ -19,8 +19,6 @@ internal class AppSerializerOptions : MessagePackSerializerOptions
 			SecurityAmountFormatter.Instance,
 			SecurityFormatter.Instance,
 			TradingPairFormatter.Instance,
-			TransactionRecvItemFormatter.Instance,
-			TransactionSendItemFormatter.Instance,
 			UnifiedAddressFormatter.Instance,
 			ZcashAccountFormatter.Instance,
 			ZcashAddressFormatter.Instance,
