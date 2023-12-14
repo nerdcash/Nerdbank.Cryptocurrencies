@@ -4,6 +4,7 @@ uniffi::include_scaffolding!("ffi");
 extern crate lazy_static;
 
 mod backend_client;
+mod error;
 mod interop;
 mod orchard;
 mod sapling;

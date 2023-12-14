@@ -1,8 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, sync::Mutex};
 
 use http::Uri;
-use tonic::transport::{Channel, ClientTlsConfig};
 use lazy_static::lazy_static;
+use tonic::transport::{Channel, ClientTlsConfig};
 use zcash_primitives::{
     consensus::{BlockHeight, Network, Parameters},
     sapling,
@@ -11,8 +11,8 @@ use zcash_primitives::{
 use zcash_client_backend::{
     data_api::{
         chain::{
-            error::Error, scan_cached_blocks, testing as chain_testing, BlockSource,
-            CommitmentTreeRoot,
+            error::Error as BackendError, scan_cached_blocks, testing as chain_testing,
+            BlockSource, CommitmentTreeRoot,
         },
         scanning::ScanPriority,
         testing, WalletCommitmentTrees, WalletRead, WalletWrite,
@@ -22,6 +22,13 @@ use zcash_client_backend::{
     scanning::{self, ScanError},
 };
 
+use crate::error::Error;
+
+type MyError = Error<
+    <testing::MockWalletDb as WalletRead>::Error,
+    <chain_testing::MockBlockSource as BlockSource>::Error,
+>;
+
 const MY_SERVER: &str = "https://zcash.mysideoftheweb.com:9067";
 const OFFICIAL_MAINNET: &str = "https://mainnet.lightwalletd.com:9067";
 
@@ -30,52 +37,7 @@ const OFFICIAL_MAINNET: &str = "https://mainnet.lightwalletd.com:9067";
 // because we can't return such a complex structure back to our client.
 lazy_static! {
     static ref CHANNELS: Mutex<HashMap<Uri, RefCell<Channel>>> = Mutex::new(HashMap::new());
-	static ref LIGHTSERVER_URI: Uri = Uri::from_static(MY_SERVER);
-}
-
-type WalletError = <testing::MockWalletDb as WalletRead>::Error;
-type BlockSourceError = <chain_testing::MockBlockSource as BlockSource>::Error;
-
-#[derive(Debug)]
-pub enum MyError {
-    /// An error occurred over a transport.
-    Transport(tonic::transport::Error),
-
-    /// An error that was produced by wallet operations in the course of scanning the chain.
-    Wallet(WalletError),
-
-    /// An error that was produced by the underlying block data store in the process of validation
-    /// or scanning.
-    BlockSource(BlockSourceError),
-
-    /// A block that was received violated rules related to chain continuity or contained note
-    /// commitments that could not be reconciled with the note commitment tree(s) maintained by the
-    /// wallet.
-    Scan(ScanError),
-
-    TonicStatus(tonic::Status),
-}
-
-impl From<tonic::transport::Error> for MyError {
-    fn from(e: tonic::transport::Error) -> Self {
-        MyError::Transport(e)
-    }
-}
-
-impl From<Error<WalletError, BlockSourceError>> for MyError {
-    fn from(e: Error<WalletError, BlockSourceError>) -> Self {
-        match e {
-            Error::Wallet(e) => MyError::Wallet(e),
-            Error::BlockSource(e) => MyError::BlockSource(e),
-            Error::Scan(e) => MyError::Scan(e),
-        }
-    }
-}
-
-impl From<tonic::Status> for MyError {
-    fn from(e: tonic::Status) -> Self {
-        MyError::TonicStatus(e)
-    }
+    static ref LIGHTSERVER_URI: Uri = Uri::from_static(MY_SERVER);
 }
 
 async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transport::Error> {
@@ -86,7 +48,10 @@ async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transport::Error> 
     }
 
     let tls = ClientTlsConfig::new().domain_name(uri.host().unwrap());
-    let channel = Channel::builder(uri.clone()).tls_config(tls)?.connect().await?;
+    let channel = Channel::builder(uri.clone())
+        .tls_config(tls)?
+        .connect()
+        .await?;
     clients.insert(uri, RefCell::new(channel.clone()));
     Ok(channel)
 }
@@ -101,10 +66,10 @@ async fn get_client(uri: Uri) -> Result<CompactTxStreamerClient<Channel>, tonic:
     Ok(CompactTxStreamerClient::new(channel))
 }
 
-async fn get_block_height(uri: Uri) -> Result<u64, tonic::transport::Error> {
+async fn get_block_height(uri: Uri) -> Result<u64, MyError> {
     let mut client = get_client(uri).await?;
-    let response = client.get_lightd_info(service::Empty {}).await.unwrap();
-    Ok(response.get_ref().block_height)
+    let response = client.get_lightd_info(service::Empty {}).await?.into_inner();
+    Ok(response.block_height)
 }
 
 #[cfg(test)]
@@ -173,7 +138,7 @@ pub async fn sync() -> Result<(), MyError> {
                         // received) so we can break out of the loop.
                         break;
                     }
-                    Err(Error::Scan(err)) if err.is_continuity_error() => {
+                    Err(BackendError::Scan(err)) if err.is_continuity_error() => {
                         // Pick a height to rewind to, which must be at least one block before
                         // the height at which the error occurred, but may be an earlier height
                         // determined based on heuristics such as the platform, available bandwidth,
