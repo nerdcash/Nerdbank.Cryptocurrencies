@@ -280,12 +280,12 @@ dependencies = [
  "blake2s_simd",
  "byteorder",
  "crossbeam-channel",
- "ff 0.13.0",
- "group 0.13.0",
+ "ff",
+ "group",
  "lazy_static",
  "log",
  "num_cpus",
- "pairing 0.23.0",
+ "pairing",
  "rand_core",
  "rayon",
  "subtle",
@@ -399,9 +399,9 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7bc6d6292be3a19e6379786dac800f551e5865a5bb51ebbe3064ab80433f403"
 dependencies = [
- "ff 0.13.0",
- "group 0.13.0",
- "pairing 0.23.0",
+ "ff",
+ "group",
+ "pairing",
  "rand_core",
  "subtle",
 ]
@@ -810,16 +810,6 @@ checksum = "25cbce373ec4653f1a01a31e8a5e5ec0c622dc27ff9c4e6606eefef5cbbed4a5"
 
 [[package]]
 name = "ff"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d013fc25338cc558c5c2cfbad646908fb23591e2404481826742b651c9af7160"
-dependencies = [
- "rand_core",
- "subtle",
-]
-
-[[package]]
-name = "ff"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ded41244b729663b1e574f1b4fb731469f69f79c17667b5d776b16cda0479449"
@@ -1039,22 +1029,11 @@ dependencies = [
 
 [[package]]
 name = "group"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dfbfb3a6cfbd390d5c9564ab283a0349b9b9fcd46a706c1eb10e0db70bfbac7"
-dependencies = [
- "ff 0.12.1",
- "rand_core",
- "subtle",
-]
-
-[[package]]
-name = "group"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0f9ef7462f7c099f518d754361858f86d8a07af53ba9af0fe635bbccb151a63"
 dependencies = [
- "ff 0.13.0",
+ "ff",
  "memuse",
  "rand_core",
  "subtle",
@@ -1087,8 +1066,8 @@ checksum = "126a150072b0c38c7b573fe3eaf0af944a7fed09e154071bf2436d3f016f7230"
 dependencies = [
  "arrayvec",
  "bitvec",
- "ff 0.13.0",
- "group 0.13.0",
+ "ff",
+ "group",
  "halo2_proofs",
  "lazy_static",
  "pasta_curves",
@@ -1110,8 +1089,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b867a8d9bbb85fca76fff60652b5cd19b853a1c4d0665cb89bee68b18d2caf0"
 dependencies = [
  "blake2b_simd",
- "ff 0.13.0",
- "group 0.13.0",
+ "ff",
+ "group",
  "halo2_legacy_pdqsort",
  "maybe-rayon",
  "pasta_curves",
@@ -1436,8 +1415,8 @@ checksum = "8499f7a74008aafbecb2a2e608a3e13e4dd3e84df198b604451efe93f2de6e61"
 dependencies = [
  "bitvec",
  "bls12_381",
- "ff 0.13.0",
- "group 0.13.0",
+ "ff",
+ "group",
  "rand_core",
  "subtle",
 ]
@@ -1680,8 +1659,8 @@ dependencies = [
 name = "nerdbank-zcash-rust"
 version = "0.1.0"
 dependencies = [
- "ff 0.13.0",
- "group 0.13.0",
+ "ff",
+ "group",
  "http",
  "jubjub",
  "lazy_static",
@@ -1845,9 +1824,9 @@ dependencies = [
  "aes",
  "bitvec",
  "blake2b_simd",
- "ff 0.13.0",
+ "ff",
  "fpe",
- "group 0.13.0",
+ "group",
  "halo2_gadgets",
  "halo2_proofs",
  "hex 0.4.3",
@@ -1881,20 +1860,11 @@ checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
 name = "pairing"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "135590d8bdba2b31346f9cd1fb2a912329f5135e832a4f422942eb6ead8b6b3b"
-dependencies = [
- "group 0.12.1",
-]
-
-[[package]]
-name = "pairing"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
 dependencies = [
- "group 0.13.0",
+ "group",
 ]
 
 [[package]]
@@ -1938,8 +1908,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3e57598f73cc7e1b2ac63c79c517b31a0877cd7c402cdcaa311b5208de7a095"
 dependencies = [
  "blake2b_simd",
- "ff 0.13.0",
- "group 0.13.0",
+ "ff",
+ "group",
  "lazy_static",
  "rand",
  "static_assertions",
@@ -2285,7 +2255,7 @@ checksum = "78a5191930e84973293aa5f532b513404460cd2216c1cfb76d08748c15b40b02"
 dependencies = [
  "blake2b_simd",
  "byteorder",
- "group 0.13.0",
+ "group",
  "hex 0.4.3",
  "jubjub",
  "pasta_curves",
@@ -3934,7 +3904,7 @@ dependencies = [
  "bs58",
  "byteorder",
  "crossbeam-channel",
- "group 0.13.0",
+ "group",
  "hdwallet",
  "hex 0.4.3",
  "incrementalmerkletree",
@@ -3993,9 +3963,9 @@ dependencies = [
  "bls12_381",
  "byteorder",
  "equihash",
- "ff 0.13.0",
+ "ff",
  "fpe",
- "group 0.13.0",
+ "group",
  "hdwallet",
  "hex 0.4.3",
  "incrementalmerkletree",
@@ -4023,7 +3993,7 @@ dependencies = [
  "bellman",
  "blake2b_simd",
  "bls12_381",
- "group 0.13.0",
+ "group",
  "home",
  "jubjub",
  "known-folders",
@@ -4093,9 +4063,9 @@ dependencies = [
  "bytes 0.4.12",
  "derive_more",
  "either",
- "ff 0.13.0",
+ "ff",
  "futures",
- "group 0.13.0",
+ "group",
  "hex 0.3.2",
  "http",
  "http-body",
@@ -4110,7 +4080,7 @@ dependencies = [
  "log4rs",
  "nonempty",
  "orchard",
- "pairing 0.22.0",
+ "pairing",
  "prost 0.10.4",
  "rand",
  "reqwest",
