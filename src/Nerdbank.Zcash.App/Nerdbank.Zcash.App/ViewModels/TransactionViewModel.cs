@@ -240,7 +240,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 				// If that's what this is, just report the two line items as one.
 				ZcashTransaction.LineItem first = items[0];
 				ZcashTransaction.LineItem second = items[1];
-				if (first.Memo.Equals(second.Memo) && first.Pool != second.Pool)
+				if (first.Memo.Equals(second.Memo) && first.Pool != second.Pool && first.Pool.HasValue && second.Pool.HasValue)
 				{
 					lineItems.Add(new LineItem(this, first, second));
 					return;

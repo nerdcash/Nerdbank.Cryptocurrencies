@@ -239,13 +239,14 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		/// Gets the pool that received this note.
 		/// </summary>
 		[IgnoreMember]
-		public Pool Pool
+		public Pool? Pool
 		{
 			get => this.ToAddress switch
 			{
-				TransparentAddress => Pool.Transparent,
-				SaplingAddress => Pool.Sapling,
-				OrchardAddress => Pool.Orchard,
+				TransparentAddress => Zcash.Pool.Transparent,
+				SaplingAddress => Zcash.Pool.Sapling,
+				OrchardAddress => Zcash.Pool.Orchard,
+				UnifiedAddress => null, // compound address -- not expected, but zingolib is producing these.
 				null => throw new InvalidOperationException("This struct hasn't been initialized."),
 				_ => throw new NotSupportedException(),
 			};
