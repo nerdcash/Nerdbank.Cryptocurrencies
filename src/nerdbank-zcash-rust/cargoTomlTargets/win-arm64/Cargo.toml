@@ -12,25 +12,31 @@ crate-type = ["cdylib"]
 uniffi = { version = "0.25.0", features = ["build"] }
 
 [dependencies]
-ff = "0.13.0"
-group = "0.13.0"
-http = "0.2.11"
-jubjub = "0.10.0"
-lazy_static = "1.4.0"
-orchard = "0.6.0"
-pasta_curves = "0.5.1"
-rusqlite = "0.29.0"
-schemer = "0.2.1"
-thiserror = "1.0.47"
-tokio = { version = "1.32.0", features = ["rt", "macros"] }
-tonic = { version = "0.10.2", features = ["gzip", "tls-webpki-roots"] }
-uniffi = "0.25.0"
-zcash_primitives = "0.13.0"
-zcash_client_backend = { version = "0.10.0", features = [
+ff = "0.13"
+futures-util = "0.3"
+group = "0.13"
+http = "0.2"
+jubjub = "0.10"
+lazy_static = "1.4"
+orchard = "0.6"
+pasta_curves = "0.5"
+prost = "0.12"
+rusqlite = "0.29"
+schemer = "0.2"
+thiserror = "1.0"
+tracing = "0.1"
+tokio = { version = "1.32", features = ["rt", "fs", "macros", "rt-multi-thread"] }
+tonic = { version = "0.10", features = ["gzip", "tls-webpki-roots"] }
+uniffi = "0.25"
+zcash_primitives = "0.13"
+zcash_client_backend = { version = "0.10", features = [
 	"test-dependencies",
 	"lightwalletd-tonic",
 ] }
-zcash_client_sqlite = { version = "0.8.1", features = ["unstable"] }
+zcash_client_sqlite = { version = "0.8", features = [
+	"unstable",
+	"transparent-inputs",
+] }
 
 [patch.crates-io]
 ring = { git = "https://github.com/awakecoding/ring", branch = "0.16.20_alpha" }

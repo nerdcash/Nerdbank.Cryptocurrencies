@@ -10,8 +10,7 @@ mod orchard;
 mod sapling;
 
 use interop::{
-    BirthdayHeights, ChainType, LightWalletError, OrchardNote, SaplingNote, Transaction,
-    TransactionSendDetail, UserBalances, WalletInfo,
+    lightwallet_disconnect_server, lightwallet_get_block_height, lightwallet_init,
+    lightwallet_sync, BirthdayHeights, ChainType, LightWalletError, OrchardNote, SaplingNote,
+    SyncResult, Transaction, TransactionSendDetail, UserBalances, WalletInfo,
 };
-
-use backend_client::sync;

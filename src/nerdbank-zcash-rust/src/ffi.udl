@@ -66,5 +66,20 @@ dictionary BirthdayHeights {
 	u64? rebirth_height;
 };
 
+dictionary SyncResult {
+	u64 tip_height;
+};
+
 namespace LightWallet {
+	[Throws=LightWalletError]
+	void lightwallet_init(string wallet_dir, ChainType network);
+
+	[Throws=LightWalletError]
+	SyncResult lightwallet_sync(string uri, string wallet_dir);
+
+	[Throws=LightWalletError]
+	boolean lightwallet_disconnect_server(string uri);
+
+	[Throws=LightWalletError]
+	u64 lightwallet_get_block_height(string uri);
 };

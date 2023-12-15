@@ -1,3 +1,16 @@
+use http::{uri::InvalidUri, Uri};
+use tokio::runtime::Runtime;
+use zcash_primitives::consensus::Network;
+
+use crate::{
+    backend_client::{destroy_channel, get_block_height, init, sync},
+    error::Error,
+};
+
+lazy_static! {
+    static ref RT: Runtime = tokio::runtime::Runtime::new().unwrap();
+}
+
 pub enum ChainType {
     Mainnet,
     Testnet,
@@ -56,6 +69,23 @@ pub enum LightWalletError {
 
     #[error("{message}")]
     Other { message: String },
+}
+
+impl From<InvalidUri> for LightWalletError {
+    fn from(_: InvalidUri) -> Self {
+        LightWalletError::InvalidUri
+    }
+}
+
+impl From<Error> for LightWalletError {
+    fn from(e: Error) -> Self {
+        match e {
+            Error::InternalError(msg) => LightWalletError::Other { message: msg },
+            _ => LightWalletError::Other {
+                message: "Unknown error".to_string(),
+            },
+        }
+    }
 }
 
 pub struct BirthdayHeights {
@@ -131,4 +161,38 @@ pub struct UserBalances {
 
     /// The sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as dust.
     pub incoming_dust: u64,
+}
+
+#[derive(Debug, Clone)]
+pub struct SyncResult {
+    pub tip_height: u64,
+}
+
+pub fn lightwallet_init(wallet_dir: String, network: ChainType) -> Result<(), LightWalletError> {
+    RT.block_on(async move {
+        init(
+            wallet_dir,
+            match network {
+                ChainType::Mainnet => Network::MainNetwork,
+                ChainType::Testnet => Network::TestNetwork,
+            },
+        )
+        .await?;
+        Ok(())
+    })
+}
+
+pub fn lightwallet_get_block_height(uri: String) -> Result<u64, LightWalletError> {
+    let uri: Uri = uri.parse()?;
+    RT.block_on(async move { Ok(get_block_height(uri).await?) })
+}
+
+pub fn lightwallet_sync(uri: String, wallet_dir: String) -> Result<SyncResult, LightWalletError> {
+    let uri: Uri = uri.parse()?;
+    RT.block_on(async move { Ok(sync(uri, wallet_dir).await?) })
+}
+
+pub fn lightwallet_disconnect_server(uri: String) -> Result<bool, LightWalletError> {
+    let uri: Uri = uri.parse()?;
+    RT.block_on(async move { Ok(destroy_channel(uri)) })
 }
