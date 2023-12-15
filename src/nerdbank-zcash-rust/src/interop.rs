@@ -1,4 +1,3 @@
-
 pub enum ChainType {
     Mainnet,
     Testnet,

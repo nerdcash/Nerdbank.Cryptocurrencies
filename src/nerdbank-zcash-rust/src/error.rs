@@ -1,4 +1,6 @@
+use schemer::MigratorError;
 use zcash_client_backend::{data_api::chain::error::Error as backend_error, scanning::ScanError};
+use zcash_client_sqlite::{wallet::init::WalletMigrationError, FsBlockDbError};
 
 #[derive(Debug)]
 pub enum Error<WalletError, BlockSourceError> {
@@ -18,6 +20,18 @@ pub enum Error<WalletError, BlockSourceError> {
     Scan(ScanError),
 
     TonicStatus(tonic::Status),
+
+    FsBlockDbError(FsBlockDbError),
+
+    IoError(std::io::Error),
+
+    InternalError(String),
+
+    Sqlite(rusqlite::Error),
+
+    SqliteMigratorError(MigratorError<rusqlite::Error>),
+
+    WalletMigratorError(MigratorError<WalletMigrationError>),
 }
 
 impl<WalletError, BlockSourceError> From<tonic::transport::Error>
@@ -43,5 +57,39 @@ impl<WalletError, BlockSourceError> From<backend_error<WalletError, BlockSourceE
 impl<WalletError, BlockSourceError> From<tonic::Status> for Error<WalletError, BlockSourceError> {
     fn from(e: tonic::Status) -> Self {
         Error::TonicStatus(e)
+    }
+}
+
+impl<WalletError, BlockSourceError> From<FsBlockDbError> for Error<WalletError, BlockSourceError> {
+    fn from(e: FsBlockDbError) -> Self {
+        Error::FsBlockDbError(e)
+    }
+}
+
+impl<WalletError, BlockSourceError> From<rusqlite::Error> for Error<WalletError, BlockSourceError> {
+    fn from(e: rusqlite::Error) -> Self {
+        Error::Sqlite(e)
+    }
+}
+
+impl<WalletError, BlockSourceError> From<MigratorError<rusqlite::Error>>
+    for Error<WalletError, BlockSourceError>
+{
+    fn from(e: MigratorError<rusqlite::Error>) -> Self {
+        Error::SqliteMigratorError(e)
+    }
+}
+
+impl<WalletError, BlockSourceError> From<MigratorError<WalletMigrationError>>
+    for Error<WalletError, BlockSourceError>
+{
+    fn from(e: MigratorError<WalletMigrationError>) -> Self {
+        Error::WalletMigratorError(e)
+    }
+}
+
+impl<WalletError, BlockSourceError> From<std::io::Error> for Error<WalletError, BlockSourceError> {
+    fn from(e: std::io::Error) -> Self {
+        Error::IoError(e)
     }
 }

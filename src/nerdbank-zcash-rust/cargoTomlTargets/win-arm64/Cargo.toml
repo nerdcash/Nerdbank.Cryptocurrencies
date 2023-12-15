@@ -19,6 +19,8 @@ jubjub = "0.10.0"
 lazy_static = "1.4.0"
 orchard = "0.6.0"
 pasta_curves = "0.5.1"
+rusqlite = "0.29.0"
+schemer = "0.2.1"
 thiserror = "1.0.47"
 tokio = { version = "1.32.0", features = ["rt", "macros"] }
 tonic = { version = "0.10.2", features = ["gzip", "tls-webpki-roots"] }
@@ -28,6 +30,7 @@ zcash_client_backend = { version = "0.10.0", features = [
 	"test-dependencies",
 	"lightwalletd-tonic",
 ] }
+zcash_client_sqlite = { version = "0.8.1", features = ["unstable"] }
 
 [patch.crates-io]
 ring = { git = "https://github.com/awakecoding/ring", branch = "0.16.20_alpha" }

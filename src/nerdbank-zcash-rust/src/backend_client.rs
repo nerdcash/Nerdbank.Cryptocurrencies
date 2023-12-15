@@ -1,10 +1,19 @@
-use std::{cell::RefCell, collections::HashMap, sync::Mutex};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+    sync::Mutex,
+};
 
 use http::Uri;
 use lazy_static::lazy_static;
 use tonic::transport::{Channel, ClientTlsConfig};
+use zcash_client_sqlite::{
+    chain::init::init_blockmeta_db, wallet::init::init_wallet_db, FsBlockDb, WalletDb,
+};
 use zcash_primitives::{
-    consensus::{BlockHeight, Network, Parameters},
+    consensus::{BlockHeight, Network},
     sapling,
 };
 
@@ -68,7 +77,10 @@ async fn get_client(uri: Uri) -> Result<CompactTxStreamerClient<Channel>, tonic:
 
 async fn get_block_height(uri: Uri) -> Result<u64, MyError> {
     let mut client = get_client(uri).await?;
-    let response = client.get_lightd_info(service::Empty {}).await?.into_inner();
+    let response = client
+        .get_lightd_info(service::Empty {})
+        .await?
+        .into_inner();
     Ok(response.block_height)
 }
 
@@ -81,6 +93,51 @@ mod tests {
         let block_height = get_block_height(LIGHTSERVER_URI.to_owned()).await.unwrap();
         println!("block_height: {}", block_height);
     }
+
+    #[tokio::test]
+    async fn test_init() {
+        let wallet_dir = Path::new("c:\\temp\\testwallet");
+        init(LIGHTSERVER_URI.to_owned(), wallet_dir).await.unwrap();
+    }
+}
+
+const DATA_DB: &str = "data.sqlite";
+
+fn get_db_paths<P: AsRef<Path>>(wallet_dir: P, chain_name: &str) -> (PathBuf, PathBuf) {
+    let mut a = wallet_dir.as_ref().to_owned();
+    a.push(chain_name);
+
+    let mut b = a.clone();
+    b.push(DATA_DB);
+    (a, b)
+}
+
+pub async fn init<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<(), MyError> {
+    let mut client = get_client(uri).await?;
+    let response = client
+        .get_lightd_info(service::Empty {})
+        .await?
+        .into_inner();
+    let params = match response.chain_name.as_str() {
+        "main" => Network::MainNetwork,
+        "test" => Network::TestNetwork,
+        _ => {
+            return Err(MyError::InternalError(format!(
+                "Invalid chain name: {}",
+                response.chain_name
+            )))
+        }
+    };
+
+    let (db_cache, db_data) = get_db_paths(wallet_dir, response.chain_name.as_str());
+    fs::create_dir_all(&db_cache)?;
+    let mut db_cache = FsBlockDb::for_path(db_cache)?;
+    let mut db_data = WalletDb::for_path(db_data, params)?;
+
+    init_blockmeta_db(&mut db_cache)?;
+    init_wallet_db(&mut db_data, None)?;
+
+    Ok(())
 }
 
 pub async fn sync() -> Result<(), MyError> {
