@@ -14,7 +14,7 @@ use zcash_primitives::consensus::Network;
 use crate::error::Error;
 
 const DATA_DB: &str = "data.sqlite";
-const BLOCKS_FOLDER: &str = "blocks";
+const BLOCKS_FOLDER: &str = "blocks"; // This must match what zcash_client_sqlite
 
 pub(crate) struct Db {
     pub(crate) data: WalletDb<Connection, Network>,
@@ -23,13 +23,14 @@ pub(crate) struct Db {
 
 pub(crate) struct BlockCache {
     pub(crate) blockmeta: FsBlockDb,
-    pub(crate) cache_path: PathBuf,
+	/// The path to the directory containing compact blocks.
+    path: PathBuf,
 }
 
 impl BlockCache {
     /// Gets the path to the file that contains an individual block.
     pub(crate) fn block_path(&self, meta: &BlockMeta) -> PathBuf {
-        meta.block_file_path(&self.cache_path.join(BLOCKS_FOLDER))
+        meta.block_file_path(&self.path)
     }
 }
 
@@ -66,7 +67,7 @@ fn get_db_internal<P: AsRef<Path>>(
         data,
         blocks: BlockCache {
             blockmeta: blocks,
-            cache_path,
+            path: cache_path.join(BLOCKS_FOLDER),
         },
     })
 }
