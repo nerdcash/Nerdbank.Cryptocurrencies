@@ -1,18 +1,14 @@
 use std::{
-    cell::RefCell,
-    collections::HashMap,
-    fs::{self},
+    fs,
     path::{Path, PathBuf},
-    sync::Mutex,
 };
 
 use tokio::{fs::File, io::AsyncWriteExt};
 
 use futures_util::TryStreamExt;
 use http::Uri;
-use lazy_static::lazy_static;
 use prost::Message;
-use tonic::transport::{Channel, ClientTlsConfig};
+use tonic::transport::Channel;
 use tracing::{debug, info};
 use uniffi::deps::anyhow;
 use zcash_client_sqlite::{
@@ -37,39 +33,11 @@ use zcash_client_backend::{
     proto::service::{self, LightdInfo},
 };
 
-use crate::{error::Error, interop::SyncResult};
+use crate::{error::Error, grpc::get_grpc_channel, interop::SyncResult};
 
 type MyError = Error;
 type ChainError =
     zcash_client_backend::data_api::chain::error::Error<SqliteClientError, FsBlockDbError>;
-
-// We'll use a MUTEX to store global lightclient instances, by handle,
-// so we don't have to keep creating it. We need to store it here, in rust
-// because we can't return such a complex structure back to our client.
-lazy_static! {
-    static ref CHANNELS: Mutex<HashMap<Uri, RefCell<Channel>>> = Mutex::new(HashMap::new());
-}
-
-async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transport::Error> {
-    let mut clients = CHANNELS.lock().unwrap();
-    if let Some(client) = clients.get(&uri) {
-        let channel = &*client.borrow();
-        return Ok(channel.clone());
-    }
-
-    let tls = ClientTlsConfig::new().domain_name(uri.host().unwrap());
-    let channel = Channel::builder(uri.clone())
-        .tls_config(tls)?
-        .connect()
-        .await?;
-    clients.insert(uri, RefCell::new(channel.clone()));
-    Ok(channel)
-}
-
-pub fn destroy_channel(uri: Uri) -> bool {
-    let mut clients = CHANNELS.lock().unwrap();
-    clients.remove(&uri).is_some()
-}
 
 async fn get_client(uri: Uri) -> Result<CompactTxStreamerClient<Channel>, tonic::transport::Error> {
     let channel = get_grpc_channel(uri).await?;

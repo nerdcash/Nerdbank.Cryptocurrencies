@@ -41,17 +41,13 @@ pub enum Error {
     Anyhow(anyhow::Error),
 }
 
-impl From<tonic::transport::Error>
-    for Error
-{
+impl From<tonic::transport::Error> for Error {
     fn from(e: tonic::transport::Error) -> Self {
         Error::Transport(e)
     }
 }
 
-impl From<ChainError<SqliteClientError, FsBlockDbError>>
-    for Error
-{
+impl From<ChainError<SqliteClientError, FsBlockDbError>> for Error {
     fn from(e: ChainError<SqliteClientError, FsBlockDbError>) -> Self {
         match e {
             ChainError::Wallet(e) => Error::Wallet(e),
@@ -79,17 +75,13 @@ impl From<rusqlite::Error> for Error {
     }
 }
 
-impl From<MigratorError<rusqlite::Error>>
-    for Error
-{
+impl From<MigratorError<rusqlite::Error>> for Error {
     fn from(e: MigratorError<rusqlite::Error>) -> Self {
         Error::SqliteMigratorError(e)
     }
 }
 
-impl From<MigratorError<WalletMigrationError>>
-    for Error
-{
+impl From<MigratorError<WalletMigrationError>> for Error {
     fn from(e: MigratorError<WalletMigrationError>) -> Self {
         Error::WalletMigratorError(e)
     }
@@ -101,9 +93,7 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<SqliteClientError>
-    for Error
-{
+impl From<SqliteClientError> for Error {
     fn from(e: SqliteClientError) -> Self {
         Error::SqliteClient(e)
     }

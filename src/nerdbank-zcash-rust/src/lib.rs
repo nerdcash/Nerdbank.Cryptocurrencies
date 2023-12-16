@@ -5,6 +5,7 @@ extern crate lazy_static;
 
 mod backend_client;
 mod error;
+mod grpc;
 mod interop;
 mod orchard;
 mod sapling;

@@ -3,8 +3,9 @@ use tokio::runtime::Runtime;
 use zcash_primitives::consensus::Network;
 
 use crate::{
-    backend_client::{destroy_channel, get_block_height, init, sync},
+    backend_client::{get_block_height, init, sync},
     error::Error,
+    grpc::destroy_channel,
 };
 
 lazy_static! {
