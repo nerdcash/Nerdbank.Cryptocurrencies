@@ -1,6 +1,7 @@
 use crate::{error::Error, grpc::get_client};
 use http::Uri;
-use zcash_client_backend::proto::service;
+use zcash_client_backend::proto::service::{self, LightdInfo};
+use zcash_primitives::consensus::Network;
 
 /// Gets the block height from the lightwalletd server.
 /// This may not match the the latest block that has been sync'd to the wallet.
@@ -11,6 +12,17 @@ pub async fn get_block_height(uri: Uri) -> Result<u64, Error> {
         .await?
         .into_inner();
     Ok(response.block_height)
+}
+
+pub(crate) fn parse_network(info: LightdInfo) -> Result<Network, Error> {
+    match info.chain_name.as_str() {
+        "main" => Ok(Network::MainNetwork),
+        "test" => Ok(Network::TestNetwork),
+        _ => Err(Error::InternalError(format!(
+            "Unknown network: {}",
+            info.chain_name
+        ))),
+    }
 }
 
 #[cfg(test)]

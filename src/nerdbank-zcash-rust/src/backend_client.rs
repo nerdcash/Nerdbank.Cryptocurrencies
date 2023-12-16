@@ -21,8 +21,7 @@ use zcash_client_backend::{
         scanning::{ScanPriority, ScanRange},
         WalletCommitmentTrees, WalletRead, WalletWrite,
     },
-    proto::service::compact_tx_streamer_client::CompactTxStreamerClient,
-    proto::service::{self, LightdInfo},
+    proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
 
 use crate::{
@@ -30,23 +29,13 @@ use crate::{
     error::Error,
     grpc::get_client,
     interop::SyncResult,
+    lightclient::parse_network,
 };
 
 type ChainError =
     zcash_client_backend::data_api::chain::error::Error<SqliteClientError, FsBlockDbError>;
 
 const BATCH_SIZE: u32 = 10_000;
-
-fn parse_network(info: LightdInfo) -> Result<Network, Error> {
-    match info.chain_name.as_str() {
-        "main" => Ok(Network::MainNetwork),
-        "test" => Ok(Network::TestNetwork),
-        _ => Err(Error::InternalError(format!(
-            "Unknown network: {}",
-            info.chain_name
-        ))),
-    }
-}
 
 pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult, Error> {
     let mut client = get_client(uri).await?;
