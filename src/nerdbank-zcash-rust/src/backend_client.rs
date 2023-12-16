@@ -33,25 +33,10 @@ use zcash_client_backend::{
     proto::service::{self, LightdInfo},
 };
 
-use crate::{error::Error, grpc::get_grpc_channel, interop::SyncResult};
+use crate::{error::Error, grpc::get_client, interop::SyncResult};
 
-type MyError = Error;
 type ChainError =
     zcash_client_backend::data_api::chain::error::Error<SqliteClientError, FsBlockDbError>;
-
-async fn get_client(uri: Uri) -> Result<CompactTxStreamerClient<Channel>, tonic::transport::Error> {
-    let channel = get_grpc_channel(uri).await?;
-    Ok(CompactTxStreamerClient::new(channel))
-}
-
-pub async fn get_block_height(uri: Uri) -> Result<u64, MyError> {
-    let mut client = get_client(uri).await?;
-    let response = client
-        .get_lightd_info(service::Empty {})
-        .await?
-        .into_inner();
-    Ok(response.block_height)
-}
 
 const DATA_DB: &str = "data.sqlite";
 const BLOCKS_FOLDER: &str = "blocks";
@@ -73,7 +58,7 @@ fn get_block_path(fsblockdb_root: &Path, meta: &BlockMeta) -> PathBuf {
     meta.block_file_path(&fsblockdb_root.join(BLOCKS_FOLDER))
 }
 
-pub async fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<(), MyError> {
+pub async fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<(), Error> {
     let (db_cache, db_data) = get_db_paths(wallet_dir, network);
     fs::create_dir_all(&db_cache)?;
     let mut db_cache = FsBlockDb::for_path(db_cache)?;
@@ -85,18 +70,18 @@ pub async fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<(),
     Ok(())
 }
 
-fn parse_network(info: LightdInfo) -> Result<Network, MyError> {
+fn parse_network(info: LightdInfo) -> Result<Network, Error> {
     match info.chain_name.as_str() {
         "main" => Ok(Network::MainNetwork),
         "test" => Ok(Network::TestNetwork),
-        _ => Err(MyError::InternalError(format!(
+        _ => Err(Error::InternalError(format!(
             "Unknown network: {}",
             info.chain_name
         ))),
     }
 }
 
-pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult, MyError> {
+pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult, Error> {
     let mut client = get_client(uri).await?;
     let info = client
         .get_lightd_info(service::Empty {})
@@ -121,7 +106,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
             .get_ref()
             .height
             .try_into()
-            .map_err(|e| MyError::InternalError(format!("Invalid block height: {}", e)))?;
+            .map_err(|e| Error::InternalError(format!("Invalid block height: {}", e)))?;
 
         // 4) Notify the wallet of the updated chain tip.
         db_data.update_chain_tip(tip_height)?;
@@ -254,7 +239,7 @@ async fn download_blocks(
     fsblockdb_root: &Path,
     db_cache: &FsBlockDb,
     scan_range: &ScanRange,
-) -> Result<(), MyError> {
+) -> Result<(), Error> {
     info!("Fetching {}", scan_range);
     let mut start = service::BlockId::default();
     start.height = scan_range.block_range().start.into();
@@ -310,7 +295,7 @@ fn scan_blocks<P: Parameters + Send + 'static>(
     db_cache: &mut FsBlockDb,
     db_data: &mut WalletDb<rusqlite::Connection, P>,
     scan_range: &ScanRange,
-) -> Result<bool, MyError> {
+) -> Result<bool, Error> {
     let scan_result = scan_cached_blocks(
         network,
         db_cache,
@@ -376,18 +361,12 @@ fn scan_blocks<P: Parameters + Send + 'static>(
 
 #[cfg(test)]
 mod tests {
+    use crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI;
+
     use super::*;
 
     lazy_static! {
-        static ref LIGHTSERVER_URI: Uri =
-            // Uri::from_static("https://zcash.mysideoftheweb.com:19067");
-            Uri::from_static("https://lightwalletd.testnet.electriccoin.co:9067/");
-    }
-
-    #[tokio::test]
-    async fn test_get_block_height() {
-        let block_height = get_block_height(LIGHTSERVER_URI.to_owned()).await.unwrap();
-        println!("block_height: {}", block_height);
+        static ref LIGHTSERVER_URI: Uri = TESTNET_LIGHTSERVER_ECC_URI.to_owned();
     }
 
     #[tokio::test]

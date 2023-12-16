@@ -7,8 +7,12 @@ mod backend_client;
 mod error;
 mod grpc;
 mod interop;
+mod lightclient;
 mod orchard;
 mod sapling;
+
+#[cfg(test)]
+mod test_constants;
 
 use interop::{
     lightwallet_disconnect_server, lightwallet_get_block_height, lightwallet_init,
