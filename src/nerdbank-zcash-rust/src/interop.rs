@@ -64,9 +64,6 @@ pub enum LightWalletError {
     #[error("Invalid URI")]
     InvalidUri,
 
-    #[error("Invalid handle")]
-    InvalidHandle,
-
     #[error("{message}")]
     Other { message: String },
 }

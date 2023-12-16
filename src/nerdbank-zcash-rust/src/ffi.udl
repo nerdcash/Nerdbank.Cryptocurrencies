@@ -1,7 +1,6 @@
 [Error]
 enum LightWalletError {
 	"InvalidUri",
-	"InvalidHandle",
 	"Other",
 };
 

@@ -1261,10 +1261,6 @@ public class LightWalletException: UniffiException {
         public InvalidUri(string message): base(message) {}
     }
     
-    public class InvalidHandle: LightWalletException {
-        public InvalidHandle(string message): base(message) {}
-    }
-    
     public class Other: LightWalletException {
         public Other(string message): base(message) {}
     }
@@ -1278,8 +1274,7 @@ class FfiConverterTypeLightWalletException : FfiConverterRustBuffer<LightWalletE
         var value = stream.ReadInt();
         switch (value) {
             case 1: return new LightWalletException.InvalidUri(FfiConverterString.INSTANCE.Read(stream));
-            case 2: return new LightWalletException.InvalidHandle(FfiConverterString.INSTANCE.Read(stream));
-            case 3: return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
+            case 2: return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
             default:
                 throw new InternalException(String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Read()", value));
         }
@@ -1294,11 +1289,8 @@ class FfiConverterTypeLightWalletException : FfiConverterRustBuffer<LightWalletE
             case LightWalletException.InvalidUri:
                 stream.WriteInt(1);
                 break;
-            case LightWalletException.InvalidHandle:
-                stream.WriteInt(2);
-                break;
             case LightWalletException.Other:
-                stream.WriteInt(3);
+                stream.WriteInt(2);
                 break;
             default:
                 throw new InternalException(String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Write()", value));
