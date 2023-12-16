@@ -16,30 +16,6 @@ use crate::error::Error;
 const DATA_DB: &str = "data.sqlite";
 const BLOCKS_FOLDER: &str = "blocks";
 
-pub async fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<(), Error> {
-    let (db_cache, db_data) = get_db_paths(wallet_dir, network);
-    fs::create_dir_all(&db_cache)?;
-    let mut db_cache = FsBlockDb::for_path(db_cache)?;
-    let mut db_data = WalletDb::for_path(db_data, network)?;
-
-    init_blockmeta_db(&mut db_cache)?;
-    init_wallet_db(&mut db_data, None)?;
-
-    Ok(())
-}
-
-pub(crate) fn get_db_paths<P: AsRef<Path>>(wallet_dir: P, network: Network) -> (PathBuf, PathBuf) {
-    let mut a = wallet_dir.as_ref().to_owned();
-    a.push(match network {
-        Network::MainNetwork => "mainnet",
-        Network::TestNetwork => "testnet",
-    });
-
-    let mut b = a.clone();
-    b.push(DATA_DB);
-    (a, b)
-}
-
 pub(crate) struct Db {
     pub(crate) data: WalletDb<Connection, Network>,
     pub(crate) blocks: BlockCache,
@@ -57,18 +33,54 @@ impl BlockCache {
     }
 }
 
+/// Initializes the database for the given wallet, creating it if it does not exist,
+/// or upgrading its schema if it already exists and is out of date.
+/// This should be used the first time a wallet is opened in each session (or at least the first time ever, and once after each software upgrade).
+pub(crate) async fn init_db<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
+    get_db_internal(wallet_dir, network, true)
+}
+
+/// Opens the database for the given wallet. An error will result if it does not already exist.
 pub(crate) fn get_db<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
+    get_db_internal(wallet_dir, network, false)
+}
+
+fn get_db_internal<P: AsRef<Path>>(
+    wallet_dir: P,
+    network: Network,
+    init: bool,
+) -> Result<Db, Error> {
     let (cache_path, data_path) = get_db_paths(wallet_dir, network);
-    let cache_path = cache_path.as_path().to_owned();
-    let blocks = FsBlockDb::for_path(&cache_path)?;
-    let data = WalletDb::for_path(data_path, network)?;
+    if init {
+        fs::create_dir_all(&cache_path)?;
+    }
+    let mut blocks = FsBlockDb::for_path(&cache_path)?;
+    let mut data = WalletDb::for_path(data_path, network)?;
+
+    if init {
+        init_blockmeta_db(&mut blocks)?;
+        init_wallet_db(&mut data, None)?;
+    }
+
     Ok(Db {
         data,
         blocks: BlockCache {
             blockmeta: blocks,
-            cache_path: cache_path,
+            cache_path,
         },
     })
+}
+
+fn get_db_paths<P: AsRef<Path>>(wallet_dir: P, network: Network) -> (PathBuf, PathBuf) {
+    let mut a = wallet_dir.as_ref().to_owned();
+    a.push(match network {
+        Network::MainNetwork => "mainnet",
+        Network::TestNetwork => "testnet",
+    });
+
+    let mut b = a.clone();
+    b.push(DATA_DB);
+    (a, b)
 }
 
 #[cfg(test)]
@@ -79,6 +91,6 @@ mod tests {
     #[tokio::test]
     async fn test_init() {
         let wallet_dir = testdir!();
-        init(wallet_dir, Network::TestNetwork).await.unwrap();
+        init_db(wallet_dir, Network::TestNetwork).await.unwrap();
     }
 }

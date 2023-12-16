@@ -3,7 +3,7 @@ use tokio::runtime::Runtime;
 use zcash_primitives::consensus::Network;
 
 use crate::{
-    backend_client::sync, backing_store::init, error::Error, grpc::destroy_channel,
+    backend_client::sync, backing_store::init_db, error::Error, grpc::destroy_channel,
     lightclient::get_block_height,
 };
 
@@ -170,7 +170,7 @@ pub struct SyncResult {
 
 pub fn lightwallet_init(wallet_dir: String, network: ChainType) -> Result<(), LightWalletError> {
     RT.block_on(async move {
-        init(
+        init_db(
             wallet_dir,
             match network {
                 ChainType::Mainnet => Network::MainNetwork,

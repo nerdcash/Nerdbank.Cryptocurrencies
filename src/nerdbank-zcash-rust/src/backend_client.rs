@@ -297,7 +297,7 @@ fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result
 
 #[cfg(test)]
 mod tests {
-    use crate::{backing_store::init, test_constants::TESTNET_LIGHTSERVER_ECC_URI};
+    use crate::{backing_store::init_db, test_constants::TESTNET_LIGHTSERVER_ECC_URI};
     use testdir::testdir;
 
     use super::*;
@@ -309,7 +309,7 @@ mod tests {
     #[tokio::test]
     async fn test_sync() {
         let wallet_dir = testdir!();
-        init(&wallet_dir, Network::TestNetwork).await.unwrap();
+        init_db(&wallet_dir, Network::TestNetwork).await.unwrap();
         let result = sync(LIGHTSERVER_URI.to_owned(), wallet_dir).await.unwrap();
         println!("result: {:?}", result);
     }
