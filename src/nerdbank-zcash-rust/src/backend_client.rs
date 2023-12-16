@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::Path;
 
 use tokio::{fs::File, io::AsyncWriteExt};
 
@@ -11,12 +8,7 @@ use prost::Message;
 use tonic::transport::Channel;
 use tracing::{debug, info};
 use uniffi::deps::anyhow;
-use zcash_client_sqlite::{
-    chain::{init::init_blockmeta_db, BlockMeta},
-    error::SqliteClientError,
-    wallet::init::init_wallet_db,
-    FsBlockDb, FsBlockDbError, WalletDb,
-};
+use zcash_client_sqlite::{chain::BlockMeta, error::SqliteClientError, FsBlockDbError, WalletDb};
 use zcash_primitives::{
     consensus::{BlockHeight, Network, Parameters},
     merkle_tree::HashSer,
@@ -33,42 +25,17 @@ use zcash_client_backend::{
     proto::service::{self, LightdInfo},
 };
 
-use crate::{error::Error, grpc::get_client, interop::SyncResult};
+use crate::{
+    backing_store::{get_db, BlockCache, Db},
+    error::Error,
+    grpc::get_client,
+    interop::SyncResult,
+};
 
 type ChainError =
     zcash_client_backend::data_api::chain::error::Error<SqliteClientError, FsBlockDbError>;
 
-const DATA_DB: &str = "data.sqlite";
-const BLOCKS_FOLDER: &str = "blocks";
 const BATCH_SIZE: u32 = 10_000;
-
-fn get_db_paths<P: AsRef<Path>>(wallet_dir: P, network: Network) -> (PathBuf, PathBuf) {
-    let mut a = wallet_dir.as_ref().to_owned();
-    a.push(match network {
-        Network::MainNetwork => "mainnet",
-        Network::TestNetwork => "testnet",
-    });
-
-    let mut b = a.clone();
-    b.push(DATA_DB);
-    (a, b)
-}
-
-fn get_block_path(fsblockdb_root: &Path, meta: &BlockMeta) -> PathBuf {
-    meta.block_file_path(&fsblockdb_root.join(BLOCKS_FOLDER))
-}
-
-pub async fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<(), Error> {
-    let (db_cache, db_data) = get_db_paths(wallet_dir, network);
-    fs::create_dir_all(&db_cache)?;
-    let mut db_cache = FsBlockDb::for_path(db_cache)?;
-    let mut db_data = WalletDb::for_path(db_data, network)?;
-
-    init_blockmeta_db(&mut db_cache)?;
-    init_wallet_db(&mut db_data, None)?;
-
-    Ok(())
-}
 
 fn parse_network(info: LightdInfo) -> Result<Network, Error> {
     match info.chain_name.as_str() {
@@ -89,14 +56,11 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
         .into_inner();
     let network = parse_network(info)?;
 
-    let (db_cache_path, db_data) = get_db_paths(wallet_dir, network);
-    let db_cache_path = db_cache_path.as_path();
-    let mut db_cache = FsBlockDb::for_path(db_cache_path)?;
-    let mut db_data = WalletDb::for_path(db_data, network)?;
+    let mut db = get_db(wallet_dir, network)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
-    update_subtree_roots(&mut client, &mut db_data).await?;
+    update_subtree_roots(&mut client, &mut db.data).await?;
 
     loop {
         // 3) Download chain tip metadata from lightwalletd
@@ -109,10 +73,10 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
             .map_err(|e| Error::InternalError(format!("Invalid block height: {}", e)))?;
 
         // 4) Notify the wallet of the updated chain tip.
-        db_data.update_chain_tip(tip_height)?;
+        db.data.update_chain_tip(tip_height)?;
 
         // 5) Get the suggested scan ranges from the wallet database
-        let mut scan_ranges = db_data.suggest_scan_ranges()?;
+        let mut scan_ranges = db.data.suggest_scan_ranges()?;
 
         // 6) Run the following loop until the wallet's view of the chain tip as of the previous wallet
         //    session is valid.
@@ -123,19 +87,13 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download the blocks in `scan_range` into the block source, overwriting any
                     // existing blocks in this range.
-                    download_blocks(&mut client, db_cache_path, &mut db_cache, scan_range).await?;
+                    download_blocks(&mut client, &db.blocks, scan_range).await?;
 
                     // Scan the downloaded blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if scan_blocks(
-                        &network,
-                        db_cache_path,
-                        &mut db_cache,
-                        &mut db_data,
-                        scan_range,
-                    )? {
+                    if scan_blocks(&network, &mut db, scan_range)? {
                         // The suggested scan ranges have been updated, so we re-request.
-                        scan_ranges = db_data.suggest_scan_ranges()?;
+                        scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
                         // At this point, the cache and scanned data are locally
                         // consistent (though not necessarily consistent with the
@@ -162,7 +120,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
         // appropriate, and for ranges with priority `Historic` it can be useful to download and
         // scan the range in reverse order (to discover more recent unspent notes sooner), or from
         // the start and end of the range inwards.
-        let scan_ranges = db_data.suggest_scan_ranges()?;
+        let scan_ranges = db.data.suggest_scan_ranges()?;
         debug!("Suggested ranges: {:?}", scan_ranges);
         let mut loop_around = false;
         for scan_range in scan_ranges.into_iter().flat_map(|r| {
@@ -183,16 +141,10 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
             })
         }) {
             // Download the blocks in `scan_range` into the block source.
-            download_blocks(&mut client, db_cache_path, &mut db_cache, &scan_range).await?;
+            download_blocks(&mut client, &db.blocks, &scan_range).await?;
 
             // Scan the downloaded blocks.
-            if scan_blocks(
-                &network,
-                db_cache_path,
-                &mut db_cache,
-                &mut db_data,
-                &scan_range,
-            )? {
+            if scan_blocks(&network, &mut db, &scan_range)? {
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
                 loop_around = true;
@@ -236,8 +188,7 @@ async fn update_subtree_roots<P: Parameters>(
 
 async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
-    fsblockdb_root: &Path,
-    db_cache: &FsBlockDb,
+    block_cache: &BlockCache,
     scan_range: &ScanRange,
 ) -> Result<(), Error> {
     info!("Fetching {}", scan_range);
@@ -272,7 +223,7 @@ async fn download_blocks(
             };
 
             let encoded = block.encode_to_vec();
-            let mut block_file = File::create(get_block_path(&fsblockdb_root, &meta)).await?;
+            let mut block_file = File::create(block_cache.block_path(&meta)).await?;
             block_file.write_all(&encoded).await?;
 
             Ok(meta)
@@ -280,7 +231,7 @@ async fn download_blocks(
         .try_collect::<Vec<_>>()
         .await?;
 
-    db_cache.write_block_metadata(&block_meta)?;
+    block_cache.blockmeta.write_block_metadata(&block_meta)?;
 
     Ok(())
 }
@@ -289,17 +240,11 @@ async fn download_blocks(
 /// chain tip is out of sync with blockchain history.
 ///
 /// Returns `true` if scanning these blocks materially changed the suggested scan ranges.
-fn scan_blocks<P: Parameters + Send + 'static>(
-    network: &Network,
-    db_cache_path: &Path,
-    db_cache: &mut FsBlockDb,
-    db_data: &mut WalletDb<rusqlite::Connection, P>,
-    scan_range: &ScanRange,
-) -> Result<bool, Error> {
+fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result<bool, Error> {
     let scan_result = scan_cached_blocks(
         network,
-        db_cache,
-        db_data,
+        &mut db.blocks.blockmeta,
+        &mut db.data,
         scan_range.block_range().start,
         scan_range.len(),
     );
@@ -310,7 +255,7 @@ fn scan_blocks<P: Parameters + Send + 'static>(
         Ok(_) => {
             // If scanning these blocks caused a suggested range to be added that has a
             // higher priority than the current range, invalidate the current ranges.
-            let latest_ranges = db_data.suggest_scan_ranges()?;
+            let latest_ranges = db.data.suggest_scan_ranges()?;
 
             Ok(if let Some(range) = latest_ranges.first() {
                 range.priority() > scan_range.priority()
@@ -331,27 +276,29 @@ fn scan_blocks<P: Parameters + Send + 'static>(
             );
 
             // Rewind to the chosen height.
-            db_data.truncate_to_height(rewind_height)?;
+            db.data.truncate_to_height(rewind_height)?;
 
             // Delete cached blocks from rewind_height onwards.
             //
             // This does imply that assumed-valid blocks will be re-downloaded, but it
             // is also possible that in the intervening time, a chain reorg has
             // occurred that orphaned some of those blocks.
-            db_cache.with_blocks(Some(rewind_height + 1), None, |block| {
-                let meta = BlockMeta {
-                    height: block.height(),
-                    block_hash: block.hash(),
-                    block_time: block.time,
-                    // These values don't matter for deletion.
-                    sapling_outputs_count: 0,
-                    orchard_actions_count: 0,
-                };
-                std::fs::remove_file(get_block_path(db_cache_path, &meta))
-                    .map_err(|e| ChainError::BlockSource(FsBlockDbError::Fs(e)))
-            })?;
+            db.blocks
+                .blockmeta
+                .with_blocks(Some(rewind_height + 1), None, |block| {
+                    let meta = BlockMeta {
+                        height: block.height(),
+                        block_hash: block.hash(),
+                        block_time: block.time,
+                        // These values don't matter for deletion.
+                        sapling_outputs_count: 0,
+                        orchard_actions_count: 0,
+                    };
+                    std::fs::remove_file(db.blocks.block_path(&meta))
+                        .map_err(|e| ChainError::BlockSource(FsBlockDbError::Fs(e)))
+                })?;
 
-            db_cache.truncate_to_height(rewind_height)?;
+            db.blocks.blockmeta.truncate_to_height(rewind_height)?;
 
             Ok(true)
         }
@@ -361,7 +308,8 @@ fn scan_blocks<P: Parameters + Send + 'static>(
 
 #[cfg(test)]
 mod tests {
-    use crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI;
+    use crate::{backing_store::init, test_constants::TESTNET_LIGHTSERVER_ECC_URI};
+    use testdir::testdir;
 
     use super::*;
 
@@ -370,15 +318,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_init() {
-        let wallet_dir = Path::new("c:\\temp\\testwallet");
-        init(wallet_dir, Network::TestNetwork).await.unwrap();
-    }
-
-    #[tokio::test]
     async fn test_sync() {
-        let wallet_dir = Path::new("c:\\temp\\testwallet.sync");
-        init(wallet_dir, Network::TestNetwork).await.unwrap();
+        let wallet_dir = testdir!();
+        init(&wallet_dir, Network::TestNetwork).await.unwrap();
         let result = sync(LIGHTSERVER_URI.to_owned(), wallet_dir).await.unwrap();
         println!("result: {:?}", result);
     }

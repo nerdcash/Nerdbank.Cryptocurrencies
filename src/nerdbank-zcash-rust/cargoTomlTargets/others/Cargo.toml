@@ -37,3 +37,6 @@ zcash_client_sqlite = { version = "0.8", features = [
 	"unstable",
 	"transparent-inputs",
 ] }
+
+[dev-dependencies]
+testdir = "0.9.1"
