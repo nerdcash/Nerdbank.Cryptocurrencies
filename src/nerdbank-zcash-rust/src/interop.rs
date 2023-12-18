@@ -16,6 +16,15 @@ pub enum ChainType {
     Testnet,
 }
 
+impl From<ChainType> for Network {
+    fn from(chain_type: ChainType) -> Self {
+        match chain_type {
+            ChainType::Mainnet => Network::MainNetwork,
+            ChainType::Testnet => Network::TestNetwork,
+        }
+    }
+}
+
 pub struct WalletInfo {
     pub ufvk: Option<String>,
     pub unified_spending_key: Option<Vec<u8>>,
@@ -167,14 +176,7 @@ pub struct SyncResult {
 
 pub fn lightwallet_init(wallet_dir: String, network: ChainType) -> Result<(), LightWalletError> {
     RT.block_on(async move {
-        init_db(
-            wallet_dir,
-            match network {
-                ChainType::Mainnet => Network::MainNetwork,
-                ChainType::Testnet => Network::TestNetwork,
-            },
-        )
-        .await?;
+        init_db(wallet_dir, network.into()).await?;
         Ok(())
     })
 }
