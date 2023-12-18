@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{ops::Range, path::Path};
 
 use tokio::{fs::File, io::AsyncWriteExt};
 
@@ -74,13 +74,10 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
             // the first element of the vector of suggested ranges.
             match scan_ranges.first() {
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
-                    // Download the blocks in `scan_range` into the block source, overwriting any
-                    // existing blocks in this range.
-                    download_blocks(&mut client, &db.blocks, scan_range).await?;
-
-                    // Scan the downloaded blocks and check for scanning errors that indicate that the wallet's chain tip
+                    // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if scan_blocks(&network, &mut db, scan_range)? {
+                    if download_and_scan_blocks(&mut client, &scan_range, &network, &mut db).await?
+                    {
                         // The suggested scan ranges have been updated, so we re-request.
                         scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
@@ -129,11 +126,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
                 }
             })
         }) {
-            // Download the blocks in `scan_range` into the block source.
-            download_blocks(&mut client, &db.blocks, &scan_range).await?;
-
-            // Scan the downloaded blocks.
-            if scan_blocks(&network, &mut db, &scan_range)? {
+            if download_and_scan_blocks(&mut client, &scan_range, &network, &mut db).await? {
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
                 loop_around = true;
@@ -173,6 +166,25 @@ async fn update_subtree_roots<P: Parameters>(
     db_data.put_sapling_subtree_roots(0, &roots)?;
 
     Ok(())
+}
+
+async fn download_and_scan_blocks(
+    client: &mut CompactTxStreamerClient<Channel>,
+    scan_range: &ScanRange,
+    network: &Network,
+    db: &mut Db,
+) -> Result<bool, Error> {
+    // Download the blocks in `scan_range` into the block source, overwriting any
+    // existing blocks in this range.
+    download_blocks(client, &db.blocks, scan_range).await?;
+
+    // Scan the downloaded blocks.
+    let result = scan_blocks(&network, db, scan_range)?;
+
+    // Now that they've been scanned, we presumably don't need them any more.
+    delete_blocks(&db.blocks, scan_range.block_range())?;
+
+    Ok(result)
 }
 
 async fn download_blocks(
@@ -222,6 +234,26 @@ async fn download_blocks(
 
     block_cache.blockmeta.write_block_metadata(&block_meta)?;
 
+    Ok(())
+}
+
+/// Removes the full compact block data for the given scan range from the block cache.
+fn delete_blocks(blocks: &BlockCache, block_range: &Range<BlockHeight>) -> Result<(), Error> {
+    let limit = u32::from(block_range.end.saturating_sub(u32::from(block_range.start))) as usize;
+    blocks
+        .blockmeta
+        .with_blocks(Some(block_range.start), Some(limit), |block| {
+            let meta = BlockMeta {
+                height: block.height(),
+                block_hash: block.hash(),
+                block_time: block.time,
+                // These values don't matter for deletion.
+                sapling_outputs_count: 0,
+                orchard_actions_count: 0,
+            };
+            std::fs::remove_file(blocks.block_path(&meta))
+                .map_err(|e| ChainError::BlockSource(FsBlockDbError::Fs(e)))
+        })?;
     Ok(())
 }
 
