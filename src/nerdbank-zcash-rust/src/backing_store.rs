@@ -4,8 +4,15 @@ use std::{
 };
 
 use rusqlite::Connection;
+use secrecy::SecretVec;
+use tonic::transport::Channel;
+use zcash_client_backend::{
+    data_api::{AccountBirthday, WalletWrite},
+    keys::UnifiedSpendingKey,
+    proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
+};
 use zcash_client_sqlite::{wallet::init::init_wallet_db, WalletDb};
-use zcash_primitives::consensus::Network;
+use zcash_primitives::{consensus::Network, zip32::AccountId};
 
 use crate::{block_source::BlockCache, error::Error};
 
@@ -16,16 +23,39 @@ pub(crate) struct Db {
     pub(crate) blocks: BlockCache,
 }
 
-/// Initializes the database for the given wallet, creating it if it does not exist,
-/// or upgrading its schema if it already exists and is out of date.
-/// This should be used the first time a wallet is opened in each session (or at least the first time ever, and once after each software upgrade).
-pub(crate) async fn init_db<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
-    get_db_internal(wallet_dir, network, true)
-}
+impl Db {
+    /// Initializes the database for the given wallet, creating it if it does not exist,
+    /// or upgrading its schema if it already exists and is out of date.
+    /// This should be used the first time a wallet is opened in each session (or at least the first time ever, and once after each software upgrade).
+    pub(crate) async fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
+        get_db_internal(wallet_dir, network, true)
+    }
 
-/// Opens the database for the given wallet. An error will result if it does not already exist.
-pub(crate) fn get_db<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
-    get_db_internal(wallet_dir, network, false)
+    /// Opens the database for the given wallet. An error will result if it does not already exist.
+    pub(crate) fn load<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
+        get_db_internal(wallet_dir, network, false)
+    }
+
+    pub(crate) async fn add_account(
+        &mut self,
+        seed: &SecretVec<u8>,
+        birthday: u64,
+        client: &mut CompactTxStreamerClient<Channel>,
+    ) -> Result<(AccountId, UnifiedSpendingKey), Error> {
+        // Construct an `AccountBirthday` for the account's birthday.
+        let birthday = {
+            // Fetch the tree state corresponding to the last block prior to the wallet's
+            // birthday height. NOTE: THIS APPROACH LEAKS THE BIRTHDAY TO THE SERVER!
+            let request = service::BlockId {
+                height: birthday - 1,
+                ..Default::default()
+            };
+            let treestate = client.get_tree_state(request).await?.into_inner();
+            AccountBirthday::from_treestate(treestate, None)?
+        };
+
+        Ok(self.data.create_account(seed, birthday)?)
+    }
 }
 
 fn get_db_internal<P: AsRef<Path>>(
@@ -70,6 +100,6 @@ mod tests {
     #[tokio::test]
     async fn test_init() {
         let wallet_dir = testdir!();
-        init_db(wallet_dir, Network::TestNetwork).await.unwrap();
+        Db::init(wallet_dir, Network::TestNetwork).await.unwrap();
     }
 }

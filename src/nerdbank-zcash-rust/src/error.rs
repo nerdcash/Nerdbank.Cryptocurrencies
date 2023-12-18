@@ -1,6 +1,9 @@
 use schemer::MigratorError;
 use uniffi::deps::anyhow;
-use zcash_client_backend::{data_api::chain::error::Error as ChainError, scanning::ScanError};
+use zcash_client_backend::{
+    data_api::{chain::error::Error as ChainError, BirthdayError},
+    scanning::ScanError,
+};
 use zcash_client_sqlite::{error::SqliteClientError, wallet::init::WalletMigrationError};
 
 use crate::block_source::BlockCacheError;
@@ -36,6 +39,8 @@ pub enum Error {
 
     WalletMigratorError(MigratorError<WalletMigrationError>),
 
+    InvalidHeight,
+
     Anyhow(anyhow::Error),
 }
 
@@ -58,6 +63,15 @@ impl From<ChainError<SqliteClientError, BlockCacheError>> for Error {
 impl From<tonic::Status> for Error {
     fn from(e: tonic::Status) -> Self {
         Error::TonicStatus(e)
+    }
+}
+
+impl From<BirthdayError> for Error {
+    fn from(e: BirthdayError) -> Self {
+        match e {
+            BirthdayError::Decode(e) => Error::IoError(e),
+            BirthdayError::HeightInvalid(_) => Error::InvalidHeight,
+        }
     }
 }
 

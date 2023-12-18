@@ -22,7 +22,7 @@ use zcash_client_backend::{
 };
 
 use crate::{
-    backing_store::{get_db, Db},
+    backing_store::Db,
     block_source::{BlockCache, BlockCacheError},
     error::Error,
     grpc::get_client,
@@ -43,7 +43,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
         .into_inner();
     let network = parse_network(info)?;
 
-    let mut db = get_db(wallet_dir, network)?;
+    let mut db = Db::load(wallet_dir, network)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
@@ -269,8 +269,11 @@ fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result
 
 #[cfg(test)]
 mod tests {
-    use crate::{backing_store::init_db, test_constants::TESTNET_LIGHTSERVER_ECC_URI};
+    use crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI;
+    use secrecy::SecretVec;
     use testdir::testdir;
+    use zcash_primitives::zip339::{Count, Mnemonic};
+    use zeroize::Zeroize;
 
     use super::*;
 
@@ -281,7 +284,26 @@ mod tests {
     #[tokio::test]
     async fn test_sync() {
         let wallet_dir = testdir!();
-        init_db(&wallet_dir, Network::TestNetwork).await.unwrap();
+        let mut db = Db::init(&wallet_dir, Network::TestNetwork).await.unwrap();
+
+        let seed = {
+            let mnemonic = Mnemonic::generate(Count::Words24);
+            let mut seed = mnemonic.to_seed("");
+            let secret = seed.to_vec();
+            seed.zeroize();
+            SecretVec::new(secret)
+        };
+        let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
+        let birthday = client
+            .get_latest_block(service::ChainSpec::default())
+            .await
+            .unwrap()
+            .into_inner()
+            .height
+            .saturating_sub(100);
+
+        db.add_account(&seed, birthday, &mut client).await.unwrap();
+
         let result = sync(LIGHTSERVER_URI.to_owned(), wallet_dir).await.unwrap();
         println!("result: {:?}", result);
     }
