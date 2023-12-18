@@ -5,6 +5,7 @@ extern crate lazy_static;
 
 mod backend_client;
 mod backing_store;
+mod block_source;
 mod error;
 mod grpc;
 mod interop;

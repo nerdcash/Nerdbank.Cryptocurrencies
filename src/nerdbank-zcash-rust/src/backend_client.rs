@@ -1,14 +1,11 @@
-use std::{ops::Range, path::Path};
-
-use tokio::{fs::File, io::AsyncWriteExt};
+use std::path::Path;
 
 use futures_util::TryStreamExt;
 use http::Uri;
-use prost::Message;
 use tonic::transport::Channel;
 use tracing::{debug, info};
 use uniffi::deps::anyhow;
-use zcash_client_sqlite::{chain::BlockMeta, error::SqliteClientError, FsBlockDbError, WalletDb};
+use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
 use zcash_primitives::{
     consensus::{BlockHeight, Network, Parameters},
     merkle_tree::HashSer,
@@ -17,7 +14,7 @@ use zcash_primitives::{
 
 use zcash_client_backend::{
     data_api::{
-        chain::{scan_cached_blocks, BlockSource, CommitmentTreeRoot},
+        chain::{scan_cached_blocks, CommitmentTreeRoot},
         scanning::{ScanPriority, ScanRange},
         WalletCommitmentTrees, WalletRead, WalletWrite,
     },
@@ -25,7 +22,8 @@ use zcash_client_backend::{
 };
 
 use crate::{
-    backing_store::{get_db, BlockCache, Db},
+    backing_store::{get_db, Db},
+    block_source::{BlockCache, BlockCacheError},
     error::Error,
     grpc::get_client,
     interop::SyncResult,
@@ -33,7 +31,7 @@ use crate::{
 };
 
 type ChainError =
-    zcash_client_backend::data_api::chain::error::Error<SqliteClientError, FsBlockDbError>;
+    zcash_client_backend::data_api::chain::error::Error<SqliteClientError, BlockCacheError>;
 
 const BATCH_SIZE: u32 = 10_000;
 
@@ -176,20 +174,20 @@ async fn download_and_scan_blocks(
 ) -> Result<bool, Error> {
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
-    download_blocks(client, &db.blocks, scan_range).await?;
+    download_blocks(client, &mut db.blocks, scan_range).await?;
 
     // Scan the downloaded blocks.
     let result = scan_blocks(&network, db, scan_range)?;
 
-    // Now that they've been scanned, we presumably don't need them any more.
-    delete_blocks(&db.blocks, scan_range.block_range())?;
+    // Now that they've been scanned, we don't need them any more.
+    db.blocks.remove_range(scan_range.block_range());
 
     Ok(result)
 }
 
 async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
-    block_cache: &BlockCache,
+    block_cache: &mut BlockCache,
     scan_range: &ScanRange,
 ) -> Result<(), Error> {
     info!("Fetching {}", scan_range);
@@ -201,59 +199,16 @@ async fn download_blocks(
         start: Some(start),
         end: Some(end),
     };
-    let block_meta = client
+    let compact_blocks = client
         .get_block_range(range)
         .await
         .map_err(anyhow::Error::from)?
         .into_inner()
-        .and_then(|block| async move {
-            let (sapling_outputs_count, orchard_actions_count) = block
-                .vtx
-                .iter()
-                .map(|tx| (tx.outputs.len() as u32, tx.actions.len() as u32))
-                .fold((0, 0), |(acc_sapling, acc_orchard), (sapling, orchard)| {
-                    (acc_sapling + sapling, acc_orchard + orchard)
-                });
-
-            let meta = BlockMeta {
-                height: block.height(),
-                block_hash: block.hash(),
-                block_time: block.time,
-                sapling_outputs_count,
-                orchard_actions_count,
-            };
-
-            let encoded = block.encode_to_vec();
-            let mut block_file = File::create(block_cache.block_path(&meta)).await?;
-            block_file.write_all(&encoded).await?;
-
-            Ok(meta)
-        })
         .try_collect::<Vec<_>>()
         .await?;
 
-    block_cache.blockmeta.write_block_metadata(&block_meta)?;
+    block_cache.insert_range(compact_blocks);
 
-    Ok(())
-}
-
-/// Removes the full compact block data for the given scan range from the block cache.
-fn delete_blocks(blocks: &BlockCache, block_range: &Range<BlockHeight>) -> Result<(), Error> {
-    let limit = u32::from(block_range.end.saturating_sub(u32::from(block_range.start))) as usize;
-    blocks
-        .blockmeta
-        .with_blocks(Some(block_range.start), Some(limit), |block| {
-            let meta = BlockMeta {
-                height: block.height(),
-                block_hash: block.hash(),
-                block_time: block.time,
-                // These values don't matter for deletion.
-                sapling_outputs_count: 0,
-                orchard_actions_count: 0,
-            };
-            std::fs::remove_file(blocks.block_path(&meta))
-                .map_err(|e| ChainError::BlockSource(FsBlockDbError::Fs(e)))
-        })?;
     Ok(())
 }
 
@@ -264,7 +219,7 @@ fn delete_blocks(blocks: &BlockCache, block_range: &Range<BlockHeight>) -> Resul
 fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result<bool, Error> {
     let scan_result = scan_cached_blocks(
         network,
-        &mut db.blocks.blockmeta,
+        &mut db.blocks,
         &mut db.data,
         scan_range.block_range().start,
         scan_range.len(),
@@ -304,22 +259,7 @@ fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result
             // This does imply that assumed-valid blocks will be re-downloaded, but it
             // is also possible that in the intervening time, a chain reorg has
             // occurred that orphaned some of those blocks.
-            db.blocks
-                .blockmeta
-                .with_blocks(Some(rewind_height + 1), None, |block| {
-                    let meta = BlockMeta {
-                        height: block.height(),
-                        block_hash: block.hash(),
-                        block_time: block.time,
-                        // These values don't matter for deletion.
-                        sapling_outputs_count: 0,
-                        orchard_actions_count: 0,
-                    };
-                    std::fs::remove_file(db.blocks.block_path(&meta))
-                        .map_err(|e| ChainError::BlockSource(FsBlockDbError::Fs(e)))
-                })?;
-
-            db.blocks.blockmeta.truncate_to_height(rewind_height)?;
+            db.blocks.truncate_to_height(rewind_height);
 
             Ok(true)
         }

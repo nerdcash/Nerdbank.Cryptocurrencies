@@ -1,9 +1,9 @@
 use schemer::MigratorError;
 use uniffi::deps::anyhow;
 use zcash_client_backend::{data_api::chain::error::Error as ChainError, scanning::ScanError};
-use zcash_client_sqlite::{
-    error::SqliteClientError, wallet::init::WalletMigrationError, FsBlockDbError,
-};
+use zcash_client_sqlite::{error::SqliteClientError, wallet::init::WalletMigrationError};
+
+use crate::block_source::BlockCacheError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -15,7 +15,7 @@ pub enum Error {
 
     /// An error that was produced by the underlying block data store in the process of validation
     /// or scanning.
-    BlockSource(FsBlockDbError),
+    BlockSource(BlockCacheError),
 
     /// A block that was received violated rules related to chain continuity or contained note
     /// commitments that could not be reconciled with the note commitment tree(s) maintained by the
@@ -23,8 +23,6 @@ pub enum Error {
     Scan(ScanError),
 
     TonicStatus(tonic::Status),
-
-    FsBlockDbError(FsBlockDbError),
 
     IoError(std::io::Error),
 
@@ -47,8 +45,8 @@ impl From<tonic::transport::Error> for Error {
     }
 }
 
-impl From<ChainError<SqliteClientError, FsBlockDbError>> for Error {
-    fn from(e: ChainError<SqliteClientError, FsBlockDbError>) -> Self {
+impl From<ChainError<SqliteClientError, BlockCacheError>> for Error {
+    fn from(e: ChainError<SqliteClientError, BlockCacheError>) -> Self {
         match e {
             ChainError::Wallet(e) => Error::Wallet(e),
             ChainError::BlockSource(e) => Error::BlockSource(e),
@@ -63,9 +61,9 @@ impl From<tonic::Status> for Error {
     }
 }
 
-impl From<FsBlockDbError> for Error {
-    fn from(e: FsBlockDbError) -> Self {
-        Error::FsBlockDbError(e)
+impl From<BlockCacheError> for Error {
+    fn from(e: BlockCacheError) -> Self {
+        Error::BlockSource(e)
     }
 }
 

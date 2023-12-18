@@ -4,34 +4,16 @@ use std::{
 };
 
 use rusqlite::Connection;
-use zcash_client_sqlite::{
-    chain::{init::init_blockmeta_db, BlockMeta},
-    wallet::init::init_wallet_db,
-    FsBlockDb, WalletDb,
-};
+use zcash_client_sqlite::{wallet::init::init_wallet_db, WalletDb};
 use zcash_primitives::consensus::Network;
 
-use crate::error::Error;
+use crate::{block_source::BlockCache, error::Error};
 
 const DATA_DB: &str = "data.sqlite";
-const BLOCKS_FOLDER: &str = "blocks"; // This must match what zcash_client_sqlite
 
 pub(crate) struct Db {
     pub(crate) data: WalletDb<Connection, Network>,
     pub(crate) blocks: BlockCache,
-}
-
-pub(crate) struct BlockCache {
-    pub(crate) blockmeta: FsBlockDb,
-	/// The path to the directory containing compact blocks.
-    path: PathBuf,
-}
-
-impl BlockCache {
-    /// Gets the path to the file that contains an individual block.
-    pub(crate) fn block_path(&self, meta: &BlockMeta) -> PathBuf {
-        meta.block_file_path(&self.path)
-    }
 }
 
 /// Initializes the database for the given wallet, creating it if it does not exist,
@@ -51,27 +33,23 @@ fn get_db_internal<P: AsRef<Path>>(
     network: Network,
     init: bool,
 ) -> Result<Db, Error> {
-    let (cache_path, data_path) = get_db_paths(wallet_dir, network);
+    let (data_dir, data_file) = get_db_paths(wallet_dir, network);
     if init {
-        fs::create_dir_all(&cache_path)?;
+        fs::create_dir_all(&data_dir)?;
     }
-    let mut blocks = FsBlockDb::for_path(&cache_path)?;
-    let mut data = WalletDb::for_path(data_path, network)?;
+    let mut data = WalletDb::for_path(data_file, network)?;
 
     if init {
-        init_blockmeta_db(&mut blocks)?;
         init_wallet_db(&mut data, None)?;
     }
 
     Ok(Db {
         data,
-        blocks: BlockCache {
-            blockmeta: blocks,
-            path: cache_path.join(BLOCKS_FOLDER),
-        },
+        blocks: BlockCache::new(),
     })
 }
 
+/// Gets the path to the directory containing the db file, and the path to the db file itself.
 fn get_db_paths<P: AsRef<Path>>(wallet_dir: P, network: Network) -> (PathBuf, PathBuf) {
     let mut a = wallet_dir.as_ref().to_owned();
     a.push(match network {
