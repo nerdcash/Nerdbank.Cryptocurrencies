@@ -27,7 +27,7 @@ impl Db {
     /// Initializes the database for the given wallet, creating it if it does not exist,
     /// or upgrading its schema if it already exists and is out of date.
     /// This should be used the first time a wallet is opened in each session (or at least the first time ever, and once after each software upgrade).
-    pub(crate) async fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
+    pub(crate) fn init<P: AsRef<Path>>(wallet_dir: P, network: Network) -> Result<Db, Error> {
         get_db_internal(wallet_dir, network, true)
     }
 
@@ -100,6 +100,6 @@ mod tests {
     #[tokio::test]
     async fn test_init() {
         let wallet_dir = testdir!();
-        Db::init(wallet_dir, Network::TestNetwork).await.unwrap();
+        Db::init(wallet_dir, Network::TestNetwork).unwrap();
     }
 }

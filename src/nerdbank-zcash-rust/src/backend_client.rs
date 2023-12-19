@@ -41,7 +41,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
         .get_lightd_info(service::Empty {})
         .await?
         .into_inner();
-    let network = parse_network(info)?;
+    let network = parse_network(&info)?;
 
     let mut db = Db::load(wallet_dir, network)?;
 
@@ -269,22 +269,34 @@ fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result
 
 #[cfg(test)]
 mod tests {
-    use crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI;
     use secrecy::SecretVec;
     use testdir::testdir;
-    use zcash_primitives::zip339::{Count, Mnemonic};
+    use zcash_primitives::{
+        transaction::components::Amount,
+        zip339::{Count, Mnemonic},
+    };
     use zeroize::Zeroize;
+
+    use crate::test_constants::MIN_CONFIRMATIONS;
 
     use super::*;
 
     lazy_static! {
-        static ref LIGHTSERVER_URI: Uri = TESTNET_LIGHTSERVER_ECC_URI.to_owned();
+        static ref LIGHTSERVER_URI: Uri =
+            crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
     }
 
     #[tokio::test]
     async fn test_sync() {
         let wallet_dir = testdir!();
-        let mut db = Db::init(&wallet_dir, Network::TestNetwork).await.unwrap();
+        let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
+        let server_info = client
+            .get_lightd_info(service::Empty {})
+            .await
+            .unwrap()
+            .into_inner();
+        let network = parse_network(&server_info).unwrap();
+        let mut db = Db::init(&wallet_dir, network).unwrap();
 
         let seed = {
             let mnemonic = Mnemonic::generate(Count::Words24);
@@ -293,18 +305,47 @@ mod tests {
             seed.zeroize();
             SecretVec::new(secret)
         };
-        let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
-        let birthday = client
-            .get_latest_block(service::ChainSpec::default())
-            .await
-            .unwrap()
-            .into_inner()
-            .height
-            .saturating_sub(100);
 
-        db.add_account(&seed, birthday, &mut client).await.unwrap();
+        let birthday = server_info.block_height.saturating_sub(100);
+
+        // Adding two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
+        let account_ids = [
+            db.add_account(&seed, birthday, &mut client).await.unwrap(),
+            db.add_account(&seed, birthday, &mut client).await.unwrap(),
+        ]
+        .map(|a| a.0);
 
         let result = sync(LIGHTSERVER_URI.to_owned(), wallet_dir).await.unwrap();
-        println!("result: {:?}", result);
+
+        println!("Tip: {:?}", result.tip_height);
+
+        if let Some(summary) = db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
+            for id in account_ids {
+                println!("Account index: {}", u32::from(id));
+                let b = summary.account_balances().get(&id).unwrap();
+                println!(
+                    "Sapling balance: {}",
+                    format_zec(Amount::from(b.sapling_balance.spendable_value))
+                );
+                println!("Transparent balance: {}", format_zec(b.unshielded));
+            }
+        } else {
+            println!("No summary found");
+        }
+    }
+
+    const COIN: u64 = 1_0000_0000;
+
+    fn format_zec(value: impl Into<Amount>) -> String {
+        let value = i64::from(value.into());
+        let abs_value = value.unsigned_abs();
+        let abs_zec = abs_value / COIN;
+        let frac = abs_value % COIN;
+        let zec = if value.is_negative() {
+            -(abs_zec as i64)
+        } else {
+            abs_zec as i64
+        };
+        format!("{:3}.{:08} ZEC", zec, frac)
     }
 }

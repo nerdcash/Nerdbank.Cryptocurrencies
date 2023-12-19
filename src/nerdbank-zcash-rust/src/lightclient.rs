@@ -14,7 +14,7 @@ pub async fn get_block_height(uri: Uri) -> Result<u64, Error> {
     Ok(response.block_height)
 }
 
-pub(crate) fn parse_network(info: LightdInfo) -> Result<Network, Error> {
+pub(crate) fn parse_network(info: &LightdInfo) -> Result<Network, Error> {
     match info.chain_name.as_str() {
         "main" => Ok(Network::MainNetwork),
         "test" => Ok(Network::TestNetwork),

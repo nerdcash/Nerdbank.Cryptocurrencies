@@ -176,7 +176,7 @@ pub struct SyncResult {
 
 pub fn lightwallet_init(wallet_dir: String, network: ChainType) -> Result<(), LightWalletError> {
     RT.block_on(async move {
-        Db::init(wallet_dir, network.into()).await?;
+        Db::init(wallet_dir, network.into())?;
         Ok(())
     })
 }
