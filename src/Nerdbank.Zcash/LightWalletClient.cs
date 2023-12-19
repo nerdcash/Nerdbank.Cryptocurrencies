@@ -143,7 +143,7 @@ public partial class LightWalletClient : IDisposable
 	/// <returns>A list of transactions.</returns>
 	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
 	{
-		return LightWalletMethods.LightwalletGetTransactions(this.dbinit, startingBlock)
+		return LightWalletMethods.LightwalletGetTransactions(this.dbinit, 1, startingBlock)
 			.Select(t => CreateTransaction(t, this.Network))
 			.OrderBy(t => t.When)
 			.ToList();
@@ -204,7 +204,7 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="d">The uniffi data to copy from.</param>
 	private static SendItem CreateSendItem(TransactionSendDetail d)
-		=> new(ZcashAddress.Decode(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray())) { RecipientUA = d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Decode(d.recipientUa) };
+		=> new(ZcashAddress.Decode(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray()));
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RecvItem"/> class.
@@ -228,7 +228,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	/// <param name="network">The network this transaction is on.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
-		=> new(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => CreateSendItem(s)).ToImmutableArray(), t.saplingNotes.Select(s => CreateRecvItem(s, network)).Concat(t.orchardNotes.Select(o => CreateRecvItem(o, network))).ToImmutableArray(), t.isIncoming);
+		=> new(t.txid, t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), t.outgoing.Select(s => CreateSendItem(s)).ToImmutableArray(), t.incomingSapling.Select(s => CreateRecvItem(s, network)).Concat(t.incomingOrchard.Select(o => CreateRecvItem(o, network))).ToImmutableArray());
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{

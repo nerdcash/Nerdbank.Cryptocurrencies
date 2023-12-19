@@ -1146,7 +1146,7 @@ class FfiConverterTypeSyncResult: FfiConverterRustBuffer<SyncResult> {
 
 public record Transaction (
     byte[] @txid, 
-    DateTime @datetime, 
+    DateTime @blockTime, 
     uint? @minedHeight, 
     bool @expiredUnmined, 
     ulong @accountBalanceDelta, 
@@ -1154,9 +1154,9 @@ public record Transaction (
     ulong @received, 
     ulong @fee, 
     double? @price, 
-    List<TransactionSendDetail> @sends, 
-    List<SaplingNote> @saplingNotes, 
-    List<OrchardNote> @orchardNotes
+    List<TransactionSendDetail> @outgoing, 
+    List<SaplingNote> @incomingSapling, 
+    List<OrchardNote> @incomingOrchard
 ) {
 }
 
@@ -1183,7 +1183,7 @@ class FfiConverterTypeTransaction: FfiConverterRustBuffer<Transaction> {
     public override int AllocationSize(Transaction value) {
         return
             FfiConverterByteArray.INSTANCE.AllocationSize(value.@txid) +
-            FfiConverterTimestamp.INSTANCE.AllocationSize(value.@datetime) +
+            FfiConverterTimestamp.INSTANCE.AllocationSize(value.@blockTime) +
             FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@minedHeight) +
             FfiConverterBoolean.INSTANCE.AllocationSize(value.@expiredUnmined) +
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@accountBalanceDelta) +
@@ -1191,14 +1191,14 @@ class FfiConverterTypeTransaction: FfiConverterRustBuffer<Transaction> {
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@received) +
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@fee) +
             FfiConverterOptionalDouble.INSTANCE.AllocationSize(value.@price) +
-            FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.AllocationSize(value.@sends) +
-            FfiConverterSequenceTypeSaplingNote.INSTANCE.AllocationSize(value.@saplingNotes) +
-            FfiConverterSequenceTypeOrchardNote.INSTANCE.AllocationSize(value.@orchardNotes);
+            FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.AllocationSize(value.@outgoing) +
+            FfiConverterSequenceTypeSaplingNote.INSTANCE.AllocationSize(value.@incomingSapling) +
+            FfiConverterSequenceTypeOrchardNote.INSTANCE.AllocationSize(value.@incomingOrchard);
     }
 
     public override void Write(Transaction value, BigEndianStream stream) {
             FfiConverterByteArray.INSTANCE.Write(value.@txid, stream);
-            FfiConverterTimestamp.INSTANCE.Write(value.@datetime, stream);
+            FfiConverterTimestamp.INSTANCE.Write(value.@blockTime, stream);
             FfiConverterOptionalUInt32.INSTANCE.Write(value.@minedHeight, stream);
             FfiConverterBoolean.INSTANCE.Write(value.@expiredUnmined, stream);
             FfiConverterUInt64.INSTANCE.Write(value.@accountBalanceDelta, stream);
@@ -1206,9 +1206,9 @@ class FfiConverterTypeTransaction: FfiConverterRustBuffer<Transaction> {
             FfiConverterUInt64.INSTANCE.Write(value.@received, stream);
             FfiConverterUInt64.INSTANCE.Write(value.@fee, stream);
             FfiConverterOptionalDouble.INSTANCE.Write(value.@price, stream);
-            FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Write(value.@sends, stream);
-            FfiConverterSequenceTypeSaplingNote.INSTANCE.Write(value.@saplingNotes, stream);
-            FfiConverterSequenceTypeOrchardNote.INSTANCE.Write(value.@orchardNotes, stream);
+            FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Write(value.@outgoing, stream);
+            FfiConverterSequenceTypeSaplingNote.INSTANCE.Write(value.@incomingSapling, stream);
+            FfiConverterSequenceTypeOrchardNote.INSTANCE.Write(value.@incomingOrchard, stream);
     }
 }
 

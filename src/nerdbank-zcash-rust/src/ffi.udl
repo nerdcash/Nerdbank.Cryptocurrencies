@@ -18,7 +18,7 @@ dictionary WalletInfo {
 
 dictionary Transaction {
 	bytes txid;
-	timestamp datetime;
+	timestamp block_time;
 	u32? mined_height;
 	boolean expired_unmined;
 	u64 account_balance_delta;
@@ -26,9 +26,9 @@ dictionary Transaction {
 	u64 received;
 	u64 fee;
 	f64? price;
-	sequence<TransactionSendDetail> sends;
-	sequence<SaplingNote> sapling_notes;
-	sequence<OrchardNote> orchard_notes;
+	sequence<TransactionSendDetail> outgoing;
+	sequence<SaplingNote> incoming_sapling;
+	sequence<OrchardNote> incoming_orchard;
 };
 
 dictionary SaplingNote {

@@ -39,7 +39,7 @@ pub struct WalletInfo {
 #[derive(Debug)]
 pub struct Transaction {
     pub txid: Vec<u8>,
-    pub datetime: SystemTime,
+    pub block_time: SystemTime,
     pub mined_height: Option<u32>,
     pub expired_unmined: bool,
     pub account_balance_delta: u64,
@@ -47,9 +47,9 @@ pub struct Transaction {
     pub received: u64,
     pub fee: u64,
     pub price: Option<f64>,
-    pub sends: Vec<TransactionSendDetail>,
-    pub sapling_notes: Vec<SaplingNote>,
-    pub orchard_notes: Vec<OrchardNote>,
+    pub outgoing: Vec<TransactionSendDetail>,
+    pub incoming_sapling: Vec<SaplingNote>,
+    pub incoming_orchard: Vec<OrchardNote>,
 }
 
 #[derive(Debug)]
@@ -264,7 +264,7 @@ pub fn lightwallet_get_transactions(
                     txid: row.get::<_, Vec<u8>>("txid")?,
                     mined_height: row.get("mined_height")?,
                     expired_unmined: row.get("expired_unmined")?,
-                    datetime: time::OffsetDateTime::from_unix_timestamp(
+                    block_time: time::OffsetDateTime::from_unix_timestamp(
                         row.get::<_, i64>("block_time")?,
                     )?
                     .into(),
@@ -272,9 +272,9 @@ pub fn lightwallet_get_transactions(
                     account_balance_delta: row.get("account_balance_delta")?,
                     spent: 0,
                     received: 0,
-                    sapling_notes: Vec::new(),
-                    orchard_notes: Vec::new(),
-                    sends: Vec::new(),
+                    incoming_sapling: Vec::new(),
+                    incoming_orchard: Vec::new(),
+                    outgoing: Vec::new(),
                     price: None,
                 };
                 Ok(tx)
