@@ -32,53 +32,6 @@ public partial class LightWalletClient : IDisposable
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
 	/// </summary>
 	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
-	/// <param name="account">The account whose keys will be used with this server.</param>
-	/// <param name="walletPath">The absolute path to the directory where the wallet and log will be written.</param>
-	/// <param name="walletName">The filename of the wallet (without a path).</param>
-	/// <param name="logName">The filename of the log file (without a path).</param>
-	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
-	public LightWalletClient(Uri serverUrl, ZcashAccount account, string walletPath, string walletName, string logName, bool watchMemPool)
-	{
-		Requires.NotNull(serverUrl);
-		Requires.NotNull(account);
-
-		if (account.FullViewing is null)
-		{
-			throw new NotSupportedException("This lightwallet client does not support wallets with only incoming viewing keys.");
-		}
-
-		this.serverUrl = serverUrl;
-		this.account = account;
-		this.Network = account.Network;
-
-		Span<byte> uskBytes = stackalloc byte[500];
-		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
-		byte[]? uskBytesList = uskBytesLength == 0 ? null : uskBytes[..uskBytesLength].ToArray();
-
-		WalletInfo walletInfo = new(
-			account.Spending is null ? account.FullViewing.UnifiedKey : null,
-			uskBytesList,
-			account.BirthdayHeight ?? 0);
-
-		this.handle = new LightWalletSafeHandle(
-			unchecked((nint)LightWalletMethods.LightwalletInitialize(
-				new Config(
-					serverUrl.AbsoluteUri,
-					ToChainType(account.Network),
-					walletPath,
-					walletName,
-					logName,
-					watchMemPool,
-					MinimumConfirmations),
-				walletInfo)),
-			ownsHandle: true);
-	}
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="LightWalletClient"/> class
-	/// from an existing wallet file.
-	/// </summary>
-	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
 	/// <param name="network">The network the wallet operates on.</param>
 	/// <param name="dataFile">The path to the sqlite database to load (or create) that stores the decrypted transactions.</param>
 	public LightWalletClient(Uri serverUrl, ZcashNetwork network, string dataFile)
@@ -116,6 +69,13 @@ public partial class LightWalletClient : IDisposable
 	/// Gets the block last downloaded from the blockchain.
 	/// </summary>
 	public uint? LastDownloadHeight => LightWalletMethods.LightwalletGetSyncHeight(this.dbinit);
+
+	public void AddSpendingKey(ZcashAccount account)
+	{
+		Span<byte> uskBytes = stackalloc byte[500];
+		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
+		byte[]? uskBytesList = uskBytesLength == 0 ? null : uskBytes[..uskBytesLength].ToArray();
+	}
 
 	/// <summary>
 	/// Gets the length of the blockchain (independent of what may have been sync'd thus far.)
@@ -183,7 +143,7 @@ public partial class LightWalletClient : IDisposable
 	/// <returns>A list of transactions.</returns>
 	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
 	{
-		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock))
+		return LightWalletMethods.LightwalletGetTransactions(this.dbinit, startingBlock)
 			.Select(t => CreateTransaction(t, this.Network))
 			.OrderBy(t => t.When)
 			.ToList();

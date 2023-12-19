@@ -1,4 +1,7 @@
+use std::time::SystemTime;
+
 use http::{uri::InvalidUri, Uri};
+use rusqlite::{named_params, Connection};
 use tokio::runtime::Runtime;
 use zcash_client_backend::data_api::WalletRead;
 use zcash_client_sqlite::error::SqliteClientError;
@@ -33,15 +36,17 @@ pub struct WalletInfo {
     pub birthday_height: u64,
 }
 
+#[derive(Debug)]
 pub struct Transaction {
-    pub txid: String,
-    pub datetime: u64,
-    pub block_height: u32,
-    pub is_incoming: bool,
+    pub txid: Vec<u8>,
+    pub datetime: SystemTime,
+    pub mined_height: Option<u32>,
+    pub expired_unmined: bool,
+    pub account_balance_delta: u64,
     pub spent: u64,
     pub received: u64,
+    pub fee: u64,
     pub price: Option<f64>,
-    pub unconfirmed: bool,
     pub sends: Vec<TransactionSendDetail>,
     pub sapling_notes: Vec<SaplingNote>,
     pub orchard_notes: Vec<OrchardNote>,
@@ -91,6 +96,20 @@ impl From<InvalidUri> for LightWalletError {
 impl From<SqliteClientError> for LightWalletError {
     fn from(e: SqliteClientError) -> Self {
         LightWalletError::SqliteClientError(e)
+    }
+}
+
+impl From<rusqlite::Error> for LightWalletError {
+    fn from(e: rusqlite::Error) -> Self {
+        LightWalletError::SqliteClientError(SqliteClientError::from(e))
+    }
+}
+
+impl From<time::error::ComponentRange> for LightWalletError {
+    fn from(e: time::error::ComponentRange) -> Self {
+        LightWalletError::Other {
+            message: format!("Invalid time: {}", e),
+        }
     }
 }
 
@@ -219,6 +238,57 @@ pub fn lightwallet_get_sync_height(config: DbInit) -> Result<Option<u32>, LightW
 pub fn lightwallet_sync(config: DbInit, uri: String) -> Result<SyncResult, LightWalletError> {
     let uri: Uri = uri.parse()?;
     RT.block_on(async move { Ok(sync(uri, config.data_file).await?) })
+}
+
+pub fn lightwallet_get_transactions(
+    config: DbInit,
+    account_id: u32,
+    starting_block: u32,
+) -> Result<Vec<Transaction>, LightWalletError> {
+    RT.block_on(async move {
+        let conn = Connection::open(config.data_file)?;
+        rusqlite::vtab::array::load_module(&conn)?;
+
+        let mut stmt_txs = conn.prepare(
+            r#"
+            SELECT *
+            FROM v_transactions
+            WHERE account_id = :account_id
+"#,
+        )?;
+
+        let rows = stmt_txs.query_and_then(
+            named_params! { ":account_id": account_id },
+            |row| -> Result<Transaction, LightWalletError> {
+                let tx = Transaction {
+                    txid: row.get::<_, Vec<u8>>("txid")?,
+                    mined_height: row.get("mined_height")?,
+                    expired_unmined: row.get("expired_unmined")?,
+                    datetime: time::OffsetDateTime::from_unix_timestamp(
+                        row.get::<_, i64>("block_time")?,
+                    )?
+                    .into(),
+                    fee: row.get::<_, u64>("fee_paid")?,
+                    account_balance_delta: row.get("account_balance_delta")?,
+                    spent: 0,
+                    received: 0,
+                    sapling_notes: Vec::new(),
+                    orchard_notes: Vec::new(),
+                    sends: Vec::new(),
+                    price: None,
+                };
+                Ok(tx)
+            },
+        )?;
+
+        let mut result = Vec::new();
+        for row_result in rows {
+            let row = row_result?;
+            result.push(row);
+        }
+
+        Ok(result)
+    })
 }
 
 pub fn lightwallet_disconnect_server(uri: String) -> Result<bool, LightWalletError> {

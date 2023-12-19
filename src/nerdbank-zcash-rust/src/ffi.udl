@@ -17,14 +17,15 @@ dictionary WalletInfo {
 };
 
 dictionary Transaction {
-	string txid;
-	u64 datetime;
-	u32 block_height;
-	boolean is_incoming;
+	bytes txid;
+	timestamp datetime;
+	u32? mined_height;
+	boolean expired_unmined;
+	u64 account_balance_delta;
 	u64 spent;
 	u64 received;
+	u64 fee;
 	f64? price;
-	boolean unconfirmed;
 	sequence<TransactionSendDetail> sends;
 	sequence<SaplingNote> sapling_notes;
 	sequence<OrchardNote> orchard_notes;
@@ -93,4 +94,7 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	boolean lightwallet_disconnect_server(string uri);
+
+	[Throws=LightWalletError]
+	sequence<Transaction> lightwallet_get_transactions(DbInit config, u32 account_id, u32 starting_block);
 };

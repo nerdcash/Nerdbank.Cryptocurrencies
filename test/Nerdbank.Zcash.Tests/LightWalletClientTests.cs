@@ -71,14 +71,14 @@ public class LightWalletClientTests : TestBase, IDisposable
 	[Fact]
 	public void BirthdayHeight()
 	{
-		ulong birthdayHeight = this.client.BirthdayHeight;
+		uint? birthdayHeight = this.client.BirthdayHeight;
 		this.logger.WriteLine($"Birthday height: {birthdayHeight}");
 	}
 
 	[Fact]
 	public void LastDownloadHeight()
 	{
-		ulong lastDownloadHeight = this.client.LastDownloadHeight;
+		uint? lastDownloadHeight = this.client.LastDownloadHeight;
 		this.logger.WriteLine($"Last sync height: {lastDownloadHeight}");
 	}
 

@@ -25,6 +25,7 @@ rusqlite = "0.29"
 schemer = "0.2"
 secrecy = "0.8.0"
 thiserror = "1.0"
+time = "0.3.31"
 tracing = "0.1"
 tokio = { version = "1.32", features = ["rt", "fs", "macros", "rt-multi-thread"] }
 tonic = { version = "0.10", features = ["gzip", "tls-webpki-roots"] }
