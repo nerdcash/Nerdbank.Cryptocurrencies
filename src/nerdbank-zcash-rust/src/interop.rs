@@ -1,5 +1,7 @@
 use http::{uri::InvalidUri, Uri};
 use tokio::runtime::Runtime;
+use zcash_client_backend::data_api::WalletRead;
+use zcash_client_sqlite::error::SqliteClientError;
 use zcash_primitives::consensus::Network;
 
 use crate::{
@@ -73,6 +75,9 @@ pub enum LightWalletError {
     #[error("Invalid URI")]
     InvalidUri,
 
+    #[error("Sqlite client error")]
+    SqliteClientError(SqliteClientError),
+
     #[error("{message}")]
     Other { message: String },
 }
@@ -80,6 +85,12 @@ pub enum LightWalletError {
 impl From<InvalidUri> for LightWalletError {
     fn from(_: InvalidUri) -> Self {
         LightWalletError::InvalidUri
+    }
+}
+
+impl From<SqliteClientError> for LightWalletError {
+    fn from(e: SqliteClientError) -> Self {
+        LightWalletError::SqliteClientError(e)
     }
 }
 
@@ -174,21 +185,40 @@ pub struct SyncResult {
     pub tip_height: u64,
 }
 
-pub fn lightwallet_init(data_file: String, network: ChainType) -> Result<(), LightWalletError> {
+pub struct DbInit {
+    pub data_file: String,
+    pub network: ChainType,
+}
+
+pub fn lightwallet_init(config: DbInit) -> Result<(), LightWalletError> {
     RT.block_on(async move {
-        Db::init(data_file, network.into())?;
+        Db::init(config.data_file, config.network.into())?;
         Ok(())
     })
 }
 
-pub fn lightwallet_get_block_height(uri: String) -> Result<u64, LightWalletError> {
+pub fn lightwallet_get_birthday_height(config: DbInit) -> Result<Option<u32>, LightWalletError> {
+    RT.block_on(async move {
+        let db = Db::load(config.data_file, config.network.into())?;
+        Ok(db.data.get_wallet_birthday()?.map(|h| h.into()))
+    })
+}
+
+pub fn lightwallet_get_block_height(uri: String) -> Result<u32, LightWalletError> {
     let uri: Uri = uri.parse()?;
     RT.block_on(async move { Ok(get_block_height(uri).await?) })
 }
 
-pub fn lightwallet_sync(uri: String, wallet_dir: String) -> Result<SyncResult, LightWalletError> {
+pub fn lightwallet_get_sync_height(config: DbInit) -> Result<Option<u32>, LightWalletError> {
+    RT.block_on(async move {
+        let db = Db::load(config.data_file, config.network.into())?;
+        Ok(db.data.get_max_height_hash()?.map(|h| h.0.into()))
+    })
+}
+
+pub fn lightwallet_sync(config: DbInit, uri: String) -> Result<SyncResult, LightWalletError> {
     let uri: Uri = uri.parse()?;
-    RT.block_on(async move { Ok(sync(uri, wallet_dir).await?) })
+    RT.block_on(async move { Ok(sync(uri, config.data_file).await?) })
 }
 
 pub fn lightwallet_disconnect_server(uri: String) -> Result<bool, LightWalletError> {

@@ -1,6 +1,7 @@
 [Error]
 enum LightWalletError {
 	"InvalidUri",
+	"SqliteClientError",
 	"Other",
 };
 
@@ -69,16 +70,27 @@ dictionary SyncResult {
 	u64 tip_height;
 };
 
+dictionary DbInit {
+	string data_file;
+	ChainType network;
+};
+
 namespace LightWallet {
 	[Throws=LightWalletError]
-	void lightwallet_init(string data_file, ChainType network);
+	void lightwallet_init(DbInit config);
 
 	[Throws=LightWalletError]
-	SyncResult lightwallet_sync(string uri, string data_file);
+	u32? lightwallet_get_birthday_height(DbInit config);
+
+	[Throws=LightWalletError]
+	u32 lightwallet_get_block_height(string uri);
+
+	[Throws=LightWalletError]
+	u32? lightwallet_get_sync_height(DbInit config);
+
+	[Throws=LightWalletError]
+	SyncResult lightwallet_sync(DbInit config, string uri);
 
 	[Throws=LightWalletError]
 	boolean lightwallet_disconnect_server(string uri);
-
-	[Throws=LightWalletError]
-	u64 lightwallet_get_block_height(string uri);
 };

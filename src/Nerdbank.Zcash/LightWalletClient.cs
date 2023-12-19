@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using uniffi.LightWallet;
 using static Nerdbank.Zcash.Transaction;
 using static Nerdbank.Zcash.ZcashUtilities;
@@ -27,7 +26,7 @@ public partial class LightWalletClient : IDisposable
 
 	private readonly Uri serverUrl;
 	private readonly ZcashAccount? account;
-	private readonly LightWalletSafeHandle handle;
+	private readonly DbInit dbinit;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -81,28 +80,16 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
 	/// <param name="network">The network the wallet operates on.</param>
-	/// <param name="walletPath">The absolute path to the directory where the wallet and log will be written.</param>
-	/// <param name="walletName">The filename of the wallet (without a path).</param>
-	/// <param name="logName">The filename of the log file (without a path).</param>
-	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
-	public LightWalletClient(Uri serverUrl, ZcashNetwork network, string walletPath, string walletName, string logName, bool watchMemPool)
+	/// <param name="dataFile">The path to the sqlite database to load (or create) that stores the decrypted transactions.</param>
+	public LightWalletClient(Uri serverUrl, ZcashNetwork network, string dataFile)
 	{
 		Requires.NotNull(serverUrl);
 
+		this.dbinit = new(dataFile, ToChainType(network));
 		this.serverUrl = serverUrl;
 		this.Network = network;
 
-		this.handle = new LightWalletSafeHandle(
-			unchecked((nint)LightWalletMethods.LightwalletInitializeFromDisk(
-				new Config(
-					serverUrl.AbsoluteUri,
-					ToChainType(network),
-					walletPath,
-					walletName,
-					logName,
-					watchMemPool,
-					MinimumConfirmations))),
-			ownsHandle: true);
+		LightWalletMethods.LightwalletInit(this.dbinit);
 	}
 
 	/// <summary>
@@ -123,12 +110,12 @@ public partial class LightWalletClient : IDisposable
 	/// It serves to reduce initial sync times when this account is imported into another wallet.
 	/// </remarks>
 	/// <seealso cref="GetBirthdayHeights"/>
-	public ulong BirthdayHeight => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeight);
+	public uint? BirthdayHeight => LightWalletMethods.LightwalletGetBirthdayHeight(this.dbinit);
 
 	/// <summary>
 	/// Gets the block last downloaded from the blockchain.
 	/// </summary>
-	public ulong LastDownloadHeight => this.Interop(LightWalletMethods.LastSyncedHeight);
+	public uint? LastDownloadHeight => LightWalletMethods.LightwalletGetSyncHeight(this.dbinit);
 
 	/// <summary>
 	/// Gets the length of the blockchain (independent of what may have been sync'd thus far.)
@@ -506,21 +493,5 @@ public partial class LightWalletClient : IDisposable
 			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal, copyFrom.inProgress)
 		{
 		}
-	}
-
-	/// <summary>
-	/// A <see cref="SafeHandle"/> that contains the handle to the native lightwallet used by
-	/// an instance of <see cref="LightWalletClient"/>.
-	/// </summary>
-	private class LightWalletSafeHandle : SafeHandle
-	{
-		internal LightWalletSafeHandle(nint invalidHandleValue, bool ownsHandle)
-			: base(invalidHandleValue, ownsHandle)
-		{
-		}
-
-		public override bool IsInvalid => this.handle <= 0;
-
-		protected override bool ReleaseHandle() => LightWalletMethods.LightwalletDeinitialize((ulong)this.handle);
 	}
 }

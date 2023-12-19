@@ -5,13 +5,13 @@ use zcash_primitives::consensus::Network;
 
 /// Gets the block height from the lightwalletd server.
 /// This may not match the the latest block that has been sync'd to the wallet.
-pub async fn get_block_height(uri: Uri) -> Result<u64, Error> {
+pub async fn get_block_height(uri: Uri) -> Result<u32, Error> {
     let mut client = get_client(uri).await?;
     let response = client
         .get_lightd_info(service::Empty {})
         .await?
         .into_inner();
-    Ok(response.block_height)
+    Ok(response.block_height as u32)
 }
 
 pub(crate) fn parse_network(info: &LightdInfo) -> Result<Network, Error> {
