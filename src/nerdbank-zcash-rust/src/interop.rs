@@ -174,9 +174,9 @@ pub struct SyncResult {
     pub tip_height: u64,
 }
 
-pub fn lightwallet_init(wallet_dir: String, network: ChainType) -> Result<(), LightWalletError> {
+pub fn lightwallet_init(data_file: String, network: ChainType) -> Result<(), LightWalletError> {
     RT.block_on(async move {
-        Db::init(wallet_dir, network.into())?;
+        Db::init(data_file, network.into())?;
         Ok(())
     })
 }

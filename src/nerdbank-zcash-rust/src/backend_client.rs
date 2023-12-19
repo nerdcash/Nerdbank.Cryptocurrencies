@@ -35,7 +35,7 @@ type ChainError =
 
 const BATCH_SIZE: u32 = 10_000;
 
-pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult, Error> {
+pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, Error> {
     let mut client = get_client(uri).await?;
     let info = client
         .get_lightd_info(service::Empty {})
@@ -43,7 +43,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, wallet_dir: P) -> Result<SyncResult,
         .into_inner();
     let network = parse_network(&info)?;
 
-    let mut db = Db::load(wallet_dir, network)?;
+    let mut db = Db::load(data_file, network)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
@@ -296,7 +296,8 @@ mod tests {
             .unwrap()
             .into_inner();
         let network = parse_network(&server_info).unwrap();
-        let mut db = Db::init(&wallet_dir, network).unwrap();
+        let data_file = wallet_dir.join("wallet.sqlite");
+        let mut db = Db::init(&data_file, network).unwrap();
 
         let seed = {
             let mnemonic = Mnemonic::generate(Count::Words24);
@@ -315,7 +316,7 @@ mod tests {
         ]
         .map(|a| a.0);
 
-        let result = sync(LIGHTSERVER_URI.to_owned(), wallet_dir).await.unwrap();
+        let result = sync(LIGHTSERVER_URI.to_owned(), data_file).await.unwrap();
 
         println!("Tip: {:?}", result.tip_height);
 

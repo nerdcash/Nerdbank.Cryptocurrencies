@@ -425,11 +425,11 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern void uniffi_nerdbank_zcash_rust_fn_func_lightwallet_init(RustBuffer @walletDir,RustBuffer @network,ref RustCallStatus _uniffi_out_err
+    public static extern void uniffi_nerdbank_zcash_rust_fn_func_lightwallet_init(RustBuffer @dataFile,RustBuffer @network,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync(RustBuffer @uri,RustBuffer @walletDir,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync(RustBuffer @uri,RustBuffer @dataFile,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
@@ -704,14 +704,14 @@ static class _UniFFILib {
         }
         {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_init();
-            if (checksum != 19878) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_init` checksum `19878`, library returned `{checksum}`");
+            if (checksum != 40694) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_init` checksum `40694`, library returned `{checksum}`");
             }
         }
         {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync();
-            if (checksum != 16995) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync` checksum `16995`, library returned `{checksum}`");
+            if (checksum != 3529) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync` checksum `3529`, library returned `{checksum}`");
             }
         }
     }
@@ -1557,18 +1557,18 @@ public static class LightWalletMethods {
     }
 
     /// <exception cref="LightWalletException"></exception>
-    public static void LightwalletInit(String @walletDir, ChainType @network) {
+    public static void LightwalletInit(String @dataFile, ChainType @network) {
         
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_init(FfiConverterString.INSTANCE.Lower(@walletDir), FfiConverterTypeChainType.INSTANCE.Lower(@network), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_init(FfiConverterString.INSTANCE.Lower(@dataFile), FfiConverterTypeChainType.INSTANCE.Lower(@network), ref _status)
 );
     }
 
     /// <exception cref="LightWalletException"></exception>
-    public static SyncResult LightwalletSync(String @uri, String @walletDir) {
+    public static SyncResult LightwalletSync(String @uri, String @dataFile) {
         return FfiConverterTypeSyncResult.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync(FfiConverterString.INSTANCE.Lower(@uri), FfiConverterString.INSTANCE.Lower(@walletDir), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync(FfiConverterString.INSTANCE.Lower(@uri), FfiConverterString.INSTANCE.Lower(@dataFile), ref _status)
 ));
     }
 

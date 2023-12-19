@@ -71,10 +71,10 @@ dictionary SyncResult {
 
 namespace LightWallet {
 	[Throws=LightWalletError]
-	void lightwallet_init(string wallet_dir, ChainType network);
+	void lightwallet_init(string data_file, ChainType network);
 
 	[Throws=LightWalletError]
-	SyncResult lightwallet_sync(string uri, string wallet_dir);
+	SyncResult lightwallet_sync(string uri, string data_file);
 
 	[Throws=LightWalletError]
 	boolean lightwallet_disconnect_server(string uri);
