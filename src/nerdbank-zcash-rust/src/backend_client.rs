@@ -1,11 +1,11 @@
-use std::path::Path;
+use std::{path::Path, time::Duration};
 
 use futures_util::TryStreamExt;
 use http::Uri;
 use prost::bytes::Buf;
 use rusqlite::Connection;
 use tonic::transport::Channel;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 use uniffi::deps::anyhow;
 use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
 use zcash_primitives::{
@@ -144,7 +144,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
 
     // Download and decrypt the full transactions we found in the compact blocks
     // so we can save their memos to the database.
-    download_full_transactions(&mut client, &data_file, &mut db, &network).await?;
+    download_full_transactions(&mut client, data_file, &mut db, &network).await?;
 
     Ok(SyncResult {
         tip_height: tip_height.into(),
@@ -157,13 +157,22 @@ async fn download_full_transactions<P: AsRef<Path>>(
     db: &mut Db,
     network: &Network,
 ) -> Result<(), Error> {
-    let conn = Connection::open(data_file)?;
-    let mut stmt = conn.prepare("SELECT txid FROM transactions WHERE raw IS NULL")?;
-    let tx_downloads = stmt.query_map([], |r| r.get::<_, Vec<u8>>(0))?;
-    for txid in tx_downloads {
+    // Scope the database connection so it's closed before we use the db argument,
+    // to avoid 'database is locked' errors.
+    let txids;
+    {
+        let conn = Connection::open(data_file)?;
+        let mut stmt = conn.prepare("SELECT txid FROM transactions WHERE raw IS NULL")?;
+        txids = stmt
+            .query_map([], |r| r.get::<_, Vec<u8>>(0))?
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+    }
+
+    for txid in txids {
         let raw_tx = client
             .get_transaction(TxFilter {
-                hash: txid?,
+                hash: txid,
                 ..Default::default()
             })
             .await?
@@ -216,7 +225,19 @@ async fn download_and_scan_blocks(
 ) -> Result<bool, Error> {
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
-    download_blocks(client, &mut db.blocks, scan_range).await?;
+    for i in 0..3 {
+        let download_result = download_blocks(client, &mut db.blocks, scan_range).await;
+        if download_result.is_ok() {
+            break;
+        } else if i == 2 {
+            return Err(download_result.unwrap_err());
+        } else {
+            warn!("Failed to download blocks: {}", scan_range);
+            println!("Failed to download blocks: {}", scan_range);
+            // Wait a bit before retrying.
+            tokio::time::sleep(Duration::from_secs(2)).await;
+        }
+    }
 
     // Scan the downloaded blocks.
     let result = scan_blocks(&network, db, scan_range)?;
