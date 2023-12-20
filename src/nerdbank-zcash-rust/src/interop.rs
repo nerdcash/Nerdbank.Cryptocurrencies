@@ -253,12 +253,15 @@ pub fn lightwallet_get_transactions(
             r#"
             SELECT *
             FROM v_transactions
-            WHERE account_id = :account_id
+            WHERE account_id = :account_id AND (mined_height >= :starting_block OR mined_height IS NULL)
 "#,
         )?;
 
         let rows = stmt_txs.query_and_then(
-            named_params! { ":account_id": account_id },
+            named_params! {
+                ":account_id": account_id,
+                ":starting_block": starting_block,
+            },
             |row| -> Result<Transaction, LightWalletError> {
                 let tx = Transaction {
                     txid: row.get::<_, Vec<u8>>("txid")?,

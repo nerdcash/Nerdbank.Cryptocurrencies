@@ -2,23 +2,27 @@ use std::path::Path;
 
 use futures_util::TryStreamExt;
 use http::Uri;
+use prost::bytes::Buf;
+use rusqlite::Connection;
 use tonic::transport::Channel;
 use tracing::{debug, info};
 use uniffi::deps::anyhow;
 use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
 use zcash_primitives::{
-    consensus::{BlockHeight, Network, Parameters},
+    consensus::{BlockHeight, BranchId, Network, Parameters},
     merkle_tree::HashSer,
     sapling,
+    transaction::Transaction,
 };
 
 use zcash_client_backend::{
     data_api::{
         chain::{scan_cached_blocks, CommitmentTreeRoot},
         scanning::{ScanPriority, ScanRange},
+        wallet::decrypt_and_store_transaction,
         WalletCommitmentTrees, WalletRead, WalletWrite,
     },
-    proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
+    proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient, TxFilter},
 };
 
 use crate::{
@@ -43,15 +47,16 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
         .into_inner();
     let network = parse_network(&info)?;
 
-    let mut db = Db::load(data_file, network)?;
+    let mut db = Db::load(&data_file, network)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
     update_subtree_roots(&mut client, &mut db.data).await?;
 
+    let mut tip_height: BlockHeight;
     loop {
         // 3) Download chain tip metadata from lightwalletd
-        let tip_height: BlockHeight = client
+        tip_height = client
             .get_latest_block(service::ChainSpec::default())
             .await?
             .get_ref()
@@ -133,11 +138,48 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
         }
 
         if !loop_around {
-            return Ok(SyncResult {
-                tip_height: tip_height.into(),
-            });
+            break;
         }
     }
+
+    // Download and decrypt the full transactions we found in the compact blocks
+    // so we can save their memos to the database.
+    download_full_transactions(&mut client, &data_file, &mut db, &network).await?;
+
+    Ok(SyncResult {
+        tip_height: tip_height.into(),
+    })
+}
+
+async fn download_full_transactions<P: AsRef<Path>>(
+    client: &mut CompactTxStreamerClient<Channel>,
+    data_file: P,
+    db: &mut Db,
+    network: &Network,
+) -> Result<(), Error> {
+    let conn = Connection::open(data_file)?;
+    let mut stmt = conn.prepare("SELECT txid FROM transactions WHERE raw IS NULL")?;
+    let tx_downloads = stmt.query_map([], |r| r.get::<_, Vec<u8>>(0))?;
+    for txid in tx_downloads {
+        let raw_tx = client
+            .get_transaction(TxFilter {
+                hash: txid?,
+                ..Default::default()
+            })
+            .await?
+            .into_inner();
+
+        // The consensus branch ID passed in here does not matter:
+        // - v4 and below cache it internally, but all we do with this transaction while
+        //   it is in memory is decryption and serialization, neither of which use the
+        //   consensus branch ID.
+        // - v5 and above transactions ignore the argument, and parse the correct value
+        //   from their encoding.
+        let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
+        decrypt_and_store_transaction(network, &mut db.data, &tx)?;
+    }
+
+    Ok(())
 }
 
 async fn update_subtree_roots<P: Parameters>(
