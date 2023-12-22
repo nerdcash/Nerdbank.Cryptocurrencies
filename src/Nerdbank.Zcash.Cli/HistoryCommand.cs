@@ -49,15 +49,15 @@ internal class HistoryCommand : SyncFirstCommandBase
 		List<Transaction> txs = client.GetDownloadedTransactions(this.StartingBlock);
 		foreach (Transaction tx in txs)
 		{
-			this.Console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.BlockNumber} Txid: {tx.TransactionId}");
+			this.Console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
 			const string indentation = "                      ";
 
-			foreach (Transaction.SendItem send in tx.Sends)
+			foreach (Transaction.SendItem send in tx.Outgoing)
 			{
-				this.Console.WriteLine($"{indentation} -{send.Amount,13:N8} {send.Memo} {send.RecipientUA ?? send.ToAddress}");
+				this.Console.WriteLine($"{indentation} -{send.Amount,13:N8} {send.Memo} {send.ToAddress}");
 			}
 
-			foreach (Transaction.RecvItem recv in tx.Notes)
+			foreach (Transaction.RecvItem recv in tx.Incoming)
 			{
 				if (!recv.IsChange)
 				{
@@ -65,7 +65,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 				}
 			}
 
-			if (!tx.IsIncoming)
+			if (tx.IsOutgoing)
 			{
 				this.Console.WriteLine($"{indentation} -{tx.Fee,13:N8} transaction fee");
 			}

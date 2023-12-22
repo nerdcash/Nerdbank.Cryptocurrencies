@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
-using System.CommandLine.Parsing;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Nerdbank.Zcash.Cli;
@@ -40,9 +39,8 @@ internal abstract class WalletUserCommandBase
 	{
 		using LightWalletClient client = Utilities.ConstructLightClient(
 			this.LightWalletServerUrl,
-			this.WalletPath,
-			this.TestNet,
-			watchMemPool: false);
+			this.TestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet,
+			this.WalletPath);
 
 		client.UpdateFrequency = TimeSpan.FromSeconds(3);
 

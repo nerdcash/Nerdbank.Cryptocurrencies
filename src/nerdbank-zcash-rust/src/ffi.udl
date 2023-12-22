@@ -22,33 +22,28 @@ dictionary Transaction {
 	u32? mined_height;
 	boolean expired_unmined;
 	u64 account_balance_delta;
-	u64 spent;
-	u64 received;
 	u64 fee;
-	f64? price;
 	sequence<TransactionSendDetail> outgoing;
-	sequence<SaplingNote> incoming_sapling;
-	sequence<OrchardNote> incoming_orchard;
+	sequence<TransparentNote> incoming_transparent;
+	sequence<ShieldedNote> incoming_shielded;
 };
 
-dictionary SaplingNote {
+dictionary TransparentNote {
 	u64 value;
-	bytes memo;
-	boolean is_change;
-	bytes recipient;
+	string recipient;
 };
 
-dictionary OrchardNote {
+dictionary ShieldedNote {
 	u64 value;
 	bytes memo;
+	string recipient;
 	boolean is_change;
-	bytes recipient;
 };
 
 dictionary TransactionSendDetail {
-	string to_address;
 	u64 value;
 	bytes memo;
+	string recipient;
 };
 
 dictionary UserBalances {

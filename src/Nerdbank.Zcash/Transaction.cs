@@ -104,4 +104,15 @@ public partial record Transaction
 	/// Gets the individual received notes in this transaction.
 	/// </summary>
 	public ImmutableArray<RecvItem> Incoming { get; }
+
+	/// <summary>
+	/// Gets a value indicating whether this transaction sends funds from this account.
+	/// </summary>
+	/// <remarks>
+	/// Note this only indicates that funds were sent from this account,
+	/// not that they were sent to <em>another</em> account.
+	/// They may in fact have been sent to the same account.
+	/// But this value is useful to determine whether the <see cref="Fee"/> came out of this account.
+	/// </remarks>
+	public bool IsOutgoing => this.Outgoing.Length > 0;
 }

@@ -188,5 +188,8 @@ dotnet_diagnostic.CA1062.severity = warning
 # SA1601: Partial elements should be documented
 dotnet_diagnostic.SA1601.severity = silent
 
+# SA1010: Opening square brackets must be spaced correctly
+dotnet_diagnostic.SA1010.severity = silent # workaround StyleCop not supporting C# 12 array literals
+
 [*.sln]
 indent_style = tab

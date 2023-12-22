@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using uniffi.LightWallet;
 using static Nerdbank.Zcash.Transaction;
 using static Nerdbank.Zcash.ZcashUtilities;
@@ -25,7 +24,6 @@ public partial class LightWalletClient : IDisposable
 	public const int MinimumConfirmations = 3;
 
 	private readonly Uri serverUrl;
-	private readonly ZcashAccount? account;
 	private readonly DbInit dbinit;
 
 	/// <summary>
@@ -70,13 +68,6 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	public uint? LastDownloadHeight => LightWalletMethods.LightwalletGetSyncHeight(this.dbinit);
 
-	public void AddSpendingKey(ZcashAccount account)
-	{
-		Span<byte> uskBytes = stackalloc byte[500];
-		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
-		byte[]? uskBytesList = uskBytesLength == 0 ? null : uskBytes[..uskBytesLength].ToArray();
-	}
-
 	/// <summary>
 	/// Gets the length of the blockchain (independent of what may have been sync'd thus far.)
 	/// </summary>
@@ -84,11 +75,20 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The length of the blockchain.</returns>
 	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
-	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
+	public static ValueTask<uint> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
 		return new(Task.Run(
 			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
 			cancellationToken));
+	}
+
+	public void AddSpendingKey(ZcashAccount account)
+	{
+		Requires.NotNull(account);
+
+		Span<byte> uskBytes = stackalloc byte[500];
+		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
+		byte[]? uskBytesList = uskBytesLength == 0 ? null : uskBytes[..uskBytesLength].ToArray();
 	}
 
 	/// <summary>
@@ -101,7 +101,7 @@ public partial class LightWalletClient : IDisposable
 	public BirthdayHeights GetBirthdayHeights() => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeights);
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
-	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
+	public ValueTask<uint> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
 	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/>
 	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, cancellationToken);
@@ -160,9 +160,8 @@ public partial class LightWalletClient : IDisposable
 	{
 		Requires.NotNullOrEmpty(payments);
 
-		List<TransactionSendDetail> details = payments
-			.Select(p => new TransactionSendDetail(p.ToAddress, (ulong)(p.Amount * ZatsPerZEC), null, p.Memo.RawBytes.ToArray()))
-			.ToList();
+		List<TransactionSendDetail> details = [.. payments
+			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), p.Memo.RawBytes.ToArray(), p.ToAddress))];
 
 		return await this.InteropAsync(
 			h => LightWalletMethods.LightwalletSendToAddress(h, details),
@@ -204,23 +203,14 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="d">The uniffi data to copy from.</param>
 	private static SendItem CreateSendItem(TransactionSendDetail d)
-		=> new(ZcashAddress.Decode(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray()));
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()));
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RecvItem"/> class.
 	/// </summary>
-	/// <param name="d">The uniffi sapling note.</param>
-	/// <param name="network">The network that the transaction is on.</param>
-	private static RecvItem CreateRecvItem(SaplingNote d, ZcashNetwork network)
-		=> new(new SaplingAddress(new SaplingReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="RecvItem"/> class.
-	/// </summary>
-	/// <param name="d">The uniffi orchard note.</param>
-	/// <param name="network">The network that the transaction is on.</param>
-	private static RecvItem CreateRecvItem(OrchardNote d, ZcashNetwork network)
-		=> new(new OrchardAddress(new OrchardReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
+	/// <param name="d">The uniffi shielded note.</param>
+	private static RecvItem CreateRecvItem(ShieldedNote d)
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
@@ -228,7 +218,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	/// <param name="network">The network this transaction is on.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
-		=> new(t.txid, t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), t.outgoing.Select(s => CreateSendItem(s)).ToImmutableArray(), t.incomingSapling.Select(s => CreateRecvItem(s, network)).Concat(t.incomingOrchard.Select(o => CreateRecvItem(o, network))).ToImmutableArray());
+		=> new(t.txid, t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem)]);
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{

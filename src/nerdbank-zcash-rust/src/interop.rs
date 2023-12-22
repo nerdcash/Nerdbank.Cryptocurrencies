@@ -9,7 +9,7 @@ use zcash_primitives::consensus::Network;
 
 use crate::{
     backend_client::sync, backing_store::Db, error::Error, grpc::destroy_channel,
-    lightclient::get_block_height,
+    lightclient::get_block_height, sql_statements::GET_TRANSACTIONS_SQL,
 };
 
 lazy_static! {
@@ -43,34 +43,29 @@ pub struct Transaction {
     pub mined_height: Option<u32>,
     pub expired_unmined: bool,
     pub account_balance_delta: u64,
-    pub spent: u64,
-    pub received: u64,
     pub fee: u64,
-    pub price: Option<f64>,
     pub outgoing: Vec<TransactionSendDetail>,
-    pub incoming_sapling: Vec<SaplingNote>,
-    pub incoming_orchard: Vec<OrchardNote>,
+    pub incoming_transparent: Vec<TransparentNote>,
+    pub incoming_shielded: Vec<ShieldedNote>,
 }
 
 #[derive(Debug)]
-pub struct SaplingNote {
+pub struct TransparentNote {
     pub value: u64,
-    pub memo: Vec<u8>,
-    pub is_change: bool,
-    pub recipient: Vec<u8>,
+    pub recipient: String,
 }
 
 #[derive(Debug)]
-pub struct OrchardNote {
+pub struct ShieldedNote {
+    pub recipient: String,
     pub value: u64,
     pub memo: Vec<u8>,
     pub is_change: bool,
-    pub recipient: Vec<u8>,
 }
 
 #[derive(Debug)]
 pub struct TransactionSendDetail {
-    pub to_address: String,
+    pub recipient: String,
     pub value: u64,
     pub memo: Vec<u8>,
 }
@@ -249,13 +244,7 @@ pub fn lightwallet_get_transactions(
         let conn = Connection::open(config.data_file)?;
         rusqlite::vtab::array::load_module(&conn)?;
 
-        let mut stmt_txs = conn.prepare(
-            r#"
-            SELECT *
-            FROM v_transactions
-            WHERE account_id = :account_id AND (mined_height >= :starting_block OR mined_height IS NULL)
-"#,
-        )?;
+        let mut stmt_txs = conn.prepare(GET_TRANSACTIONS_SQL)?;
 
         let rows = stmt_txs.query_and_then(
             named_params! {
@@ -263,7 +252,16 @@ pub fn lightwallet_get_transactions(
                 ":starting_block": starting_block,
             },
             |row| -> Result<Transaction, LightWalletError> {
-                let tx = Transaction {
+                let output_pool: u32 = row.get("output_pool")?;
+                let from_account: Option<u32> = row.get("from_account")?;
+                let to_account: Option<u32> = row.get("to_account")?;
+                let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
+                let recipient: Option<String> = row.get("to_address")?;
+                let value: u64 = row.get("value")?;
+                let memo: Option<Vec<u8>> = row.get("memo")?;
+                let memo = memo.unwrap_or(Vec::new());
+
+                let mut tx = Transaction {
                     txid: row.get::<_, Vec<u8>>("txid")?,
                     mined_height: row.get("mined_height")?,
                     expired_unmined: row.get("expired_unmined")?,
@@ -273,21 +271,61 @@ pub fn lightwallet_get_transactions(
                     .into(),
                     fee: row.get::<_, u64>("fee_paid")?,
                     account_balance_delta: row.get("account_balance_delta")?,
-                    spent: 0,
-                    received: 0,
-                    incoming_sapling: Vec::new(),
-                    incoming_orchard: Vec::new(),
+                    incoming_transparent: Vec::new(),
+                    incoming_shielded: Vec::new(),
                     outgoing: Vec::new(),
-                    price: None,
                 };
+
+                if to_account == Some(account_id) {
+                    match output_pool {
+                        0 => tx.incoming_transparent.push(TransparentNote {
+                            value,
+                            recipient: recipient.clone().unwrap(),
+                        }),
+                        1..=3 => tx.incoming_shielded.push(ShieldedNote {
+                            value,
+                            memo: memo.clone(),
+                            recipient: recipient.clone().unwrap(), // TODO: this will fail because recipient is NULL. Reconstruct from diversifier.
+                            is_change: false,
+                        }),
+                        _ => {
+                            return Err(LightWalletError::Other {
+                                message: format!("Unsupported output pool value {}.", output_pool),
+                            });
+                        }
+                    }
+                };
+
+                if from_account == Some(account_id) && recipient.is_some() {
+                    tx.outgoing.push(TransactionSendDetail {
+                        recipient: recipient.unwrap(),
+                        memo,
+                        value,
+                    });
+                }
+
                 Ok(tx)
             },
         )?;
 
-        let mut result = Vec::new();
+        let mut result: Vec<Transaction> = Vec::new();
         for row_result in rows {
-            let row = row_result?;
-            result.push(row);
+            let mut row = row_result?;
+
+            let last = result.last();
+            let add = last.is_some() && last.unwrap().txid.eq(&row.txid);
+            if add {
+                // This row adds line items to the last transaction.
+                // Pop it off the list to change it, then we'll add it back.
+                let mut tx = result.pop().unwrap();
+                tx.incoming_transparent
+                    .append(&mut row.incoming_transparent);
+                tx.incoming_shielded.append(&mut row.incoming_shielded);
+                tx.outgoing.append(&mut row.outgoing);
+                result.push(tx);
+            } else {
+                result.push(row);
+            }
         }
 
         Ok(result)
