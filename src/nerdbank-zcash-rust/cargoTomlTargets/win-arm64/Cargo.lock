@@ -1314,6 +1314,7 @@ dependencies = [
  "tonic",
  "tracing",
  "uniffi",
+ "zcash_address",
  "zcash_client_backend",
  "zcash_client_sqlite",
  "zcash_primitives",
