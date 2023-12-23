@@ -30,6 +30,7 @@ tracing = "0.1"
 tokio = { version = "1.32", features = ["rt", "fs", "macros", "rt-multi-thread"] }
 tonic = { version = "0.10", features = ["gzip", "tls-webpki-roots"] }
 uniffi = "0.25"
+zcash_address = "0.3"
 zcash_primitives = "0.13"
 zcash_client_backend = { version = "0.10", features = [
 	"test-dependencies",

@@ -3,9 +3,13 @@ use std::time::SystemTime;
 use http::{uri::InvalidUri, Uri};
 use rusqlite::{named_params, Connection};
 use tokio::runtime::Runtime;
-use zcash_client_backend::data_api::WalletRead;
+use zcash_address::TryFromRawAddress;
+use zcash_client_backend::{
+    address::{RecipientAddress, UnifiedAddress},
+    data_api::WalletRead,
+};
 use zcash_client_sqlite::error::SqliteClientError;
-use zcash_primitives::consensus::Network;
+use zcash_primitives::{consensus::Network, zip32::AccountId};
 
 use crate::{
     backend_client::sync, backing_store::Db, error::Error, grpc::destroy_channel,
@@ -241,6 +245,11 @@ pub fn lightwallet_get_transactions(
     starting_block: u32,
 ) -> Result<Vec<Transaction>, LightWalletError> {
     RT.block_on(async move {
+        let network: Network = config.network.into();
+        let db = Db::load(config.data_file.clone(), network)?;
+        let ufvkeys = db.data.get_unified_full_viewing_keys()?;
+        let ufvk = ufvkeys.get(&AccountId::from(account_id));
+
         let conn = Connection::open(config.data_file)?;
         rusqlite::vtab::array::load_module(&conn)?;
 
@@ -255,11 +264,57 @@ pub fn lightwallet_get_transactions(
                 let output_pool: u32 = row.get("output_pool")?;
                 let from_account: Option<u32> = row.get("from_account")?;
                 let to_account: Option<u32> = row.get("to_account")?;
-                let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
-                let recipient: Option<String> = row.get("to_address")?;
+                let mut recipient: Option<String> = row.get("to_address")?;
                 let value: u64 = row.get("value")?;
                 let memo: Option<Vec<u8>> = row.get("memo")?;
                 let memo = memo.unwrap_or(Vec::new());
+
+                // Work out the receiving address when the sqlite db doesn't record it
+                // but we have a diversifier that can regenerate it.
+                if recipient.is_none() {
+                    let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
+                    if let Some(diversifier) = diversifier {
+                        recipient = match output_pool {
+                            2 => ufvk
+                                .map(|k| {
+                                    k.sapling().map(|s| {
+                                        s.diversified_address(
+                                            zcash_primitives::sapling::Diversifier(
+                                                diversifier.try_into().unwrap(),
+                                            ),
+                                        )
+                                        .map(|a| {
+                                            RecipientAddress::try_from_raw_sapling(a.to_bytes())
+                                                .unwrap()
+                                                .encode(&network)
+                                        })
+                                    }).flatten()
+                                })
+                                .flatten(),
+                            3 => ufvk
+                                .map(|k| {
+                                    k.orchard().map(|o| {
+                                        RecipientAddress::from(
+                                            UnifiedAddress::from_receivers(
+                                                Some(o.address(
+                                                    orchard::keys::Diversifier::from_bytes(
+                                                        diversifier.try_into().unwrap(),
+                                                    ),
+                                                    orchard::keys::Scope::External,
+                                                )),
+                                                None,
+                                                None,
+                                            )
+                                            .unwrap(),
+                                        )
+                                        .encode(&network)
+                                    })
+                                })
+                                .flatten(),
+                            _ => None,
+                        }
+                    }
+                }
 
                 let mut tx = Transaction {
                     txid: row.get::<_, Vec<u8>>("txid")?,
