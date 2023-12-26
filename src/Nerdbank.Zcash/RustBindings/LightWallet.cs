@@ -425,6 +425,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_heights(RustBuffer @config,uint @accountId,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern uint uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_block_height(RustBuffer @uri,ref RustCallStatus _uniffi_out_err
     );
 
@@ -681,6 +685,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_heights(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_block_height(
     );
 
@@ -724,6 +732,12 @@ static class _UniFFILib {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_height();
             if (checksum != 49456) {
                 throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_height` checksum `49456`, library returned `{checksum}`");
+            }
+        }
+        {
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_heights();
+            if (checksum != 64345) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_birthday_heights` checksum `64345`, library returned `{checksum}`");
             }
         }
         {
@@ -953,9 +967,9 @@ class FfiConverterTimestamp: FfiConverterRustBuffer<DateTime> {
 
 
 public record BirthdayHeights (
-    ulong @originalBirthdayHeight, 
-    ulong @birthdayHeight, 
-    ulong? @rebirthHeight
+    uint @originalBirthdayHeight, 
+    uint @birthdayHeight, 
+    uint? @rebirthHeight
 ) {
 }
 
@@ -964,23 +978,23 @@ class FfiConverterTypeBirthdayHeights: FfiConverterRustBuffer<BirthdayHeights> {
 
     public override BirthdayHeights Read(BigEndianStream stream) {
         return new BirthdayHeights(
-            FfiConverterUInt64.INSTANCE.Read(stream),
-            FfiConverterUInt64.INSTANCE.Read(stream),
-            FfiConverterOptionalUInt64.INSTANCE.Read(stream)
+            FfiConverterUInt32.INSTANCE.Read(stream),
+            FfiConverterUInt32.INSTANCE.Read(stream),
+            FfiConverterOptionalUInt32.INSTANCE.Read(stream)
         );
     }
 
     public override int AllocationSize(BirthdayHeights value) {
         return
-            FfiConverterUInt64.INSTANCE.AllocationSize(value.@originalBirthdayHeight) +
-            FfiConverterUInt64.INSTANCE.AllocationSize(value.@birthdayHeight) +
-            FfiConverterOptionalUInt64.INSTANCE.AllocationSize(value.@rebirthHeight);
+            FfiConverterUInt32.INSTANCE.AllocationSize(value.@originalBirthdayHeight) +
+            FfiConverterUInt32.INSTANCE.AllocationSize(value.@birthdayHeight) +
+            FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@rebirthHeight);
     }
 
     public override void Write(BirthdayHeights value, BigEndianStream stream) {
-            FfiConverterUInt64.INSTANCE.Write(value.@originalBirthdayHeight, stream);
-            FfiConverterUInt64.INSTANCE.Write(value.@birthdayHeight, stream);
-            FfiConverterOptionalUInt64.INSTANCE.Write(value.@rebirthHeight, stream);
+            FfiConverterUInt32.INSTANCE.Write(value.@originalBirthdayHeight, stream);
+            FfiConverterUInt32.INSTANCE.Write(value.@birthdayHeight, stream);
+            FfiConverterOptionalUInt32.INSTANCE.Write(value.@rebirthHeight, stream);
     }
 }
 
@@ -1410,37 +1424,6 @@ class FfiConverterOptionalUInt32: FfiConverterRustBuffer<uint?> {
 
 
 
-class FfiConverterOptionalUInt64: FfiConverterRustBuffer<ulong?> {
-    public static FfiConverterOptionalUInt64 INSTANCE = new FfiConverterOptionalUInt64();
-
-    public override ulong? Read(BigEndianStream stream) {
-        if (stream.ReadByte() == 0) {
-            return null;
-        }
-        return FfiConverterUInt64.INSTANCE.Read(stream);
-    }
-
-    public override int AllocationSize(ulong? value) {
-        if (value == null) {
-            return 1;
-        } else {
-            return 1 + FfiConverterUInt64.INSTANCE.AllocationSize((ulong)value);
-        }
-    }
-
-    public override void Write(ulong? value, BigEndianStream stream) {
-        if (value == null) {
-            stream.WriteByte(0);
-        } else {
-            stream.WriteByte(1);
-            FfiConverterUInt64.INSTANCE.Write((ulong)value, stream);
-        }
-    }
-}
-
-
-
-
 class FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
     public static FfiConverterOptionalString INSTANCE = new FfiConverterOptionalString();
 
@@ -1670,6 +1653,14 @@ public static class LightWalletMethods {
         return FfiConverterOptionalUInt32.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
     _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_height(FfiConverterTypeDbInit.INSTANCE.Lower(@config), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static BirthdayHeights LightwalletGetBirthdayHeights(DbInit @config, uint @accountId) {
+        return FfiConverterTypeBirthdayHeights.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_birthday_heights(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterUInt32.INSTANCE.Lower(@accountId), ref _status)
 ));
     }
 

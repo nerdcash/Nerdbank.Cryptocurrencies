@@ -57,9 +57,9 @@ dictionary UserBalances {
 };
 
 dictionary BirthdayHeights {
-	u64 original_birthday_height;
-	u64 birthday_height;
-	u64? rebirth_height;
+	u32 original_birthday_height;
+	u32 birthday_height;
+	u32? rebirth_height;
 };
 
 dictionary SyncResult {
@@ -92,4 +92,7 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	sequence<Transaction> lightwallet_get_transactions(DbInit config, u32 account_id, u32 starting_block);
+
+	[Throws=LightWalletError]
+	BirthdayHeights lightwallet_get_birthday_heights(DbInit config, u32 account_id);
 };

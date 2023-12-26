@@ -12,8 +12,12 @@ use zcash_client_sqlite::error::SqliteClientError;
 use zcash_primitives::{consensus::Network, zip32::AccountId};
 
 use crate::{
-    backend_client::sync, backing_store::Db, error::Error, grpc::destroy_channel,
-    lightclient::get_block_height, sql_statements::GET_TRANSACTIONS_SQL,
+    backend_client::sync,
+    backing_store::Db,
+    error::Error,
+    grpc::destroy_channel,
+    lightclient::get_block_height,
+    sql_statements::{GET_BIRTHDAY_HEIGHTS, GET_TRANSACTIONS_SQL},
 };
 
 lazy_static! {
@@ -127,12 +131,12 @@ pub struct BirthdayHeights {
     /// The original birthday height given at account creation if non-zero,
     /// otherwise the block number of the first transaction if any,
     /// otherwise the sapling activation height.
-    pub original_birthday_height: u64,
+    pub original_birthday_height: u32,
     /// The block number of the first transaction if any,
     /// otherwise the sapling activation height.
-    pub birthday_height: u64,
+    pub birthday_height: u32,
     /// The block number of the oldest unspent note or UTXO, if any.
-    pub rebirth_height: Option<u64>,
+    pub rebirth_height: Option<u32>,
 }
 
 /// Balances that may be presented to a user in a wallet app.
@@ -277,18 +281,20 @@ pub fn lightwallet_get_transactions(
                         recipient = match output_pool {
                             2 => ufvk
                                 .map(|k| {
-                                    k.sapling().map(|s| {
-                                        s.diversified_address(
-                                            zcash_primitives::sapling::Diversifier(
-                                                diversifier.try_into().unwrap(),
-                                            ),
-                                        )
-                                        .map(|a| {
-                                            RecipientAddress::try_from_raw_sapling(a.to_bytes())
-                                                .unwrap()
-                                                .encode(&network)
+                                    k.sapling()
+                                        .map(|s| {
+                                            s.diversified_address(
+                                                zcash_primitives::sapling::Diversifier(
+                                                    diversifier.try_into().unwrap(),
+                                                ),
+                                            )
+                                            .map(|a| {
+                                                RecipientAddress::try_from_raw_sapling(a.to_bytes())
+                                                    .unwrap()
+                                                    .encode(&network)
+                                            })
                                         })
-                                    }).flatten()
+                                        .flatten()
                                 })
                                 .flatten(),
                             3 => ufvk
@@ -384,6 +390,28 @@ pub fn lightwallet_get_transactions(
         }
 
         Ok(result)
+    })
+}
+
+pub fn lightwallet_get_birthday_heights(
+    config: DbInit,
+    account_id: u32,
+) -> Result<BirthdayHeights, LightWalletError> {
+    RT.block_on(async move {
+        let conn = Connection::open(config.data_file)?;
+        let heights = conn.query_row(
+            GET_BIRTHDAY_HEIGHTS,
+            named_params! {
+                ":account_id": account_id,
+            },
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        )?;
+
+        Ok(BirthdayHeights {
+            original_birthday_height: heights.0,
+            birthday_height: heights.1,
+            rebirth_height: heights.2,
+        })
     })
 }
 

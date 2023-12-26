@@ -25,6 +25,7 @@ public partial class LightWalletClient : IDisposable
 
 	private readonly Uri serverUrl;
 	private readonly DbInit dbinit;
+	private readonly uint accountId; // TODO: figure out what to do for this.
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -98,7 +99,7 @@ public partial class LightWalletClient : IDisposable
 	/// <remarks>
 	/// The resulting struct contains fields which may be influenced by the completeness of the sync to the blockchain.
 	/// </remarks>
-	public BirthdayHeights GetBirthdayHeights() => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeights);
+	public BirthdayHeights GetBirthdayHeights() => LightWalletMethods.LightwalletGetBirthdayHeights(this.dbinit, this.accountId);
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<uint> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
@@ -143,7 +144,7 @@ public partial class LightWalletClient : IDisposable
 	/// <returns>A list of transactions.</returns>
 	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
 	{
-		return LightWalletMethods.LightwalletGetTransactions(this.dbinit, 1, startingBlock)
+		return LightWalletMethods.LightwalletGetTransactions(this.dbinit, this.accountId, startingBlock)
 			.Select(t => CreateTransaction(t, this.Network))
 			.OrderBy(t => t.When)
 			.ToList();
