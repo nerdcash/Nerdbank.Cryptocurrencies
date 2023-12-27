@@ -175,7 +175,7 @@ public partial class LightWalletClient : IDisposable
 	/// Gets user balances.
 	/// </summary>
 	/// <returns>Pool balances.</returns>
-	public AccountBalances GetUserBalances() => new(this.Network.AsSecurity(), LightWalletMethods.LightwalletGetUserBalances(this.dbinit, this.accountId, MinimumConfirmations));
+	public AccountBalances GetBalances() => new(this.Network.AsSecurity(), LightWalletMethods.LightwalletGetUserBalances(this.dbinit, this.accountId, MinimumConfirmations));
 
 	/// <inheritdoc/>
 	public void Dispose()
@@ -305,35 +305,6 @@ public partial class LightWalletClient : IDisposable
 			inProgress = false;
 			cts.Cancel();
 		});
-	}
-
-	/// <summary>
-	/// The balances that applies to the transparent pool for a particular account.
-	/// </summary>
-	/// <param name="Balance">The pool balance.</param>
-	public record struct TransparentPoolBalance(decimal Balance);
-
-	/// <summary>
-	/// The balances that apply to a single shielded pool for a particular account.
-	/// </summary>
-	/// <param name="Balance">The pool balance.</param>
-	/// <param name="VerifiedBalance">The verified balance.</param>
-	/// <param name="UnverifiedBalance">The unverified balance.</param>
-	/// <param name="SpendableBalance">The spendable balance.</param>
-	public record struct ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> class
-		/// with balances given in ZATs.
-		/// </summary>
-		/// <param name="balance"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='Balance']"/></param>
-		/// <param name="verified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='VerifiedBalance']"/></param>
-		/// <param name="unverified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='UnverifiedBalance']"/></param>
-		/// <param name="spendable"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='SpendableBalance']"/></param>
-		public ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable)
-			: this(ZatsToZEC(balance), ZatsToZEC(verified), ZatsToZEC(unverified), ZatsToZEC(spendable))
-		{
-		}
 	}
 
 	/// <summary>

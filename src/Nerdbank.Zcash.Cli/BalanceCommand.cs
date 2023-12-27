@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -40,39 +41,30 @@ internal class BalanceCommand : SyncFirstCommandBase
 			return exitCode;
 		}
 
-		LightWalletClient.PoolBalances poolBalances = client.GetPoolBalances();
+		AccountBalances userBalances = client.GetBalances();
 
-		if (poolBalances.Transparent.HasValue)
+		(string, SecurityAmount)[] lines = [
+			("Balance", userBalances.MainBalance),
+			("Spendable", userBalances.Spendable),
+			("Immature change", userBalances.ImmatureChange),
+			("Minimum fees", userBalances.MinimumFees),
+			("Immature income", userBalances.ImmatureIncome),
+			("Dust", userBalances.Dust),
+			("Incoming", userBalances.Incoming),
+			("Incoming dust", userBalances.IncomingDust),
+		];
+
+		int captionWidth = lines.Max(l => l.Item1.Length);
+		foreach ((string caption, SecurityAmount amount) in lines)
 		{
-			PrintTransparentPoolBalances(poolBalances.Transparent.Value);
+			PrintLine(caption, amount);
 		}
 
-		if (poolBalances.Sapling is not null)
+		void PrintLine(string caption, SecurityAmount amount)
 		{
-			PrintShieldedPoolBalances("Sapling", poolBalances.Sapling.Value);
-		}
-
-		if (poolBalances.Orchard is not null)
-		{
-			PrintShieldedPoolBalances("Orchard", poolBalances.Orchard.Value);
-		}
-
-		void PrintShieldedPoolBalances(string poolName, LightWalletClient.ShieldedPoolBalance pool)
-		{
-			PrintLine($"{poolName}", pool.Balance);
-			PrintLine($"{poolName} verified", pool.VerifiedBalance);
-			PrintLine($"{poolName} unverified", pool.UnverifiedBalance);
-			PrintLine($"{poolName} spendable", pool.SpendableBalance);
-		}
-
-		void PrintTransparentPoolBalances(LightWalletClient.TransparentPoolBalance pool)
-		{
-			PrintLine("Transparent", pool.Balance);
-		}
-
-		void PrintLine(string caption, decimal amount)
-		{
-			this.Console.WriteLine($"{caption,-20} {amount,14:F8}");
+			this.Console.Write(caption.PadRight(captionWidth));
+			this.Console.Write(" ");
+			this.Console.WriteLine(amount.ToString());
 		}
 
 		return 0;
