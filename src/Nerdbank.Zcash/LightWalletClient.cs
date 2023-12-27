@@ -180,7 +180,6 @@ public partial class LightWalletClient : IDisposable
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		this.handle.Dispose();
 	}
 
 	private static ChainType ToChainType(ZcashNetwork network)
@@ -220,62 +219,6 @@ public partial class LightWalletClient : IDisposable
 		using (this.TrackProgress(progress, checkProgress))
 		{
 			return await this.InteropAsync(func, cancellationToken).ConfigureAwait(false);
-		}
-	}
-
-	private ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
-	{
-		bool refAdded = false;
-		try
-		{
-			this.handle.DangerousAddRef(ref refAdded);
-			return new(Task.Run(
-				delegate
-				{
-					return func((ulong)this.handle.DangerousGetHandle());
-				},
-				cancellationToken));
-		}
-		finally
-		{
-			if (refAdded)
-			{
-				this.handle.DangerousRelease();
-			}
-		}
-	}
-
-	private T Interop<T>(Func<ulong, T> func)
-	{
-		bool refAdded = false;
-		try
-		{
-			this.handle.DangerousAddRef(ref refAdded);
-			return func((ulong)this.handle.DangerousGetHandle());
-		}
-		finally
-		{
-			if (refAdded)
-			{
-				this.handle.DangerousRelease();
-			}
-		}
-	}
-
-	private void Interop(Action<ulong> func)
-	{
-		bool refAdded = false;
-		try
-		{
-			this.handle.DangerousAddRef(ref refAdded);
-			func((ulong)this.handle.DangerousGetHandle());
-		}
-		finally
-		{
-			if (refAdded)
-			{
-				this.handle.DangerousRelease();
-			}
 		}
 	}
 

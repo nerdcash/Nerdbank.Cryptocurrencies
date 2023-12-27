@@ -1083,7 +1083,7 @@ class FfiConverterTypeShieldedNote: FfiConverterRustBuffer<ShieldedNote> {
 
 
 public record SyncResult (
-    ulong @tipHeight
+    ulong @latestBlock
 ) {
 }
 
@@ -1098,11 +1098,11 @@ class FfiConverterTypeSyncResult: FfiConverterRustBuffer<SyncResult> {
 
     public override int AllocationSize(SyncResult value) {
         return
-            FfiConverterUInt64.INSTANCE.AllocationSize(value.@tipHeight);
+            FfiConverterUInt64.INSTANCE.AllocationSize(value.@latestBlock);
     }
 
     public override void Write(SyncResult value, BigEndianStream stream) {
-            FfiConverterUInt64.INSTANCE.Write(value.@tipHeight, stream);
+            FfiConverterUInt64.INSTANCE.Write(value.@latestBlock, stream);
     }
 }
 

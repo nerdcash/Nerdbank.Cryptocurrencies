@@ -147,7 +147,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
     download_full_transactions(&mut client, data_file, &mut db, &network).await?;
 
     Ok(SyncResult {
-        tip_height: tip_height.into(),
+        latest_block: tip_height.into(),
     })
 }
 
@@ -381,7 +381,7 @@ mod tests {
 
         let result = sync(LIGHTSERVER_URI.to_owned(), data_file).await.unwrap();
 
-        println!("Tip: {:?}", result.tip_height);
+        println!("Tip: {:?}", result.latest_block);
 
         if let Some(summary) = db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
             for id in account_ids {

@@ -63,7 +63,7 @@ dictionary BirthdayHeights {
 };
 
 dictionary SyncResult {
-	u64 tip_height;
+	u64 latest_block;
 };
 
 dictionary DbInit {

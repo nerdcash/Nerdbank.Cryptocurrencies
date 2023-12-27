@@ -130,7 +130,7 @@ impl From<Error> for LightWalletError {
 
 #[derive(Debug, Clone)]
 pub struct SyncResult {
-    pub tip_height: u64,
+    pub latest_block: u64,
 }
 
 pub struct DbInit {
