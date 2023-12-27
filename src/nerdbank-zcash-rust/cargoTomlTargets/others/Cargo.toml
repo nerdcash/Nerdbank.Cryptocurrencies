@@ -27,13 +27,19 @@ secrecy = "0.8.0"
 thiserror = "1.0"
 time = "0.3.31"
 tracing = "0.1"
-tokio = { version = "1.32", features = ["rt", "fs", "macros", "rt-multi-thread"] }
+tokio = { version = "1.32", features = [
+	"rt",
+	"fs",
+	"macros",
+	"rt-multi-thread",
+] }
 tonic = { version = "0.10", features = ["gzip", "tls-webpki-roots"] }
 uniffi = "0.25"
 zcash_address = "0.3"
-zcash_primitives = "0.13"
+zcash_primitives = { version = "0.13", features = ["transparent-inputs"] }
 zcash_client_backend = { version = "0.10", features = [
 	"test-dependencies",
+	"transparent-inputs",
 	"lightwalletd-tonic",
 ] }
 zcash_client_sqlite = { version = "0.8", features = [
