@@ -41,6 +41,11 @@ pub enum Error {
 
     InvalidHeight,
 
+    /// The wallet has not been synced to the chain yet, and thus has no data with which to formulate a response.
+    SyncFirst,
+
+    InvalidArgument(String),
+
     Anyhow(anyhow::Error),
 }
 

@@ -172,16 +172,10 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// Gets pool balances.
-	/// </summary>
-	/// <returns>Pool balances.</returns>
-	public PoolBalances GetPoolBalances() => new(this.Interop(LightWalletMethods.LightwalletGetBalances));
-
-	/// <summary>
 	/// Gets user balances.
 	/// </summary>
 	/// <returns>Pool balances.</returns>
-	public AccountBalances GetUserBalances() => new(this.Network.AsSecurity(), this.Interop(LightWalletMethods.LightwalletGetUserBalances));
+	public AccountBalances GetUserBalances() => new(this.Network.AsSecurity(), LightWalletMethods.LightwalletGetUserBalances(this.dbinit, this.accountId, MinimumConfirmations));
 
 	/// <inheritdoc/>
 	public void Dispose()
@@ -338,27 +332,6 @@ public partial class LightWalletClient : IDisposable
 		/// <param name="spendable"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='SpendableBalance']"/></param>
 		public ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable)
 			: this(ZatsToZEC(balance), ZatsToZEC(verified), ZatsToZEC(unverified), ZatsToZEC(spendable))
-		{
-		}
-	}
-
-	/// <summary>
-	/// The balance across all pools for a Zcash account.
-	/// </summary>
-	/// <param name="Transparent">The transparent balance.</param>
-	/// <param name="Sapling">The sapling balance.</param>
-	/// <param name="Orchard">The orchard balance.</param>
-	public record struct PoolBalances(TransparentPoolBalance? Transparent, ShieldedPoolBalance? Sapling, ShieldedPoolBalance? Orchard)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="PoolBalances"/> class.
-		/// </summary>
-		/// <param name="balances">The balances as they come from the interop layer.</param>
-		internal PoolBalances(uniffi.LightWallet.PoolBalances balances)
-			: this(
-				Requires.NotNull(balances).transparentBalance.HasValue ? new(ZatsToZEC(balances.transparentBalance!.Value)) : null,
-				balances.saplingBalance.HasValue ? new(balances.saplingBalance.Value, balances.verifiedSaplingBalance!.Value, balances.unverifiedSaplingBalance!.Value, balances.spendableSaplingBalance!.Value) : null,
-				balances.orchardBalance.HasValue ? new(balances.orchardBalance.Value, balances.verifiedOrchardBalance!.Value, balances.unverifiedOrchardBalance!.Value, balances.spendableOrchardBalance!.Value) : null)
 		{
 		}
 	}

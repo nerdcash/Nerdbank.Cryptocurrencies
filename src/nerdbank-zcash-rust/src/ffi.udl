@@ -94,5 +94,8 @@ namespace LightWallet {
 	sequence<Transaction> lightwallet_get_transactions(DbInit config, u32 account_id, u32 starting_block);
 
 	[Throws=LightWalletError]
+	UserBalances lightwallet_get_user_balances(DbInit config, u32 account_id, u32 min_confirmations);
+
+	[Throws=LightWalletError]
 	BirthdayHeights lightwallet_get_birthday_heights(DbInit config, u32 account_id);
 };

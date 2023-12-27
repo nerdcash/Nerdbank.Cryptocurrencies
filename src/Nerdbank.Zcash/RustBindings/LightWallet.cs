@@ -441,6 +441,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_user_balances(RustBuffer @config,uint @accountId,uint @minConfirmations,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern void uniffi_nerdbank_zcash_rust_fn_func_lightwallet_init(RustBuffer @config,ref RustCallStatus _uniffi_out_err
     );
 
@@ -701,6 +705,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_user_balances(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_init(
     );
 
@@ -756,6 +764,12 @@ static class _UniFFILib {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_transactions();
             if (checksum != 2922) {
                 throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_transactions` checksum `2922`, library returned `{checksum}`");
+            }
+        }
+        {
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_user_balances();
+            if (checksum != 7160) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_get_user_balances` checksum `7160`, library returned `{checksum}`");
             }
         }
         {
@@ -1685,6 +1699,14 @@ public static class LightWalletMethods {
         return FfiConverterSequenceTypeTransaction.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
     _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_transactions(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterUInt32.INSTANCE.Lower(@accountId), FfiConverterUInt32.INSTANCE.Lower(@startingBlock), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static UserBalances LightwalletGetUserBalances(DbInit @config, uint @accountId, uint @minConfirmations) {
+        return FfiConverterTypeUserBalances.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_get_user_balances(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterUInt32.INSTANCE.Lower(@accountId), FfiConverterUInt32.INSTANCE.Lower(@minConfirmations), ref _status)
 ));
     }
 
