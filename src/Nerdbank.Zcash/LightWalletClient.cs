@@ -26,6 +26,7 @@ public partial class LightWalletClient : IDisposable
 	private readonly Uri serverUrl;
 	private readonly DbInit dbinit;
 	private readonly uint accountId; // TODO: figure out what to do for this.
+	private readonly ZcashAccount account;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -123,15 +124,8 @@ public partial class LightWalletClient : IDisposable
 	/// <returns>A task with the result of the scan.</returns>
 	public async Task<SyncResult> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, CancellationToken cancellationToken)
 	{
-		using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
-		{
-			this.Interop(h => LightWalletMethods.LightwalletSyncInterrupt(h));
-		});
-
-		uniffi.LightWallet.SyncResult result = await this.InteropAsync(
-			LightWalletMethods.LightwalletSync,
-			progress,
-			h => new SyncProgress(LightWalletMethods.LightwalletSyncStatus(h)),
+		uniffi.LightWallet.SyncResult result = await Task.Run(
+			() => LightWalletMethods.LightwalletSync(this.dbinit, this.serverUrl.AbsoluteUri),
 			cancellationToken).ConfigureAwait(false);
 
 		return new SyncResult(result);
@@ -164,10 +158,17 @@ public partial class LightWalletClient : IDisposable
 		List<TransactionSendDetail> details = [.. payments
 			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), p.Memo.RawBytes.ToArray(), p.ToAddress))];
 
-		return await this.InteropAsync(
-			h => TxId.Parse(LightWalletMethods.LightwalletSendToAddress(h, details)),
-			progress,
-			h => new SendProgress(LightWalletMethods.LightwalletSendCheckStatus(h)),
+		UnifiedSpendingKey usk = this.account.Spending?.UnifiedKey ?? throw new InvalidOperationException("No spending key.");
+		byte[] uskBytes = new byte[500];
+		int len = usk.ToBytes(uskBytes);
+		uskBytes = uskBytes[..len];
+
+		return await Task.Run(
+			delegate
+			{
+				SendTransactionResult result = LightWalletMethods.LightwalletSend(this.dbinit, this.serverUrl.AbsoluteUri, uskBytes, MinimumConfirmations, details);
+				return new TxId(result.txid);
+			},
 			cancellationToken).ConfigureAwait(false);
 	}
 
@@ -213,42 +214,6 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="network">The network this transaction is on.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
 		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem)]);
-
-	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
-	{
-		using (this.TrackProgress(progress, checkProgress))
-		{
-			return await this.InteropAsync(func, cancellationToken).ConfigureAwait(false);
-		}
-	}
-
-	private IDisposable? TrackProgress<T>(IProgress<T>? progress, Func<ulong, T> fetchProgress)
-	{
-		if (progress is null)
-		{
-			return null;
-		}
-
-		CancellationTokenSource cts = new();
-		bool inProgress = true;
-
-		// Set up a timer by which we will check on progress and report back.
-		_ = Task.Run(async delegate
-		{
-			while (inProgress)
-			{
-				await Task.Delay(this.UpdateFrequency, cts.Token).ConfigureAwait(false);
-				T status = this.Interop(fetchProgress);
-				progress.Report(status);
-			}
-		});
-
-		return new DisposableAction(delegate
-		{
-			inProgress = false;
-			cts.Cancel();
-		});
-	}
 
 	/// <summary>
 	/// Carries details of a progress update on a send operation.

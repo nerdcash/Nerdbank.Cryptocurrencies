@@ -13,6 +13,7 @@ mod interop;
 mod lightclient;
 mod orchard;
 mod sapling;
+mod send;
 mod sql_statements;
 
 #[cfg(test)]
@@ -23,6 +24,6 @@ use interop::{
     lightwallet_disconnect_server, lightwallet_get_birthday_height,
     lightwallet_get_birthday_heights, lightwallet_get_block_height, lightwallet_get_sync_height,
     lightwallet_get_transactions, lightwallet_get_user_balances, lightwallet_init,
-    lightwallet_sync, ChainType, DbInit, LightWalletError, ShieldedNote, SyncResult, Transaction,
-    TransactionSendDetail, TransparentNote, WalletInfo,
+    lightwallet_send, lightwallet_sync, ChainType, DbInit, LightWalletError, SendTransactionResult,
+    ShieldedNote, SyncResult, Transaction, TransactionSendDetail, TransparentNote, WalletInfo,
 };

@@ -7,6 +7,7 @@ use zcash_address::TryFromRawAddress;
 use zcash_client_backend::{
     address::{RecipientAddress, UnifiedAddress},
     data_api::WalletRead,
+    keys::{Era, UnifiedSpendingKey},
 };
 use zcash_client_sqlite::error::SqliteClientError;
 use zcash_primitives::{consensus::Network, zip32::AccountId};
@@ -18,6 +19,7 @@ use crate::{
     error::Error,
     grpc::destroy_channel,
     lightclient::get_block_height,
+    send::send_transaction,
     sql_statements::GET_TRANSACTIONS_SQL,
 };
 
@@ -76,11 +78,14 @@ pub struct ShieldedNote {
 pub struct TransactionSendDetail {
     pub recipient: String,
     pub value: u64,
-    pub memo: Vec<u8>,
+    pub memo: Option<Vec<u8>>,
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum LightWalletError {
+    #[error("Invalid argument: {message}")]
+    InvalidArgument { message: String },
+
     #[error("Invalid URI")]
     InvalidUri,
 
@@ -286,7 +291,7 @@ pub fn lightwallet_get_transactions(
                 if from_account == Some(account_id) && recipient.is_some() {
                     tx.outgoing.push(TransactionSendDetail {
                         recipient: recipient.unwrap(),
-                        memo,
+                        memo: Some(memo),
                         value,
                     });
                 }
@@ -342,4 +347,39 @@ pub fn lightwallet_get_user_balances(
 pub fn lightwallet_disconnect_server(uri: String) -> Result<bool, LightWalletError> {
     let uri: Uri = uri.parse()?;
     RT.block_on(async move { Ok(destroy_channel(uri)) })
+}
+
+pub struct SendTransactionResult {
+    pub txid: Vec<u8>,
+}
+
+pub fn lightwallet_send(
+    config: DbInit,
+    uri: String,
+    usk: Vec<u8>,
+    min_confirmations: u32,
+    send_details: Vec<TransactionSendDetail>,
+) -> Result<SendTransactionResult, LightWalletError> {
+    let uri: Uri = uri.parse()?;
+    let usk = UnifiedSpendingKey::from_bytes(Era::Orchard, &usk).map_err(|_| {
+        LightWalletError::InvalidArgument {
+            message: "Failure when parsing USK.".to_string(),
+        }
+    })?;
+    RT.block_on(async move {
+        let result = send_transaction(
+            config.data_file,
+            uri,
+            config.network.into(),
+            &usk,
+            NonZeroU32::try_from(min_confirmations).map_err(|_| {
+                Error::InvalidArgument("A positive integer is required.".to_string())
+            })?,
+            send_details,
+        )
+        .await?;
+        Ok(SendTransactionResult {
+            txid: result.txid.as_ref().to_vec(),
+        })
+    })
 }

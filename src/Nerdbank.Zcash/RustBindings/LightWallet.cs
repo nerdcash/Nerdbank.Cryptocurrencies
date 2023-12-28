@@ -449,6 +449,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_send(RustBuffer @config,RustBuffer @uri,RustBuffer @usk,uint @minConfirmations,RustBuffer @sendDetails,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_sync(RustBuffer @config,RustBuffer @uri,ref RustCallStatus _uniffi_out_err
     );
 
@@ -713,6 +717,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_sync(
     );
 
@@ -776,6 +784,12 @@ static class _UniFFILib {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_init();
             if (checksum != 60276) {
                 throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_init` checksum `60276`, library returned `{checksum}`");
+            }
+        }
+        {
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send();
+            if (checksum != 35890) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_send` checksum `35890`, library returned `{checksum}`");
             }
         }
         {
@@ -1044,6 +1058,32 @@ class FfiConverterTypeDbInit: FfiConverterRustBuffer<DbInit> {
 
 
 
+public record SendTransactionResult (
+    byte[] @txid
+) {
+}
+
+class FfiConverterTypeSendTransactionResult: FfiConverterRustBuffer<SendTransactionResult> {
+    public static FfiConverterTypeSendTransactionResult INSTANCE = new FfiConverterTypeSendTransactionResult();
+
+    public override SendTransactionResult Read(BigEndianStream stream) {
+        return new SendTransactionResult(
+            FfiConverterByteArray.INSTANCE.Read(stream)
+        );
+    }
+
+    public override int AllocationSize(SendTransactionResult value) {
+        return
+            FfiConverterByteArray.INSTANCE.AllocationSize(value.@txid);
+    }
+
+    public override void Write(SendTransactionResult value, BigEndianStream stream) {
+            FfiConverterByteArray.INSTANCE.Write(value.@txid, stream);
+    }
+}
+
+
+
 public record ShieldedNote (
     ulong @value, 
     byte[] @memo, 
@@ -1168,7 +1208,7 @@ class FfiConverterTypeTransaction: FfiConverterRustBuffer<Transaction> {
 
 public record TransactionSendDetail (
     ulong @value, 
-    byte[] @memo, 
+    byte[]? @memo, 
     String @recipient
 ) {
 }
@@ -1179,7 +1219,7 @@ class FfiConverterTypeTransactionSendDetail: FfiConverterRustBuffer<TransactionS
     public override TransactionSendDetail Read(BigEndianStream stream) {
         return new TransactionSendDetail(
             FfiConverterUInt64.INSTANCE.Read(stream),
-            FfiConverterByteArray.INSTANCE.Read(stream),
+            FfiConverterOptionalByteArray.INSTANCE.Read(stream),
             FfiConverterString.INSTANCE.Read(stream)
         );
     }
@@ -1187,13 +1227,13 @@ class FfiConverterTypeTransactionSendDetail: FfiConverterRustBuffer<TransactionS
     public override int AllocationSize(TransactionSendDetail value) {
         return
             FfiConverterUInt64.INSTANCE.AllocationSize(value.@value) +
-            FfiConverterByteArray.INSTANCE.AllocationSize(value.@memo) +
+            FfiConverterOptionalByteArray.INSTANCE.AllocationSize(value.@memo) +
             FfiConverterString.INSTANCE.AllocationSize(value.@recipient);
     }
 
     public override void Write(TransactionSendDetail value, BigEndianStream stream) {
             FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
-            FfiConverterByteArray.INSTANCE.Write(value.@memo, stream);
+            FfiConverterOptionalByteArray.INSTANCE.Write(value.@memo, stream);
             FfiConverterString.INSTANCE.Write(value.@recipient, stream);
     }
 }
@@ -1355,6 +1395,10 @@ public class LightWalletException: UniffiException {
     // Each variant is a nested class
     // Flat enums carries a string error message, so no special implementation is necessary.
     
+    public class InvalidArgument: LightWalletException {
+        public InvalidArgument(string message): base(message) {}
+    }
+    
     public class InvalidUri: LightWalletException {
         public InvalidUri(string message): base(message) {}
     }
@@ -1375,9 +1419,10 @@ class FfiConverterTypeLightWalletException : FfiConverterRustBuffer<LightWalletE
     public override LightWalletException Read(BigEndianStream stream) {
         var value = stream.ReadInt();
         switch (value) {
-            case 1: return new LightWalletException.InvalidUri(FfiConverterString.INSTANCE.Read(stream));
-            case 2: return new LightWalletException.SqliteClientException(FfiConverterString.INSTANCE.Read(stream));
-            case 3: return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
+            case 1: return new LightWalletException.InvalidArgument(FfiConverterString.INSTANCE.Read(stream));
+            case 2: return new LightWalletException.InvalidUri(FfiConverterString.INSTANCE.Read(stream));
+            case 3: return new LightWalletException.SqliteClientException(FfiConverterString.INSTANCE.Read(stream));
+            case 4: return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
             default:
                 throw new InternalException(String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Read()", value));
         }
@@ -1389,14 +1434,17 @@ class FfiConverterTypeLightWalletException : FfiConverterRustBuffer<LightWalletE
 
     public override void Write(LightWalletException value, BigEndianStream stream) {
         switch (value) {
-            case LightWalletException.InvalidUri:
+            case LightWalletException.InvalidArgument:
                 stream.WriteInt(1);
                 break;
-            case LightWalletException.SqliteClientException:
+            case LightWalletException.InvalidUri:
                 stream.WriteInt(2);
                 break;
-            case LightWalletException.Other:
+            case LightWalletException.SqliteClientException:
                 stream.WriteInt(3);
+                break;
+            case LightWalletException.Other:
+                stream.WriteInt(4);
                 break;
             default:
                 throw new InternalException(String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Write()", value));
@@ -1716,6 +1764,14 @@ public static class LightWalletMethods {
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
     _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_init(FfiConverterTypeDbInit.INSTANCE.Lower(@config), ref _status)
 );
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static SendTransactionResult LightwalletSend(DbInit @config, String @uri, byte[] @usk, uint @minConfirmations, List<TransactionSendDetail> @sendDetails) {
+        return FfiConverterTypeSendTransactionResult.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_send(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterString.INSTANCE.Lower(@uri), FfiConverterByteArray.INSTANCE.Lower(@usk), FfiConverterUInt32.INSTANCE.Lower(@minConfirmations), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
+));
     }
 
     /// <exception cref="LightWalletException"></exception>
