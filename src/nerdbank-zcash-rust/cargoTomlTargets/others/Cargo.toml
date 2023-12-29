@@ -51,3 +51,6 @@ zeroize = "1.7.0"
 
 [dev-dependencies]
 testdir = "0.9.1"
+
+[patch.crates-io]
+hdwallet = { path = "../../external/hdwallet" }
