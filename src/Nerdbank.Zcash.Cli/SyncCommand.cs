@@ -53,7 +53,7 @@ internal class SyncCommand : WalletUserCommandBase
 			}),
 			cancellationToken);
 
-		this.Console.WriteLine($"Sync 100% complete. Scanned {syncResult.TotalBlocksScanned} blocks to reach block {syncResult.LatestBlock}.");
+		this.Console.WriteLine($"Sync 100% complete. Scanned to block {syncResult.LatestBlock}.");
 
 		return 0;
 	}

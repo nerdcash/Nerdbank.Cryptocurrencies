@@ -232,14 +232,6 @@ public partial class LightWalletClient : IDisposable
 		string? LastError,
 		string? LastTransactionId)
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SendProgress"/> class.
-		/// </summary>
-		/// <param name="update">The FFI data to copy from.</param>
-		internal SendProgress(SendUpdate update)
-			: this(update.id, update.isSendInProgress, update.progress, update.total, update.lastError, update.lastTransactionId)
-		{
-		}
 	}
 
 	/// <summary>
@@ -247,11 +239,9 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="Success">Indicates overall success of the operation.</param>
 	/// <param name="LatestBlock">The last blocked scanned.</param>
-	/// <param name="TotalBlocksScanned">The number of blocks scanned.</param>
 	public record SyncResult(
 		bool Success,
-		ulong LatestBlock,
-		ulong TotalBlocksScanned)
+		ulong LatestBlock)
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SyncResult"/> class
@@ -259,7 +249,7 @@ public partial class LightWalletClient : IDisposable
 		/// </summary>
 		/// <param name="copyFrom">The native data to copy from.</param>
 		internal SyncResult(uniffi.LightWallet.SyncResult copyFrom)
-			: this(copyFrom.success, copyFrom.latestBlock, copyFrom.totalBlocksSynced)
+			: this(true, copyFrom.latestBlock)
 		{
 		}
 	}
@@ -287,14 +277,5 @@ public partial class LightWalletClient : IDisposable
 		ulong BatchTotal,
 		bool InProgress)
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SyncProgress"/> class
-		/// based on data coming from the native code.
-		/// </summary>
-		/// <param name="copyFrom">The data to copy from.</param>
-		internal SyncProgress(SyncStatus copyFrom)
-			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal, copyFrom.inProgress)
-		{
-		}
 	}
 }

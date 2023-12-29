@@ -90,7 +90,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 				this.logger.WriteLine($"Sync progress update: {p}");
 			}),
 			this.TimeoutToken);
-		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned {result.TotalBlocksScanned} blocks to reach block {result.LatestBlock}.");
+		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned to block {result.LatestBlock}.");
 	}
 
 	[Fact]
