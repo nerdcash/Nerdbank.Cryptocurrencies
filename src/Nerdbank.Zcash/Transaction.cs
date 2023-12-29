@@ -10,10 +10,6 @@ namespace Nerdbank.Zcash;
 /// </summary>
 public partial record Transaction
 {
-	private readonly Bytes32 txid;
-
-	private string? txidString;
-
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
 	/// </summary>
@@ -26,7 +22,7 @@ public partial record Transaction
 	/// <param name="outgoing">A collection of individual spend details with amounts and recipients belonging to this transaction.</param>
 	/// <param name="incoming">Notes received in this transaction.</param>
 	public Transaction(
-		ReadOnlySpan<byte> transactionId,
+		TxId transactionId,
 		uint? minedHeight,
 		bool expiredUnmined,
 		DateTime when,
@@ -35,7 +31,7 @@ public partial record Transaction
 		ImmutableArray<SendItem> outgoing,
 		ImmutableArray<RecvItem> incoming)
 	{
-		this.txid = new(transactionId);
+		this.TransactionId = transactionId.PrecacheString();
 		this.MinedHeight = minedHeight;
 		this.ExpiredUnmined = expiredUnmined;
 		this.When = when;
@@ -46,29 +42,9 @@ public partial record Transaction
 	}
 
 	/// <summary>
-	/// Gets the raw bytes of the transaction id.
+	/// Gets the transaction ID.
 	/// </summary>
-	public ReadOnlySpan<byte> TxId => this.txid[..];
-
-	/// <summary>
-	/// Gets the transaction ID as a hex string (with byte order reversed, as is convention).
-	/// </summary>
-	public string TransactionId
-	{
-		get
-		{
-			if (this.txidString is null)
-			{
-				// txid's are traditionally rendered as hex, in the opposite order of the bytes in the txid.
-				Span<byte> txidReversed = stackalloc byte[32];
-				this.txid[..].CopyTo(txidReversed);
-				txidReversed.Reverse();
-				this.txidString = Convert.ToHexString(txidReversed);
-			}
-
-			return this.txidString;
-		}
-	}
+	public TxId TransactionId { get; }
 
 	/// <summary>
 	/// Gets the block number this transaction was mined in, if applicable.

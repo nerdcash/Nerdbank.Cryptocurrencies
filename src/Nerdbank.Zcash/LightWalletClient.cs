@@ -157,7 +157,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="progress">An optional receiver for progress updates.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The transaction ID.</returns>
-	public async Task<string> SendAsync(IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
+	public async Task<TxId> SendAsync(IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
 	{
 		Requires.NotNullOrEmpty(payments);
 
@@ -165,7 +165,7 @@ public partial class LightWalletClient : IDisposable
 			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), p.Memo.RawBytes.ToArray(), p.ToAddress))];
 
 		return await this.InteropAsync(
-			h => LightWalletMethods.LightwalletSendToAddress(h, details),
+			h => TxId.Parse(LightWalletMethods.LightwalletSendToAddress(h, details)),
 			progress,
 			h => new SendProgress(LightWalletMethods.LightwalletSendCheckStatus(h)),
 			cancellationToken).ConfigureAwait(false);
@@ -212,7 +212,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	/// <param name="network">The network this transaction is on.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
-		=> new(t.txid, t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem)]);
+		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem)]);
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{

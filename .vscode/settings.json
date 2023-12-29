@@ -6,6 +6,9 @@
 	"omnisharp.enableRoslynAnalyzers": true,
 	"dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
 	"editor.formatOnSave": true,
+	"[xml]": {
+		"editor.wordWrap": "off"
+	},
 	"dotnet.defaultSolution": "Nerdbank.Cryptocurrencies.sln",
 	"rust-analyzer.linkedProjects": [
 		".\\src\\nerdbank-zcash-rust\\Cargo.toml"
