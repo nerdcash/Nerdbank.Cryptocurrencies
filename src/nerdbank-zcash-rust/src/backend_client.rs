@@ -333,34 +333,19 @@ fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result
 #[cfg(test)]
 mod tests {
     use secrecy::SecretVec;
-    use testdir::testdir;
     use zcash_primitives::{
         transaction::components::Amount,
         zip339::{Count, Mnemonic},
     };
     use zeroize::Zeroize;
 
-    use crate::test_constants::MIN_CONFIRMATIONS;
+    use crate::test_constants::{setup_test, MIN_CONFIRMATIONS};
 
     use super::*;
 
-    lazy_static! {
-        static ref LIGHTSERVER_URI: Uri =
-            crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
-    }
-
     #[tokio::test]
     async fn test_sync() {
-        let wallet_dir = testdir!();
-        let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
-        let server_info = client
-            .get_lightd_info(service::Empty {})
-            .await
-            .unwrap()
-            .into_inner();
-        let network = parse_network(&server_info).unwrap();
-        let data_file = wallet_dir.join("wallet.sqlite");
-        let mut db = Db::init(&data_file, network).unwrap();
+        let mut setup = setup_test().await;
 
         let seed = {
             let mnemonic = Mnemonic::generate(Count::Words24);
@@ -370,20 +355,30 @@ mod tests {
             SecretVec::new(secret)
         };
 
-        let birthday = server_info.block_height.saturating_sub(100);
+        let birthday = setup.server_info.block_height.saturating_sub(100);
 
         // Adding two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
         let account_ids = [
-            db.add_account(&seed, birthday, &mut client).await.unwrap(),
-            db.add_account(&seed, birthday, &mut client).await.unwrap(),
+            setup
+                .db
+                .add_account(&seed, birthday, &mut setup.client)
+                .await
+                .unwrap(),
+            setup
+                .db
+                .add_account(&seed, birthday, &mut setup.client)
+                .await
+                .unwrap(),
         ]
         .map(|a| a.0);
 
-        let result = sync(LIGHTSERVER_URI.to_owned(), data_file).await.unwrap();
+        let result = sync(setup.server_uri.clone(), &setup.data_file)
+            .await
+            .unwrap();
 
         println!("Tip: {:?}", result.latest_block);
 
-        if let Some(summary) = db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
+        if let Some(summary) = setup.db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
             for id in account_ids {
                 println!("Account index: {}", u32::from(id));
                 let b = summary.account_balances().get(&id).unwrap();

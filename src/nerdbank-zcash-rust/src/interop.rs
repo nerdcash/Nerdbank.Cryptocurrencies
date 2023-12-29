@@ -41,6 +41,15 @@ impl From<ChainType> for Network {
     }
 }
 
+impl From<Network> for ChainType {
+    fn from(network: Network) -> Self {
+        match network {
+            Network::MainNetwork => ChainType::Mainnet,
+            Network::TestNetwork => ChainType::Testnet,
+        }
+    }
+}
+
 pub struct WalletInfo {
     pub ufvk: Option<String>,
     pub unified_spending_key: Option<Vec<u8>>,
@@ -89,8 +98,8 @@ pub enum LightWalletError {
     #[error("Invalid URI")]
     InvalidUri,
 
-    #[error("Sqlite client error")]
-    SqliteClientError(SqliteClientError),
+    #[error("Sqlite client error: {message}")]
+    SqliteClientError { message: String },
 
     #[error("{message}")]
     Other { message: String },
@@ -104,13 +113,17 @@ impl From<InvalidUri> for LightWalletError {
 
 impl From<SqliteClientError> for LightWalletError {
     fn from(e: SqliteClientError) -> Self {
-        LightWalletError::SqliteClientError(e)
+        LightWalletError::SqliteClientError {
+            message: e.to_string(),
+        }
     }
 }
 
 impl From<rusqlite::Error> for LightWalletError {
     fn from(e: rusqlite::Error) -> Self {
-        LightWalletError::SqliteClientError(SqliteClientError::from(e))
+        LightWalletError::SqliteClientError {
+            message: e.to_string(),
+        }
     }
 }
 
@@ -382,4 +395,24 @@ pub fn lightwallet_send(
             txid: result.txid.as_ref().to_vec(),
         })
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::test_constants::setup_test;
+
+    use super::*;
+
+    lazy_static! {
+        static ref LIGHTSERVER_URI: Uri =
+            crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
+    }
+
+    #[test]
+    fn test_lightwallet_get_transactions_empty() {
+        let setup = RT.block_on(async move { setup_test().await });
+        let transactions = lightwallet_get_transactions(setup.db_init, 0, 0).unwrap();
+
+        assert!(transactions.len() == 0);
+    }
 }
