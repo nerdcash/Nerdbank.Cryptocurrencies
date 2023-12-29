@@ -1,0 +1,3 @@
+[submodule "external/librustzcash"]
+	path = external/librustzcash
+	url = https://github.com/nerdcash/librustzcash.git
