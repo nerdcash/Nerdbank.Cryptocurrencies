@@ -80,6 +80,42 @@ pub enum Error {
     },
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::Transport(e) => e.fmt(f),
+            Error::Wallet(e) => e.fmt(f),
+            Error::BlockSource(e) => e.fmt(f),
+            Error::Scan(e) => e.fmt(f),
+            Error::TonicStatus(e) => e.fmt(f),
+            Error::IoError(e) => e.fmt(f),
+            Error::InternalError(e) => e.fmt(f),
+            Error::Sqlite(e) => e.fmt(f),
+            Error::SqliteClient(e) => e.fmt(f),
+            Error::SqliteMigratorError(e) => e.fmt(f),
+            Error::WalletMigratorError(e) => e.fmt(f),
+            Error::InvalidHeight => f.write_str("Invalid height"),
+            Error::InvalidAmount => f.write_str("Invalid amount"),
+            Error::InsufficientFunds {
+                required,
+                available,
+            } => write!(
+                f,
+                "Insufficient funds: required {}, available {}",
+                required, available
+            ),
+            Error::InvalidAddress => f.write_str("Invalid address"),
+            Error::InvalidMemo(e) => e.fmt(f),
+            Error::InvalidKey(e) => e.fmt(f),
+            Error::Zip321Error(e) => e.fmt(f),
+            Error::SyncFirst => f.write_str("Sync before performing this operation."),
+            Error::InvalidArgument(e) => e.fmt(f),
+            Error::Anyhow(e) => e.fmt(f),
+            Error::SendFailed { code, reason } => write!(f, "Send failed: {}: {}", code, reason),
+        }
+    }
+}
+
 impl From<tonic::transport::Error> for Error {
     fn from(e: tonic::transport::Error) -> Self {
         Error::Transport(e)

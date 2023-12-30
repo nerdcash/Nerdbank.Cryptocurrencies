@@ -140,7 +140,7 @@ impl From<Error> for LightWalletError {
         match e {
             Error::InternalError(msg) => LightWalletError::Other { message: msg },
             _ => LightWalletError::Other {
-                message: "Unknown error".to_string(),
+                message: e.to_string(),
             },
         }
     }
