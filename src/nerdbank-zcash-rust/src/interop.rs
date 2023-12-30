@@ -2,6 +2,7 @@ use std::{num::NonZeroU32, time::SystemTime};
 
 use http::{uri::InvalidUri, Uri};
 use rusqlite::{named_params, Connection};
+use secrecy::SecretVec;
 use tokio::runtime::Runtime;
 use zcash_address::TryFromRawAddress;
 use zcash_client_backend::{
@@ -17,7 +18,7 @@ use crate::{
     backend_client::sync,
     backing_store::Db,
     error::Error,
-    grpc::destroy_channel,
+    grpc::{destroy_channel, get_client},
     lightclient::get_block_height,
     send::send_transaction,
     sql_statements::GET_TRANSACTIONS_SQL,
@@ -160,6 +161,27 @@ pub fn lightwallet_init(config: DbInit) -> Result<(), LightWalletError> {
     RT.block_on(async move {
         Db::init(config.data_file, config.network.into())?;
         Ok(())
+    })
+}
+
+pub fn lightwallet_add_account(
+    config: DbInit,
+    uri: String,
+    seed: Vec<u8>,
+    birthday_height: Option<u32>,
+) -> Result<u32, LightWalletError> {
+    RT.block_on(async move {
+        let mut db = Db::load(config.data_file, config.network.into())?;
+        let mut client = get_client(uri.parse()?).await.map_err(Error::from)?;
+        let birthday_height = match birthday_height {
+            Some(v) => v,
+            None => get_block_height(uri.parse()?).await?,
+        };
+        let secret = SecretVec::new(seed);
+        let account = db
+            .add_account(&secret, birthday_height as u64, &mut client)
+            .await?;
+        Ok(account.0.into())
     })
 }
 

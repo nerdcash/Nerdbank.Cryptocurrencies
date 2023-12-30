@@ -165,6 +165,9 @@
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>
+  <data name="NetworkMismatch" xml:space="preserve">
+    <value>This server is configured for use on the {expected} network, but the input parameter is on the {actual} network.</value>
+  </data>
   <data name="NotEnoughEntropy" xml:space="preserve">
     <value>The entropy is too short. At least {minimum} bytes are required.</value>
   </data>

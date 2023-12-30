@@ -84,9 +84,16 @@ public partial class LightWalletClient : IDisposable
 			cancellationToken));
 	}
 
-	public void AddSpendingKey(ZcashAccount account)
+	public void AddAccount(ZcashAccount account)
 	{
 		Requires.NotNull(account);
+
+		if (account.Network != this.Network)
+		{
+			throw new InvalidOperationException(Strings.FormatNetworkMismatch(this.Network, account.Network));
+		}
+
+		uint accountId = LightWalletMethods.LightwalletAddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
 
 		Span<byte> uskBytes = stackalloc byte[500];
 		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;

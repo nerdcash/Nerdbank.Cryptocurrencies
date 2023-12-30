@@ -28,6 +28,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 			LightWalletServerMainNet,
 			DefaultAccount.Network,
 			Path.Join(this.testDir, "zcash-test.wallet"));
+		this.client.AddAccount(DefaultAccount);
 	}
 
 	public void Dispose()

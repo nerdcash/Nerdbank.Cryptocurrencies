@@ -81,6 +81,9 @@ namespace LightWallet {
 	void lightwallet_init(DbInit config);
 
 	[Throws=LightWalletError]
+	u32 lightwallet_add_account(DbInit config, string uri, bytes seed, u32? birthday_height);
+
+	[Throws=LightWalletError]
 	u32? lightwallet_get_birthday_height(DbInit config);
 
 	[Throws=LightWalletError]
