@@ -35,8 +35,10 @@ tokio = { version = "1.32", features = [
 ] }
 tonic = { version = "0.10", features = ["gzip", "tls-webpki-roots"] }
 uniffi = "0.25"
-zcash_address =  { path = "../../external/librustzcash/components/zcash_address" }
-zcash_primitives = { path = "../../external/librustzcash/zcash_primitives", features = ["transparent-inputs"] }
+zcash_address = { path = "../../external/librustzcash/components/zcash_address" }
+zcash_primitives = { path = "../../external/librustzcash/zcash_primitives", features = [
+	"transparent-inputs",
+] }
 zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backend", features = [
 	"test-dependencies",
 	"transparent-inputs",
@@ -46,11 +48,15 @@ zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite"
 	"unstable",
 	"transparent-inputs",
 ] }
-zcash_proofs = { path = "../../external/librustzcash/zcash_proofs" }
+zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
+	"bundled-prover",
+	"multicore",
+], default-features = false }
 zeroize = "1.7.0"
 
 [dev-dependencies]
 testdir = "0.9.1"
+matches = "0.1"
 
 [patch.crates-io]
 hdwallet = { path = "../../external/hdwallet" }

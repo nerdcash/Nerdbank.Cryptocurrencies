@@ -22,6 +22,7 @@ use zcash_proofs::prover::LocalTxProver;
 
 use crate::{backing_store::Db, error::Error, grpc::get_client, interop::TransactionSendDetail};
 
+#[derive(Debug)]
 pub struct SendTransactionResult {
     pub txid: TxId,
     pub transaction: Transaction,
@@ -38,8 +39,7 @@ pub async fn send_transaction<P: AsRef<Path>>(
     let mut client = get_client(server_uri).await?;
     let mut db = Db::init(data_file, network)?;
 
-    let prover = LocalTxProver::with_default_location()
-        .ok_or(Error::InternalError("Missing parameters".to_string()))?;
+    let prover = LocalTxProver::bundled();
 
     // TODO: revise this to a smarter change strategy that avoids unnecessarily crossing the turnstile.
     let input_selector = GreedyInputSelector::new(
@@ -93,5 +93,37 @@ pub async fn send_transaction<P: AsRef<Path>>(
             txid,
             transaction: tx,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use matches::assert_matches;
+
+    use crate::test_constants::{
+        create_account, setup_test, MIN_CONFIRMATIONS, VALID_SAPLING_TESTNET,
+    };
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_send_insufficient_funds() {
+        let mut setup = setup_test().await;
+        let account = create_account(&mut setup).await.unwrap();
+        let result = send_transaction(
+            setup.data_file,
+            setup.server_uri,
+            setup.network,
+            &account.3,
+            NonZeroU32::try_from(MIN_CONFIRMATIONS).unwrap(),
+            vec![TransactionSendDetail {
+                value: 1000,
+                memo: None,
+                recipient: VALID_SAPLING_TESTNET.to_string(),
+            }],
+        )
+        .await
+        .unwrap_err();
+        assert_matches!(result, Error::InsufficientFunds { .. });
     }
 }

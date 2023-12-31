@@ -1,4 +1,4 @@
-﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
@@ -18,7 +18,7 @@ public abstract class TestBase
 	protected const string ValidUnifiedAddressSapling = "u12s5xnr2r6jj4xt72qjx35mru9mq3w3v0mxkvtd67e9fsr4tzf682983qn752kf5fvcdva79pr2udwhg5sm4pw6np90t8q6q8tcu97k6c";
 	protected const string ValidUnifiedAddressSaplingTestNet = "utest10c5kutapazdnf8ztl3pu43nkfsjx89fy3uuff8tsmxm6s86j37pe7uz94z5jhkl49pqe8yz75rlsaygexk6jpaxwx0esjr8wm5ut7d5s";
 	protected const string ValidSaplingAddress = "zs1znewe2leucm8gsd2ue24kvp3jjjwgrhmytmv0scenaf460kdj70r299a88r8n0pyvwz7c9skfmy";
-	protected const string ValidSaplingAddressTestNet = "ztestsapling1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhgwqu";
+	protected const string ValidSaplingAddressTestNet = "ztestsapling15740genxvp99m3vut5q7dqm0da9l8nst2njae3kpu6e406peeypk0n78zue0hgxt5gmasaznnm0";
 	protected const string ValidSaplingAddress2 = "zs128vyqqzav2kvhm6zc5gagacm9c3cgrhkejatf5pn6pla6365rdgwn0kk0pmkwd36xwug77fkmhm";
 	protected const string ValidSproutAddress = "zc8E5gYid86n4bo2Usdq1cpr7PpfoJGzttwBHEEgGhGkLUg7SPPVFNB2AkRFXZ7usfphup5426dt1buMmY3fkYeRrQGLa8y";
 	protected const string ValidSproutAddressTestNet = "ztJ1EWLKcGwF2S4NA17pAJVdco8Sdkz4AQPxt1cLTEfNuyNswJJc2BbBqYrsRZsp31xbVZwhF7c7a2L9jsF3p3ZwRWpqqyS";

@@ -1,11 +1,18 @@
 use http::Uri;
+use secrecy::{Secret, SecretVec};
 use testdir::testdir;
 use tonic::transport::Channel;
+use zcash_client_backend::keys::UnifiedSpendingKey;
 use zcash_client_backend::proto::service::{
     self, compact_tx_streamer_client::CompactTxStreamerClient, LightdInfo,
 };
-use zcash_primitives::consensus::Network;
+use zcash_primitives::{
+    consensus::Network,
+    zip32::AccountId,
+    zip339::{Count, Mnemonic},
+};
 
+use crate::error::Error;
 use crate::{backing_store::Db, grpc::get_client, interop::DbInit, lightclient::parse_network};
 
 lazy_static! {
@@ -20,9 +27,11 @@ lazy_static! {
 }
 
 pub(crate) const MIN_CONFIRMATIONS: u32 = 3;
+pub(crate) const VALID_SAPLING_TESTNET: &str =
+    "ztestsapling15740genxvp99m3vut5q7dqm0da9l8nst2njae3kpu6e406peeypk0n78zue0hgxt5gmasaznnm0";
 
 lazy_static! {
-    static ref LIGHTSERVER_URI: Uri = crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
+    static ref LIGHTSERVER_URI: Uri = crate::test_constants::TESTNET_LIGHTSERVER_URI.to_owned();
 }
 
 pub(crate) struct TestSetup {
@@ -58,4 +67,18 @@ pub(crate) async fn setup_test() -> TestSetup {
         server_info,
         server_uri: LIGHTSERVER_URI.to_owned(),
     }
+}
+
+pub(crate) async fn create_account(
+    setup: &mut TestSetup,
+) -> Result<(Secret<Vec<u8>>, u64, AccountId, UnifiedSpendingKey), Error> {
+    let seed: secrecy::Secret<Vec<u8>> =
+        SecretVec::new(Mnemonic::generate(Count::Words24).to_seed("").to_vec());
+
+    let birthday = setup.server_info.block_height.saturating_sub(100);
+    let account = setup
+        .db
+        .add_account(&seed, birthday, &mut setup.client)
+        .await?;
+    Ok((seed, birthday, account.0, account.1))
 }

@@ -332,45 +332,28 @@ fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result
 
 #[cfg(test)]
 mod tests {
-    use secrecy::SecretVec;
-    use zcash_primitives::{
-        transaction::components::Amount,
-        zip339::{Count, Mnemonic},
-    };
-    use zeroize::Zeroize;
+    use zcash_primitives::transaction::components::Amount;
 
-    use crate::test_constants::{setup_test, MIN_CONFIRMATIONS};
+    use crate::test_constants::{create_account, setup_test, MIN_CONFIRMATIONS};
 
     use super::*;
 
     #[tokio::test]
     async fn test_sync() {
         let mut setup = setup_test().await;
+        let (seed, birthday, account_id, _) = create_account(&mut setup).await.unwrap();
 
-        let seed = {
-            let mnemonic = Mnemonic::generate(Count::Words24);
-            let mut seed = mnemonic.to_seed("");
-            let secret = seed.to_vec();
-            seed.zeroize();
-            SecretVec::new(secret)
-        };
-
-        let birthday = setup.server_info.block_height.saturating_sub(100);
-
-        // Adding two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
+        // Add one more account two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
         let account_ids = [
+            account_id,
             setup
                 .db
                 .add_account(&seed, birthday, &mut setup.client)
                 .await
-                .unwrap(),
-            setup
-                .db
-                .add_account(&seed, birthday, &mut setup.client)
-                .await
-                .unwrap(),
+                .unwrap()
+                .0,
         ]
-        .map(|a| a.0);
+        .map(|a| a);
 
         let result = sync(setup.server_uri.clone(), &setup.data_file)
             .await
