@@ -25,8 +25,8 @@ public partial class LightWalletClient : IDisposable
 
 	private readonly Uri serverUrl;
 	private readonly DbInit dbinit;
-	private readonly uint accountId; // TODO: figure out what to do for this.
-	private readonly ZcashAccount account;
+	private uint accountId; // TODO: figure out what to do for this.
+	private ZcashAccount account;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -93,11 +93,8 @@ public partial class LightWalletClient : IDisposable
 			throw new InvalidOperationException(Strings.FormatNetworkMismatch(this.Network, account.Network));
 		}
 
-		uint accountId = LightWalletMethods.LightwalletAddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
-
-		Span<byte> uskBytes = stackalloc byte[500];
-		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
-		byte[]? uskBytesList = uskBytesLength == 0 ? null : uskBytes[..uskBytesLength].ToArray();
+		this.accountId = LightWalletMethods.LightwalletAddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
+		this.account = account;
 	}
 
 	/// <summary>

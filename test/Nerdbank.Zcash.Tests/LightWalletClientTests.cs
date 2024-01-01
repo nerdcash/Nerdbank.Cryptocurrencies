@@ -115,7 +115,7 @@ public class LightWalletClientTests : TestBase, IDisposable
 		this.logger.WriteLine(ex.ToString());
 	}
 
-	[Fact(Skip = "Skip while ZingoLib panics: https://github.com/zingolabs/zingolib/issues/566")]
+	[Fact]
 	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
 	public async Task SendAsync_InsufficientFunds()
 	{
@@ -124,10 +124,10 @@ public class LightWalletClientTests : TestBase, IDisposable
 			new Nerdbank.Zcash.Transaction.SendItem(DefaultAccount.DefaultAddress, 1.0m, default),
 		};
 		UniException.Other ex = await Assert.ThrowsAsync<UniException.Other>(() =>
-		this.client.SendAsync(
-			sends,
-			new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
-			this.TimeoutToken));
+			this.client.SendAsync(
+				sends,
+				new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
+				this.TimeoutToken));
 		this.logger.WriteLine(ex.Message);
 	}
 }
