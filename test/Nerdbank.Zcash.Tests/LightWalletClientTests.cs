@@ -5,12 +5,10 @@ using LightWalletException = uniffi.LightWallet.LightWalletException;
 using UniException = uniffi.LightWallet.LightWalletException;
 
 [Trait("RequiresNetwork", "true")]
-public class LightWalletClientTests : TestBase, IDisposable
+public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 {
-	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0)
-	{
-		BirthdayHeight = 2234000,
-	};
+	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
+	private static bool defaultAccountBirthdayHeightSet;
 
 	private readonly ITestOutputHelper logger;
 	private readonly LightWalletClient client;
@@ -28,7 +26,22 @@ public class LightWalletClientTests : TestBase, IDisposable
 			LightWalletServerMainNet,
 			DefaultAccount.Network,
 			Path.Join(this.testDir, "zcash-test.wallet"));
+	}
+
+	public async Task InitializeAsync()
+	{
+		if (!defaultAccountBirthdayHeightSet)
+		{
+			DefaultAccount.BirthdayHeight = await this.client.GetLatestBlockHeightAsync(this.TimeoutToken) - 5;
+			defaultAccountBirthdayHeightSet = true;
+		}
+
 		this.client.AddAccount(DefaultAccount);
+	}
+
+	public Task DisposeAsync()
+	{
+		return Task.CompletedTask;
 	}
 
 	public void Dispose()
@@ -81,7 +94,6 @@ public class LightWalletClientTests : TestBase, IDisposable
 	}
 
 	[Fact]
-	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
 	public async Task DownloadTransactionsAsync()
 	{
 		this.client.UpdateFrequency = TimeSpan.FromMilliseconds(100);
@@ -116,7 +128,6 @@ public class LightWalletClientTests : TestBase, IDisposable
 	}
 
 	[Fact]
-	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
 	public async Task SendAsync_InsufficientFunds()
 	{
 		List<Nerdbank.Zcash.Transaction.SendItem> sends = new()
