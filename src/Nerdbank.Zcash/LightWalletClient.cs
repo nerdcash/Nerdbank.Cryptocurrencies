@@ -212,12 +212,19 @@ public partial class LightWalletClient : IDisposable
 		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
 
 	/// <summary>
+	/// Initializes a new instance of the <see cref="RecvItem"/> class.
+	/// </summary>
+	/// <param name="d">The uniffi transparent note.</param>
+	private static RecvItem CreateRecvItem(TransparentNote d)
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), Memo.NoMemo, IsChange: false);
+
+	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
 	/// </summary>
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	/// <param name="network">The network this transaction is on.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
-		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem)]);
+		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
 
 	/// <summary>
 	/// Carries details of a progress update on a send operation.

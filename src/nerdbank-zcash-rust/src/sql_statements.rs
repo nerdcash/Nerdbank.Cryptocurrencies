@@ -38,14 +38,25 @@ pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
 		) AS "Block with first unspent note"
 "#;
 
+// The v_tx_outputs view doesn't include transparent UTXOs, so we filter them out (for good measure) and add them via UNION with the utxos table.
 pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	SELECT
 		tx.block,
 		o.value,
 		o.output_pool,
-		o.from_account = o.to_account AS is_change
+		COALESCE(o.from_account = o.to_account, 0) AS is_change
 	FROM v_tx_outputs o
 	INNER JOIN transactions tx ON tx.txid = o.txid
 	LEFT OUTER JOIN sapling_received_notes s ON s.tx = tx.id_tx
-	WHERE o.to_account = :account_id AND s.spent IS NULL
+	WHERE o.to_account = :account_id AND s.spent IS NULL AND o.output_pool > 0
+
+	UNION
+	
+	SELECT
+		height,
+		value_zat,
+		0, -- output_pool
+		0  -- is_change
+	FROM utxos
+	WHERE received_by_account = :account_id AND spent_in_tx IS NULL
 "#;

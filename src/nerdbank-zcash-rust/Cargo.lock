@@ -1279,6 +1279,7 @@ dependencies = [
  "ff",
  "futures-util",
  "group",
+ "hdwallet",
  "http",
  "jubjub",
  "lazy_static",
@@ -1921,8 +1922,6 @@ checksum = "f98d2aa92eebf49b69786be48e4477826b256916e84a57ff2a4f21923b48eb4c"
 [[package]]
 name = "sapling-crypto"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f5de898a7cdb7f6d9c8fb888341b6ae6e2aeae88227b7f435f1dda49ecf9e62"
 dependencies = [
  "aes",
  "bellman",
@@ -3263,7 +3262,3 @@ dependencies = [
  "memuse",
  "subtle",
 ]
-
-[[patch.unused]]
-name = "sapling-crypto"
-version = "0.0.1"

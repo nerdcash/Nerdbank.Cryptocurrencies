@@ -292,7 +292,7 @@ pub fn lightwallet_get_transactions(
                         row.get::<_, i64>("block_time")?,
                     )?
                     .into(),
-                    fee: row.get::<_, u64>("fee_paid")?,
+                    fee: row.get::<_, Option<u64>>("fee_paid")?.unwrap_or(0),
                     account_balance_delta: row.get("account_balance_delta")?,
                     incoming_transparent: Vec::new(),
                     incoming_shielded: Vec::new(),
