@@ -23,9 +23,7 @@ The prerequisites for building, testing, and deploying from this repository are:
 
 * The [.NET SDK](https://get.dot.net/).
 * The [Rust toolset](https://www.rust-lang.org/tools/install)
-* Make sure git submodule support is enabled with the following command: `git submodule update --init :/`
-* Perl [Windows Download](https://strawberryperl.com/)
-* [Zingolib](https://github.com/nerdcash/zingolib/tree/3d22f26a3d893f751858734d15c78958cf216392) - On Windows you can download [Protobuf](https://github.com/protocolbuffers/protobuf/releases) from here and put it in your path. To install the "Build Tools" on Windows launch "Visual Studio Installer" that you installed for Rust then click "More" → "Import Configuration" and import the ".vsconfig" file at the root of this project and install any components that come up.
+* Note that Zingolib is automatically brought in as a git submodule, make sure git submodule support is enabled with the following command: `git submodule update --init :/`. If there are troubles compiling this then [compiling from source instructions are here](https://github.com/nerdcash/zingolib/tree/dev?tab=readme-ov-file#compiling-from-source). On Windows this can be done using [Perl Windows Download](https://strawberryperl.com/) and you can download [Protobuf](https://github.com/protocolbuffers/protobuf/releases) from here and put it in your path. Then to install the "Build Tools" on Windows launch "Visual Studio Installer" that you installed for Rust then click "More" → "Import Configuration" and import the ".vsconfig" file at the root of this project and install any components that come up.
 
 ## Package restore
 
