@@ -23,7 +23,6 @@ The prerequisites for building, testing, and deploying from this repository are:
 
 * The [.NET SDK](https://get.dot.net/).
 * The [Rust toolset](https://www.rust-lang.org/tools/install)
-* uniffi-bindgen-cs which you can install with the following command: `cargo install uniffi-bindgen-cs --git https://github.com/NordSecurity/uniffi-bindgen-cs --tag v0.7.0+v0.25.0`
 * Make sure git submodule support is enabled with the following command: `git submodule update --init :/`
 * Perl [Windows Download](https://strawberryperl.com/)
 * [Zingolib](https://github.com/nerdcash/zingolib/tree/3d22f26a3d893f751858734d15c78958cf216392) - On Windows you can download [Protobuf](https://github.com/protocolbuffers/protobuf/releases) from here and put it in your path. To install the "Build Tools" on Windows launch "Visual Studio Installer" that you installed for Rust then click "More" → "Import Configuration" and import the ".vsconfig" file at the root of this project and install any components that come up.
