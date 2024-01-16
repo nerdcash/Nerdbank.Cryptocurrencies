@@ -26,6 +26,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 "#;
 
 // TODO: update this to consider transparent (and eventually orchard) inputs.
+// Note that WalletDb::get_min_unspent_height provides the rebirth height at the wallet level (instead of the account level).
 pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
 	SELECT
 		(SELECT birthday_height FROM accounts WHERE account = :account_id) AS "Original birthday height",
