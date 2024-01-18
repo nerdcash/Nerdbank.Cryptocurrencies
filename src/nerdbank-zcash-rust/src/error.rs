@@ -62,8 +62,6 @@ pub enum Error {
 
     InvalidMemo(memo::Error),
 
-    InvalidKey(zcash_client_backend::keys::DecodingError),
-
     Zip321Error(Zip321Error),
 
     /// The wallet has not been synced to the chain yet, and thus has no data with which to formulate a response.
@@ -106,7 +104,6 @@ impl std::fmt::Display for Error {
             ),
             Error::InvalidAddress => f.write_str("Invalid address"),
             Error::InvalidMemo(e) => e.fmt(f),
-            Error::InvalidKey(e) => e.fmt(f),
             Error::Zip321Error(e) => e.fmt(f),
             Error::SyncFirst => f.write_str("Sync before performing this operation."),
             Error::InvalidArgument(e) => e.fmt(f),
@@ -192,12 +189,6 @@ impl From<anyhow::Error> for Error {
 impl From<memo::Error> for Error {
     fn from(e: memo::Error) -> Self {
         Error::InvalidMemo(e)
-    }
-}
-
-impl From<zcash_client_backend::keys::DecodingError> for Error {
-    fn from(e: zcash_client_backend::keys::DecodingError) -> Self {
-        Error::InvalidKey(e)
     }
 }
 
