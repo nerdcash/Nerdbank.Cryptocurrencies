@@ -183,7 +183,7 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 		return new FullViewingKey(
 			new(ak),
 			new(nk),
-			IncomingViewingKey.FromFullViewingKey(ak, nk, network),
+			IncomingViewingKey.FromFullViewingKey(fvk_bytes, network),
 			new(ovk));
 	}
 
@@ -203,7 +203,7 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 		return new FullViewingKey(
 			new SubgroupPoint(ak),
 			new NullifierDerivingKey(nk),
-			IncomingViewingKey.FromFullViewingKey(ak, nk, network),
+			IncomingViewingKey.FromFullViewingKey(buffer, network),
 			new OutgoingViewingKey(ovk));
 	}
 

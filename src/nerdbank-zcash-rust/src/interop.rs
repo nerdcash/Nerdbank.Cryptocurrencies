@@ -4,10 +4,10 @@ use http::{uri::InvalidUri, Uri};
 use rusqlite::{named_params, Connection};
 use secrecy::SecretVec;
 use tokio::runtime::Runtime;
-use zcash_address::TryFromRawAddress;
 use zcash_client_backend::{
-    address::{RecipientAddress, UnifiedAddress},
+    address::UnifiedAddress,
     data_api::WalletRead,
+    encoding::AddressCodec,
     keys::{Era, UnifiedSpendingKey},
 };
 use zcash_client_sqlite::error::SqliteClientError;
@@ -218,7 +218,10 @@ pub fn lightwallet_get_transactions(
         let network: Network = config.network.into();
         let db = Db::load(config.data_file.clone(), network)?;
         let ufvkeys = db.data.get_unified_full_viewing_keys()?;
-        let ufvk = ufvkeys.get(&AccountId::from(account_id));
+        let ufvk = ufvkeys.get(
+            &AccountId::try_from(account_id)
+                .map_err(|_| Error::InvalidArgument("Invalid account ID".to_string()))?,
+        );
 
         let conn = Connection::open(config.data_file)?;
         rusqlite::vtab::array::load_module(&conn)?;
@@ -249,16 +252,10 @@ pub fn lightwallet_get_transactions(
                                 .map(|k| {
                                     k.sapling()
                                         .map(|s| {
-                                            s.diversified_address(
-                                                zcash_primitives::sapling::Diversifier(
-                                                    diversifier.try_into().unwrap(),
-                                                ),
-                                            )
-                                            .map(|a| {
-                                                RecipientAddress::try_from_raw_sapling(a.to_bytes())
-                                                    .unwrap()
-                                                    .encode(&network)
-                                            })
+                                            s.diversified_address(sapling::keys::Diversifier(
+                                                diversifier.try_into().unwrap(),
+                                            ))
+                                            .map(|a| a.encode(&network))
                                         })
                                         .flatten()
                                 })
@@ -266,19 +263,17 @@ pub fn lightwallet_get_transactions(
                             3 => ufvk
                                 .map(|k| {
                                     k.orchard().map(|o| {
-                                        RecipientAddress::from(
-                                            UnifiedAddress::from_receivers(
-                                                Some(o.address(
-                                                    orchard::keys::Diversifier::from_bytes(
-                                                        diversifier.try_into().unwrap(),
-                                                    ),
-                                                    orchard::keys::Scope::External,
-                                                )),
-                                                None,
-                                                None,
-                                            )
-                                            .unwrap(),
+                                        UnifiedAddress::from_receivers(
+                                            Some(o.address(
+                                                orchard::keys::Diversifier::from_bytes(
+                                                    diversifier.try_into().unwrap(),
+                                                ),
+                                                orchard::keys::Scope::External,
+                                            )),
+                                            None,
+                                            None,
                                         )
+                                        .unwrap()
                                         .encode(&network)
                                     })
                                 })
@@ -363,7 +358,12 @@ pub fn lightwallet_get_birthday_heights(
     config: DbInit,
     account_id: u32,
 ) -> Result<BirthdayHeights, LightWalletError> {
-    Ok(get_birthday_heights(config, account_id.into())?)
+    Ok(get_birthday_heights(
+        config,
+        account_id
+            .try_into()
+            .map_err(|_| Error::InvalidArgument("bad account id".to_string()))?,
+    )?)
 }
 
 pub fn lightwallet_get_user_balances(
@@ -373,7 +373,9 @@ pub fn lightwallet_get_user_balances(
 ) -> Result<UserBalances, LightWalletError> {
     Ok(get_user_balances(
         config,
-        account_id.into(),
+        account_id
+            .try_into()
+            .map_err(|_| Error::InvalidArgument("Invalid account id".to_string()))?,
         NonZeroU32::try_from(min_confirmations)
             .map_err(|_| Error::InvalidArgument("A positive integer is required.".to_string()))?,
     )?)

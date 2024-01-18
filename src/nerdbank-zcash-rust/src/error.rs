@@ -6,17 +6,16 @@ use zcash_client_backend::{
     zip321::Zip321Error,
 };
 use zcash_client_sqlite::{error::SqliteClientError, wallet::init::WalletMigrationError};
-use zcash_primitives::{memo, transaction::components::Amount};
+use zcash_primitives::{memo, transaction::components::amount::NonNegativeAmount};
 
 use crate::block_source::BlockCacheError;
 
-type BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError, NoteRef> =
+type BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError> =
     zcash_client_backend::data_api::error::Error<
         DataSourceError,
         CommitmentTreeError,
         SelectionError,
         FeeError,
-        NoteRef,
     >;
 
 #[derive(Debug)]
@@ -55,8 +54,8 @@ pub enum Error {
     InvalidAmount,
 
     InsufficientFunds {
-        required: Amount,
-        available: Amount,
+        required: NonNegativeAmount,
+        available: NonNegativeAmount,
     },
 
     InvalidAddress,
@@ -101,8 +100,9 @@ impl std::fmt::Display for Error {
                 available,
             } => write!(
                 f,
-                "Insufficient funds: required {}, available {}",
-                required, available
+                "Insufficient funds: required {} ZATs, available {} ZATs",
+                u64::from(*required),
+                u64::from(*available)
             ),
             Error::InvalidAddress => f.write_str("Invalid address"),
             Error::InvalidMemo(e) => e.fmt(f),
@@ -207,9 +207,8 @@ impl From<Zip321Error> for Error {
     }
 }
 
-impl<DataSourceError, CommitmentTreeError, SelectionError, FeeError, NoteRef>
-    From<BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError, NoteRef>>
-    for Error
+impl<DataSourceError, CommitmentTreeError, SelectionError, FeeError>
+    From<BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError>> for Error
 where
     DataSourceError: std::fmt::Display + std::fmt::Debug,
     CommitmentTreeError: std::fmt::Display + std::fmt::Debug,
@@ -217,13 +216,7 @@ where
     FeeError: std::fmt::Display + std::fmt::Debug,
 {
     fn from(
-        value: BackendError<
-            DataSourceError,
-            CommitmentTreeError,
-            SelectionError,
-            FeeError,
-            NoteRef,
-        >,
+        value: BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError>,
     ) -> Self {
         match value {
             BackendError::DataSource(inner) => {
@@ -256,6 +249,9 @@ where
             BackendError::AddressNotRecognized(_) => Error::InvalidAddress,
             BackendError::ChildIndexOutOfRange(_) => {
                 Error::InternalError("ChildIndexOutOfRange".to_string())
+            }
+            BackendError::UnsupportedPoolType(e) => {
+                Error::InternalError(format!("UnsupportedPoolType: {}", e))
             }
         }
     }

@@ -1,40 +1,24 @@
-use group::GroupEncoding;
-use zcash_primitives::{
-    sapling::{
-        keys::{ExpandedSpendingKey, FullViewingKey, ViewingKey},
-        NullifierDerivingKey, PaymentAddress, SaplingIvk,
-    },
+use sapling::{
+    keys::{ExpandedSpendingKey, FullViewingKey},
     zip32::{
-        sapling::DiversifierKey, sapling_derive_internal_fvk, ChildIndex,
-        DiversifiableFullViewingKey, DiversifierIndex, ExtendedFullViewingKey, ExtendedSpendingKey,
-        Scope,
+        sapling_derive_internal_fvk, DiversifiableFullViewingKey, DiversifierKey,
+        ExtendedSpendingKey,
     },
+    PaymentAddress, SaplingIvk,
 };
+use zcash_primitives::zip32::{ChildIndex, DiversifierIndex, Scope};
 
 #[no_mangle]
-pub extern "C" fn derive_sapling_ivk_from_fvk(
-    ak: *const [u8; 32],
-    nk: *const [u8; 32],
-    ivk: *mut [u8; 32],
-) -> i32 {
-    let ak = unsafe { &*ak };
-    let nk = unsafe { &*nk };
+pub extern "C" fn derive_sapling_ivk_from_fvk(fvk: *const [u8; 96], ivk: *mut [u8; 32]) -> i32 {
+    let fvk = unsafe { &*fvk };
     let ivk = unsafe { &mut *ivk };
 
-    let ak = jubjub::SubgroupPoint::from_bytes(ak);
-    if ak.is_none().into() {
-        return -1;
-    }
+    let fvk = match FullViewingKey::read(&fvk[..]) {
+        Ok(fvk) => fvk,
+        Err(_) => return -1,
+    };
 
-    let ak = ak.unwrap();
-    let nk = jubjub::SubgroupPoint::from_bytes(nk);
-    if nk.is_none().into() {
-        return -2;
-    }
-
-    let nk = NullifierDerivingKey(nk.unwrap());
-
-    ivk.copy_from_slice(&ViewingKey { ak, nk }.ivk().to_repr());
+    ivk.copy_from_slice(&fvk.vk.ivk().to_repr());
 
     0
 }
@@ -60,7 +44,7 @@ pub extern "C" fn decrypt_sapling_diversifier(
     if let Some(dfvk) = DiversifiableFullViewingKey::from_bytes(&fvk_dk) {
         if let Some(receiver) = PaymentAddress::from_bytes(receiver) {
             if let Some((idx, s)) = dfvk.decrypt_diversifier(&receiver) {
-                diversifier_index.copy_from_slice(&idx.0);
+                diversifier_index.copy_from_slice(idx.as_bytes());
                 *scope = match s {
                     Scope::External => 0,
                     Scope::Internal => 1,
@@ -115,34 +99,12 @@ pub extern "C" fn decrypt_sapling_diversifier_with_ivk(
     }
     let regenerated_address = ivk.to_payment_address(regenerated_diversifier.unwrap());
     if regenerated_address == Some(address) {
-        diversifier_index.copy_from_slice(&j.0);
+        diversifier_index.copy_from_slice(j.as_bytes());
         0
     } else {
         // Everything was valid. But the receiver did *not* come from this key.
         1
     }
-}
-
-#[no_mangle]
-pub extern "C" fn derive_sapling_child_fvk(
-    ext_fvk: *const [u8; 169],
-    child_index: u32,
-    child: *mut [u8; 169],
-) -> i32 {
-    let ext_fvk = unsafe { &*ext_fvk };
-    let child_index = ChildIndex::from_index(child_index);
-    let child_bytes = unsafe { &mut *child };
-
-    // Do the same thing as derive_child, but write the result to the child variable and return an error code when it fails.
-    if let Ok(fvk) = ExtendedFullViewingKey::read(&ext_fvk[..]) {
-        if let Ok(derived_child) = fvk.derive_child(child_index) {
-            if derived_child.write(&mut child_bytes[..]).is_ok() {
-                return 0;
-            }
-        }
-    }
-
-    return -1;
 }
 
 #[no_mangle]
@@ -152,7 +114,10 @@ pub extern "C" fn derive_sapling_child(
     child: *mut [u8; 169],
 ) -> i32 {
     let ext_sk = unsafe { &*ext_sk };
-    let child_index = ChildIndex::from_index(child_index);
+    let child_index = match ChildIndex::from_index(child_index) {
+        Some(index) => index,
+        None => return -2,
+    };
     let child_bytes = unsafe { &mut *child };
 
     // Do the same thing as derive_child, but write the result to the child variable and return an error code when it fails.
@@ -252,15 +217,13 @@ pub extern "C" fn get_sapling_receiver(
     let receiver = unsafe { &mut *receiver };
     let dk = DiversifierKey::from_bytes(*dk);
 
-    let j = DiversifierIndex {
-        0: diversifier_index.clone(),
-    };
+    let j = DiversifierIndex::from(diversifier_index.clone());
 
     let fr = jubjub::Fr::from_bytes(ivk);
     if fr.is_some().into() {
         let ivk = SaplingIvk(fr.unwrap());
         if let Some((index, d)) = dk.find_diversifier(j) {
-            diversifier_index.copy_from_slice(&index.0);
+            diversifier_index.copy_from_slice(index.as_bytes());
             if let Some(addr) = ivk.to_payment_address(d) {
                 receiver.copy_from_slice(&addr.to_bytes());
                 return 0;

@@ -154,16 +154,15 @@ public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncod
 	/// Initializes a new instance of the <see cref="DiversifiableIncomingViewingKey"/> class
 	/// from elements of a full viewing key.
 	/// </summary>
-	/// <param name="ak">The Ak subgroup point.</param>
-	/// <param name="nk">The nullifier deriving key.</param>
+	/// <param name="fvk">The encoded full viewing key (ak, nk, ovk).</param>
 	/// <param name="dk">The diversification key. May be default. Required for inclusion in a unified viewing key.</param>
 	/// <param name="network">The network on which this key should operate.</param>
 	/// <returns>The constructed incoming viewing key.</returns>
 	/// <exception cref="InvalidKeyException">Thrown if an error occurs while parsing the inputs.</exception>
-	internal static DiversifiableIncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, ReadOnlySpan<byte> dk, ZcashNetwork network)
+	internal static DiversifiableIncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> fvk, ReadOnlySpan<byte> dk, ZcashNetwork network)
 	{
 		Span<byte> ivk = stackalloc byte[32];
-		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(ak, nk, ivk) != 0)
+		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(fvk, ivk) != 0)
 		{
 			throw new InvalidKeyException();
 		}

@@ -2,7 +2,7 @@ use std::{num::NonZeroU32, path::Path};
 
 use http::Uri;
 use zcash_client_backend::{
-    address::RecipientAddress,
+    address::Address,
     data_api::{
         wallet::{input_selection::GreedyInputSelector, spend},
         WalletRead,
@@ -16,7 +16,9 @@ use zcash_client_backend::{
 use zcash_primitives::{
     consensus::Network,
     memo::MemoBytes,
-    transaction::{components::Amount, fees::zip317::FeeRule, Transaction, TxId},
+    transaction::{
+        components::amount::NonNegativeAmount, fees::zip317::FeeRule, Transaction, TxId,
+    },
 };
 use zcash_proofs::prover::LocalTxProver;
 
@@ -43,7 +45,7 @@ pub async fn send_transaction<P: AsRef<Path>>(
 
     // TODO: revise this to a smarter change strategy that avoids unnecessarily crossing the turnstile.
     let input_selector = GreedyInputSelector::new(
-        SingleOutputChangeStrategy::new(FeeRule::standard()),
+        SingleOutputChangeStrategy::new(FeeRule::standard(), None),
         Default::default(),
     );
 
@@ -54,9 +56,9 @@ pub async fn send_transaction<P: AsRef<Path>>(
             None => None,
         };
         payments.push(Payment {
-            recipient_address: RecipientAddress::decode(&network, &detail.recipient.as_str())
+            recipient_address: Address::decode(&network, &detail.recipient.as_str())
                 .ok_or(Error::InvalidAddress)?,
-            amount: Amount::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
+            amount: NonNegativeAmount::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
             memo: memo,
             label: None,
             message: None,
@@ -69,7 +71,8 @@ pub async fn send_transaction<P: AsRef<Path>>(
     let txid = spend(
         &mut db.data,
         &network,
-        prover,
+        &prover,
+        &prover,
         &input_selector,
         usk,
         request,

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Numerics;
 using Nerdbank.Bitcoin;
 
 public class Zip32HDWalletTests : TestBase
@@ -111,19 +110,6 @@ public class Zip32HDWalletTests : TestBase
 		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
 		ArgumentException ex = Assert.Throws<ArgumentException>(() => Zip32HDWallet.Sapling.Create(shortMnemonic, ZcashNetwork.MainNet));
 		this.logger.WriteLine(ex.Message);
-	}
-
-	[Fact]
-	public void CreateSaplingAddressFromSeed_ViaFVK()
-	{
-		Zip32HDWallet.Sapling.ExtendedFullViewingKey masterFullViewingKey = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;
-		Zip32HDWallet.Sapling.ExtendedFullViewingKey childFVK = masterFullViewingKey.Derive(3); // NOTE: this isn't a ZIP-32 compliant key path
-		DiversifierIndex diversifierIndex = default;
-		Assert.True(childFVK.IncomingViewingKey.TryCreateReceiver(ref diversifierIndex, out SaplingReceiver? receiver));
-		Assert.Equal(1, diversifierIndex.ToBigInteger()); // index 0 was invalid in this case.
-		SaplingAddress address = new(receiver.Value);
-		this.logger.WriteLine(address);
-		Assert.Equal("zs1qa3y3reyw3uteat3tnwwp9chnnwhaz2a0h2dgfvljt7mcgcxyc3eqmfq23rzwn8ws45w70vg6hg", address.Address);
 	}
 
 	[Fact]

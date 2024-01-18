@@ -11,7 +11,6 @@ use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
 use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, Parameters},
     merkle_tree::HashSer,
-    sapling,
     transaction::Transaction,
 };
 
@@ -367,9 +366,9 @@ mod tests {
                 let b = summary.account_balances().get(&id).unwrap();
                 println!(
                     "Sapling balance: {}",
-                    format_zec(Amount::from(b.sapling_balance.spendable_value))
+                    format_zec(Amount::from(b.sapling_balance().spendable_value()))
                 );
-                println!("Transparent balance: {}", format_zec(b.unshielded));
+                println!("Transparent balance: {}", format_zec(b.unshielded()));
             }
         } else {
             println!("No summary found");

@@ -176,29 +176,6 @@ internal static unsafe partial class NativeMethods
 	}
 
 	/// <summary>
-	/// Derives a child full viewing key from an existing one.
-	/// </summary>
-	/// <param name="extendedFullViewingKey">The 169-byte form of an extended full viewing key.</param>
-	/// <param name="childIndex">The index of the child key to derive.</param>
-	/// <param name="childExtendedFVK">The 169-byte buffer that will receive the child extended full viewing key.</param>
-	/// <returns>0 on success; otherwise a negative error code.</returns>
-	internal static int DeriveSaplingChildFullViewingKey(ReadOnlySpan<byte> extendedFullViewingKey, uint childIndex, Span<byte> childExtendedFVK)
-	{
-		if (extendedFullViewingKey.Length != 169 || childExtendedFVK.Length != 169)
-		{
-			throw new ArgumentException();
-		}
-
-		fixed (byte* pParentFVK = extendedFullViewingKey)
-		{
-			fixed (byte* pChildFVK = childExtendedFVK)
-			{
-				return derive_sapling_child_fvk(pParentFVK, childIndex, pChildFVK);
-			}
-		}
-	}
-
-	/// <summary>
 	/// Derives a full viewing key into an incoming viewing key.
 	/// </summary>
 	/// <param name="fullViewingKey">The 96-byte encoding of the full viewing key.</param>
@@ -318,21 +295,18 @@ internal static unsafe partial class NativeMethods
 	/// <param name="ivk">Receives the computed value for <see cref="Nerdbank.Zcash.Sapling.IncomingViewingKey.Ivk"/>.</param>
 	/// <returns>0 on success, or a negative error code.</returns>
 	/// <exception cref="ArgumentException">Thrown if the provided buffers are not of expected length.</exception>
-	internal static int DeriveSaplingIncomingViewingKeyFromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, Span<byte> ivk)
+	internal static int DeriveSaplingIncomingViewingKeyFromFullViewingKey(ReadOnlySpan<byte> fvk, Span<byte> ivk)
 	{
-		if (ak.Length != 32 || nk.Length != 32 || ivk.Length != 32)
+		if (fvk.Length != 96 || ivk.Length != 32)
 		{
 			throw new ArgumentException();
 		}
 
-		fixed (byte* pAk = ak)
+		fixed (byte* pFvk = fvk)
 		{
-			fixed (byte* pNk = nk)
+			fixed (byte* pIvk = ivk)
 			{
-				fixed (byte* pIvk = ivk)
-				{
-					return derive_sapling_ivk_from_fvk(pAk, pNk, pIvk);
-				}
+				return derive_sapling_ivk_from_fvk(pFvk, pIvk);
 			}
 		}
 	}
@@ -423,9 +397,6 @@ internal static unsafe partial class NativeMethods
 	private static extern int derive_sapling_child(byte* extSK, uint child_index, byte* childSK);
 
 	[DllImport(LibraryName)]
-	private static extern int derive_sapling_child_fvk(byte* ext_fvk, uint child_index, byte* child_ext_fvk);
-
-	[DllImport(LibraryName)]
 	private static extern int get_orchard_ivk_from_fvk(byte* fvk, byte* ivk);
 
 	[DllImport(LibraryName)]
@@ -438,7 +409,7 @@ internal static unsafe partial class NativeMethods
 	private static extern int decrypt_sapling_diversifier_with_ivk(byte* ivk, byte* dk, byte* receiver, byte* diversifier_index);
 
 	[DllImport(LibraryName)]
-	private static extern int derive_sapling_ivk_from_fvk(byte* ak, byte* nk, byte* ivk);
+	private static extern int derive_sapling_ivk_from_fvk(byte* fvk, byte* ivk);
 
 	[DllImport(LibraryName)]
 	private static extern int derive_internal_fvk_sapling(byte* fvk, byte* dk, byte* internal_fvk, byte* internal_dk);

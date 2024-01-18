@@ -22,6 +22,7 @@ orchard = "0.6"
 pasta_curves = "0.5"
 prost = "0.12"
 rusqlite = "0.29"
+sapling = { package = "sapling-crypto", version = "0.0" }
 schemer = "0.2"
 secrecy = "0.8.0"
 thiserror = "1.0"
@@ -43,11 +44,13 @@ zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backen
 	"test-dependencies",
 	"transparent-inputs",
 	"lightwalletd-tonic",
+	"orchard",
 ] }
 zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite", features = [
 	"multicore",
-	"unstable",
+	"orchard",
 	"transparent-inputs",
+	"unstable",
 ] }
 zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
 	"bundled-prover",
@@ -61,3 +64,5 @@ matches = "0.1"
 
 [patch.crates-io]
 hdwallet = { path = "../../external/hdwallet" }
+sapling = { package = "sapling-crypto", path = "../../external/sapling-crypto" }
+orchard = { git = "https://github.com/zcash/orchard.git", rev = "189257391a5726d7f3f2568d547a5ef8603c7156" }
