@@ -2,15 +2,11 @@
 
 <#
 .SYNOPSIS
-    Generate C# bindings for the exported rust functions.
-.PARAMETER InstallPrerequisites
-    Installs uniffi-bindgen-cs.
+    Generate C# bindings for the exported rust functions. If uniffi-bindgen-cs is not installed, it will be installed automatically.
 #>
 
-[CmdletBinding(SupportsShouldProcess = $true)]
-Param(
-    [switch]$InstallPrerequisites
-)
+# Check if uniiffi-bindgen-cs is installed
+[bool]$InstallPrerequisites = $null -eq (Get-Command uniffi-bindgen-cs -ErrorAction SilentlyContinue)
 
 if ($InstallPrerequisites) {
     cargo install uniffi-bindgen-cs --git https://github.com/NordSecurity/uniffi-bindgen-cs --tag v0.7.0+v0.25.0
