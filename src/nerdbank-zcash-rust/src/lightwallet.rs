@@ -2,10 +2,9 @@ use http::Uri;
 use tokio::runtime::Runtime;
 use zcash_primitives::consensus::BlockHeight;
 use zcash_primitives::memo::{Memo, MemoBytes};
-use zingoconfig::ZingoConfig;
+use zingoconfig::{ZingoConfig, load_clientconfig};
 use zingolib::lightclient::{LightClient, PoolBalances, SyncResult};
-use zingolib::load_clientconfig;
-use zingolib::wallet::traits::{ReceivedNoteAndMetadata, ToBytes};
+use zingolib::wallet::traits::ToBytes;
 use zingolib::wallet::WalletBase;
 
 use std::collections::HashMap;
@@ -528,7 +527,7 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
 
                 tx.orchard_notes
                     .iter()
-                    .filter(|n| n.spent().is_none() && n.unconfirmed_spent.is_none())
+                    .filter(|n| n.spent.is_none() && n.unconfirmed_spent.is_none())
                     .for_each(|n| {
                         let value = n.note.value().inner();
                         if !incoming && n.is_change {
@@ -546,7 +545,7 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
 
                 tx.sapling_notes
                     .iter()
-                    .filter(|n| n.spent().is_none() && n.unconfirmed_spent.is_none())
+                    .filter(|n| n.spent.is_none() && n.unconfirmed_spent.is_none())
                     .for_each(|n| {
                         let value = n.note.value().inner();
                         if !incoming && n.is_change {
@@ -562,7 +561,7 @@ pub fn lightwallet_get_user_balances(handle: u64) -> Result<UserBalances, LightW
                         }
                     });
 
-                tx.received_utxos
+                tx.transparent_notes
                     .iter()
                     .filter(|n| n.spent.is_none() && n.unconfirmed_spent.is_none())
                     .for_each(|n| {
@@ -635,9 +634,9 @@ pub fn lightwallet_get_birthday_heights(handle: u64) -> Result<BirthdayHeights, 
             .current
             .iter()
             .for_each(|(_, tx)| {
-                if tx.orchard_notes.iter().any(|n| n.spent().is_none())
-                    || tx.sapling_notes.iter().any(|n| n.spent().is_none())
-                    || tx.received_utxos.iter().any(|n| n.spent.is_none())
+                if tx.orchard_notes.iter().any(|n| n.spent.is_none())
+                    || tx.sapling_notes.iter().any(|n| n.spent.is_none())
+                    || tx.transparent_notes.iter().any(|n| n.spent.is_none())
                 {
                     if block_number_with_oldest_unspent_note_or_utxo.is_none() {
                         block_number_with_oldest_unspent_note_or_utxo = Some(tx.block_height);
