@@ -13,7 +13,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	private string key = string.Empty;
 	private string seedPassword = string.Empty;
 	private bool isTestNet;
-	private ulong birthdayHeight = AppUtilities.SaplingActivationHeight;
+	private ulong birthdayHeight;
 	private Bip39Mnemonic? mnemonic;
 	private bool inputIsValidKey;
 	private bool isSeed;
@@ -33,6 +33,9 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 		this.LinkProperty(nameof(this.IsSeed), nameof(this.IsTestNetVisible));
 		this.LinkProperty(nameof(this.SeedPassword), nameof(this.SeedPasswordHasWhitespace));
+		this.LinkProperty(nameof(this.IsTestNet), nameof(this.MinimumBirthdayHeight));
+
+		this.birthdayHeight = this.NetworkParameters.SaplingActivationHeight;
 
 		if (viewModelServices.Wallet.IsEmpty)
 		{
@@ -103,7 +106,17 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	public bool IsTestNet
 	{
 		get => this.isTestNet;
-		set => this.RaiseAndSetIfChanged(ref this.isTestNet, value);
+		set
+		{
+			bool updateBirthdayHeight = this.BirthdayHeight == this.NetworkParameters.SaplingActivationHeight;
+
+			this.RaiseAndSetIfChanged(ref this.isTestNet, value);
+
+			if (updateBirthdayHeight)
+			{
+				this.BirthdayHeight = this.NetworkParameters.SaplingActivationHeight;
+			}
+		}
 	}
 
 	public string IsTestNetCaption => "This is a testnet account";
@@ -118,11 +131,13 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public string BirthdayHeightCaption => "Birthday height";
 
-	public ulong MinimumBirthdayHeight => AppUtilities.SaplingActivationHeight;
+	public ulong MinimumBirthdayHeight => this.NetworkParameters.SaplingActivationHeight;
 
 	public string ImportCommandCaption => "Import";
 
 	public ReactiveCommand<Unit, Account?> ImportCommand { get; }
+
+	private ZcashNetworkParameters NetworkParameters => this.IsTestNet ? ZcashNetworkParameters.TestNet : ZcashNetworkParameters.MainNet;
 
 	public Account? Import()
 	{

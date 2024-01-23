@@ -4,9 +4,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reactive.Linq;
-using System.Threading;
 using DynamicData;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.VisualStudio.Threading;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -55,6 +53,8 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 		this.CreateAccountCommand = ReactiveCommand.Create(this.CreateAccount, canCreateAccount);
 		this.SetBirthdayHeightToTipCommand = ReactiveCommand.CreateFromTask(this.SetBirthdayHeightToTipAsync);
+
+		this.LinkProperty(nameof(this.Network), nameof(this.MinimumBirthdayHeight));
 
 		this.UpdateBirthdayHeightAsync().Forget();
 		this.UpdateMaxBirthdayHeightAsync().Forget();
@@ -171,7 +171,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.birthdayHeight, value);
 	}
 
-	public ulong MinimumBirthdayHeight => AppUtilities.SaplingActivationHeight;
+	public ulong MinimumBirthdayHeight => this.NetworkParameters.SaplingActivationHeight;
 
 	public ulong? MaximumBirthdayHeight
 	{
@@ -188,6 +188,8 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 	public string SetBirthdayHeightToTipCommandCaption => "Set height for new account";
 
 	public ReactiveCommand<Unit, Unit> SetBirthdayHeightToTipCommand { get; }
+
+	private ZcashNetworkParameters NetworkParameters => ZcashNetworkParameters.GetParameters(this.Network);
 
 	private AsyncLazy<ulong> LazyHeight => this.Network switch
 	{
