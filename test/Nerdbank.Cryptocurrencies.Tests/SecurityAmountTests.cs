@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Nerdbank.Cryptocurrencies.Exchanges;
-
 public class SecurityAmountTests
 {
 	[Fact]
@@ -58,6 +56,12 @@ public class SecurityAmountTests
 	{
 		Assert.Equal(1.20m, Security.USD.Amount(1.201m).RoundedAmount);
 		Assert.Equal(1.20m, Security.USD.Amount(1.199m).RoundedAmount);
+	}
+
+	[Fact]
+	public void RoundedAmount_Default()
+	{
+		Assert.Equal(0, default(SecurityAmount).RoundedAmount);
 	}
 
 	[Fact]

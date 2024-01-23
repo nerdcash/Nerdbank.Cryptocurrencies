@@ -1,10 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <!-- https://learn.microsoft.com/nuget/consume-packages/central-package-management -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <AvaloniaVersion>11.0.5</AvaloniaVersion>
-    <RoslynVersion>3.11.0-beta1.23572.1</RoslynVersion>
+    <RoslynVersion>3.11.0-beta1.24061.1</RoslynVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -28,23 +29,23 @@
     <PackageVersion Include="BouncyCastle.Cryptography" Version="2.2.1" />
     <PackageVersion Include="Google.Protobuf" Version="3.25.1" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.59.0" />
-    <PackageVersion Include="Grpc.Tools" Version="2.59.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.60.0" />
     <PackageVersion Include="IsExternalInit" Version="1.0.3" />
     <PackageVersion Include="Isopoh.Cryptography.Blake2b" Version="2.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(RoslynVersion)" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.8.14" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
-    <PackageVersion Include="NBitcoin.Secp256k1" Version="3.1.1" />
+    <PackageVersion Include="NBitcoin.Secp256k1" Version="3.1.2" />
     <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.9-beta" />
     <PackageVersion Include="QRCoder" Version="1.4.3" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="xunit.combinatorial" Version="1.6.24" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.4" />
-    <PackageVersion Include="xunit" Version="2.6.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.5" />
+    <PackageVersion Include="xunit" Version="2.6.3" />
     <PackageVersion Include="ZXing.Net" Version="0.16.9" />
     <PackageVersion Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.12" />
     <PackageVersion Include="ZXing.Net.Mobile" Version="2.4.1" />
