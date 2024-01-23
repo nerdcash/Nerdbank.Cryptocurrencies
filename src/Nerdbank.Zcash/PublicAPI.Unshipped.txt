@@ -588,6 +588,12 @@ Nerdbank.Zcash.ZcashAddress.ZcashAddress(string! address) -> void
 Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.MainNet = 0 -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.TestNet = 1 -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.ZcashNetworkParameters
+Nerdbank.Zcash.ZcashNetworkParameters.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.ZcashNetworkParameters.OrchardActivationHeight.get -> ulong
+Nerdbank.Zcash.ZcashNetworkParameters.OrchardActivationHeight.init -> void
+Nerdbank.Zcash.ZcashNetworkParameters.SaplingActivationHeight.get -> ulong
+Nerdbank.Zcash.ZcashNetworkParameters.SaplingActivationHeight.init -> void
 Nerdbank.Zcash.ZcashUtilities
 Nerdbank.Zcash.Zip302MemoFormat
 Nerdbank.Zcash.Zip302MemoFormat.MemoFormat
@@ -911,6 +917,9 @@ static Nerdbank.Zcash.ZcashAccount.TryImportAccount(string! encodedKey, out Nerd
 static Nerdbank.Zcash.ZcashAddress.Decode(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?
 static Nerdbank.Zcash.ZcashAddress.TryDecode(string! address, out Nerdbank.Cryptocurrencies.DecodeError? errorCode, out string? errorMessage, out Nerdbank.Zcash.ZcashAddress? result) -> bool
+static Nerdbank.Zcash.ZcashNetworkParameters.GetParameters(Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.ZcashNetworkParameters!
+static Nerdbank.Zcash.ZcashNetworkParameters.MainNet.get -> Nerdbank.Zcash.ZcashNetworkParameters!
+static Nerdbank.Zcash.ZcashNetworkParameters.TestNet.get -> Nerdbank.Zcash.ZcashNetworkParameters!
 static Nerdbank.Zcash.ZcashUtilities.AsSecurity(this Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Cryptocurrencies.Security!
 static Nerdbank.Zcash.ZcashUtilities.GetTickerName(this Nerdbank.Zcash.ZcashNetwork network) -> string!
 static Nerdbank.Zcash.ZcashUtilities.TryParseKey(string! encodedKey, out Nerdbank.Cryptocurrencies.IKeyWithTextEncoding? key) -> bool
