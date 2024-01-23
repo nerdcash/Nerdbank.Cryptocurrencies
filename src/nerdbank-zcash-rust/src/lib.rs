@@ -14,7 +14,7 @@ use lightwallet::{
     lightwallet_initialize, lightwallet_initialize_from_disk, lightwallet_send_check_status,
     lightwallet_send_to_address, lightwallet_sync, lightwallet_sync_interrupt,
     lightwallet_sync_status, BirthdayHeights, ChainType, Config, LightWalletError, OrchardNote,
-    SaplingNote, SendUpdate, SyncStatus, Transaction, TransactionSendDetail, UserBalances,
+    SaplingNote, SendUpdate, SyncStatus, Transaction, TransactionSendDetail,
     WalletInfo,
 };
-use zingolib::lightclient::{PoolBalances, SyncResult};
+use zingolib::lightclient::{PoolBalances, SyncResult, UserBalances};
