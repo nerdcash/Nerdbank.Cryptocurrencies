@@ -11,8 +11,8 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackObject]
 public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 {
-	internal const string ProvisionalTransactionId = "";
-	private string txid = string.Empty;
+	internal static readonly TxId? ProvisionalTransactionId = null;
+	private TxId? txid;
 	private uint? blockNumber;
 	private DateTimeOffset? when;
 	private bool isDirty;
@@ -27,7 +27,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	}
 
 	[Key(0)]
-	public required string TransactionId
+	public required TxId? TransactionId
 	{
 		get => this.txid;
 		set
@@ -41,7 +41,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	/// Gets a value indicating whether this transaction is provisional, i.e. it has not yet been mined into a block.
 	/// </summary>
 	[IgnoreMember]
-	public bool IsProvisionalTransaction => this.TransactionId == ProvisionalTransactionId;
+	public bool IsProvisionalTransaction => this.TransactionId is null;
 
 	[Key(1)]
 	public uint? BlockNumber
