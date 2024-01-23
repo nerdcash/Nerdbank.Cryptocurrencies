@@ -493,7 +493,7 @@ public readonly record struct RawTransaction
 		private readonly ReadOnlyMemory<byte> encCiphertexts;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JSDescriptionBCTV14"/> class.
+		/// Initializes a new instance of the <see cref="JSDescriptionBCTV14"/> struct.
 		/// </summary>
 		/// <param name="vpub_old">A value v_old_pub that the JoinSplit transfer removes from the transparent transaction value pool.</param>
 		/// <param name="vpub_new">A value v_new_pub that the JoinSplit transfer inserts into the transparent transaction value pool.</param>
@@ -650,7 +650,7 @@ public readonly record struct RawTransaction
 		private readonly ReadOnlyMemory<byte> encCiphertexts;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JSDescriptionGroth16"/> class.
+		/// Initializes a new instance of the <see cref="JSDescriptionGroth16"/> struct.
 		/// </summary>
 		/// <param name="vpub_old">A value v_old_pub that the JoinSplit transfer removes from the transparent transaction value pool.</param>
 		/// <param name="vpub_new">A value v_new_pub that the JoinSplit transfer inserts into the transparent transaction value pool.</param>
@@ -803,7 +803,7 @@ public readonly record struct RawTransaction
 		private readonly ReadOnlyMemory<byte> spendAuthSig;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SaplingSpendDescription"/> class
+		/// Initializes a new instance of the <see cref="SaplingSpendDescription"/> struct
 		/// for a v5 transaction.
 		/// </summary>
 		/// <inheritdoc cref="SaplingSpendDescription(ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte})"/>
@@ -823,7 +823,7 @@ public readonly record struct RawTransaction
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SaplingSpendDescription"/> class
+		/// Initializes a new instance of the <see cref="SaplingSpendDescription"/> struct
 		/// for a v4 transaction.
 		/// </summary>
 		/// <param name="cv">The 32-byte value commitment.</param>
@@ -943,7 +943,7 @@ public readonly record struct RawTransaction
 		private readonly ReadOnlyMemory<byte> zkproof;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SaplingOutputDescription"/> class
+		/// Initializes a new instance of the <see cref="SaplingOutputDescription"/> struct
 		/// for a v5 transaction.
 		/// </summary>
 		/// <inheritdoc cref="SaplingOutputDescription(ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte}, ReadOnlyMemory{byte})"/>
@@ -967,7 +967,7 @@ public readonly record struct RawTransaction
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SaplingOutputDescription"/> class
+		/// Initializes a new instance of the <see cref="SaplingOutputDescription"/> struct
 		/// for a v4 transaction.
 		/// </summary>
 		/// <param name="cv">A value commitment to the net value of the output note.</param>
@@ -1082,7 +1082,7 @@ public readonly record struct RawTransaction
 		private readonly ReadOnlyMemory<byte> outCiphertext;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="OrchardAction"/> class.
+		/// Initializes a new instance of the <see cref="OrchardAction"/> struct.
 		/// </summary>
 		/// <param name="cv">A value commitment to the net value of the input note minus the output note.</param>
 		/// <param name="nullifier">The nullifier of the input note.</param>

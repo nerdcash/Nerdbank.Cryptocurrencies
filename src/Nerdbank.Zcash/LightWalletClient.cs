@@ -391,7 +391,7 @@ public partial class LightWalletClient : IDisposable
 	public record struct ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance)
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> class
+		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> struct
 		/// with balances given in ZATs.
 		/// </summary>
 		/// <param name="balance"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='Balance']"/></param>
@@ -413,7 +413,7 @@ public partial class LightWalletClient : IDisposable
 	public record struct PoolBalances(TransparentPoolBalance? Transparent, ShieldedPoolBalance? Sapling, ShieldedPoolBalance? Orchard)
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PoolBalances"/> class.
+		/// Initializes a new instance of the <see cref="PoolBalances"/> struct.
 		/// </summary>
 		/// <param name="balances">The balances as they come from the interop layer.</param>
 		internal PoolBalances(uniffi.LightWallet.PoolBalances balances)

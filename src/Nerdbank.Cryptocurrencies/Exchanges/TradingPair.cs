@@ -9,7 +9,7 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 public record struct TradingPair
 {
 	/// <summary>
-	/// Initializes a new instance of the <see cref="TradingPair"/> class.
+	/// Initializes a new instance of the <see cref="TradingPair"/> struct.
 	/// </summary>
 	/// <param name="basis">The security offered in a trade.</param>
 	/// <param name="tradeInterest">The security received in a trade.</param>
