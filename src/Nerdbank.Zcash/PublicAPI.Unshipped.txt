@@ -788,6 +788,8 @@ override Nerdbank.Zcash.TransparentP2PKHAddress.Network.get -> Nerdbank.Zcash.Zc
 override Nerdbank.Zcash.TransparentP2SHAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.TransparentP2SHAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.TransparentP2SHAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.TxId.Equals(object? obj) -> bool
+override Nerdbank.Zcash.TxId.GetHashCode() -> int
 override Nerdbank.Zcash.TxId.ToString() -> string!
 override Nerdbank.Zcash.UnifiedAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.UnifiedViewingKey.Equals(object? obj) -> bool
@@ -890,6 +892,8 @@ static Nerdbank.Zcash.Transparent.PrivateKey.TryDecode(string! encoding, out Ner
 static Nerdbank.Zcash.TransparentP2PKHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2SHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TxId.implicit operator System.ReadOnlySpan<byte>(in Nerdbank.Zcash.TxId txid) -> System.ReadOnlySpan<byte>
+static Nerdbank.Zcash.TxId.operator !=(in Nerdbank.Zcash.TxId left, in Nerdbank.Zcash.TxId right) -> bool
+static Nerdbank.Zcash.TxId.operator ==(in Nerdbank.Zcash.TxId left, in Nerdbank.Zcash.TxId right) -> bool
 static Nerdbank.Zcash.TxId.Parse(string! txid) -> Nerdbank.Zcash.TxId
 static Nerdbank.Zcash.TxId.Parse(System.ReadOnlySpan<char> txid) -> Nerdbank.Zcash.TxId
 static Nerdbank.Zcash.UnifiedAddress.Create(params Nerdbank.Zcash.ZcashAddress![]! receivers) -> Nerdbank.Zcash.UnifiedAddress!

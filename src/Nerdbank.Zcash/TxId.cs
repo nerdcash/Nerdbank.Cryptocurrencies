@@ -44,6 +44,22 @@ public struct TxId : IEquatable<TxId>
 	public static implicit operator ReadOnlySpan<byte>(in TxId txid) => txid[..];
 
 	/// <summary>
+	/// Compares equality between two <see cref="TxId"/> values.
+	/// </summary>
+	/// <param name="left">The left value.</param>
+	/// <param name="right">The right value.</param>
+	/// <returns>A value indicating whether the two values are equal.</returns>
+	public static bool operator ==(in TxId left, in TxId right) => left.Equals(right);
+
+	/// <summary>
+	/// Compares equality between two <see cref="TxId"/> values.
+	/// </summary>
+	/// <param name="left">The left value.</param>
+	/// <param name="right">The right value.</param>
+	/// <returns>A value indicating whether the two values are inequal.</returns>
+	public static bool operator !=(in TxId left, in TxId right) => !left.Equals(right);
+
+	/// <summary>
 	/// Parses a transaction ID from a string.
 	/// </summary>
 	/// <param name="txid">The text version of the TxId. This is expected to be the hex encoding of the bytes in reverse order.</param>
@@ -75,6 +91,23 @@ public struct TxId : IEquatable<TxId>
 	public readonly bool Equals(in TxId other) => this.txid.Equals(other.txid);
 
 	/// <inheritdoc/>
+	public override bool Equals([NotNullWhen(true)] object? obj) => obj is TxId other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode code = default;
+		code.AddBytes(this[..]);
+		return code.ToHashCode();
+	}
+
+	/// <summary>
+	/// Returns a string encoding of this <see cref="TxId"/>.
+	/// </summary>
+	/// <returns>The string encoding of this value.</returns>
+	/// <remarks>
+	/// The string representation is the hex encoding of the bytes in reverse order.
+	/// </remarks>
 	public override string ToString()
 	{
 		if (this.txidString is null)
