@@ -6,6 +6,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <AvaloniaVersion>11.0.5</AvaloniaVersion>
     <RoslynVersion>3.11.0-beta1.24061.1</RoslynVersion>
+    <MessagePackVersion>2.5.140</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -18,9 +19,9 @@
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Simple" Version="11.0.5" />
     <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
-    <PackageVersion Include="MessagePack" Version="2.5.129" />
-    <PackageVersion Include="MessagePack.Annotations" Version="2.5.129" />
-    <PackageVersion Include="MessagePackAnalyzer" Version="2.5.129" />
+    <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="MessagePack.Annotations" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" />
     <PackageVersion Include="Xamarin.AndroidX.Annotation" Version="1.7.0.2" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1" />
