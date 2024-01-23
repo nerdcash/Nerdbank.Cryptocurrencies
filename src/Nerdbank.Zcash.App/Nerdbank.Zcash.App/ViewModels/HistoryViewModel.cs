@@ -24,9 +24,9 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		this.Transactions.AddRange(new TransactionViewModel[]
 		{
-			MockTx(-0.5m, "Hot Chocolate", TimeSpan.FromDays(35), "1e62b7", "Red Rock Cafe"),
-			MockTx(1.2345m, "For the pizza", TimeSpan.FromDays(200), "12345abc", "Andrew Arnott"),
-			MockTx(2m, "Paycheck", TimeSpan.FromDays(2), "236ba", "Employer"),
+			MockTx(-0.5m, "Hot Chocolate", TimeSpan.FromDays(35), "e5e259b8ef7f0cca708031ab0f10e2a3aa48e069a0817d3a54f71c7f56e0110d", "Red Rock Cafe"),
+			MockTx(1.2345m, "For the pizza", TimeSpan.FromDays(200), "9c1952fbaf5389fa8c36c45f17b2e303c33a9074dee8d90c694ee14112e0f46d", "Andrew Arnott"),
+			MockTx(2m, "Paycheck", TimeSpan.FromDays(2), "4e5f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "Employer"),
 		});
 
 		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, string txid, string otherPartyName)
@@ -43,7 +43,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				{
 					IsIncoming = amount > 0,
 					Fee = amount > 0 ? null : -0.0001m,
-					TransactionId = txid,
+					TransactionId = TxId.Parse(txid),
 					When = DateTimeOffset.UtcNow - age,
 					SendItems = sends,
 					RecvItems = receives,

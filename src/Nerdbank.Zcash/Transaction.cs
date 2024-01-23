@@ -18,7 +18,7 @@ namespace Nerdbank.Zcash;
 /// <param name="Notes">Notes received in this transaction.</param>
 /// <param name="IsIncoming"><see langword="true"/> if the transaction was sent by a different wallet; <see langword="false" /> otherwise.</param>
 public partial record Transaction(
-	string TransactionId,
+	TxId TransactionId,
 	uint BlockNumber,
 	DateTime When,
 	bool IsUnconfirmed,

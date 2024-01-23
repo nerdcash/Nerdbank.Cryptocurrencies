@@ -151,7 +151,7 @@ public partial class Zip32HDWallet
 				this.CryptographicKey.WriteToSpan(destination);
 				written += 32;
 
-				written += this.ChainCode[..].CopyToRetLength(destination);
+				written += this.ChainCode[..].CopyToRetLength(destination[written..]);
 				Assumes.True(written == 64);
 				return written;
 			}

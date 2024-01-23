@@ -95,7 +95,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		return account is not null;
 	}
 
-	public IEnumerable<Account> GetAccountsContainingTransaction(string transactionId)
+	public IEnumerable<Account> GetAccountsContainingTransaction(TxId transactionId)
 	{
 		return this.Accounts.Where(a => a.Transactions.Any(tx => tx.TransactionId == transactionId));
 	}

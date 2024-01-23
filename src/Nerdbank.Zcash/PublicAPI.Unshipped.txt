@@ -4,6 +4,7 @@ abstract Nerdbank.Zcash.ZcashAddress.HasShieldedReceiver.get -> bool
 abstract Nerdbank.Zcash.ZcashAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 const Nerdbank.Zcash.DiversifierIndex.Length = 11 -> int
 const Nerdbank.Zcash.LightWalletClient.MinimumConfirmations = 3 -> int
+const Nerdbank.Zcash.TxId.Length = 32 -> int
 const Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint.Length = 32 -> int
 const Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag.Length = 4 -> int
 const Nerdbank.Zcash.Zip32HDWallet.MinimumEntropyLengthInBits = 256 -> int
@@ -56,7 +57,7 @@ Nerdbank.Zcash.LightWalletClient.PoolBalances.Sapling.get -> Nerdbank.Zcash.Ligh
 Nerdbank.Zcash.LightWalletClient.PoolBalances.Sapling.set -> void
 Nerdbank.Zcash.LightWalletClient.PoolBalances.Transparent.get -> Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance?
 Nerdbank.Zcash.LightWalletClient.PoolBalances.Transparent.set -> void
-Nerdbank.Zcash.LightWalletClient.SendAsync(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction.SendItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<string!>!
+Nerdbank.Zcash.LightWalletClient.SendAsync(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction.SendItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.TxId>!
 Nerdbank.Zcash.LightWalletClient.SendProgress
 Nerdbank.Zcash.LightWalletClient.SendProgress.Deconstruct(out uint Id, out bool IsSendInProgress, out uint Progress, out uint Total, out string? LastError, out string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Id.get -> uint
@@ -122,7 +123,7 @@ Nerdbank.Zcash.LightWalletClient.SyncResult.TotalBlocksScanned.init -> void
 Nerdbank.Zcash.Transaction
 Nerdbank.Zcash.Transaction.BlockNumber.get -> uint
 Nerdbank.Zcash.Transaction.BlockNumber.init -> void
-Nerdbank.Zcash.Transaction.Deconstruct(out string! TransactionId, out uint BlockNumber, out System.DateTime When, out bool IsUnconfirmed, out decimal Spent, out decimal Received, out System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> Sends, out System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> Notes, out bool IsIncoming) -> void
+Nerdbank.Zcash.Transaction.Deconstruct(out Nerdbank.Zcash.TxId TransactionId, out uint BlockNumber, out System.DateTime When, out bool IsUnconfirmed, out decimal Spent, out decimal Received, out System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> Sends, out System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> Notes, out bool IsIncoming) -> void
 Nerdbank.Zcash.Transaction.Fee.get -> decimal
 Nerdbank.Zcash.Transaction.IsIncoming.get -> bool
 Nerdbank.Zcash.Transaction.IsIncoming.init -> void
@@ -142,8 +143,8 @@ Nerdbank.Zcash.Transaction.Sends.init -> void
 Nerdbank.Zcash.Transaction.Spent.get -> decimal
 Nerdbank.Zcash.Transaction.Spent.init -> void
 Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.Transaction! original) -> void
-Nerdbank.Zcash.Transaction.Transaction(string! TransactionId, uint BlockNumber, System.DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> Sends, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> Notes, bool IsIncoming) -> void
-Nerdbank.Zcash.Transaction.TransactionId.get -> string!
+Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.TxId TransactionId, uint BlockNumber, System.DateTime When, bool IsUnconfirmed, decimal Spent, decimal Received, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> Sends, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> Notes, bool IsIncoming) -> void
+Nerdbank.Zcash.Transaction.TransactionId.get -> Nerdbank.Zcash.TxId
 Nerdbank.Zcash.Transaction.TransactionId.init -> void
 Nerdbank.Zcash.Transaction.When.get -> System.DateTime
 Nerdbank.Zcash.Transaction.When.init -> void
@@ -500,6 +501,11 @@ Nerdbank.Zcash.TransparentP2SHReceiver.ScriptHash.get -> System.ReadOnlySpan<byt
 Nerdbank.Zcash.TransparentP2SHReceiver.Span.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.TransparentP2SHReceiver.TransparentP2SHReceiver() -> void
 Nerdbank.Zcash.TransparentP2SHReceiver.TransparentP2SHReceiver(System.ReadOnlySpan<byte> p2sh) -> void
+Nerdbank.Zcash.TxId
+Nerdbank.Zcash.TxId.Equals(in Nerdbank.Zcash.TxId other) -> bool
+Nerdbank.Zcash.TxId.this[System.Range range].get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.TxId.TxId() -> void
+Nerdbank.Zcash.TxId.TxId(System.ReadOnlySpan<byte> value) -> void
 Nerdbank.Zcash.UnifiedAddress
 Nerdbank.Zcash.UnifiedAddress.UnifiedAddress(string! address) -> void
 Nerdbank.Zcash.UnifiedViewingKey
@@ -582,6 +588,12 @@ Nerdbank.Zcash.ZcashAddress.ZcashAddress(string! address) -> void
 Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.MainNet = 0 -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.TestNet = 1 -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.ZcashNetworkParameters
+Nerdbank.Zcash.ZcashNetworkParameters.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.ZcashNetworkParameters.OrchardActivationHeight.get -> ulong
+Nerdbank.Zcash.ZcashNetworkParameters.OrchardActivationHeight.init -> void
+Nerdbank.Zcash.ZcashNetworkParameters.SaplingActivationHeight.get -> ulong
+Nerdbank.Zcash.ZcashNetworkParameters.SaplingActivationHeight.init -> void
 Nerdbank.Zcash.ZcashUtilities
 Nerdbank.Zcash.Zip302MemoFormat
 Nerdbank.Zcash.Zip302MemoFormat.MemoFormat
@@ -776,6 +788,9 @@ override Nerdbank.Zcash.TransparentP2PKHAddress.Network.get -> Nerdbank.Zcash.Zc
 override Nerdbank.Zcash.TransparentP2SHAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.TransparentP2SHAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.TransparentP2SHAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.TxId.Equals(object? obj) -> bool
+override Nerdbank.Zcash.TxId.GetHashCode() -> int
+override Nerdbank.Zcash.TxId.ToString() -> string!
 override Nerdbank.Zcash.UnifiedAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.UnifiedViewingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.UnifiedViewingKey.GetHashCode() -> int
@@ -876,6 +891,11 @@ static Nerdbank.Zcash.Transaction.SendItem.operator ==(Nerdbank.Zcash.Transactio
 static Nerdbank.Zcash.Transparent.PrivateKey.TryDecode(string! encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Transparent.PrivateKey? key) -> bool
 static Nerdbank.Zcash.TransparentP2PKHReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.TransparentP2SHReceiver.UnifiedReceiverTypeCode.get -> byte
+static Nerdbank.Zcash.TxId.implicit operator System.ReadOnlySpan<byte>(in Nerdbank.Zcash.TxId txid) -> System.ReadOnlySpan<byte>
+static Nerdbank.Zcash.TxId.operator !=(in Nerdbank.Zcash.TxId left, in Nerdbank.Zcash.TxId right) -> bool
+static Nerdbank.Zcash.TxId.operator ==(in Nerdbank.Zcash.TxId left, in Nerdbank.Zcash.TxId right) -> bool
+static Nerdbank.Zcash.TxId.Parse(string! txid) -> Nerdbank.Zcash.TxId
+static Nerdbank.Zcash.TxId.Parse(System.ReadOnlySpan<char> txid) -> Nerdbank.Zcash.TxId
 static Nerdbank.Zcash.UnifiedAddress.Create(params Nerdbank.Zcash.ZcashAddress![]! receivers) -> Nerdbank.Zcash.UnifiedAddress!
 static Nerdbank.Zcash.UnifiedAddress.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.ZcashAddress!>! receivers) -> Nerdbank.Zcash.UnifiedAddress!
 static Nerdbank.Zcash.UnifiedViewingKey.Decode(string! unifiedViewingKey) -> Nerdbank.Zcash.UnifiedViewingKey!
@@ -901,6 +921,9 @@ static Nerdbank.Zcash.ZcashAccount.TryImportAccount(string! encodedKey, out Nerd
 static Nerdbank.Zcash.ZcashAddress.Decode(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?
 static Nerdbank.Zcash.ZcashAddress.TryDecode(string! address, out Nerdbank.Cryptocurrencies.DecodeError? errorCode, out string? errorMessage, out Nerdbank.Zcash.ZcashAddress? result) -> bool
+static Nerdbank.Zcash.ZcashNetworkParameters.GetParameters(Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.ZcashNetworkParameters!
+static Nerdbank.Zcash.ZcashNetworkParameters.MainNet.get -> Nerdbank.Zcash.ZcashNetworkParameters!
+static Nerdbank.Zcash.ZcashNetworkParameters.TestNet.get -> Nerdbank.Zcash.ZcashNetworkParameters!
 static Nerdbank.Zcash.ZcashUtilities.AsSecurity(this Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Cryptocurrencies.Security!
 static Nerdbank.Zcash.ZcashUtilities.GetTickerName(this Nerdbank.Zcash.ZcashNetwork network) -> string!
 static Nerdbank.Zcash.ZcashUtilities.TryParseKey(string! encodedKey, out Nerdbank.Cryptocurrencies.IKeyWithTextEncoding? key) -> bool

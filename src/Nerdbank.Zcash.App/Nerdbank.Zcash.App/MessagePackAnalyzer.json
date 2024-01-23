@@ -4,6 +4,7 @@
 	"Nerdbank.Cryptocurrencies.Exchanges.TradingPair",
 	"Nerdbank.Cryptocurrencies.Security",
 	"Nerdbank.Cryptocurrencies.SecurityAmount",
+	"Nerdbank.Zcash.TxId",
 	"Nerdbank.Zcash.Memo",
 	"Nerdbank.Zcash.ZcashAccount",
 	"Nerdbank.Zcash.ZcashAddress"

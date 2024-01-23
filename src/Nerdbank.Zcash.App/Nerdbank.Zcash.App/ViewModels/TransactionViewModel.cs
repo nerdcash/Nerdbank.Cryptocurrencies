@@ -51,7 +51,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string BlockNumberCaption => "Block #";
 
-	public string TransactionId => this.Model.TransactionId;
+	public string TransactionId => this.Model.TransactionId?.ToString() ?? string.Empty;
 
 	public string TransactionIdCaption => "Transaction ID";
 
@@ -349,11 +349,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			if (this.otherParty is null && !this.otherPartyLazyInitDone)
 			{
 				Account? otherAccount = null;
-				if (this.owner.IsIncoming)
+				if (this.owner.IsIncoming && this.owner.Model.TransactionId.HasValue)
 				{
 					// Incoming transactions are harder to track as to whether they came from another account,
 					// so we search for the txid in other accounts to see if they sent it.
-					otherAccount = this.owner.owner.ViewModelServices.Wallet.GetAccountsContainingTransaction(this.owner.Model.TransactionId).Where(a => a != this.owner.owner.SelectedAccount).FirstOrDefault();
+					otherAccount = this.owner.owner.ViewModelServices.Wallet.GetAccountsContainingTransaction(this.owner.Model.TransactionId.Value).Where(a => a != this.owner.owner.SelectedAccount).FirstOrDefault();
 				}
 				else
 				{

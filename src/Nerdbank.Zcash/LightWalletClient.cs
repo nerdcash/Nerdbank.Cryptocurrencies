@@ -209,7 +209,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="progress">An optional receiver for progress updates.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The transaction ID.</returns>
-	public async Task<string> SendAsync(IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
+	public async Task<TxId> SendAsync(IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
 	{
 		Requires.NotNullOrEmpty(payments);
 
@@ -218,7 +218,7 @@ public partial class LightWalletClient : IDisposable
 			.ToList();
 
 		return await this.InteropAsync(
-			h => LightWalletMethods.LightwalletSendToAddress(h, details),
+			h => TxId.Parse(LightWalletMethods.LightwalletSendToAddress(h, details)),
 			progress,
 			h => new SendProgress(LightWalletMethods.LightwalletSendCheckStatus(h)),
 			cancellationToken).ConfigureAwait(false);
@@ -281,7 +281,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	/// <param name="network">The network this transaction is on.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
-		=> new(t.txid, t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => CreateSendItem(s)).ToImmutableArray(), t.saplingNotes.Select(s => CreateRecvItem(s, network)).Concat(t.orchardNotes.Select(o => CreateRecvItem(o, network))).ToImmutableArray(), t.isIncoming);
+		=> new(TxId.Parse(t.txid), t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => CreateSendItem(s)).ToImmutableArray(), t.saplingNotes.Select(s => CreateRecvItem(s, network)).Concat(t.orchardNotes.Select(o => CreateRecvItem(o, network))).ToImmutableArray(), t.isIncoming);
 
 	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
 	{
@@ -391,7 +391,7 @@ public partial class LightWalletClient : IDisposable
 	public record struct ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance)
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> class
+		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> struct
 		/// with balances given in ZATs.
 		/// </summary>
 		/// <param name="balance"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='Balance']"/></param>
@@ -413,7 +413,7 @@ public partial class LightWalletClient : IDisposable
 	public record struct PoolBalances(TransparentPoolBalance? Transparent, ShieldedPoolBalance? Sapling, ShieldedPoolBalance? Orchard)
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PoolBalances"/> class.
+		/// Initializes a new instance of the <see cref="PoolBalances"/> struct.
 		/// </summary>
 		/// <param name="balances">The balances as they come from the interop layer.</param>
 		internal PoolBalances(uniffi.LightWallet.PoolBalances balances)
