@@ -35,6 +35,9 @@
     <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDir)x86_64-apple-darwin/libnerdbank_zcash_rust.dylib">
       <PackagePath>runtimes/osx-x64/native/</PackagePath>
     </RustBinary>
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDir)aarch64-apple-darwin/libnerdbank_zcash_rust.dylib">
+      <PackagePath>runtimes/ios-arm64/native/</PackagePath>
+    </RustBinary>
   </ItemGroup>
   <ItemGroup>
     <!-- Do not include rust symbols in the snupkg because nuget.org will reject the whole package as it only supports portable pdbs. -->
