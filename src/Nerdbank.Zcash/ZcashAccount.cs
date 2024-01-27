@@ -413,11 +413,6 @@ public class ZcashAccount
 		}
 
 		/// <summary>
-		/// Gets the unified spending key for this account.
-		/// </summary>
-		internal UnifiedSpendingKey UnifiedKey { get; }
-
-		/// <summary>
 		/// Gets the spending key for the transparent pool (<c>m/44'/133'/account'</c>).
 		/// </summary>
 		public Zip32HDWallet.Transparent.ExtendedSpendingKey? Transparent { get; }
@@ -437,13 +432,18 @@ public class ZcashAccount
 		/// </summary>
 		public InternalSpendingKeys Internal { get; }
 
+		/// <inheritdoc/>
+		IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+
 		/// <summary>
 		/// Gets the full viewing key.
 		/// </summary>
 		internal FullViewingKeys FullViewingKey { get; }
 
-		/// <inheritdoc/>
-		IFullViewingKey ISpendingKey.FullViewingKey => this.FullViewingKey;
+		/// <summary>
+		/// Gets the unified spending key for this account.
+		/// </summary>
+		internal UnifiedSpendingKey UnifiedKey { get; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SpendingKeys"/> class.
@@ -560,13 +560,13 @@ public class ZcashAccount
 		/// </summary>
 		public InternalFullViewingKeys Internal { get; }
 
+		/// <inheritdoc/>
+		IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
+
 		/// <summary>
 		/// Gets the incoming viewing key.
 		/// </summary>
 		internal IncomingViewingKeys IncomingViewingKey { get; }
-
-		/// <inheritdoc/>
-		IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FullViewingKeys"/> class.

@@ -113,7 +113,7 @@ public readonly record struct RawTransaction
 		private readonly ReadOnlyMemory<byte> txid;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Outpoint"/> class.
+		/// Initializes a new instance of the <see cref="Outpoint"/> struct.
 		/// </summary>
 		/// <param name="txid">The 32-byte ID of the transaction whose output is being spent.</param>
 		/// <param name="index">The index of the output within its containing transaction.</param>
