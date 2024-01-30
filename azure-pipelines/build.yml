@@ -4,6 +4,8 @@ parameters:
   default:
     vmImage: windows-2022
 - name: includeMacOS
+  type: boolean
+  default: true
 - name: RunTests
   type: boolean
   default: true
@@ -15,10 +17,16 @@ jobs:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
+    submodules: true
+
   - template: install-dependencies.yml
 
   - script: dotnet nbgv cloud -c
     displayName: ⚙ Set build number
+
+  - template: cargo.yml
+    parameters:
+      test_target: x86_64-pc-windows-msvc
 
   - template: dotnet.yml
     parameters:
@@ -31,12 +39,20 @@ jobs:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
+    submodules: true
+
   - template: install-dependencies.yml
+
+  - template: cargo.yml
+    parameters:
+      test_target: x86_64-unknown-linux-gnu
+
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
   - script: dotnet format --verify-no-changes --no-restore
     displayName: 💅 Verify formatted code
+    enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
 
 - job: macOS
   condition: ${{ parameters.includeMacOS }}
@@ -46,10 +62,32 @@ jobs:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
+    submodules: true
+
   - template: install-dependencies.yml
+
+  - template: cargo.yml
+    parameters:
+      test_target: x86_64-apple-darwin
+
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
+
+- job: Pack
+  dependsOn:
+  - Windows
+  - Linux
+  - macOS
+  pool:
+    vmImage: Ubuntu 20.04
+  steps:
+  - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+    clean: true
+    submodules: true
+  - template: install-dependencies.yml
+  - template: pack.yml
 
 - job: WrapUp
   dependsOn:
@@ -60,8 +98,9 @@ jobs:
   condition: succeededOrFailed()
   steps:
   - checkout: self
-    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+    fetchDepth: 1
     clean: true
+    submodules: false
   - template: install-dependencies.yml
     parameters:
       initArgs: -NoRestore
@@ -72,4 +111,3 @@ jobs:
     - template: publish-codecoverage.yml
       parameters:
         includeMacOS: ${{ parameters.includeMacOS }}
-  - template: publish-deployables.yml

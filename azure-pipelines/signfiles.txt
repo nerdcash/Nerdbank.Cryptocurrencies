@@ -1,3 +1,4 @@
+**/Nerdbank.Bitcoin.dll
 **/Nerdbank.Cryptocurrencies.dll
 **/Nerdbank.Zcash.dll
 **/*nerdbank_zcash_rust*
