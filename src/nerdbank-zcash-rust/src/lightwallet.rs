@@ -306,16 +306,16 @@ pub fn lightwallet_get_transactions(
             .current
             .iter()
             .filter_map(|(txid, tx)| {
-                if tx.block_height >= BlockHeight::from_u32(starting_block) {
+                if tx.status.get_height() >= BlockHeight::from_u32(starting_block) {
                     Some(Transaction {
                         txid: txid.to_string(),
                         datetime: tx.datetime,
-                        block_height: tx.block_height.into(),
+                        block_height: tx.status.get_height().into(),
                         is_incoming: tx.is_incoming_transaction(),
                         spent: tx.total_value_spent(),
                         received: tx.total_value_received(),
                         price: tx.price,
-                        unconfirmed: tx.unconfirmed,
+                        unconfirmed: !tx.status.is_confirmed(),
                         sends: tx
                             .outgoing_tx_data
                             .iter()
@@ -465,12 +465,12 @@ pub fn lightwallet_get_birthday_heights(handle: u64) -> Result<BirthdayHeights, 
                     || tx.sapling_notes.iter().any(|n| n.spent.is_none())
                     || tx.transparent_notes.iter().any(|n| n.spent.is_none())
                 {
+                    let block_height = tx.status.get_height();
                     if block_number_with_oldest_unspent_note_or_utxo.is_none() {
-                        block_number_with_oldest_unspent_note_or_utxo = Some(tx.block_height);
-                    } else if tx.block_height
-                        < block_number_with_oldest_unspent_note_or_utxo.unwrap()
+                        block_number_with_oldest_unspent_note_or_utxo = Some(block_height);
+                    } else if block_height < block_number_with_oldest_unspent_note_or_utxo.unwrap()
                     {
-                        block_number_with_oldest_unspent_note_or_utxo = Some(tx.block_height);
+                        block_number_with_oldest_unspent_note_or_utxo = Some(block_height);
                     }
                 }
             });
