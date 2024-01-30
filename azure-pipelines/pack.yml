@@ -24,21 +24,6 @@ steps:
 - script: dotnet build -t:build,pack -p:Platform=arm64 --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack_arm64.binlog"
   displayName: 🛠 build (arm64)
 
-- pwsh: >
-    dotnet tool install --tool-path obj SignClient
-
-    obj/SignClient sign
-    --baseDirectory 'bin/Packages/$(BuildConfiguration)'
-    --input '**/*'
-    --config '$(System.DefaultWorkingDirectory)/azure-pipelines/SignClient.json'
-    --filelist '$(System.DefaultWorkingDirectory)/azure-pipelines/signfiles.txt'
-    --user '$(codesign_username)'
-    --secret '$(codesign_secret)'
-    --name 'Nerdbank.GitVersioning'
-    --descriptionUrl 'https://github.com/dotnet/Nerdbank.GitVersioning'
-  displayName: 🔏 Code sign
-  condition: and(succeeded(), eq(variables['System.TeamFoundationCollectionUri'], 'https://dev.azure.com/andrewarnott/'), eq(variables['Agent.OS'], 'Windows_NT'), ne(variables['Build.Reason'], 'PullRequest'))
-
 - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
   failOnStderr: true
   displayName: 📢 Publish artifacts

@@ -81,9 +81,6 @@ jobs:
   - macOS
   pool:
     vmImage: Ubuntu 20.04
-  variables:
-  - ${{ if eq(variables['System.TeamFoundationCollectionUri'], 'https://dev.azure.com/andrewarnott/') }}:
-    - group: dotnetfoundation code signing
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
