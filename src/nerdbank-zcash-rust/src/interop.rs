@@ -1,6 +1,7 @@
 use std::{num::NonZeroU32, time::SystemTime};
 
 use http::{uri::InvalidUri, Uri};
+use orchard::keys::Scope;
 use rusqlite::{named_params, Connection};
 use secrecy::SecretVec;
 use tokio::runtime::Runtime;
@@ -268,7 +269,7 @@ pub fn lightwallet_get_transactions(
                                                 orchard::keys::Diversifier::from_bytes(
                                                     diversifier.try_into().unwrap(),
                                                 ),
-                                                orchard::keys::Scope::External,
+                                                Scope::External,
                                             )),
                                             None,
                                             None,

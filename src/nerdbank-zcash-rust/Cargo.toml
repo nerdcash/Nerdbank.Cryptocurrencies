@@ -18,11 +18,11 @@ group = "0.13"
 http = "0.2"
 jubjub = "0.10"
 lazy_static = "1.4"
-orchard = "0.6"
+orchard = "0.7.0"
 pasta_curves = "0.5"
 prost = "0.12"
 rusqlite = "0.29"
-sapling = { package = "sapling-crypto", version = "0.0" }
+sapling = { package = "sapling-crypto", version = "0.1" }
 schemer = "0.2"
 secrecy = "0.8.0"
 thiserror = "1.0"
@@ -54,6 +54,7 @@ zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite"
 ] }
 zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
 	"unstable",
+	"test-dependencies",
 ] }
 zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
 	"bundled-prover",
@@ -68,4 +69,3 @@ matches = "0.1"
 [patch.crates-io]
 hdwallet = { path = "../../external/hdwallet" }
 sapling = { package = "sapling-crypto", path = "../../external/sapling-crypto" }
-orchard = { git = "https://github.com/zcash/orchard.git", rev = "9a85034ce932ca398da16529482e5efecc474c50" }

@@ -28,7 +28,7 @@ pub extern "C" fn decrypt_orchard_diversifier(
     let address = address.unwrap();
 
     if let Some(index) = ivk.diversifier_index(&address) {
-        diversifier_index.copy_from_slice(index.to_bytes());
+        diversifier_index.copy_from_slice(index.as_bytes());
         0
     } else {
         1

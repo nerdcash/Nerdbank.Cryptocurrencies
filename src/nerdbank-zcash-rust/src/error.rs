@@ -244,6 +244,9 @@ where
             BackendError::UnsupportedPoolType(e) => {
                 Error::InternalError(format!("UnsupportedPoolType: {}", e))
             }
+            BackendError::NoSupportedReceivers(r) => {
+                Error::InternalError("No supported receivers".to_string())
+            }
         }
     }
 }
