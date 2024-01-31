@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Humanizer" />
     <PackageReference Include="Nerdbank.QRCodes" />
     <PackageReference Include="System.CommandLine" />
   </ItemGroup>
