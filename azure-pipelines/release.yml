@@ -32,13 +32,13 @@ jobs:
       packageType: sdk
       version: 6.x
   - download: CI
-    artifact: deployables-Windows
-    displayName: 🔻 Download deployables-Windows artifact
-    patterns: 'deployables-Windows/*'
+    artifact: deployables
+    displayName: 🔻 Download deployables artifact
+    patterns: 'deployables/*'
   - task: GitHubRelease@1
     displayName: 📢 GitHub release (create)
     inputs:
-      gitHubConnection: # TODO: fill in service connection here
+      gitHubConnection: github.com_AArnott_OAuth
       repositoryName: $(Build.Repository.Name)
       target: $(resources.pipeline.CI.sourceCommit)
       tagSource: userSpecifiedTag
@@ -46,7 +46,7 @@ jobs:
       title: v$(resources.pipeline.CI.runName)
       isDraft: true # After running this step, visit the new draft release, edit, and publish.
       isPreRelease: $(IsPrerelease)
-      assets: $(Pipeline.Workspace)/CI/deployables-Windows/*.nupkg
+      assets: $(Pipeline.Workspace)/CI/deployables/*.nupkg
       changeLogCompareToRelease: lastNonDraftRelease
       changeLogType: issueBased
       changeLogLabels: |
@@ -55,6 +55,6 @@ jobs:
           { "label" : "bug", "displayName" : "Fixes", "state" : "closed" },
           { "label" : "enhancement", "displayName": "Enhancements", "state" : "closed" }
         ]
-  - script: dotnet nuget push $(Pipeline.Workspace)/CI/deployables-Windows/*.nupkg -s https://api.nuget.org/v3/index.json --api-key $(NuGetOrgApiKey) --skip-duplicate
+  - script: dotnet nuget push $(Pipeline.Workspace)/CI/deployables/*.nupkg -s https://api.nuget.org/v3/index.json --api-key $(NuGetOrgApiKey) --skip-duplicate
     displayName: 📦 Push packages to nuget.org
     condition: and(succeeded(), ne(variables['NuGetOrgApiKey'], ''))

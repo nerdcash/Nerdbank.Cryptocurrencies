@@ -1,0 +1,45 @@
+steps:
+- task: DownloadPipelineArtifact@2
+  displayName: 🔻 Download Windows code coverage results
+  inputs:
+    buildType: current
+    targetPath: obj/src/nerdbank-zcash-rust
+    artifactName: rust-Windows
+- task: DownloadPipelineArtifact@2
+  displayName: 🔻 Download Linux code coverage results
+  inputs:
+    buildType: current
+    targetPath: obj/src/nerdbank-zcash-rust
+    artifactName: rust-Linux
+- task: DownloadPipelineArtifact@2
+  displayName: 🔻 Download macOS code coverage results
+  inputs:
+    buildType: current
+    targetPath: obj/src/nerdbank-zcash-rust
+    artifactName: rust-macOS
+
+- script: dotnet pack --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
+  displayName: 🛠 pack
+
+- pwsh: >
+    dotnet tool install --tool-path obj SignClient
+
+    obj/SignClient sign
+    --baseDirectory 'bin/Packages/$(BuildConfiguration)'
+    --input '**/*'
+    --config '$(System.DefaultWorkingDirectory)/azure-pipelines/SignClient.json'
+    --filelist '$(System.DefaultWorkingDirectory)/azure-pipelines/signfiles.txt'
+    --user '$(codesign_username)'
+    --secret '$(codesign_secret)'
+    --name 'Nerdbank.GitVersioning'
+    --descriptionUrl 'https://github.com/dotnet/Nerdbank.GitVersioning'
+  displayName: 🔏 Code sign
+  condition: and(succeeded(), eq(variables['System.TeamFoundationCollectionUri'], 'https://dev.azure.com/andrewarnott/'), eq(variables['Agent.OS'], 'Windows_NT'), ne(variables['Build.Reason'], 'PullRequest'))
+
+- publish: bin/Packages/$(BuildConfiguration)
+  artifact: deployables
+  displayName: 📢 Publish deployables
+
+- powershell: dotnet nuget push 'bin/Packages/$(BuildConfiguration)/*.nupkg' -s $(ci_feed) -k azdo --skip-duplicate
+  displayName: 📦 Push packages to CI feed
+  condition: and(succeeded(), ne(variables['ci_feed'], ''), ne(variables['Build.Reason'], 'PullRequest'))
