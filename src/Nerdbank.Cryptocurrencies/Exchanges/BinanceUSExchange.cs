@@ -123,6 +123,14 @@ public class BinanceUSExchange : IExchangeRateProvider
 			Security baseAsset = LookupOrCreate(symbol, "baseAsset"u8);
 			Security quoteAsset = LookupOrCreate(symbol, "quoteAsset"u8);
 
+			if (quoteAsset.TickerSymbol == "USD")
+			{
+				// Binance.US does not support trading pairs with USD as the base asset,
+				// but it reports the prices as of when it dropped such support, which means
+				// we can report very stale prices if we were willing to report them.
+				continue;
+			}
+
 			TradingPair tradingPair = new(quoteAsset, baseAsset);
 			result.Add(tradingPair, symbolPairName);
 
