@@ -156,6 +156,7 @@ internal class NewAccountCommand
 				this.LightWalletServerUrl,
 				account.Network,
 				this.WalletPath);
+			client.AddAccount(account);
 			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
 		}
 
