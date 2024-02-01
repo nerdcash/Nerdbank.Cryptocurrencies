@@ -7,12 +7,15 @@
     Build in release mode.
 .PARAMETER WinArm64Only
     Build only the win-arm64 target.
+.PARAMETER WinX64Only
+    Build only the win-x64 target.
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true)]
 Param(
     [switch]$Release,
-    [switch]$WinArm64Only
+    [switch]$WinArm64Only,
+    [switch]$WinX64Only
 )
 
 $buildArgs = @()
@@ -31,9 +34,14 @@ if (!$env:CI) {
 }
 
 $buildArgsNoTargets = $buildArgs
-$rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
 if ($WinArm64Only) {
-    $rustTargets = ,'aarch64-pc-windows-msvc'
+    $rustTargets = , 'aarch64-pc-windows-msvc'
+}
+elseif ($WinX64Only) {
+    $rustTargets = , 'x86_64-pc-windows-msvc'
+}
+else {
+    $rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
 }
 
 $winArm64Required = $false
@@ -52,7 +60,7 @@ if ($winArm64Required) {
     Write-Host "Building for win-arm64"
     Copy-Item cargoTomlTargets/win-arm64/* -Force
     cargo build @buildArgsNoTargets --target aarch64-pc-windows-msvc
-    Copy-Item .\Cargo.toml,.\Cargo.lock .\cargoTomlTargets\win-arm64 -Force
+    Copy-Item .\Cargo.toml, .\Cargo.lock .\cargoTomlTargets\win-arm64 -Force
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
