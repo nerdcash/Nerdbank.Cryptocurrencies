@@ -12,6 +12,12 @@
   </Design.DataContext>
   <DockPanel>
     <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
+    <Button Command="{Binding SwitchCurrencyCommand}" Content="{Binding SwitchCurrencyCaption}"
+            HorizontalAlignment="Center" Margin="0 0 0 5" IsVisible="{Binding IsSwitchCurrencyVisible}"
+            DockPanel.Dock="Bottom" />
+    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center"
+               IsVisible="{Binding ExchangeRateVisible}"
+               Text="{Binding ExchangeRateText}" />
     <ScrollViewer VerticalAlignment="Center" Grid.Row="1">
       <StackPanel>
         <StackPanel.Styles>
@@ -24,8 +30,6 @@
           </Style>
         </StackPanel.Styles>
         <local:AccountSelector HorizontalAlignment="Center" Margin="0 0 0 10" />
-        <Button Command="{Binding SwitchCurrencyCommand}" Content="{Binding SwitchCurrencyCaption}"
-                HorizontalAlignment="Center" Margin="0 0 0 5" IsVisible="{Binding IsSwitchCurrencyVisible}" />
         <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,20" Classes="HeadlineBalance">
           <TextBlock Text="{Binding BalanceCaption}" />
           <local:SecurityAmountDisplay Value="{Binding Balance}" FontWeight="Bold" HorizontalAlignment="Center" />

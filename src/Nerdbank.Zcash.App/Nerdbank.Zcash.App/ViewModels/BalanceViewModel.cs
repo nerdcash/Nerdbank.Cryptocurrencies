@@ -26,6 +26,9 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> immatureIncome;
 	private readonly ObservableAsPropertyHelper<bool> isImmatureIncomeVisible;
 
+	private readonly ObservableAsPropertyHelper<string> exchangeRateText;
+	private readonly ObservableAsPropertyHelper<bool> exchangeRateVisible;
+
 	private bool showAlternateCurrency;
 
 	[Obsolete("For design-time use only.", error: true)]
@@ -113,6 +116,14 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount,
 			a => a?.Network == ZcashNetwork.MainNet).ToProperty(this, nameof(this.IsSwitchCurrencyVisible));
 
+		this.exchangeRateText = this.WhenAnyValue(
+			vm => vm.ExchangeRate,
+			rate => rate is null ? string.Empty : $"1 ZEC = {rate.Value.Normalized.Basis}").ToProperty(this, nameof(this.ExchangeRateText));
+
+		this.exchangeRateVisible = this.WhenAnyValue(
+			vm => vm.ExchangeRate,
+			rate => rate.HasValue).ToProperty(this, nameof(this.ExchangeRateVisible));
+
 		this.SwitchCurrencyCommand = ReactiveCommand.Create(this.SwitchCurrency);
 
 		static SecurityAmount? X(ExchangeRate? exchangeRate, bool showAlternateCurrency, SecurityAmount nativeAmount) => showAlternateCurrency && exchangeRate.HasValue && nativeAmount.Security is not null ? nativeAmount * exchangeRate : nativeAmount;
@@ -180,6 +191,10 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public string SwitchCurrencyCaption => "💱 Switch currency";
 
 	public bool IsSwitchCurrencyVisible => this.isSwitchCurrencyCommandVisible.Value;
+
+	public string ExchangeRateText => this.exchangeRateText.Value;
+
+	public bool ExchangeRateVisible => this.exchangeRateVisible.Value;
 
 	private void SwitchCurrency() => this.ShowAlternateCurrency = !this.ShowAlternateCurrency;
 }
