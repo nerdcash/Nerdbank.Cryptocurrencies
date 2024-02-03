@@ -4,7 +4,6 @@ uniffi::include_scaffolding!("ffi");
 extern crate lazy_static;
 
 mod analysis;
-mod backend_client;
 mod backing_store;
 mod block_source;
 mod error;
@@ -16,6 +15,7 @@ mod sapling;
 mod send;
 mod shield;
 mod sql_statements;
+mod sync;
 
 #[cfg(test)]
 mod test_constants;

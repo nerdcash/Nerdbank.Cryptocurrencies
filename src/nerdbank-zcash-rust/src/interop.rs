@@ -16,7 +16,6 @@ use zcash_primitives::{consensus::Network, legacy::TransparentAddress, zip32::Ac
 
 use crate::{
     analysis::{get_birthday_heights, get_user_balances, BirthdayHeights, UserBalances},
-    backend_client::sync,
     backing_store::Db,
     error::Error,
     grpc::{destroy_channel, get_client},
@@ -24,6 +23,7 @@ use crate::{
     send::send_transaction,
     shield::{get_unshielded_utxos, shield_funds_at_address},
     sql_statements::GET_TRANSACTIONS_SQL,
+    sync::sync,
 };
 
 lazy_static! {
