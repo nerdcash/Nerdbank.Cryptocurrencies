@@ -64,6 +64,12 @@ internal class BalanceCommand : SyncFirstCommandBase
 		{
 			this.Console.Write(caption.PadRight(captionWidth));
 			this.Console.Write(" ");
+			if (amount.Amount >= 0)
+			{
+				// Keep our non-negative value aligned considering a - character that might appear in other rows.
+				this.Console.Write(" ");
+			}
+
 			this.Console.WriteLine(amount.ToString());
 		}
 

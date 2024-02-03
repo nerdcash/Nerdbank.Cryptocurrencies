@@ -54,14 +54,14 @@ internal class HistoryCommand : SyncFirstCommandBase
 
 			foreach (Transaction.SendItem send in tx.Outgoing)
 			{
-				this.Console.WriteLine($"{indentation} -{send.Amount,13:N8} {send.Memo} {send.ToAddress}");
+				this.Console.WriteLine($"{indentation} -{send.Amount,13:N8} {FormatMemo(send.Memo)} {send.ToAddress}");
 			}
 
 			foreach (Transaction.RecvItem recv in tx.Incoming)
 			{
 				if (!recv.IsChange)
 				{
-					this.Console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {(recv.Memo.MemoFormat == Zip302MemoFormat.MemoFormat.ProprietaryData ? "(proprietary)" : recv.Memo)} {recv.ToAddress}");
+					this.Console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
 				}
 			}
 
@@ -72,5 +72,15 @@ internal class HistoryCommand : SyncFirstCommandBase
 		}
 
 		return 0;
+	}
+
+	private static string? FormatMemo(Memo memo)
+	{
+		if (memo.MemoFormat == Zip302MemoFormat.MemoFormat.ProprietaryData)
+		{
+			return "(proprietary)";
+		}
+
+		return memo.Message?.ReplaceLineEndings("\\n");
 	}
 }
