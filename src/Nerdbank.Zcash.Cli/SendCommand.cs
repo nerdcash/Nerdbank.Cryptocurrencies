@@ -13,21 +13,11 @@ internal class SendCommand : SyncFirstCommandBase
 
 	internal string? Memo { get; init; }
 
-	internal decimal? Fee { get; init; }
-
 	internal static Command BuildCommand()
 	{
 		Argument<ZcashAddress> recipientArgument = new("recipient", Utilities.AddressParser, description: Strings.SendRecipientArgumentDescription);
 		Argument<decimal> amountArgument = new("amount", Strings.SendAmountArgumentDescription);
 		Option<string> memoOption = new("--memo", Strings.SendMemoOptionDescription);
-		Option<decimal?> feeOption = new("--fee", Strings.SendFeeOptionDescription);
-		feeOption.AddValidator(v =>
-		{
-			if (v.GetValueForOption(feeOption) < 0)
-			{
-				v.ErrorMessage = "The fee must be a non-negative number.";
-			}
-		});
 
 		Command command = new("send", Strings.SendCommandDescription)
 		{
@@ -35,7 +25,6 @@ internal class SendCommand : SyncFirstCommandBase
 			recipientArgument,
 			amountArgument,
 			memoOption,
-			////feeOption, // zingolib does not yet expose a way to do this.
 			TestNetOption,
 			LightServerUriOption,
 			NoSyncOption,
@@ -50,7 +39,6 @@ internal class SendCommand : SyncFirstCommandBase
 				Recipient = ctxt.ParseResult.GetValueForArgument(recipientArgument),
 				Amount = ctxt.ParseResult.GetValueForArgument(amountArgument),
 				Memo = ctxt.ParseResult.GetValueForOption(memoOption),
-				Fee = ctxt.ParseResult.GetValueForOption(feeOption),
 				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
 				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
