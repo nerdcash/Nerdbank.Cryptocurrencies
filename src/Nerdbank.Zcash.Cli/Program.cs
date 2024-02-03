@@ -15,6 +15,7 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	SyncCommand.BuildCommand(),
 	BalanceCommand.BuildCommand(),
 	HistoryCommand.BuildCommand(),
+	ShieldCommand.BuildCommand(),
 	SendCommand.BuildCommand(),
 	RequestPaymentCommand.BuildCommand(),
 };

@@ -41,8 +41,14 @@ internal class BalanceCommand : SyncFirstCommandBase
 			return exitCode;
 		}
 
-		AccountBalances userBalances = client.GetBalances();
+		this.PrintAccountBalances(client.GetBalances());
+		this.PrintUnshieldedBalances(client.GetUnshieldedBalances());
 
+		return 0;
+	}
+
+	private void PrintAccountBalances(AccountBalances userBalances)
+	{
 		(string, SecurityAmount)[] lines = [
 			("Balance", userBalances.MainBalance),
 			("Spendable", userBalances.Spendable),
@@ -72,7 +78,22 @@ internal class BalanceCommand : SyncFirstCommandBase
 
 			this.Console.WriteLine(amount.ToString());
 		}
+	}
 
-		return 0;
+	private void PrintUnshieldedBalances(IReadOnlyList<(TransparentAddress Address, decimal Balance)> unshieldedFunds)
+	{
+		this.Console.WriteLine(string.Empty);
+
+		if (unshieldedFunds.Count == 0)
+		{
+			this.Console.WriteLine(Strings.NoUnshieldedFunds);
+			return;
+		}
+
+		this.Console.WriteLine("Unshielded balances:");
+		foreach ((TransparentAddress address, decimal balance) in unshieldedFunds)
+		{
+			this.Console.WriteLine($"{Security.ZEC.Amount(balance)} {address}");
+		}
 	}
 }

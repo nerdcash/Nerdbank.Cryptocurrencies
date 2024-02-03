@@ -1,6 +1,7 @@
 use std::{num::NonZeroU32, path::Path};
 
 use http::Uri;
+use rusqlite::Connection;
 use zcash_client_backend::{
     address::Address,
     data_api::{
@@ -13,6 +14,7 @@ use zcash_client_backend::{
     wallet::OvkPolicy,
     zip321::{Payment, TransactionRequest},
 };
+use zcash_client_sqlite::WalletDb;
 use zcash_primitives::{
     consensus::Network,
     memo::MemoBytes,
@@ -38,7 +40,6 @@ pub async fn send_transaction<P: AsRef<Path>>(
     min_confirmations: NonZeroU32,
     details: Vec<TransactionSendDetail>,
 ) -> Result<SendTransactionResult, Error> {
-    let mut client = get_client(server_uri).await?;
     let mut db = Db::init(data_file, network)?;
 
     let prover = LocalTxProver::bundled();
@@ -80,7 +81,16 @@ pub async fn send_transaction<P: AsRef<Path>>(
         min_confirmations,
     )?;
 
-    let (tx, raw_tx) = db.data.get_transaction(txid).map(|tx| {
+    transmit_transaction(txid, server_uri, &mut db.data).await
+}
+
+pub(crate) async fn transmit_transaction(
+    txid: TxId,
+    server_uri: Uri,
+    db: &mut WalletDb<Connection, Network>,
+) -> Result<SendTransactionResult, Error> {
+    let mut client = get_client(server_uri).await?;
+    let (tx, raw_tx) = db.get_transaction(txid).map(|tx| {
         let mut raw_tx = service::RawTransaction::default();
         tx.write(&mut raw_tx.data).unwrap();
         (tx, raw_tx)

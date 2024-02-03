@@ -12,7 +12,7 @@ use zcash_client_backend::{
     keys::{Era, UnifiedSpendingKey},
 };
 use zcash_client_sqlite::error::SqliteClientError;
-use zcash_primitives::{consensus::Network, zip32::AccountId};
+use zcash_primitives::{consensus::Network, legacy::TransparentAddress, zip32::AccountId};
 
 use crate::{
     analysis::{get_birthday_heights, get_user_balances, BirthdayHeights, UserBalances},
@@ -22,6 +22,7 @@ use crate::{
     grpc::{destroy_channel, get_client},
     lightclient::get_block_height,
     send::send_transaction,
+    shield::{get_unshielded_utxos, shield_funds_at_address},
     sql_statements::GET_TRANSACTIONS_SQL,
 };
 
@@ -418,6 +419,44 @@ pub fn lightwallet_send(
         .await?;
         Ok(SendTransactionResult {
             txid: result.txid.as_ref().to_vec(),
+        })
+    })
+}
+
+pub fn lightwallet_get_unshielded_utxos(
+    config: DbInit,
+    account_id: u32,
+) -> Result<Vec<TransparentNote>, LightWalletError> {
+    Ok(get_unshielded_utxos(
+        config,
+        account_id
+            .try_into()
+            .map_err(|_| Error::InvalidArgument("Invalid account id".to_string()))?,
+    )?)
+}
+
+pub fn lightwallet_shield(
+    config: DbInit,
+    uri: String,
+    usk: Vec<u8>,
+    address: String,
+) -> Result<SendTransactionResult, LightWalletError> {
+    let uri: Uri = uri.parse()?;
+    let usk = UnifiedSpendingKey::from_bytes(Era::Orchard, &usk).map_err(|_| {
+        LightWalletError::InvalidArgument {
+            message: "Failure when parsing USK.".to_string(),
+        }
+    })?;
+    let network = Network::from(config.network);
+    let address =
+        TransparentAddress::decode(&network, &address[..]).map_err(|_| Error::InvalidAddress)?;
+    RT.block_on(async move {
+        Ok(SendTransactionResult {
+            txid: shield_funds_at_address(config.data_file, uri, network, &usk, address)
+                .await?
+                .txid
+                .as_ref()
+                .to_vec(),
         })
     })
 }

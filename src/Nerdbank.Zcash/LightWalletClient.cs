@@ -71,6 +71,20 @@ public partial class LightWalletClient : IDisposable
 	public uint? LastDownloadHeight => LightWalletMethods.LightwalletGetSyncHeight(this.dbinit);
 
 	/// <summary>
+	/// Gets the raw byte encoding of the unified spending key for this account.
+	/// </summary>
+	private byte[] UnifiedSpendingKeyBytes
+	{
+		get
+		{
+			UnifiedSpendingKey usk = this.account.Spending?.UnifiedKey ?? throw new InvalidOperationException("No spending key.");
+			byte[] uskBytes = new byte[500];
+			int len = usk.ToBytes(uskBytes);
+			return uskBytes[..len];
+		}
+	}
+
+	/// <summary>
 	/// Gets the length of the blockchain (independent of what may have been sync'd thus far.)
 	/// </summary>
 	/// <param name="lightWalletServerUrl">The URL of the lightwallet server to query.</param>
@@ -162,15 +176,10 @@ public partial class LightWalletClient : IDisposable
 		List<TransactionSendDetail> details = [.. payments
 			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), p.Memo.RawBytes.ToArray(), p.ToAddress))];
 
-		UnifiedSpendingKey usk = this.account.Spending?.UnifiedKey ?? throw new InvalidOperationException("No spending key.");
-		byte[] uskBytes = new byte[500];
-		int len = usk.ToBytes(uskBytes);
-		uskBytes = uskBytes[..len];
-
 		return await Task.Run(
 			delegate
 			{
-				SendTransactionResult result = LightWalletMethods.LightwalletSend(this.dbinit, this.serverUrl.AbsoluteUri, uskBytes, MinimumConfirmations, details);
+				SendTransactionResult result = LightWalletMethods.LightwalletSend(this.dbinit, this.serverUrl.AbsoluteUri, this.UnifiedSpendingKeyBytes, MinimumConfirmations, details);
 				return new TxId(result.txid);
 			},
 			cancellationToken).ConfigureAwait(false);
@@ -181,6 +190,56 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <returns>Pool balances.</returns>
 	public AccountBalances GetBalances() => new(this.Network.AsSecurity(), LightWalletMethods.LightwalletGetUserBalances(this.dbinit, this.accountId, MinimumConfirmations));
+
+	/// <summary>
+	/// Discovers all non-zero balances for transparent addresses in this account.
+	/// </summary>
+	/// <returns>A collection of transparent addresses with positive balances, sorted by the age of the oldest UTXO for each address.</returns>
+	/// <remarks>
+	/// This can be useful as an input into an algorithm that shields transparent funds.
+	/// </remarks>
+	public IReadOnlyList<(TransparentAddress Address, decimal Balance)> GetUnshieldedBalances()
+	{
+		List<TransparentNote> utxos = LightWalletMethods.LightwalletGetUnshieldedUtxos(this.dbinit, this.accountId);
+		if (utxos.Count == 0)
+		{
+			return Array.Empty<(TransparentAddress, decimal)>();
+		}
+
+		Dictionary<string, (decimal Balance, int Age)> index = new();
+		for (int i = 0; i < utxos.Count; i++)
+		{
+			TransparentNote utxo = utxos[i];
+			if (index.TryGetValue(utxo.recipient, out var existing))
+			{
+				index[utxo.recipient] = (existing.Balance + ZatsToZEC(utxo.value), existing.Age);
+			}
+			else
+			{
+				index[utxo.recipient] = (ZatsToZEC(utxo.value), i);
+			}
+		}
+
+		return [..
+			from account in index
+			let addr = (TransparentAddress)ZcashAddress.Decode(account.Key)
+			orderby account.Value.Age
+			select (addr, account.Value.Balance)];
+	}
+
+	/// <summary>
+	/// Shields all funds in a given transparent address.
+	/// </summary>
+	/// <param name="address">The address with UTXOs to be shielded. This value is recommended to have come from the first element in the list returned from <see cref="GetUnshieldedBalances"/>.</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>A task that completes when the shielding transaction has been broadcast.</returns>
+	public Task ShieldAsync(TransparentAddress address, CancellationToken cancellationToken)
+	{
+		return Task.Run(delegate
+		{
+			LightWalletMethods.LightwalletShield(this.dbinit, this.serverUrl.AbsoluteUri, this.UnifiedSpendingKeyBytes, address);
+		});
+	}
 
 	/// <inheritdoc/>
 	public void Dispose()

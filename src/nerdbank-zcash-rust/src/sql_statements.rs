@@ -60,3 +60,13 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	FROM utxos
 	WHERE received_by_account = :account_id AND spent_in_tx IS NULL
 "#;
+
+pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
+	SELECT
+		height,
+		value_zat,
+		address
+	FROM utxos
+	WHERE received_by_account = :account_id AND spent_in_tx IS NULL
+	ORDER BY height
+"#;
