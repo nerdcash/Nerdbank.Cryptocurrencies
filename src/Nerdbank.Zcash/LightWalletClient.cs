@@ -230,15 +230,17 @@ public partial class LightWalletClient : IDisposable
 	/// <summary>
 	/// Shields all funds in a given transparent address.
 	/// </summary>
-	/// <param name="address">The address with UTXOs to be shielded. This value is recommended to have come from the first element in the list returned from <see cref="GetUnshieldedBalances"/>.</param>
+	/// <param name="address">The address with UTXOs to be shielded. This value is recommended to have come from a random element in the list returned from <see cref="GetUnshieldedBalances"/>.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>A task that completes when the shielding transaction has been broadcast.</returns>
 	public Task ShieldAsync(TransparentAddress address, CancellationToken cancellationToken)
 	{
-		return Task.Run(delegate
-		{
-			LightWalletMethods.LightwalletShield(this.dbinit, this.serverUrl.AbsoluteUri, this.UnifiedSpendingKeyBytes, address);
-		});
+		return Task.Run(
+			delegate
+			{
+				LightWalletMethods.LightwalletShield(this.dbinit, this.serverUrl.AbsoluteUri, this.UnifiedSpendingKeyBytes, address);
+			},
+			cancellationToken);
 	}
 
 	/// <inheritdoc/>

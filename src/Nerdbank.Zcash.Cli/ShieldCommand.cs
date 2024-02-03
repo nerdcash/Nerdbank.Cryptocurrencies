@@ -53,18 +53,28 @@ internal class ShieldCommand : SyncFirstCommandBase
 			return 0;
 		}
 
-		foreach ((TransparentAddress address, decimal balance) in unshieldedBalances)
+		if (this.ShieldAllAddresses)
 		{
-			this.Console.WriteLine($"Shielding {balance} ZEC from {address}...");
-			await client.ShieldAsync(address, cancellationToken);
-
-			if (!this.ShieldAllAddresses)
+			foreach ((TransparentAddress Address, decimal Balance) entry in unshieldedBalances)
 			{
-				// Indicate by exit code if additional funds remain unshielded.
-				return unshieldedBalances.Count > 1 ? 1 : 0;
+				await ShieldAddressAsync(entry);
 			}
+
+			return 0;
+		}
+		else
+		{
+			// Pick an address at random.
+			await ShieldAddressAsync(unshieldedBalances[Random.Shared.Next(unshieldedBalances.Count)]);
+
+			// Indicate by exit code if additional funds remain unshielded.
+			return unshieldedBalances.Count > 1 ? 1 : 0;
 		}
 
-		return 0;
+		async Task ShieldAddressAsync((TransparentAddress Address, decimal Balance) entry)
+		{
+			this.Console.WriteLine($"Shielding {entry.Balance} ZEC from {entry.Address}...");
+			await client.ShieldAsync(entry.Address, cancellationToken);
+		}
 	}
 }
