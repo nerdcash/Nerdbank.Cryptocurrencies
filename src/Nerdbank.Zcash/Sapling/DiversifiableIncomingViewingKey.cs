@@ -26,7 +26,7 @@ public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncod
 	/// <summary>
 	/// Gets the same key, but with the diversifier key removed.
 	/// </summary>
-	public IncomingViewingKey WithoutDiversifier => new(this.Ivk, this.Network);
+	public IncomingViewingKey WithoutDiversifierKey => new(this.Ivk, this.Network);
 
 	/// <inheritdoc/>
 	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
