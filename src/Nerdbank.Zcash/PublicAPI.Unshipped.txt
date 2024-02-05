@@ -898,6 +898,7 @@ static Nerdbank.Zcash.TxId.Parse(string! txid) -> Nerdbank.Zcash.TxId
 static Nerdbank.Zcash.TxId.Parse(System.ReadOnlySpan<char> txid) -> Nerdbank.Zcash.TxId
 static Nerdbank.Zcash.UnifiedAddress.Create(params Nerdbank.Zcash.ZcashAddress![]! receivers) -> Nerdbank.Zcash.UnifiedAddress!
 static Nerdbank.Zcash.UnifiedAddress.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.ZcashAddress!>! receivers) -> Nerdbank.Zcash.UnifiedAddress!
+static Nerdbank.Zcash.UnifiedAddress.TryCreate(ref Nerdbank.Zcash.DiversifierIndex startingDiversiferIndex, System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! keys, out Nerdbank.Zcash.UnifiedAddress? address) -> bool
 static Nerdbank.Zcash.UnifiedViewingKey.Decode(string! unifiedViewingKey) -> Nerdbank.Zcash.UnifiedViewingKey!
 static Nerdbank.Zcash.UnifiedViewingKey.Full.Create(params Nerdbank.Zcash.IFullViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
 static Nerdbank.Zcash.UnifiedViewingKey.Full.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IFullViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!

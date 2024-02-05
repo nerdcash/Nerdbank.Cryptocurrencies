@@ -123,6 +123,18 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(actualIndex);
 	}
 
+	/// <summary>
+	/// Verifies that for an account with a sapling key that doesn't produce a valid diversifier at index 0,
+	/// the default UA uses the same index for all receivers, as required by ZIP-316.
+	/// </summary>
+	[Fact]
+	public void DefaultAddress_WithInvalidSaplingKeyAt0_HasConsistentIndexes()
+	{
+		// The particular mnemonic used here has a sapling key that doesn't produce a valid diversifier at index 0.
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+		UnifiedAddressTests.AssertAddressIndex(account, new DiversifierIndex(3), account.DefaultAddress);
+	}
+
 	[Fact]
 	public void GetTransparentAddress()
 	{
