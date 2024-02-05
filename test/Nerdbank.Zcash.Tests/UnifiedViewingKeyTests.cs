@@ -445,7 +445,8 @@ public class UnifiedViewingKeyTests : TestBase
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		SaplingSK saplingSK = wallet.CreateSaplingAccount();
 		OrchardSK orchardSK = wallet.CreateOrchardAccount();
-		UnifiedAddress ua = UnifiedAddress.Create(saplingSK.DefaultAddress, orchardSK.DefaultAddress);
+		DiversifierIndex index = default;
+		Assert.True(UnifiedAddress.TryCreate(ref index, [saplingSK, orchardSK], out UnifiedAddress? ua));
 
 		UnifiedViewingKey.Full ufvk = UnifiedViewingKey.Full.Create(saplingSK, orchardSK);
 		Assert.Equal(ua, ufvk.DefaultAddress);
