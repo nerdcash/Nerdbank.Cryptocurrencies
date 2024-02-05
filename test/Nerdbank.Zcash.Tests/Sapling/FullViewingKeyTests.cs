@@ -24,12 +24,12 @@ public class FullViewingKeyTests : TestBase
 			: "zviews1hjqajk4hheqry6ye4ygz6jysrh2ekzcyvr5375a9v8vdwz8jt6xz2f0xwjlnsrkd6sra7fl7efjk0lvd3q0mm62n4kkfq0q4laqtygahrnketg356x8q6gjyczcf4wmyhs3mgwt3hktwfre8002u5aunvu6d0rtr";
 		Zip32HDWallet wallet = new(Mnemonic, network);
 		Zip32HDWallet.Sapling.ExtendedSpendingKey account = wallet.CreateSaplingAccount(0);
-		string actual = account.FullViewingKey.WithoutDiversifier.TextEncoding;
+		string actual = account.FullViewingKey.WithoutDiversifierKey.TextEncoding;
 		this.logger.WriteLine(actual);
 		Assert.Equal(expected, actual);
 
 		Assert.True(FullViewingKey.TryDecode(actual, out _, out _, out FullViewingKey? decoded));
-		Assert.Equal(account.FullViewingKey.WithoutDiversifier, decoded);
+		Assert.Equal(account.FullViewingKey.WithoutDiversifierKey, decoded);
 	}
 
 	[Fact]

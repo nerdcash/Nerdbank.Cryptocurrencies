@@ -29,7 +29,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 	/// <summary>
 	/// Gets the same key, but with the diversifier key removed.
 	/// </summary>
-	public FullViewingKey WithoutDiversifier => new(this.Ak, this.Nk, this.IncomingViewingKey.WithoutDiversifier, this.Ovk);
+	public FullViewingKey WithoutDiversifierKey => new(this.Ak, this.Nk, this.IncomingViewingKey.WithoutDiversifierKey, this.Ovk);
 
 	/// <inheritdoc/>
 	byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.Sapling;

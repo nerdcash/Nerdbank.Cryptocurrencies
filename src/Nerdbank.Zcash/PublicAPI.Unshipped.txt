@@ -120,6 +120,8 @@ Nerdbank.Zcash.LightWalletClient.SyncResult.SyncResult(bool Success, ulong Lates
 Nerdbank.Zcash.LightWalletClient.SyncResult.SyncResult(Nerdbank.Zcash.LightWalletClient.SyncResult! original) -> void
 Nerdbank.Zcash.LightWalletClient.SyncResult.TotalBlocksScanned.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncResult.TotalBlocksScanned.init -> void
+Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.WithoutDiversifierKey.get -> Nerdbank.Zcash.Sapling.FullViewingKey!
+Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.WithoutDiversifierKey.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
 Nerdbank.Zcash.Transaction
 Nerdbank.Zcash.Transaction.BlockNumber.get -> uint
 Nerdbank.Zcash.Transaction.BlockNumber.init -> void
@@ -418,14 +420,12 @@ Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.DeriveInternal() -> Nerdbank.
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.Equals(Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey? other) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey!
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.SaplingReceiver receiver, out Nerdbank.Zcash.DiversifierIndex? diversifierIndex) -> bool
-Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.WithoutDiversifier.get -> Nerdbank.Zcash.Sapling.FullViewingKey!
 Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey
 Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.CheckReceiver(Nerdbank.Zcash.SaplingReceiver receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.CreateDefaultReceiver() -> Nerdbank.Zcash.SaplingReceiver
 Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.DefaultAddress.get -> Nerdbank.Zcash.SaplingAddress!
 Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.TryCreateReceiver(ref Nerdbank.Zcash.DiversifierIndex diversifierIndex, out Nerdbank.Zcash.SaplingReceiver? receiver) -> bool
 Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.TryGetDiversifierIndex(Nerdbank.Zcash.SaplingReceiver receiver, out Nerdbank.Zcash.DiversifierIndex? diversifierIndex) -> bool
-Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.WithoutDiversifier.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
 Nerdbank.Zcash.Sapling.ExpandedSpendingKey
 Nerdbank.Zcash.Sapling.ExpandedSpendingKey.Equals(Nerdbank.Zcash.Sapling.ExpandedSpendingKey? other) -> bool
 Nerdbank.Zcash.Sapling.ExpandedSpendingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey!
