@@ -115,4 +115,7 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	BirthdayHeights lightwallet_get_birthday_heights(DbInit config, u32 account_id);
+
+	[Throws=LightWalletError]
+	string lightwallet_add_diversifier(DbInit config, u32 account_id, bytes diversifier_index);
 };

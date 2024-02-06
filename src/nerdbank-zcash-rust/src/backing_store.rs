@@ -9,7 +9,11 @@ use zcash_client_backend::{
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
 use zcash_client_sqlite::{wallet::init::init_wallet_db, WalletDb};
-use zcash_primitives::{consensus::Network, zip32::AccountId};
+use zcash_keys::address::UnifiedAddress;
+use zcash_primitives::{
+    consensus::Network,
+    zip32::{AccountId, DiversifierIndex},
+};
 
 use crate::{block_source::BlockCache, error::Error};
 
@@ -50,6 +54,16 @@ impl Db {
         };
 
         Ok(self.data.create_account(seed, birthday)?)
+    }
+
+    pub(crate) fn add_diversifier(
+        &mut self,
+        account_id: AccountId,
+        diversifier_index: DiversifierIndex,
+    ) -> Result<UnifiedAddress, Error> {
+        Ok(self
+            .data
+            .insert_address_with_diversifier_index(account_id, diversifier_index)?)
     }
 }
 

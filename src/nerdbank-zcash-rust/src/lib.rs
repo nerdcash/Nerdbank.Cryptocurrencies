@@ -22,10 +22,11 @@ mod test_constants;
 
 use analysis::{BirthdayHeights, UserBalances};
 use interop::{
-    lightwallet_add_account, lightwallet_disconnect_server, lightwallet_get_birthday_height,
-    lightwallet_get_birthday_heights, lightwallet_get_block_height, lightwallet_get_sync_height,
-    lightwallet_get_transactions, lightwallet_get_unshielded_utxos, lightwallet_get_user_balances,
-    lightwallet_init, lightwallet_send, lightwallet_shield, lightwallet_sync, ChainType, DbInit,
-    LightWalletError, SendTransactionResult, ShieldedNote, SyncResult, Transaction,
-    TransactionSendDetail, TransparentNote, WalletInfo,
+    lightwallet_add_account, lightwallet_add_diversifier, lightwallet_disconnect_server,
+    lightwallet_get_birthday_height, lightwallet_get_birthday_heights,
+    lightwallet_get_block_height, lightwallet_get_sync_height, lightwallet_get_transactions,
+    lightwallet_get_unshielded_utxos, lightwallet_get_user_balances, lightwallet_init,
+    lightwallet_send, lightwallet_shield, lightwallet_sync, ChainType, DbInit, LightWalletError,
+    SendTransactionResult, ShieldedNote, SyncResult, Transaction, TransactionSendDetail,
+    TransparentNote, WalletInfo,
 };

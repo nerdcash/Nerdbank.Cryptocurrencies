@@ -421,6 +421,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_lightwallet_add_diversifier(RustBuffer @config,uint @accountId,RustBuffer @diversifierIndex,ref RustCallStatus _uniffi_out_err
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern sbyte uniffi_nerdbank_zcash_rust_fn_func_lightwallet_disconnect_server(RustBuffer @uri,ref RustCallStatus _uniffi_out_err
     );
 
@@ -701,6 +705,10 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
+    public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_add_diversifier(
+    );
+
+    [DllImport("nerdbank_zcash_rust")]
     public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_disconnect_server(
     );
 
@@ -766,6 +774,12 @@ static class _UniFFILib {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_add_account();
             if (checksum != 10587) {
                 throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_add_account` checksum `10587`, library returned `{checksum}`");
+            }
+        }
+        {
+            var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_add_diversifier();
+            if (checksum != 46256) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_add_diversifier` checksum `46256`, library returned `{checksum}`");
             }
         }
         {
@@ -1749,6 +1763,14 @@ public static class LightWalletMethods {
         return FfiConverterUInt32.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
     _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_add_account(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterString.INSTANCE.Lower(@uri), FfiConverterByteArray.INSTANCE.Lower(@seed), FfiConverterOptionalUInt32.INSTANCE.Lower(@birthdayHeight), ref _status)
+));
+    }
+
+    /// <exception cref="LightWalletException"></exception>
+    public static String LightwalletAddDiversifier(DbInit @config, uint @accountId, byte[] @diversifierIndex) {
+        return FfiConverterString.INSTANCE.Lift(
+    _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_lightwallet_add_diversifier(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterUInt32.INSTANCE.Lower(@accountId), FfiConverterByteArray.INSTANCE.Lower(@diversifierIndex), ref _status)
 ));
     }
 

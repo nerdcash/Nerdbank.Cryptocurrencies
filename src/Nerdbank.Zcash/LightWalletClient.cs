@@ -112,6 +112,23 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
+	/// Records a diversifier index as having been used by this account.
+	/// </summary>
+	/// <param name="diversifierIndex">The diversifier index.</param>
+	/// <returns>A unified address based on this diversifier index, containing as many receivers as are valid at this index.</returns>
+	/// <remarks>
+	/// <para>
+	/// This is crucial when transparent addresses are involved, since only transparent addresses
+	/// added to the wallet via this method will be monitored for incoming transactions.
+	/// </para>
+	/// <para>A conflict with an existing diversifier index already in the table is not considered an error.</para>
+	/// </remarks>
+	public UnifiedAddress AddDiversifier(DiversifierIndex diversifierIndex)
+	{
+		return (UnifiedAddress)ZcashAddress.Decode(LightWalletMethods.LightwalletAddDiversifier(this.dbinit, this.accountId, diversifierIndex[..].ToArray()));
+	}
+
+	/// <summary>
 	/// Gets the various forms of birthday heights relevant to this account.
 	/// </summary>
 	/// <returns>The birthday heights.</returns>

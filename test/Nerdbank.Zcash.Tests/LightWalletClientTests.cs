@@ -141,4 +141,43 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 				this.TimeoutToken));
 		this.logger.WriteLine(ex.Message);
 	}
+
+	/// <summary>
+	/// Verifies that diversifier index collisions are handled gracefully.
+	/// In particular, handled by just reporting success.
+	/// </summary>
+	[Fact]
+	public void AddDiversifier_IndexCollision()
+	{
+		// Use the index of the default address to ensure a collision.
+		// Given the seed hard-coded for the tests, this is expected to be '3'.
+		////Assert.True(DefaultAccount.TryGetDiversifierIndex(DefaultAccount.DefaultAddress, out DiversifierIndex? diversifierIndex));
+		UnifiedAddress ua = this.client.AddDiversifier(3/*diversifierIndex.Value*/);
+		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
+		Assert.NotNull(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
+		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
+	}
+
+	[Fact]
+	public void AddDiversifier_InvalidSapling()
+	{
+		UnifiedAddress ua = this.client.AddDiversifier(new DiversifierIndex(500));
+		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
+		Assert.NotNull(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
+
+		// It so happens that this seed and index produces an invalid sapling receiver.
+		Assert.Null(ua.GetPoolReceiver<SaplingReceiver>());
+	}
+
+	[Fact]
+	public void AddDiversifier_InvalidTransparent()
+	{
+		// Use an index that is outside the range 32-bit range supported by transparent addresses.
+		UnifiedAddress ua = this.client.AddDiversifier(new DiversifierIndex((ulong)uint.MaxValue + 1));
+		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
+		Assert.Null(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
+
+		// It so happens that this index produces a valid sapling receiver.
+		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
+	}
 }

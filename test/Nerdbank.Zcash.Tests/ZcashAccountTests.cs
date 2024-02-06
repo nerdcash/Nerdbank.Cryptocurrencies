@@ -124,6 +124,12 @@ public class ZcashAccountTests : TestBase
 	}
 
 	[Fact]
+	public void TryGetDiversifierIndex_TransparentReceiverOnly()
+	{
+		Assert.False(this.DefaultAccount.TryGetDiversifierIndex(this.DefaultAccount.IncomingViewing.Transparent!.DefaultAddress, out _));
+	}
+
+	[Fact]
 	public void GetTransparentAddress()
 	{
 		Assert.Equal<uint?>(0, this.DefaultAccount.MaxTransparentAddressIndex);

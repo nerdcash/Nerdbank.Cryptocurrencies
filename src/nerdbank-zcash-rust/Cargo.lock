@@ -3082,6 +3082,7 @@ dependencies = [
  "hdwallet",
  "incrementalmerkletree",
  "jubjub",
+ "libsqlite3-sys",
  "maybe-rayon",
  "orchard",
  "prost",

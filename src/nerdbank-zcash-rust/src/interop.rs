@@ -12,7 +12,11 @@ use zcash_client_backend::{
     keys::{Era, UnifiedSpendingKey},
 };
 use zcash_client_sqlite::error::SqliteClientError;
-use zcash_primitives::{consensus::Network, legacy::TransparentAddress, zip32::AccountId};
+use zcash_primitives::{
+    consensus::Network,
+    legacy::TransparentAddress,
+    zip32::{AccountId, DiversifierIndex},
+};
 
 use crate::{
     analysis::{get_birthday_heights, get_user_balances, BirthdayHeights, UserBalances},
@@ -184,6 +188,34 @@ pub fn lightwallet_add_account(
             .add_account(&secret, birthday_height as u64, &mut client)
             .await?;
         Ok(account.0.into())
+    })
+}
+
+pub fn lightwallet_add_diversifier(
+    config: DbInit,
+    account: u32,
+    diversifier_index: Vec<u8>,
+) -> Result<String, LightWalletError> {
+    RT.block_on(async move {
+        let network = config.network.into();
+        let mut db = Db::load(config.data_file, network)?;
+        let diversified_index: [u8; 11] =
+            diversifier_index
+                .try_into()
+                .map_err(|_| LightWalletError::InvalidArgument {
+                    message: "Bad diversifier".to_string(),
+                })?;
+        let diversifier_index = DiversifierIndex::from(diversified_index);
+        Ok(db
+            .add_diversifier(
+                account
+                    .try_into()
+                    .map_err(|_| LightWalletError::InvalidArgument {
+                        message: "invalid account id".to_string(),
+                    })?,
+                diversifier_index,
+            )?
+            .encode(&network))
     })
 }
 
