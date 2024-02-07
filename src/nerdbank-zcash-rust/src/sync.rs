@@ -9,8 +9,8 @@ use tracing::{debug, info, warn};
 use uniffi::deps::anyhow;
 use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
 use zcash_primitives::{
-    consensus::{BlockHeight, BranchId, Network, Parameters},
-    legacy::keys::IncomingViewingKey,
+    consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
+    legacy::TransparentAddress,
     merkle_tree::HashSer,
     transaction::{components::OutPoint, Transaction},
 };
@@ -71,6 +71,20 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
 
         // 4) Notify the wallet of the updated chain tip.
         db.data.update_chain_tip(tip_height)?;
+
+        // Download all the transparent ops related to the wallet first.
+        // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
+        for (address, height) in db.data.get_transparent_addresses_and_sync_heights()? {
+            download_transparent_transactions(
+                &mut client,
+                &mut db,
+                &network,
+                &address,
+                height,
+                tip_height,
+            )
+            .await?;
+        }
 
         // 5) Get the suggested scan ranges from the wallet database
         let mut scan_ranges = db.data.suggest_scan_ranges()?;
@@ -224,60 +238,51 @@ async fn update_subtree_roots<P: Parameters>(
 
 async fn download_transparent_transactions(
     client: &mut CompactTxStreamerClient<Channel>,
-    scan_range: &ScanRange,
-    network: &Network,
     db: &mut Db,
+    network: &Network,
+    address: &TransparentAddress,
+    start: Option<BlockHeight>,
+    end: BlockHeight,
 ) -> Result<(), Error> {
-    for ufvk in db.data.get_unified_full_viewing_keys()?.iter() {
-        if let Some(transparent_viewing_key) = ufvk.1.transparent() {
-            // TODO: fix the number of addresses we scan.
-            // This isn't as simple as looking for 40 (the address gap) beyond the last address that found something in this function,
-            // because at this level we're only scanning some arbitrary block range, so we may not notice that some addresses have actually been used.
-            for index in 0..40 {
-                let taddr = transparent_viewing_key
-                    .derive_external_ivk()?
-                    .derive_address(index)?
-                    .encode(network);
-
-                let transparent_transactions = client
-                    .get_taddress_txids(TransparentAddressBlockFilter {
-                        address: taddr,
-                        range: Some(BlockRange {
-                            start: Some(BlockId {
-                                height: scan_range.block_range().start.into(),
-                                ..Default::default()
-                            }),
-                            end: Some(BlockId {
-                                height: u64::from(scan_range.block_range().end) - 1,
-                                ..Default::default()
-                            }),
-                        }),
-                    })
-                    .await?
-                    .into_inner()
-                    .try_collect::<Vec<_>>()
-                    .await?;
-                for rawtx in transparent_transactions {
-                    let height = BlockHeight::from_u32(rawtx.height as u32);
-                    let tx =
-                        Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
-                    if let Some(t) = tx.transparent_bundle() {
-                        for (txout_index, txout) in t.vout.iter().enumerate() {
-                            let outpoint =
-                                OutPoint::new(tx.txid().as_ref().to_owned(), txout_index as u32);
-                            if let Some(output) = WalletTransparentOutput::from_parts(
-                                outpoint,
-                                txout.to_owned(),
-                                height,
-                            ) {
-                                db.data.put_received_transparent_utxo(&output)?;
-                            }
-                        }
-                    }
+    let transparent_transactions = client
+        .get_taddress_txids(TransparentAddressBlockFilter {
+            address: address.encode(network),
+            range: Some(BlockRange {
+                start: Some(BlockId {
+                    height: start
+                        .unwrap_or_else(|| {
+                            network.activation_height(NetworkUpgrade::Sapling).unwrap()
+                        })
+                        .into(),
+                    ..Default::default()
+                }),
+                end: Some(BlockId {
+                    height: end.into(),
+                    ..Default::default()
+                }),
+            }),
+        })
+        .await?
+        .into_inner()
+        .try_collect::<Vec<_>>()
+        .await?;
+    for rawtx in transparent_transactions {
+        let height = BlockHeight::from_u32(rawtx.height as u32);
+        let tx = Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
+        if let Some(t) = tx.transparent_bundle() {
+            for (txout_index, txout) in t.vout.iter().enumerate() {
+                let outpoint = OutPoint::new(tx.txid().as_ref().to_owned(), txout_index as u32);
+                if let Some(output) =
+                    WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), height)
+                {
+                    db.data.put_received_transparent_utxo(&output)?;
                 }
             }
         }
     }
+
+    db.data
+        .put_latest_scanned_block_for_transparent(address, BlockHeight::from_u32(end.into()))?;
 
     Ok(())
 }
@@ -291,8 +296,6 @@ async fn download_and_scan_blocks(
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
     for i in 0..3 {
-        download_transparent_transactions(client, scan_range, network, db).await?;
-
         let download_result = download_blocks(client, &mut db.blocks, scan_range).await;
         if download_result.is_ok() {
             break;
