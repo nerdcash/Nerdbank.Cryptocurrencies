@@ -90,17 +90,13 @@ pub fn get_unshielded_utxos(
     })?;
 
     let mut utxos = vec![];
-    loop {
-        if let Some(row) = rows.next()? {
-            let zats: u64 = row.get("value_zat")?;
-            let address: String = row.get("address")?;
-            utxos.push(TransparentNote {
-                value: zats,
-                recipient: address,
-            })
-        } else {
-            break;
-        }
+    while let Some(row) = rows.next()? {
+        let zats: u64 = row.get("value_zat")?;
+        let address: String = row.get("address")?;
+        utxos.push(TransparentNote {
+            value: zats,
+            recipient: address,
+        })
     }
 
     Ok(utxos)

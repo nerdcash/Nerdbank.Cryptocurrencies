@@ -140,52 +140,48 @@ pub fn get_user_balances(
             ..Default::default()
         };
 
-        loop {
-            if let Some(row) = rows.next()? {
-                let block_height: Option<u32> = row.get("block")?;
-                let value: u64 = row.get("value")?;
-                let output_pool: u8 = row.get("output_pool")?;
-                let is_change: bool = row.get("is_change")?;
+        while let Some(row) = rows.next()? {
+            let block_height: Option<u32> = row.get("block")?;
+            let value: u64 = row.get("value")?;
+            let output_pool: u8 = row.get("output_pool")?;
+            let is_change: bool = row.get("is_change")?;
 
-                let is_dust = value < marginal_fee;
-                let is_shielded = output_pool > 1; // sprout is unspendable, but can be upgraded just like transparent.
-                let is_mature = match block_height {
-                    Some(height) => height <= anchor.into(),
-                    None => false,
-                };
-                let is_spendable = is_mature && is_shielded;
+            let is_dust = value < marginal_fee;
+            let is_shielded = output_pool > 1; // sprout is unspendable, but can be upgraded just like transparent.
+            let is_mature = match block_height {
+                Some(height) => height <= anchor.into(),
+                None => false,
+            };
+            let is_spendable = is_mature && is_shielded;
 
-                if !is_change && block_height.is_none() {
-                    balances.incoming += value;
-                    if is_dust {
-                        balances.incoming_dust += value;
-                    }
-                }
-
+            if !is_change && block_height.is_none() {
+                balances.incoming += value;
                 if is_dust {
-                    if block_height.is_some() {
-                        balances.dust += value;
-                    }
-                } else {
-                    // The fee field only tracks mature income and change.
-                    if is_change || is_mature {
-                        balances.minimum_fees += marginal_fee;
-                    }
+                    balances.incoming_dust += value;
+                }
+            }
 
-                    if is_spendable {
-                        balances.spendable += value;
-                    } else if block_height.is_some() {
-                        if is_change {
-                            balances.immature_change += value;
-                        } else {
-                            balances.immature_income += value;
-                        }
-                    } else {
-                        // Unconfirmed
-                    }
+            if is_dust {
+                if block_height.is_some() {
+                    balances.dust += value;
                 }
             } else {
-                break;
+                // The fee field only tracks mature income and change.
+                if is_change || is_mature {
+                    balances.minimum_fees += marginal_fee;
+                }
+
+                if is_spendable {
+                    balances.spendable += value;
+                } else if block_height.is_some() {
+                    if is_change {
+                        balances.immature_change += value;
+                    } else {
+                        balances.immature_income += value;
+                    }
+                } else {
+                    // Unconfirmed
+                }
             }
         }
 
