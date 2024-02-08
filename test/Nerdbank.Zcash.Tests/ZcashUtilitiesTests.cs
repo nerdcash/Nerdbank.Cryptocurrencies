@@ -84,17 +84,27 @@ public class ZcashUtilitiesTests : TestBase
 	}
 
 	[Theory, PairwiseData]
+	public void TryParseKey_Sapling_DiversifiableFullViewingKey(ZcashNetwork network)
+	{
+		this.Assert_TryParseKey(network, a => a.FullViewing!.Sapling!);
+	}
+
+	[Theory, PairwiseData]
 	public void TryParseKey_Sapling_FullViewingKey(ZcashNetwork network)
 	{
-		// We specifically want to test round-tripping of the non-diversifiable key here.
-		this.Assert_TryParseKey<Nerdbank.Zcash.Sapling.FullViewingKey>(network, a => a.FullViewing!.Sapling!);
+		this.Assert_TryParseKey(network, a => a.FullViewing!.Sapling!.WithoutDiversifierKey);
+	}
+
+	[Theory, PairwiseData]
+	public void TryParseKey_Sapling_DiversifiableIncomingViewingKey(ZcashNetwork network)
+	{
+		this.Assert_TryParseKey(network, a => a.IncomingViewing.Sapling!);
 	}
 
 	[Theory, PairwiseData]
 	public void TryParseKey_Sapling_IncomingViewingKey(ZcashNetwork network)
 	{
-		// We specifically want to test round-tripping of the non-diversifiable key here.
-		this.Assert_TryParseKey<Nerdbank.Zcash.Sapling.IncomingViewingKey>(network, a => a.IncomingViewing.Sapling!);
+		this.Assert_TryParseKey(network, a => a.IncomingViewing.Sapling!.WithoutDiversifierKey);
 	}
 
 	[Fact]
@@ -131,7 +141,13 @@ public class ZcashUtilitiesTests : TestBase
 		string encoded = original.TextEncoding;
 		this.logger.WriteLine(encoded);
 		Assert.True(ZcashUtilities.TryParseKey(encoded, out IKeyWithTextEncoding? parsed));
-		Assert.IsType<TKey>(parsed);
+		if (parsed.GetType() != typeof(TKey))
+		{
+			// We'll accept a UVK if it has exactly one receiver of the type expected.
+			UnifiedViewingKey uvk = Assert.IsAssignableFrom<UnifiedViewingKey>(parsed);
+			parsed = (IKeyWithTextEncoding)Assert.Single(uvk);
+		}
+
 		Assert.Equal(encoded, parsed.TextEncoding);
 	}
 

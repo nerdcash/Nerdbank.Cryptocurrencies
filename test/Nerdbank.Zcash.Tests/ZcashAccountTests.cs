@@ -334,6 +334,25 @@ public class ZcashAccountTests : TestBase
 	}
 
 	[Fact]
+	public void TryImportAccount_FullViewing_Sapling()
+	{
+		ZcashAccount account = this.ImportAccount(this.DefaultAccount.FullViewing!.Sapling!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.Null(account.FullViewing.Orchard);
+		Assert.NotNull(account.FullViewing.Sapling);
+		Assert.Null(account.FullViewing.Transparent);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.Null(account.IncomingViewing.Orchard);
+		Assert.NotNull(account.IncomingViewing.Sapling);
+		Assert.Null(account.IncomingViewing.Transparent);
+	}
+
+	[Fact]
 	public void TryImportAccount_Spending_Transparent()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.Spending!.Transparent!.TextEncoding);
@@ -387,6 +406,22 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing);
 		Assert.NotNull(account.IncomingViewing.Orchard);
 		Assert.Null(account.IncomingViewing.Sapling);
+		Assert.Null(account.IncomingViewing.Transparent);
+	}
+
+	[Fact]
+	public void TryImportAccount_IncomingViewing_Sapling()
+	{
+		ZcashAccount account = this.ImportAccount(this.DefaultAccount.IncomingViewing.Sapling!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.Null(account.FullViewing);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.Null(account.IncomingViewing.Orchard);
+		Assert.NotNull(account.IncomingViewing.Sapling);
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 

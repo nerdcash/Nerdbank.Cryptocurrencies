@@ -168,7 +168,7 @@ public class IncomingViewingKey : IZcashKey, IEquatable<IncomingViewingKey>, IKe
 	/// <remarks>
 	/// As specified in the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol spec sections 5.6.3.2 and 4.2.2</see>.
 	/// </remarks>
-	internal int Encode(Span<byte> rawEncoding)
+	private int Encode(Span<byte> rawEncoding)
 	{
 		int written = 0;
 		written += this.Ivk[..].CopyToRetLength(rawEncoding[written..]);

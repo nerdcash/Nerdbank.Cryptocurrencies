@@ -8,9 +8,10 @@ namespace Nerdbank.Zcash.Sapling;
 /// and generate addresses.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUnifiedEncodingElement, IEquatable<DiversifiableFullViewingKey>
+public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUnifiedEncodingElement, IEquatable<DiversifiableFullViewingKey>, IKeyWithTextEncoding
 {
 	private readonly DiversifierKey dk;
+	private string? textEncoding;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class.
@@ -37,6 +38,9 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => this.Ak[..].Length + this.Nk[..].Length + this.Ovk[..].Length + this.Dk[..].Length;
 
+	/// <inheritdoc cref="IKeyWithTextEncoding.TextEncoding" />
+	public new string TextEncoding => this.textEncoding ??= UnifiedViewingKey.Full.Create(this).TextEncoding;
+
 	/// <inheritdoc/>
 	IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
@@ -52,6 +56,36 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 	internal ref readonly DiversifierKey Dk => ref this.dk;
 
 	private string DebuggerDisplay => this.IncomingViewingKey.DefaultAddress;
+
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+	{
+		if (TryDecode(encoding, out decodeError, out errorMessage, out DiversifiableFullViewingKey? fvk))
+		{
+			key = fvk;
+			return true;
+		}
+
+		key = null;
+		return false;
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DiversifiableFullViewingKey"/> class
+	/// from its <see cref="UnifiedViewingKey"/> encoding.
+	/// </summary>
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	public static bool TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out DiversifiableFullViewingKey? key)
+	{
+		if (UnifiedViewingKey.TryDecode(encoding, out decodeError, out errorMessage, out UnifiedViewingKey? ufvk))
+		{
+			key = ufvk.GetViewingKey<DiversifiableFullViewingKey>();
+			return key is not null;
+		}
+
+		key = null;
+		return false;
+	}
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
@@ -114,7 +148,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 	public DiversifiableFullViewingKey DeriveInternal()
 	{
 		Span<byte> publicFvk = stackalloc byte[96];
-		this.Encode(publicFvk);
+		base.Encode(publicFvk);
 
 		Span<byte> internalFvk = stackalloc byte[96];
 		Span<byte> internalDk = stackalloc byte[32];
@@ -158,5 +192,21 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 		IncomingViewingKey ivk = DiversifiableIncomingViewingKey.FromFullViewingKey(ak, nk, dk, network);
 		FullViewingKey fvk = new(new(ak), new(nk), ivk, new(ovk));
 		return new DiversifiableFullViewingKey(fvk, new(dk));
+	}
+
+	/// <summary>
+	/// Gets the raw encoding.
+	/// </summary>
+	/// <param name="rawEncoding">Receives the raw encoding. Must be at least 96 bytes in length.</param>
+	/// <returns>The number of bytes written to <paramref name="rawEncoding"/>. Always 128.</returns>
+	/// <remarks>
+	/// As specified in the <see href="https://github.com/zcash/zips/issues/727">ZIP-32 future edit</see>.
+	/// </remarks>
+	internal new int Encode(Span<byte> rawEncoding)
+	{
+		int written = 0;
+		written += base.Encode(rawEncoding[written..]);
+		written += this.Dk[..].CopyToRetLength(rawEncoding[written..]);
+		return written;
 	}
 }
