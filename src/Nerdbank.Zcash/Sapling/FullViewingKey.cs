@@ -210,23 +210,6 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	/// <summary>
 	/// Gets the raw encoding.
 	/// </summary>
-	/// <param name="rawEncoding">Receives the raw encoding. Must be at least 96 bytes in length.</param>
-	/// <returns>The number of bytes written to <paramref name="rawEncoding"/>. Always 96.</returns>
-	/// <remarks>
-	/// As specified in the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol spec section 5.6.3.3</see>.
-	/// </remarks>
-	internal int Encode(Span<byte> rawEncoding)
-	{
-		int written = 0;
-		written += this.Ak[..].CopyToRetLength(rawEncoding[written..]);
-		written += this.Nk[..].CopyToRetLength(rawEncoding[written..]);
-		written += this.Ovk[..].CopyToRetLength(rawEncoding[written..]);
-		return written;
-	}
-
-	/// <summary>
-	/// Gets the raw encoding.
-	/// </summary>
 	/// <returns>The raw encoding.</returns>
 	/// <remarks>
 	/// As specified in the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol spec section 5.6.3.3</see>.
@@ -235,6 +218,23 @@ public class FullViewingKey : IZcashKey, IEquatable<FullViewingKey>, IKeyWithTex
 	{
 		Bytes96 result = default;
 		this.Encode(result);
-		return result;
+		return new(result);
+	}
+
+	/// <summary>
+	/// Gets the raw encoding.
+	/// </summary>
+	/// <param name="rawEncoding">Receives the raw encoding. Must be at least 96 bytes in length.</param>
+	/// <returns>The number of bytes written to <paramref name="rawEncoding"/>. Always 96.</returns>
+	/// <remarks>
+	/// As specified in the <see href="https://zips.z.cash/protocol/protocol.pdf">Zcash protocol spec section 5.6.3.3</see>.
+	/// </remarks>
+	protected int Encode(Span<byte> rawEncoding)
+	{
+		int written = 0;
+		written += this.Ak[..].CopyToRetLength(rawEncoding[written..]);
+		written += this.Nk[..].CopyToRetLength(rawEncoding[written..]);
+		written += this.Ovk[..].CopyToRetLength(rawEncoding[written..]);
+		return written;
 	}
 }

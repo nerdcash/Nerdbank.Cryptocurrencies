@@ -237,7 +237,6 @@ public partial class Zip32HDWallet
 				length += BitUtilities.WriteLE(this.ChildIndex, result[length..]);
 				length += this.ChainCode[..].CopyToRetLength(result[length..]);
 				length += this.FullViewingKey.Encode(result[length..]);
-				length += this.Dk[..].CopyToRetLength(result[length..]);
 				Assumes.True(length == 169);
 				return length;
 			}
