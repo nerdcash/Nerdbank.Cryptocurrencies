@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Threading;
 using uniffi.LightWallet;
 using static Nerdbank.Zcash.Transaction;
 using static Nerdbank.Zcash.ZcashUtilities;
@@ -137,11 +138,19 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The length of the blockchain.</returns>
 	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
-	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
+	public static async ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
-		return new(Task.Run(
-			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
-			cancellationToken));
+		Requires.NotNull(lightWalletServerUrl);
+
+		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+		try
+		{
+			return LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri);
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
+		}
 	}
 
 	/// <summary>
@@ -151,7 +160,7 @@ public partial class LightWalletClient : IDisposable
 	/// <remarks>
 	/// The resulting struct contains fields which may be influenced by the completeness of the sync to the blockchain.
 	/// </remarks>
-	public BirthdayHeights GetBirthdayHeights() => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeights);
+	public BirthdayHeights GetBirthdayHeights() => new(this.Interop(LightWalletMethods.LightwalletGetBirthdayHeights));
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
@@ -291,18 +300,18 @@ public partial class LightWalletClient : IDisposable
 		}
 	}
 
-	private ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
+	private async ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
 	{
 		bool refAdded = false;
 		try
 		{
 			this.handle.DangerousAddRef(ref refAdded);
-			return new(Task.Run(
-				delegate
-				{
-					return func((ulong)this.handle.DangerousGetHandle());
-				},
-				cancellationToken));
+			await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+			return func((ulong)this.handle.DangerousGetHandle());
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
 		}
 		finally
 		{
@@ -321,6 +330,10 @@ public partial class LightWalletClient : IDisposable
 			this.handle.DangerousAddRef(ref refAdded);
 			return func((ulong)this.handle.DangerousGetHandle());
 		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
+		}
 		finally
 		{
 			if (refAdded)
@@ -337,6 +350,10 @@ public partial class LightWalletClient : IDisposable
 		{
 			this.handle.DangerousAddRef(ref refAdded);
 			func((ulong)this.handle.DangerousGetHandle());
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
 		}
 		finally
 		{
@@ -400,6 +417,24 @@ public partial class LightWalletClient : IDisposable
 		/// <param name="spendable"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='SpendableBalance']"/></param>
 		public ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable)
 			: this(ZatsToZEC(balance), ZatsToZEC(verified), ZatsToZEC(unverified), ZatsToZEC(spendable))
+		{
+		}
+	}
+
+	/// <summary>
+	/// Describes the various birthday heights that apply to a Zcash account.
+	/// </summary>
+	/// <param name="OriginalBirthdayHeight">The birthday height the account was created with.</param>
+	/// <param name="BirthdayHeight">The height of the first block that contains a transaction.</param>
+	/// <param name="RebirthHeight">The height of the block containing the oldest unspent note.</param>
+	public record struct BirthdayHeights(ulong OriginalBirthdayHeight, ulong BirthdayHeight, ulong? RebirthHeight)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BirthdayHeights"/> struct.
+		/// </summary>
+		/// <param name="heights">The interop heights record to copy from.</param>
+		internal BirthdayHeights(uniffi.LightWallet.BirthdayHeights heights)
+			: this(heights.originalBirthdayHeight, heights.birthdayHeight, heights.rebirthHeight)
 		{
 		}
 	}
