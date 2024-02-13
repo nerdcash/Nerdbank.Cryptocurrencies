@@ -120,6 +120,9 @@
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
   </data>
+  <data name="ErrorFromNativeSide" xml:space="preserve">
+    <value>An unmapped error occurred across the interop layer.</value>
+  </data>
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
     <value>An error occurred while fetching metadata from the lightwallet server.</value>
   </data>

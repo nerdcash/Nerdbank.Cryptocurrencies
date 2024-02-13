@@ -1,9 +1,9 @@
 [Error]
-enum LightWalletError {
-	"InvalidArgument",
-	"InvalidUri",
-	"SqliteClientError",
-	"Other",
+interface LightWalletError {
+	InvalidArgument(string message);
+	InvalidUri();
+	SqliteClientError(string message);
+	Other(string message);
 };
 
 enum ChainType {

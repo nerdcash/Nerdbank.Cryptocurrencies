@@ -1461,26 +1461,48 @@ class FfiConverterTypeChainType: FfiConverterRustBuffer<ChainType> {
 
 
 internal class LightWalletException: UniffiException {
-    LightWalletException(string message): base(message) {}
-
     // Each variant is a nested class
-    // Flat enums carries a string error message, so no special implementation is necessary.
     
-    public class InvalidArgument: LightWalletException {
-        public InvalidArgument(string message): base(message) {}
+    
+    public class InvalidArgument : LightWalletException {
+        // Members
+        public String @message;
+
+        // Constructor
+        public InvalidArgument(
+                String @message) {
+            this.@message = @message;
+        }
     }
     
-    public class InvalidUri: LightWalletException {
-        public InvalidUri(string message): base(message) {}
+    public class InvalidUri : LightWalletException {}
+    
+    
+    
+    public class SqliteClientException : LightWalletException {
+        // Members
+        public String @message;
+
+        // Constructor
+        public SqliteClientException(
+                String @message) {
+            this.@message = @message;
+        }
     }
     
-    public class SqliteClientException: LightWalletException {
-        public SqliteClientException(string message): base(message) {}
+    
+    public class Other : LightWalletException {
+        // Members
+        public String @message;
+
+        // Constructor
+        public Other(
+                String @message) {
+            this.@message = @message;
+        }
     }
     
-    public class Other: LightWalletException {
-        public Other(string message): base(message) {}
-    }
+
     
 }
 
@@ -1490,32 +1512,56 @@ class FfiConverterTypeLightWalletException : FfiConverterRustBuffer<LightWalletE
     public override LightWalletException Read(BigEndianStream stream) {
         var value = stream.ReadInt();
         switch (value) {
-            case 1: return new LightWalletException.InvalidArgument(FfiConverterString.INSTANCE.Read(stream));
-            case 2: return new LightWalletException.InvalidUri(FfiConverterString.INSTANCE.Read(stream));
-            case 3: return new LightWalletException.SqliteClientException(FfiConverterString.INSTANCE.Read(stream));
-            case 4: return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
+            case 1:
+                return new LightWalletException.InvalidArgument(
+                    FfiConverterString.INSTANCE.Read(stream));
+            case 2:
+                return new LightWalletException.InvalidUri();
+            case 3:
+                return new LightWalletException.SqliteClientException(
+                    FfiConverterString.INSTANCE.Read(stream));
+            case 4:
+                return new LightWalletException.Other(
+                    FfiConverterString.INSTANCE.Read(stream));
             default:
                 throw new InternalException(String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Read()", value));
         }
     }
 
     public override int AllocationSize(LightWalletException value) {
-        return 4 + FfiConverterString.INSTANCE.AllocationSize(value.Message);
+        switch (value) {
+            case LightWalletException.InvalidArgument variant_value:
+                return 4
+                    + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
+            case LightWalletException.InvalidUri variant_value:
+                return 4;
+            case LightWalletException.SqliteClientException variant_value:
+                return 4
+                    + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
+            case LightWalletException.Other variant_value:
+                return 4
+                    + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
+            default:
+                throw new InternalException(String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.AllocationSize()", value));
+        }
     }
 
     public override void Write(LightWalletException value, BigEndianStream stream) {
         switch (value) {
-            case LightWalletException.InvalidArgument:
+            case LightWalletException.InvalidArgument variant_value:
                 stream.WriteInt(1);
+                FfiConverterString.INSTANCE.Write(variant_value.@message, stream);
                 break;
-            case LightWalletException.InvalidUri:
+            case LightWalletException.InvalidUri variant_value:
                 stream.WriteInt(2);
                 break;
-            case LightWalletException.SqliteClientException:
+            case LightWalletException.SqliteClientException variant_value:
                 stream.WriteInt(3);
+                FfiConverterString.INSTANCE.Write(variant_value.@message, stream);
                 break;
-            case LightWalletException.Other:
+            case LightWalletException.Other variant_value:
                 stream.WriteInt(4);
+                FfiConverterString.INSTANCE.Write(variant_value.@message, stream);
                 break;
             default:
                 throw new InternalException(String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Write()", value));
