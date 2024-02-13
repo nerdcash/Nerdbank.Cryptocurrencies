@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.VisualStudio.Threading;
 using uniffi.LightWallet;
 using static Nerdbank.Zcash.Transaction;
 using static Nerdbank.Zcash.ZcashUtilities;
@@ -91,11 +92,19 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The length of the blockchain.</returns>
 	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
-	public static ValueTask<uint> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
+	public static async ValueTask<uint> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
-		return new(Task.Run(
-			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
-			cancellationToken));
+		Requires.NotNull(lightWalletServerUrl);
+
+		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+		try
+		{
+			return LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri);
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
+		}
 	}
 
 	public void AddAccount(ZcashAccount account)
@@ -135,7 +144,7 @@ public partial class LightWalletClient : IDisposable
 	/// <remarks>
 	/// The resulting struct contains fields which may be influenced by the completeness of the sync to the blockchain.
 	/// </remarks>
-	public BirthdayHeights GetBirthdayHeights() => LightWalletMethods.LightwalletGetBirthdayHeights(this.dbinit, this.accountId);
+	public BirthdayHeights GetBirthdayHeights() => new(LightWalletMethods.LightwalletGetBirthdayHeights(this.dbinit, this.accountId));
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<uint> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
@@ -193,13 +202,16 @@ public partial class LightWalletClient : IDisposable
 		List<TransactionSendDetail> details = [.. payments
 			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), p.Memo.RawBytes.ToArray(), p.ToAddress))];
 
-		return await Task.Run(
-			delegate
-			{
-				SendTransactionResult result = LightWalletMethods.LightwalletSend(this.dbinit, this.serverUrl.AbsoluteUri, this.UnifiedSpendingKeyBytes, MinimumConfirmations, details);
-				return new TxId(result.txid);
-			},
-			cancellationToken).ConfigureAwait(false);
+		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+		try
+		{
+			SendTransactionResult result = LightWalletMethods.LightwalletSend(this.dbinit, this.serverUrl.AbsoluteUri, this.UnifiedSpendingKeyBytes, MinimumConfirmations, details);
+			return new TxId(result.txid);
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
+		}
 	}
 
 	/// <summary>
@@ -303,6 +315,53 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="network">The network this transaction is on.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
 		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
+
+	/// <summary>
+	/// The balances that applies to the transparent pool for a particular account.
+	/// </summary>
+	/// <param name="Balance">The pool balance.</param>
+	public record struct TransparentPoolBalance(decimal Balance);
+
+	/// <summary>
+	/// The balances that apply to a single shielded pool for a particular account.
+	/// </summary>
+	/// <param name="Balance">The pool balance.</param>
+	/// <param name="VerifiedBalance">The verified balance.</param>
+	/// <param name="UnverifiedBalance">The unverified balance.</param>
+	/// <param name="SpendableBalance">The spendable balance.</param>
+	public record struct ShieldedPoolBalance(decimal Balance, decimal VerifiedBalance, decimal UnverifiedBalance, decimal SpendableBalance)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ShieldedPoolBalance"/> struct
+		/// with balances given in ZATs.
+		/// </summary>
+		/// <param name="balance"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='Balance']"/></param>
+		/// <param name="verified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='VerifiedBalance']"/></param>
+		/// <param name="unverified"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='UnverifiedBalance']"/></param>
+		/// <param name="spendable"><inheritdoc cref="ShieldedPoolBalance(decimal, decimal, decimal, decimal)" path="/param[@name='SpendableBalance']"/></param>
+		public ShieldedPoolBalance(ulong balance, ulong verified, ulong unverified, ulong spendable)
+			: this(ZatsToZEC(balance), ZatsToZEC(verified), ZatsToZEC(unverified), ZatsToZEC(spendable))
+		{
+		}
+	}
+
+	/// <summary>
+	/// Describes the various birthday heights that apply to a Zcash account.
+	/// </summary>
+	/// <param name="OriginalBirthdayHeight">The birthday height the account was created with.</param>
+	/// <param name="BirthdayHeight">The height of the first block that contains a transaction.</param>
+	/// <param name="RebirthHeight">The height of the block containing the oldest unspent note.</param>
+	public record struct BirthdayHeights(ulong OriginalBirthdayHeight, ulong BirthdayHeight, ulong? RebirthHeight)
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BirthdayHeights"/> struct.
+		/// </summary>
+		/// <param name="heights">The interop heights record to copy from.</param>
+		internal BirthdayHeights(uniffi.LightWallet.BirthdayHeights heights)
+			: this(heights.originalBirthdayHeight, heights.birthdayHeight, heights.rebirthHeight)
+		{
+		}
+	}
 
 	/// <summary>
 	/// Carries details of a progress update on a send operation.

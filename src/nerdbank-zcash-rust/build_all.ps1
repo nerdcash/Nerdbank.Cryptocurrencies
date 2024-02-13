@@ -7,6 +7,8 @@
     Build in release mode.
 .PARAMETER WinArm64Only
     Build only the win-arm64 target.
+.PARAMETER WinX64Only
+    Build only the win-x64 target.
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true)]

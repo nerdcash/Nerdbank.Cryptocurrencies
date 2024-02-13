@@ -16,7 +16,7 @@ public class BinanceUSExchangeTests : TestBase
 	[Trait("RequiresNetwork", "true")]
 	public async Task GetExchangeRateAsync_RespectsPairOrdering(bool fiatSecond)
 	{
-		TradingPair pair = new(Security.USD, Security.ZEC);
+		TradingPair pair = new(Security.USDT, Security.ZEC);
 		if (fiatSecond)
 		{
 			pair = pair.OppositeDirection;

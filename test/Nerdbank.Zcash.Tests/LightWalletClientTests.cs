@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using LightWalletException = uniffi.LightWallet.LightWalletException;
-using UniException = uniffi.LightWallet.LightWalletException;
-
 [Trait("RequiresNetwork", "true")]
 public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 {
@@ -134,12 +131,13 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		{
 			new Nerdbank.Zcash.Transaction.SendItem(DefaultAccount.DefaultAddress, 1.0m, default),
 		};
-		UniException.Other ex = await Assert.ThrowsAsync<UniException.Other>(() =>
+		LightWalletException ex = await Assert.ThrowsAsync<LightWalletException>(() =>
 			this.client.SendAsync(
 				sends,
 				new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
 				this.TimeoutToken));
 		this.logger.WriteLine(ex.Message);
+		Assert.Equal(LightWalletException.ErrorCode.Other, ex.Code);
 	}
 
 	/// <summary>
