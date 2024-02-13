@@ -29,12 +29,13 @@ public class LightWalletException : Exception
 	/// </summary>
 	/// <param name="ex">The interop exception to copy data from.</param>
 	internal LightWalletException(uniffi.LightWallet.LightWalletException ex)
-		: base(ex.Message, ex)
+		: base(Strings.ErrorFromNativeSide, ex)
 	{
 		this.Code = ex switch
 		{
 			uniffi.LightWallet.LightWalletException.InvalidUri => ErrorCode.InvalidUri,
 			uniffi.LightWallet.LightWalletException.InvalidArgument => ErrorCode.InvalidArgument,
+			uniffi.LightWallet.LightWalletException.SqliteClientException => ErrorCode.Sqlite,
 			_ => ErrorCode.Other,
 		};
 	}
@@ -58,6 +59,11 @@ public class LightWalletException : Exception
 		/// An invalid argument was provided.
 		/// </summary>
 		InvalidArgument,
+
+		/// <summary>
+		/// An error was returned by the SQLite client.
+		/// </summary>
+		Sqlite,
 	}
 
 	/// <summary>

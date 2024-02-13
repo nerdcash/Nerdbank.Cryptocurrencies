@@ -137,6 +137,7 @@ Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.ErrorCode.InvalidArgument = 2 -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.ErrorCode.InvalidUri = 1 -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.ErrorCode.Other = 0 -> Nerdbank.Zcash.LightWalletException.ErrorCode
+Nerdbank.Zcash.LightWalletException.ErrorCode.Sqlite = 3 -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.Sapling.DiversifiableFullViewingKey.WithoutDiversifierKey.get -> Nerdbank.Zcash.Sapling.FullViewingKey!
 Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.WithoutDiversifierKey.get -> Nerdbank.Zcash.Sapling.IncomingViewingKey!
 Nerdbank.Zcash.Transaction
