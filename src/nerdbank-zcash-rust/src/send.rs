@@ -113,8 +113,9 @@ pub(crate) async fn transmit_transaction(
 mod tests {
     use matches::assert_matches;
 
-    use crate::test_constants::{
-        create_account, setup_test, MIN_CONFIRMATIONS, VALID_SAPLING_TESTNET,
+    use crate::{
+        sync::sync,
+        test_constants::{create_account, setup_test, MIN_CONFIRMATIONS, VALID_SAPLING_TESTNET},
     };
 
     use super::*;
@@ -123,6 +124,9 @@ mod tests {
     async fn test_send_insufficient_funds() {
         let mut setup = setup_test().await;
         let account = create_account(&mut setup).await.unwrap();
+        sync(setup.server_uri.clone(), setup.data_file.clone())
+            .await
+            .unwrap();
         let result = send_transaction(
             setup.data_file,
             setup.server_uri,
