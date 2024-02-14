@@ -98,8 +98,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if download_and_scan_blocks(&mut client, &scan_range, &network, &mut db).await?
-                    {
+                    if download_and_scan_blocks(&mut client, scan_range, &network, &mut db).await? {
                         // The suggested scan ranges have been updated, so we re-request.
                         scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
@@ -184,7 +183,6 @@ async fn download_full_transactions<P: AsRef<Path>>(
         let mut stmt = conn.prepare("SELECT txid FROM transactions WHERE raw IS NULL")?;
         txids = stmt
             .query_map([], |r| r.get::<_, Vec<u8>>(0))?
-            .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
     }
 
@@ -297,20 +295,22 @@ async fn download_and_scan_blocks(
     // existing blocks in this range.
     for i in 0..3 {
         let download_result = download_blocks(client, &mut db.blocks, scan_range).await;
-        if download_result.is_ok() {
-            break;
-        } else if i == 2 {
-            return Err(download_result.unwrap_err());
+        if let Err(e) = download_result {
+            if i == 2 {
+                return Err(e);
+            } else {
+                warn!("Failed to download blocks: {}", scan_range);
+                println!("Failed to download blocks: {}", scan_range);
+                // Wait a bit before retrying.
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
         } else {
-            warn!("Failed to download blocks: {}", scan_range);
-            println!("Failed to download blocks: {}", scan_range);
-            // Wait a bit before retrying.
-            tokio::time::sleep(Duration::from_secs(2)).await;
+            break;
         }
     }
 
     // Scan the downloaded blocks.
-    let result = scan_blocks(&network, db, scan_range)?;
+    let result = scan_blocks(network, db, scan_range)?;
 
     // Now that they've been scanned, we don't need them any more.
     db.blocks.remove_range(scan_range.block_range());
@@ -352,7 +352,7 @@ async fn download_blocks(
 fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result<bool, Error> {
     let scan_result = scan_cached_blocks(
         network,
-        &mut db.blocks,
+        &db.blocks,
         &mut db.data,
         scan_range.block_range().start,
         scan_range.len(),

@@ -57,10 +57,10 @@ pub async fn send_transaction<P: AsRef<Path>>(
             None => None,
         };
         payments.push(Payment {
-            recipient_address: Address::decode(&network, &detail.recipient.as_str())
+            recipient_address: Address::decode(&network, detail.recipient.as_str())
                 .ok_or(Error::InvalidAddress)?,
             amount: NonNegativeAmount::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
-            memo: memo,
+            memo,
             label: None,
             message: None,
             other_params: Vec::new(),

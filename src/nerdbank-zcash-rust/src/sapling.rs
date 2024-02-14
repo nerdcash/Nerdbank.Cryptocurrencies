@@ -83,7 +83,7 @@ pub extern "C" fn decrypt_sapling_diversifier_with_ivk(
     let dk = DiversifierKey::from_bytes(*dk);
 
     let address = PaymentAddress::from_bytes(receiver);
-    if address.is_none().into() {
+    if address.is_none() {
         return -2;
     }
     let address = address.unwrap();
@@ -217,7 +217,7 @@ pub extern "C" fn get_sapling_receiver(
     let receiver = unsafe { &mut *receiver };
     let dk = DiversifierKey::from_bytes(*dk);
 
-    let j = DiversifierIndex::from(diversifier_index.clone());
+    let j = DiversifierIndex::from(*diversifier_index);
 
     let fr = jubjub::Fr::from_bytes(ivk);
     if fr.is_some().into() {
@@ -226,7 +226,7 @@ pub extern "C" fn get_sapling_receiver(
             diversifier_index.copy_from_slice(index.as_bytes());
             if let Some(addr) = ivk.to_payment_address(d) {
                 receiver.copy_from_slice(&addr.to_bytes());
-                return 0;
+                0
             } else {
                 -3
             }

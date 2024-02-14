@@ -48,11 +48,11 @@ impl BlockCache {
 
     pub fn remove_range(&mut self, range: &Range<BlockHeight>) {
         for height in u32::from(range.start)..range.end.into() {
-            self.remove(height as u32);
+            self.remove(height);
         }
     }
 
-    pub fn truncate_to_height(&mut self, block_height: BlockHeight) -> () {
+    pub fn truncate_to_height(&mut self, block_height: BlockHeight) {
         let limit = u32::from(block_height);
         self.blocks.retain(|k, _| k <= &limit);
     }

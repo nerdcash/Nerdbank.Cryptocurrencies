@@ -11,10 +11,12 @@ lazy_static! {
 
 /// Return a gRPC channel for the given URI, creating one if necessary.
 pub(crate) async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transport::Error> {
-    let mut clients = CHANNELS.lock().unwrap();
-    if let Some(client) = clients.get(&uri) {
-        let channel = &*client.borrow();
-        return Ok(channel.clone());
+    {
+        let clients = CHANNELS.lock().unwrap();
+        if let Some(client) = clients.get(&uri) {
+            let channel = &*client.borrow();
+            return Ok(channel.clone());
+        }
     }
 
     let tls = ClientTlsConfig::new().domain_name(uri.host().unwrap());
@@ -22,6 +24,8 @@ pub(crate) async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transpo
         .tls_config(tls)?
         .connect()
         .await?;
+
+    let mut clients = CHANNELS.lock().unwrap();
     clients.insert(uri, RefCell::new(channel.clone()));
     Ok(channel)
 }

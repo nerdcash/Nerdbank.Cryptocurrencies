@@ -19,3 +19,5 @@ steps:
   displayName: 🧪 cargo test
   workingDirectory: src/nerdbank-zcash-rust
   condition: and(succeeded(), ne('${{ parameters.test_target }}', ''))
+- pwsh:  cargo clippy
+  displayName: 🧼 cargo clippy

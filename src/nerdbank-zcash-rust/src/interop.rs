@@ -274,7 +274,7 @@ pub fn lightwallet_get_transactions(
                 let mut recipient: Option<String> = row.get("to_address")?;
                 let value: u64 = row.get("value")?;
                 let memo: Option<Vec<u8>> = row.get("memo")?;
-                let memo = memo.unwrap_or(Vec::new());
+                let memo = memo.unwrap_or_default();
 
                 // Work out the receiving address when the sqlite db doesn't record it
                 // but we have a diversifier that can regenerate it.
@@ -282,36 +282,30 @@ pub fn lightwallet_get_transactions(
                     let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
                     if let Some(diversifier) = diversifier {
                         recipient = match output_pool {
-                            2 => ufvk
-                                .map(|k| {
-                                    k.sapling()
-                                        .map(|s| {
-                                            s.diversified_address(sapling::keys::Diversifier(
+                            2 => ufvk.and_then(|k| {
+                                k.sapling().and_then(|s| {
+                                    s.diversified_address(sapling::keys::Diversifier(
+                                        diversifier.try_into().unwrap(),
+                                    ))
+                                    .map(|a| a.encode(&network))
+                                })
+                            }),
+                            3 => ufvk.and_then(|k| {
+                                k.orchard().map(|o| {
+                                    UnifiedAddress::from_receivers(
+                                        Some(o.address(
+                                            orchard::keys::Diversifier::from_bytes(
                                                 diversifier.try_into().unwrap(),
-                                            ))
-                                            .map(|a| a.encode(&network))
-                                        })
-                                        .flatten()
+                                            ),
+                                            Scope::External,
+                                        )),
+                                        None,
+                                        None,
+                                    )
+                                    .unwrap()
+                                    .encode(&network)
                                 })
-                                .flatten(),
-                            3 => ufvk
-                                .map(|k| {
-                                    k.orchard().map(|o| {
-                                        UnifiedAddress::from_receivers(
-                                            Some(o.address(
-                                                orchard::keys::Diversifier::from_bytes(
-                                                    diversifier.try_into().unwrap(),
-                                                ),
-                                                Scope::External,
-                                            )),
-                                            None,
-                                            None,
-                                        )
-                                        .unwrap()
-                                        .encode(&network)
-                                    })
-                                })
-                                .flatten(),
+                            }),
                             _ => None,
                         }
                     }
@@ -352,12 +346,14 @@ pub fn lightwallet_get_transactions(
                     }
                 };
 
-                if from_account == Some(account_id) && recipient.is_some() {
-                    tx.outgoing.push(TransactionSendDetail {
-                        recipient: recipient.unwrap(),
-                        memo: Some(memo),
-                        value,
-                    });
+                if let Some(recipient) = recipient {
+                    if from_account == Some(account_id) {
+                        tx.outgoing.push(TransactionSendDetail {
+                            recipient,
+                            memo: Some(memo),
+                            value,
+                        });
+                    }
                 }
 
                 Ok(tx)
@@ -509,6 +505,6 @@ mod tests {
         let setup = RT.block_on(async move { setup_test().await });
         let transactions = lightwallet_get_transactions(setup.db_init, 0, 0).unwrap();
 
-        assert!(transactions.len() == 0);
+        assert!(transactions.is_empty());
     }
 }
