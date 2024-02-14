@@ -40,7 +40,7 @@ use crate::{
     grpc::get_client,
     interop::SyncResult,
     lightclient::parse_network,
-    resilience::webrequest_with_logged_retry,
+    resilience::{webrequest_with_logged_retry, webrequest_with_retry},
 };
 
 type ChainError =
@@ -49,29 +49,39 @@ type ChainError =
 const BATCH_SIZE: u32 = 10_000;
 
 pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, Error> {
-    let mut client = get_client(uri).await?;
-    let info = client
-        .get_lightd_info(service::Empty {})
-        .await?
-        .into_inner();
+    let client = Arc::new(Mutex::new(get_client(uri).await?));
+    let info = webrequest_with_retry(|| async {
+        Ok(client
+            .lock()
+            .unwrap()
+            .get_lightd_info(service::Empty {})
+            .await?
+            .into_inner())
+    })
+    .await?;
     let network = parse_network(&info)?;
 
     let mut db = Db::load(&data_file, network)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
-    update_subtree_roots(&mut client, &mut db.data).await?;
+    update_subtree_roots(&mut client.lock().unwrap(), &mut db.data).await?;
 
     let mut tip_height: BlockHeight;
     loop {
         // 3) Download chain tip metadata from lightwalletd
-        tip_height = client
-            .get_latest_block(service::ChainSpec::default())
-            .await?
-            .get_ref()
-            .height
-            .try_into()
-            .map_err(|e| Error::InternalError(format!("Invalid block height: {}", e)))?;
+        tip_height = webrequest_with_retry(|| async {
+            Ok(client
+                .lock()
+                .unwrap()
+                .get_latest_block(service::ChainSpec::default())
+                .await?
+                .get_ref()
+                .height)
+        })
+        .await?
+        .try_into()
+        .map_err(|e| Error::InternalError(format!("Invalid block height: {}", e)))?;
 
         // 4) Notify the wallet of the updated chain tip.
         db.data.update_chain_tip(tip_height)?;
@@ -80,7 +90,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
         // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
         for (address, height) in db.data.get_transparent_addresses_and_sync_heights()? {
             download_transparent_transactions(
-                &mut client,
+                &mut client.lock().unwrap(),
                 &mut db,
                 &network,
                 &address,
@@ -102,7 +112,14 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if download_and_scan_blocks(&mut client, scan_range, &network, &mut db).await? {
+                    if download_and_scan_blocks(
+                        &mut client.lock().unwrap(),
+                        scan_range,
+                        &network,
+                        &mut db,
+                    )
+                    .await?
+                    {
                         // The suggested scan ranges have been updated, so we re-request.
                         scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
@@ -151,7 +168,9 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
                 }
             })
         }) {
-            if download_and_scan_blocks(&mut client, &scan_range, &network, &mut db).await? {
+            if download_and_scan_blocks(&mut client.lock().unwrap(), &scan_range, &network, &mut db)
+                .await?
+            {
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
                 loop_around = true;
@@ -166,7 +185,7 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
 
     // Download and decrypt the full transactions we found in the compact blocks
     // so we can save their memos to the database.
-    download_full_transactions(&mut client, data_file, &mut db, &network).await?;
+    download_full_transactions(&mut client.lock().unwrap(), data_file, &mut db, &network).await?;
 
     Ok(SyncResult {
         latest_block: tip_height.into(),
@@ -179,6 +198,7 @@ async fn download_full_transactions<P: AsRef<Path>>(
     db: &mut Db,
     network: &Network,
 ) -> Result<(), Error> {
+    let client = Arc::new(Mutex::new(client));
     // Scope the database connection so it's closed before we use the db argument,
     // to avoid 'database is locked' errors.
     let txids;
@@ -191,13 +211,18 @@ async fn download_full_transactions<P: AsRef<Path>>(
     }
 
     for txid in txids {
-        let raw_tx = client
-            .get_transaction(TxFilter {
-                hash: txid,
-                ..Default::default()
-            })
-            .await?
-            .into_inner();
+        let raw_tx = webrequest_with_retry(|| async {
+            Ok(client
+                .lock()
+                .unwrap()
+                .get_transaction(TxFilter {
+                    hash: txid.clone(),
+                    ..Default::default()
+                })
+                .await?
+                .into_inner())
+        })
+        .await?;
 
         // The consensus branch ID passed in here does not matter:
         // - v4 and below cache it internally, but all we do with this transaction while
@@ -246,28 +271,34 @@ async fn download_transparent_transactions(
     start: Option<BlockHeight>,
     end: BlockHeight,
 ) -> Result<(), Error> {
-    let transparent_transactions = client
-        .get_taddress_txids(TransparentAddressBlockFilter {
-            address: address.encode(network),
-            range: Some(BlockRange {
-                start: Some(BlockId {
-                    height: start
-                        .unwrap_or_else(|| {
-                            network.activation_height(NetworkUpgrade::Sapling).unwrap()
-                        })
-                        .into(),
-                    ..Default::default()
+    let client = Arc::new(Mutex::new(client));
+    let transparent_transactions = webrequest_with_retry(|| async {
+        Ok(client
+            .lock()
+            .unwrap()
+            .get_taddress_txids(TransparentAddressBlockFilter {
+                address: address.encode(network),
+                range: Some(BlockRange {
+                    start: Some(BlockId {
+                        height: start
+                            .unwrap_or_else(|| {
+                                network.activation_height(NetworkUpgrade::Sapling).unwrap()
+                            })
+                            .into(),
+                        ..Default::default()
+                    }),
+                    end: Some(BlockId {
+                        height: end.into(),
+                        ..Default::default()
+                    }),
                 }),
-                end: Some(BlockId {
-                    height: end.into(),
-                    ..Default::default()
-                }),
-            }),
-        })
-        .await?
-        .into_inner()
-        .try_collect::<Vec<_>>()
-        .await?;
+            })
+            .await?
+            .into_inner()
+            .try_collect::<Vec<_>>()
+            .await?)
+    })
+    .await?;
     for rawtx in transparent_transactions {
         let height = BlockHeight::from_u32(rawtx.height as u32);
         let tx = Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
