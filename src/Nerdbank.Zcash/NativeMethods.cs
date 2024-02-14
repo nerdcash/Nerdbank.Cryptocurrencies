@@ -290,8 +290,7 @@ internal static unsafe partial class NativeMethods
 	/// <summary>
 	/// Derives the ivk value for a sapling incoming viewing key from elements of the full viewing key.
 	/// </summary>
-	/// <param name="ak">The <see cref="Nerdbank.Zcash.Sapling.FullViewingKey.Ak"/> value.</param>
-	/// <param name="nk">The <see cref="Nerdbank.Zcash.Sapling.FullViewingKey.Nk"/> value.</param>
+	/// <param name="fvk">The full viewing key.</param>
 	/// <param name="ivk">Receives the computed value for <see cref="Nerdbank.Zcash.Sapling.IncomingViewingKey.Ivk"/>.</param>
 	/// <returns>0 on success, or a negative error code.</returns>
 	/// <exception cref="ArgumentException">Thrown if the provided buffers are not of expected length.</exception>
