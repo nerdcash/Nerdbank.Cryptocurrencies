@@ -1,10 +1,13 @@
-use std::{path::Path, time::Duration};
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use futures_util::TryStreamExt;
 use http::Uri;
 use prost::bytes::Buf;
 use rusqlite::Connection;
-use tonic::transport::Channel;
+use tonic::{transport::Channel, Status};
 use tracing::{debug, info, warn};
 use uniffi::deps::anyhow;
 use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
@@ -37,6 +40,7 @@ use crate::{
     grpc::get_client,
     interop::SyncResult,
     lightclient::parse_network,
+    resilience::webrequest_with_logged_retry,
 };
 
 type ChainError =
@@ -293,27 +297,33 @@ async fn download_and_scan_blocks(
 ) -> Result<bool, Error> {
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
-    for i in 0..3 {
-        let download_result = download_blocks(client, &mut db.blocks, scan_range).await;
-        if let Err(e) = download_result {
-            if i == 2 {
-                return Err(e);
-            } else {
-                warn!("Failed to download blocks: {}", scan_range);
-                println!("Failed to download blocks: {}", scan_range);
-                // Wait a bit before retrying.
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-        } else {
-            break;
-        }
-    }
+    let client = Arc::new(Mutex::new(client));
+    let db = Arc::new(Mutex::new(db));
+    webrequest_with_logged_retry(
+        || async {
+            let mut client = client.lock().unwrap();
+            let mut db = db.lock().unwrap();
+            download_blocks(&mut client, &mut db.blocks, scan_range).await
+        },
+        |error, duration, failure_count| {
+            let msg = format!(
+                "Failure {} to download blocks: {}. {}. Will retry in {:?}.",
+                failure_count, scan_range, error, duration
+            );
+            warn!("{}", &msg);
+            println!("{}", &msg);
+        },
+    )
+    .await?;
 
     // Scan the downloaded blocks.
-    let result = scan_blocks(network, db, scan_range)?;
+    let result = scan_blocks(network, &mut db.lock().unwrap(), scan_range)?;
 
     // Now that they've been scanned, we don't need them any more.
-    db.blocks.remove_range(scan_range.block_range());
+    db.lock()
+        .unwrap()
+        .blocks
+        .remove_range(scan_range.block_range());
 
     Ok(result)
 }
@@ -322,7 +332,7 @@ async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
     block_cache: &mut BlockCache,
     scan_range: &ScanRange,
-) -> Result<(), Error> {
+) -> Result<(), Status> {
     info!("Fetching {}", scan_range);
     let mut start = service::BlockId::default();
     start.height = scan_range.block_range().start.into();
@@ -334,8 +344,7 @@ async fn download_blocks(
     };
     let compact_blocks = client
         .get_block_range(range)
-        .await
-        .map_err(anyhow::Error::from)?
+        .await?
         .into_inner()
         .try_collect::<Vec<_>>()
         .await?;

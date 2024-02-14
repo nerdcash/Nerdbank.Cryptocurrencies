@@ -13,6 +13,7 @@ use zcash_primitives::{
 };
 
 use crate::error::Error;
+use crate::resilience::webrequest_with_retry;
 use crate::{backing_store::Db, grpc::get_client, interop::DbInit, lightclient::parse_network};
 
 lazy_static! {
@@ -46,12 +47,16 @@ pub(crate) struct TestSetup {
 
 pub(crate) async fn setup_test() -> TestSetup {
     let wallet_dir = testdir!();
-    let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
-    let server_info = client
-        .get_lightd_info(service::Empty {})
-        .await
-        .unwrap()
-        .into_inner();
+    let server_info = webrequest_with_retry(|| async {
+        let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
+        Ok(client
+            .get_lightd_info(service::Empty {})
+            .await?
+            .into_inner())
+    })
+    .await
+    .unwrap();
+    let client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
     let network = parse_network(&server_info).unwrap();
     let data_file = wallet_dir.join("wallet.sqlite");
     let db = Db::init(&data_file, network).unwrap();

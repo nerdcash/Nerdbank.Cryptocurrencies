@@ -11,6 +11,7 @@ mod grpc;
 mod interop;
 mod lightclient;
 mod orchard;
+mod resilience;
 mod sapling;
 mod send;
 mod shield;

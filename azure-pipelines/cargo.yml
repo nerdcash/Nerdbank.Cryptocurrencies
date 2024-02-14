@@ -18,6 +18,8 @@ steps:
 - pwsh: cargo test -r --target ${{ parameters.test_target }}
   displayName: 🧪 cargo test
   workingDirectory: src/nerdbank-zcash-rust
+  env:
+    RUST_BACKTRACE: 1
   condition: and(succeeded(), ne('${{ parameters.test_target }}', ''))
 - pwsh:  cargo clippy
   displayName: 🧼 cargo clippy
