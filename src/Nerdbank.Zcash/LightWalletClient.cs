@@ -27,7 +27,7 @@ public partial class LightWalletClient : IDisposable
 	private readonly Uri serverUrl;
 	private readonly DbInit dbinit;
 	private uint accountId; // TODO: figure out what to do for this.
-	private ZcashAccount account;
+	private ZcashAccount? account;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -78,7 +78,7 @@ public partial class LightWalletClient : IDisposable
 	{
 		get
 		{
-			UnifiedSpendingKey usk = this.account.Spending?.UnifiedKey ?? throw new InvalidOperationException("No spending key.");
+			UnifiedSpendingKey usk = this.account?.Spending?.UnifiedKey ?? throw new InvalidOperationException("No spending key.");
 			byte[] uskBytes = new byte[500];
 			int len = usk.ToBytes(uskBytes);
 			return uskBytes[..len];
@@ -107,17 +107,33 @@ public partial class LightWalletClient : IDisposable
 		}
 	}
 
+	/// <summary>
+	/// Adds an account to the wallet.
+	/// </summary>
+	/// <param name="account">The account to add.</param>
+	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with.</exception>
 	public void AddAccount(ZcashAccount account)
 	{
 		Requires.NotNull(account);
+		if (account.HDDerivation is null)
+		{
+			throw new NotSupportedException("Only HD derived accounts are supported at present.");
+		}
 
 		if (account.Network != this.Network)
 		{
 			throw new InvalidOperationException(Strings.FormatNetworkMismatch(this.Network, account.Network));
 		}
 
-		this.accountId = LightWalletMethods.LightwalletAddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
-		this.account = account;
+		try
+		{
+			this.accountId = LightWalletMethods.LightwalletAddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
+			this.account = account;
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
+		}
 	}
 
 	/// <summary>
@@ -239,7 +255,7 @@ public partial class LightWalletClient : IDisposable
 		for (int i = 0; i < utxos.Count; i++)
 		{
 			TransparentNote utxo = utxos[i];
-			if (index.TryGetValue(utxo.recipient, out var existing))
+			if (index.TryGetValue(utxo.recipient, out (decimal Balance, int Age) existing))
 			{
 				index[utxo.recipient] = (existing.Balance + ZatsToZEC(utxo.value), existing.Age);
 			}
@@ -292,7 +308,7 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="d">The uniffi data to copy from.</param>
 	private static SendItem CreateSendItem(TransactionSendDetail d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()));
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RecvItem"/> class.
