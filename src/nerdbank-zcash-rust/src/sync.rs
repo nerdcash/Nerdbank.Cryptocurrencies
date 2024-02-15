@@ -38,7 +38,7 @@ use crate::{
     block_source::{BlockCache, BlockCacheError},
     error::Error,
     grpc::get_client,
-    interop::SyncResult,
+    interop::{SyncResult, SyncUpdate, SyncUpdateData},
     lightclient::parse_network,
     resilience::{webrequest_with_logged_retry, webrequest_with_retry},
 };
@@ -48,7 +48,11 @@ type ChainError =
 
 const BATCH_SIZE: u32 = 10_000;
 
-pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, Error> {
+pub async fn sync<P: AsRef<Path>>(
+    uri: Uri,
+    data_file: P,
+    progress: Option<Box<dyn SyncUpdate>>,
+) -> Result<SyncResult, Error> {
     let client = Arc::new(Mutex::new(get_client(uri).await?));
     let info = webrequest_with_retry(|| async {
         Ok(client
@@ -150,6 +154,22 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
         // the start and end of the range inwards.
         let scan_ranges = db.data.suggest_scan_ranges()?;
         debug!("Suggested ranges: {:?}", scan_ranges);
+
+        // Establish the total work required.
+        // For now, we'll just count blocks. But a far better measure is by number of outputs we'll need to scan.
+        let total_steps = scan_ranges
+            .iter()
+            .map(|r| u64::from(r.block_range().end) - u64::from(r.block_range().start))
+            .sum::<u64>();
+        let mut current_step = 0;
+        if let Some(progress) = progress.as_ref() {
+            progress.update_status(SyncUpdateData {
+                current: 0,
+                total: total_steps,
+                last_error: None,
+            });
+        }
+
         let mut loop_around = false;
         for scan_range in scan_ranges.into_iter().flat_map(|r| {
             // Limit the number of blocks we download and scan at any one time.
@@ -175,6 +195,15 @@ pub async fn sync<P: AsRef<Path>>(uri: Uri, data_file: P) -> Result<SyncResult, 
                 // error or because a higher priority range has been added).
                 loop_around = true;
                 break;
+            }
+
+            current_step += scan_range.len() as u64;
+            if let Some(progress) = progress.as_ref() {
+                progress.update_status(SyncUpdateData {
+                    current: current_step,
+                    total: total_steps,
+                    last_error: None,
+                });
             }
         }
 
@@ -465,7 +494,7 @@ mod tests {
         ]
         .map(|a| a);
 
-        let result = sync(setup.server_uri.clone(), &setup.data_file)
+        let result = sync(setup.server_uri.clone(), &setup.data_file, None)
             .await
             .unwrap();
 

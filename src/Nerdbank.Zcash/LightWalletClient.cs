@@ -53,11 +53,6 @@ public partial class LightWalletClient : IDisposable
 	public ZcashNetwork Network { get; }
 
 	/// <summary>
-	/// Gets or sets the interval to report progress for long-running tasks.
-	/// </summary>
-	public TimeSpan UpdateFrequency { get; set; } = TimeSpan.FromSeconds(1);
-
-	/// <summary>
 	/// Gets the birthday height of the account.
 	/// </summary>
 	/// <remarks>
@@ -192,15 +187,18 @@ public partial class LightWalletClient : IDisposable
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<uint> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
-	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/>
-	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, cancellationToken);
+	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyCollection{Transaction}}, CancellationToken)"/>
+	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, null, cancellationToken);
 
 	/// <summary>
 	/// Scans the blockchain for new transactions related to this account.
 	/// </summary>
-	/// <param name="progress">
+	/// <param name="statusUpdates">
 	/// An optional receiver of updates that report on progress toward the tip of the blockchain.
 	/// Because scanning the blockchain may take a <em>very</em> long time, reporting progress to the user is <em>highly</em> recommended.
+	/// </param>
+	/// <param name="discoveredTransactions">
+	/// Receives the transactions that are discovered during the scan.
 	/// </param>
 	/// <param name="cancellationToken">
 	/// A cancellation token.
@@ -209,11 +207,16 @@ public partial class LightWalletClient : IDisposable
 	/// but rather concludes the operation early with an indication of the last block that was scanned.
 	/// </param>
 	/// <returns>A task with the result of the scan.</returns>
-	public async Task<SyncResult> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, CancellationToken cancellationToken)
+	public async Task<SyncResult> DownloadTransactionsAsync(
+		IProgress<SyncProgress>? statusUpdates,
+		IProgress<IReadOnlyCollection<Transaction>>? discoveredTransactions,
+		CancellationToken cancellationToken)
 	{
-		uniffi.LightWallet.SyncResult result = await Task.Run(
-			() => LightWalletMethods.Sync(this.dbinit, this.serverUrl.AbsoluteUri),
-			cancellationToken).ConfigureAwait(false);
+		await TaskScheduler.Default.SwitchTo(true);
+		uniffi.LightWallet.SyncResult result = LightWalletMethods.Sync(
+			this.dbinit,
+			this.serverUrl.AbsoluteUri,
+			new SyncUpdateSink(this.Network, statusUpdates, discoveredTransactions));
 
 		return new SyncResult(result);
 	}
@@ -509,27 +512,35 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/> operation.
+	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyCollection{Transaction}}?, CancellationToken)"/> operation.
 	/// </summary>
+	/// <param name="Current">The step that the operation has most recently completed.</param>
+	/// <param name="Total">The number of steps currently believed to be in the operation.</param>
 	/// <param name="LastError">The last error encountered during the scan.</param>
-	/// <param name="StartBlock">The number of the first block in the current batch.</param>
-	/// <param name="EndBlock">The number of the last block in the current batch.</param>
-	/// <param name="BlocksDone">The number of blocks scanned.</param>
-	/// <param name="TxnScanDone">The number of transactions scanned.</param>
-	/// <param name="BlocksTotal">The total number of blocks.</param>
-	/// <param name="BatchNum">The batch number currently being scanned.</param>
-	/// <param name="BatchTotal">The number of batches that the current scan operation is divided into.</param>
-	/// <param name="InProgress">A value indicating whether the sync is still in progress.</param>
 	public record SyncProgress(
-		string? LastError,
-		ulong StartBlock,
-		ulong EndBlock,
-		ulong BlocksDone,
-		ulong TxnScanDone,
-		ulong BlocksTotal,
-		ulong BatchNum,
-		ulong BatchTotal,
-		bool InProgress)
+		ulong Current,
+		ulong Total,
+		string? LastError)
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SyncProgress"/> class.
+		/// </summary>
+		/// <param name="data">The interop type to copy data from.</param>
+		internal SyncProgress(SyncUpdateData data)
+			: this(data.current, data.total, data.lastError)
+		{
+		}
+	}
+
+	private class SyncUpdateSink(
+		ZcashNetwork network,
+		IProgress<SyncProgress>? statusUpdates,
+		IProgress<IReadOnlyCollection<Transaction>>? discoveredTransactions)
+		: SyncUpdate
+	{
+		public void UpdateStatus(SyncUpdateData data) => statusUpdates?.Report(new(data));
+
+		public void ReportTransactions(List<uniffi.LightWallet.Transaction> transactions)
+			=> discoveredTransactions?.Report(transactions.Select(t => CreateTransaction(t, network)).ToList());
 	}
 }

@@ -32,6 +32,26 @@ lazy_static! {
     static ref RT: Runtime = tokio::runtime::Runtime::new().unwrap();
 }
 
+pub trait SyncUpdate: Send + Sync + std::fmt::Debug {
+    fn update_status(&self, data: SyncUpdateData);
+    fn report_transactions(&self, transactions: Vec<Transaction>);
+}
+
+impl From<uniffi::UnexpectedUniFFICallbackError> for LightWalletError {
+    fn from(e: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        LightWalletError::Other {
+            message: e.to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SyncUpdateData {
+    pub current: u64,
+    pub total: u64,
+    pub last_error: Option<String>,
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum ChainType {
     Mainnet,
@@ -62,7 +82,7 @@ pub struct AccountInfo {
     pub birthday_heights: BirthdayHeights,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Transaction {
     pub txid: Vec<u8>,
     pub block_time: SystemTime,
@@ -75,13 +95,13 @@ pub struct Transaction {
     pub incoming_shielded: Vec<ShieldedNote>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TransparentNote {
     pub value: u64,
     pub recipient: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ShieldedNote {
     pub recipient: String,
     pub value: u64,
@@ -89,7 +109,7 @@ pub struct ShieldedNote {
     pub is_change: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TransactionSendDetail {
     pub recipient: String,
     pub value: u64,
@@ -258,10 +278,14 @@ pub fn get_sync_height(config: DbInit) -> Result<Option<u32>, LightWalletError> 
     })
 }
 
-pub fn sync(config: DbInit, uri: String) -> Result<SyncResult, LightWalletError> {
+pub fn sync(
+    config: DbInit,
+    uri: String,
+    progress: Option<Box<dyn SyncUpdate>>,
+) -> Result<SyncResult, LightWalletError> {
     use crate::sync::sync;
     let uri: Uri = uri.parse()?;
-    RT.block_on(async move { Ok(sync(uri, config.data_file).await?) })
+    RT.block_on(async move { Ok(sync(uri, config.data_file, progress).await?) })
 }
 
 pub fn get_transactions(

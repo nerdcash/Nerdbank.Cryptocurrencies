@@ -46,12 +46,32 @@ internal class SyncCommand : WalletUserCommandBase
 	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
 		Stopwatch syncTimer = Stopwatch.StartNew();
+		int? lastPercentCompleteReported = null;
+		string? lastErrorReported = null;
 		LightWalletClient.SyncResult syncResult = await client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
-				if (p.BatchTotal > 0)
+				if (p.Total > 0)
 				{
-					this.Console.WriteLine($"{100 * p.BatchNum / p.BatchTotal}% complete");
+					int newPercent = (int)(100 * p.Current / p.Total);
+					if (newPercent != lastPercentCompleteReported)
+					{
+						this.Console.WriteLine($"{newPercent}% complete");
+						lastPercentCompleteReported = newPercent;
+					}
+
+					if (lastErrorReported != p.LastError)
+					{
+						this.Console.WriteLine(p.LastError is null ? "Last error resolved." : $"Non-fatal error: {p.LastError}");
+						lastErrorReported = p.LastError;
+					}
+				}
+			}),
+			new Progress<IReadOnlyCollection<Transaction>>(transactions =>
+			{
+				foreach (Transaction tx in transactions)
+				{
+					HistoryCommand.PrintTransaction(this.Console, tx);
 				}
 			}),
 			cancellationToken);

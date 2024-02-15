@@ -124,7 +124,7 @@ mod tests {
     async fn test_send_insufficient_funds() {
         let mut setup = setup_test().await;
         let account = create_account(&mut setup).await.unwrap();
-        sync(setup.server_uri.clone(), setup.data_file.clone())
+        sync(setup.server_uri.clone(), setup.data_file.clone(), None)
             .await
             .unwrap();
         let result = send_transaction(

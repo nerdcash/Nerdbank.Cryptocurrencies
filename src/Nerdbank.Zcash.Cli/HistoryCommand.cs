@@ -40,6 +40,30 @@ internal class HistoryCommand : SyncFirstCommandBase
 		return command;
 	}
 
+	internal static void PrintTransaction(IConsole console, Transaction tx)
+	{
+		console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
+		const string indentation = "                      ";
+
+		foreach (Transaction.SendItem send in tx.Outgoing)
+		{
+			console.WriteLine($"{indentation} -{send.Amount,13:N8} {FormatMemo(send.Memo)} {send.ToAddress}");
+		}
+
+		foreach (Transaction.RecvItem recv in tx.Incoming)
+		{
+			if (!recv.IsChange)
+			{
+				console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
+			}
+		}
+
+		if (tx.IsOutgoing)
+		{
+			console.WriteLine($"{indentation} -{tx.Fee,13:N8} transaction fee");
+		}
+	}
+
 	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
 		int exitCode = await base.ExecuteAsync(client, cancellationToken);
@@ -51,26 +75,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 		List<Transaction> txs = client.GetDownloadedTransactions(this.SelectedAccount!, this.StartingBlock);
 		foreach (Transaction tx in txs)
 		{
-			this.Console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
-			const string indentation = "                      ";
-
-			foreach (Transaction.SendItem send in tx.Outgoing)
-			{
-				this.Console.WriteLine($"{indentation} -{send.Amount,13:N8} {FormatMemo(send.Memo)} {send.ToAddress}");
-			}
-
-			foreach (Transaction.RecvItem recv in tx.Incoming)
-			{
-				if (!recv.IsChange)
-				{
-					this.Console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
-				}
-			}
-
-			if (tx.IsOutgoing)
-			{
-				this.Console.WriteLine($"{indentation} -{tx.Fee,13:N8} transaction fee");
-			}
+			PrintTransaction(this.Console, tx);
 		}
 
 		return 0;

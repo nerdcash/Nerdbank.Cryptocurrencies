@@ -59,8 +59,6 @@ internal abstract class WalletUserCommandBase
 			this.TestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet,
 			this.WalletPath);
 
-		client.UpdateFrequency = TimeSpan.FromSeconds(3);
-
 		if (this.SelectedAccountAddress is not null)
 		{
 			this.SelectedAccount = client.GetAccounts().First(a => a.DefaultAddress.Equals(this.SelectedAccountAddress));
