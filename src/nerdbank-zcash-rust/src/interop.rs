@@ -34,6 +34,7 @@ lazy_static! {
     static ref RT: Runtime = tokio::runtime::Runtime::new().unwrap();
 }
 
+#[derive(Debug, Copy, Clone)]
 pub enum ChainType {
     Mainnet,
     Testnet,
@@ -57,10 +58,10 @@ impl From<Network> for ChainType {
     }
 }
 
-pub struct WalletInfo {
-    pub ufvk: Option<String>,
-    pub unified_spending_key: Option<Vec<u8>>,
-    pub birthday_height: u64,
+pub struct AccountInfo {
+    pub id: u32,
+    pub uvk: Option<String>,
+    pub birthday_heights: BirthdayHeights,
 }
 
 #[derive(Debug)]
@@ -158,6 +159,7 @@ pub struct SyncResult {
     pub latest_block: u64,
 }
 
+#[derive(Debug, Clone)]
 pub struct DbInit {
     pub data_file: String,
     pub network: ChainType,
@@ -189,6 +191,21 @@ pub fn lightwallet_add_account(
             .await?;
         Ok(account.0.into())
     })
+}
+
+pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError> {
+    let db = Db::load(config.data_file.clone(), config.network.into())?;
+    let network: Network = config.network.into();
+    let mut result = Vec::new();
+    for account_info in db.data.get_unified_full_viewing_keys()?.iter() {
+        result.push(AccountInfo {
+            id: account_info.0.to_owned().into(),
+            uvk: Some(account_info.1.encode(&network)),
+            birthday_heights: get_birthday_heights(config.clone(), account_info.0.to_owned())?,
+        });
+    }
+
+    Ok(result)
 }
 
 pub fn lightwallet_add_diversifier(

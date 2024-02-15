@@ -726,4 +726,106 @@ public class ZcashAccount
 			return new(transparent, sapling, orchard);
 		}
 	}
+
+	/// <summary>
+	/// Equality comparers for <see cref="ZcashAccount"/>.
+	/// </summary>
+	public static class Equality
+	{
+		/// <summary>
+		/// An equality comparer that considers two accounts to be equal if they have the same incoming viewing key.
+		/// </summary>
+		public static readonly IEqualityComparer<ZcashAccount> ByIncomingViewingKey = new EqualByIVK();
+
+		/// <summary>
+		/// An equality comparer that considers two accounts to be equal if they have the same full viewing key.
+		/// </summary>
+		/// <remarks>
+		/// Accounts that have no full viewing key are not considered equal to any other account.
+		/// </remarks>
+		public static readonly IEqualityComparer<ZcashAccount> ByFullViewingKey = new EqualByFVK();
+
+		/// <summary>
+		/// An equality comparer that considers two accounts to be equal if they have the same spending key.
+		/// </summary>
+		/// <remarks>
+		/// Accounts that have no spending key are not considered equal to any other account.
+		/// </remarks>
+		public static readonly IEqualityComparer<ZcashAccount> BySpendingKey = new EqualBySK();
+
+		private class EqualBySK : IEqualityComparer<ZcashAccount>
+		{
+			public bool Equals(ZcashAccount? x, ZcashAccount? y)
+			{
+				if (ReferenceEquals(x, y))
+				{
+					return true;
+				}
+
+				if (x?.Spending is null || y?.Spending is null)
+				{
+					// If one or both are null, then they are not equal.
+					// We do NOT consider two accounts without FVKs to be equal,
+					// as that would be a security risk.
+					return false;
+				}
+
+				return x.Spending.Equals(y.Spending);
+			}
+
+			public int GetHashCode([DisallowNull] ZcashAccount obj)
+			{
+				return obj.Spending?.GetHashCode() ?? obj.IncomingViewing.GetHashCode();
+			}
+		}
+
+		private class EqualByFVK : IEqualityComparer<ZcashAccount>
+		{
+			public bool Equals(ZcashAccount? x, ZcashAccount? y)
+			{
+				if (ReferenceEquals(x, y))
+				{
+					return true;
+				}
+
+				if (x?.FullViewing is null || y?.FullViewing is null)
+				{
+					// If one or both are null, then they are not equal.
+					// We do NOT consider two accounts without FVKs to be equal,
+					// as that would be a security risk.
+					return false;
+				}
+
+				return x.FullViewing.Equals(y.FullViewing);
+			}
+
+			public int GetHashCode([DisallowNull] ZcashAccount obj)
+			{
+				return obj.FullViewing?.GetHashCode() ?? obj.IncomingViewing.GetHashCode();
+			}
+		}
+
+		private class EqualByIVK : IEqualityComparer<ZcashAccount>
+		{
+			public bool Equals(ZcashAccount? x, ZcashAccount? y)
+			{
+				if (ReferenceEquals(x, y))
+				{
+					return true;
+				}
+
+				if (x is null || y is null)
+				{
+					return false;
+				}
+
+				return x.IncomingViewing.Equals(y.IncomingViewing);
+			}
+
+			public int GetHashCode([DisallowNull] ZcashAccount obj)
+			{
+				return obj.IncomingViewing.GetHashCode();
+			}
+		}
+	}
 }

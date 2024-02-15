@@ -28,6 +28,8 @@ internal class SendCommand : SyncFirstCommandBase
 			TestNetOption,
 			LightServerUriOption,
 			NoSyncOption,
+			SpendingKeySeedOption,
+			SpendingKeyAccountIndexOption,
 		};
 
 		command.SetHandler(async ctxt =>
@@ -42,6 +44,8 @@ internal class SendCommand : SyncFirstCommandBase
 				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
 				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
+				SpendingKeySeed = ctxt.ParseResult.GetValueForOption(SpendingKeySeedOption),
+				SpendingKeyAccountIndex = ctxt.ParseResult.GetValueForOption(SpendingKeyAccountIndexOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
@@ -58,6 +62,7 @@ internal class SendCommand : SyncFirstCommandBase
 
 		Transaction.SendItem item = new(this.Recipient, this.Amount, Zcash.Memo.FromMessage(this.Memo));
 		TxId txid = await client.SendAsync(
+			this.SelectedAccount!,
 			new[] { item },
 			new Progress<LightWalletClient.SendProgress>(p =>
 			{

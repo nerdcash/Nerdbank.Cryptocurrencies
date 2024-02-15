@@ -41,8 +41,13 @@ internal class BalanceCommand : SyncFirstCommandBase
 			return exitCode;
 		}
 
-		this.PrintAccountBalances(client.GetBalances());
-		this.PrintUnshieldedBalances(client.GetUnshieldedBalances());
+		foreach (ZcashAccount account in client.GetAccounts())
+		{
+			this.Console.WriteLine($"Account default address: {account.DefaultAddress}");
+
+			this.PrintAccountBalances(client.GetBalances(account));
+			this.PrintUnshieldedBalances(client.GetUnshieldedBalances(account));
+		}
 
 		return 0;
 	}

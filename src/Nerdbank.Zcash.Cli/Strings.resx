@@ -120,6 +120,9 @@
   <data name="AccountIndexOptionDescription" xml:space="preserve">
     <value>The index of the account to create.</value>
   </data>
+  <data name="AccountsCommandDescription" xml:space="preserve">
+    <value>List all accounts known to the database.</value>
+  </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>The seed phrase length must be at least 24, and a multiple of 3.</value>
   </data>
@@ -210,6 +213,9 @@
   <data name="SeedPhrasePrompt" xml:space="preserve">
     <value>Enter seed phrase:</value>
   </data>
+  <data name="SelectedAccountArgumentDescription" xml:space="preserve">
+    <value>Identifies the account to operate on, given its default address.</value>
+  </data>
   <data name="SendAmountArgumentDescription" xml:space="preserve">
     <value>The amount to send (in ZEC).</value>
   </data>
@@ -230,6 +236,12 @@
   </data>
   <data name="ShieldCommandDescription" xml:space="preserve">
     <value>Shields transparent funds. An exit code of 1 indicates additional transparent addresses remain with non-zero balances to be shielded.</value>
+  </data>
+  <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
+    <value>The account index under the seed phrase used to generate the spending key.</value>
+  </data>
+  <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
+    <value>The seed phrase used to generate the spending key.</value>
   </data>
   <data name="SyncCommandDescription" xml:space="preserve">
     <value>Downloads transactions from the blockchain.</value>

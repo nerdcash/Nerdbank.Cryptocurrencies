@@ -11,10 +11,10 @@ enum ChainType {
 	"Mainnet",
 };
 
-dictionary WalletInfo {
-	string? ufvk;
-	bytes? unified_spending_key;
-	u64 birthday_height;
+dictionary AccountInfo {
+	u32 id;
+	string? uvk;
+	BirthdayHeights birthday_heights;
 };
 
 dictionary Transaction {
@@ -83,6 +83,10 @@ namespace LightWallet {
 	[Throws=LightWalletError]
 	u32 lightwallet_add_account(DbInit config, string uri, bytes seed, u32? birthday_height);
 
+	[Throws=LightWalletError]
+	sequence<AccountInfo> get_accounts(DbInit config);
+
+	/// Gets the oldest birthday height for any account in the wallet.
 	[Throws=LightWalletError]
 	u32? lightwallet_get_birthday_height(DbInit config);
 

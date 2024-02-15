@@ -552,6 +552,12 @@ static class _UniFFILib
 	}
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_accounts(
+		RustBuffer @config,
+		ref RustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern uint uniffi_nerdbank_zcash_rust_fn_func_lightwallet_add_account(
 		RustBuffer @config,
 		RustBuffer @uri,
@@ -921,6 +927,9 @@ static class _UniFFILib
 	);
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_get_accounts();
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_add_account();
 
 	[DllImport("nerdbank_zcash_rust")]
@@ -979,6 +988,15 @@ static class _UniFFILib
 
 	static void uniffiCheckApiChecksums()
 	{
+		{
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_accounts();
+			if (checksum != 25864)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_accounts` checksum `25864`, library returned `{checksum}`"
+				);
+			}
+		}
 		{
 			var checksum =
 				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_lightwallet_add_account();
@@ -1347,6 +1365,36 @@ class FfiConverterTimestamp : FfiConverterRustBuffer<DateTime>
 	}
 }
 
+internal record AccountInfo(uint @id, String? @uvk, BirthdayHeights @birthdayHeights) { }
+
+class FfiConverterTypeAccountInfo : FfiConverterRustBuffer<AccountInfo>
+{
+	public static FfiConverterTypeAccountInfo INSTANCE = new FfiConverterTypeAccountInfo();
+
+	public override AccountInfo Read(BigEndianStream stream)
+	{
+		return new AccountInfo(
+			@id: FfiConverterUInt32.INSTANCE.Read(stream),
+			@uvk: FfiConverterOptionalString.INSTANCE.Read(stream),
+			@birthdayHeights: FfiConverterTypeBirthdayHeights.INSTANCE.Read(stream)
+		);
+	}
+
+	public override int AllocationSize(AccountInfo value)
+	{
+		return FfiConverterUInt32.INSTANCE.AllocationSize(value.@id)
+			+ FfiConverterOptionalString.INSTANCE.AllocationSize(value.@uvk)
+			+ FfiConverterTypeBirthdayHeights.INSTANCE.AllocationSize(value.@birthdayHeights);
+	}
+
+	public override void Write(AccountInfo value, BigEndianStream stream)
+	{
+		FfiConverterUInt32.INSTANCE.Write(value.@id, stream);
+		FfiConverterOptionalString.INSTANCE.Write(value.@uvk, stream);
+		FfiConverterTypeBirthdayHeights.INSTANCE.Write(value.@birthdayHeights, stream);
+	}
+}
+
 internal record BirthdayHeights(
 	uint @originalBirthdayHeight,
 	uint @birthdayHeight,
@@ -1654,36 +1702,6 @@ class FfiConverterTypeUserBalances : FfiConverterRustBuffer<UserBalances>
 	}
 }
 
-internal record WalletInfo(String? @ufvk, byte[]? @unifiedSpendingKey, ulong @birthdayHeight) { }
-
-class FfiConverterTypeWalletInfo : FfiConverterRustBuffer<WalletInfo>
-{
-	public static FfiConverterTypeWalletInfo INSTANCE = new FfiConverterTypeWalletInfo();
-
-	public override WalletInfo Read(BigEndianStream stream)
-	{
-		return new WalletInfo(
-			@ufvk: FfiConverterOptionalString.INSTANCE.Read(stream),
-			@unifiedSpendingKey: FfiConverterOptionalByteArray.INSTANCE.Read(stream),
-			@birthdayHeight: FfiConverterUInt64.INSTANCE.Read(stream)
-		);
-	}
-
-	public override int AllocationSize(WalletInfo value)
-	{
-		return FfiConverterOptionalString.INSTANCE.AllocationSize(value.@ufvk)
-			+ FfiConverterOptionalByteArray.INSTANCE.AllocationSize(value.@unifiedSpendingKey)
-			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@birthdayHeight);
-	}
-
-	public override void Write(WalletInfo value, BigEndianStream stream)
-	{
-		FfiConverterOptionalString.INSTANCE.Write(value.@ufvk, stream);
-		FfiConverterOptionalByteArray.INSTANCE.Write(value.@unifiedSpendingKey, stream);
-		FfiConverterUInt64.INSTANCE.Write(value.@birthdayHeight, stream);
-	}
-}
-
 internal enum ChainType : int
 {
 	Testnet,
@@ -1967,6 +1985,52 @@ class FfiConverterOptionalByteArray : FfiConverterRustBuffer<byte[]?>
 	}
 }
 
+class FfiConverterSequenceTypeAccountInfo : FfiConverterRustBuffer<List<AccountInfo>>
+{
+	public static FfiConverterSequenceTypeAccountInfo INSTANCE =
+		new FfiConverterSequenceTypeAccountInfo();
+
+	public override List<AccountInfo> Read(BigEndianStream stream)
+	{
+		var length = stream.ReadInt();
+		var result = new List<AccountInfo>(length);
+		for (int i = 0; i < length; i++)
+		{
+			result.Add(FfiConverterTypeAccountInfo.INSTANCE.Read(stream));
+		}
+		return result;
+	}
+
+	public override int AllocationSize(List<AccountInfo> value)
+	{
+		var sizeForLength = 4;
+
+		// details/1-empty-list-as-default-method-parameter.md
+		if (value == null)
+		{
+			return sizeForLength;
+		}
+
+		var sizeForItems = value
+			.Select(item => FfiConverterTypeAccountInfo.INSTANCE.AllocationSize(item))
+			.Sum();
+		return sizeForLength + sizeForItems;
+	}
+
+	public override void Write(List<AccountInfo> value, BigEndianStream stream)
+	{
+		// details/1-empty-list-as-default-method-parameter.md
+		if (value == null)
+		{
+			stream.WriteInt(0);
+			return;
+		}
+
+		stream.WriteInt(value.Count);
+		value.ForEach(item => FfiConverterTypeAccountInfo.INSTANCE.Write(item, stream));
+	}
+}
+
 class FfiConverterSequenceTypeShieldedNote : FfiConverterRustBuffer<List<ShieldedNote>>
 {
 	public static FfiConverterSequenceTypeShieldedNote INSTANCE =
@@ -2155,6 +2219,21 @@ class FfiConverterSequenceTypeTransparentNote : FfiConverterRustBuffer<List<Tran
 internal static class LightWalletMethods
 {
 	/// <exception cref="LightWalletException"></exception>
+	public static List<AccountInfo> GetAccounts(DbInit @config)
+	{
+		return FfiConverterSequenceTypeAccountInfo.INSTANCE.Lift(
+			_UniffiHelpers.RustCallWithError(
+				FfiConverterTypeLightWalletException.INSTANCE,
+				(ref RustCallStatus _status) =>
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_accounts(
+						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
+						ref _status
+					)
+			)
+		);
+	}
+
+	/// <exception cref="LightWalletException"></exception>
 	public static uint LightwalletAddAccount(
 		DbInit @config,
 		String @uri,
@@ -2213,6 +2292,9 @@ internal static class LightWalletMethods
 		);
 	}
 
+	/// <summary>
+	/// Gets the oldest birthday height for any account in the wallet.
+	/// </summary>
 	/// <exception cref="LightWalletException"></exception>
 	public static uint? LightwalletGetBirthdayHeight(DbInit @config)
 	{

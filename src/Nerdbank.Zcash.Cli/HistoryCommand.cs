@@ -19,6 +19,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 			TestNetOption,
 			LightServerUriOption,
 			NoSyncOption,
+			RequiredSelectedAccountOption,
 			startingBlockOption,
 		};
 
@@ -32,6 +33,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
 				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
 				StartingBlock = ctxt.ParseResult.GetValueForOption(startingBlockOption),
+				SelectedAccountAddress = ctxt.ParseResult.GetValueForOption(RequiredSelectedAccountOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
@@ -46,7 +48,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 			return exitCode;
 		}
 
-		List<Transaction> txs = client.GetDownloadedTransactions(this.StartingBlock);
+		List<Transaction> txs = client.GetDownloadedTransactions(this.SelectedAccount!, this.StartingBlock);
 		foreach (Transaction tx in txs)
 		{
 			this.Console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");

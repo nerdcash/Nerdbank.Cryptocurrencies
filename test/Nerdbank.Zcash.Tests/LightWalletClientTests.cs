@@ -106,21 +106,22 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	[Fact]
 	public void GetDownloadedTransactions_Empty()
 	{
-		List<Nerdbank.Zcash.Transaction> transactions = this.client.GetDownloadedTransactions(0);
+		List<Nerdbank.Zcash.Transaction> transactions = this.client.GetDownloadedTransactions(DefaultAccount, 0);
 		Assert.Empty(transactions);
 	}
 
 	[Fact]
-	public async Task SendAsync_ValidatesNullPayments()
+	public async Task SendAsync_ValidatesNullArgs()
 	{
-		await Assert.ThrowsAsync<ArgumentNullException>("payments", () => this.client.SendAsync(null!, null, this.TimeoutToken));
+		await Assert.ThrowsAsync<ArgumentNullException>("account", () => this.client.SendAsync(null!, Array.Empty<Transaction.SendItem>(), null, this.TimeoutToken));
+		await Assert.ThrowsAsync<ArgumentNullException>("payments", () => this.client.SendAsync(DefaultAccount, null!, null, this.TimeoutToken));
 	}
 
 	[Fact]
 	public async Task SendAsync_EmptySendsList()
 	{
 		List<Nerdbank.Zcash.Transaction.SendItem> sends = new();
-		ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => this.client.SendAsync(sends, null, this.TimeoutToken));
+		ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => this.client.SendAsync(DefaultAccount, sends, null, this.TimeoutToken));
 		this.logger.WriteLine(ex.ToString());
 	}
 
@@ -133,6 +134,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		};
 		LightWalletException ex = await Assert.ThrowsAsync<LightWalletException>(() =>
 			this.client.SendAsync(
+				DefaultAccount,
 				sends,
 				new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
 				this.TimeoutToken));
@@ -150,7 +152,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		// Use the index of the default address to ensure a collision.
 		// Given the seed hard-coded for the tests, this is expected to be '3'.
 		////Assert.True(DefaultAccount.TryGetDiversifierIndex(DefaultAccount.DefaultAddress, out DiversifierIndex? diversifierIndex));
-		UnifiedAddress ua = this.client.AddDiversifier(3/*diversifierIndex.Value*/);
+		UnifiedAddress ua = this.client.AddDiversifier(DefaultAccount, 3/*diversifierIndex.Value*/);
 		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
 		Assert.NotNull(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
 		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
@@ -159,7 +161,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	[Fact]
 	public void AddDiversifier_InvalidSapling()
 	{
-		UnifiedAddress ua = this.client.AddDiversifier(new DiversifierIndex(500));
+		UnifiedAddress ua = this.client.AddDiversifier(DefaultAccount, new DiversifierIndex(500));
 		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
 		Assert.NotNull(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
 
@@ -171,7 +173,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	public void AddDiversifier_InvalidTransparent()
 	{
 		// Use an index that is outside the range 32-bit range supported by transparent addresses.
-		UnifiedAddress ua = this.client.AddDiversifier(new DiversifierIndex((ulong)uint.MaxValue + 1));
+		UnifiedAddress ua = this.client.AddDiversifier(DefaultAccount, new DiversifierIndex((ulong)uint.MaxValue + 1));
 		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
 		Assert.Null(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
 
