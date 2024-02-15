@@ -11,7 +11,7 @@ pub(crate) async fn webrequest_with_logged_retry<
     TResult,
     FRequest: FnMut() -> FResult,
     FResult: Future<Output = Result<TResult, Status>>,
-    FRetry: Fn(Status, Duration, u32) -> (),
+    FRetry: Fn(Status, Duration, u32),
 >(
     mut delegate: FRequest,
     on_retry: FRetry,

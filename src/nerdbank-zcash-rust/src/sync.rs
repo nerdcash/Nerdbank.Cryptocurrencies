@@ -273,7 +273,7 @@ async fn download_transparent_transactions(
 ) -> Result<(), Error> {
     let client = Arc::new(Mutex::new(client));
     let transparent_transactions = webrequest_with_retry(|| async {
-        Ok(client
+        client
             .lock()
             .unwrap()
             .get_taddress_txids(TransparentAddressBlockFilter {
@@ -296,7 +296,7 @@ async fn download_transparent_transactions(
             .await?
             .into_inner()
             .try_collect::<Vec<_>>()
-            .await?)
+            .await
     })
     .await?;
     for rawtx in transparent_transactions {
