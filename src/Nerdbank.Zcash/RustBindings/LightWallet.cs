@@ -549,7 +549,15 @@ static class _UniFFILib
 	{
 		_UniFFILib.uniffiCheckContractApiVersion();
 		_UniFFILib.uniffiCheckApiChecksums();
+
+		FfiConverterTypeSyncUpdate.INSTANCE.Register();
 	}
+
+	[DllImport("nerdbank_zcash_rust")]
+	public static extern void uniffi_nerdbank_zcash_rust_fn_init_callback_syncupdate(
+		ForeignCallback @callbackStub,
+		ref RustCallStatus _uniffi_out_err
+	);
 
 	[DllImport("nerdbank_zcash_rust")]
 	public static extern uint uniffi_nerdbank_zcash_rust_fn_func_add_account(
@@ -657,6 +665,7 @@ static class _UniFFILib
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_sync(
 		RustBuffer @config,
 		RustBuffer @uri,
+		RustBuffer @progress,
 		ref RustCallStatus _uniffi_out_err
 	);
 
@@ -972,6 +981,12 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_sync();
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_update_status();
+
+	[DllImport("nerdbank_zcash_rust")]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_report_transactions();
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern uint ffi_nerdbank_zcash_rust_uniffi_contract_version();
 
 	static void uniffiCheckContractApiVersion()
@@ -1119,10 +1134,30 @@ static class _UniFFILib
 		}
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_sync();
-			if (checksum != 39850)
+			if (checksum != 14561)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `39850`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `14561`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum =
+				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_update_status();
+			if (checksum != 36073)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_update_status` checksum `36073`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum =
+				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_report_transactions();
+			if (checksum != 64247)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_report_transactions` checksum `64247`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1527,6 +1562,36 @@ class FfiConverterTypeSyncResult : FfiConverterRustBuffer<SyncResult>
 	}
 }
 
+internal record SyncUpdateData(ulong @current, ulong @total, String? @lastError) { }
+
+class FfiConverterTypeSyncUpdateData : FfiConverterRustBuffer<SyncUpdateData>
+{
+	public static FfiConverterTypeSyncUpdateData INSTANCE = new FfiConverterTypeSyncUpdateData();
+
+	public override SyncUpdateData Read(BigEndianStream stream)
+	{
+		return new SyncUpdateData(
+			@current: FfiConverterUInt64.INSTANCE.Read(stream),
+			@total: FfiConverterUInt64.INSTANCE.Read(stream),
+			@lastError: FfiConverterOptionalString.INSTANCE.Read(stream)
+		);
+	}
+
+	public override int AllocationSize(SyncUpdateData value)
+	{
+		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@current)
+			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@total)
+			+ FfiConverterOptionalString.INSTANCE.AllocationSize(value.@lastError);
+	}
+
+	public override void Write(SyncUpdateData value, BigEndianStream stream)
+	{
+		FfiConverterUInt64.INSTANCE.Write(value.@current, stream);
+		FfiConverterUInt64.INSTANCE.Write(value.@total, stream);
+		FfiConverterOptionalString.INSTANCE.Write(value.@lastError, stream);
+	}
+}
+
 internal record Transaction(
 	byte[] @txid,
 	DateTime @blockTime,
@@ -1861,6 +1926,253 @@ class FfiConverterTypeLightWalletException
 	}
 }
 
+static class UniffiCallbackResponseCode
+{
+	public static int SUCCESS = 0;
+	public static int ERROR = 1;
+	public static int UNEXPECTED_ERROR = 2;
+}
+
+class ConcurrentHandleMap<T>
+	where T : notnull
+{
+	Dictionary<ulong, T> leftMap = new Dictionary<ulong, T>();
+	Dictionary<T, ulong> rightMap = new Dictionary<T, ulong>();
+
+	Object lock_ = new Object();
+	ulong currentHandle = 0;
+
+	public ulong Insert(T obj)
+	{
+		lock (lock_)
+		{
+			ulong existingHandle = 0;
+			if (rightMap.TryGetValue(obj, out existingHandle))
+			{
+				return existingHandle;
+			}
+			currentHandle += 1;
+			leftMap[currentHandle] = obj;
+			rightMap[obj] = currentHandle;
+			return currentHandle;
+		}
+	}
+
+	public bool TryGet(ulong handle, out T result)
+	{
+		// Possible null reference assignment
+#pragma warning disable 8601
+		return leftMap.TryGetValue(handle, out result);
+#pragma warning restore 8601
+	}
+
+	public bool Remove(ulong handle)
+	{
+		return Remove(handle, out T result);
+	}
+
+	public bool Remove(ulong handle, out T result)
+	{
+		lock (lock_)
+		{
+			// Possible null reference assignment
+#pragma warning disable 8601
+			if (leftMap.TryGetValue(handle, out result))
+			{
+#pragma warning restore 8601
+				leftMap.Remove(handle);
+				rightMap.Remove(result);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+}
+
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate int ForeignCallback(
+	ulong handle,
+	uint method,
+	IntPtr argsData,
+	int argsLength,
+	ref RustBuffer outBuf
+);
+
+internal abstract class FfiConverterCallbackInterface<CallbackInterface>
+	: FfiConverter<CallbackInterface, ulong>
+	where CallbackInterface : notnull
+{
+	ConcurrentHandleMap<CallbackInterface> handleMap = new ConcurrentHandleMap<CallbackInterface>();
+
+	// Registers the foreign callback with the Rust side.
+	// This method is generated for each callback interface.
+	public abstract void Register();
+
+	public RustBuffer Drop(ulong handle)
+	{
+		handleMap.Remove(handle);
+		return new RustBuffer();
+	}
+
+	public override CallbackInterface Lift(ulong handle)
+	{
+		if (!handleMap.TryGet(handle, out CallbackInterface result))
+		{
+			throw new InternalException($"No callback in handlemap '{handle}'");
+		}
+		return result;
+	}
+
+	public override CallbackInterface Read(BigEndianStream stream)
+	{
+		return Lift(stream.ReadULong());
+	}
+
+	public override ulong Lower(CallbackInterface value)
+	{
+		return handleMap.Insert(value);
+	}
+
+	public override int AllocationSize(CallbackInterface value)
+	{
+		return 8;
+	}
+
+	public override void Write(CallbackInterface value, BigEndianStream stream)
+	{
+		stream.WriteULong(Lower(value));
+	}
+}
+
+internal interface SyncUpdate
+{
+	void UpdateStatus(SyncUpdateData @data);
+	void ReportTransactions(List<Transaction> @transactions);
+}
+
+// The ForeignCallback that is passed to Rust.
+class ForeignCallbackTypeSyncUpdate
+{
+	// This cannot be a static method. Although C# supports implicitly using a static method as a
+	// delegate, the behaviour is incorrect for this use case. Using static method as a delegate
+	// argument creates an implicit delegate object, that is later going to be collected by GC. Any
+	// attempt to invoke a garbage collected delegate results in an error:
+	//   > A callback was made on a garbage collected delegate of type 'ForeignCallback::..'
+	public static ForeignCallback INSTANCE = (
+		ulong handle,
+		uint method,
+		IntPtr argsData,
+		int argsLength,
+		ref RustBuffer outBuf
+	) =>
+	{
+		var cb = FfiConverterTypeSyncUpdate.INSTANCE.Lift(handle);
+		switch (method)
+		{
+			case 0:
+			{
+				// 0 means Rust is done with the callback, and the callback
+				// can be dropped by the foreign language.
+				FfiConverterTypeSyncUpdate.INSTANCE.Drop(handle);
+				// No return value.
+				// See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+				return 0;
+			}
+
+			case 1:
+			{
+				try
+				{
+					outBuf = InvokeUpdateStatus(cb, RustBuffer.MemoryStream(argsData, argsLength));
+					return UniffiCallbackResponseCode.SUCCESS;
+				}
+				catch (Exception e)
+				{
+					// Unexpected error
+					try
+					{
+						// Try to serialize the error into a string
+						outBuf = FfiConverterString.INSTANCE.Lower(e.Message);
+					}
+					catch
+					{
+						// If that fails, then it's time to give up and just return
+					}
+					return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
+				}
+			}
+
+			case 2:
+			{
+				try
+				{
+					outBuf = InvokeReportTransactions(
+						cb,
+						RustBuffer.MemoryStream(argsData, argsLength)
+					);
+					return UniffiCallbackResponseCode.SUCCESS;
+				}
+				catch (Exception e)
+				{
+					// Unexpected error
+					try
+					{
+						// Try to serialize the error into a string
+						outBuf = FfiConverterString.INSTANCE.Lower(e.Message);
+					}
+					catch
+					{
+						// If that fails, then it's time to give up and just return
+					}
+					return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
+				}
+			}
+
+			default:
+			{
+				// This should never happen, because an out of bounds method index won't
+				// ever be used. Once we can catch errors, we should return an InternalException.
+				// https://github.com/mozilla/uniffi-rs/issues/351
+				return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
+			}
+		}
+	};
+
+	static RustBuffer InvokeUpdateStatus(SyncUpdate callback, BigEndianStream stream)
+	{
+		callback.UpdateStatus(FfiConverterTypeSyncUpdateData.INSTANCE.Read(stream));
+		return new RustBuffer();
+	}
+
+	static RustBuffer InvokeReportTransactions(SyncUpdate callback, BigEndianStream stream)
+	{
+		callback.ReportTransactions(FfiConverterSequenceTypeTransaction.INSTANCE.Read(stream));
+		return new RustBuffer();
+	}
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+class FfiConverterTypeSyncUpdate : FfiConverterCallbackInterface<SyncUpdate>
+{
+	public static FfiConverterTypeSyncUpdate INSTANCE = new FfiConverterTypeSyncUpdate();
+
+	public override void Register()
+	{
+		_UniffiHelpers.RustCall(
+			(ref RustCallStatus status) =>
+			{
+				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_init_callback_syncupdate(
+					ForeignCallbackTypeSyncUpdate.INSTANCE,
+					ref status
+				);
+			}
+		);
+	}
+}
+
 class FfiConverterOptionalUInt32 : FfiConverterRustBuffer<uint?>
 {
 	public static FfiConverterOptionalUInt32 INSTANCE = new FfiConverterOptionalUInt32();
@@ -1974,6 +2286,46 @@ class FfiConverterOptionalByteArray : FfiConverterRustBuffer<byte[]?>
 		{
 			stream.WriteByte(1);
 			FfiConverterByteArray.INSTANCE.Write((byte[])value, stream);
+		}
+	}
+}
+
+class FfiConverterOptionalTypeSyncUpdate : FfiConverterRustBuffer<SyncUpdate?>
+{
+	public static FfiConverterOptionalTypeSyncUpdate INSTANCE =
+		new FfiConverterOptionalTypeSyncUpdate();
+
+	public override SyncUpdate? Read(BigEndianStream stream)
+	{
+		if (stream.ReadByte() == 0)
+		{
+			return null;
+		}
+		return FfiConverterTypeSyncUpdate.INSTANCE.Read(stream);
+	}
+
+	public override int AllocationSize(SyncUpdate? value)
+	{
+		if (value == null)
+		{
+			return 1;
+		}
+		else
+		{
+			return 1 + FfiConverterTypeSyncUpdate.INSTANCE.AllocationSize((SyncUpdate)value);
+		}
+	}
+
+	public override void Write(SyncUpdate? value, BigEndianStream stream)
+	{
+		if (value == null)
+		{
+			stream.WriteByte(0);
+		}
+		else
+		{
+			stream.WriteByte(1);
+			FfiConverterTypeSyncUpdate.INSTANCE.Write((SyncUpdate)value, stream);
 		}
 	}
 }
@@ -2460,7 +2812,7 @@ internal static class LightWalletMethods
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static SyncResult Sync(DbInit @config, String @uri)
+	public static SyncResult Sync(DbInit @config, String @uri, SyncUpdate? @progress)
 	{
 		return FfiConverterTypeSyncResult.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
@@ -2469,6 +2821,7 @@ internal static class LightWalletMethods
 					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_sync(
 						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
 						FfiConverterString.INSTANCE.Lower(@uri),
+						FfiConverterOptionalTypeSyncUpdate.INSTANCE.Lower(@progress),
 						ref _status
 					)
 			)

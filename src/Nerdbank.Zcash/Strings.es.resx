@@ -183,4 +183,13 @@
   <data name="NotEnoughEntropy" xml:space="preserve">
     <value>La entropía es demasiado corta. Se requieren al menos {minimum} bytes.</value>
   </data>
+  <data name="ErrorFromNativeSide" xml:space="preserve">
+    <value>Se produjo un error no asignado en la capa de interoperabilidad.</value>
+  </data>
+  <data name="NetworkMismatch" xml:space="preserve">
+    <value>Este servidor está configurado para su uso en la red {esperada}, pero el parámetro de entrada está en la red {actual}.</value>
+  </data>
+  <data name="UnrecognizedAccount" xml:space="preserve">
+    <value>Esta cuenta aún no se ha agregado a la billetera.</value>
+  </data>
 </root>

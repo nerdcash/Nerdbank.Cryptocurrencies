@@ -76,6 +76,17 @@ dictionary SendTransactionResult {
 	bytes txid;
 };
 
+dictionary SyncUpdateData {
+	u64 current;
+	u64 total;
+	string? last_error;
+};
+
+callback interface SyncUpdate {
+	void update_status(SyncUpdateData data);
+	void report_transactions(sequence<Transaction> transactions);
+};
+
 namespace LightWallet {
 	[Throws=LightWalletError]
 	void init(DbInit config);
@@ -97,7 +108,7 @@ namespace LightWallet {
 	u32? get_sync_height(DbInit config);
 
 	[Throws=LightWalletError]
-	SyncResult sync(DbInit config, string uri);
+	SyncResult sync(DbInit config, string uri, SyncUpdate? progress);
 
 	[Throws=LightWalletError]
 	boolean disconnect_server(string uri);
