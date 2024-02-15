@@ -43,7 +43,7 @@ public partial class LightWalletClient : IDisposable
 		this.serverUrl = serverUrl;
 		this.Network = network;
 
-		LightWalletMethods.LightwalletInit(this.dbinit);
+		LightWalletMethods.Init(this.dbinit);
 		this.ReadAccountsFromDatabase();
 	}
 
@@ -65,12 +65,12 @@ public partial class LightWalletClient : IDisposable
 	/// It serves to reduce initial sync times when this account is imported into another wallet.
 	/// </remarks>
 	/// <seealso cref="GetBirthdayHeights"/>
-	public uint? BirthdayHeight => LightWalletMethods.LightwalletGetBirthdayHeight(this.dbinit);
+	public uint? BirthdayHeight => LightWalletMethods.GetBirthdayHeight(this.dbinit);
 
 	/// <summary>
 	/// Gets the block last downloaded from the blockchain.
 	/// </summary>
-	public uint? LastDownloadHeight => LightWalletMethods.LightwalletGetSyncHeight(this.dbinit);
+	public uint? LastDownloadHeight => LightWalletMethods.GetSyncHeight(this.dbinit);
 
 	/// <summary>
 	/// Gets the length of the blockchain (independent of what may have been sync'd thus far.)
@@ -86,7 +86,7 @@ public partial class LightWalletClient : IDisposable
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 		try
 		{
-			return LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri);
+			return LightWalletMethods.GetBlockHeight(lightWalletServerUrl.AbsoluteUri);
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
 		{
@@ -122,7 +122,7 @@ public partial class LightWalletClient : IDisposable
 
 		try
 		{
-			id = LightWalletMethods.LightwalletAddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
+			id = LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
 			this.accountIds = this.accountIds.Add(account, id);
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
@@ -167,7 +167,7 @@ public partial class LightWalletClient : IDisposable
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
 		}
 
-		return (UnifiedAddress)ZcashAddress.Decode(LightWalletMethods.LightwalletAddDiversifier(this.dbinit, accountId, diversifierIndex[..].ToArray()));
+		return (UnifiedAddress)ZcashAddress.Decode(LightWalletMethods.AddDiversifier(this.dbinit, accountId, diversifierIndex[..].ToArray()));
 	}
 
 	/// <summary>
@@ -186,7 +186,7 @@ public partial class LightWalletClient : IDisposable
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
 		}
 
-		return new(LightWalletMethods.LightwalletGetBirthdayHeights(this.dbinit, accountId));
+		return new(LightWalletMethods.GetBirthdayHeights(this.dbinit, accountId));
 	}
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
@@ -212,7 +212,7 @@ public partial class LightWalletClient : IDisposable
 	public async Task<SyncResult> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, CancellationToken cancellationToken)
 	{
 		uniffi.LightWallet.SyncResult result = await Task.Run(
-			() => LightWalletMethods.LightwalletSync(this.dbinit, this.serverUrl.AbsoluteUri),
+			() => LightWalletMethods.Sync(this.dbinit, this.serverUrl.AbsoluteUri),
 			cancellationToken).ConfigureAwait(false);
 
 		return new SyncResult(result);
@@ -232,7 +232,7 @@ public partial class LightWalletClient : IDisposable
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
 		}
 
-		return LightWalletMethods.LightwalletGetTransactions(this.dbinit, accountId, startingBlock)
+		return LightWalletMethods.GetTransactions(this.dbinit, accountId, startingBlock)
 			.Select(t => CreateTransaction(t, this.Network))
 			.OrderBy(t => t.When)
 			.ToList();
@@ -257,7 +257,7 @@ public partial class LightWalletClient : IDisposable
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 		try
 		{
-			SendTransactionResult result = LightWalletMethods.LightwalletSend(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), MinimumConfirmations, details);
+			SendTransactionResult result = LightWalletMethods.Send(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), MinimumConfirmations, details);
 			return new TxId(result.txid);
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
@@ -279,7 +279,7 @@ public partial class LightWalletClient : IDisposable
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
 		}
 
-		return new(this.Network.AsSecurity(), LightWalletMethods.LightwalletGetUserBalances(this.dbinit, accountId, MinimumConfirmations));
+		return new(this.Network.AsSecurity(), LightWalletMethods.GetUserBalances(this.dbinit, accountId, MinimumConfirmations));
 	}
 
 	/// <summary>
@@ -298,7 +298,7 @@ public partial class LightWalletClient : IDisposable
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
 		}
 
-		List<TransparentNote> utxos = LightWalletMethods.LightwalletGetUnshieldedUtxos(this.dbinit, accountId);
+		List<TransparentNote> utxos = LightWalletMethods.GetUnshieldedUtxos(this.dbinit, accountId);
 		if (utxos.Count == 0)
 		{
 			return Array.Empty<(TransparentAddress, decimal)>();
@@ -337,7 +337,7 @@ public partial class LightWalletClient : IDisposable
 		return Task.Run(
 			delegate
 			{
-				return new TxId(LightWalletMethods.LightwalletShield(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), address).txid);
+				return new TxId(LightWalletMethods.Shield(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), address).txid);
 			},
 			cancellationToken);
 	}

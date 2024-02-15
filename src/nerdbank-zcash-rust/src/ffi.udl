@@ -78,48 +78,48 @@ dictionary SendTransactionResult {
 
 namespace LightWallet {
 	[Throws=LightWalletError]
-	void lightwallet_init(DbInit config);
+	void init(DbInit config);
 
 	[Throws=LightWalletError]
-	u32 lightwallet_add_account(DbInit config, string uri, bytes seed, u32? birthday_height);
+	u32 add_account(DbInit config, string uri, bytes seed, u32? birthday_height);
 
 	[Throws=LightWalletError]
 	sequence<AccountInfo> get_accounts(DbInit config);
 
 	/// Gets the oldest birthday height for any account in the wallet.
 	[Throws=LightWalletError]
-	u32? lightwallet_get_birthday_height(DbInit config);
+	u32? get_birthday_height(DbInit config);
 
 	[Throws=LightWalletError]
-	u32 lightwallet_get_block_height(string uri);
+	u32 get_block_height(string uri);
 
 	[Throws=LightWalletError]
-	u32? lightwallet_get_sync_height(DbInit config);
+	u32? get_sync_height(DbInit config);
 
 	[Throws=LightWalletError]
-	SyncResult lightwallet_sync(DbInit config, string uri);
+	SyncResult sync(DbInit config, string uri);
 
 	[Throws=LightWalletError]
-	boolean lightwallet_disconnect_server(string uri);
+	boolean disconnect_server(string uri);
 
 	[Throws=LightWalletError]
-	SendTransactionResult lightwallet_send(DbInit config, string uri, bytes usk, u32 min_confirmations, sequence<TransactionSendDetail> send_details);
+	SendTransactionResult send(DbInit config, string uri, bytes usk, u32 min_confirmations, sequence<TransactionSendDetail> send_details);
 
 	[Throws=LightWalletError]
-	sequence<TransparentNote> lightwallet_get_unshielded_utxos(DbInit config, u32 account_id);
+	sequence<TransparentNote> get_unshielded_utxos(DbInit config, u32 account_id);
 
 	[Throws=LightWalletError]
-	SendTransactionResult lightwallet_shield(DbInit config, string uri, bytes usk, string address);
+	SendTransactionResult shield(DbInit config, string uri, bytes usk, string address);
 
 	[Throws=LightWalletError]
-	sequence<Transaction> lightwallet_get_transactions(DbInit config, u32 account_id, u32 starting_block);
+	sequence<Transaction> get_transactions(DbInit config, u32 account_id, u32 starting_block);
 
 	[Throws=LightWalletError]
-	UserBalances lightwallet_get_user_balances(DbInit config, u32 account_id, u32 min_confirmations);
+	UserBalances get_user_balances(DbInit config, u32 account_id, u32 min_confirmations);
 
 	[Throws=LightWalletError]
-	BirthdayHeights lightwallet_get_birthday_heights(DbInit config, u32 account_id);
+	BirthdayHeights get_birthday_heights(DbInit config, u32 account_id);
 
 	[Throws=LightWalletError]
-	string lightwallet_add_diversifier(DbInit config, u32 account_id, bytes diversifier_index);
+	string add_diversifier(DbInit config, u32 account_id, bytes diversifier_index);
 };

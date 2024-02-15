@@ -19,15 +19,13 @@ use zcash_primitives::{
 };
 
 use crate::{
-    analysis::{get_birthday_heights, get_user_balances, BirthdayHeights, UserBalances},
+    analysis::{BirthdayHeights, UserBalances},
     backing_store::Db,
     error::Error,
     grpc::{destroy_channel, get_client},
-    lightclient::get_block_height,
     send::send_transaction,
-    shield::{get_unshielded_utxos, shield_funds_at_address},
+    shield::shield_funds_at_address,
     sql_statements::GET_TRANSACTIONS_SQL,
-    sync::sync,
 };
 
 lazy_static! {
@@ -165,19 +163,21 @@ pub struct DbInit {
     pub network: ChainType,
 }
 
-pub fn lightwallet_init(config: DbInit) -> Result<(), LightWalletError> {
+pub fn init(config: DbInit) -> Result<(), LightWalletError> {
     RT.block_on(async move {
         Db::init(config.data_file, config.network.into())?;
         Ok(())
     })
 }
 
-pub fn lightwallet_add_account(
+pub fn add_account(
     config: DbInit,
     uri: String,
     seed: Vec<u8>,
     birthday_height: Option<u32>,
 ) -> Result<u32, LightWalletError> {
+    use crate::lightclient::get_block_height;
+
     RT.block_on(async move {
         let mut db = Db::load(config.data_file, config.network.into())?;
         let mut client = get_client(uri.parse()?).await.map_err(Error::from)?;
@@ -194,6 +194,8 @@ pub fn lightwallet_add_account(
 }
 
 pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError> {
+    use crate::analysis::get_birthday_heights;
+
     let db = Db::load(config.data_file.clone(), config.network.into())?;
     let network: Network = config.network.into();
     let mut result = Vec::new();
@@ -208,7 +210,7 @@ pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError
     Ok(result)
 }
 
-pub fn lightwallet_add_diversifier(
+pub fn add_diversifier(
     config: DbInit,
     account: u32,
     diversifier_index: Vec<u8>,
@@ -236,31 +238,33 @@ pub fn lightwallet_add_diversifier(
     })
 }
 
-pub fn lightwallet_get_birthday_height(config: DbInit) -> Result<Option<u32>, LightWalletError> {
+pub fn get_birthday_height(config: DbInit) -> Result<Option<u32>, LightWalletError> {
     RT.block_on(async move {
         let db = Db::load(config.data_file, config.network.into())?;
         Ok(db.data.get_wallet_birthday()?.map(|h| h.into()))
     })
 }
 
-pub fn lightwallet_get_block_height(uri: String) -> Result<u32, LightWalletError> {
+pub fn get_block_height(uri: String) -> Result<u32, LightWalletError> {
+    use crate::lightclient::get_block_height;
     let uri: Uri = uri.parse()?;
     RT.block_on(async move { Ok(get_block_height(uri).await?) })
 }
 
-pub fn lightwallet_get_sync_height(config: DbInit) -> Result<Option<u32>, LightWalletError> {
+pub fn get_sync_height(config: DbInit) -> Result<Option<u32>, LightWalletError> {
     RT.block_on(async move {
         let db = Db::load(config.data_file, config.network.into())?;
         Ok(db.data.get_max_height_hash()?.map(|h| h.0.into()))
     })
 }
 
-pub fn lightwallet_sync(config: DbInit, uri: String) -> Result<SyncResult, LightWalletError> {
+pub fn sync(config: DbInit, uri: String) -> Result<SyncResult, LightWalletError> {
+    use crate::sync::sync;
     let uri: Uri = uri.parse()?;
     RT.block_on(async move { Ok(sync(uri, config.data_file).await?) })
 }
 
-pub fn lightwallet_get_transactions(
+pub fn get_transactions(
     config: DbInit,
     account_id: u32,
     starting_block: u32,
@@ -401,10 +405,12 @@ pub fn lightwallet_get_transactions(
     })
 }
 
-pub fn lightwallet_get_birthday_heights(
+pub fn get_birthday_heights(
     config: DbInit,
     account_id: u32,
 ) -> Result<BirthdayHeights, LightWalletError> {
+    use crate::analysis::get_birthday_heights;
+
     Ok(get_birthday_heights(
         config,
         account_id
@@ -413,11 +419,12 @@ pub fn lightwallet_get_birthday_heights(
     )?)
 }
 
-pub fn lightwallet_get_user_balances(
+pub fn get_user_balances(
     config: DbInit,
     account_id: u32,
     min_confirmations: u32,
 ) -> Result<UserBalances, LightWalletError> {
+    use crate::analysis::get_user_balances;
     Ok(get_user_balances(
         config,
         account_id
@@ -428,7 +435,7 @@ pub fn lightwallet_get_user_balances(
     )?)
 }
 
-pub fn lightwallet_disconnect_server(uri: String) -> Result<bool, LightWalletError> {
+pub fn disconnect_server(uri: String) -> Result<bool, LightWalletError> {
     let uri: Uri = uri.parse()?;
     RT.block_on(async move { Ok(destroy_channel(uri)) })
 }
@@ -437,7 +444,7 @@ pub struct SendTransactionResult {
     pub txid: Vec<u8>,
 }
 
-pub fn lightwallet_send(
+pub fn send(
     config: DbInit,
     uri: String,
     usk: Vec<u8>,
@@ -468,10 +475,11 @@ pub fn lightwallet_send(
     })
 }
 
-pub fn lightwallet_get_unshielded_utxos(
+pub fn get_unshielded_utxos(
     config: DbInit,
     account_id: u32,
 ) -> Result<Vec<TransparentNote>, LightWalletError> {
+    use crate::shield::get_unshielded_utxos;
     Ok(get_unshielded_utxos(
         config,
         account_id
@@ -480,7 +488,7 @@ pub fn lightwallet_get_unshielded_utxos(
     )?)
 }
 
-pub fn lightwallet_shield(
+pub fn shield(
     config: DbInit,
     uri: String,
     usk: Vec<u8>,
@@ -518,9 +526,9 @@ mod tests {
     }
 
     #[test]
-    fn test_lightwallet_get_transactions_empty() {
+    fn test_get_transactions_empty() {
         let setup = RT.block_on(async move { setup_test().await });
-        let transactions = lightwallet_get_transactions(setup.db_init, 0, 0).unwrap();
+        let transactions = get_transactions(setup.db_init, 0, 0).unwrap();
 
         assert!(transactions.is_empty());
     }
