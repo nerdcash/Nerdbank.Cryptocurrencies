@@ -18,6 +18,9 @@ steps:
     targetPath: obj/src/nerdbank-zcash-rust
     artifactName: rust-macOS
 
+- pwsh: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
+  displayName: 🪪 3rd party licenses
+
 - script: dotnet pack --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
   displayName: 🛠 pack
 
