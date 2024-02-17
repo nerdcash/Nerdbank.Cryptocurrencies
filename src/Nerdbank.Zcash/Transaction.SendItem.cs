@@ -14,8 +14,18 @@ public partial record Transaction
 	public record struct SendItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo)
 	{
 		/// <summary>
-		/// Gets the full UA that was used when spending this, as recorded in the private change memo.
+		/// Gets the pool that received this note.
 		/// </summary>
-		public UnifiedAddress? RecipientUA { get; init; }
+		public Pool Pool
+		{
+			get => this.ToAddress switch
+			{
+				TransparentAddress => Pool.Transparent,
+				SaplingAddress => Pool.Sapling,
+				OrchardAddress => Pool.Orchard,
+				null => throw new InvalidOperationException("This struct hasn't been initialized."),
+				_ => throw new NotSupportedException(),
+			};
+		}
 	}
 }

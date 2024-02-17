@@ -249,4 +249,25 @@
   <data name="UnrecognizedKeyFormat" xml:space="preserve">
     <value>Este formato de clave no se reconoce.</value>
   </data>
+  <data name="AccountsCommandDescription" xml:space="preserve">
+    <value>Enumere todas las cuentas conocidas en la base de datos.</value>
+  </data>
+  <data name="NoUnshieldedFunds" xml:space="preserve">
+    <value>No hay fondos transparentes que proteger.</value>
+  </data>
+  <data name="SelectedAccountArgumentDescription" xml:space="preserve">
+    <value>Identifica la cuenta a operar, dada su dirección predeterminada.</value>
+  </data>
+  <data name="ShieldAllOptionDescription" xml:space="preserve">
+    <value>Proteja los fondos transparentes de todas las direcciones transparentes, en lugar de solo una.</value>
+  </data>
+  <data name="ShieldCommandDescription" xml:space="preserve">
+    <value>Protege fondos transparentes.</value>
+  </data>
+  <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
+    <value>El índice de cuenta bajo la frase inicial utilizada para generar la clave de gasto.</value>
+  </data>
+  <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
+    <value>La frase inicial utilizada para generar la clave de gasto.</value>
+  </data>
 </root>

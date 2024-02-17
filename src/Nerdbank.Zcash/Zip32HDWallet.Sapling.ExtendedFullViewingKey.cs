@@ -166,20 +166,6 @@ public partial class Zip32HDWallet
 				return false;
 			}
 
-			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
-			public ExtendedFullViewingKey Derive(uint childIndex)
-			{
-				Span<byte> selfAsBytes = stackalloc byte[169];
-				Span<byte> childAsBytes = stackalloc byte[169];
-				this.Encode(selfAsBytes);
-				if (NativeMethods.DeriveSaplingChildFullViewingKey(selfAsBytes, childIndex, childAsBytes) != 0)
-				{
-					throw new InvalidKeyException();
-				}
-
-				return Decode(childAsBytes, this.Network);
-			}
-
 			/// <inheritdoc cref="DiversifiableFullViewingKey.DeriveInternal"/>
 			public ExtendedFullViewingKey DeriveInternal()
 			{
@@ -204,9 +190,11 @@ public partial class Zip32HDWallet
 			}
 
 			/// <inheritdoc/>
+			[Obsolete("Derive from spending keys instead.")]
 			Cryptocurrencies.IExtendedKey Cryptocurrencies.IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			/// <inheritdoc/>
+			[Obsolete("Derive from spending keys instead.")]
 			IExtendedKey IExtendedKey.Derive(uint childIndex) => this.Derive(childIndex);
 
 			private static ExtendedFullViewingKey Decode(ReadOnlySpan<byte> encoded, ZcashNetwork network)
@@ -219,6 +207,13 @@ public partial class Zip32HDWallet
 				DiversifierKey dk = new(encoded[137..169]);
 				DiversifiableFullViewingKey dfvk = new(fvk, dk);
 				return new(dfvk, chainCode, parentFullViewingKeyTag, depth, childIndex);
+			}
+
+			/// <inheritdoc cref="Cryptocurrencies.IExtendedKey.Derive(uint)"/>
+			[Obsolete("Derive from spending keys instead.")]
+			private ExtendedFullViewingKey Derive(uint childIndex)
+			{
+				throw new NotSupportedException("Derive using spending keys, because per ZIP-32 the derivation path is hardened so deriving full viewing keys is pointless.");
 			}
 
 			/// <summary>

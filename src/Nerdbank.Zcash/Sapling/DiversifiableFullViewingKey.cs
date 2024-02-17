@@ -189,7 +189,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 		ReadOnlySpan<byte> nk = keyContribution[32..64];
 		ReadOnlySpan<byte> ovk = keyContribution[64..96];
 		ReadOnlySpan<byte> dk = keyContribution[96..];
-		IncomingViewingKey ivk = DiversifiableIncomingViewingKey.FromFullViewingKey(ak, nk, dk, network);
+		IncomingViewingKey ivk = DiversifiableIncomingViewingKey.FromFullViewingKey(keyContribution[..96], dk, network);
 		FullViewingKey fvk = new(new(ak), new(nk), ivk, new(ovk));
 		return new DiversifiableFullViewingKey(fvk, new(dk));
 	}

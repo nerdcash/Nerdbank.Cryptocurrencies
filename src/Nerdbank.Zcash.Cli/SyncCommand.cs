@@ -2,7 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Humanizer;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -43,17 +45,38 @@ internal class SyncCommand : WalletUserCommandBase
 
 	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
+		Stopwatch syncTimer = Stopwatch.StartNew();
+		int? lastPercentCompleteReported = null;
+		string? lastErrorReported = null;
 		LightWalletClient.SyncResult syncResult = await client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
-				if (p.BatchTotal > 0)
+				if (p.Total > 0)
 				{
-					this.Console.WriteLine($"{100 * p.BatchNum / p.BatchTotal}% complete");
+					int newPercent = (int)(100 * p.Current / p.Total);
+					if (newPercent != lastPercentCompleteReported)
+					{
+						this.Console.WriteLine($"{newPercent}% complete");
+						lastPercentCompleteReported = newPercent;
+					}
+
+					if (lastErrorReported != p.LastError)
+					{
+						this.Console.WriteLine(p.LastError is null ? "Last error resolved." : $"Non-fatal error: {p.LastError}");
+						lastErrorReported = p.LastError;
+					}
+				}
+			}),
+			new Progress<IReadOnlyCollection<Transaction>>(transactions =>
+			{
+				foreach (Transaction tx in transactions)
+				{
+					HistoryCommand.PrintTransaction(this.Console, tx);
 				}
 			}),
 			cancellationToken);
 
-		this.Console.WriteLine($"Sync 100% complete. Scanned {syncResult.TotalBlocksScanned} blocks to reach block {syncResult.LatestBlock}.");
+		this.Console.WriteLine($"Sync 100% complete. Scanned to block {syncResult.LatestBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: Humanizer.Localisation.TimeUnit.Second)}.");
 
 		return 0;
 	}

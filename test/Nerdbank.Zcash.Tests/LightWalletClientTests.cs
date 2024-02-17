@@ -2,12 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 [Trait("RequiresNetwork", "true")]
-public class LightWalletClientTests : TestBase, IDisposable
+public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 {
-	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0)
-	{
-		BirthdayHeight = 2234000,
-	};
+	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
+	private static bool defaultAccountBirthdayHeightSet;
 
 	private readonly ITestOutputHelper logger;
 	private readonly LightWalletClient client;
@@ -23,11 +21,24 @@ public class LightWalletClientTests : TestBase, IDisposable
 
 		this.client = new(
 			LightWalletServerMainNet,
-			DefaultAccount,
-			this.testDir,
-			"zcash-test.wallet",
-			"zcash-test.log",
-			watchMemPool: false);
+			DefaultAccount.Network,
+			Path.Join(this.testDir, "zcash-test.wallet"));
+	}
+
+	public async Task InitializeAsync()
+	{
+		if (!defaultAccountBirthdayHeightSet)
+		{
+			DefaultAccount.BirthdayHeight = await this.client.GetLatestBlockHeightAsync(this.TimeoutToken) - 5;
+			defaultAccountBirthdayHeightSet = true;
+		}
+
+		this.client.AddAccount(DefaultAccount);
+	}
+
+	public Task DisposeAsync()
+	{
+		return Task.CompletedTask;
 	}
 
 	public void Dispose()
@@ -68,54 +79,53 @@ public class LightWalletClientTests : TestBase, IDisposable
 	[Fact]
 	public void BirthdayHeight()
 	{
-		ulong birthdayHeight = this.client.BirthdayHeight;
+		uint? birthdayHeight = this.client.BirthdayHeight;
 		this.logger.WriteLine($"Birthday height: {birthdayHeight}");
 	}
 
 	[Fact]
 	public void LastDownloadHeight()
 	{
-		ulong lastDownloadHeight = this.client.LastDownloadHeight;
+		uint? lastDownloadHeight = this.client.LastDownloadHeight;
 		this.logger.WriteLine($"Last sync height: {lastDownloadHeight}");
 	}
 
 	[Fact]
-	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
 	public async Task DownloadTransactionsAsync()
 	{
-		this.client.UpdateFrequency = TimeSpan.FromMilliseconds(100);
 		LightWalletClient.SyncResult result = await this.client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
 				this.logger.WriteLine($"Sync progress update: {p}");
 			}),
+			null,
 			this.TimeoutToken);
-		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned {result.TotalBlocksScanned} blocks to reach block {result.LatestBlock}.");
+		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned to block {result.LatestBlock}.");
 	}
 
 	[Fact]
 	public void GetDownloadedTransactions_Empty()
 	{
-		List<Nerdbank.Zcash.Transaction> transactions = this.client.GetDownloadedTransactions(0);
+		List<Nerdbank.Zcash.Transaction> transactions = this.client.GetDownloadedTransactions(DefaultAccount, 0);
 		Assert.Empty(transactions);
 	}
 
 	[Fact]
-	public async Task SendAsync_ValidatesNullPayments()
+	public async Task SendAsync_ValidatesNullArgs()
 	{
-		await Assert.ThrowsAsync<ArgumentNullException>("payments", () => this.client.SendAsync(null!, null, this.TimeoutToken));
+		await Assert.ThrowsAsync<ArgumentNullException>("account", () => this.client.SendAsync(null!, Array.Empty<Transaction.SendItem>(), null, this.TimeoutToken));
+		await Assert.ThrowsAsync<ArgumentNullException>("payments", () => this.client.SendAsync(DefaultAccount, null!, null, this.TimeoutToken));
 	}
 
 	[Fact]
 	public async Task SendAsync_EmptySendsList()
 	{
 		List<Nerdbank.Zcash.Transaction.SendItem> sends = new();
-		ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => this.client.SendAsync(sends, null, this.TimeoutToken));
+		ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => this.client.SendAsync(DefaultAccount, sends, null, this.TimeoutToken));
 		this.logger.WriteLine(ex.ToString());
 	}
 
-	[Fact(Skip = "Skip while ZingoLib panics: https://github.com/zingolabs/zingolib/issues/566")]
-	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
+	[Fact]
 	public async Task SendAsync_InsufficientFunds()
 	{
 		List<Nerdbank.Zcash.Transaction.SendItem> sends = new()
@@ -123,11 +133,51 @@ public class LightWalletClientTests : TestBase, IDisposable
 			new Nerdbank.Zcash.Transaction.SendItem(DefaultAccount.DefaultAddress, 1.0m, default),
 		};
 		LightWalletException ex = await Assert.ThrowsAsync<LightWalletException>(() =>
-		this.client.SendAsync(
-			sends,
-			new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
-			this.TimeoutToken));
+			this.client.SendAsync(
+				DefaultAccount,
+				sends,
+				new Progress<LightWalletClient.SendProgress>(p => this.logger.WriteLine($"{p}")),
+				this.TimeoutToken));
 		this.logger.WriteLine(ex.Message);
 		Assert.Equal(LightWalletException.ErrorCode.Other, ex.Code);
+	}
+
+	/// <summary>
+	/// Verifies that diversifier index collisions are handled gracefully.
+	/// In particular, handled by just reporting success.
+	/// </summary>
+	[Fact]
+	public void AddDiversifier_IndexCollision()
+	{
+		// Use the index of the default address to ensure a collision.
+		// Given the seed hard-coded for the tests, this is expected to be '3'.
+		////Assert.True(DefaultAccount.TryGetDiversifierIndex(DefaultAccount.DefaultAddress, out DiversifierIndex? diversifierIndex));
+		UnifiedAddress ua = this.client.AddDiversifier(DefaultAccount, 3/*diversifierIndex.Value*/);
+		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
+		Assert.NotNull(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
+		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
+	}
+
+	[Fact]
+	public void AddDiversifier_InvalidSapling()
+	{
+		UnifiedAddress ua = this.client.AddDiversifier(DefaultAccount, new DiversifierIndex(500));
+		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
+		Assert.NotNull(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
+
+		// It so happens that this seed and index produces an invalid sapling receiver.
+		Assert.Null(ua.GetPoolReceiver<SaplingReceiver>());
+	}
+
+	[Fact]
+	public void AddDiversifier_InvalidTransparent()
+	{
+		// Use an index that is outside the range 32-bit range supported by transparent addresses.
+		UnifiedAddress ua = this.client.AddDiversifier(DefaultAccount, new DiversifierIndex((ulong)uint.MaxValue + 1));
+		Assert.NotNull(ua.GetPoolReceiver<OrchardReceiver>());
+		Assert.Null(ua.GetPoolReceiver<TransparentP2PKHReceiver>());
+
+		// It so happens that this index produces a valid sapling receiver.
+		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
 	}
 }

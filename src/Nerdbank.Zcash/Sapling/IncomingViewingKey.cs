@@ -144,15 +144,14 @@ public class IncomingViewingKey : IZcashKey, IEquatable<IncomingViewingKey>, IKe
 	/// Initializes a new instance of the <see cref="DiversifiableIncomingViewingKey"/> class
 	/// from elements of a full viewing key.
 	/// </summary>
-	/// <param name="ak">The Ak subgroup point.</param>
-	/// <param name="nk">The nullifier deriving key.</param>
+	/// <param name="fvk">The encoded full viewing key (ak, nk, ovk).</param>
 	/// <param name="network">The network on which this key should operate.</param>
 	/// <returns>The constructed incoming viewing key.</returns>
 	/// <exception cref="InvalidKeyException">Thrown if an error occurs while parsing the inputs.</exception>
-	internal static IncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, ZcashNetwork network)
+	internal static IncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> fvk, ZcashNetwork network)
 	{
 		Span<byte> ivk = stackalloc byte[32];
-		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(ak, nk, ivk) != 0)
+		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(fvk, ivk) != 0)
 		{
 			throw new InvalidKeyException();
 		}

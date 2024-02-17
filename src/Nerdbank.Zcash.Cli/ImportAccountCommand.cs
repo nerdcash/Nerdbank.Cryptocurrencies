@@ -70,9 +70,8 @@ internal class ImportAccountCommand
 		{
 			using LightWalletClient client = Utilities.ConstructLightClient(
 				this.LightWalletServerUrl,
-				account,
-				this.WalletPath,
-				watchMemPool: false);
+				account.Network,
+				this.WalletPath);
 			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
 		}
 

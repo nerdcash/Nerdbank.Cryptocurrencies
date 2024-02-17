@@ -3,17 +3,29 @@ uniffi::include_scaffolding!("ffi");
 #[macro_use]
 extern crate lazy_static;
 
-mod lightwallet;
+mod analysis;
+mod backing_store;
+mod block_source;
+mod error;
+mod grpc;
+mod interop;
+mod lightclient;
 mod orchard;
+mod resilience;
 mod sapling;
+mod send;
+mod shield;
+mod sql_statements;
+mod sync;
 
-use lightwallet::{
-    last_synced_height, lightwallet_deinitialize, lightwallet_get_balances,
-    lightwallet_get_birthday_height, lightwallet_get_birthday_heights,
-    lightwallet_get_block_height, lightwallet_get_transactions, lightwallet_get_user_balances,
-    lightwallet_initialize, lightwallet_initialize_from_disk, lightwallet_send_check_status,
-    lightwallet_send_to_address, lightwallet_sync, lightwallet_sync_interrupt,
-    lightwallet_sync_status, BirthdayHeights, ChainType, Config, LightWalletError, OrchardNote,
-    SaplingNote, SendUpdate, SyncStatus, Transaction, TransactionSendDetail, WalletInfo,
+#[cfg(test)]
+mod test_constants;
+
+use analysis::{BirthdayHeights, UserBalances};
+use interop::{
+    add_account, add_diversifier, disconnect_server, get_accounts, get_birthday_height,
+    get_birthday_heights, get_block_height, get_sync_height, get_transactions,
+    get_unshielded_utxos, get_user_balances, init, send, shield, sync, AccountInfo, ChainType,
+    DbInit, LightWalletError, SendTransactionResult, ShieldedNote, SyncResult, SyncUpdate,
+    SyncUpdateData, Transaction, TransactionSendDetail, TransparentNote,
 };
-use zingolib::lightclient::{PoolBalances, SyncResult, UserBalances};

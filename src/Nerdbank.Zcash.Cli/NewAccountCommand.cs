@@ -154,9 +154,9 @@ internal class NewAccountCommand
 		{
 			using LightWalletClient client = Utilities.ConstructLightClient(
 				this.LightWalletServerUrl,
-				account,
-				this.WalletPath,
-				watchMemPool: false);
+				account.Network,
+				this.WalletPath);
+			client.AddAccount(account);
 			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
 		}
 

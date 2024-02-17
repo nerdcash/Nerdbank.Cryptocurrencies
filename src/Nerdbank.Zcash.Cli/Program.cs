@@ -9,12 +9,14 @@ using Nerdbank.Zcash.Cli;
 
 Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strings.RootCommandDescription)
 {
+	AccountsCommand.BuildCommand(),
 	NewAccountCommand.BuildCommand(),
 	ImportAccountCommand.BuildCommand(),
 	UACommand.BuildCommand(),
 	SyncCommand.BuildCommand(),
 	BalanceCommand.BuildCommand(),
 	HistoryCommand.BuildCommand(),
+	ShieldCommand.BuildCommand(),
 	SendCommand.BuildCommand(),
 	RequestPaymentCommand.BuildCommand(),
 };

@@ -120,6 +120,9 @@
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
   </data>
+  <data name="ErrorFromNativeSide" xml:space="preserve">
+    <value>An unmapped error occurred across the interop layer.</value>
+  </data>
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
     <value>An error occurred while fetching metadata from the lightwallet server.</value>
   </data>
@@ -165,11 +168,17 @@
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>
+  <data name="NetworkMismatch" xml:space="preserve">
+    <value>This server is configured for use on the {expected} network, but the input parameter is on the {actual} network.</value>
+  </data>
   <data name="NotEnoughEntropy" xml:space="preserve">
     <value>The entropy is too short. At least {minimum} bytes are required.</value>
   </data>
   <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
     <value>Only hardened keys are supported.</value>
+  </data>
+  <data name="UnrecognizedAccount" xml:space="preserve">
+    <value>This account has not yet been added to the wallet.</value>
   </data>
   <data name="UnrecognizedAddress" xml:space="preserve">
     <value>This address does not conform to any known format.</value>

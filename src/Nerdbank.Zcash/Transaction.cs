@@ -8,45 +8,87 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Describes a Zcash transaction.
 /// </summary>
-/// <param name="TransactionId">The transaction ID.</param>
-/// <param name="BlockNumber">The block that mined this transaction.</param>
-/// <param name="When">The timestamp on this transaction.</param>
-/// <param name="IsUnconfirmed">A value indicating whether this transaction is stil waiting in the mempool, unmined.</param>
-/// <param name="Spent">The amount of ZEC that was spent in this transaction.</param>
-/// <param name="Received">The amount of ZEC that was received in this transaction.</param>
-/// <param name="Sends">A collection of individual spend details with amounts and recipients belonging to this transaction.</param>
-/// <param name="Notes">Notes received in this transaction.</param>
-/// <param name="IsIncoming"><see langword="true"/> if the transaction was sent by a different wallet; <see langword="false" /> otherwise.</param>
-public partial record Transaction(
-	TxId TransactionId,
-	uint BlockNumber,
-	DateTime When,
-	bool IsUnconfirmed,
-	decimal Spent,
-	decimal Received,
-	ImmutableArray<Transaction.SendItem> Sends,
-	ImmutableArray<Transaction.RecvItem> Notes,
-	bool IsIncoming)
+public partial record Transaction
 {
+	/// <summary>
+	/// Initializes a new instance of the <see cref="Transaction"/> class.
+	/// </summary>
+	/// <param name="transactionId">The transaction ID.</param>
+	/// <param name="minedHeight">The block that mined this transaction.</param>
+	/// <param name="expiredUnmined">A value indicating whether the transaction expired before it was mined.</param>
+	/// <param name="when">The timestamp on this transaction.</param>
+	/// <param name="netChange">The net balance change applied by this transaction.</param>
+	/// <param name="fee">The transaction fee.</param>
+	/// <param name="outgoing">A collection of individual spend details with amounts and recipients belonging to this transaction.</param>
+	/// <param name="incoming">Notes received in this transaction.</param>
+	public Transaction(
+		TxId transactionId,
+		uint? minedHeight,
+		bool expiredUnmined,
+		DateTime when,
+		decimal netChange,
+		decimal fee,
+		ImmutableArray<SendItem> outgoing,
+		ImmutableArray<RecvItem> incoming)
+	{
+		this.TransactionId = transactionId.PrecacheString();
+		this.MinedHeight = minedHeight;
+		this.ExpiredUnmined = expiredUnmined;
+		this.When = when;
+		this.NetChange = netChange;
+		this.Fee = fee;
+		this.Outgoing = outgoing;
+		this.Incoming = incoming;
+	}
+
+	/// <summary>
+	/// Gets the transaction ID.
+	/// </summary>
+	public TxId TransactionId { get; }
+
+	/// <summary>
+	/// Gets the block number this transaction was mined in, if applicable.
+	/// </summary>
+	public uint? MinedHeight { get; }
+
+	/// <summary>
+	/// Gets a value indicating whether this transaction expired before it was mined.
+	/// </summary>
+	public bool ExpiredUnmined { get; }
+
+	/// <summary>
+	/// Gets the timestamp on the block this transaction was mined in.
+	/// </summary>
+	public DateTime When { get; }
+
 	/// <summary>
 	/// Gets the net balance change applied by this transaction.
 	/// </summary>
-	public decimal NetChange => this.Received - this.Spent;
+	public decimal NetChange { get; }
 
 	/// <summary>
 	/// Gets the transaction fee.
 	/// </summary>
-	public decimal Fee
-	{
-		get
-		{
-			if (this.IsIncoming)
-			{
-				// https://github.com/zingolabs/zingolib/issues/553
-				throw new NotSupportedException("ZingoLib doesn't expose the transaction details necessary to calculate the fee for incoming transactions.");
-			}
+	public decimal Fee { get; }
 
-			return this.Spent - this.Received - this.Sends.Sum(s => s.Amount);
-		}
-	}
+	/// <summary>
+	/// Gets the individual sent notes in this transaction.
+	/// </summary>
+	public ImmutableArray<SendItem> Outgoing { get; }
+
+	/// <summary>
+	/// Gets the individual received notes in this transaction.
+	/// </summary>
+	public ImmutableArray<RecvItem> Incoming { get; }
+
+	/// <summary>
+	/// Gets a value indicating whether this transaction sends funds from this account.
+	/// </summary>
+	/// <remarks>
+	/// Note this only indicates that funds were sent from this account,
+	/// not that they were sent to <em>another</em> account.
+	/// They may in fact have been sent to the same account.
+	/// But this value is useful to determine whether the <see cref="Fee"/> came out of this account.
+	/// </remarks>
+	public bool IsOutgoing => this.Outgoing.Length > 0;
 }
