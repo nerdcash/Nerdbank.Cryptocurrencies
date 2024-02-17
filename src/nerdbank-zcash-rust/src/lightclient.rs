@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use crate::{error::Error, grpc::get_client, resilience::webrequest_with_retry};
 use http::Uri;
 use zcash_client_backend::proto::service::{self, LightdInfo};
@@ -8,11 +6,10 @@ use zcash_primitives::consensus::Network;
 /// Gets the block height from the lightwalletd server.
 /// This may not match the the latest block that has been sync'd to the wallet.
 pub async fn get_block_height(uri: Uri) -> Result<u32, Error> {
-    let client = Arc::new(Mutex::new(get_client(uri).await?));
+    let client = get_client(uri).await?;
     let response = webrequest_with_retry(|| async {
         Ok(client
-            .lock()
-            .unwrap()
+            .clone()
             .get_lightd_info(service::Empty {})
             .await?
             .into_inner())
@@ -25,7 +22,7 @@ pub(crate) fn parse_network(info: &LightdInfo) -> Result<Network, Error> {
     match info.chain_name.as_str() {
         "main" => Ok(Network::MainNetwork),
         "test" => Ok(Network::TestNetwork),
-        _ => Err(Error::InternalError(format!(
+        _ => Err(Error::Internal(format!(
             "Unknown network: {}",
             info.chain_name
         ))),

@@ -1,12 +1,9 @@
-use std::{
-    path::Path,
-    sync::{Arc, Mutex},
-};
-
 use futures_util::TryStreamExt;
 use http::Uri;
 use prost::bytes::Buf;
 use rusqlite::Connection;
+use std::{path::Path, sync::Arc};
+use tokio::sync::Mutex;
 use tonic::{transport::Channel, Status};
 use tracing::{debug, info, warn};
 use uniffi::deps::anyhow;
@@ -26,16 +23,19 @@ use zcash_client_backend::{
         WalletCommitmentTrees, WalletRead, WalletWrite,
     },
     encoding::AddressCodec,
-    proto::service::{
-        self, compact_tx_streamer_client::CompactTxStreamerClient, BlockId, BlockRange,
-        TransparentAddressBlockFilter, TxFilter,
+    proto::{
+        compact_formats::CompactBlock,
+        service::{
+            self, compact_tx_streamer_client::CompactTxStreamerClient, BlockId, BlockRange,
+            TransparentAddressBlockFilter, TxFilter,
+        },
     },
     wallet::WalletTransparentOutput,
 };
 
 use crate::{
     backing_store::Db,
-    block_source::{BlockCache, BlockCacheError},
+    block_source::BlockCacheError,
     error::Error,
     grpc::get_client,
     interop::{SyncResult, SyncUpdate, SyncUpdateData},
@@ -53,11 +53,10 @@ pub async fn sync<P: AsRef<Path>>(
     data_file: P,
     progress: Option<Box<dyn SyncUpdate>>,
 ) -> Result<SyncResult, Error> {
-    let client = Arc::new(Mutex::new(get_client(uri).await?));
+    let mut client = get_client(uri).await?;
     let info = webrequest_with_retry(|| async {
         Ok(client
-            .lock()
-            .unwrap()
+            .clone()
             .get_lightd_info(service::Empty {})
             .await?
             .into_inner())
@@ -69,15 +68,14 @@ pub async fn sync<P: AsRef<Path>>(
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
-    update_subtree_roots(&mut client.lock().unwrap(), &mut db.data).await?;
+    update_subtree_roots(&mut client.clone(), &mut db.data).await?;
 
     let mut tip_height: BlockHeight;
     loop {
         // 3) Download chain tip metadata from lightwalletd
         tip_height = webrequest_with_retry(|| async {
             Ok(client
-                .lock()
-                .unwrap()
+                .clone()
                 .get_latest_block(service::ChainSpec::default())
                 .await?
                 .get_ref()
@@ -85,7 +83,7 @@ pub async fn sync<P: AsRef<Path>>(
         })
         .await?
         .try_into()
-        .map_err(|e| Error::InternalError(format!("Invalid block height: {}", e)))?;
+        .map_err(|e| Error::Internal(format!("Invalid block height: {}", e)))?;
 
         // 4) Notify the wallet of the updated chain tip.
         db.data.update_chain_tip(tip_height)?;
@@ -94,7 +92,7 @@ pub async fn sync<P: AsRef<Path>>(
         // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
         for (address, height) in db.data.get_transparent_addresses_and_sync_heights()? {
             download_transparent_transactions(
-                &mut client.lock().unwrap(),
+                &mut client,
                 &mut db,
                 &network,
                 &address,
@@ -116,14 +114,7 @@ pub async fn sync<P: AsRef<Path>>(
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if download_and_scan_blocks(
-                        &mut client.lock().unwrap(),
-                        scan_range,
-                        &network,
-                        &mut db,
-                    )
-                    .await?
-                    {
+                    if download_and_scan_blocks(&mut client, scan_range, &network, &mut db).await? {
                         // The suggested scan ranges have been updated, so we re-request.
                         scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
@@ -188,9 +179,7 @@ pub async fn sync<P: AsRef<Path>>(
                 }
             })
         }) {
-            if download_and_scan_blocks(&mut client.lock().unwrap(), &scan_range, &network, &mut db)
-                .await?
-            {
+            if download_and_scan_blocks(&mut client, &scan_range, &network, &mut db).await? {
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
                 loop_around = true;
@@ -214,7 +203,7 @@ pub async fn sync<P: AsRef<Path>>(
 
     // Download and decrypt the full transactions we found in the compact blocks
     // so we can save their memos to the database.
-    download_full_transactions(&mut client.lock().unwrap(), data_file, &mut db, &network).await?;
+    download_full_transactions(&mut client, data_file, &mut db, &network).await?;
 
     Ok(SyncResult {
         latest_block: tip_height.into(),
@@ -243,7 +232,7 @@ async fn download_full_transactions<P: AsRef<Path>>(
         let raw_tx = webrequest_with_retry(|| async {
             Ok(client
                 .lock()
-                .unwrap()
+                .await
                 .get_transaction(TxFilter {
                     hash: txid.clone(),
                     ..Default::default()
@@ -304,7 +293,7 @@ async fn download_transparent_transactions(
     let transparent_transactions = webrequest_with_retry(|| async {
         client
             .lock()
-            .unwrap()
+            .await
             .get_taddress_txids(TransparentAddressBlockFilter {
                 address: address.encode(network),
                 range: Some(BlockRange {
@@ -358,41 +347,37 @@ async fn download_and_scan_blocks(
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
     let client = Arc::new(Mutex::new(client));
-    let db = Arc::new(Mutex::new(db));
-    webrequest_with_logged_retry(
-        || async {
-            let mut client = client.lock().unwrap();
-            let mut db = db.lock().unwrap();
-            download_blocks(&mut client, &mut db.blocks, scan_range).await
-        },
-        |error, duration, failure_count| {
-            let msg = format!(
-                "Failure {} to download blocks: {}. {}. Will retry in {:?}.",
-                failure_count, scan_range, error, duration
-            );
-            warn!("{}", &msg);
-            println!("{}", &msg);
-        },
-    )
-    .await?;
+    db.blocks.insert_range(
+        webrequest_with_logged_retry(
+            || async {
+                let mut client = client.lock().await;
+                download_blocks(&mut client, scan_range).await
+            },
+            |error, duration, failure_count| {
+                let msg = format!(
+                    "Failure {} to download blocks: {}. {}. Will retry in {:?}.",
+                    failure_count, scan_range, error, duration
+                );
+                warn!("{}", &msg);
+                println!("{}", &msg);
+            },
+        )
+        .await?,
+    );
 
     // Scan the downloaded blocks.
-    let result = scan_blocks(network, &mut db.lock().unwrap(), scan_range)?;
+    let result = scan_blocks(network, db, scan_range)?;
 
     // Now that they've been scanned, we don't need them any more.
-    db.lock()
-        .unwrap()
-        .blocks
-        .remove_range(scan_range.block_range());
+    db.blocks.remove_range(scan_range.block_range());
 
     Ok(result)
 }
 
 async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
-    block_cache: &mut BlockCache,
     scan_range: &ScanRange,
-) -> Result<(), Status> {
+) -> Result<Vec<CompactBlock>, Status> {
     info!("Fetching {}", scan_range);
     let mut start = service::BlockId::default();
     start.height = scan_range.block_range().start.into();
@@ -402,16 +387,12 @@ async fn download_blocks(
         start: Some(start),
         end: Some(end),
     };
-    let compact_blocks = client
+    client
         .get_block_range(range)
         .await?
         .into_inner()
         .try_collect::<Vec<_>>()
-        .await?;
-
-    block_cache.insert_range(compact_blocks);
-
-    Ok(())
+        .await
 }
 
 /// Scans the given block range and checks for scanning errors that indicate the wallet's

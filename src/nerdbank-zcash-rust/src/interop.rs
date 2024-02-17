@@ -164,7 +164,7 @@ impl From<time::error::ComponentRange> for LightWalletError {
 impl From<Error> for LightWalletError {
     fn from(e: Error) -> Self {
         match e {
-            Error::InternalError(msg) => LightWalletError::Other { message: msg },
+            Error::Internal(msg) => LightWalletError::Other { message: msg },
             _ => LightWalletError::Other {
                 message: e.to_string(),
             },
