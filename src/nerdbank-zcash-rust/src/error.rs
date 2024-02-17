@@ -23,7 +23,7 @@ pub enum Error {
     /// An error occurred over a transport.
     Transport(tonic::transport::Error),
 
-    HDWalletError(hdwallet::error::Error),
+    HDWallet(hdwallet::error::Error),
 
     /// An error that was produced by wallet operations in the course of scanning the chain.
     Wallet(SqliteClientError),
@@ -39,17 +39,17 @@ pub enum Error {
 
     TonicStatus(tonic::Status),
 
-    IoError(std::io::Error),
+    Io(std::io::Error),
 
-    InternalError(String),
+    Internal(String),
 
     Sqlite(rusqlite::Error),
 
     SqliteClient(SqliteClientError),
 
-    SqliteMigratorError(MigratorError<rusqlite::Error>),
+    SqliteMigrator(MigratorError<rusqlite::Error>),
 
-    WalletMigratorError(MigratorError<WalletMigrationError>),
+    WalletMigrator(MigratorError<WalletMigrationError>),
 
     InvalidHeight,
 
@@ -64,7 +64,7 @@ pub enum Error {
 
     InvalidMemo(memo::Error),
 
-    Zip321Error(Zip321Error),
+    Zip321(Zip321Error),
 
     /// The wallet has not been synced to the chain yet, and thus has no data with which to formulate a response.
     SyncFirst,
@@ -83,17 +83,17 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::Transport(e) => e.fmt(f),
-            Error::HDWalletError(e) => e.fmt(f),
+            Error::HDWallet(e) => e.fmt(f),
             Error::Wallet(e) => e.fmt(f),
             Error::BlockSource(e) => e.fmt(f),
             Error::Scan(e) => e.fmt(f),
             Error::TonicStatus(e) => e.fmt(f),
-            Error::IoError(e) => e.fmt(f),
-            Error::InternalError(e) => e.fmt(f),
+            Error::Io(e) => e.fmt(f),
+            Error::Internal(e) => e.fmt(f),
             Error::Sqlite(e) => e.fmt(f),
             Error::SqliteClient(e) => e.fmt(f),
-            Error::SqliteMigratorError(e) => e.fmt(f),
-            Error::WalletMigratorError(e) => e.fmt(f),
+            Error::SqliteMigrator(e) => e.fmt(f),
+            Error::WalletMigrator(e) => e.fmt(f),
             Error::InvalidHeight => f.write_str("Invalid height"),
             Error::InvalidAmount => f.write_str("Invalid amount"),
             Error::InsufficientFunds {
@@ -107,7 +107,7 @@ impl std::fmt::Display for Error {
             ),
             Error::InvalidAddress => f.write_str("Invalid address"),
             Error::InvalidMemo(e) => e.fmt(f),
-            Error::Zip321Error(e) => e.fmt(f),
+            Error::Zip321(e) => e.fmt(f),
             Error::SyncFirst => f.write_str("Sync before performing this operation."),
             Error::InvalidArgument(e) => e.fmt(f),
             Error::Anyhow(e) => e.fmt(f),
@@ -124,7 +124,7 @@ impl From<tonic::transport::Error> for Error {
 
 impl From<hdwallet::error::Error> for Error {
     fn from(e: hdwallet::error::Error) -> Self {
-        Error::HDWalletError(e)
+        Error::HDWallet(e)
     }
 }
 
@@ -147,7 +147,7 @@ impl From<tonic::Status> for Error {
 impl From<BirthdayError> for Error {
     fn from(e: BirthdayError) -> Self {
         match e {
-            BirthdayError::Decode(e) => Error::IoError(e),
+            BirthdayError::Decode(e) => Error::Io(e),
             BirthdayError::HeightInvalid(_) => Error::InvalidHeight,
         }
     }
@@ -167,19 +167,19 @@ impl From<rusqlite::Error> for Error {
 
 impl From<MigratorError<rusqlite::Error>> for Error {
     fn from(e: MigratorError<rusqlite::Error>) -> Self {
-        Error::SqliteMigratorError(e)
+        Error::SqliteMigrator(e)
     }
 }
 
 impl From<MigratorError<WalletMigrationError>> for Error {
     fn from(e: MigratorError<WalletMigrationError>) -> Self {
-        Error::WalletMigratorError(e)
+        Error::WalletMigrator(e)
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
-        Error::IoError(e)
+        Error::Io(e)
     }
 }
 
@@ -203,7 +203,7 @@ impl From<memo::Error> for Error {
 
 impl From<Zip321Error> for Error {
     fn from(e: Zip321Error) -> Self {
-        Error::Zip321Error(e)
+        Error::Zip321(e)
     }
 }
 
@@ -219,21 +219,19 @@ where
         value: BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError>,
     ) -> Self {
         match value {
-            BackendError::DataSource(inner) => {
-                Error::InternalError(format!("DataSource: {}", inner))
-            }
+            BackendError::DataSource(inner) => Error::Internal(format!("DataSource: {}", inner)),
             BackendError::CommitmentTree(inner) => {
-                Error::InternalError(format!("CommitmentTree: {}", inner))
+                Error::Internal(format!("CommitmentTree: {}", inner))
             }
             BackendError::NoteSelection(inner) => {
-                Error::InternalError(format!("NoteSelection: {}", inner))
+                Error::Internal(format!("NoteSelection: {}", inner))
             }
-            BackendError::KeyNotRecognized => Error::InternalError("KeyNotRecognized".to_string()),
+            BackendError::KeyNotRecognized => Error::Internal("KeyNotRecognized".to_string()),
             BackendError::AccountNotFound(id) => {
-                Error::InternalError(format!("AccountNotFound: {}", u32::from(id)))
+                Error::Internal(format!("AccountNotFound: {}", u32::from(id)))
             }
             BackendError::BalanceError(inner) => {
-                Error::InternalError(format!("BalanceError: {}", inner))
+                Error::Internal(format!("BalanceError: {}", inner))
             }
             BackendError::InsufficientFunds {
                 available,
@@ -243,18 +241,18 @@ where
                 available,
             },
             BackendError::ScanRequired => Error::SyncFirst,
-            BackendError::Builder(inner) => Error::InternalError(format!("Builder: {}", inner)),
-            BackendError::MemoForbidden => Error::InternalError("MemoForbidden".to_string()),
-            BackendError::NoteMismatch(_) => Error::InternalError("NoteMismatch".to_string()),
+            BackendError::Builder(inner) => Error::Internal(format!("Builder: {}", inner)),
+            BackendError::MemoForbidden => Error::Internal("MemoForbidden".to_string()),
+            BackendError::NoteMismatch(_) => Error::Internal("NoteMismatch".to_string()),
             BackendError::AddressNotRecognized(_) => Error::InvalidAddress,
             BackendError::ChildIndexOutOfRange(_) => {
-                Error::InternalError("ChildIndexOutOfRange".to_string())
+                Error::Internal("ChildIndexOutOfRange".to_string())
             }
             BackendError::UnsupportedPoolType(e) => {
-                Error::InternalError(format!("UnsupportedPoolType: {}", e))
+                Error::Internal(format!("UnsupportedPoolType: {}", e))
             }
             BackendError::NoSupportedReceivers(_) => {
-                Error::InternalError("No supported receivers".to_string())
+                Error::Internal("No supported receivers".to_string())
             }
         }
     }
