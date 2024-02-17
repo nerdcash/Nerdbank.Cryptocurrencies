@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
-    <RustOutputDir>$(RepoRootPath)obj/src/nerdbank-zcash-rust/$(Configuration.ToLower())/</RustOutputDir>
+    <RustOutputDirBase>$(RepoRootPath)obj/src/nerdbank-zcash-rust/</RustOutputDirBase>
+    <RustOutputDir>$(RustOutputDirBase)$(Configuration.ToLower())/</RustOutputDir>
   </PropertyGroup>
   <!-- This file is imported both by the packaging project and by the test project.
        In the case of the packaging project, which targets AnyCPU, we want all native files included.
@@ -52,9 +53,23 @@
       <Pack>true</Pack>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Rust3rdPartyNotices Include="
+      $(RustOutputDirBase)THIRD_PARTY_DEPENDENCIES.txt;
+      $(RustOutputDirBase)THIRD_PARTY_LICENSES.yml;
+      ">
+      <PackagePath></PackagePath>
+    </Rust3rdPartyNotices>
+    <None Include="@(Rust3rdPartyNotices)">
+      <Link Condition="'$(Platform)'=='AnyCPU'">%(PackagePath)</Link>
+      <Link Condition="'$(Platform)'!='AnyCPU'">%(FileName)%(Extension)</Link>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
   <Target Name="WarnOnMissingBinaries" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
-      <MissingRustBinaries Include="@(RustBinary);@(RustSymbol)" Condition="!Exists('%(Identity)')" />
+      <MissingRustBinaries Include="@(RustBinary);@(RustSymbol);$(Rust3rdPartyNotices)" Condition="!Exists('%(Identity)')" />
       <None Remove="@(MissingRustBinaries)" />
     </ItemGroup>
     <Warning Text="The following Rust binaries were not found: @(MissingRustBinaries)" Condition="'@(MissingRustBinaries)' != ''" />
