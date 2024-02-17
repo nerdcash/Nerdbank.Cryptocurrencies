@@ -17,10 +17,6 @@ use crate::resilience::webrequest_with_retry;
 use crate::{backing_store::Db, grpc::get_client, interop::DbInit, lightclient::parse_network};
 
 lazy_static! {
-    pub(crate) static ref TESTNET_LIGHTSERVER_URI: Uri =
-        Uri::from_static("https://zcash.mysideoftheweb.com:19067");
-    pub(crate) static ref MAINNET_LIGHTSERVER_URI: Uri =
-        Uri::from_static("https://zcash.mysideoftheweb.com:9067");
     pub(crate) static ref TESTNET_LIGHTSERVER_ECC_URI: Uri =
         Uri::from_static("https://lightwalletd.testnet.electriccoin.co:9067/");
     pub(crate) static ref MAINNET_LIGHTSERVER_ECC_URI: Uri =
@@ -32,7 +28,7 @@ pub(crate) const VALID_SAPLING_TESTNET: &str =
     "ztestsapling15740genxvp99m3vut5q7dqm0da9l8nst2njae3kpu6e406peeypk0n78zue0hgxt5gmasaznnm0";
 
 lazy_static! {
-    static ref LIGHTSERVER_URI: Uri = crate::test_constants::TESTNET_LIGHTSERVER_URI.to_owned();
+    pub(crate) static ref LIGHTSERVER_URI: Uri = crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
 }
 
 pub(crate) struct TestSetup {
