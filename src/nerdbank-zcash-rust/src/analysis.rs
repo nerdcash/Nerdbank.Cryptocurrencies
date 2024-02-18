@@ -176,10 +176,10 @@ pub fn get_user_balances(
         // but only if there exists notes to spend in the buckets that are covered by the minimum_fee.
         if balances.minimum_fees > 0 {
             balances.minimum_fees += marginal_fee; // The receiving note.
-        }
 
-        if balances.minimum_fees < MINIMUM_FEE.into() {
-            balances.minimum_fees = MINIMUM_FEE.into();
+            if balances.minimum_fees < MINIMUM_FEE.into() {
+                balances.minimum_fees = MINIMUM_FEE.into();
+            }
         }
 
         Ok(balances)
