@@ -442,9 +442,9 @@ Nerdbank.Zcash.Transaction.SendItem.SendItem(Nerdbank.Zcash.ZcashAddress! ToAddr
 Nerdbank.Zcash.Transaction.SendItem.ToAddress.get -> Nerdbank.Zcash.ZcashAddress!
 Nerdbank.Zcash.Transaction.SendItem.ToAddress.set -> void
 Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.Transaction! original) -> void
-Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.TxId transactionId, uint? minedHeight, bool expiredUnmined, System.DateTime when, decimal netChange, decimal fee, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> outgoing, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> incoming) -> void
+Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.TxId transactionId, uint? minedHeight, bool expiredUnmined, System.DateTime? when, decimal netChange, decimal fee, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> outgoing, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> incoming) -> void
 Nerdbank.Zcash.Transaction.TransactionId.get -> Nerdbank.Zcash.TxId
-Nerdbank.Zcash.Transaction.When.get -> System.DateTime
+Nerdbank.Zcash.Transaction.When.get -> System.DateTime?
 Nerdbank.Zcash.Transparent.PrivateKey
 Nerdbank.Zcash.Transparent.PrivateKey.KeyMaterial.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.Transparent.PrivateKey.Network.get -> Nerdbank.Zcash.ZcashNetwork

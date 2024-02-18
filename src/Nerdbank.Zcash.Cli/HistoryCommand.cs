@@ -42,7 +42,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 
 	internal static void PrintTransaction(IConsole console, Transaction tx)
 	{
-		console.WriteLine($"{tx.When.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
+		console.WriteLine($"{tx.When?.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
 		const string indentation = "                      ";
 
 		foreach (Transaction.SendItem send in tx.Outgoing)

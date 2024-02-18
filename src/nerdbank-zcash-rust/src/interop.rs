@@ -85,7 +85,7 @@ pub struct AccountInfo {
 #[derive(Debug, Clone)]
 pub struct Transaction {
     pub txid: Vec<u8>,
-    pub block_time: SystemTime,
+    pub block_time: Option<SystemTime>,
     pub mined_height: Option<u32>,
     pub expired_unmined: bool,
     pub account_balance_delta: i64,
@@ -359,11 +359,13 @@ pub fn get_transactions(
                 let mut tx = Transaction {
                     txid: row.get::<_, Vec<u8>>("txid")?,
                     mined_height: row.get("mined_height")?,
-                    expired_unmined: row.get("expired_unmined")?,
-                    block_time: time::OffsetDateTime::from_unix_timestamp(
-                        row.get::<_, i64>("block_time")?,
-                    )?
-                    .into(),
+                    expired_unmined: row
+                        .get::<_, Option<bool>>("expired_unmined")?
+                        .unwrap_or(false),
+                    block_time: match row.get::<_, Option<i64>>("block_time")? {
+                        Some(v) => Some(time::OffsetDateTime::from_unix_timestamp(v)?.into()),
+                        None => None,
+                    },
                     fee: row.get::<_, Option<u64>>("fee_paid")?.unwrap_or(0),
                     account_balance_delta: row.get("account_balance_delta")?,
                     incoming_transparent: Vec::new(),

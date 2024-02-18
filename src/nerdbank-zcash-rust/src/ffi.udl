@@ -19,7 +19,7 @@ dictionary AccountInfo {
 
 dictionary Transaction {
 	bytes txid;
-	timestamp block_time;
+	timestamp? block_time;
 	u32? mined_height;
 	boolean expired_unmined;
 	i64 account_balance_delta;
