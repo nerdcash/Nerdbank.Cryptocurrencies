@@ -321,6 +321,7 @@ async fn download_transparent_transactions(
         let height = BlockHeight::from_u32(rawtx.height as u32);
         let tx = Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
         if let Some(t) = tx.transparent_bundle() {
+            // TODO: record UTXOs SPENDING too
             for (txout_index, txout) in t.vout.iter().enumerate() {
                 let outpoint = OutPoint::new(tx.txid().as_ref().to_owned(), txout_index as u32);
                 if let Some(output) =
