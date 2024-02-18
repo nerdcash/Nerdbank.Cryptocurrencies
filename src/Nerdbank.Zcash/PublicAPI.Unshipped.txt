@@ -134,6 +134,7 @@ Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Deconstruct(out decimal 
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Equals(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance other) -> bool
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance() -> void
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance(decimal Balance) -> void
+Nerdbank.Zcash.LightWalletClient.WellKnownServers
 Nerdbank.Zcash.LightWalletException
 Nerdbank.Zcash.LightWalletException.Code.get -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.Code.init -> void
@@ -829,6 +830,7 @@ static Nerdbank.Zcash.LightWalletClient.SyncResult.operator !=(Nerdbank.Zcash.Li
 static Nerdbank.Zcash.LightWalletClient.SyncResult.operator ==(Nerdbank.Zcash.LightWalletClient.SyncResult? left, Nerdbank.Zcash.LightWalletClient.SyncResult? right) -> bool
 static Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.operator !=(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance left, Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance right) -> bool
 static Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.operator ==(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance left, Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance right) -> bool
+static Nerdbank.Zcash.LightWalletClient.WellKnownServers.GetDefaultServer(Nerdbank.Zcash.ZcashNetwork network) -> System.Uri!
 static Nerdbank.Zcash.ManagedLightWalletClient.CreateAsync(System.Uri! serverUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Zcash.ManagedLightWalletClient!>
 static Nerdbank.Zcash.Memo.FromMessage(string? message) -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.Memo.NoMemo.get -> Nerdbank.Zcash.Memo

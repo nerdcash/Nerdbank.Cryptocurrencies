@@ -31,13 +31,13 @@ pub(crate) fn parse_network(info: &LightdInfo) -> Result<Network, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_constants::TESTNET_LIGHTSERVER_URI;
+    use crate::test_constants::LIGHTSERVER_URI;
 
     use super::*;
 
     #[tokio::test]
     async fn test_get_block_height() {
-        let block_height = get_block_height(TESTNET_LIGHTSERVER_URI.to_owned())
+        let block_height = get_block_height(LIGHTSERVER_URI.to_owned())
             .await
             .unwrap();
         assert!(block_height > 100_000);

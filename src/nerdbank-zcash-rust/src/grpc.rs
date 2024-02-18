@@ -50,18 +50,18 @@ pub async fn get_client(
 
 #[cfg(test)]
 mod tests {
-    use crate::test_constants::TESTNET_LIGHTSERVER_URI;
+    use crate::test_constants::LIGHTSERVER_URI;
 
     use super::*;
 
     #[tokio::test]
     async fn get_client_twice_then_destroy() {
-        get_client(TESTNET_LIGHTSERVER_URI.to_owned())
+        get_client(LIGHTSERVER_URI.to_owned())
             .await
             .unwrap();
-        get_client(TESTNET_LIGHTSERVER_URI.to_owned())
+        get_client(LIGHTSERVER_URI.to_owned())
             .await
             .unwrap();
-        assert!(destroy_channel(TESTNET_LIGHTSERVER_URI.to_owned()));
+        assert!(destroy_channel(LIGHTSERVER_URI.to_owned()));
     }
 }
