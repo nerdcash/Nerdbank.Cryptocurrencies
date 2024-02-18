@@ -69,7 +69,7 @@
   </ItemGroup>
   <Target Name="WarnOnMissingBinaries" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
-      <MissingRustBinaries Include="@(RustBinary);@(RustSymbol);$(Rust3rdPartyNotices)" Condition="!Exists('%(Identity)')" />
+      <MissingRustBinaries Include="@(RustBinary);@(RustSymbol);@(Rust3rdPartyNotices)" Condition="!Exists('%(Identity)')" />
       <None Remove="@(MissingRustBinaries)" />
     </ItemGroup>
     <Warning Text="The following Rust binaries were not found: @(MissingRustBinaries)" Condition="'@(MissingRustBinaries)' != ''" />
