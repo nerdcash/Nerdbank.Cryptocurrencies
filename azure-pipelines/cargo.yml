@@ -1,5 +1,8 @@
 parameters:
 - name: test_target
+- name: checks
+  type: boolean
+  default: false
 
 steps:
 - task: Cache@2
@@ -24,6 +27,11 @@ steps:
   condition: and(succeeded(), ne('${{ parameters.test_target }}', ''))
   continueOnError: true # too many tests fail with network errors
 
-- pwsh: cargo clippy -- -D warnings
-  displayName: 🧼 cargo clippy
-  workingDirectory: src/nerdbank-zcash-rust
+- ${{ if parameters.checks }}:
+  - pwsh: cargo clippy -- -D warnings
+    displayName: 🧼 cargo clippy
+    workingDirectory: src/nerdbank-zcash-rust
+
+  - pwsh: cargo fmt --check
+    displayName: 📝 cargo fmt
+    workingDirectory: src/nerdbank-zcash-rust

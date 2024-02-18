@@ -37,9 +37,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_block_height() {
-        let block_height = get_block_height(LIGHTSERVER_URI.to_owned())
-            .await
-            .unwrap();
+        let block_height = get_block_height(LIGHTSERVER_URI.to_owned()).await.unwrap();
         assert!(block_height > 100_000);
         println!("block_height: {}", block_height);
     }

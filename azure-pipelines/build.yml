@@ -46,6 +46,7 @@ jobs:
   - template: cargo.yml
     parameters:
       test_target: x86_64-unknown-linux-gnu
+      checks: true
 
   - template: dotnet.yml
     parameters:

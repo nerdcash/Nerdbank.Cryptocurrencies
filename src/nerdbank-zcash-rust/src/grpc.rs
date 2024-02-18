@@ -56,12 +56,8 @@ mod tests {
 
     #[tokio::test]
     async fn get_client_twice_then_destroy() {
-        get_client(LIGHTSERVER_URI.to_owned())
-            .await
-            .unwrap();
-        get_client(LIGHTSERVER_URI.to_owned())
-            .await
-            .unwrap();
+        get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
+        get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
         assert!(destroy_channel(LIGHTSERVER_URI.to_owned()));
     }
 }
