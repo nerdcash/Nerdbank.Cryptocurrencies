@@ -1231,6 +1231,36 @@ class FfiConverterUInt64 : FfiConverter<ulong, ulong>
 	}
 }
 
+class FfiConverterInt64 : FfiConverter<long, long>
+{
+	public static FfiConverterInt64 INSTANCE = new FfiConverterInt64();
+
+	public override long Lift(long value)
+	{
+		return value;
+	}
+
+	public override long Read(BigEndianStream stream)
+	{
+		return stream.ReadLong();
+	}
+
+	public override long Lower(long value)
+	{
+		return value;
+	}
+
+	public override int AllocationSize(long value)
+	{
+		return 8;
+	}
+
+	public override void Write(long value, BigEndianStream stream)
+	{
+		stream.WriteLong(value);
+	}
+}
+
 class FfiConverterBoolean : FfiConverter<bool, sbyte>
 {
 	public static FfiConverterBoolean INSTANCE = new FfiConverterBoolean();
@@ -1597,7 +1627,7 @@ internal record Transaction(
 	DateTime @blockTime,
 	uint? @minedHeight,
 	bool @expiredUnmined,
-	ulong @accountBalanceDelta,
+	long @accountBalanceDelta,
 	ulong @fee,
 	List<TransactionSendDetail> @outgoing,
 	List<TransparentNote> @incomingTransparent,
@@ -1615,7 +1645,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 			@blockTime: FfiConverterTimestamp.INSTANCE.Read(stream),
 			@minedHeight: FfiConverterOptionalUInt32.INSTANCE.Read(stream),
 			@expiredUnmined: FfiConverterBoolean.INSTANCE.Read(stream),
-			@accountBalanceDelta: FfiConverterUInt64.INSTANCE.Read(stream),
+			@accountBalanceDelta: FfiConverterInt64.INSTANCE.Read(stream),
 			@fee: FfiConverterUInt64.INSTANCE.Read(stream),
 			@outgoing: FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Read(stream),
 			@incomingTransparent: FfiConverterSequenceTypeTransparentNote.INSTANCE.Read(stream),
@@ -1629,7 +1659,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 			+ FfiConverterTimestamp.INSTANCE.AllocationSize(value.@blockTime)
 			+ FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@minedHeight)
 			+ FfiConverterBoolean.INSTANCE.AllocationSize(value.@expiredUnmined)
-			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@accountBalanceDelta)
+			+ FfiConverterInt64.INSTANCE.AllocationSize(value.@accountBalanceDelta)
 			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@fee)
 			+ FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.AllocationSize(value.@outgoing)
 			+ FfiConverterSequenceTypeTransparentNote.INSTANCE.AllocationSize(
@@ -1644,7 +1674,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 		FfiConverterTimestamp.INSTANCE.Write(value.@blockTime, stream);
 		FfiConverterOptionalUInt32.INSTANCE.Write(value.@minedHeight, stream);
 		FfiConverterBoolean.INSTANCE.Write(value.@expiredUnmined, stream);
-		FfiConverterUInt64.INSTANCE.Write(value.@accountBalanceDelta, stream);
+		FfiConverterInt64.INSTANCE.Write(value.@accountBalanceDelta, stream);
 		FfiConverterUInt64.INSTANCE.Write(value.@fee, stream);
 		FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Write(value.@outgoing, stream);
 		FfiConverterSequenceTypeTransparentNote.INSTANCE.Write(value.@incomingTransparent, stream);

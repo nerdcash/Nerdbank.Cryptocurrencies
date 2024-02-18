@@ -88,7 +88,7 @@ pub struct Transaction {
     pub block_time: SystemTime,
     pub mined_height: Option<u32>,
     pub expired_unmined: bool,
-    pub account_balance_delta: u64,
+    pub account_balance_delta: i64,
     pub fee: u64,
     pub outgoing: Vec<TransactionSendDetail>,
     pub incoming_transparent: Vec<TransparentNote>,
