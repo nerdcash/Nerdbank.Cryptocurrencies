@@ -16,7 +16,9 @@ steps:
     path: $(CARGO_HOME)
   displayName: 🧠 cache cargo home
 
-- pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
+- pwsh: |
+    $env:PATH = "$env:CARGO_HOME\bin;$env:PATH"
+    src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
 
 - pwsh: gci -rec '$(CARGO_HOME)'
