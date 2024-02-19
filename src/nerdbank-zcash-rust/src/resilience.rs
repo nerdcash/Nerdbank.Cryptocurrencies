@@ -1,6 +1,8 @@
 use std::time::Duration;
 
 use futures_util::Future;
+use tokio::select;
+use tokio_util::sync::CancellationToken;
 use tonic::Status;
 use tracing::warn;
 
@@ -15,10 +17,17 @@ pub(crate) async fn webrequest_with_logged_retry<
 >(
     mut delegate: FRequest,
     on_retry: FRetry,
+    cancellation_token: CancellationToken,
 ) -> Result<TResult, Status> {
     let mut failure_count = 0;
     loop {
-        match delegate().await {
+        let result = select! {
+            r = delegate() => r,
+            _ = cancellation_token.cancelled() => {
+                return Err(Status::cancelled("Request cancelled"));
+            },
+        };
+        match result {
             Ok(result) => return Ok(result),
             Err(status) => {
                 if failure_count == ATTEMPT_LIMIT {
@@ -40,18 +49,33 @@ pub(crate) async fn webrequest_with_retry<
     FResult: Future<Output = Result<TResult, Status>>,
 >(
     mut delegate: FRequest,
+    cancellation_token: CancellationToken,
 ) -> Result<TResult, Status> {
     let mut failure_count = 0;
     loop {
-        match delegate().await {
+        let result = select! {
+            r = delegate() => r,
+            _ = cancellation_token.cancelled() => {
+                return Err(Status::cancelled("Request cancelled"));
+            },
+        };
+        match result {
             Ok(result) => return Ok(result),
             Err(status) => {
+                if status.code() == tonic::Code::Cancelled {
+                    return Err(Status::cancelled(status.message()));
+                }
                 if failure_count == ATTEMPT_LIMIT {
                     warn!("Web request failed. No more retries. {:?}", status);
                     return Err(status);
                 } else {
                     failure_count += 1;
-                    tokio::time::sleep(DELAY_BETWEEN_RETRIES).await;
+                    select! {
+                        _ = tokio::time::sleep(DELAY_BETWEEN_RETRIES) => {},
+                        _ = cancellation_token.cancelled() => {
+                            return Err(Status::cancelled("Request cancelled"));
+                        },
+                    }
                 }
             }
         }

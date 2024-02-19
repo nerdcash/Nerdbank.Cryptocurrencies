@@ -68,7 +68,7 @@ internal abstract class WalletUserCommandBase
 		{
 			Zip32HDWallet zip32 = new(Bip39Mnemonic.Parse(this.SpendingKeySeed), this.TestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
 			ZcashAccount spendingAccount = new ZcashAccount(zip32, this.SpendingKeyAccountIndex);
-			client.AddAccount(spendingAccount);
+			await client.AddAccountAsync(spendingAccount, cancellationToken);
 
 			// Upgrade the SelectedAccount property too.
 			if (this.SelectedAccount is not null && !ZcashAccount.Equality.ByIncomingViewingKey.Equals(this.SelectedAccount, spendingAccount))

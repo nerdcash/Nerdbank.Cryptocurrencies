@@ -550,8 +550,15 @@ static class _UniFFILib
 		_UniFFILib.uniffiCheckContractApiVersion();
 		_UniFFILib.uniffiCheckApiChecksums();
 
+		FfiConverterTypeCancellationSource.INSTANCE.Register();
 		FfiConverterTypeSyncUpdate.INSTANCE.Register();
 	}
+
+	[DllImport("nerdbank_zcash_rust")]
+	public static extern void uniffi_nerdbank_zcash_rust_fn_init_callback_cancellationsource(
+		ForeignCallback @callbackStub,
+		ref RustCallStatus _uniffi_out_err
+	);
 
 	[DllImport("nerdbank_zcash_rust")]
 	public static extern void uniffi_nerdbank_zcash_rust_fn_init_callback_syncupdate(
@@ -565,6 +572,7 @@ static class _UniFFILib
 		RustBuffer @uri,
 		RustBuffer @seed,
 		RustBuffer @birthdayHeight,
+		RustBuffer @cancellation,
 		ref RustCallStatus _uniffi_out_err
 	);
 
@@ -573,6 +581,12 @@ static class _UniFFILib
 		RustBuffer @config,
 		uint @accountId,
 		RustBuffer @diversifierIndex,
+		ref RustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust")]
+	public static extern void uniffi_nerdbank_zcash_rust_fn_func_cancel(
+		uint @id,
 		ref RustCallStatus _uniffi_out_err
 	);
 
@@ -604,6 +618,7 @@ static class _UniFFILib
 	[DllImport("nerdbank_zcash_rust")]
 	public static extern uint uniffi_nerdbank_zcash_rust_fn_func_get_block_height(
 		RustBuffer @uri,
+		RustBuffer @cancellation,
 		ref RustCallStatus _uniffi_out_err
 	);
 
@@ -666,6 +681,7 @@ static class _UniFFILib
 		RustBuffer @config,
 		RustBuffer @uri,
 		RustBuffer @progress,
+		RustBuffer @cancellation,
 		ref RustCallStatus _uniffi_out_err
 	);
 
@@ -942,6 +958,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_add_diversifier();
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_cancel();
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_disconnect_server();
 
 	[DllImport("nerdbank_zcash_rust")]
@@ -981,6 +1000,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_sync();
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_method_cancellationsource_set_cancellation_id();
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_update_status();
 
 	[DllImport("nerdbank_zcash_rust")]
@@ -1005,10 +1027,10 @@ static class _UniFFILib
 	{
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_add_account();
-			if (checksum != 44222)
+			if (checksum != 61817)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_add_account` checksum `44222`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_add_account` checksum `61817`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1018,6 +1040,15 @@ static class _UniFFILib
 			{
 				throw new UniffiContractChecksumException(
 					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_add_diversifier` checksum `60533`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_cancel();
+			if (checksum != 28320)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_cancel` checksum `28320`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1061,10 +1092,10 @@ static class _UniFFILib
 		}
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_block_height();
-			if (checksum != 57604)
+			if (checksum != 44608)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_block_height` checksum `57604`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_block_height` checksum `44608`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1134,10 +1165,20 @@ static class _UniFFILib
 		}
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_sync();
-			if (checksum != 14561)
+			if (checksum != 31343)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `14561`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `31343`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum =
+				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_cancellationsource_set_cancellation_id();
+			if (checksum != 25003)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_method_cancellationsource_set_cancellation_id` checksum `25003`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1857,6 +1898,8 @@ internal class LightWalletException : UniffiException
 		}
 	}
 
+	public class Canceled : LightWalletException { }
+
 	public class Other : LightWalletException
 	{
 		// Members
@@ -1893,6 +1936,8 @@ class FfiConverterTypeLightWalletException
 					FfiConverterString.INSTANCE.Read(stream)
 				);
 			case 4:
+				return new LightWalletException.Canceled();
+			case 5:
 				return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
 			default:
 				throw new InternalException(
@@ -1914,6 +1959,8 @@ class FfiConverterTypeLightWalletException
 				return 4;
 			case LightWalletException.SqliteClientException variant_value:
 				return 4 + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
+			case LightWalletException.Canceled variant_value:
+				return 4;
 			case LightWalletException.Other variant_value:
 				return 4 + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
 			default:
@@ -1941,8 +1988,11 @@ class FfiConverterTypeLightWalletException
 				stream.WriteInt(3);
 				FfiConverterString.INSTANCE.Write(variant_value.@message, stream);
 				break;
-			case LightWalletException.Other variant_value:
+			case LightWalletException.Canceled variant_value:
 				stream.WriteInt(4);
+				break;
+			case LightWalletException.Other variant_value:
+				stream.WriteInt(5);
 				FfiConverterString.INSTANCE.Write(variant_value.@message, stream);
 				break;
 			default:
@@ -2074,6 +2124,103 @@ internal abstract class FfiConverterCallbackInterface<CallbackInterface>
 	public override void Write(CallbackInterface value, BigEndianStream stream)
 	{
 		stream.WriteULong(Lower(value));
+	}
+}
+
+internal interface CancellationSource
+{
+	void SetCancellationId(uint @id);
+}
+
+// The ForeignCallback that is passed to Rust.
+class ForeignCallbackTypeCancellationSource
+{
+	// This cannot be a static method. Although C# supports implicitly using a static method as a
+	// delegate, the behaviour is incorrect for this use case. Using static method as a delegate
+	// argument creates an implicit delegate object, that is later going to be collected by GC. Any
+	// attempt to invoke a garbage collected delegate results in an error:
+	//   > A callback was made on a garbage collected delegate of type 'ForeignCallback::..'
+	public static ForeignCallback INSTANCE = (
+		ulong handle,
+		uint method,
+		IntPtr argsData,
+		int argsLength,
+		ref RustBuffer outBuf
+	) =>
+	{
+		var cb = FfiConverterTypeCancellationSource.INSTANCE.Lift(handle);
+		switch (method)
+		{
+			case 0:
+			{
+				// 0 means Rust is done with the callback, and the callback
+				// can be dropped by the foreign language.
+				FfiConverterTypeCancellationSource.INSTANCE.Drop(handle);
+				// No return value.
+				// See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+				return 0;
+			}
+
+			case 1:
+			{
+				try
+				{
+					outBuf = InvokeSetCancellationId(
+						cb,
+						RustBuffer.MemoryStream(argsData, argsLength)
+					);
+					return UniffiCallbackResponseCode.SUCCESS;
+				}
+				catch (Exception e)
+				{
+					// Unexpected error
+					try
+					{
+						// Try to serialize the error into a string
+						outBuf = FfiConverterString.INSTANCE.Lower(e.Message);
+					}
+					catch
+					{
+						// If that fails, then it's time to give up and just return
+					}
+					return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
+				}
+			}
+
+			default:
+			{
+				// This should never happen, because an out of bounds method index won't
+				// ever be used. Once we can catch errors, we should return an InternalException.
+				// https://github.com/mozilla/uniffi-rs/issues/351
+				return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
+			}
+		}
+	};
+
+	static RustBuffer InvokeSetCancellationId(CancellationSource callback, BigEndianStream stream)
+	{
+		callback.SetCancellationId(FfiConverterUInt32.INSTANCE.Read(stream));
+		return new RustBuffer();
+	}
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+class FfiConverterTypeCancellationSource : FfiConverterCallbackInterface<CancellationSource>
+{
+	public static FfiConverterTypeCancellationSource INSTANCE =
+		new FfiConverterTypeCancellationSource();
+
+	public override void Register()
+	{
+		_UniffiHelpers.RustCall(
+			(ref RustCallStatus status) =>
+			{
+				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_init_callback_cancellationsource(
+					ForeignCallbackTypeCancellationSource.INSTANCE,
+					ref status
+				);
+			}
+		);
 	}
 }
 
@@ -2359,6 +2506,49 @@ class FfiConverterOptionalTimestamp : FfiConverterRustBuffer<DateTime?>
 	}
 }
 
+class FfiConverterOptionalTypeCancellationSource : FfiConverterRustBuffer<CancellationSource?>
+{
+	public static FfiConverterOptionalTypeCancellationSource INSTANCE =
+		new FfiConverterOptionalTypeCancellationSource();
+
+	public override CancellationSource? Read(BigEndianStream stream)
+	{
+		if (stream.ReadByte() == 0)
+		{
+			return null;
+		}
+		return FfiConverterTypeCancellationSource.INSTANCE.Read(stream);
+	}
+
+	public override int AllocationSize(CancellationSource? value)
+	{
+		if (value == null)
+		{
+			return 1;
+		}
+		else
+		{
+			return 1
+				+ FfiConverterTypeCancellationSource.INSTANCE.AllocationSize(
+					(CancellationSource)value
+				);
+		}
+	}
+
+	public override void Write(CancellationSource? value, BigEndianStream stream)
+	{
+		if (value == null)
+		{
+			stream.WriteByte(0);
+		}
+		else
+		{
+			stream.WriteByte(1);
+			FfiConverterTypeCancellationSource.INSTANCE.Write((CancellationSource)value, stream);
+		}
+	}
+}
+
 class FfiConverterOptionalTypeSyncUpdate : FfiConverterRustBuffer<SyncUpdate?>
 {
 	public static FfiConverterOptionalTypeSyncUpdate INSTANCE =
@@ -2633,7 +2823,13 @@ class FfiConverterSequenceTypeTransparentNote : FfiConverterRustBuffer<List<Tran
 internal static class LightWalletMethods
 {
 	/// <exception cref="LightWalletException"></exception>
-	public static uint AddAccount(DbInit @config, String @uri, byte[] @seed, uint? @birthdayHeight)
+	public static uint AddAccount(
+		DbInit @config,
+		String @uri,
+		byte[] @seed,
+		uint? @birthdayHeight,
+		CancellationSource? @cancellation
+	)
 	{
 		return FfiConverterUInt32.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
@@ -2644,6 +2840,7 @@ internal static class LightWalletMethods
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterByteArray.INSTANCE.Lower(@seed),
 						FfiConverterOptionalUInt32.INSTANCE.Lower(@birthdayHeight),
+						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
 					)
 			)
@@ -2664,6 +2861,19 @@ internal static class LightWalletMethods
 						ref _status
 					)
 			)
+		);
+	}
+
+	/// <exception cref="LightWalletException"></exception>
+	public static void Cancel(uint @id)
+	{
+		_UniffiHelpers.RustCallWithError(
+			FfiConverterTypeLightWalletException.INSTANCE,
+			(ref RustCallStatus _status) =>
+				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_cancel(
+					FfiConverterUInt32.INSTANCE.Lower(@id),
+					ref _status
+				)
 		);
 	}
 
@@ -2732,7 +2942,7 @@ internal static class LightWalletMethods
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static uint GetBlockHeight(String @uri)
+	public static uint GetBlockHeight(String @uri, CancellationSource? @cancellation)
 	{
 		return FfiConverterUInt32.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
@@ -2740,6 +2950,7 @@ internal static class LightWalletMethods
 				(ref RustCallStatus _status) =>
 					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_block_height(
 						FfiConverterString.INSTANCE.Lower(@uri),
+						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
 					)
 			)
@@ -2881,7 +3092,12 @@ internal static class LightWalletMethods
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static SyncResult Sync(DbInit @config, String @uri, SyncUpdate? @progress)
+	public static SyncResult Sync(
+		DbInit @config,
+		String @uri,
+		SyncUpdate? @progress,
+		CancellationSource? @cancellation
+	)
 	{
 		return FfiConverterTypeSyncResult.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
@@ -2891,6 +3107,7 @@ internal static class LightWalletMethods
 						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterOptionalTypeSyncUpdate.INSTANCE.Lower(@progress),
+						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
 					)
 			)

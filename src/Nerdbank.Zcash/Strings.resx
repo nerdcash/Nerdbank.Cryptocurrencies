@@ -177,6 +177,9 @@
   <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
     <value>Only hardened keys are supported.</value>
   </data>
+  <data name="OperationCanceled" xml:space="preserve">
+    <value>The operation was canceled.</value>
+  </data>
   <data name="UnrecognizedAccount" xml:space="preserve">
     <value>This account has not yet been added to the wallet.</value>
   </data>

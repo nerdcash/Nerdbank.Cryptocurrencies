@@ -33,7 +33,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 			defaultAccountBirthdayHeightSet = true;
 		}
 
-		this.client.AddAccount(DefaultAccount);
+		await this.client.AddAccountAsync(DefaultAccount, this.TimeoutToken);
 	}
 
 	public Task DisposeAsync()

@@ -114,6 +114,7 @@ pub(crate) async fn transmit_transaction(
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
+    use tokio_util::sync::CancellationToken;
 
     use crate::{
         sync::sync,
@@ -126,9 +127,14 @@ mod tests {
     async fn test_send_insufficient_funds() {
         let mut setup = setup_test().await;
         let account = create_account(&mut setup).await.unwrap();
-        sync(setup.server_uri.clone(), setup.data_file.clone(), None)
-            .await
-            .unwrap();
+        sync(
+            setup.server_uri.clone(),
+            setup.data_file.clone(),
+            None,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
         let result = send_transaction(
             setup.data_file,
             setup.server_uri,

@@ -1,6 +1,7 @@
 use http::Uri;
 use secrecy::{Secret, SecretVec};
 use testdir::testdir;
+use tokio_util::sync::CancellationToken;
 use tonic::transport::Channel;
 use zcash_client_backend::keys::UnifiedSpendingKey;
 use zcash_client_backend::proto::service::{
@@ -44,13 +45,16 @@ pub(crate) struct TestSetup {
 
 pub(crate) async fn setup_test() -> TestSetup {
     let wallet_dir = testdir!();
-    let server_info = webrequest_with_retry(|| async {
-        let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
-        Ok(client
-            .get_lightd_info(service::Empty {})
-            .await?
-            .into_inner())
-    })
+    let server_info = webrequest_with_retry(
+        || async {
+            let mut client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
+            Ok(client
+                .get_lightd_info(service::Empty {})
+                .await?
+                .into_inner())
+        },
+        CancellationToken::new(),
+    )
     .await
     .unwrap();
     let client = get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
