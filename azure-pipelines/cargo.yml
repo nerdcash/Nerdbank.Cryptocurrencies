@@ -7,11 +7,17 @@ parameters:
 steps:
 - pwsh: |
     gci env:
+
     if ($IsWindows) {
-      Write-Host "##vso[task.setvariable variable=CargoRegistry;]$env:USERPROFILE/.cargo/registry"
+      $CargoRegistry = "$env:USERPROFILE\.cargo"
     } else {
-      Write-Host "##vso[task.setvariable variable=CargoRegistry;]$env:HOME/.cargo/registry"
+      $CargoRegistry = "$env:HOME/.cargo"
     }
+
+    Write-Host "CargoRegistry: $CargoRegistry"
+    Write-Host "##vso[task.setvariable variable=CargoRegistry;]$CargoRegistry"
+
+    gci -rec $(CargoRegistry)
   displayName: 📦 env
 - task: Cache@2
   inputs:
@@ -26,6 +32,9 @@ steps:
 
 - pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
+
+- pwsh: gci -rec $(CargoRegistry)
+  displayName: 📦 print cargo registry
 
 - pwsh: cargo test -r --target ${{ parameters.test_target }}
   displayName: 🧪 cargo test
