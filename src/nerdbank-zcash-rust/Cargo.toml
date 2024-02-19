@@ -20,6 +20,7 @@ hdwallet = { path = "../../external/hdwallet" }
 http = "0.2"
 jubjub = "0.10"
 lazy_static = "1.4"
+minreq = "2.11.0"
 orchard = "0.7.0"
 pasta_curves = "0.5"
 prost = "0.12"
@@ -57,7 +58,8 @@ zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
 	"test-dependencies",
 ] }
 zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
-	"bundled-prover",
+	"download-params",
+	"local-prover",
 	"multicore",
 ], default-features = false }
 zeroize = "1.7.0"

@@ -19,12 +19,12 @@ use zcash_primitives::{
     transaction::fees::zip317::{FeeRule, MINIMUM_FEE},
     zip32::AccountId,
 };
-use zcash_proofs::prover::LocalTxProver;
 
 use crate::{
     backing_store::Db,
     error::Error,
     interop::{DbInit, TransparentNote},
+    prover::get_prover,
     send::{transmit_transaction, SendTransactionResult},
     sql_statements::GET_UNSPENT_TRANSPARENT_NOTES,
 };
@@ -41,8 +41,7 @@ pub async fn shield_funds_at_address<P: AsRef<Path>>(
     // We want to be able to shield as soon as UTXOs appear in the mempool.
     let min_confirmations = 0;
 
-    let prover = LocalTxProver::bundled();
-
+    let prover = get_prover()?;
     let input_selector = GreedyInputSelector::new(
         SingleOutputChangeStrategy::new(FeeRule::standard(), None),
         Default::default(),

@@ -22,9 +22,11 @@ use zcash_primitives::{
         components::amount::NonNegativeAmount, fees::zip317::FeeRule, Transaction, TxId,
     },
 };
-use zcash_proofs::prover::LocalTxProver;
 
-use crate::{backing_store::Db, error::Error, grpc::get_client, interop::TransactionSendDetail};
+use crate::{
+    backing_store::Db, error::Error, grpc::get_client, interop::TransactionSendDetail,
+    prover::get_prover,
+};
 
 #[derive(Debug)]
 pub struct SendTransactionResult {
@@ -42,7 +44,7 @@ pub async fn send_transaction<P: AsRef<Path>>(
 ) -> Result<SendTransactionResult, Error> {
     let mut db = Db::init(data_file, network)?;
 
-    let prover = LocalTxProver::bundled();
+    let prover = get_prover()?;
 
     // TODO: revise this to a smarter change strategy that avoids unnecessarily crossing the turnstile.
     let input_selector = GreedyInputSelector::new(
