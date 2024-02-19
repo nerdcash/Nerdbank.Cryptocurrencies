@@ -10,9 +10,6 @@ parameters:
   type: boolean
   default: true
 
-variables:
-  CARGO_HOME: $(Agent.TempDirectory)/.cargo
-
 jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}

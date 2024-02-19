@@ -13,13 +13,13 @@ steps:
 - task: Cache@2
   inputs:
     key: '"cargo-home" | "$(Agent.OS)"'
-    path: $(Agent.TempDirectory)/.cargo
+    path: $(CARGO_HOME)
   displayName: 🧠 cache cargo home
 
 - pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
 
-- pwsh: gci -rec $(Agent.TempDirectory)/.cargo
+- pwsh: gci -rec '$(CARGO_HOME)'
   displayName: 📦 print cargo home
 
 - pwsh: cargo test -r --target ${{ parameters.test_target }}

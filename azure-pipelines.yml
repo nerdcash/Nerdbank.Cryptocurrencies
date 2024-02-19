@@ -24,6 +24,7 @@ variables:
   codecov_token: 38462e91-92d5-4fa6-be55-f363099a3e15
   ci_feed: https://pkgs.dev.azure.com/andrewarnott/OSS/_packaging/PublicCI/nuget/v3/index.json
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
+  CARGO_HOME: $(Agent.TempDirectory)/.cargo
 
 jobs:
 - template: azure-pipelines/build.yml
