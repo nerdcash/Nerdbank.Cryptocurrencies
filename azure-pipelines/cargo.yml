@@ -5,6 +5,14 @@ parameters:
   default: false
 
 steps:
+- pwsh: |
+    gci env:
+    if ($IsWindows) {
+      Write-Host "##vso[task.setvariable variable=CargoRegistry;]$env:USERPROFILE/.cargo/registry"
+    } else {
+      Write-Host "##vso[task.setvariable variable=CargoRegistry;]$env:HOME/.cargo/registry"
+    }
+  displayName: 📦 env
 - task: Cache@2
   inputs:
     key: '"cargo" | "$(Agent.OS)"'
@@ -13,7 +21,7 @@ steps:
 - task: Cache@2
   inputs:
     key: '"cargo-registry" | "$(Agent.OS)"'
-    path: $(HOME)/.cargo/registry
+    path: $(CargoRegistry)
   displayName: 🧠 cache cargo registry
 
 - pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
