@@ -4,21 +4,10 @@ parameters:
   type: boolean
   default: false
 
+variables:
+  CARGO_HOME: $(Agent.TempDirectory)/.cargo
+
 steps:
-- pwsh: |
-    gci env:
-
-    if ($IsWindows) {
-      $CargoRegistry = "$env:USERPROFILE\.cargo"
-    } else {
-      $CargoRegistry = "$env:HOME/.cargo"
-    }
-
-    Write-Host "CargoRegistry: $CargoRegistry"
-    Write-Host "##vso[task.setvariable variable=CargoRegistry;]$CargoRegistry"
-
-    gci -rec $(CargoRegistry)
-  displayName: 📦 env
 - task: Cache@2
   inputs:
     key: '"cargo" | "$(Agent.OS)"'
@@ -26,15 +15,15 @@ steps:
   displayName: 🧠 cache cargo build
 - task: Cache@2
   inputs:
-    key: '"cargo-registry" | "$(Agent.OS)"'
-    path: $(CargoRegistry)
-  displayName: 🧠 cache cargo registry
+    key: '"cargo-home" | "$(Agent.OS)"'
+    path: $(Agent.TempDirectory)/.cargo
+  displayName: 🧠 cache cargo home
 
 - pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
 
-- pwsh: gci -rec $(CargoRegistry)
-  displayName: 📦 print cargo registry
+- pwsh: gci -rec $(Agent.TempDirectory)/.cargo
+  displayName: 📦 print cargo home
 
 - pwsh: cargo test -r --target ${{ parameters.test_target }}
   displayName: 🧪 cargo test
