@@ -4,6 +4,7 @@ use prost::bytes::Buf;
 use rusqlite::Connection;
 use std::{path::Path, sync::Arc};
 use tokio::sync::Mutex;
+use tokio_util::sync::CancellationToken;
 use tonic::{transport::Channel, Status};
 use tracing::{debug, info, warn};
 use uniffi::deps::anyhow;
@@ -52,15 +53,19 @@ pub async fn sync<P: AsRef<Path>>(
     uri: Uri,
     data_file: P,
     progress: Option<Box<dyn SyncUpdate>>,
+    cancellation_token: CancellationToken,
 ) -> Result<SyncResult, Error> {
     let mut client = get_client(uri).await?;
-    let info = webrequest_with_retry(|| async {
-        Ok(client
-            .clone()
-            .get_lightd_info(service::Empty {})
-            .await?
-            .into_inner())
-    })
+    let info = webrequest_with_retry(
+        || async {
+            Ok(client
+                .clone()
+                .get_lightd_info(service::Empty {})
+                .await?
+                .into_inner())
+        },
+        cancellation_token.clone(),
+    )
     .await?;
     let network = parse_network(&info)?;
 
@@ -73,14 +78,17 @@ pub async fn sync<P: AsRef<Path>>(
     let mut tip_height: BlockHeight;
     loop {
         // 3) Download chain tip metadata from lightwalletd
-        tip_height = webrequest_with_retry(|| async {
-            Ok(client
-                .clone()
-                .get_latest_block(service::ChainSpec::default())
-                .await?
-                .get_ref()
-                .height)
-        })
+        tip_height = webrequest_with_retry(
+            || async {
+                Ok(client
+                    .clone()
+                    .get_latest_block(service::ChainSpec::default())
+                    .await?
+                    .get_ref()
+                    .height)
+            },
+            cancellation_token.clone(),
+        )
         .await?
         .try_into()
         .map_err(|e| Error::Internal(format!("Invalid block height: {}", e)))?;
@@ -98,6 +106,7 @@ pub async fn sync<P: AsRef<Path>>(
                 &address,
                 height,
                 tip_height,
+                cancellation_token.clone(),
             )
             .await?;
         }
@@ -114,7 +123,15 @@ pub async fn sync<P: AsRef<Path>>(
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if download_and_scan_blocks(&mut client, scan_range, &network, &mut db).await? {
+                    if download_and_scan_blocks(
+                        &mut client,
+                        scan_range,
+                        &network,
+                        &mut db,
+                        cancellation_token.clone(),
+                    )
+                    .await?
+                    {
                         // The suggested scan ranges have been updated, so we re-request.
                         scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
@@ -179,7 +196,15 @@ pub async fn sync<P: AsRef<Path>>(
                 }
             })
         }) {
-            if download_and_scan_blocks(&mut client, &scan_range, &network, &mut db).await? {
+            if download_and_scan_blocks(
+                &mut client,
+                &scan_range,
+                &network,
+                &mut db,
+                cancellation_token.clone(),
+            )
+            .await?
+            {
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
                 loop_around = true;
@@ -203,7 +228,14 @@ pub async fn sync<P: AsRef<Path>>(
 
     // Download and decrypt the full transactions we found in the compact blocks
     // so we can save their memos to the database.
-    download_full_transactions(&mut client, data_file, &mut db, &network).await?;
+    download_full_transactions(
+        &mut client,
+        data_file,
+        &mut db,
+        &network,
+        cancellation_token,
+    )
+    .await?;
 
     Ok(SyncResult {
         latest_block: tip_height.into(),
@@ -215,6 +247,7 @@ async fn download_full_transactions<P: AsRef<Path>>(
     data_file: P,
     db: &mut Db,
     network: &Network,
+    cancellation_token: CancellationToken,
 ) -> Result<(), Error> {
     let client = Arc::new(Mutex::new(client));
     // Scope the database connection so it's closed before we use the db argument,
@@ -229,17 +262,20 @@ async fn download_full_transactions<P: AsRef<Path>>(
     }
 
     for txid in txids {
-        let raw_tx = webrequest_with_retry(|| async {
-            Ok(client
-                .lock()
-                .await
-                .get_transaction(TxFilter {
-                    hash: txid.clone(),
-                    ..Default::default()
-                })
-                .await?
-                .into_inner())
-        })
+        let raw_tx = webrequest_with_retry(
+            || async {
+                Ok(client
+                    .lock()
+                    .await
+                    .get_transaction(TxFilter {
+                        hash: txid.clone(),
+                        ..Default::default()
+                    })
+                    .await?
+                    .into_inner())
+            },
+            cancellation_token.clone(),
+        )
         .await?;
 
         // The consensus branch ID passed in here does not matter:
@@ -288,34 +324,38 @@ async fn download_transparent_transactions(
     address: &TransparentAddress,
     start: Option<BlockHeight>,
     end: BlockHeight,
+    cancellation_token: CancellationToken,
 ) -> Result<(), Error> {
     let client = Arc::new(Mutex::new(client));
-    let transparent_transactions = webrequest_with_retry(|| async {
-        client
-            .lock()
-            .await
-            .get_taddress_txids(TransparentAddressBlockFilter {
-                address: address.encode(network),
-                range: Some(BlockRange {
-                    start: Some(BlockId {
-                        height: start
-                            .unwrap_or_else(|| {
-                                network.activation_height(NetworkUpgrade::Sapling).unwrap()
-                            })
-                            .into(),
-                        ..Default::default()
+    let transparent_transactions = webrequest_with_retry(
+        || async {
+            client
+                .lock()
+                .await
+                .get_taddress_txids(TransparentAddressBlockFilter {
+                    address: address.encode(network),
+                    range: Some(BlockRange {
+                        start: Some(BlockId {
+                            height: start
+                                .unwrap_or_else(|| {
+                                    network.activation_height(NetworkUpgrade::Sapling).unwrap()
+                                })
+                                .into(),
+                            ..Default::default()
+                        }),
+                        end: Some(BlockId {
+                            height: end.into(),
+                            ..Default::default()
+                        }),
                     }),
-                    end: Some(BlockId {
-                        height: end.into(),
-                        ..Default::default()
-                    }),
-                }),
-            })
-            .await?
-            .into_inner()
-            .try_collect::<Vec<_>>()
-            .await
-    })
+                })
+                .await?
+                .into_inner()
+                .try_collect::<Vec<_>>()
+                .await
+        },
+        cancellation_token,
+    )
     .await?;
     for rawtx in transparent_transactions {
         let height = BlockHeight::from_u32(rawtx.height as u32);
@@ -344,6 +384,7 @@ async fn download_and_scan_blocks(
     scan_range: &ScanRange,
     network: &Network,
     db: &mut Db,
+    cancellation_token: CancellationToken,
 ) -> Result<bool, Error> {
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
@@ -362,6 +403,7 @@ async fn download_and_scan_blocks(
                 warn!("{}", &msg);
                 println!("{}", &msg);
             },
+            cancellation_token,
         )
         .await?,
     );
@@ -476,9 +518,14 @@ mod tests {
         ]
         .map(|a| a);
 
-        let result = sync(setup.server_uri.clone(), &setup.data_file, None)
-            .await
-            .unwrap();
+        let result = sync(
+            setup.server_uri.clone(),
+            &setup.data_file,
+            None,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
 
         println!("Tip: {:?}", result.latest_block);
 

@@ -1,10 +1,19 @@
-use std::{num::NonZeroU32, time::SystemTime};
+use std::{
+    collections::HashMap,
+    num::NonZeroU32,
+    sync::{
+        atomic::{AtomicU32, Ordering},
+        Mutex,
+    },
+    time::SystemTime,
+};
 
 use http::{uri::InvalidUri, Uri};
 use orchard::keys::Scope;
 use rusqlite::{named_params, Connection};
 use secrecy::SecretVec;
 use tokio::runtime::Runtime;
+use tokio_util::sync::CancellationToken;
 use zcash_client_backend::{
     address::UnifiedAddress,
     data_api::WalletRead,
@@ -35,6 +44,10 @@ lazy_static! {
 pub trait SyncUpdate: Send + Sync + std::fmt::Debug {
     fn update_status(&self, data: SyncUpdateData);
     fn report_transactions(&self, transactions: Vec<Transaction>);
+}
+
+pub trait CancellationSource: Send + Sync + std::fmt::Debug {
+    fn set_cancellation_id(&self, id: u32);
 }
 
 impl From<uniffi::UnexpectedUniFFICallbackError> for LightWalletError {
@@ -127,6 +140,9 @@ pub enum LightWalletError {
     #[error("Sqlite client error: {message}")]
     SqliteClientError { message: String },
 
+    #[error("The operation was canceled.")]
+    Canceled,
+
     #[error("{message}")]
     Other { message: String },
 }
@@ -164,6 +180,9 @@ impl From<time::error::ComponentRange> for LightWalletError {
 impl From<Error> for LightWalletError {
     fn from(e: Error) -> Self {
         match e {
+            Error::TonicStatus(status) if status.code() == tonic::Code::Cancelled => {
+                LightWalletError::Canceled
+            }
             Error::Internal(msg) => LightWalletError::Other { message: msg },
             _ => LightWalletError::Other {
                 message: e.to_string(),
@@ -183,6 +202,54 @@ pub struct DbInit {
     pub network: ChainType,
 }
 
+lazy_static! {
+    static ref CANCELLATION_TOKENS: Mutex<HashMap<u32, CancellationToken>> =
+        Mutex::new(HashMap::new());
+    static ref TOKEN_COUNTER: AtomicU32 = AtomicU32::new(1);
+}
+
+struct InteropCancellationToken(CancellationToken, Option<u32>);
+
+impl Drop for InteropCancellationToken {
+    fn drop(&mut self) {
+        if let Some(id) = self.1 {
+            let mut tokens = CANCELLATION_TOKENS.lock().unwrap();
+            tokens.remove(&id);
+        }
+    }
+}
+
+fn get_cancellation_token(
+    client: Option<Box<dyn CancellationSource>>,
+) -> Result<InteropCancellationToken, LightWalletError> {
+    match client {
+        Some(source) => {
+            let (handle, token) = {
+                let mut tokens = CANCELLATION_TOKENS.lock().unwrap();
+                let handle = TOKEN_COUNTER.fetch_add(1, Ordering::SeqCst);
+                let token = CancellationToken::new();
+                tokens.insert(handle, token.clone());
+                (handle, token)
+            };
+
+            // Notify the client of the ID that was assigned so they can call cancel(u32) with it later.
+            source.set_cancellation_id(handle);
+
+            Ok(InteropCancellationToken(token, Some(handle)))
+        }
+        None => Ok(InteropCancellationToken(CancellationToken::new(), None)),
+    }
+}
+
+pub fn cancel(id: u32) -> Result<(), LightWalletError> {
+    let mut tokens = CANCELLATION_TOKENS.lock().unwrap();
+    if let Some(token) = tokens.remove(&id) {
+        token.cancel();
+    }
+
+    Ok(())
+}
+
 pub fn init(config: DbInit) -> Result<(), LightWalletError> {
     RT.block_on(async move {
         Db::init(config.data_file, config.network.into())?;
@@ -195,15 +262,17 @@ pub fn add_account(
     uri: String,
     seed: Vec<u8>,
     birthday_height: Option<u32>,
+    cancellation: Option<Box<dyn CancellationSource>>,
 ) -> Result<u32, LightWalletError> {
     use crate::lightclient::get_block_height;
+    let cancellation_token = get_cancellation_token(cancellation)?;
 
     RT.block_on(async move {
         let mut db = Db::load(config.data_file, config.network.into())?;
         let mut client = get_client(uri.parse()?).await.map_err(Error::from)?;
         let birthday_height = match birthday_height {
             Some(v) => v,
-            None => get_block_height(uri.parse()?).await?,
+            None => get_block_height(uri.parse()?, cancellation_token.0.clone()).await?,
         };
         let secret = SecretVec::new(seed);
         let account = db
@@ -265,10 +334,14 @@ pub fn get_birthday_height(config: DbInit) -> Result<Option<u32>, LightWalletErr
     })
 }
 
-pub fn get_block_height(uri: String) -> Result<u32, LightWalletError> {
+pub fn get_block_height(
+    uri: String,
+    cancellation: Option<Box<dyn CancellationSource>>,
+) -> Result<u32, LightWalletError> {
     use crate::lightclient::get_block_height;
     let uri: Uri = uri.parse()?;
-    RT.block_on(async move { Ok(get_block_height(uri).await?) })
+    let cancellation_token = get_cancellation_token(cancellation)?;
+    RT.block_on(async move { Ok(get_block_height(uri, cancellation_token.0.clone()).await?) })
 }
 
 pub fn get_sync_height(config: DbInit) -> Result<Option<u32>, LightWalletError> {
@@ -282,10 +355,20 @@ pub fn sync(
     config: DbInit,
     uri: String,
     progress: Option<Box<dyn SyncUpdate>>,
+    cancellation: Option<Box<dyn CancellationSource>>,
 ) -> Result<SyncResult, LightWalletError> {
     use crate::sync::sync;
     let uri: Uri = uri.parse()?;
-    RT.block_on(async move { Ok(sync(uri, config.data_file, progress).await?) })
+    let cancellation_token = get_cancellation_token(cancellation)?;
+    RT.block_on(async move {
+        Ok(sync(
+            uri,
+            config.data_file,
+            progress,
+            cancellation_token.0.clone(),
+        )
+        .await?)
+    })
 }
 
 pub fn get_transactions(

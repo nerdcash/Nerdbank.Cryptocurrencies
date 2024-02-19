@@ -51,7 +51,7 @@ Nerdbank.Zcash.ISpendingKey.FullViewingKey.get -> Nerdbank.Zcash.IFullViewingKey
 Nerdbank.Zcash.IZcashKey
 Nerdbank.Zcash.IZcashKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.LightWalletClient
-Nerdbank.Zcash.LightWalletClient.AddAccount(Nerdbank.Zcash.ZcashAccount! account) -> void
+Nerdbank.Zcash.LightWalletClient.AddAccountAsync(Nerdbank.Zcash.ZcashAccount! account, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Nerdbank.Zcash.LightWalletClient.AddDiversifier(Nerdbank.Zcash.ZcashAccount! account, Nerdbank.Zcash.DiversifierIndex diversifierIndex) -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.LightWalletClient.BirthdayHeight.get -> uint?
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights
@@ -134,6 +134,7 @@ Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Deconstruct(out decimal 
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Equals(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance other) -> bool
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance() -> void
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance(decimal Balance) -> void
+Nerdbank.Zcash.LightWalletClient.UpgradeAccount(Nerdbank.Zcash.ZcashAccount! account) -> void
 Nerdbank.Zcash.LightWalletException
 Nerdbank.Zcash.LightWalletException.Code.get -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.Code.init -> void

@@ -1311,6 +1311,7 @@ dependencies = [
  "thiserror",
  "time",
  "tokio",
+ "tokio-util",
  "tonic",
  "tracing",
  "uniffi",

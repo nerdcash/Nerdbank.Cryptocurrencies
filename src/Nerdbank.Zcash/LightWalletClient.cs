@@ -88,7 +88,12 @@ public partial class LightWalletClient : IDisposable
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 		try
 		{
-			return LightWalletMethods.GetBlockHeight(lightWalletServerUrl.AbsoluteUri);
+			using Cancellation cancellation = new(cancellationToken);
+			return LightWalletMethods.GetBlockHeight(lightWalletServerUrl.AbsoluteUri, cancellation);
+		}
+		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
+		{
+			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
 		{
@@ -99,9 +104,15 @@ public partial class LightWalletClient : IDisposable
 	/// <summary>
 	/// Adds an account to the wallet, if does not already exist.
 	/// </summary>
-	/// <param name="account">The account to add.</param>
+	/// <param name="account">The account to add (or upgrade).</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>A task that completes when the account has been added.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with.</exception>
-	public void AddAccount(ZcashAccount account)
+	/// <remarks>
+	/// An account may already exist in the database, in which case this method will upgrade the account
+	/// as <see cref="UpgradeAccount(ZcashAccount)"/> would, adding a spending key if one is available.
+	/// </remarks>
+	public async Task AddAccountAsync(ZcashAccount account, CancellationToken cancellationToken)
 	{
 		Requires.NotNull(account);
 		if (account.HDDerivation is null)
@@ -124,13 +135,44 @@ public partial class LightWalletClient : IDisposable
 
 		try
 		{
-			id = LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight);
+			using Cancellation cancellation = new(cancellationToken);
+			await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+			id = LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight, cancellation);
 			this.accountIds = this.accountIds.Add(account, id);
+		}
+		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
+		{
+			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
 		{
 			throw new LightWalletException(ex);
 		}
+	}
+
+	/// <summary>
+	/// Adds an account to the wallet, if does not already exist.
+	/// </summary>
+	/// <param name="account">The account to add.</param>
+	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with.</exception>
+	public void UpgradeAccount(ZcashAccount account)
+	{
+		Requires.NotNull(account);
+		if (account.HDDerivation is null)
+		{
+			throw new NotSupportedException("Only HD derived accounts are supported at present.");
+		}
+
+		if (account.Network != this.Network)
+		{
+			throw new InvalidOperationException(Strings.FormatNetworkMismatch(this.Network, account.Network));
+		}
+
+		Verify.Operation(this.accountIds.TryGetValue(account, out uint id), Strings.UnrecognizedAccount);
+
+		// The database already has this account.
+		// But we'll replace our copy with the given one which may contain a spending key.
+		this.accountIds = this.accountIds.Remove(account).Add(account, id);
 	}
 
 	/// <summary>
@@ -140,7 +182,7 @@ public partial class LightWalletClient : IDisposable
 	/// <remarks>
 	/// This will include view-only accounts that were added to the wallet in another session.
 	/// They can be upgraded to spending accounts by passing the <see cref="ZcashAccount"/> instance
-	/// with a spending key to <see cref="AddAccount(ZcashAccount)"/>.
+	/// with a spending key to <see cref="UpgradeAccount(ZcashAccount)"/>.
 	/// </remarks>
 	public IEnumerable<ZcashAccount> GetAccounts()
 	{
@@ -219,13 +261,22 @@ public partial class LightWalletClient : IDisposable
 		IProgress<IReadOnlyCollection<Transaction>>? discoveredTransactions,
 		CancellationToken cancellationToken)
 	{
+		using Cancellation cancellation = new(cancellationToken);
 		await TaskScheduler.Default.SwitchTo(true);
-		uniffi.LightWallet.SyncResult result = LightWalletMethods.Sync(
-			this.dbinit,
-			this.serverUrl.AbsoluteUri,
-			new SyncUpdateSink(this.Network, statusUpdates, discoveredTransactions));
+		try
+		{
+			uniffi.LightWallet.SyncResult result = LightWalletMethods.Sync(
+				this.dbinit,
+				this.serverUrl.AbsoluteUri,
+				new SyncUpdateSink(this.Network, statusUpdates, discoveredTransactions),
+				cancellation);
 
-		return new SyncResult(result);
+			return new SyncResult(result);
+		}
+		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
+		{
+			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
+		}
 	}
 
 	/// <summary>
@@ -549,5 +600,27 @@ public partial class LightWalletClient : IDisposable
 
 		public void ReportTransactions(List<uniffi.LightWallet.Transaction> transactions)
 			=> discoveredTransactions?.Report(transactions.Select(t => CreateTransaction(t, network)).ToList());
+	}
+
+	private class Cancellation : CancellationSource, IDisposable
+	{
+		private readonly CancellationToken token;
+		private CancellationTokenRegistration registration;
+
+		public Cancellation(CancellationToken token)
+		{
+			token.ThrowIfCancellationRequested();
+			this.token = token;
+		}
+
+		public void SetCancellationId(uint id)
+		{
+			this.registration = this.token.Register(() => LightWalletMethods.Cancel(id), useSynchronizationContext: false);
+		}
+
+		public void Dispose()
+		{
+			this.registration.Dispose();
+		}
 	}
 }

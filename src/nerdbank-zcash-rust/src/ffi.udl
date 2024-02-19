@@ -3,6 +3,7 @@ interface LightWalletError {
 	InvalidArgument(string message);
 	InvalidUri();
 	SqliteClientError(string message);
+	Canceled();
 	Other(string message);
 };
 
@@ -87,12 +88,19 @@ callback interface SyncUpdate {
 	void report_transactions(sequence<Transaction> transactions);
 };
 
+callback interface CancellationSource {
+	void set_cancellation_id(u32 id);
+};
+
 namespace LightWallet {
+	[Throws=LightWalletError]
+	void cancel(u32 id);
+
 	[Throws=LightWalletError]
 	void init(DbInit config);
 
 	[Throws=LightWalletError]
-	u32 add_account(DbInit config, string uri, bytes seed, u32? birthday_height);
+	u32 add_account(DbInit config, string uri, bytes seed, u32? birthday_height, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
 	sequence<AccountInfo> get_accounts(DbInit config);
@@ -102,13 +110,13 @@ namespace LightWallet {
 	u32? get_birthday_height(DbInit config);
 
 	[Throws=LightWalletError]
-	u32 get_block_height(string uri);
+	u32 get_block_height(string uri, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
 	u32? get_sync_height(DbInit config);
 
 	[Throws=LightWalletError]
-	SyncResult sync(DbInit config, string uri, SyncUpdate? progress);
+	SyncResult sync(DbInit config, string uri, SyncUpdate? progress, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
 	boolean disconnect_server(string uri);
