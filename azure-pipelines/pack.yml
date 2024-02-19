@@ -28,16 +28,16 @@ steps:
     dotnet tool install --tool-path obj SignClient
 
     obj/SignClient sign
-    --baseDirectory 'bin/Packages/$(BuildConfiguration)'
+    --baseDirectory '$(System.DefaultWorkingDirectory)/bin/Packages/$(BuildConfiguration)'
     --input '**/*'
     --config '$(System.DefaultWorkingDirectory)/azure-pipelines/SignClient.json'
     --filelist '$(System.DefaultWorkingDirectory)/azure-pipelines/signfiles.txt'
     --user '$(codesign_username)'
     --secret '$(codesign_secret)'
-    --name 'Nerdbank.GitVersioning'
-    --descriptionUrl 'https://github.com/dotnet/Nerdbank.GitVersioning'
+    --name 'Nerdbank.Cryptocurrencies'
+    --descriptionUrl 'https://github.com/nerdcash/Nerdbank.Cryptocurrencies'
   displayName: 🔏 Code sign
-  condition: and(succeeded(), eq(variables['System.TeamFoundationCollectionUri'], 'https://dev.azure.com/andrewarnott/'), eq(variables['Agent.OS'], 'Windows_NT'), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), eq(variables['System.TeamFoundationCollectionUri'], 'https://dev.azure.com/andrewarnott/'), ne(variables['Build.Reason'], 'PullRequest'))
 
 - publish: bin/Packages/$(BuildConfiguration)
   artifact: deployables
