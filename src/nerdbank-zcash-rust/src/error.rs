@@ -41,6 +41,8 @@ pub enum Error {
 
     Io(std::io::Error),
 
+    Minreq(minreq::Error),
+
     Internal(String),
 
     Sqlite(rusqlite::Error),
@@ -112,6 +114,7 @@ impl std::fmt::Display for Error {
             Error::InvalidArgument(e) => e.fmt(f),
             Error::Anyhow(e) => e.fmt(f),
             Error::SendFailed { code, reason } => write!(f, "Send failed: {}: {}", code, reason),
+            Error::Minreq(e) => e.fmt(f),
         }
     }
 }
@@ -204,6 +207,12 @@ impl From<memo::Error> for Error {
 impl From<Zip321Error> for Error {
     fn from(e: Zip321Error) -> Self {
         Error::Zip321(e)
+    }
+}
+
+impl From<minreq::Error> for Error {
+    fn from(value: minreq::Error) -> Self {
+        Error::Minreq(value)
     }
 }
 
