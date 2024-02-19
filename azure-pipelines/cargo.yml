@@ -17,7 +17,11 @@ steps:
   displayName: 🧠 cache cargo home
 
 - pwsh: |
-    $env:PATH = "$env:CARGO_HOME\bin;$env:PATH"
+    if ($IsWindows) {
+      $env:PATH = "$env:CARGO_HOME\bin;$env:PATH"
+    } else {
+      $env:PATH = "$env:CARGO_HOME/bin:$env:PATH"
+    }
     src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
 
