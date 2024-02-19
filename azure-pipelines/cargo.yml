@@ -22,6 +22,7 @@ steps:
     } else {
       $env:PATH = "$env:CARGO_HOME/bin:$env:PATH"
     }
+    Write-Host "PATH: $env:PATH"
     src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
 
