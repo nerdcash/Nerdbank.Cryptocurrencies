@@ -4,9 +4,6 @@ parameters:
   type: boolean
   default: false
 
-variables:
-  CARGO_HOME: $(Agent.TempDirectory)/.cargo
-
 steps:
 - task: Cache@2
   inputs:
