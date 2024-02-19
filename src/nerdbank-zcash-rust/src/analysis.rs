@@ -1,6 +1,7 @@
 use std::num::NonZeroU32;
 
 use rusqlite::{named_params, Connection};
+use zcash_primitives::consensus::{Network, NetworkUpgrade, Parameters};
 use zcash_primitives::transaction::fees::zip317::{FeeRule, MINIMUM_FEE};
 use zcash_primitives::zip32::AccountId;
 
@@ -29,18 +30,21 @@ pub fn get_birthday_heights(
     config: DbInit,
     account_id: AccountId,
 ) -> Result<BirthdayHeights, Error> {
+    let network: Network = config.network.into();
     let conn = Connection::open(config.data_file)?;
     let heights = conn.query_row(
         GET_BIRTHDAY_HEIGHTS,
         named_params! {
             ":account_id": u32::from(account_id),
         },
-        |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        |row| Ok((row.get(0)?, row.get::<_, Option<u32>>(1)?, row.get(2)?)),
     )?;
 
     Ok(BirthdayHeights {
         original_birthday_height: heights.0,
-        birthday_height: heights.1,
+        birthday_height: heights.1.unwrap_or_else(|| {
+            u32::from(network.activation_height(NetworkUpgrade::Sapling).unwrap())
+        }),
         rebirth_height: heights.2,
     })
 }
