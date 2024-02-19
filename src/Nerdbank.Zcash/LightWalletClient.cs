@@ -34,7 +34,7 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="serverUrl">
 	/// <para>The URL of a lightwallet server to use.</para>
-	/// <para>You may refer to <see cref="WellKnownServers"/> for well-known servers run by the Zcash Foundation,
+	/// <para>You may refer to <see cref="LightWalletServers"/> for well-known servers run by the Zcash Foundation,
 	/// Electric Coin Company (ECC), and others.</para>
 	/// </param>
 	/// <param name="network">
@@ -537,30 +537,6 @@ public partial class LightWalletClient : IDisposable
 			: this(data.current, data.total, data.lastError)
 		{
 		}
-	}
-
-	/// <summary>
-	/// A store of URLs to well-known lightwalletd servers.
-	/// </summary>
-	public static class WellKnownServers
-	{
-		/// <summary>
-		/// Gets a reasonable, publicly accessible lightwalletd server to connect to for a given network.
-		/// </summary>
-		/// <param name="network">The Zcash network that the server must operate on.</param>
-		/// <returns>The Uri for the server.</returns>
-		/// <remarks>
-		/// For a robust Zcash application, you should research all the public lightwalletd servers available,
-		/// considering their performance, up-time, and geographic location.
-		/// You may also consider running your own lightwalletd server.
-		/// </remarks>
-		public static Uri GetDefaultServer(ZcashNetwork network) =>
-			network switch
-			{
-				ZcashNetwork.MainNet => new("https://mainnet.lightwalletd.com:9067/"),
-				ZcashNetwork.TestNet => new("https://lightwalletd.testnet.electriccoin.co:9067/"),
-				_ => throw new ArgumentOutOfRangeException(nameof(network)),
-			};
 	}
 
 	private class SyncUpdateSink(

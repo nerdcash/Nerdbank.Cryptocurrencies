@@ -8,9 +8,8 @@ namespace Nerdbank.Zcash.Cli;
 
 internal static class Utilities
 {
-	internal static Uri GetDefaultLightWalletUrl(bool testNet) =>
-		testNet ? new Uri("https://lightwalletd.testnet.electriccoin.co:9067/") :
-		new Uri("https://mainnet.lightwalletd.com:9067/");
+	internal static Uri GetDefaultLightWalletUrl(bool testNet) => LightWalletServers.GetDefaultServer(
+		testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
 
 	internal static LightWalletClient ConstructLightClient(Uri? userSpecifiedServerUrl, ZcashNetwork network, string walletPath)
 	{

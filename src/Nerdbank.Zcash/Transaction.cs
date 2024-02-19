@@ -25,7 +25,7 @@ public partial record Transaction
 		TxId transactionId,
 		uint? minedHeight,
 		bool expiredUnmined,
-		DateTime when,
+		DateTime? when,
 		decimal netChange,
 		decimal fee,
 		ImmutableArray<SendItem> outgoing,
@@ -59,7 +59,7 @@ public partial record Transaction
 	/// <summary>
 	/// Gets the timestamp on the block this transaction was mined in.
 	/// </summary>
-	public DateTime When { get; }
+	public DateTime? When { get; }
 
 	/// <summary>
 	/// Gets the net balance change applied by this transaction.

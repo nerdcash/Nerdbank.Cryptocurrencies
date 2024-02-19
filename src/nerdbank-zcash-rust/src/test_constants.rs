@@ -28,7 +28,8 @@ pub(crate) const VALID_SAPLING_TESTNET: &str =
     "ztestsapling15740genxvp99m3vut5q7dqm0da9l8nst2njae3kpu6e406peeypk0n78zue0hgxt5gmasaznnm0";
 
 lazy_static! {
-    pub(crate) static ref LIGHTSERVER_URI: Uri = crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
+    pub(crate) static ref LIGHTSERVER_URI: Uri =
+        crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
 }
 
 pub(crate) struct TestSetup {

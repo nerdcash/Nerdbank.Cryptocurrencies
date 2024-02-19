@@ -134,7 +134,6 @@ Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Deconstruct(out decimal 
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.Equals(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance other) -> bool
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance() -> void
 Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.TransparentPoolBalance(decimal Balance) -> void
-Nerdbank.Zcash.LightWalletClient.WellKnownServers
 Nerdbank.Zcash.LightWalletException
 Nerdbank.Zcash.LightWalletException.Code.get -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.Code.init -> void
@@ -145,6 +144,10 @@ Nerdbank.Zcash.LightWalletException.ErrorCode.Other = 0 -> Nerdbank.Zcash.LightW
 Nerdbank.Zcash.LightWalletException.ErrorCode.Sqlite = 3 -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.LightWalletException(string? message) -> void
 Nerdbank.Zcash.LightWalletException.LightWalletException(string? message, System.Exception? innerException) -> void
+Nerdbank.Zcash.LightWalletServers
+Nerdbank.Zcash.LightWalletServers.ElectricCoinCo
+Nerdbank.Zcash.LightWalletServers.Hanh
+Nerdbank.Zcash.LightWalletServers.Nighthawk
 Nerdbank.Zcash.ManagedLightWalletClient
 Nerdbank.Zcash.ManagedLightWalletClient.Dispose() -> void
 Nerdbank.Zcash.ManagedLightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
@@ -442,9 +445,9 @@ Nerdbank.Zcash.Transaction.SendItem.SendItem(Nerdbank.Zcash.ZcashAddress! ToAddr
 Nerdbank.Zcash.Transaction.SendItem.ToAddress.get -> Nerdbank.Zcash.ZcashAddress!
 Nerdbank.Zcash.Transaction.SendItem.ToAddress.set -> void
 Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.Transaction! original) -> void
-Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.TxId transactionId, uint? minedHeight, bool expiredUnmined, System.DateTime when, decimal netChange, decimal fee, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> outgoing, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> incoming) -> void
+Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.TxId transactionId, uint? minedHeight, bool expiredUnmined, System.DateTime? when, decimal netChange, decimal fee, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> outgoing, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> incoming) -> void
 Nerdbank.Zcash.Transaction.TransactionId.get -> Nerdbank.Zcash.TxId
-Nerdbank.Zcash.Transaction.When.get -> System.DateTime
+Nerdbank.Zcash.Transaction.When.get -> System.DateTime?
 Nerdbank.Zcash.Transparent.PrivateKey
 Nerdbank.Zcash.Transparent.PrivateKey.KeyMaterial.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.Transparent.PrivateKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
@@ -830,7 +833,8 @@ static Nerdbank.Zcash.LightWalletClient.SyncResult.operator !=(Nerdbank.Zcash.Li
 static Nerdbank.Zcash.LightWalletClient.SyncResult.operator ==(Nerdbank.Zcash.LightWalletClient.SyncResult? left, Nerdbank.Zcash.LightWalletClient.SyncResult? right) -> bool
 static Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.operator !=(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance left, Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance right) -> bool
 static Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.operator ==(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance left, Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance right) -> bool
-static Nerdbank.Zcash.LightWalletClient.WellKnownServers.GetDefaultServer(Nerdbank.Zcash.ZcashNetwork network) -> System.Uri!
+static Nerdbank.Zcash.LightWalletServers.GetDefaultServer(Nerdbank.Zcash.ZcashNetwork network) -> System.Uri!
+static Nerdbank.Zcash.LightWalletServers.Hanh.MainNet.get -> System.Uri!
 static Nerdbank.Zcash.ManagedLightWalletClient.CreateAsync(System.Uri! serverUrl, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Nerdbank.Zcash.ManagedLightWalletClient!>
 static Nerdbank.Zcash.Memo.FromMessage(string? message) -> Nerdbank.Zcash.Memo
 static Nerdbank.Zcash.Memo.NoMemo.get -> Nerdbank.Zcash.Memo
@@ -941,6 +945,8 @@ static Nerdbank.Zcash.Zip32HDWallet.Transparent.Create(Nerdbank.Bitcoin.Bip39Mne
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey? key) -> bool
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey? key) -> bool
+static readonly Nerdbank.Zcash.LightWalletServers.ElectricCoinCo.TestNet -> System.Uri!
+static readonly Nerdbank.Zcash.LightWalletServers.Nighthawk.MainNet -> System.Uri!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.ByFullViewingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.ByIncomingViewingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.BySpendingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!

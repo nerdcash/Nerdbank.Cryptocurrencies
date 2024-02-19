@@ -1624,7 +1624,7 @@ class FfiConverterTypeSyncUpdateData : FfiConverterRustBuffer<SyncUpdateData>
 
 internal record Transaction(
 	byte[] @txid,
-	DateTime @blockTime,
+	DateTime? @blockTime,
 	uint? @minedHeight,
 	bool @expiredUnmined,
 	long @accountBalanceDelta,
@@ -1642,7 +1642,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 	{
 		return new Transaction(
 			@txid: FfiConverterByteArray.INSTANCE.Read(stream),
-			@blockTime: FfiConverterTimestamp.INSTANCE.Read(stream),
+			@blockTime: FfiConverterOptionalTimestamp.INSTANCE.Read(stream),
 			@minedHeight: FfiConverterOptionalUInt32.INSTANCE.Read(stream),
 			@expiredUnmined: FfiConverterBoolean.INSTANCE.Read(stream),
 			@accountBalanceDelta: FfiConverterInt64.INSTANCE.Read(stream),
@@ -1656,7 +1656,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 	public override int AllocationSize(Transaction value)
 	{
 		return FfiConverterByteArray.INSTANCE.AllocationSize(value.@txid)
-			+ FfiConverterTimestamp.INSTANCE.AllocationSize(value.@blockTime)
+			+ FfiConverterOptionalTimestamp.INSTANCE.AllocationSize(value.@blockTime)
 			+ FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@minedHeight)
 			+ FfiConverterBoolean.INSTANCE.AllocationSize(value.@expiredUnmined)
 			+ FfiConverterInt64.INSTANCE.AllocationSize(value.@accountBalanceDelta)
@@ -1671,7 +1671,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 	public override void Write(Transaction value, BigEndianStream stream)
 	{
 		FfiConverterByteArray.INSTANCE.Write(value.@txid, stream);
-		FfiConverterTimestamp.INSTANCE.Write(value.@blockTime, stream);
+		FfiConverterOptionalTimestamp.INSTANCE.Write(value.@blockTime, stream);
 		FfiConverterOptionalUInt32.INSTANCE.Write(value.@minedHeight, stream);
 		FfiConverterBoolean.INSTANCE.Write(value.@expiredUnmined, stream);
 		FfiConverterInt64.INSTANCE.Write(value.@accountBalanceDelta, stream);
@@ -2316,6 +2316,45 @@ class FfiConverterOptionalByteArray : FfiConverterRustBuffer<byte[]?>
 		{
 			stream.WriteByte(1);
 			FfiConverterByteArray.INSTANCE.Write((byte[])value, stream);
+		}
+	}
+}
+
+class FfiConverterOptionalTimestamp : FfiConverterRustBuffer<DateTime?>
+{
+	public static FfiConverterOptionalTimestamp INSTANCE = new FfiConverterOptionalTimestamp();
+
+	public override DateTime? Read(BigEndianStream stream)
+	{
+		if (stream.ReadByte() == 0)
+		{
+			return null;
+		}
+		return FfiConverterTimestamp.INSTANCE.Read(stream);
+	}
+
+	public override int AllocationSize(DateTime? value)
+	{
+		if (value == null)
+		{
+			return 1;
+		}
+		else
+		{
+			return 1 + FfiConverterTimestamp.INSTANCE.AllocationSize((DateTime)value);
+		}
+	}
+
+	public override void Write(DateTime? value, BigEndianStream stream)
+	{
+		if (value == null)
+		{
+			stream.WriteByte(0);
+		}
+		else
+		{
+			stream.WriteByte(1);
+			FfiConverterTimestamp.INSTANCE.Write((DateTime)value, stream);
 		}
 	}
 }
