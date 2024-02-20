@@ -132,6 +132,9 @@
   <data name="BirthdayHeightOptionDescription" xml:space="preserve">
     <value>Forces a particular birthday height to be recorded in the new account. By default this will be the current blockchain length if in online mode.</value>
   </data>
+  <data name="ContinuallyOptionDescription" xml:space="preserve">
+    <value>Download the blockchain continually, watching for new blocks as they are added.</value>
+  </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>List transactions from the blockchain belonging to this wallet.</value>
   </data>

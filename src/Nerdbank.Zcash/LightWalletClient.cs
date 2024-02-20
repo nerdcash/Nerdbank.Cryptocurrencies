@@ -236,11 +236,8 @@ public partial class LightWalletClient : IDisposable
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
 	public ValueTask<uint> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
-	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyCollection{Transaction}}, CancellationToken)"/>
-	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, null, cancellationToken);
-
 	/// <summary>
-	/// Scans the blockchain for new transactions related to this account.
+	/// Scans the blockchain for new transactions related to the accounts known to this wallet.
 	/// </summary>
 	/// <param name="statusUpdates">
 	/// An optional receiver of updates that report on progress toward the tip of the blockchain.
@@ -249,29 +246,38 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="discoveredTransactions">
 	/// Receives the transactions that are discovered during the scan.
 	/// </param>
+	/// <param name="continually">
+	/// A value indicating whether to keep scanning the blockchain,
+	/// watching for mempool transactions and new blocks as they come.
+	/// </param>
 	/// <param name="cancellationToken">
 	/// A cancellation token.
 	/// There may be a substantial delay between cancellation and when the blockchain scan is suspended in order to conclude work on the current 'batch'.
 	/// Cancellation does <em>not</em> result in an <see cref="OperationCanceledException"/> being thrown,
 	/// but rather concludes the operation early with an indication of the last block that was scanned.
 	/// </param>
-	/// <returns>A task with the result of the scan.</returns>
-	public async Task<SyncResult> DownloadTransactionsAsync(
+	/// <returns>
+	/// A task that never completes successfully when <paramref name="continually"/> is <see langword="true" />,
+	/// or completes with the last <see cref="SyncProgress"/> after the blockchain has been fully downloaded as of when the call was made.
+	/// </returns>
+	public async Task<SyncProgress> DownloadTransactionsAsync(
 		IProgress<SyncProgress>? statusUpdates,
 		IProgress<IReadOnlyCollection<Transaction>>? discoveredTransactions,
+		bool continually,
 		CancellationToken cancellationToken)
 	{
 		using Cancellation cancellation = new(cancellationToken);
 		await TaskScheduler.Default.SwitchTo(true);
 		try
 		{
-			uniffi.LightWallet.SyncResult result = LightWalletMethods.Sync(
+			SyncUpdateData result = LightWalletMethods.Sync(
 				this.dbinit,
 				this.serverUrl.AbsoluteUri,
 				new SyncUpdateSink(this.Network, statusUpdates, discoveredTransactions),
+				continually,
 				cancellation);
 
-			return new SyncResult(result);
+			return new SyncProgress(result);
 		}
 		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
 		{
@@ -550,34 +556,18 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// Describes the final result of a blockchain scan.
+	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync"/> operation.
 	/// </summary>
-	/// <param name="Success">Indicates overall success of the operation.</param>
-	/// <param name="LatestBlock">The last blocked scanned.</param>
-	public record SyncResult(
-		bool Success,
-		ulong LatestBlock)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SyncResult"/> class
-		/// based on data coming from the native code.
-		/// </summary>
-		/// <param name="copyFrom">The native data to copy from.</param>
-		internal SyncResult(uniffi.LightWallet.SyncResult copyFrom)
-			: this(true, copyFrom.latestBlock)
-		{
-		}
-	}
-
-	/// <summary>
-	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyCollection{Transaction}}?, CancellationToken)"/> operation.
-	/// </summary>
-	/// <param name="Current">The step that the operation has most recently completed.</param>
-	/// <param name="Total">The number of steps currently believed to be in the operation.</param>
+	/// <param name="LastFullyScannedBlock">The last block that has been fully scanned.</param>
+	/// <param name="TipHeight">The length of the blockchain.</param>
+	/// <param name="CurrentStep">The step that the operation has most recently completed.</param>
+	/// <param name="TotalSteps">The number of steps currently believed to be in the operation.</param>
 	/// <param name="LastError">The last error encountered during the scan.</param>
 	public record SyncProgress(
-		ulong Current,
-		ulong Total,
+		uint? LastFullyScannedBlock,
+		uint TipHeight,
+		ulong CurrentStep,
+		ulong TotalSteps,
 		string? LastError)
 	{
 		/// <summary>
@@ -585,9 +575,14 @@ public partial class LightWalletClient : IDisposable
 		/// </summary>
 		/// <param name="data">The interop type to copy data from.</param>
 		internal SyncProgress(SyncUpdateData data)
-			: this(data.current, data.total, data.lastError)
+			: this(data.lastFullyScannedBlock, data.tipHeight, data.currentStep, data.totalSteps, data.lastError)
 		{
 		}
+
+		/// <summary>
+		/// Gets the % completion in reaching the tip of the blockchain.
+		/// </summary>
+		public double PercentComplete => this.TotalSteps == 0 ? 0 : (double)this.CurrentStep * 100 / this.TotalSteps;
 	}
 
 	private class SyncUpdateSink(

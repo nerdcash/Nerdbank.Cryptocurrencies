@@ -131,6 +131,7 @@ mod tests {
             setup.server_uri.clone(),
             setup.data_file.clone(),
             None,
+            false,
             CancellationToken::new(),
         )
         .await

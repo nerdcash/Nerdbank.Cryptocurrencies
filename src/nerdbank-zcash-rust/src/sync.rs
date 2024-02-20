@@ -3,7 +3,7 @@ use http::Uri;
 use prost::bytes::Buf;
 use rusqlite::Connection;
 use std::{path::Path, sync::Arc};
-use tokio::sync::Mutex;
+use tokio::{select, sync::Mutex};
 use tokio_util::sync::CancellationToken;
 use tonic::{transport::Channel, Status};
 use tracing::{debug, info, warn};
@@ -27,7 +27,7 @@ use zcash_client_backend::{
     proto::{
         compact_formats::CompactBlock,
         service::{
-            self, compact_tx_streamer_client::CompactTxStreamerClient, BlockId, BlockRange,
+            self, compact_tx_streamer_client::CompactTxStreamerClient, BlockId, BlockRange, Empty,
             TransparentAddressBlockFilter, TxFilter,
         },
     },
@@ -39,7 +39,7 @@ use crate::{
     block_source::BlockCacheError,
     error::Error,
     grpc::get_client,
-    interop::{SyncResult, SyncUpdate, SyncUpdateData},
+    interop::{SyncUpdate, SyncUpdateData},
     lightclient::parse_network,
     resilience::{webrequest_with_logged_retry, webrequest_with_retry},
 };
@@ -53,9 +53,10 @@ pub async fn sync<P: AsRef<Path>>(
     uri: Uri,
     data_file: P,
     progress: Option<Box<dyn SyncUpdate>>,
+    continually: bool,
     cancellation_token: CancellationToken,
-) -> Result<SyncResult, Error> {
-    let mut client = get_client(uri).await?;
+) -> Result<SyncUpdateData, Error> {
+    let mut client = get_client(uri.clone()).await?;
     let info = webrequest_with_retry(
         || async {
             Ok(client
@@ -163,22 +164,43 @@ pub async fn sync<P: AsRef<Path>>(
         let scan_ranges = db.data.suggest_scan_ranges()?;
         debug!("Suggested ranges: {:?}", scan_ranges);
 
-        // Establish the total work required.
-        // For now, we'll just count blocks. But a far better measure is by number of outputs we'll need to scan.
-        let total_steps = scan_ranges
-            .iter()
-            .map(|r| u64::from(r.block_range().end) - u64::from(r.block_range().start))
-            .sum::<u64>();
-        let mut current_step = 0;
-        if let Some(progress) = progress.as_ref() {
-            progress.update_status(SyncUpdateData {
-                current: 0,
-                total: total_steps,
-                last_error: None,
-            });
+        let mut status = SyncUpdateData {
+            current_step: 0,
+            // Establish the total work required.
+            // For now, we'll just count blocks. But a far better measure is by number of outputs we'll need to scan.
+            total_steps: scan_ranges.iter().map(|r| r.len()).sum::<usize>() as u64,
+            last_fully_scanned_block: None,
+            tip_height: u32::from(tip_height),
+            last_error: None,
+        };
+
+        fn update_status<'a>(
+            status: &'a mut SyncUpdateData,
+            data: &WalletDb<Connection, Network>,
+        ) -> Result<&'a SyncUpdateData, Error> {
+            status.last_fully_scanned_block =
+                data.block_fully_scanned()?.map(|b| b.block_height().into());
+            Ok(status)
         }
 
-        let mut loop_around = false;
+        fn report_status(status: &SyncUpdateData, progress: &Option<Box<dyn SyncUpdate>>) {
+            if let Some(sink) = progress.as_ref() {
+                sink.update_status(status.clone());
+            }
+        }
+
+        fn update_and_report_status(
+            status: &mut SyncUpdateData,
+            data: &WalletDb<Connection, Network>,
+            progress: &Option<Box<dyn SyncUpdate>>,
+        ) -> Result<(), Error> {
+            report_status(update_status(status, data)?, progress);
+            Ok(())
+        }
+
+        update_and_report_status(&mut status, &db.data, &progress)?;
+
+        let mut caught_up = true;
         for scan_range in scan_ranges.into_iter().flat_map(|r| {
             // Limit the number of blocks we download and scan at any one time.
             (0..).scan(r, |acc, _| {
@@ -207,39 +229,42 @@ pub async fn sync<P: AsRef<Path>>(
             {
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
-                loop_around = true;
+                caught_up = false;
                 break;
             }
 
-            current_step += scan_range.len() as u64;
-            if let Some(progress) = progress.as_ref() {
-                progress.update_status(SyncUpdateData {
-                    current: current_step,
-                    total: total_steps,
-                    last_error: None,
-                });
-            }
+            status.current_step += scan_range.len() as u64;
+            update_and_report_status(&mut status, &db.data, &progress)?;
         }
 
-        if !loop_around {
-            break;
+        // Download and decrypt the full transactions we found in the compact blocks
+        // so we can save their memos to the database.
+        download_full_transactions(
+            &mut client,
+            &data_file,
+            &mut db,
+            &network,
+            cancellation_token.clone(),
+        )
+        .await?;
+
+        if caught_up {
+            update_status(&mut status, &db.data)?;
+
+            if !continually {
+                return Ok(status);
+            }
+
+            report_status(&status, &progress);
+
+            // We'll loop around again when the next block is mined.
+            // Eventually we should actually do something with the transactions in the mempool too.
+            select! {
+                _ = cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
+                _ = watch_mempool(&mut client) => Ok(()),
+            }?;
         }
     }
-
-    // Download and decrypt the full transactions we found in the compact blocks
-    // so we can save their memos to the database.
-    download_full_transactions(
-        &mut client,
-        data_file,
-        &mut db,
-        &network,
-        cancellation_token,
-    )
-    .await?;
-
-    Ok(SyncResult {
-        latest_block: tip_height.into(),
-    })
 }
 
 async fn download_full_transactions<P: AsRef<Path>>(
@@ -493,6 +518,14 @@ fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result
     }
 }
 
+async fn watch_mempool(client: &mut CompactTxStreamerClient<Channel>) -> Result<(), Error> {
+    let mut response = client.get_mempool_stream(Empty {}).await?.into_inner();
+
+    while let Some(_tx) = response.message().await? {}
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use zcash_primitives::transaction::components::Amount;
@@ -522,12 +555,13 @@ mod tests {
             setup.server_uri.clone(),
             &setup.data_file,
             None,
+            false,
             CancellationToken::new(),
         )
         .await
         .unwrap();
 
-        println!("Tip: {:?}", result.latest_block);
+        println!("Tip: {:?}", result.last_fully_scanned_block);
 
         if let Some(summary) = setup.db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
             for id in account_ids {

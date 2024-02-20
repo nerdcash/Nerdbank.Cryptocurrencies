@@ -20,13 +20,18 @@ internal class SyncCommand : WalletUserCommandBase
 	{
 	}
 
+	internal bool Continually { get; init; }
+
 	internal static Command BuildCommand()
 	{
+		Option<bool> continuallyOption = new("--continually", Strings.ContinuallyOptionDescription);
+
 		Command command = new("sync", Strings.SyncCommandDescription)
 		{
 			WalletPathArgument,
 			TestNetOption,
 			LightServerUriOption,
+			continuallyOption,
 		};
 
 		command.SetHandler(async ctxt =>
@@ -37,6 +42,7 @@ internal class SyncCommand : WalletUserCommandBase
 				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
 				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
+				Continually = ctxt.ParseResult.GetValueForOption(continuallyOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
@@ -48,15 +54,15 @@ internal class SyncCommand : WalletUserCommandBase
 		Stopwatch syncTimer = Stopwatch.StartNew();
 		int? lastPercentCompleteReported = null;
 		string? lastErrorReported = null;
-		LightWalletClient.SyncResult syncResult = await client.DownloadTransactionsAsync(
+		LightWalletClient.SyncProgress syncResult = await client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
-				if (p.Total > 0)
+				if (p.TotalSteps > 0)
 				{
-					int newPercent = (int)(100 * p.Current / p.Total);
+					int newPercent = (int)p.PercentComplete;
 					if (newPercent != lastPercentCompleteReported)
 					{
-						this.Console.WriteLine($"{newPercent}% complete");
+						this.Console.WriteLine($"{newPercent,3}% complete ({p.LastFullyScannedBlock:N0}/{p.TipHeight:N0})");
 						lastPercentCompleteReported = newPercent;
 					}
 
@@ -74,9 +80,10 @@ internal class SyncCommand : WalletUserCommandBase
 					HistoryCommand.PrintTransaction(this.Console, tx);
 				}
 			}),
+			this.Continually,
 			cancellationToken);
 
-		this.Console.WriteLine($"Sync 100% complete. Scanned to block {syncResult.LatestBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: Humanizer.Localisation.TimeUnit.Second)}.");
+		this.Console.WriteLine($"Scanned to block {syncResult.LastFullyScannedBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: Humanizer.Localisation.TimeUnit.Second)}.");
 
 		return 0;
 	}

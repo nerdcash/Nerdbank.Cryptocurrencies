@@ -93,14 +93,15 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	[Fact]
 	public async Task DownloadTransactionsAsync()
 	{
-		LightWalletClient.SyncResult result = await this.client.DownloadTransactionsAsync(
+		LightWalletClient.SyncProgress result = await this.client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
 				this.logger.WriteLine($"Sync progress update: {p}");
 			}),
 			null,
+			continually: false,
 			this.TimeoutToken);
-		this.logger.WriteLine($"Sync succeeded: {result.Success}. Scanned to block {result.LatestBlock}.");
+		this.logger.WriteLine($"Sync succeeded. Scanned to block {result.LastFullyScannedBlock}.");
 	}
 
 	[Fact]

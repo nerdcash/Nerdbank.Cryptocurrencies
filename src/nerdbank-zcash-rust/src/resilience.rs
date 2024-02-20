@@ -22,11 +22,9 @@ pub(crate) async fn webrequest_with_logged_retry<
     let mut failure_count = 0;
     loop {
         let result = select! {
-            r = delegate() => r,
-            _ = cancellation_token.cancelled() => {
-                return Err(Status::cancelled("Request cancelled"));
-            },
-        };
+            r = delegate() => Ok(r),
+            _ = cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
+        }?;
         match result {
             Ok(result) => return Ok(result),
             Err(status) => {
@@ -54,11 +52,9 @@ pub(crate) async fn webrequest_with_retry<
     let mut failure_count = 0;
     loop {
         let result = select! {
-            r = delegate() => r,
-            _ = cancellation_token.cancelled() => {
-                return Err(Status::cancelled("Request cancelled"));
-            },
-        };
+            r = delegate() => Ok(r),
+            _ = cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
+        }?;
         match result {
             Ok(result) => return Ok(result),
             Err(status) => {
