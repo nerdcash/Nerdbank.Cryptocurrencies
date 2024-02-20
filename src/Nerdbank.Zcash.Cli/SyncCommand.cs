@@ -73,9 +73,9 @@ internal class SyncCommand : WalletUserCommandBase
 					}
 				}
 			}),
-			new Progress<IReadOnlyCollection<Transaction>>(transactions =>
+			new Progress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>(transactions =>
 			{
-				foreach (Transaction tx in transactions)
+				foreach (Transaction tx in transactions.Values.SelectMany(t => t))
 				{
 					HistoryCommand.PrintTransaction(this.Console, tx);
 				}

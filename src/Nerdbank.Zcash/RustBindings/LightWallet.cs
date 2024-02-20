@@ -1655,6 +1655,7 @@ class FfiConverterTypeSyncUpdateData : FfiConverterRustBuffer<SyncUpdateData>
 }
 
 internal record Transaction(
+	uint @accountId,
 	byte[] @txid,
 	DateTime? @blockTime,
 	uint? @minedHeight,
@@ -1673,6 +1674,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 	public override Transaction Read(BigEndianStream stream)
 	{
 		return new Transaction(
+			@accountId: FfiConverterUInt32.INSTANCE.Read(stream),
 			@txid: FfiConverterByteArray.INSTANCE.Read(stream),
 			@blockTime: FfiConverterOptionalTimestamp.INSTANCE.Read(stream),
 			@minedHeight: FfiConverterOptionalUInt32.INSTANCE.Read(stream),
@@ -1687,7 +1689,8 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 
 	public override int AllocationSize(Transaction value)
 	{
-		return FfiConverterByteArray.INSTANCE.AllocationSize(value.@txid)
+		return FfiConverterUInt32.INSTANCE.AllocationSize(value.@accountId)
+			+ FfiConverterByteArray.INSTANCE.AllocationSize(value.@txid)
 			+ FfiConverterOptionalTimestamp.INSTANCE.AllocationSize(value.@blockTime)
 			+ FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@minedHeight)
 			+ FfiConverterBoolean.INSTANCE.AllocationSize(value.@expiredUnmined)
@@ -1702,6 +1705,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 
 	public override void Write(Transaction value, BigEndianStream stream)
 	{
+		FfiConverterUInt32.INSTANCE.Write(value.@accountId, stream);
 		FfiConverterByteArray.INSTANCE.Write(value.@txid, stream);
 		FfiConverterOptionalTimestamp.INSTANCE.Write(value.@blockTime, stream);
 		FfiConverterOptionalUInt32.INSTANCE.Write(value.@minedHeight, stream);

@@ -28,7 +28,7 @@ public static class LightWalletServers
 	public static Uri GetDefaultServer(ZcashNetwork network) =>
 		network switch
 		{
-			ZcashNetwork.MainNet => Hanh.MainNet,
+			ZcashNetwork.MainNet => Nighthawk.MainNet,
 			ZcashNetwork.TestNet => ElectricCoinCo.TestNet,
 			_ => throw new ArgumentOutOfRangeException(nameof(network)),
 		};

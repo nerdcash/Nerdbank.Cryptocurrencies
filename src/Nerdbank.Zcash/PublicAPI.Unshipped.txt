@@ -66,7 +66,7 @@ Nerdbank.Zcash.LightWalletClient.BirthdayHeights.OriginalBirthdayHeight.set -> v
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.RebirthHeight.get -> ulong?
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.RebirthHeight.set -> void
 Nerdbank.Zcash.LightWalletClient.Dispose() -> void
-Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWalletClient.SyncProgress!>? statusUpdates, System.IProgress<System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction!>!>? discoveredTransactions, bool continually, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncProgress!>!
+Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWalletClient.SyncProgress!>? statusUpdates, System.IProgress<System.Collections.Generic.IReadOnlyDictionary<Nerdbank.Zcash.ZcashAccount!, System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction!>!>!>? discoveredTransactions, bool continually, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncProgress!>!
 Nerdbank.Zcash.LightWalletClient.GetAccounts() -> System.Collections.Generic.IEnumerable<Nerdbank.Zcash.ZcashAccount!>!
 Nerdbank.Zcash.LightWalletClient.GetBalances(Nerdbank.Zcash.ZcashAccount! account) -> Nerdbank.Zcash.AccountBalances!
 Nerdbank.Zcash.LightWalletClient.GetBirthdayHeights(Nerdbank.Zcash.ZcashAccount! account) -> Nerdbank.Zcash.LightWalletClient.BirthdayHeights

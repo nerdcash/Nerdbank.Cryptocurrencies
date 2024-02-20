@@ -9,23 +9,17 @@ use std::{
 };
 
 use http::{uri::InvalidUri, Uri};
-use orchard::keys::Scope;
-use rusqlite::{named_params, Connection};
+use rusqlite::Connection;
 use secrecy::SecretVec;
 use tokio::runtime::Runtime;
 use tokio_util::sync::CancellationToken;
 use zcash_client_backend::{
-    address::UnifiedAddress,
     data_api::WalletRead,
     encoding::AddressCodec,
     keys::{Era, UnifiedSpendingKey},
 };
 use zcash_client_sqlite::error::SqliteClientError;
-use zcash_primitives::{
-    consensus::Network,
-    legacy::TransparentAddress,
-    zip32::{AccountId, DiversifierIndex},
-};
+use zcash_primitives::{consensus::Network, legacy::TransparentAddress, zip32::DiversifierIndex};
 
 use crate::{
     analysis::{BirthdayHeights, UserBalances},
@@ -34,7 +28,6 @@ use crate::{
     grpc::{destroy_channel, get_client},
     send::send_transaction,
     shield::shield_funds_at_address,
-    sql_statements::GET_TRANSACTIONS_SQL,
 };
 
 lazy_static! {
@@ -99,6 +92,7 @@ pub struct AccountInfo {
 
 #[derive(Debug, Clone)]
 pub struct Transaction {
+    pub account_id: u32,
     pub txid: Vec<u8>,
     pub block_time: Option<SystemTime>,
     pub mined_height: Option<u32>,
@@ -185,6 +179,7 @@ impl From<Error> for LightWalletError {
             Error::TonicStatus(status) if status.code() == tonic::Code::Cancelled => {
                 LightWalletError::Canceled
             }
+            Error::InvalidArgument(msg) => LightWalletError::InvalidArgument { message: msg },
             Error::Internal(msg) => LightWalletError::Other { message: msg },
             _ => LightWalletError::Other {
                 message: e.to_string(),
@@ -375,142 +370,16 @@ pub fn get_transactions(
     account_id: u32,
     starting_block: u32,
 ) -> Result<Vec<Transaction>, LightWalletError> {
-    RT.block_on(async move {
-        let network: Network = config.network.into();
-        let db = Db::load(config.data_file.clone(), network)?;
-        let ufvkeys = db.data.get_unified_full_viewing_keys()?;
-        let ufvk = ufvkeys.get(
-            &AccountId::try_from(account_id)
-                .map_err(|_| Error::InvalidArgument("Invalid account ID".to_string()))?,
-        );
-
-        let conn = Connection::open(config.data_file)?;
-        rusqlite::vtab::array::load_module(&conn)?;
-
-        let mut stmt_txs = conn.prepare(GET_TRANSACTIONS_SQL)?;
-
-        let rows = stmt_txs.query_and_then(
-            named_params! {
-                ":account_id": account_id,
-                ":starting_block": starting_block,
-            },
-            |row| -> Result<Transaction, LightWalletError> {
-                let output_pool: u32 = row.get("output_pool")?;
-                let from_account: Option<u32> = row.get("from_account")?;
-                let to_account: Option<u32> = row.get("to_account")?;
-                let mut recipient: Option<String> = row.get("to_address")?;
-                let value: u64 = row.get("value")?;
-                let memo: Option<Vec<u8>> = row.get("memo")?;
-                let memo = memo.unwrap_or_default();
-
-                // Work out the receiving address when the sqlite db doesn't record it
-                // but we have a diversifier that can regenerate it.
-                if recipient.is_none() {
-                    let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
-                    if let Some(diversifier) = diversifier {
-                        recipient = match output_pool {
-                            2 => ufvk.and_then(|k| {
-                                k.sapling().and_then(|s| {
-                                    s.diversified_address(sapling::keys::Diversifier(
-                                        diversifier.try_into().unwrap(),
-                                    ))
-                                    .map(|a| a.encode(&network))
-                                })
-                            }),
-                            3 => ufvk.and_then(|k| {
-                                k.orchard().map(|o| {
-                                    UnifiedAddress::from_receivers(
-                                        Some(o.address(
-                                            orchard::keys::Diversifier::from_bytes(
-                                                diversifier.try_into().unwrap(),
-                                            ),
-                                            Scope::External,
-                                        )),
-                                        None,
-                                        None,
-                                    )
-                                    .unwrap()
-                                    .encode(&network)
-                                })
-                            }),
-                            _ => None,
-                        }
-                    }
-                }
-
-                let mut tx = Transaction {
-                    txid: row.get::<_, Vec<u8>>("txid")?,
-                    mined_height: row.get("mined_height")?,
-                    expired_unmined: row
-                        .get::<_, Option<bool>>("expired_unmined")?
-                        .unwrap_or(false),
-                    block_time: match row.get::<_, Option<i64>>("block_time")? {
-                        Some(v) => Some(time::OffsetDateTime::from_unix_timestamp(v)?.into()),
-                        None => None,
-                    },
-                    fee: row.get::<_, Option<u64>>("fee_paid")?.unwrap_or(0),
-                    account_balance_delta: row.get("account_balance_delta")?,
-                    incoming_transparent: Vec::new(),
-                    incoming_shielded: Vec::new(),
-                    outgoing: Vec::new(),
-                };
-
-                if to_account == Some(account_id) {
-                    match output_pool {
-                        0 => tx.incoming_transparent.push(TransparentNote {
-                            value,
-                            recipient: recipient.clone().unwrap(),
-                        }),
-                        1..=3 => tx.incoming_shielded.push(ShieldedNote {
-                            value,
-                            memo: memo.clone(),
-                            recipient: recipient.clone().unwrap(), // TODO: this will fail because recipient is NULL. Reconstruct from diversifier.
-                            is_change: false,
-                        }),
-                        _ => {
-                            return Err(LightWalletError::Other {
-                                message: format!("Unsupported output pool value {}.", output_pool),
-                            });
-                        }
-                    }
-                };
-
-                if let Some(recipient) = recipient {
-                    if from_account == Some(account_id) {
-                        tx.outgoing.push(TransactionSendDetail {
-                            recipient,
-                            memo: Some(memo),
-                            value,
-                        });
-                    }
-                }
-
-                Ok(tx)
-            },
-        )?;
-
-        let mut result: Vec<Transaction> = Vec::new();
-        for row_result in rows {
-            let mut row = row_result?;
-
-            let last = result.last();
-            let add = last.is_some() && last.unwrap().txid.eq(&row.txid);
-            if add {
-                // This row adds line items to the last transaction.
-                // Pop it off the list to change it, then we'll add it back.
-                let mut tx = result.pop().unwrap();
-                tx.incoming_transparent
-                    .append(&mut row.incoming_transparent);
-                tx.incoming_shielded.append(&mut row.incoming_shielded);
-                tx.outgoing.append(&mut row.outgoing);
-                result.push(tx);
-            } else {
-                result.push(row);
-            }
-        }
-
-        Ok(result)
-    })
+    let network: Network = config.network.into();
+    let mut db = Db::load(config.data_file.clone(), network)?;
+    let mut conn = Connection::open(config.data_file)?;
+    Ok(crate::sync::get_transactions(
+        &mut db,
+        &mut conn,
+        &network,
+        Some(account_id),
+        Some(starting_block),
+    )?)
 }
 
 pub fn get_birthday_heights(
