@@ -19,6 +19,7 @@ dictionary AccountInfo {
 };
 
 dictionary Transaction {
+	u32 account_id;
 	bytes txid;
 	timestamp? block_time;
 	u32? mined_height;

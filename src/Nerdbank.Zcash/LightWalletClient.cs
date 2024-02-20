@@ -28,6 +28,7 @@ public partial class LightWalletClient : IDisposable
 	private readonly Uri serverUrl;
 	private readonly DbInit dbinit;
 	private ImmutableDictionary<ZcashAccount, uint> accountIds = ImmutableDictionary.Create<ZcashAccount, uint>(ZcashAccount.Equality.ByIncomingViewingKey);
+	private ImmutableDictionary<uint, ZcashAccount> accountsById = ImmutableDictionary.Create<uint, ZcashAccount>();
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
@@ -130,6 +131,7 @@ public partial class LightWalletClient : IDisposable
 			// The database already has this account.
 			// But we'll replace our copy with the given one which may contain a spending key.
 			this.accountIds = this.accountIds.Remove(account).Add(account, id);
+			this.accountsById = this.accountsById.SetItem(id, account);
 			return;
 		}
 
@@ -139,6 +141,7 @@ public partial class LightWalletClient : IDisposable
 			await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 			id = LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight, cancellation);
 			this.accountIds = this.accountIds.Add(account, id);
+			this.accountsById = this.accountsById.SetItem(id, account);
 		}
 		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
 		{
@@ -173,6 +176,7 @@ public partial class LightWalletClient : IDisposable
 		// The database already has this account.
 		// But we'll replace our copy with the given one which may contain a spending key.
 		this.accountIds = this.accountIds.Remove(account).Add(account, id);
+		this.accountsById = this.accountsById.SetItem(id, account);
 	}
 
 	/// <summary>
@@ -262,7 +266,7 @@ public partial class LightWalletClient : IDisposable
 	/// </returns>
 	public async Task<SyncProgress> DownloadTransactionsAsync(
 		IProgress<SyncProgress>? statusUpdates,
-		IProgress<IReadOnlyCollection<Transaction>>? discoveredTransactions,
+		IProgress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>? discoveredTransactions,
 		bool continually,
 		CancellationToken cancellationToken)
 	{
@@ -273,7 +277,7 @@ public partial class LightWalletClient : IDisposable
 			SyncUpdateData result = LightWalletMethods.Sync(
 				this.dbinit,
 				this.serverUrl.AbsoluteUri,
-				new SyncUpdateSink(this.Network, statusUpdates, discoveredTransactions),
+				new SyncUpdateSink(this, statusUpdates, discoveredTransactions),
 				continually,
 				cancellation);
 
@@ -300,7 +304,7 @@ public partial class LightWalletClient : IDisposable
 		}
 
 		return LightWalletMethods.GetTransactions(this.dbinit, accountId, startingBlock)
-			.Select(t => CreateTransaction(t, this.Network))
+			.Select(CreateTransaction)
 			.OrderBy(t => t.When)
 			.ToList();
 	}
@@ -455,8 +459,7 @@ public partial class LightWalletClient : IDisposable
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
 	/// </summary>
 	/// <param name="t">The uniffi transaction to copy data from.</param>
-	/// <param name="network">The network this transaction is on.</param>
-	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
+	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t)
 		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
 
 	/// <summary>
@@ -487,6 +490,7 @@ public partial class LightWalletClient : IDisposable
 		}
 
 		this.accountIds = builder.ToImmutable();
+		this.accountsById = this.accountIds.ToImmutableDictionary(x => x.Value, x => x.Key);
 	}
 
 	/// <summary>
@@ -586,15 +590,29 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	private class SyncUpdateSink(
-		ZcashNetwork network,
+		LightWalletClient client,
 		IProgress<SyncProgress>? statusUpdates,
-		IProgress<IReadOnlyCollection<Transaction>>? discoveredTransactions)
+		IProgress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>? discoveredTransactions)
 		: SyncUpdate
 	{
 		public void UpdateStatus(SyncUpdateData data) => statusUpdates?.Report(new(data));
 
 		public void ReportTransactions(List<uniffi.LightWallet.Transaction> transactions)
-			=> discoveredTransactions?.Report(transactions.Select(t => CreateTransaction(t, network)).ToList());
+		{
+			if (discoveredTransactions is null)
+			{
+				return;
+			}
+
+			ImmutableDictionary<ZcashAccount, IReadOnlyCollection<Transaction>> dictionary = ImmutableDictionary.CreateRange(
+				from tx in transactions
+				group tx by tx.accountId into g
+				let account = client.accountsById[g.Key]
+				select new KeyValuePair<ZcashAccount, IReadOnlyCollection<Transaction>>(
+					account,
+					g.Select(CreateTransaction).ToArray()));
+			discoveredTransactions.Report(dictionary);
+		}
 	}
 
 	private class Cancellation : CancellationSource, IDisposable

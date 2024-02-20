@@ -1,7 +1,8 @@
 use futures_util::TryStreamExt;
 use http::Uri;
+use orchard::keys::Scope;
 use prost::bytes::Buf;
-use rusqlite::Connection;
+use rusqlite::{named_params, Connection};
 use std::{path::Path, sync::Arc};
 use tokio::{select, sync::Mutex};
 use tokio_util::sync::CancellationToken;
@@ -9,11 +10,13 @@ use tonic::{transport::Channel, Status};
 use tracing::{debug, info, warn};
 use uniffi::deps::anyhow;
 use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
+use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
     legacy::TransparentAddress,
     merkle_tree::HashSer,
     transaction::{components::OutPoint, Transaction},
+    zip32::AccountId,
 };
 
 use zcash_client_backend::{
@@ -39,9 +42,10 @@ use crate::{
     block_source::BlockCacheError,
     error::Error,
     grpc::get_client,
-    interop::{SyncUpdate, SyncUpdateData},
+    interop::{ShieldedNote, SyncUpdate, SyncUpdateData, TransactionSendDetail, TransparentNote},
     lightclient::parse_network,
     resilience::{webrequest_with_logged_retry, webrequest_with_retry},
+    sql_statements::GET_TRANSACTIONS_SQL,
 };
 
 type ChainError =
@@ -233,20 +237,26 @@ pub async fn sync<P: AsRef<Path>>(
                 break;
             }
 
+            // Download and decrypt the full transactions we found in the compact blocks
+            // so we can save their memos to the database.
+            let new_transactions = download_full_transactions(
+                &mut client,
+                &data_file,
+                &mut db,
+                &network,
+                cancellation_token.clone(),
+            )
+            .await?;
+
+            if !new_transactions.is_empty() {
+                if let Some(sink) = progress.as_ref() {
+                    sink.report_transactions(new_transactions);
+                }
+            }
+
             status.current_step += scan_range.len() as u64;
             update_and_report_status(&mut status, &db.data, &progress)?;
         }
-
-        // Download and decrypt the full transactions we found in the compact blocks
-        // so we can save their memos to the database.
-        download_full_transactions(
-            &mut client,
-            &data_file,
-            &mut db,
-            &network,
-            cancellation_token.clone(),
-        )
-        .await?;
 
         if caught_up {
             update_status(&mut status, &db.data)?;
@@ -267,26 +277,26 @@ pub async fn sync<P: AsRef<Path>>(
     }
 }
 
-async fn download_full_transactions<P: AsRef<Path>>(
+async fn download_full_transactions<P: AsRef<Path> + Clone>(
     client: &mut CompactTxStreamerClient<Channel>,
     data_file: P,
     db: &mut Db,
     network: &Network,
     cancellation_token: CancellationToken,
-) -> Result<(), Error> {
+) -> Result<Vec<crate::interop::Transaction>, Error> {
     let client = Arc::new(Mutex::new(client));
     // Scope the database connection so it's closed before we use the db argument,
     // to avoid 'database is locked' errors.
     let txids;
     {
-        let conn = Connection::open(data_file)?;
+        let conn = Connection::open(data_file.clone())?;
         let mut stmt = conn.prepare("SELECT txid FROM transactions WHERE raw IS NULL")?;
         txids = stmt
             .query_map([], |r| r.get::<_, Vec<u8>>(0))?
             .collect::<Result<Vec<_>, _>>()?;
     }
 
-    for txid in txids {
+    for txid in txids.iter() {
         let raw_tx = webrequest_with_retry(
             || async {
                 Ok(client
@@ -313,7 +323,12 @@ async fn download_full_transactions<P: AsRef<Path>>(
         decrypt_and_store_transaction(network, &mut db.data, &tx)?;
     }
 
-    Ok(())
+    let mut conn = Connection::open(data_file)?;
+    Ok(get_transactions(db, &mut conn, network, None, None)?
+        .iter()
+        .filter(|r| txids.contains(&r.txid))
+        .cloned()
+        .collect::<Vec<_>>())
 }
 
 async fn update_subtree_roots<P: Parameters>(
@@ -524,6 +539,158 @@ async fn watch_mempool(client: &mut CompactTxStreamerClient<Channel>) -> Result<
     while let Some(_tx) = response.message().await? {}
 
     Ok(())
+}
+
+pub fn get_transactions(
+    db: &mut Db,
+    conn: &mut rusqlite::Connection,
+    network: &Network,
+    account_id_filter: Option<u32>,
+    starting_block_filter: Option<u32>,
+) -> Result<Vec<crate::interop::Transaction>, Error> {
+    let ufvkeys = db.data.get_unified_full_viewing_keys()?;
+
+    rusqlite::vtab::array::load_module(conn)?;
+
+    let mut stmt_txs = conn.prepare(GET_TRANSACTIONS_SQL)?;
+
+    let rows = stmt_txs.query_and_then(
+        named_params! {
+            ":account_id": account_id_filter,
+            ":starting_block": starting_block_filter,
+        },
+        |row| -> Result<crate::interop::Transaction, Error> {
+            let account_id: u32 = row.get("account_id")?;
+            let output_pool: u32 = row.get("output_pool")?;
+            let from_account: Option<u32> = row.get("from_account")?;
+            let to_account: Option<u32> = row.get("to_account")?;
+            let mut recipient: Option<String> = row.get("to_address")?;
+            let value: u64 = row.get("value")?;
+            let memo: Option<Vec<u8>> = row.get("memo")?;
+            let memo = memo.unwrap_or_default();
+
+            let ufvk = ufvkeys.get(
+                &AccountId::try_from(account_id)
+                    .map_err(|_| Error::InvalidArgument("Invalid account ID".to_string()))?,
+            );
+
+            // Work out the receiving address when the sqlite db doesn't record it
+            // but we have a diversifier that can regenerate it.
+            if recipient.is_none() {
+                let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
+                if let Some(diversifier) = diversifier {
+                    recipient = match output_pool {
+                        2 => ufvk.and_then(|k| {
+                            k.sapling().and_then(|s| {
+                                s.diversified_address(sapling::keys::Diversifier(
+                                    diversifier.try_into().unwrap(),
+                                ))
+                                .map(|a| a.encode(network))
+                            })
+                        }),
+                        3 => ufvk.and_then(|k| {
+                            k.orchard().map(|o| {
+                                UnifiedAddress::from_receivers(
+                                    Some(o.address(
+                                        orchard::keys::Diversifier::from_bytes(
+                                            diversifier.try_into().unwrap(),
+                                        ),
+                                        Scope::External,
+                                    )),
+                                    None,
+                                    None,
+                                )
+                                .unwrap()
+                                .encode(network)
+                            })
+                        }),
+                        _ => None,
+                    }
+                }
+            }
+
+            let mut tx = crate::interop::Transaction {
+                account_id,
+                txid: row.get::<_, Vec<u8>>("txid")?,
+                mined_height: row.get("mined_height")?,
+                expired_unmined: row
+                    .get::<_, Option<bool>>("expired_unmined")?
+                    .unwrap_or(false),
+                block_time: match row.get::<_, Option<i64>>("block_time")? {
+                    Some(v) => Some(
+                        time::OffsetDateTime::from_unix_timestamp(v)
+                            .map_err(|e| {
+                                Error::SqliteClient(SqliteClientError::CorruptedData(format!(
+                                    "Error translating unix timestamp: {}",
+                                    e
+                                )))
+                            })?
+                            .into(),
+                    ),
+                    None => None,
+                },
+                fee: row.get::<_, Option<u64>>("fee_paid")?.unwrap_or(0),
+                account_balance_delta: row.get("account_balance_delta")?,
+                incoming_transparent: Vec::new(),
+                incoming_shielded: Vec::new(),
+                outgoing: Vec::new(),
+            };
+
+            if to_account == Some(account_id) {
+                match output_pool {
+                    0 => tx.incoming_transparent.push(TransparentNote {
+                        value,
+                        recipient: recipient.clone().unwrap(),
+                    }),
+                    1..=3 => tx.incoming_shielded.push(ShieldedNote {
+                        value,
+                        memo: memo.clone(),
+                        recipient: recipient.clone().unwrap(), // TODO: this will fail because recipient is NULL. Reconstruct from diversifier.
+                        is_change: false,
+                    }),
+                    _ => {
+                        return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
+                            format!("Unsupported output pool value {}.", output_pool),
+                        )));
+                    }
+                }
+            };
+
+            if let Some(recipient) = recipient {
+                if from_account == Some(account_id) {
+                    tx.outgoing.push(TransactionSendDetail {
+                        recipient,
+                        memo: Some(memo),
+                        value,
+                    });
+                }
+            }
+
+            Ok(tx)
+        },
+    )?;
+
+    let mut result: Vec<crate::interop::Transaction> = Vec::new();
+    for row_result in rows {
+        let mut row = row_result?;
+
+        let last = result.last();
+        let add = last.is_some() && last.unwrap().txid.eq(&row.txid);
+        if add {
+            // This row adds line items to the last transaction.
+            // Pop it off the list to change it, then we'll add it back.
+            let mut tx = result.pop().unwrap();
+            tx.incoming_transparent
+                .append(&mut row.incoming_transparent);
+            tx.incoming_shielded.append(&mut row.incoming_shielded);
+            tx.outgoing.append(&mut row.outgoing);
+            result.push(tx);
+        } else {
+            result.push(row);
+        }
+    }
+
+    Ok(result)
 }
 
 #[cfg(test)]

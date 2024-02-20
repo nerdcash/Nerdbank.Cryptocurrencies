@@ -21,7 +21,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 	LEFT OUTER JOIN v_tx_outputs o ON t.txid = o.txid
 	LEFT OUTER JOIN transactions tx ON tx.txid = t.txid
 	LEFT OUTER JOIN sapling_received_notes s ON tx.id_tx = s.tx
-	WHERE t.account_id = :account_id AND (t.mined_height IS NULL OR t.mined_height >= :starting_block)
+	WHERE (:account_id IS NULL OR t.account_id = :account_id) AND (t.mined_height IS NULL OR :starting_block IS NULL OR t.mined_height >= :starting_block)
 	ORDER BY t.mined_height, t.tx_index
 "#;
 
