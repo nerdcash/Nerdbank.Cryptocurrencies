@@ -87,19 +87,7 @@ public partial class LightWalletClient : IDisposable
 		Requires.NotNull(lightWalletServerUrl);
 
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
-		try
-		{
-			using Cancellation cancellation = new(cancellationToken);
-			return LightWalletMethods.GetBlockHeight(lightWalletServerUrl.AbsoluteUri, cancellation);
-		}
-		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
-		{
-			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
-		}
-		catch (uniffi.LightWallet.LightWalletException ex)
-		{
-			throw new LightWalletException(ex);
-		}
+		return InvokeInterop(cancellation => LightWalletMethods.GetBlockHeight(lightWalletServerUrl.AbsoluteUri, cancellation), cancellationToken);
 	}
 
 	/// <summary>
@@ -135,22 +123,10 @@ public partial class LightWalletClient : IDisposable
 			return;
 		}
 
-		try
-		{
-			using Cancellation cancellation = new(cancellationToken);
-			await TaskScheduler.Default.SwitchTo(alwaysYield: true);
-			id = LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight, cancellation);
-			this.accountIds = this.accountIds.Add(account, id);
-			this.accountsById = this.accountsById.SetItem(id, account);
-		}
-		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
-		{
-			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
-		}
-		catch (uniffi.LightWallet.LightWalletException ex)
-		{
-			throw new LightWalletException(ex);
-		}
+		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+		id = InvokeInterop(cancellation => LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight, cancellation), cancellationToken);
+		this.accountIds = this.accountIds.Add(account, id);
+		this.accountsById = this.accountsById.SetItem(id, account);
 	}
 
 	/// <summary>
@@ -270,23 +246,17 @@ public partial class LightWalletClient : IDisposable
 		bool continually,
 		CancellationToken cancellationToken)
 	{
-		using Cancellation cancellation = new(cancellationToken);
 		await TaskScheduler.Default.SwitchTo(true);
-		try
-		{
-			SyncUpdateData result = LightWalletMethods.Sync(
+		SyncUpdateData result = InvokeInterop(
+			cancellation => LightWalletMethods.Sync(
 				this.dbinit,
 				this.serverUrl.AbsoluteUri,
 				new SyncUpdateSink(this, statusUpdates, discoveredTransactions),
 				continually,
-				cancellation);
+				cancellation),
+			cancellationToken);
 
-			return new SyncProgress(result);
-		}
-		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
-		{
-			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
-		}
+		return new SyncProgress(result);
 	}
 
 	/// <summary>
@@ -461,6 +431,44 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t)
 		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
+
+	/// <summary>
+	/// Wraps an interop invocation in a <see langword="try" /> block and wraps
+	/// any interop exceptions in the appropriate .NET exceptions.
+	/// </summary>
+	/// <typeparam name="T">The type of returned value.</typeparam>
+	/// <param name="action">The interop action to invoke. A <see cref="Cancellation"/> object is provided if <paramref name="cancellationToken"/> is cancelable.</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>The result returned from <paramref name="action"/>.</returns>
+	/// <exception cref="OperationCanceledException">Thrown if the operation was canceled via the <paramref name="cancellationToken"/>.</exception>
+	/// <exception cref="LightWalletException">Thrown for any other error.</exception>
+	private static T InvokeInterop<T>(Func<Cancellation?, T> action, CancellationToken cancellationToken)
+	{
+		using Cancellation? cancellation = cancellationToken.CanBeCanceled ? new(cancellationToken) : null;
+		try
+		{
+			return action(cancellation);
+		}
+		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
+		{
+			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
+		}
+		catch (uniffi.LightWallet.LightWalletException.InvalidArgument ex)
+		{
+			// Promote the proprietary interop message in the exception to the proper exception Message property.
+			throw new LightWalletException(ex.message, ex);
+		}
+		catch (uniffi.LightWallet.LightWalletException.SqliteClientException ex)
+		{
+			// Promote the proprietary interop message in the exception to the proper exception Message property.
+			throw new LightWalletException(ex.message, ex);
+		}
+		catch (uniffi.LightWallet.LightWalletException.Other ex)
+		{
+			// Promote the proprietary interop message in the exception to the proper exception Message property.
+			throw new LightWalletException(ex.message, ex);
+		}
+	}
 
 	/// <summary>
 	/// Gets the raw byte encoding of the unified spending key for this account.
