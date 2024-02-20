@@ -64,10 +64,6 @@ dictionary BirthdayHeights {
 	u32? rebirth_height;
 };
 
-dictionary SyncResult {
-	u64 latest_block;
-};
-
 dictionary DbInit {
 	string data_file;
 	ChainType network;
@@ -78,8 +74,10 @@ dictionary SendTransactionResult {
 };
 
 dictionary SyncUpdateData {
-	u64 current;
-	u64 total;
+	u32? last_fully_scanned_block;
+	u32 tip_height;
+	u64 current_step;
+	u64 total_steps;
 	string? last_error;
 };
 
@@ -115,8 +113,10 @@ namespace LightWallet {
 	[Throws=LightWalletError]
 	u32? get_sync_height(DbInit config);
 
+	/// Downloads blocks from the blockchain, scans them for transactions, and updates the database.
+	/// If `continually` is `true`, this function will never exit unless cancellation is signaled.
 	[Throws=LightWalletError]
-	SyncResult sync(DbInit config, string uri, SyncUpdate? progress, CancellationSource? cancellation);
+	SyncUpdateData sync(DbInit config, string uri, SyncUpdate? progress, boolean continually, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
 	boolean disconnect_server(string uri);

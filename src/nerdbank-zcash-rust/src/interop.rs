@@ -60,8 +60,10 @@ impl From<uniffi::UnexpectedUniFFICallbackError> for LightWalletError {
 
 #[derive(Debug, Clone)]
 pub struct SyncUpdateData {
-    pub current: u64,
-    pub total: u64,
+    pub last_fully_scanned_block: Option<u32>,
+    pub tip_height: u32,
+    pub current_step: u64,
+    pub total_steps: u64,
     pub last_error: Option<String>,
 }
 
@@ -189,11 +191,6 @@ impl From<Error> for LightWalletError {
             },
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct SyncResult {
-    pub latest_block: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -355,8 +352,9 @@ pub fn sync(
     config: DbInit,
     uri: String,
     progress: Option<Box<dyn SyncUpdate>>,
+    continually: bool,
     cancellation: Option<Box<dyn CancellationSource>>,
-) -> Result<SyncResult, LightWalletError> {
+) -> Result<SyncUpdateData, LightWalletError> {
     use crate::sync::sync;
     let uri: Uri = uri.parse()?;
     let cancellation_token = get_cancellation_token(cancellation)?;
@@ -365,6 +363,7 @@ pub fn sync(
             uri,
             config.data_file,
             progress,
+            continually,
             cancellation_token.0.clone(),
         )
         .await?)

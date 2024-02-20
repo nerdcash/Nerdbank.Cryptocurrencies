@@ -681,6 +681,7 @@ static class _UniFFILib
 		RustBuffer @config,
 		RustBuffer @uri,
 		RustBuffer @progress,
+		sbyte @continually,
 		RustBuffer @cancellation,
 		ref RustCallStatus _uniffi_out_err
 	);
@@ -1165,10 +1166,10 @@ static class _UniFFILib
 		}
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_sync();
-			if (checksum != 31343)
+			if (checksum != 57553)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `31343`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `57553`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1611,29 +1612,13 @@ class FfiConverterTypeShieldedNote : FfiConverterRustBuffer<ShieldedNote>
 	}
 }
 
-internal record SyncResult(ulong @latestBlock) { }
-
-class FfiConverterTypeSyncResult : FfiConverterRustBuffer<SyncResult>
-{
-	public static FfiConverterTypeSyncResult INSTANCE = new FfiConverterTypeSyncResult();
-
-	public override SyncResult Read(BigEndianStream stream)
-	{
-		return new SyncResult(@latestBlock: FfiConverterUInt64.INSTANCE.Read(stream));
-	}
-
-	public override int AllocationSize(SyncResult value)
-	{
-		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@latestBlock);
-	}
-
-	public override void Write(SyncResult value, BigEndianStream stream)
-	{
-		FfiConverterUInt64.INSTANCE.Write(value.@latestBlock, stream);
-	}
-}
-
-internal record SyncUpdateData(ulong @current, ulong @total, String? @lastError) { }
+internal record SyncUpdateData(
+	uint? @lastFullyScannedBlock,
+	uint @tipHeight,
+	ulong @currentStep,
+	ulong @totalSteps,
+	String? @lastError
+) { }
 
 class FfiConverterTypeSyncUpdateData : FfiConverterRustBuffer<SyncUpdateData>
 {
@@ -1642,23 +1627,29 @@ class FfiConverterTypeSyncUpdateData : FfiConverterRustBuffer<SyncUpdateData>
 	public override SyncUpdateData Read(BigEndianStream stream)
 	{
 		return new SyncUpdateData(
-			@current: FfiConverterUInt64.INSTANCE.Read(stream),
-			@total: FfiConverterUInt64.INSTANCE.Read(stream),
+			@lastFullyScannedBlock: FfiConverterOptionalUInt32.INSTANCE.Read(stream),
+			@tipHeight: FfiConverterUInt32.INSTANCE.Read(stream),
+			@currentStep: FfiConverterUInt64.INSTANCE.Read(stream),
+			@totalSteps: FfiConverterUInt64.INSTANCE.Read(stream),
 			@lastError: FfiConverterOptionalString.INSTANCE.Read(stream)
 		);
 	}
 
 	public override int AllocationSize(SyncUpdateData value)
 	{
-		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@current)
-			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@total)
+		return FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@lastFullyScannedBlock)
+			+ FfiConverterUInt32.INSTANCE.AllocationSize(value.@tipHeight)
+			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@currentStep)
+			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@totalSteps)
 			+ FfiConverterOptionalString.INSTANCE.AllocationSize(value.@lastError);
 	}
 
 	public override void Write(SyncUpdateData value, BigEndianStream stream)
 	{
-		FfiConverterUInt64.INSTANCE.Write(value.@current, stream);
-		FfiConverterUInt64.INSTANCE.Write(value.@total, stream);
+		FfiConverterOptionalUInt32.INSTANCE.Write(value.@lastFullyScannedBlock, stream);
+		FfiConverterUInt32.INSTANCE.Write(value.@tipHeight, stream);
+		FfiConverterUInt64.INSTANCE.Write(value.@currentStep, stream);
+		FfiConverterUInt64.INSTANCE.Write(value.@totalSteps, stream);
 		FfiConverterOptionalString.INSTANCE.Write(value.@lastError, stream);
 	}
 }
@@ -3091,15 +3082,20 @@ internal static class LightWalletMethods
 		);
 	}
 
+	/// <summary>
+	/// Downloads blocks from the blockchain, scans them for transactions, and updates the database.
+	/// If `continually` is `true`, this function will never exit unless cancellation is signaled.
+	/// </summary>
 	/// <exception cref="LightWalletException"></exception>
-	public static SyncResult Sync(
+	public static SyncUpdateData Sync(
 		DbInit @config,
 		String @uri,
 		SyncUpdate? @progress,
+		bool @continually,
 		CancellationSource? @cancellation
 	)
 	{
-		return FfiConverterTypeSyncResult.INSTANCE.Lift(
+		return FfiConverterTypeSyncUpdateData.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
 				FfiConverterTypeLightWalletException.INSTANCE,
 				(ref RustCallStatus _status) =>
@@ -3107,6 +3103,7 @@ internal static class LightWalletMethods
 						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterOptionalTypeSyncUpdate.INSTANCE.Lower(@progress),
+						FfiConverterBoolean.INSTANCE.Lower(@continually),
 						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
 					)

@@ -28,5 +28,5 @@ use interop::{
     get_birthday_heights, get_block_height, get_sync_height, get_transactions,
     get_unshielded_utxos, get_user_balances, init, send, shield, sync, AccountInfo,
     CancellationSource, ChainType, DbInit, LightWalletError, SendTransactionResult, ShieldedNote,
-    SyncResult, SyncUpdate, SyncUpdateData, Transaction, TransactionSendDetail, TransparentNote,
+    SyncUpdate, SyncUpdateData, Transaction, TransactionSendDetail, TransparentNote,
 };
