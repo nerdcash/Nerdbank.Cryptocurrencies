@@ -269,6 +269,8 @@ pub async fn sync<P: AsRef<Path>>(
 
             // We'll loop around again when the next block is mined.
             // Eventually we should actually do something with the transactions in the mempool too.
+            // WARNING: This is vulnerable to a race condition, because if a new block has *already* been mined
+            // but not noticed above, we'll end up waiting for yet *another* block to be mined.
             select! {
                 _ = cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
                 _ = watch_mempool(&mut client) => Ok(()),
