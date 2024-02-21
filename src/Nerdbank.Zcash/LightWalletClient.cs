@@ -468,6 +468,10 @@ public partial class LightWalletClient : IDisposable
 			// Promote the proprietary interop message in the exception to the proper exception Message property.
 			throw new LightWalletException(ex.message, ex);
 		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(Strings.UnknownErrorAcrossInteropBoundary, ex);
+		}
 	}
 
 	/// <summary>
