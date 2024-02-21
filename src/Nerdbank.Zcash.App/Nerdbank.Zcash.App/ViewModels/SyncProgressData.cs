@@ -50,8 +50,8 @@ public class SyncProgressData : ProgressData
 		// We don't want to flash the UI.
 		this.IsInProgress = progress is not null;
 
-		this.To = progress?.BatchTotal ?? 0;
-		this.Current = progress?.BatchNum ?? 0;
+		this.To = progress?.TotalSteps ?? 0;
+		this.Current = progress?.CurrentStep ?? 0;
 	}
 
 	private void SubscribeToSyncUpdates(Account? newAccount)

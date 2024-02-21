@@ -3,10 +3,8 @@
 
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Reactive.Concurrency;
 using System.Text.Json;
 using System.Threading.Tasks.Dataflow;
-using Microsoft;
 
 namespace Nerdbank.Zcash.App;
 
@@ -61,7 +59,9 @@ public class AutoSaveManager<T> : IAsyncDisposable
 		if (this.saveOnceBlock is not null)
 		{
 			this.saveOnceBlock.Complete();
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
 			await this.saveOnceBlock.Completion;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 		}
 	}
 

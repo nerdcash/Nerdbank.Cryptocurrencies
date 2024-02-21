@@ -65,13 +65,6 @@ public class Account : ReactiveObject, IPersistableData
 	}
 
 	[Key(2)]
-	public string? WalletFileName
-	{
-		get => this.zingoWalletFileName;
-		set => this.RaiseAndSetIfChanged(ref this.zingoWalletFileName, value);
-	}
-
-	[Key(3)]
 	public uint LastBlockHeight
 	{
 		get => this.lastBlockHeight;
@@ -88,7 +81,7 @@ public class Account : ReactiveObject, IPersistableData
 	/// already-spent funds may be missed.
 	/// It is defined at the number of the block that contains the oldest unspent note or UTXO on the account.
 	/// </remarks>
-	[Key(5)]
+	[Key(4)]
 	public ulong? RebirthHeight
 	{
 		get => this.rebirthHeight;
@@ -103,7 +96,7 @@ public class Account : ReactiveObject, IPersistableData
 	/// This value will always be at least the <see cref="ZcashAccount.BirthdayHeight"/>,
 	/// since any transaction earlier than that block height would have been missed in the sync.
 	/// </remarks>
-	[Key(6)]
+	[Key(5)]
 	public ulong? OptimizedBirthdayHeight
 	{
 		get => this.optimizedBirthdayHeight;
@@ -113,7 +106,7 @@ public class Account : ReactiveObject, IPersistableData
 	[IgnoreMember]
 	public ReadOnlyObservableCollection<ZcashTransaction> Transactions { get; private set; }
 
-	[Key(4), EditorBrowsable(EditorBrowsableState.Never)]
+	[Key(3), EditorBrowsable(EditorBrowsableState.Never)]
 	public ObservableCollection<ZcashTransaction> TransactionsMutable
 	{
 		get => this.transactionsMutable;
@@ -163,14 +156,14 @@ public class Account : ReactiveObject, IPersistableData
 				// Although no transaction had a matching txid, this may match a
 				// provisional transaction, in which case, we should fill in the details.
 				tx = this.TransactionsMutable.FirstOrDefault(t => t.IsProvisionalTransaction && t.SendItems.FirstOrDefault() is { } si1 &&
-					transaction.Sends.Any(si2 => Equals_AllowApproximateRecipientMatch(si1, si2)));
+					transaction.Outgoing.Any(si2 => Equals_AllowApproximateRecipientMatch(si1, si2)));
 			}
 
 			if (tx is not null)
 			{
 				// We already have this transaction
 				// Copy over elements that can change as a transaction gets confirmed or transitions from being provisional.
-				tx.BlockNumber = transaction.IsUnconfirmed ? null : transaction.BlockNumber;
+				tx.BlockNumber = transaction.MinedHeight;
 
 				// If we're finalizing a provisional transaction, fill in extra details.
 				// The transaction ID itself may have been filled in by the send view model,
@@ -194,14 +187,14 @@ public class Account : ReactiveObject, IPersistableData
 			{
 				tx = new ZcashTransaction
 				{
-					BlockNumber = transaction.IsUnconfirmed ? null : transaction.BlockNumber,
+					BlockNumber = transaction.MinedHeight,
 					TransactionId = transaction.TransactionId,
-					IsIncoming = transaction.IsIncoming,
+					IsIncoming = !transaction.IsOutgoing,
 					When = transaction.When,
-					RecvItems = [.. from recv in transaction.Notes
+					RecvItems = [.. from recv in transaction.Incoming
 									where !recv.IsChange
 									select new ZcashTransaction.LineItem(recv)],
-					SendItems = transaction.Sends.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
+					SendItems = transaction.Outgoing.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
 					////Fee = transaction.IsIncoming ? null : -transaction.Fee, // ZingoLib is still buggy
 				};
 

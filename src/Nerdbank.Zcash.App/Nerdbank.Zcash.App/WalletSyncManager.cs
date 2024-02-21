@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Specialized;
-using System.Threading.Tasks.Dataflow;
 using Microsoft.VisualStudio.Threading;
 using IAsyncDisposable = System.IAsyncDisposable;
 
@@ -16,7 +15,7 @@ public class WalletSyncManager : IAsyncDisposable
 	private readonly AppSettings settings;
 	private readonly IContactManager contactManager;
 	private readonly ExchangeRateRecord exchangeRateRecord;
-	private Dictionary<Account, Tracker> trackers = new();
+	private Dictionary<ZcashNetwork, Tracker> trackers = new();
 	private bool syncStarted;
 
 	public WalletSyncManager(string confidentialDataPath, ZcashWallet wallet, AppSettings settings, IContactManager contactManager, ExchangeRateRecord exchangeRateRecord, IPlatformServices platformServices)
@@ -43,9 +42,9 @@ public class WalletSyncManager : IAsyncDisposable
 
 		INotifyCollectionChanged accounts = wallet.Accounts;
 		accounts.CollectionChanged += this.Wallet_CollectionChanged;
-		foreach (Account account in wallet.Accounts)
+		foreach (ZcashNetwork network in wallet.Accounts.Select(a => a.Network).Distinct())
 		{
-			this.trackers.Add(account, new Tracker(this, account));
+			this.trackers.Add(network, new Tracker(this, network));
 		}
 	}
 
@@ -55,22 +54,9 @@ public class WalletSyncManager : IAsyncDisposable
 		{
 			foreach (Account account in e.NewItems)
 			{
-				this.trackers.Add(account, new Tracker(this, account));
-			}
-		}
-
-		if (e.OldItems is not null)
-		{
-			foreach (Account account in e.OldItems)
-			{
-				if (this.trackers.Remove(account, out Tracker? tracker))
+				if (!this.trackers.ContainsKey(account.Network))
 				{
-					tracker.DisposeAsync().Forget();
-					if (account.WalletFileName is not null)
-					{
-						string walletFilePath = Path.Combine(this.confidentialDataPath, account.WalletFileName);
-						File.Delete(walletFilePath);
-					}
+					this.trackers.Add(account.Network, new Tracker(this, account.Network));
 				}
 			}
 		}
@@ -78,138 +64,82 @@ public class WalletSyncManager : IAsyncDisposable
 
 	private class Tracker : IAsyncDisposable
 	{
-		private static readonly TimeSpan SyncFrequency = TimeSpan.FromSeconds(5);
 		private readonly WalletSyncManager owner;
 		private LightWalletClient client;
 		private CancellationTokenSource shutdownTokenSource;
 		private Task syncResult;
 
-		public Tracker(WalletSyncManager owner, Account account)
+		public Tracker(WalletSyncManager owner, ZcashNetwork network)
 		{
 			this.owner = owner;
-			this.Account = account;
+			this.Network = network;
 			this.shutdownTokenSource = new CancellationTokenSource();
 
 			// Initialize the native wallet that will be responsible for syncing this account.
 			this.client = this.CreateClient();
-			account.LightWalletClient = this.client;
+
+			this.InitializeAccounts();
 
 			// Start the process of keeping in sync with new transactions.
 			this.syncResult = this.DownloadAsync(this.shutdownTokenSource.Token);
 		}
 
-		internal Uri ServerUrl => this.owner.settings.GetLightServerUrl(this.Account.Network);
+		internal Uri ServerUrl => this.owner.settings.GetLightServerUrl(this.Network);
 
-		internal Account Account { get; }
+		internal ZcashNetwork Network { get; }
+
+		private IEnumerable<Account> Accounts => this.owner.wallet.Accounts.Where(a => a.Network == this.Network);
 
 		public async ValueTask DisposeAsync()
 		{
 			await this.ShutdownWalletAsync();
 		}
 
-		/// <summary>
-		/// Terminates sync and restarts it.
-		/// </summary>
-		internal async ValueTask ResetAsync()
-		{
-			await this.ShutdownWalletAsync();
-			this.shutdownTokenSource = new CancellationTokenSource();
-			this.client = this.CreateClient();
-		}
-
 		private async Task DownloadAsync(CancellationToken cancellationToken)
 		{
-			// Import any transactions that we already know about.
-			await this.ImportTransactionsAsync(null, cancellationToken);
-
-			// Arrange for importing transactions from native to managed to happen in parallel to our downloading them from Internet to native.
-			// The native side uses locks and suffers from lock contention when it's processing large batches,
-			// so we don't want to block the UI thread waiting on the call to import the transactions.
-			// We also don't want the periodic Progress updates to lead to concurrent calls to import transactions
-			// as that would just compound the problem.
-			// This ActionBlock is designed specially to import everything up to the latest periodic Progress,
-			// to do so on the UI thread, and to ensure that only one more request to do so is queued up at a time.
-			uint latestBlockSynced = 0;
-			ActionBlock<bool> getTransactionsBlock = new(
-				async _ =>
-				{
-					if (latestBlockSynced > this.Account.LastBlockHeight)
-					{
-						await this.ImportTransactionsAsync(latestBlockSynced, cancellationToken);
-					}
-				},
-				new ExecutionDataflowBlockOptions
-				{
-					CancellationToken = cancellationToken,
-					BoundedCapacity = 2,
-					TaskScheduler = TaskScheduler.FromCurrentSynchronizationContext(),
-					SingleProducerConstrained = true,
-				});
-
-			Progress<LightWalletClient.SyncProgress> progress = new(progress =>
+			bool caughtUp = false;
+			Progress<LightWalletClient.SyncProgress> syncProgress = new(v =>
 			{
-				// We have no idea where we are in current 'batch' (since one sync happens in many batches),
-				// so for purposes of indicating which block has definitely been downloaded,
-				// we'll assume we're at the end of the previous batch.
-				// Oddly, EndBlock tends to be lower than StartBlock. But since I don't know why that is
-				// or whether it'll stay that way, we'll just take the Min of the two.
-				// We subtract one from the min because we don't know if even a single block in this batch is done.
-				// Avoid OverflowException by ensuring the result is non-negative.
-				if (progress.StartBlock > 0 && progress.EndBlock > 0)
+				caughtUp |= v.LastFullyScannedBlock == v.TipHeight;
+				foreach (Account account in this.Accounts)
 				{
-					// Enqueue the request.
-					// If the ActionBlock is already processing a request, and another request is already queued,
-					// this request will be dropped, but in such a way that the queued request will observe the latest
-					// value of this captured variable, so it'll do all the work we need.
-					latestBlockSynced = Math.Max(latestBlockSynced, checked((uint)Math.Min(progress.EndBlock, progress.StartBlock) - 1));
-					getTransactionsBlock.Post(true);
+					account.SyncProgress = v;
 				}
-
-				this.Account.SyncProgress = progress;
 			});
 
-			bool caughtUp = false;
-			while (!cancellationToken.IsCancellationRequested)
+			Progress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>> discoveredTransactions = new(v =>
 			{
-				LightWalletClient.SyncResult result;
-				using (caughtUp ? null : this.owner.platformServices.RequestSleepDeferral())
+				foreach (Account account in this.Accounts)
 				{
-					result = await this.client.DownloadTransactionsAsync(progress, cancellationToken);
+					if (v.TryGetValue(account.ZcashAccount, out IReadOnlyCollection<Transaction>? transactions))
+					{
+						account.AddTransactions(transactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
+					}
 				}
+			});
 
-				await this.ImportTransactionsAsync(checked((uint)result.LatestBlock), cancellationToken);
-				this.Account.SyncProgress = null;
-
-				// Either restart the sync immediately if we're already behind the tip of the chain,
-				// or schedule it to start in a few seconds if we're up to date.
-				ulong tip = await this.client.GetLatestBlockHeightAsync(this.shutdownTokenSource.Token);
-				if (tip == result.LatestBlock)
-				{
-					caughtUp = true;
-					await Task.Delay(SyncFrequency, this.shutdownTokenSource.Token);
-				}
-				else
-				{
-					caughtUp = false;
-				}
-			}
-
-			getTransactionsBlock.Complete();
-			await getTransactionsBlock.Completion;
+			await this.client.DownloadTransactionsAsync(syncProgress, discoveredTransactions, continually: true, cancellationToken);
 		}
 
-		private async Task ImportTransactionsAsync(uint? lastDownloadedBlock, CancellationToken cancellationToken)
+		private void InitializeAccounts()
 		{
 			// TODO: handle re-orgs and rewrite/invalidate the necessary transactions.
-			List<Transaction> txs = await Task.Run(() => this.client.GetDownloadedTransactions(this.Account.LastBlockHeight + 1), cancellationToken);
-			this.Account.AddTransactions(txs, lastDownloadedBlock, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
+			foreach (Account account in this.Accounts)
+			{
+				account.LightWalletClient = this.client;
+				this.client.UpgradeAccount(account.ZcashAccount);
 
-			this.Account.Balance = await Task.Run(this.client.GetUserBalances, cancellationToken);
+				List<Transaction> txs = this.client.GetDownloadedTransactions(account.ZcashAccount, account.LastBlockHeight);
 
-			uniffi.LightWallet.BirthdayHeights birthdayHeights = this.client.GetBirthdayHeights();
-			this.Account.RebirthHeight = birthdayHeights.rebirthHeight;
-			this.Account.OptimizedBirthdayHeight = birthdayHeights.birthdayHeight;
-			this.Account.ZcashAccount.BirthdayHeight = birthdayHeights.originalBirthdayHeight;
+				account.AddTransactions(txs, this.client.LastDownloadHeight, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
+
+				account.Balance = this.client.GetBalances(account.ZcashAccount);
+
+				LightWalletClient.BirthdayHeights birthdayHeights = this.client.GetBirthdayHeights(account.ZcashAccount);
+				account.RebirthHeight = birthdayHeights.RebirthHeight;
+				account.OptimizedBirthdayHeight = birthdayHeights.BirthdayHeight;
+				account.ZcashAccount.BirthdayHeight = birthdayHeights.OriginalBirthdayHeight;
+			}
 		}
 
 		/// <summary>
@@ -228,23 +158,8 @@ public class WalletSyncManager : IAsyncDisposable
 
 		private LightWalletClient CreateClient()
 		{
-			// If this account hasn't had a native wallet created yet, assign a random filename to it.
-			if (this.Account.WalletFileName is null)
-			{
-				string keyType =
-					this.Account.ZcashAccount.Spending is not null ? "sk" :
-					this.Account.ZcashAccount.FullViewing is not null ? "fvk" :
-					"ivk";
-				this.Account.WalletFileName = $"account.{this.Account.ZcashAccount.DefaultAddress.Address[..10]}...{this.Account.ZcashAccount.DefaultAddress.Address[^10..]}-{keyType}.dat";
-			}
-
-			return new(
-				this.ServerUrl,
-				this.Account.ZcashAccount,
-				this.owner.confidentialDataPath,
-				this.Account.WalletFileName,
-				$"{this.Account.WalletFileName}.log",
-				watchMemPool: true);
+			string sqliteDbPath = Path.Combine(this.owner.confidentialDataPath, $"{this.Network}.sqlite");
+			return new(this.ServerUrl, this.Network, sqliteDbPath);
 		}
 	}
 }
