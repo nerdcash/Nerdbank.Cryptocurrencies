@@ -16,11 +16,24 @@ public class WalletSyncManager : IAsyncDisposable
 	private readonly AppSettings settings;
 	private readonly IContactManager contactManager;
 	private readonly ExchangeRateRecord exchangeRateRecord;
+	private readonly JoinableTaskCollection backgroundTasks;
+	private readonly JoinableTaskFactory joinableTaskFactory;
+	private readonly CancellationTokenSource shutdownTokenSource = new();
 	private Dictionary<ZcashNetwork, Tracker> trackers = new();
 	private bool syncStarted;
 
-	public WalletSyncManager(string confidentialDataPath, ZcashWallet wallet, AppSettings settings, IContactManager contactManager, ExchangeRateRecord exchangeRateRecord, IPlatformServices platformServices)
+	public WalletSyncManager(
+		JoinableTaskContext joinableTaskContext,
+		string confidentialDataPath,
+		ZcashWallet wallet,
+		AppSettings settings,
+		IContactManager contactManager,
+		ExchangeRateRecord exchangeRateRecord,
+		IPlatformServices platformServices)
 	{
+		this.backgroundTasks = joinableTaskContext.CreateCollection();
+		this.joinableTaskFactory = joinableTaskContext.CreateFactory(this.backgroundTasks);
+
 		this.confidentialDataPath = confidentialDataPath;
 		this.wallet = wallet;
 		this.settings = settings;
@@ -31,8 +44,12 @@ public class WalletSyncManager : IAsyncDisposable
 
 	public async ValueTask DisposeAsync()
 	{
+		await this.shutdownTokenSource.CancelAsync();
 		INotifyCollectionChanged accounts = this.wallet.Accounts;
 		accounts.CollectionChanged -= this.Wallet_CollectionChanged;
+		await this.backgroundTasks.JoinTillEmptyAsync();
+
+		// Wait for trackers to conclude their work.
 		await Task.WhenAll(this.trackers.Values.Select(t => t.DisposeAsync().AsTask()));
 	}
 
@@ -55,7 +72,11 @@ public class WalletSyncManager : IAsyncDisposable
 		{
 			foreach (Account account in e.NewItems)
 			{
-				if (!this.trackers.ContainsKey(account.Network))
+				if (this.trackers.TryGetValue(account.Network, out Tracker? tracker))
+				{
+					_ = this.joinableTaskFactory.RunAsync(() => tracker.AddAccountAsync(account.ZcashAccount));
+				}
+				else
 				{
 					this.trackers.Add(account.Network, new Tracker(this, account.Network));
 				}
@@ -67,24 +88,22 @@ public class WalletSyncManager : IAsyncDisposable
 	{
 		private readonly WalletSyncManager owner;
 		private readonly LightWalletClient client;
-		private readonly CancellationTokenSource shutdownTokenSource;
-		private readonly Task completion;
+		private readonly JoinableTask completion;
 
 		public Tracker(WalletSyncManager owner, ZcashNetwork network)
 		{
 			this.owner = owner;
 			this.Network = network;
-			this.shutdownTokenSource = new CancellationTokenSource();
 
 			// Initialize the native wallet that will be responsible for syncing this account.
 			this.client = this.CreateClient();
 
-			this.completion = Task.Run(async delegate
+			this.completion = owner.joinableTaskFactory.RunAsync(async delegate
 			{
-				await this.InitializeAccountsAsync(this.shutdownTokenSource.Token);
+				await this.InitializeAccountsAsync(this.owner.shutdownTokenSource.Token);
 
 				// Start the process of keeping in sync with new transactions.
-				await this.DownloadAsync(this.shutdownTokenSource.Token);
+				await this.DownloadAsync(this.owner.shutdownTokenSource.Token);
 			});
 		}
 
@@ -97,6 +116,11 @@ public class WalletSyncManager : IAsyncDisposable
 		public async ValueTask DisposeAsync()
 		{
 			await this.ShutdownWalletAsync();
+		}
+
+		internal Task AddAccountAsync(ZcashAccount account)
+		{
+			return this.client.AddAccountAsync(account, this.owner.shutdownTokenSource.Token);
 		}
 
 		private async Task DownloadAsync(CancellationToken cancellationToken)
@@ -163,8 +187,14 @@ public class WalletSyncManager : IAsyncDisposable
 		/// </summary>
 		private async ValueTask ShutdownWalletAsync()
 		{
-			await this.shutdownTokenSource.CancelAsync();
-			await this.completion.NoThrowAwaitable();
+			try
+			{
+				await this.completion;
+			}
+			catch
+			{
+			}
+
 			this.client.Dispose();
 		}
 

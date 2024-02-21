@@ -6,7 +6,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Zcash.App.Views;
+using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Nerdbank.Zcash.App;
 
@@ -16,6 +18,7 @@ public partial class App : Application, IAsyncDisposable
 	private const string SettingsJsonFileName = "settings.json";
 
 	private readonly List<Task> sendTransactionTasks = new();
+	private JoinableTaskContext? joinableTaskContext;
 	private AutoSaveManager<AppSettings>? appSettingsManager;
 	private AppSettings? settings;
 	private DataRoot? data;
@@ -95,6 +98,9 @@ public partial class App : Application, IAsyncDisposable
 			return;
 		}
 
+		Assumes.NotNull(SynchronizationContext.Current);
+		this.joinableTaskContext = new JoinableTaskContext();
+
 		this.appSettingsManager = this.AppPlatformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
 		this.dataRootManager = this.AppPlatformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
 		this.settings = this.appSettingsManager?.Data ?? new AppSettings();
@@ -102,7 +108,7 @@ public partial class App : Application, IAsyncDisposable
 
 		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
 		{
-			this.walletSyncManager = new WalletSyncManager(this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager, this.Data.ExchangeRates, this.PlatformServices);
+			this.walletSyncManager = new WalletSyncManager(this.joinableTaskContext, this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager, this.Data.ExchangeRates, this.PlatformServices);
 		}
 	}
 
