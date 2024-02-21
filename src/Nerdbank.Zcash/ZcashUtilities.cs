@@ -119,6 +119,13 @@ public static class ZcashUtilities
 	internal static decimal ZatsToZEC(ulong zats) => (decimal)zats / ZatsPerZEC;
 
 	/// <summary>
+	/// Converts ZATs to ZEC.
+	/// </summary>
+	/// <param name="zats">The amount in ZATs.</param>
+	/// <returns>The amount in ZEC.</returns>
+	internal static decimal ZatsToZEC(long zats) => (decimal)zats / ZatsPerZEC;
+
+	/// <summary>
 	/// Translates an internal <see cref="DecodeError"/> to a public <see cref="ParseError"/>.
 	/// </summary>
 	/// <param name="decodeError">The decode error.</param>

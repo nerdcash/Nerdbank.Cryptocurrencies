@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Text;
+using System.Numerics;
 
 namespace Nerdbank.Zcash;
 
@@ -42,6 +42,81 @@ public abstract class UnifiedAddress : ZcashAddress
 
 	/// <inheritdoc cref="Create(IReadOnlyCollection{ZcashAddress})"/>
 	public static UnifiedAddress Create(params ZcashAddress[] receivers) => Create((IReadOnlyCollection<ZcashAddress>)receivers);
+
+	/// <summary>
+	/// Creates a unified address from a list of address sources.
+	/// </summary>
+	/// <param name="startingDiversiferIndex">The diversifier index from which to start the search for an index that is compatible with all address sources.</param>
+	/// <param name="keys">The keys to use to build the receivers for the unified address.</param>
+	/// <param name="address">Receives the unified address, if one could be created.</param>
+	/// <returns>A value indicating whether the address was successfully created.</returns>
+	/// <remarks>
+	/// Per <see href="https://github.com/zcash/zips/blob/fee271c03da36836c58e649d9674fa430e343810/zip-0316.rst#L690-L692">ZIP-316</see>, a unified address
+	/// should only be created with receivers that all agree on the diversifier index.
+	/// This method automates construction of a compliant address.
+	/// </remarks>
+	public static bool TryCreate(ref DiversifierIndex startingDiversiferIndex, IEnumerable<IIncomingViewingKey> keys, [NotNullWhen(true)] out UnifiedAddress? address)
+	{
+		Requires.NotNull(keys);
+
+		List<ZcashAddress> receivers = new();
+
+		// Search for sapling first since it may need to adjust the diversifier.
+		IIncomingViewingKey? saplingKey = null;
+		foreach (IIncomingViewingKey key in keys)
+		{
+			IIncomingViewingKey ivk = (key as IFullViewingKey)?.IncomingViewingKey ?? key;
+
+			if (ivk is Sapling.DiversifiableIncomingViewingKey sapling)
+			{
+				if (!sapling.TryCreateReceiver(ref startingDiversiferIndex, out SaplingReceiver? receiver))
+				{
+					// The diversifier index was so high that sapling had no more valid diversified addresses available.
+					address = null;
+					return false;
+				}
+
+				receivers.Add(new SaplingAddress(receiver.Value, sapling.Network));
+				saplingKey = key;
+				break;
+			}
+		}
+
+		foreach (IIncomingViewingKey key in keys)
+		{
+			if (key == saplingKey)
+			{
+				// We already handled this one.
+				continue;
+			}
+
+			IIncomingViewingKey ivk = (key as IFullViewingKey)?.IncomingViewingKey ?? key;
+
+			if (ivk is Orchard.IncomingViewingKey orchard)
+			{
+				receivers.Add(new OrchardAddress(orchard.CreateReceiver(startingDiversiferIndex), orchard.Network));
+			}
+			else if (ivk is Zip32HDWallet.Transparent.ExtendedViewingKey transparent)
+			{
+				// Ensure that the diversifier isn't too high as it only has 31-bits available.
+				BigInteger bigInt = startingDiversiferIndex.ToBigInteger();
+				if (bigInt.GetBitLength() > 31)
+				{
+					address = null;
+					return false;
+				}
+
+				receivers.Add(transparent.GetReceivingKey((uint)bigInt).DefaultAddress);
+			}
+			else
+			{
+				throw new NotSupportedException($"Unsupported key type found: {ivk.GetType()}");
+			}
+		}
+
+		address = Create(receivers);
+		return true;
+	}
 
 	/// <summary>
 	/// Creates a unified address from a list of receiver addresses.

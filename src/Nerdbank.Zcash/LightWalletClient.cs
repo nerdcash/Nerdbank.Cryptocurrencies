@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Threading;
 using uniffi.LightWallet;
 using static Nerdbank.Zcash.Transaction;
 using static Nerdbank.Zcash.ZcashUtilities;
@@ -26,94 +26,39 @@ public partial class LightWalletClient : IDisposable
 	public const int MinimumConfirmations = 3;
 
 	private readonly Uri serverUrl;
-	private readonly ZcashAccount? account;
-	private readonly LightWalletSafeHandle handle;
+	private readonly DbInit dbinit;
+	private ImmutableDictionary<ZcashAccount, uint> accountIds = ImmutableDictionary.Create<ZcashAccount, uint>(ZcashAccount.Equality.ByIncomingViewingKey);
+	private ImmutableDictionary<uint, ZcashAccount> accountsById = ImmutableDictionary.Create<uint, ZcashAccount>();
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LightWalletClient"/> class.
 	/// </summary>
-	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
-	/// <param name="account">The account whose keys will be used with this server.</param>
-	/// <param name="walletPath">The absolute path to the directory where the wallet and log will be written.</param>
-	/// <param name="walletName">The filename of the wallet (without a path).</param>
-	/// <param name="logName">The filename of the log file (without a path).</param>
-	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
-	public LightWalletClient(Uri serverUrl, ZcashAccount account, string walletPath, string walletName, string logName, bool watchMemPool)
-	{
-		Requires.NotNull(serverUrl);
-		Requires.NotNull(account);
-
-		if (account.FullViewing is null)
-		{
-			throw new NotSupportedException("This lightwallet client does not support wallets with only incoming viewing keys.");
-		}
-
-		this.serverUrl = serverUrl;
-		this.account = account;
-		this.Network = account.Network;
-
-		Span<byte> uskBytes = stackalloc byte[500];
-		int uskBytesLength = account.Spending?.UnifiedKey.ToBytes(uskBytes) ?? 0;
-		byte[]? uskBytesList = uskBytesLength == 0 ? null : uskBytes[..uskBytesLength].ToArray();
-
-		WalletInfo walletInfo = new(
-			account.Spending is null ? account.FullViewing.UnifiedKey : null,
-			uskBytesList,
-			account.BirthdayHeight ?? 0);
-
-		this.handle = new LightWalletSafeHandle(
-			unchecked((nint)LightWalletMethods.LightwalletInitialize(
-				new Config(
-					serverUrl.AbsoluteUri,
-					ToChainType(account.Network),
-					walletPath,
-					walletName,
-					logName,
-					watchMemPool,
-					MinimumConfirmations),
-				walletInfo)),
-			ownsHandle: true);
-	}
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="LightWalletClient"/> class
-	/// from an existing wallet file.
-	/// </summary>
-	/// <param name="serverUrl">The URL of a lightwallet server to use.</param>
-	/// <param name="network">The network the wallet operates on.</param>
-	/// <param name="walletPath">The absolute path to the directory where the wallet and log will be written.</param>
-	/// <param name="walletName">The filename of the wallet (without a path).</param>
-	/// <param name="logName">The filename of the log file (without a path).</param>
-	/// <param name="watchMemPool">A value indicating whether the mempool will be monitored.</param>
-	public LightWalletClient(Uri serverUrl, ZcashNetwork network, string walletPath, string walletName, string logName, bool watchMemPool)
+	/// <param name="serverUrl">
+	/// <para>The URL of a lightwallet server to use.</para>
+	/// <para>You may refer to <see cref="LightWalletServers"/> for well-known servers run by the Zcash Foundation,
+	/// Electric Coin Company (ECC), and others.</para>
+	/// </param>
+	/// <param name="network">
+	/// The network the wallet operates on.
+	/// This must match the network that the server at <paramref name="serverUrl"/> operates on.
+	/// </param>
+	/// <param name="dataFile">The path to the sqlite database to load (or create) that stores the decrypted transactions.</param>
+	public LightWalletClient(Uri serverUrl, ZcashNetwork network, string dataFile)
 	{
 		Requires.NotNull(serverUrl);
 
+		this.dbinit = new(dataFile, ToChainType(network));
 		this.serverUrl = serverUrl;
 		this.Network = network;
 
-		this.handle = new LightWalletSafeHandle(
-			unchecked((nint)LightWalletMethods.LightwalletInitializeFromDisk(
-				new Config(
-					serverUrl.AbsoluteUri,
-					ToChainType(network),
-					walletPath,
-					walletName,
-					logName,
-					watchMemPool,
-					MinimumConfirmations))),
-			ownsHandle: true);
+		LightWalletMethods.Init(this.dbinit);
+		this.ReadAccountsFromDatabase();
 	}
 
 	/// <summary>
 	/// Gets the Zcash network that this client operates on.
 	/// </summary>
 	public ZcashNetwork Network { get; }
-
-	/// <summary>
-	/// Gets or sets the interval to report progress for long-running tasks.
-	/// </summary>
-	public TimeSpan UpdateFrequency { get; set; } = TimeSpan.FromSeconds(1);
 
 	/// <summary>
 	/// Gets the birthday height of the account.
@@ -123,12 +68,12 @@ public partial class LightWalletClient : IDisposable
 	/// It serves to reduce initial sync times when this account is imported into another wallet.
 	/// </remarks>
 	/// <seealso cref="GetBirthdayHeights"/>
-	public ulong BirthdayHeight => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeight);
+	public uint? BirthdayHeight => LightWalletMethods.GetBirthdayHeight(this.dbinit);
 
 	/// <summary>
 	/// Gets the block last downloaded from the blockchain.
 	/// </summary>
-	public ulong LastDownloadHeight => this.Interop(LightWalletMethods.LastSyncedHeight);
+	public uint? LastDownloadHeight => LightWalletMethods.GetSyncHeight(this.dbinit);
 
 	/// <summary>
 	/// Gets the length of the blockchain (independent of what may have been sync'd thus far.)
@@ -137,34 +82,153 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The length of the blockchain.</returns>
 	/// <exception cref="LightWalletException">Thrown if any error occurs.</exception>
-	public static ValueTask<ulong> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
+	public static async ValueTask<uint> GetLatestBlockHeightAsync(Uri lightWalletServerUrl, CancellationToken cancellationToken)
 	{
-		return new(Task.Run(
-			() => LightWalletMethods.LightwalletGetBlockHeight(lightWalletServerUrl.AbsoluteUri),
-			cancellationToken));
+		Requires.NotNull(lightWalletServerUrl);
+
+		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+		return InvokeInterop(cancellation => LightWalletMethods.GetBlockHeight(lightWalletServerUrl.AbsoluteUri, cancellation), cancellationToken);
+	}
+
+	/// <summary>
+	/// Adds an account to the wallet, if does not already exist.
+	/// </summary>
+	/// <param name="account">The account to add (or upgrade).</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>A task that completes when the account has been added.</returns>
+	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with.</exception>
+	/// <remarks>
+	/// An account may already exist in the database, in which case this method will upgrade the account
+	/// as <see cref="UpgradeAccount(ZcashAccount)"/> would, adding a spending key if one is available.
+	/// </remarks>
+	public async Task AddAccountAsync(ZcashAccount account, CancellationToken cancellationToken)
+	{
+		Requires.NotNull(account);
+		if (account.HDDerivation is null)
+		{
+			throw new NotSupportedException("Only HD derived accounts are supported at present.");
+		}
+
+		if (account.Network != this.Network)
+		{
+			throw new InvalidOperationException(Strings.FormatNetworkMismatch(this.Network, account.Network));
+		}
+
+		if (this.accountIds.TryGetValue(account, out uint id))
+		{
+			// The database already has this account.
+			// But we'll replace our copy with the given one which may contain a spending key.
+			this.accountIds = this.accountIds.Remove(account).Add(account, id);
+			this.accountsById = this.accountsById.SetItem(id, account);
+			return;
+		}
+
+		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+		id = InvokeInterop(cancellation => LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight, cancellation), cancellationToken);
+		this.accountIds = this.accountIds.Add(account, id);
+		this.accountsById = this.accountsById.SetItem(id, account);
+	}
+
+	/// <summary>
+	/// Adds an account to the wallet, if does not already exist.
+	/// </summary>
+	/// <param name="account">The account to add.</param>
+	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with.</exception>
+	public void UpgradeAccount(ZcashAccount account)
+	{
+		Requires.NotNull(account);
+		if (account.HDDerivation is null)
+		{
+			throw new NotSupportedException("Only HD derived accounts are supported at present.");
+		}
+
+		if (account.Network != this.Network)
+		{
+			throw new InvalidOperationException(Strings.FormatNetworkMismatch(this.Network, account.Network));
+		}
+
+		Verify.Operation(this.accountIds.TryGetValue(account, out uint id), Strings.UnrecognizedAccount);
+
+		// The database already has this account.
+		// But we'll replace our copy with the given one which may contain a spending key.
+		this.accountIds = this.accountIds.Remove(account).Add(account, id);
+		this.accountsById = this.accountsById.SetItem(id, account);
+	}
+
+	/// <summary>
+	/// Gets the accounts in the wallet.
+	/// </summary>
+	/// <returns>A snapshot of the accounts.</returns>
+	/// <remarks>
+	/// This will include view-only accounts that were added to the wallet in another session.
+	/// They can be upgraded to spending accounts by passing the <see cref="ZcashAccount"/> instance
+	/// with a spending key to <see cref="UpgradeAccount(ZcashAccount)"/>.
+	/// </remarks>
+	public IEnumerable<ZcashAccount> GetAccounts()
+	{
+		return this.accountIds.Keys;
+	}
+
+	/// <summary>
+	/// Records a diversifier index as having been used by the given account.
+	/// </summary>
+	/// <param name="account">The account to associate with the diversifier index.</param>
+	/// <param name="diversifierIndex">The diversifier index.</param>
+	/// <returns>A unified address based on this diversifier index, containing as many receivers as are valid at this index.</returns>
+	/// <remarks>
+	/// <para>
+	/// This is crucial when transparent addresses are involved, since only transparent addresses
+	/// added to the wallet via this method will be monitored for incoming transactions.
+	/// </para>
+	/// <para>A conflict with an existing diversifier index already in the table is not considered an error.</para>
+	/// </remarks>
+	public UnifiedAddress AddDiversifier(ZcashAccount account, DiversifierIndex diversifierIndex)
+	{
+		Requires.NotNull(account);
+
+		if (!this.accountIds.TryGetValue(account, out uint accountId))
+		{
+			throw new InvalidOperationException(Strings.UnrecognizedAccount);
+		}
+
+		return (UnifiedAddress)ZcashAddress.Decode(LightWalletMethods.AddDiversifier(this.dbinit, accountId, diversifierIndex[..].ToArray()));
 	}
 
 	/// <summary>
 	/// Gets the various forms of birthday heights relevant to this account.
 	/// </summary>
+	/// <param name="account">The account to query.</param>
 	/// <returns>The birthday heights.</returns>
 	/// <remarks>
 	/// The resulting struct contains fields which may be influenced by the completeness of the sync to the blockchain.
 	/// </remarks>
-	public BirthdayHeights GetBirthdayHeights() => this.Interop(LightWalletMethods.LightwalletGetBirthdayHeights);
+	public BirthdayHeights GetBirthdayHeights(ZcashAccount account)
+	{
+		Requires.NotNull(account);
+		if (!this.accountIds.TryGetValue(account, out uint accountId))
+		{
+			throw new InvalidOperationException(Strings.UnrecognizedAccount);
+		}
+
+		return new(LightWalletMethods.GetBirthdayHeights(this.dbinit, accountId));
+	}
 
 	/// <inheritdoc cref="GetLatestBlockHeightAsync(Uri, CancellationToken)"/>
-	public ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
-
-	/// <inheritdoc cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/>
-	public Task<SyncResult> DownloadTransactionsAsync(CancellationToken cancellationToken) => this.DownloadTransactionsAsync(null, cancellationToken);
+	public ValueTask<uint> GetLatestBlockHeightAsync(CancellationToken cancellationToken) => GetLatestBlockHeightAsync(this.serverUrl, cancellationToken);
 
 	/// <summary>
-	/// Scans the blockchain for new transactions related to this account.
+	/// Scans the blockchain for new transactions related to the accounts known to this wallet.
 	/// </summary>
-	/// <param name="progress">
+	/// <param name="statusUpdates">
 	/// An optional receiver of updates that report on progress toward the tip of the blockchain.
 	/// Because scanning the blockchain may take a <em>very</em> long time, reporting progress to the user is <em>highly</em> recommended.
+	/// </param>
+	/// <param name="discoveredTransactions">
+	/// Receives the transactions that are discovered during the scan.
+	/// </param>
+	/// <param name="continually">
+	/// A value indicating whether to keep scanning the blockchain,
+	/// watching for mempool transactions and new blocks as they come.
 	/// </param>
 	/// <param name="cancellationToken">
 	/// A cancellation token.
@@ -172,32 +236,45 @@ public partial class LightWalletClient : IDisposable
 	/// Cancellation does <em>not</em> result in an <see cref="OperationCanceledException"/> being thrown,
 	/// but rather concludes the operation early with an indication of the last block that was scanned.
 	/// </param>
-	/// <returns>A task with the result of the scan.</returns>
-	public async Task<SyncResult> DownloadTransactionsAsync(IProgress<SyncProgress>? progress, CancellationToken cancellationToken)
+	/// <returns>
+	/// A task that never completes successfully when <paramref name="continually"/> is <see langword="true" />,
+	/// or completes with the last <see cref="SyncProgress"/> after the blockchain has been fully downloaded as of when the call was made.
+	/// </returns>
+	public async Task<SyncProgress> DownloadTransactionsAsync(
+		IProgress<SyncProgress>? statusUpdates,
+		IProgress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>? discoveredTransactions,
+		bool continually,
+		CancellationToken cancellationToken)
 	{
-		using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
-		{
-			this.Interop(h => LightWalletMethods.LightwalletSyncInterrupt(h));
-		});
+		await TaskScheduler.Default.SwitchTo(true);
+		SyncUpdateData result = InvokeInterop(
+			cancellation => LightWalletMethods.Sync(
+				this.dbinit,
+				this.serverUrl.AbsoluteUri,
+				new SyncUpdateSink(this, statusUpdates, discoveredTransactions),
+				continually,
+				cancellation),
+			cancellationToken);
 
-		uniffi.LightWallet.SyncResult result = await this.InteropAsync(
-			LightWalletMethods.LightwalletSync,
-			progress,
-			h => new SyncProgress(LightWalletMethods.LightwalletSyncStatus(h)),
-			cancellationToken).ConfigureAwait(false);
-
-		return new SyncResult(result);
+		return new SyncProgress(result);
 	}
 
 	/// <summary>
 	/// Gets all the downloaded transactions for this account included in a given block or later.
 	/// </summary>
+	/// <param name="account">The account to download transactions for.</param>
 	/// <param name="startingBlock">The minimum block number to return transactions for.</param>
 	/// <returns>A list of transactions.</returns>
-	public List<Transaction> GetDownloadedTransactions(uint startingBlock = 0)
+	public List<Transaction> GetDownloadedTransactions(ZcashAccount account, uint startingBlock = 0)
 	{
-		return this.Interop(h => LightWalletMethods.LightwalletGetTransactions(h, startingBlock))
-			.Select(t => CreateTransaction(t, this.Network))
+		Requires.NotNull(account);
+		if (!this.accountIds.TryGetValue(account, out uint accountId))
+		{
+			throw new InvalidOperationException(Strings.UnrecognizedAccount);
+		}
+
+		return LightWalletMethods.GetTransactions(this.dbinit, accountId, startingBlock)
+			.Select(CreateTransaction)
 			.OrderBy(t => t.When)
 			.ToList();
 	}
@@ -205,43 +282,118 @@ public partial class LightWalletClient : IDisposable
 	/// <summary>
 	/// Creates and broadcasts a transaction that sends Zcash to one or more recipients.
 	/// </summary>
+	/// <param name="account">The account whose funds are to be spent.</param>
 	/// <param name="payments">The payments to be made.</param>
 	/// <param name="progress">An optional receiver for progress updates.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The transaction ID.</returns>
-	public async Task<TxId> SendAsync(IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
+	public async Task<TxId> SendAsync(ZcashAccount account, IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
 	{
+		Requires.NotNull(account);
 		Requires.NotNullOrEmpty(payments);
 
-		List<TransactionSendDetail> details = payments
-			.Select(p => new TransactionSendDetail(p.ToAddress, (ulong)(p.Amount * ZatsPerZEC), null, p.Memo.RawBytes.ToArray()))
-			.ToList();
+		List<TransactionSendDetail> details = [.. payments
+			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), p.Memo.RawBytes.ToArray(), p.ToAddress))];
 
-		return await this.InteropAsync(
-			h => TxId.Parse(LightWalletMethods.LightwalletSendToAddress(h, details)),
-			progress,
-			h => new SendProgress(LightWalletMethods.LightwalletSendCheckStatus(h)),
-			cancellationToken).ConfigureAwait(false);
+		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+		try
+		{
+			SendTransactionResult result = LightWalletMethods.Send(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), MinimumConfirmations, details);
+			return new TxId(result.txid);
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw new LightWalletException(ex);
+		}
 	}
-
-	/// <summary>
-	/// Gets pool balances.
-	/// </summary>
-	/// <returns>Pool balances.</returns>
-	public PoolBalances GetPoolBalances() => new(this.Interop(LightWalletMethods.LightwalletGetBalances));
 
 	/// <summary>
 	/// Gets user balances.
 	/// </summary>
+	/// <param name="account">The account to get balances for.</param>
 	/// <returns>Pool balances.</returns>
-	public AccountBalances GetUserBalances() => new(this.Network.AsSecurity(), this.Interop(LightWalletMethods.LightwalletGetUserBalances));
+	public AccountBalances GetBalances(ZcashAccount account)
+	{
+		Requires.NotNull(account);
+		if (!this.accountIds.TryGetValue(account, out uint accountId))
+		{
+			throw new InvalidOperationException(Strings.UnrecognizedAccount);
+		}
+
+		return new(this.Network.AsSecurity(), LightWalletMethods.GetUserBalances(this.dbinit, accountId, MinimumConfirmations));
+	}
+
+	/// <summary>
+	/// Discovers all non-zero balances for transparent addresses in this account.
+	/// </summary>
+	/// <param name="account">The account to get unshielded balances for.</param>
+	/// <returns>A collection of transparent addresses with positive balances, sorted by the age of the oldest UTXO for each address.</returns>
+	/// <remarks>
+	/// This can be useful as an input into an algorithm that shields transparent funds.
+	/// </remarks>
+	public IReadOnlyList<(TransparentAddress Address, decimal Balance)> GetUnshieldedBalances(ZcashAccount account)
+	{
+		Requires.NotNull(account);
+		if (!this.accountIds.TryGetValue(account, out uint accountId))
+		{
+			throw new InvalidOperationException(Strings.UnrecognizedAccount);
+		}
+
+		List<TransparentNote> utxos = LightWalletMethods.GetUnshieldedUtxos(this.dbinit, accountId);
+		if (utxos.Count == 0)
+		{
+			return Array.Empty<(TransparentAddress, decimal)>();
+		}
+
+		Dictionary<string, (decimal Balance, int Age)> index = new();
+		for (int i = 0; i < utxos.Count; i++)
+		{
+			TransparentNote utxo = utxos[i];
+			if (index.TryGetValue(utxo.recipient, out (decimal Balance, int Age) existing))
+			{
+				index[utxo.recipient] = (existing.Balance + ZatsToZEC(utxo.value), existing.Age);
+			}
+			else
+			{
+				index[utxo.recipient] = (ZatsToZEC(utxo.value), i);
+			}
+		}
+
+		return [..
+			from tAddrString in index
+			let addr = (TransparentAddress)ZcashAddress.Decode(tAddrString.Key)
+			orderby tAddrString.Value.Age
+			select (addr, tAddrString.Value.Balance)];
+	}
+
+	/// <summary>
+	/// Shields all funds in a given transparent address.
+	/// </summary>
+	/// <param name="account">The account whose transparent funds should be shielded.</param>
+	/// <param name="address">The address with UTXOs to be shielded. This value is recommended to have come from a random element in the list returned from <see cref="GetUnshieldedBalances"/>.</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>The transaction ID of the shielding transaction that has been broadcast.</returns>
+	public Task<TxId> ShieldAsync(ZcashAccount account, TransparentAddress address, CancellationToken cancellationToken)
+	{
+		return Task.Run(
+			delegate
+			{
+				return new TxId(LightWalletMethods.Shield(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), address).txid);
+			},
+			cancellationToken);
+	}
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		this.handle.Dispose();
 	}
 
+	/// <summary>
+	/// Converts our own <see cref="ZcashNetwork"/> enum to the uniffi's <see cref="ChainType"/> enum.
+	/// </summary>
+	/// <param name="network">The network to convert.</param>
+	/// <returns>The uniffi equivalent value.</returns>
+	/// <exception cref="ArgumentException">Thrown if the network value isn't recognized.</exception>
 	private static ChainType ToChainType(ZcashNetwork network)
 	{
 		return network switch
@@ -257,122 +409,96 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="d">The uniffi data to copy from.</param>
 	private static SendItem CreateSendItem(TransactionSendDetail d)
-		=> new(ZcashAddress.Decode(d.toAddress), ZatsToZEC(d.value), new Memo(d.memo.ToArray())) { RecipientUA = d.recipientUa is null ? null : (UnifiedAddress)ZcashAddress.Decode(d.recipientUa) };
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RecvItem"/> class.
 	/// </summary>
-	/// <param name="d">The uniffi sapling note.</param>
-	/// <param name="network">The network that the transaction is on.</param>
-	private static RecvItem CreateRecvItem(SaplingNote d, ZcashNetwork network)
-		=> new(new SaplingAddress(new SaplingReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
+	/// <param name="d">The uniffi shielded note.</param>
+	private static RecvItem CreateRecvItem(ShieldedNote d)
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RecvItem"/> class.
 	/// </summary>
-	/// <param name="d">The uniffi orchard note.</param>
-	/// <param name="network">The network that the transaction is on.</param>
-	private static RecvItem CreateRecvItem(OrchardNote d, ZcashNetwork network)
-		=> new(new OrchardAddress(new OrchardReceiver(d.recipient.ToArray()), network), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
+	/// <param name="d">The uniffi transparent note.</param>
+	private static RecvItem CreateRecvItem(TransparentNote d)
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), Memo.NoMemo, IsChange: false);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
 	/// </summary>
 	/// <param name="t">The uniffi transaction to copy data from.</param>
-	/// <param name="network">The network this transaction is on.</param>
-	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t, ZcashNetwork network)
-		=> new(TxId.Parse(t.txid), t.blockHeight, DateTime.UnixEpoch.AddSeconds(t.datetime), t.unconfirmed, ZatsToZEC(t.spent), ZatsToZEC(t.received), t.sends.Select(s => CreateSendItem(s)).ToImmutableArray(), t.saplingNotes.Select(s => CreateRecvItem(s, network)).Concat(t.orchardNotes.Select(o => CreateRecvItem(o, network))).ToImmutableArray(), t.isIncoming);
+	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t)
+		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
 
-	private async ValueTask<T> InteropAsync<T, TProgress>(Func<ulong, T> func, IProgress<TProgress>? progress, Func<ulong, TProgress> checkProgress, CancellationToken cancellationToken)
+	/// <summary>
+	/// Wraps an interop invocation in a <see langword="try" /> block and wraps
+	/// any interop exceptions in the appropriate .NET exceptions.
+	/// </summary>
+	/// <typeparam name="T">The type of returned value.</typeparam>
+	/// <param name="action">The interop action to invoke. A <see cref="Cancellation"/> object is provided if <paramref name="cancellationToken"/> is cancelable.</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>The result returned from <paramref name="action"/>.</returns>
+	/// <exception cref="OperationCanceledException">Thrown if the operation was canceled via the <paramref name="cancellationToken"/>.</exception>
+	/// <exception cref="LightWalletException">Thrown for any other error.</exception>
+	private static T InvokeInterop<T>(Func<Cancellation?, T> action, CancellationToken cancellationToken)
 	{
-		using (this.TrackProgress(progress, checkProgress))
+		using Cancellation? cancellation = cancellationToken.CanBeCanceled ? new(cancellationToken) : null;
+		try
 		{
-			return await this.InteropAsync(func, cancellationToken).ConfigureAwait(false);
+			return action(cancellation);
+		}
+		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
+		{
+			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
+		}
+		catch (uniffi.LightWallet.LightWalletException.InvalidArgument ex)
+		{
+			// Promote the proprietary interop message in the exception to the proper exception Message property.
+			throw new LightWalletException(ex.message, ex);
+		}
+		catch (uniffi.LightWallet.LightWalletException.SqliteClientException ex)
+		{
+			// Promote the proprietary interop message in the exception to the proper exception Message property.
+			throw new LightWalletException(ex.message, ex);
+		}
+		catch (uniffi.LightWallet.LightWalletException.Other ex)
+		{
+			// Promote the proprietary interop message in the exception to the proper exception Message property.
+			throw new LightWalletException(ex.message, ex);
 		}
 	}
 
-	private ValueTask<T> InteropAsync<T>(Func<ulong, T> func, CancellationToken cancellationToken)
+	/// <summary>
+	/// Gets the raw byte encoding of the unified spending key for this account.
+	/// </summary>
+	private byte[] GetUnifiedSpendingKeyBytes(ZcashAccount account)
 	{
-		bool refAdded = false;
-		try
+		UnifiedSpendingKey usk = account.Spending?.UnifiedKey ?? throw new InvalidOperationException("No spending key.");
+		byte[] uskBytes = new byte[500];
+		int len = usk.ToBytes(uskBytes);
+		return uskBytes[..len];
+	}
+
+	private void ReadAccountsFromDatabase()
+	{
+		var builder = this.accountIds.ToBuilder();
+
+		foreach (AccountInfo accountInfo in LightWalletMethods.GetAccounts(this.dbinit))
 		{
-			this.handle.DangerousAddRef(ref refAdded);
-			return new(Task.Run(
-				delegate
+			if (accountInfo.uvk is not null)
+			{
+				ZcashAccount account = new(UnifiedViewingKey.Decode(accountInfo.uvk))
 				{
-					return func((ulong)this.handle.DangerousGetHandle());
-				},
-				cancellationToken));
-		}
-		finally
-		{
-			if (refAdded)
-			{
-				this.handle.DangerousRelease();
+					BirthdayHeight = accountInfo.birthdayHeights.originalBirthdayHeight,
+				};
+				builder.Add(account, accountInfo.id);
 			}
 		}
-	}
 
-	private T Interop<T>(Func<ulong, T> func)
-	{
-		bool refAdded = false;
-		try
-		{
-			this.handle.DangerousAddRef(ref refAdded);
-			return func((ulong)this.handle.DangerousGetHandle());
-		}
-		finally
-		{
-			if (refAdded)
-			{
-				this.handle.DangerousRelease();
-			}
-		}
-	}
-
-	private void Interop(Action<ulong> func)
-	{
-		bool refAdded = false;
-		try
-		{
-			this.handle.DangerousAddRef(ref refAdded);
-			func((ulong)this.handle.DangerousGetHandle());
-		}
-		finally
-		{
-			if (refAdded)
-			{
-				this.handle.DangerousRelease();
-			}
-		}
-	}
-
-	private IDisposable? TrackProgress<T>(IProgress<T>? progress, Func<ulong, T> fetchProgress)
-	{
-		if (progress is null)
-		{
-			return null;
-		}
-
-		CancellationTokenSource cts = new();
-		bool inProgress = true;
-
-		// Set up a timer by which we will check on progress and report back.
-		_ = Task.Run(async delegate
-		{
-			while (inProgress)
-			{
-				await Task.Delay(this.UpdateFrequency, cts.Token).ConfigureAwait(false);
-				T status = this.Interop(fetchProgress);
-				progress.Report(status);
-			}
-		});
-
-		return new DisposableAction(delegate
-		{
-			inProgress = false;
-			cts.Cancel();
-		});
+		this.accountIds = builder.ToImmutable();
+		this.accountsById = this.accountIds.ToImmutableDictionary(x => x.Value, x => x.Key);
 	}
 
 	/// <summary>
@@ -405,22 +531,19 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// The balance across all pools for a Zcash account.
+	/// Describes the various birthday heights that apply to a Zcash account.
 	/// </summary>
-	/// <param name="Transparent">The transparent balance.</param>
-	/// <param name="Sapling">The sapling balance.</param>
-	/// <param name="Orchard">The orchard balance.</param>
-	public record struct PoolBalances(TransparentPoolBalance? Transparent, ShieldedPoolBalance? Sapling, ShieldedPoolBalance? Orchard)
+	/// <param name="OriginalBirthdayHeight">The birthday height the account was created with.</param>
+	/// <param name="BirthdayHeight">The height of the first block that contains a transaction.</param>
+	/// <param name="RebirthHeight">The height of the block containing the oldest unspent note.</param>
+	public record struct BirthdayHeights(ulong OriginalBirthdayHeight, ulong BirthdayHeight, ulong? RebirthHeight)
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PoolBalances"/> struct.
+		/// Initializes a new instance of the <see cref="BirthdayHeights"/> struct.
 		/// </summary>
-		/// <param name="balances">The balances as they come from the interop layer.</param>
-		internal PoolBalances(uniffi.LightWallet.PoolBalances balances)
-			: this(
-				Requires.NotNull(balances).transparentBalance.HasValue ? new(ZatsToZEC(balances.transparentBalance!.Value)) : null,
-				balances.saplingBalance.HasValue ? new(balances.saplingBalance.Value, balances.verifiedSaplingBalance!.Value, balances.unverifiedSaplingBalance!.Value, balances.spendableSaplingBalance!.Value) : null,
-				balances.orchardBalance.HasValue ? new(balances.orchardBalance.Value, balances.verifiedOrchardBalance!.Value, balances.unverifiedOrchardBalance!.Value, balances.spendableOrchardBalance!.Value) : null)
+		/// <param name="heights">The interop heights record to copy from.</param>
+		internal BirthdayHeights(uniffi.LightWallet.BirthdayHeights heights)
+			: this(heights.originalBirthdayHeight, heights.birthdayHeight, heights.rebirthHeight)
 		{
 		}
 	}
@@ -442,85 +565,83 @@ public partial class LightWalletClient : IDisposable
 		string? LastError,
 		string? LastTransactionId)
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SendProgress"/> class.
-		/// </summary>
-		/// <param name="update">The FFI data to copy from.</param>
-		internal SendProgress(SendUpdate update)
-			: this(update.id, update.isSendInProgress, update.progress, update.total, update.lastError, update.lastTransactionId)
-		{
-		}
 	}
 
 	/// <summary>
-	/// Describes the final result of a blockchain scan.
+	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync"/> operation.
 	/// </summary>
-	/// <param name="Success">Indicates overall success of the operation.</param>
-	/// <param name="LatestBlock">The last blocked scanned.</param>
-	/// <param name="TotalBlocksScanned">The number of blocks scanned.</param>
-	public record SyncResult(
-		bool Success,
-		ulong LatestBlock,
-		ulong TotalBlocksScanned)
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SyncResult"/> class
-		/// based on data coming from the native code.
-		/// </summary>
-		/// <param name="copyFrom">The native data to copy from.</param>
-		internal SyncResult(uniffi.LightWallet.SyncResult copyFrom)
-			: this(copyFrom.success, copyFrom.latestBlock, copyFrom.totalBlocksSynced)
-		{
-		}
-	}
-
-	/// <summary>
-	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, CancellationToken)"/> operation.
-	/// </summary>
+	/// <param name="LastFullyScannedBlock">The last block that has been fully scanned.</param>
+	/// <param name="TipHeight">The length of the blockchain.</param>
+	/// <param name="CurrentStep">The step that the operation has most recently completed.</param>
+	/// <param name="TotalSteps">The number of steps currently believed to be in the operation.</param>
 	/// <param name="LastError">The last error encountered during the scan.</param>
-	/// <param name="StartBlock">The number of the first block in the current batch.</param>
-	/// <param name="EndBlock">The number of the last block in the current batch.</param>
-	/// <param name="BlocksDone">The number of blocks scanned.</param>
-	/// <param name="TxnScanDone">The number of transactions scanned.</param>
-	/// <param name="BlocksTotal">The total number of blocks.</param>
-	/// <param name="BatchNum">The batch number currently being scanned.</param>
-	/// <param name="BatchTotal">The number of batches that the current scan operation is divided into.</param>
-	/// <param name="InProgress">A value indicating whether the sync is still in progress.</param>
 	public record SyncProgress(
-		string? LastError,
-		ulong StartBlock,
-		ulong EndBlock,
-		ulong BlocksDone,
-		ulong TxnScanDone,
-		ulong BlocksTotal,
-		ulong BatchNum,
-		ulong BatchTotal,
-		bool InProgress)
+		uint? LastFullyScannedBlock,
+		uint TipHeight,
+		ulong CurrentStep,
+		ulong TotalSteps,
+		string? LastError)
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SyncProgress"/> class
-		/// based on data coming from the native code.
+		/// Initializes a new instance of the <see cref="SyncProgress"/> class.
 		/// </summary>
-		/// <param name="copyFrom">The data to copy from.</param>
-		internal SyncProgress(SyncStatus copyFrom)
-			: this(copyFrom.lastError, copyFrom.startBlock, copyFrom.endBlock, copyFrom.blocksDone, copyFrom.txnScanDone, copyFrom.blocksTotal, copyFrom.batchNum, copyFrom.batchTotal, copyFrom.inProgress)
+		/// <param name="data">The interop type to copy data from.</param>
+		internal SyncProgress(SyncUpdateData data)
+			: this(data.lastFullyScannedBlock, data.tipHeight, data.currentStep, data.totalSteps, data.lastError)
 		{
+		}
+
+		/// <summary>
+		/// Gets the % completion in reaching the tip of the blockchain.
+		/// </summary>
+		public double PercentComplete => this.TotalSteps == 0 ? 0 : (double)this.CurrentStep * 100 / this.TotalSteps;
+	}
+
+	private class SyncUpdateSink(
+		LightWalletClient client,
+		IProgress<SyncProgress>? statusUpdates,
+		IProgress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>? discoveredTransactions)
+		: SyncUpdate
+	{
+		public void UpdateStatus(SyncUpdateData data) => statusUpdates?.Report(new(data));
+
+		public void ReportTransactions(List<uniffi.LightWallet.Transaction> transactions)
+		{
+			if (discoveredTransactions is null)
+			{
+				return;
+			}
+
+			ImmutableDictionary<ZcashAccount, IReadOnlyCollection<Transaction>> dictionary = ImmutableDictionary.CreateRange(
+				from tx in transactions
+				group tx by tx.accountId into g
+				let account = client.accountsById[g.Key]
+				select new KeyValuePair<ZcashAccount, IReadOnlyCollection<Transaction>>(
+					account,
+					g.Select(CreateTransaction).ToArray()));
+			discoveredTransactions.Report(dictionary);
 		}
 	}
 
-	/// <summary>
-	/// A <see cref="SafeHandle"/> that contains the handle to the native lightwallet used by
-	/// an instance of <see cref="LightWalletClient"/>.
-	/// </summary>
-	private class LightWalletSafeHandle : SafeHandle
+	private class Cancellation : CancellationSource, IDisposable
 	{
-		internal LightWalletSafeHandle(nint invalidHandleValue, bool ownsHandle)
-			: base(invalidHandleValue, ownsHandle)
+		private readonly CancellationToken token;
+		private CancellationTokenRegistration registration;
+
+		public Cancellation(CancellationToken token)
 		{
+			token.ThrowIfCancellationRequested();
+			this.token = token;
 		}
 
-		public override bool IsInvalid => this.handle <= 0;
+		public void SetCancellationId(uint id)
+		{
+			this.registration = this.token.Register(() => LightWalletMethods.Cancel(id), useSynchronizationContext: false);
+		}
 
-		protected override bool ReleaseHandle() => LightWalletMethods.LightwalletDeinitialize((ulong)this.handle);
+		public void Dispose()
+		{
+			this.registration.Dispose();
+		}
 	}
 }

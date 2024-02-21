@@ -13,7 +13,9 @@ Please be advised of the following:
 
 - 🚫🕵🏻 This code currently is not audited by an external security auditor, use it at your own risk.
 - 🚫🕵🏻 The code has not been subjected to thorough review by engineers at the Electric Coin Company or anywhere else.
-- 🚧 We are actively changing the codebase and adding features where/when needed.
+- 🚫 Sending and receiving funds in the Orchard pool does not yet work. See [librustzcash#404](https://github.com/zcash/librustzcash/issues/404) and [librustzcash#403](https://github.com/zcash/librustzcash/issues/403).
+- ⚠️ Transparent funds must be shielded before they can be spent.
+- 🚧 We are actively adding features and fixing bugs.
 
 ## Nerdbank.Cryptocurrencies
 

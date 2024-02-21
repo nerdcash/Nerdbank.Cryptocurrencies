@@ -216,6 +216,65 @@ public class UnifiedAddressTests : TestBase
 	}
 
 	[Fact]
+	public void TryCreate_TransparentOnly()
+	{
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+
+		DiversifierIndex index = default;
+		Assert.Throws<ArgumentException>(() => UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Transparent!], out UnifiedAddress? address));
+	}
+
+	[Fact]
+	public void TryCreate_SaplingOnly()
+	{
+		// The particular mnemonic used here has a sapling key that doesn't produce a valid diversifier until index 3.
+		// But we're excluding sapling from this UA, so we expect a 0 index UA.
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+
+		DiversifierIndex index = default;
+		Assert.True(UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Sapling!], out UnifiedAddress? address));
+		Assert.Equal(3, index.ToBigInteger());
+
+		AssertAddressIndex(account, index, address);
+	}
+
+	[Fact]
+	public void TryCreate_WithoutNonZeroSaplingComponent()
+	{
+		// The particular mnemonic used here has a sapling key that doesn't produce a valid diversifier until index 3.
+		// But we're excluding sapling from this UA, so we expect a 0 index UA.
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+
+		DiversifierIndex index = default;
+		Assert.True(UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Orchard!, account.IncomingViewing.Transparent!], out UnifiedAddress? address));
+		Assert.Equal(default, index);
+
+		AssertAddressIndex(account, index, address);
+	}
+
+	[Fact]
+	public void TryCreate_MatchingIndexedReceivers()
+	{
+		// The particular mnemonic used here has a sapling key that doesn't produce a valid diversifier until index 3.
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+
+		DiversifierIndex index = default;
+		Assert.True(UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Orchard!, account.IncomingViewing.Sapling!, account.IncomingViewing.Transparent!], out UnifiedAddress? address));
+
+		AssertAddressIndex(account, index, address);
+	}
+
+	[Fact]
+	public void TryCreate_TooHighForTransparent()
+	{
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+
+		DiversifierIndex index = new(ulong.MaxValue);
+		Assert.False(UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Orchard!, account.IncomingViewing.Sapling!, account.IncomingViewing.Transparent!], out UnifiedAddress? address));
+		Assert.Null(address);
+	}
+
+	[Fact]
 	public void Network_AfterParse()
 	{
 		Assert.Equal(ZcashNetwork.MainNet, ZcashAddress.Decode(ValidUnifiedAddressSapling).Network);
@@ -226,5 +285,26 @@ public class UnifiedAddressTests : TestBase
 	public void TryDecode_Invalid(string address)
 	{
 		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
+	}
+
+	internal static void AssertAddressIndex(ZcashAccount account, DiversifierIndex expectedIndex, UnifiedAddress address)
+	{
+		if (address.GetPoolReceiver<OrchardReceiver>() is OrchardReceiver orchard)
+		{
+			Assert.True(account.IncomingViewing.Orchard!.TryGetDiversifierIndex(orchard, out DiversifierIndex? actualOrchardIndex));
+			Assert.Equal(expectedIndex, actualOrchardIndex);
+		}
+
+		if (address.GetPoolReceiver<SaplingReceiver>() is SaplingReceiver sapling)
+		{
+			Assert.True(account.IncomingViewing.Sapling!.TryGetDiversifierIndex(sapling, out DiversifierIndex? actualSaplingIndex));
+			Assert.Equal(expectedIndex, actualSaplingIndex);
+		}
+
+		if (address.GetPoolReceiver<TransparentP2PKHReceiver>() is TransparentP2PKHReceiver actualTransparentReceiver)
+		{
+			TransparentP2PKHReceiver expectedTransparentReceiver = account.IncomingViewing.Transparent!.GetReceivingKey(checked((uint)expectedIndex.ToBigInteger())).DefaultAddress.GetPoolReceiver<TransparentP2PKHReceiver>()!.Value;
+			Assert.Equal(expectedTransparentReceiver, actualTransparentReceiver);
+		}
 	}
 }

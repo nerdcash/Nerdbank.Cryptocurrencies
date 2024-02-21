@@ -123,6 +123,24 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(actualIndex);
 	}
 
+	/// <summary>
+	/// Verifies that for an account with a sapling key that doesn't produce a valid diversifier at index 0,
+	/// the default UA uses the same index for all receivers, as required by ZIP-316.
+	/// </summary>
+	[Fact]
+	public void DefaultAddress_WithInvalidSaplingKeyAt0_HasConsistentIndexes()
+	{
+		// The particular mnemonic used here has a sapling key that doesn't produce a valid diversifier at index 0.
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+		UnifiedAddressTests.AssertAddressIndex(account, new DiversifierIndex(3), account.DefaultAddress);
+	}
+
+	[Fact]
+	public void TryGetDiversifierIndex_TransparentReceiverOnly()
+	{
+		Assert.False(this.DefaultAccount.TryGetDiversifierIndex(this.DefaultAccount.IncomingViewing.Transparent!.DefaultAddress, out _));
+	}
+
 	[Fact]
 	public void GetTransparentAddress()
 	{
@@ -322,6 +340,25 @@ public class ZcashAccountTests : TestBase
 	}
 
 	[Fact]
+	public void TryImportAccount_FullViewing_Sapling()
+	{
+		ZcashAccount account = this.ImportAccount(this.DefaultAccount.FullViewing!.Sapling!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.NotNull(account.FullViewing);
+		Assert.Null(account.FullViewing.Orchard);
+		Assert.NotNull(account.FullViewing.Sapling);
+		Assert.Null(account.FullViewing.Transparent);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.Null(account.IncomingViewing.Orchard);
+		Assert.NotNull(account.IncomingViewing.Sapling);
+		Assert.Null(account.IncomingViewing.Transparent);
+	}
+
+	[Fact]
 	public void TryImportAccount_Spending_Transparent()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.Spending!.Transparent!.TextEncoding);
@@ -375,6 +412,22 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing);
 		Assert.NotNull(account.IncomingViewing.Orchard);
 		Assert.Null(account.IncomingViewing.Sapling);
+		Assert.Null(account.IncomingViewing.Transparent);
+	}
+
+	[Fact]
+	public void TryImportAccount_IncomingViewing_Sapling()
+	{
+		ZcashAccount account = this.ImportAccount(this.DefaultAccount.IncomingViewing.Sapling!.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+
+		Assert.Null(account.FullViewing);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.Null(account.IncomingViewing.Orchard);
+		Assert.NotNull(account.IncomingViewing.Sapling);
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 

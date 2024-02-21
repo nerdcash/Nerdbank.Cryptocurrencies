@@ -240,8 +240,17 @@ public class ZcashAccount
 	/// <param name="index">Receives the diversifier index used to construct this address.</param>
 	/// <returns><see langword="true" /> if the address came from this account and the diversifier could be decrypted; otherwise <see langword="false" />.</returns>
 	/// <remarks>
+	/// <para>
 	/// If the <paramref name="address"/> contains multiple diversifiable receivers,
 	/// the diversifier index will only be reported from this method if it matches for all such receivers.
+	/// </para>
+	/// <para>
+	/// Because there is no constant time path from transparent receiver to its address index,
+	/// <em>transparent receivers are ignored</em> by this method.
+	/// Callers that are interested in the address index of the <see cref="TransparentP2PKHReceiver"/>
+	/// component of an address should use <see cref="Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/>
+	/// directly to search for a match.
+	/// </para>
 	/// </remarks>
 	public bool TryGetDiversifierIndex(ZcashAddress address, [NotNullWhen(true)] out DiversifierIndex? index)
 	{
@@ -715,6 +724,108 @@ public class ZcashAccount
 			}
 
 			return new(transparent, sapling, orchard);
+		}
+	}
+
+	/// <summary>
+	/// Equality comparers for <see cref="ZcashAccount"/>.
+	/// </summary>
+	public static class Equality
+	{
+		/// <summary>
+		/// An equality comparer that considers two accounts to be equal if they have the same incoming viewing key.
+		/// </summary>
+		public static readonly IEqualityComparer<ZcashAccount> ByIncomingViewingKey = new EqualByIVK();
+
+		/// <summary>
+		/// An equality comparer that considers two accounts to be equal if they have the same full viewing key.
+		/// </summary>
+		/// <remarks>
+		/// Accounts that have no full viewing key are not considered equal to any other account.
+		/// </remarks>
+		public static readonly IEqualityComparer<ZcashAccount> ByFullViewingKey = new EqualByFVK();
+
+		/// <summary>
+		/// An equality comparer that considers two accounts to be equal if they have the same spending key.
+		/// </summary>
+		/// <remarks>
+		/// Accounts that have no spending key are not considered equal to any other account.
+		/// </remarks>
+		public static readonly IEqualityComparer<ZcashAccount> BySpendingKey = new EqualBySK();
+
+		private class EqualBySK : IEqualityComparer<ZcashAccount>
+		{
+			public bool Equals(ZcashAccount? x, ZcashAccount? y)
+			{
+				if (ReferenceEquals(x, y))
+				{
+					return true;
+				}
+
+				if (x?.Spending is null || y?.Spending is null)
+				{
+					// If one or both are null, then they are not equal.
+					// We do NOT consider two accounts without FVKs to be equal,
+					// as that would be a security risk.
+					return false;
+				}
+
+				return x.Spending.Equals(y.Spending);
+			}
+
+			public int GetHashCode([DisallowNull] ZcashAccount obj)
+			{
+				return obj.Spending?.GetHashCode() ?? obj.IncomingViewing.GetHashCode();
+			}
+		}
+
+		private class EqualByFVK : IEqualityComparer<ZcashAccount>
+		{
+			public bool Equals(ZcashAccount? x, ZcashAccount? y)
+			{
+				if (ReferenceEquals(x, y))
+				{
+					return true;
+				}
+
+				if (x?.FullViewing is null || y?.FullViewing is null)
+				{
+					// If one or both are null, then they are not equal.
+					// We do NOT consider two accounts without FVKs to be equal,
+					// as that would be a security risk.
+					return false;
+				}
+
+				return x.FullViewing.Equals(y.FullViewing);
+			}
+
+			public int GetHashCode([DisallowNull] ZcashAccount obj)
+			{
+				return obj.FullViewing?.GetHashCode() ?? obj.IncomingViewing.GetHashCode();
+			}
+		}
+
+		private class EqualByIVK : IEqualityComparer<ZcashAccount>
+		{
+			public bool Equals(ZcashAccount? x, ZcashAccount? y)
+			{
+				if (ReferenceEquals(x, y))
+				{
+					return true;
+				}
+
+				if (x is null || y is null)
+				{
+					return false;
+				}
+
+				return x.IncomingViewing.Equals(y.IncomingViewing);
+			}
+
+			public int GetHashCode([DisallowNull] ZcashAccount obj)
+			{
+				return obj.IncomingViewing.GetHashCode();
+			}
 		}
 	}
 }

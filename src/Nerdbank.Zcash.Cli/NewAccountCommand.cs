@@ -149,14 +149,13 @@ internal class NewAccountCommand
 			BirthdayHeight = this.BirthdayHeight,
 		};
 
-		Uri serverUrl = this.LightWalletServerUrl ?? Utilities.GetDefaultLightWalletUrl(this.TestNet);
 		if (this.WalletPath is not null)
 		{
 			using LightWalletClient client = Utilities.ConstructLightClient(
 				this.LightWalletServerUrl,
-				account,
-				this.WalletPath,
-				watchMemPool: false);
+				account.Network,
+				this.WalletPath);
+			await client.AddAccountAsync(account, cancellationToken);
 			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
 		}
 

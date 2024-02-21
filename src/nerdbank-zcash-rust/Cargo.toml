@@ -1,0 +1,74 @@
+[package]
+name = "nerdbank-zcash-rust"
+version = "0.1.0"
+license = "MIT"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+uniffi = { version = "0.25.0", features = ["build"] }
+
+[dependencies]
+ff = "0.13"
+futures-util = "0.3"
+group = "0.13"
+hdwallet = { path = "../../external/hdwallet" }
+http = "0.2"
+jubjub = "0.10"
+lazy_static = "1.4"
+minreq = "2.11.0"
+orchard = "0.7.0"
+pasta_curves = "0.5"
+prost = "0.12"
+rusqlite = "0.29"
+sapling = { package = "sapling-crypto", version = "0.1" }
+schemer = "0.2"
+secrecy = "0.8.0"
+thiserror = "1.0"
+time = "0.3.31"
+tracing = "0.1"
+tokio = { version = "1.32", features = [
+	"rt",
+	"fs",
+	"macros",
+	"rt-multi-thread",
+] }
+tokio-util = "0.7.10"
+tonic = { version = "0.10", features = ["gzip", "tls-webpki-roots"] }
+uniffi = "0.25"
+zcash_address = { path = "../../external/librustzcash/components/zcash_address" }
+zcash_primitives = { path = "../../external/librustzcash/zcash_primitives", features = [
+	"transparent-inputs",
+] }
+zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backend", features = [
+	"test-dependencies",
+	"transparent-inputs",
+	"lightwalletd-tonic",
+] }
+zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite", features = [
+	"multicore",
+	"transparent-inputs",
+	"unstable",
+] }
+zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
+	"unstable",
+	"test-dependencies",
+] }
+zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
+	"download-params",
+	"local-prover",
+	"multicore",
+], default-features = false }
+zeroize = "1.7.0"
+
+[dev-dependencies]
+testdir = "0.9.1"
+matches = "0.1"
+
+[patch.crates-io]
+hdwallet = { path = "../../external/hdwallet" }
+sapling = { package = "sapling-crypto", path = "../../external/sapling-crypto" }

@@ -7,9 +7,10 @@ namespace Nerdbank.Zcash.Sapling;
 /// A viewing key that includes the diversifier key for incoming transactions.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncodingElement, IIncomingViewingKey
+public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncodingElement, IIncomingViewingKey, IKeyWithTextEncoding
 {
 	private readonly DiversifierKey dk;
+	private string? textEncoding;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiversifiableIncomingViewingKey"/> class.
@@ -26,7 +27,7 @@ public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncod
 	/// <summary>
 	/// Gets the same key, but with the diversifier key removed.
 	/// </summary>
-	public IncomingViewingKey WithoutDiversifier => new(this.Ivk, this.Network);
+	public IncomingViewingKey WithoutDiversifierKey => new(this.Ivk, this.Network);
 
 	/// <inheritdoc/>
 	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;
@@ -45,12 +46,45 @@ public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncod
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.UnifiedDataLength => 32 * 2;
 
+	/// <inheritdoc cref="IKeyWithTextEncoding.TextEncoding" />
+	public new string TextEncoding => this.textEncoding ??= UnifiedViewingKey.Incoming.Create(this).TextEncoding;
+
 	/// <summary>
 	/// Gets the diversification key.
 	/// </summary>
 	internal ref readonly DiversifierKey Dk => ref this.dk;
 
 	private string DebuggerDisplay => this.DefaultAddress;
+
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	static bool IKeyWithTextEncoding.TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
+	{
+		if (TryDecode(encoding, out decodeError, out errorMessage, out IncomingViewingKey? ivk))
+		{
+			key = ivk;
+			return true;
+		}
+
+		key = null;
+		return false;
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DiversifiableIncomingViewingKey"/> class
+	/// from its <see cref="UnifiedViewingKey"/> encoding.
+	/// </summary>
+	/// <inheritdoc cref="IKeyWithTextEncoding.TryDecode(string, out DecodeError?, out string?, out IKeyWithTextEncoding?)"/>
+	public static bool TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out DiversifiableIncomingViewingKey? key)
+	{
+		if (UnifiedViewingKey.TryDecode(encoding, out decodeError, out errorMessage, out UnifiedViewingKey? ufvk))
+		{
+			key = ufvk.GetViewingKey<DiversifiableIncomingViewingKey>();
+			return key is not null;
+		}
+
+		key = null;
+		return false;
+	}
 
 	/// <inheritdoc/>
 	int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
@@ -154,16 +188,15 @@ public class DiversifiableIncomingViewingKey : IncomingViewingKey, IUnifiedEncod
 	/// Initializes a new instance of the <see cref="DiversifiableIncomingViewingKey"/> class
 	/// from elements of a full viewing key.
 	/// </summary>
-	/// <param name="ak">The Ak subgroup point.</param>
-	/// <param name="nk">The nullifier deriving key.</param>
+	/// <param name="fvk">The encoded full viewing key (ak, nk, ovk).</param>
 	/// <param name="dk">The diversification key. May be default. Required for inclusion in a unified viewing key.</param>
 	/// <param name="network">The network on which this key should operate.</param>
 	/// <returns>The constructed incoming viewing key.</returns>
 	/// <exception cref="InvalidKeyException">Thrown if an error occurs while parsing the inputs.</exception>
-	internal static DiversifiableIncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> ak, ReadOnlySpan<byte> nk, ReadOnlySpan<byte> dk, ZcashNetwork network)
+	internal static DiversifiableIncomingViewingKey FromFullViewingKey(ReadOnlySpan<byte> fvk, ReadOnlySpan<byte> dk, ZcashNetwork network)
 	{
 		Span<byte> ivk = stackalloc byte[32];
-		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(ak, nk, ivk) != 0)
+		if (NativeMethods.DeriveSaplingIncomingViewingKeyFromFullViewingKey(fvk, ivk) != 0)
 		{
 			throw new InvalidKeyException();
 		}

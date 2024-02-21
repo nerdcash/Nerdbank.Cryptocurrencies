@@ -2,7 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Humanizer;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -18,13 +20,18 @@ internal class SyncCommand : WalletUserCommandBase
 	{
 	}
 
+	internal bool Continually { get; init; }
+
 	internal static Command BuildCommand()
 	{
+		Option<bool> continuallyOption = new("--continually", Strings.ContinuallyOptionDescription);
+
 		Command command = new("sync", Strings.SyncCommandDescription)
 		{
 			WalletPathArgument,
 			TestNetOption,
 			LightServerUriOption,
+			continuallyOption,
 		};
 
 		command.SetHandler(async ctxt =>
@@ -35,6 +42,7 @@ internal class SyncCommand : WalletUserCommandBase
 				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
 				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
+				Continually = ctxt.ParseResult.GetValueForOption(continuallyOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
@@ -43,17 +51,39 @@ internal class SyncCommand : WalletUserCommandBase
 
 	internal override async Task<int> ExecuteAsync(LightWalletClient client, CancellationToken cancellationToken)
 	{
-		LightWalletClient.SyncResult syncResult = await client.DownloadTransactionsAsync(
+		Stopwatch syncTimer = Stopwatch.StartNew();
+		int? lastPercentCompleteReported = null;
+		string? lastErrorReported = null;
+		LightWalletClient.SyncProgress syncResult = await client.DownloadTransactionsAsync(
 			new Progress<LightWalletClient.SyncProgress>(p =>
 			{
-				if (p.BatchTotal > 0)
+				if (p.TotalSteps > 0)
 				{
-					this.Console.WriteLine($"{100 * p.BatchNum / p.BatchTotal}% complete");
+					int newPercent = (int)p.PercentComplete;
+					if (newPercent != lastPercentCompleteReported)
+					{
+						this.Console.WriteLine($"{newPercent,3}% complete ({p.LastFullyScannedBlock:N0}/{p.TipHeight:N0})");
+						lastPercentCompleteReported = newPercent;
+					}
+
+					if (lastErrorReported != p.LastError)
+					{
+						this.Console.WriteLine(p.LastError is null ? "Last error resolved." : $"Non-fatal error: {p.LastError}");
+						lastErrorReported = p.LastError;
+					}
 				}
 			}),
+			new Progress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>(transactions =>
+			{
+				foreach (Transaction tx in transactions.Values.SelectMany(t => t))
+				{
+					HistoryCommand.PrintTransaction(this.Console, tx);
+				}
+			}),
+			this.Continually,
 			cancellationToken);
 
-		this.Console.WriteLine($"Sync 100% complete. Scanned {syncResult.TotalBlocksScanned} blocks to reach block {syncResult.LatestBlock}.");
+		this.Console.WriteLine($"Scanned to block {syncResult.LastFullyScannedBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: Humanizer.Localisation.TimeUnit.Second)}.");
 
 		return 0;
 	}
