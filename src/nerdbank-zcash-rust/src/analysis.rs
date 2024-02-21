@@ -188,6 +188,6 @@ pub fn get_user_balances(
 
         Ok(balances)
     } else {
-        Err(Error::SyncFirst)
+        Ok(Default::default())
     }
 }

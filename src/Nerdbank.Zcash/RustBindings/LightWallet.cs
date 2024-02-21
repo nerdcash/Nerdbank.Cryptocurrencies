@@ -1895,6 +1895,8 @@ internal class LightWalletException : UniffiException
 
 	public class Canceled : LightWalletException { }
 
+	public class SyncFirst : LightWalletException { }
+
 	public class Other : LightWalletException
 	{
 		// Members
@@ -1933,6 +1935,8 @@ class FfiConverterTypeLightWalletException
 			case 4:
 				return new LightWalletException.Canceled();
 			case 5:
+				return new LightWalletException.SyncFirst();
+			case 6:
 				return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
 			default:
 				throw new InternalException(
@@ -1955,6 +1959,8 @@ class FfiConverterTypeLightWalletException
 			case LightWalletException.SqliteClientException variant_value:
 				return 4 + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
 			case LightWalletException.Canceled variant_value:
+				return 4;
+			case LightWalletException.SyncFirst variant_value:
 				return 4;
 			case LightWalletException.Other variant_value:
 				return 4 + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
@@ -1986,8 +1992,11 @@ class FfiConverterTypeLightWalletException
 			case LightWalletException.Canceled variant_value:
 				stream.WriteInt(4);
 				break;
-			case LightWalletException.Other variant_value:
+			case LightWalletException.SyncFirst variant_value:
 				stream.WriteInt(5);
+				break;
+			case LightWalletException.Other variant_value:
+				stream.WriteInt(6);
 				FfiConverterString.INSTANCE.Write(variant_value.@message, stream);
 				break;
 			default:
