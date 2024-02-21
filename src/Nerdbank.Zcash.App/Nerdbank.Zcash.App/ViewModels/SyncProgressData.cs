@@ -46,10 +46,7 @@ public class SyncProgressData : ProgressData
 
 	internal void Apply(LightWalletClient.SyncProgress? progress)
 	{
-		// InProgress randomly returns false, even when sync is in progress.
-		// We don't want to flash the UI.
-		this.IsInProgress = progress is not null;
-
+		this.IsInProgress = progress is not null && progress.LastFullyScannedBlock != progress.TipHeight;
 		this.To = progress?.TotalSteps ?? 0;
 		this.Current = progress?.CurrentStep ?? 0;
 	}

@@ -12,7 +12,6 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackObject]
 public class Account : ReactiveObject, IPersistableData
 {
-	private string? zingoWalletFileName;
 	private string name = string.Empty;
 	private AccountBalances balance;
 	private ulong? rebirthHeight;
@@ -171,12 +170,12 @@ public class Account : ReactiveObject, IPersistableData
 				tx.TransactionId = transaction.TransactionId;
 
 				// Take special care to migrate the exchange rate from the provisional transaction's timestamp to the confirmed one.
-				if (tx.When != transaction.When)
+				if (tx.When != transaction.When && transaction.When.HasValue)
 				{
 					TradingPair pair = new(appSettings.AlternateCurrency, this.ZcashAccount.Network.AsSecurity());
 					if (tx.When.HasValue && exchangeRateRecord.TryGetExchangeRate(tx.When.Value, pair, out ExchangeRate rate))
 					{
-						exchangeRateRecord.SetExchangeRate(transaction.When, rate);
+						exchangeRateRecord.SetExchangeRate(transaction.When.Value, rate);
 					}
 
 					// Only set the When property *after* we've considered updating the exchange rate record.

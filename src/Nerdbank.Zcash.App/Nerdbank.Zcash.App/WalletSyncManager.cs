@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using Microsoft.VisualStudio.Threading;
 using IAsyncDisposable = System.IAsyncDisposable;
@@ -65,9 +66,9 @@ public class WalletSyncManager : IAsyncDisposable
 	private class Tracker : IAsyncDisposable
 	{
 		private readonly WalletSyncManager owner;
-		private LightWalletClient client;
-		private CancellationTokenSource shutdownTokenSource;
-		private Task syncResult;
+		private readonly LightWalletClient client;
+		private readonly CancellationTokenSource shutdownTokenSource;
+		private readonly Task completion;
 
 		public Tracker(WalletSyncManager owner, ZcashNetwork network)
 		{
@@ -78,17 +79,20 @@ public class WalletSyncManager : IAsyncDisposable
 			// Initialize the native wallet that will be responsible for syncing this account.
 			this.client = this.CreateClient();
 
-			this.InitializeAccounts();
+			this.completion = Task.Run(async delegate
+			{
+				await this.InitializeAccountsAsync(this.shutdownTokenSource.Token);
 
-			// Start the process of keeping in sync with new transactions.
-			this.syncResult = this.DownloadAsync(this.shutdownTokenSource.Token);
+				// Start the process of keeping in sync with new transactions.
+				await this.DownloadAsync(this.shutdownTokenSource.Token);
+			});
 		}
 
 		internal Uri ServerUrl => this.owner.settings.GetLightServerUrl(this.Network);
 
 		internal ZcashNetwork Network { get; }
 
-		private IEnumerable<Account> Accounts => this.owner.wallet.Accounts.Where(a => a.Network == this.Network);
+		private ImmutableArray<Account> Accounts => this.owner.wallet.Accounts.Where(a => a.Network == this.Network).ToImmutableArray();
 
 		public async ValueTask DisposeAsync()
 		{
@@ -97,37 +101,49 @@ public class WalletSyncManager : IAsyncDisposable
 
 		private async Task DownloadAsync(CancellationToken cancellationToken)
 		{
-			bool caughtUp = false;
-			Progress<LightWalletClient.SyncProgress> syncProgress = new(v =>
+			IDisposable? sleepDeferral = this.owner.platformServices.RequestSleepDeferral();
+			try
 			{
-				caughtUp |= v.LastFullyScannedBlock == v.TipHeight;
-				foreach (Account account in this.Accounts)
+				Progress<LightWalletClient.SyncProgress> syncProgress = new(v =>
 				{
-					account.SyncProgress = v;
-				}
-			});
-
-			Progress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>> discoveredTransactions = new(v =>
-			{
-				foreach (Account account in this.Accounts)
-				{
-					if (v.TryGetValue(account.ZcashAccount, out IReadOnlyCollection<Transaction>? transactions))
+					if (v.LastFullyScannedBlock == v.TipHeight)
 					{
-						account.AddTransactions(transactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
+						sleepDeferral?.Dispose();
+						sleepDeferral = null;
 					}
-				}
-			});
 
-			await this.client.DownloadTransactionsAsync(syncProgress, discoveredTransactions, continually: true, cancellationToken);
+					foreach (Account account in this.Accounts)
+					{
+						account.SyncProgress = v;
+					}
+				});
+
+				Progress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>> discoveredTransactions = new(v =>
+				{
+					foreach (Account account in this.Accounts)
+					{
+						if (v.TryGetValue(account.ZcashAccount, out IReadOnlyCollection<Transaction>? transactions))
+						{
+							account.AddTransactions(transactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
+						}
+					}
+				});
+
+				await this.client.DownloadTransactionsAsync(syncProgress, discoveredTransactions, continually: true, cancellationToken);
+			}
+			finally
+			{
+				sleepDeferral?.Dispose();
+			}
 		}
 
-		private void InitializeAccounts()
+		private async Task InitializeAccountsAsync(CancellationToken cancellationToken)
 		{
 			// TODO: handle re-orgs and rewrite/invalidate the necessary transactions.
 			foreach (Account account in this.Accounts)
 			{
 				account.LightWalletClient = this.client;
-				this.client.UpgradeAccount(account.ZcashAccount);
+				await this.client.AddAccountAsync(account.ZcashAccount, cancellationToken);
 
 				List<Transaction> txs = this.client.GetDownloadedTransactions(account.ZcashAccount, account.LastBlockHeight);
 
@@ -148,11 +164,7 @@ public class WalletSyncManager : IAsyncDisposable
 		private async ValueTask ShutdownWalletAsync()
 		{
 			await this.shutdownTokenSource.CancelAsync();
-			if (this.syncResult is { IsCompleted: false })
-			{
-				await this.syncResult.NoThrowAwaitable();
-			}
-
+			await this.completion.NoThrowAwaitable();
 			this.client.Dispose();
 		}
 
