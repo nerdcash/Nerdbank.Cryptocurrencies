@@ -63,7 +63,8 @@ internal class Program
 		{
 			encryptionSuccessful = (dirInfo.Attributes & FileAttributes.Encrypted) == FileAttributes.Encrypted;
 		}
-		else if (OperatingSystem.IsWindows())
+
+		if (!encryptionSuccessful && OperatingSystem.IsWindows())
 		{
 			try
 			{
