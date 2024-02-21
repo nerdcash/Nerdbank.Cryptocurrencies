@@ -180,6 +180,9 @@
   <data name="OperationCanceled" xml:space="preserve">
     <value>The operation was canceled.</value>
   </data>
+  <data name="UnknownErrorAcrossInteropBoundary" xml:space="preserve">
+    <value>An error occurred in the Zcash engine.</value>
+  </data>
   <data name="UnrecognizedAccount" xml:space="preserve">
     <value>This account has not yet been added to the wallet.</value>
   </data>

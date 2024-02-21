@@ -139,6 +139,9 @@ pub enum LightWalletError {
     #[error("The operation was canceled.")]
     Canceled,
 
+    #[error("Sync first.")]
+    SyncFirst,
+
     #[error("{message}")]
     Other { message: String },
 }

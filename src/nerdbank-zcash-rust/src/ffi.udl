@@ -4,6 +4,7 @@ interface LightWalletError {
 	InvalidUri();
 	SqliteClientError(string message);
 	Canceled();
+	SyncFirst();
 	Other(string message);
 };
 
