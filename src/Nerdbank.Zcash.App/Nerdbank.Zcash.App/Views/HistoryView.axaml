@@ -23,7 +23,7 @@
               Grid.Row="1"
               Background="AliceBlue">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="{Binding WhenColumnHeader}" Binding="{Binding WhenColumnFormatted}" SortMemberPath="When" IsReadOnly="True" />
+        <DataGridTextColumn Header="{Binding WhenColumnHeader}" Binding="{Binding WhenColumnFormatted}" CanUserSort="False" IsReadOnly="True" />
         <DataGridTemplateColumn Header="{Binding OtherPartyNameColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>

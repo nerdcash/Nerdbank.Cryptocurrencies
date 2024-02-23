@@ -163,7 +163,9 @@ public class WalletSyncManager : IAsyncDisposable
 
 		private async Task InitializeAccountsAsync(CancellationToken cancellationToken)
 		{
-			// TODO: handle re-orgs and rewrite/invalidate the necessary transactions.
+			// TODO: Handle re-orgs and rewrite/invalidate the necessary transactions.
+			//       Probably by considering LastBlockHeight to never be closer than 100 blocks from the tip.
+			//       And then culling the transactions that are no longer valid.
 			foreach (Account account in this.Accounts)
 			{
 				account.LightWalletClient = this.client;
