@@ -41,8 +41,17 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// <inheritdoc cref="IIncomingViewingKey.DefaultAddress"/>
 	/// <remarks>
 	/// Implemented as described <see href="https://zips.z.cash/zip-0316#deriving-a-unified-address-from-a-uivk">in ZIP-316</see>.
+	/// Specifically, the address will have matching indexes across all receivers.
 	/// </remarks>
-	public UnifiedAddress DefaultAddress => UnifiedAddress.Create(this.viewingKeys.Select(vk => ((IIncomingViewingKey)vk).DefaultAddress).ToArray());
+	public UnifiedAddress DefaultAddress
+	{
+		get
+		{
+			DiversifierIndex index = default;
+			Assumes.True(UnifiedAddress.TryCreate(ref index, this.viewingKeys.Cast<IIncomingViewingKey>(), out UnifiedAddress? address));
+			return address;
+		}
+	}
 
 	/// <inheritdoc/>
 	ZcashAddress IIncomingViewingKey.DefaultAddress => this.DefaultAddress;

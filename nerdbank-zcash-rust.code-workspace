@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "src/nerdbank-zcash-rust"
+		},
+		{
+			"path": "external"
+		}
+	],
+	"settings": {
+		"rust-analyzer.linkedProjects": [
+			"./Cargo.toml"
+		]
+	}
+}

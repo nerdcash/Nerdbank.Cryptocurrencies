@@ -21,7 +21,7 @@ public partial class HistoryView : ReactiveUserControl<HistoryViewModel>
 
 		// We set this here instead of in the XAML because in the XAML, setting ItemsSource to a DataGridCollectionView breaks the data binding of the columns.
 		DataGridCollectionView transactionsView = new(this.ViewModel!.Transactions);
-		transactionsView.SortDescriptions.Add(DataGridSortDescription.FromPath(nameof(TransactionViewModel.When), ListSortDirection.Descending));
+		transactionsView.SortDescriptions.Add(DataGridSortDescription.FromComparer(TransactionViewModel.DateComparer.Instance, ListSortDirection.Descending));
 		this.HistoryGrid.ItemsSource = transactionsView;
 	}
 }

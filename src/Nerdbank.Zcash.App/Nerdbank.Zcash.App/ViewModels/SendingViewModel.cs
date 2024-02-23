@@ -271,6 +271,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			{
 				this.ErrorMessage = null;
 				tx.TransactionId = await this.SelectedAccount.LightWalletClient.SendAsync(
+					this.SelectedAccount.ZcashAccount,
 					lineItems,
 					new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
 					cancellationToken);

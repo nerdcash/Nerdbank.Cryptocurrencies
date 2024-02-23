@@ -203,6 +203,9 @@ dotnet_diagnostic.SA1010.severity = silent # https://github.com/DotNetAnalyzers/
 # SA1601: Partial elements should be documented
 dotnet_diagnostic.SA1601.severity = silent
 
+# SA1010: Opening square brackets must be spaced correctly
+dotnet_diagnostic.SA1010.severity = silent # workaround StyleCop not supporting C# 12 array literals
+
 # MsgPack001: Avoid mutable default options
 dotnet_diagnostic.MsgPack001.severity = error
 

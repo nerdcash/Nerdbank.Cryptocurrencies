@@ -1,8 +1,11 @@
 [Error]
-enum LightWalletError {
-	"InvalidUri",
-	"InvalidHandle",
-	"Other",
+interface LightWalletError {
+	InvalidArgument(string message);
+	InvalidUri();
+	SqliteClientError(string message);
+	Canceled();
+	SyncFirst();
+	Other(string message);
 };
 
 enum ChainType {
@@ -10,102 +13,41 @@ enum ChainType {
 	"Mainnet",
 };
 
-dictionary Config {
-	string server_uri;
-	ChainType chain_type;
-	string data_dir;
-	string wallet_name;
-	string log_name;
-	boolean monitor_mempool;
-	u32 minimum_confirmations;
-};
-
-dictionary WalletInfo {
-	string? ufvk;
-	bytes? unified_spending_key;
-	u64 birthday_height;
-};
-
-dictionary SyncResult {
-	boolean success;
-	u64 latest_block;
-	u64 total_blocks_synced;
-};
-
-dictionary SyncStatus {
-	boolean in_progress;
-	string? last_error;
-
-	u64 sync_id;
-	u64 start_block;
-	u64 end_block;
-
-	u64 blocks_done;
-	u64 trial_dec_done;
-	u64 txn_scan_done;
-
-	u64 blocks_total;
-
-	u64 batch_num;
-	u64 batch_total;
+dictionary AccountInfo {
+	u32 id;
+	string? uvk;
+	BirthdayHeights birthday_heights;
 };
 
 dictionary Transaction {
-	string txid;
-	u64 datetime;
-	u32 block_height;
-	boolean is_incoming;
-	u64 spent;
-	u64 received;
-	f64? price;
-	boolean unconfirmed;
-	sequence<TransactionSendDetail> sends;
-	sequence<SaplingNote> sapling_notes;
-	sequence<OrchardNote> orchard_notes;
+	u32 account_id;
+	bytes txid;
+	timestamp? block_time;
+	u32? mined_height;
+	boolean expired_unmined;
+	i64 account_balance_delta;
+	u64 fee;
+	sequence<TransactionSendDetail> outgoing;
+	sequence<TransparentNote> incoming_transparent;
+	sequence<ShieldedNote> incoming_shielded;
 };
 
-dictionary SaplingNote {
+dictionary TransparentNote {
 	u64 value;
-	bytes memo;
-	boolean is_change;
-	bytes recipient;
+	string recipient;
 };
 
-dictionary OrchardNote {
+dictionary ShieldedNote {
 	u64 value;
 	bytes memo;
+	string recipient;
 	boolean is_change;
-	bytes recipient;
 };
 
 dictionary TransactionSendDetail {
-	string to_address;
 	u64 value;
-	string? recipient_ua;
-	bytes memo;
-};
-
-dictionary SendUpdate {
-	u32 id;
-	boolean is_send_in_progress;
-	u32 progress;
-	u32 total;
-	string? last_error;
-	string? last_transaction_id;
-};
-
-dictionary PoolBalances {
-	u64? sapling_balance;
-	u64? verified_sapling_balance;
-	u64? spendable_sapling_balance;
-	u64? unverified_sapling_balance;
-
-	u64? orchard_balance;
-	u64? verified_orchard_balance;
-	u64? unverified_orchard_balance;
-	u64? spendable_orchard_balance;
-
-	u64? transparent_balance;
+	bytes? memo;
+	string recipient;
 };
 
 dictionary UserBalances {
@@ -118,54 +60,87 @@ dictionary UserBalances {
 	u64 incoming_dust;
 };
 
-dictionary BirthdayHeights{
-	u64 original_birthday_height;
-	u64 birthday_height;
-	u64? rebirth_height;
+dictionary BirthdayHeights {
+	u32 original_birthday_height;
+	u32 birthday_height;
+	u32? rebirth_height;
+};
+
+dictionary DbInit {
+	string data_file;
+	ChainType network;
+};
+
+dictionary SendTransactionResult {
+	bytes txid;
+};
+
+dictionary SyncUpdateData {
+	u32? last_fully_scanned_block;
+	u32 tip_height;
+	u64 current_step;
+	u64 total_steps;
+	string? last_error;
+};
+
+callback interface SyncUpdate {
+	void update_status(SyncUpdateData data);
+	void report_transactions(sequence<Transaction> transactions);
+};
+
+callback interface CancellationSource {
+	void set_cancellation_id(u32 id);
 };
 
 namespace LightWallet {
 	[Throws=LightWalletError]
-	u64 lightwallet_get_block_height(string server_uri);
+	void cancel(u32 id);
 
 	[Throws=LightWalletError]
-	u64 lightwallet_initialize(Config config, WalletInfo wallet_info);
+	void init(DbInit config);
 
 	[Throws=LightWalletError]
-	u64 lightwallet_initialize_from_disk(Config config);
-
-	boolean lightwallet_deinitialize(u64 handle);
+	u32 add_account(DbInit config, string uri, bytes seed, u32? birthday_height, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
-	SyncResult lightwallet_sync(u64 handle);
+	sequence<AccountInfo> get_accounts(DbInit config);
+
+	/// Gets the oldest birthday height for any account in the wallet.
+	[Throws=LightWalletError]
+	u32? get_birthday_height(DbInit config);
 
 	[Throws=LightWalletError]
-	void lightwallet_sync_interrupt(u64 handle);
+	u32 get_block_height(string uri, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
-	SyncStatus lightwallet_sync_status(u64 handle);
+	u32? get_sync_height(DbInit config);
+
+	/// Downloads blocks from the blockchain, scans them for transactions, and updates the database.
+	/// If `continually` is `true`, this function will never exit unless cancellation is signaled.
+	[Throws=LightWalletError]
+	SyncUpdateData sync(DbInit config, string uri, SyncUpdate? progress, boolean continually, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
-	u64 lightwallet_get_birthday_height(u64 handle);
+	boolean disconnect_server(string uri);
 
 	[Throws=LightWalletError]
-	u64 last_synced_height(u64 handle);
+	SendTransactionResult send(DbInit config, string uri, bytes usk, u32 min_confirmations, sequence<TransactionSendDetail> send_details);
 
 	[Throws=LightWalletError]
-	sequence<Transaction> lightwallet_get_transactions(u64 handle, u32 starting_block);
+	sequence<TransparentNote> get_unshielded_utxos(DbInit config, u32 account_id);
 
 	[Throws=LightWalletError]
-	string lightwallet_send_to_address(u64 handle, sequence<TransactionSendDetail> send_details);
+	SendTransactionResult shield(DbInit config, string uri, bytes usk, string address);
 
 	[Throws=LightWalletError]
-	SendUpdate lightwallet_send_check_status(u64 handle);
+	sequence<Transaction> get_transactions(DbInit config, u32 account_id, u32 starting_block);
 
 	[Throws=LightWalletError]
-	PoolBalances lightwallet_get_balances(u64 handle);
-	
-	[Throws=LightWalletError]
-	UserBalances lightwallet_get_user_balances(u64 handle);
+	UserBalances get_user_balances(DbInit config, u32 account_id, u32 min_confirmations);
 
 	[Throws=LightWalletError]
-	BirthdayHeights lightwallet_get_birthday_heights(u64 handle);
+	BirthdayHeights get_birthday_heights(DbInit config, u32 account_id);
+
+	[Throws=LightWalletError]
+	string add_diversifier(DbInit config, u32 account_id, bytes diversifier_index);
 };

@@ -28,7 +28,7 @@ pub extern "C" fn decrypt_orchard_diversifier(
     let address = address.unwrap();
 
     if let Some(index) = ivk.diversifier_index(&address) {
-        diversifier_index.copy_from_slice(index.to_bytes());
+        diversifier_index.copy_from_slice(index.as_bytes());
         0
     } else {
         1
@@ -40,7 +40,7 @@ pub extern "C" fn get_orchard_ivk_from_fvk(fvk: *const [u8; 96], ivk: *mut [u8; 
     let fvk = unsafe { &*fvk };
     let ivk = unsafe { &mut *ivk };
     let fvk = FullViewingKey::from_bytes(fvk);
-    if fvk.is_none().into() {
+    if fvk.is_none() {
         return -1;
     }
 
@@ -102,7 +102,7 @@ pub extern "C" fn get_orchard_raw_payment_address_from_ivk(
     let diversifier_index = unsafe { &*diversifier_index };
     let raw_payment_address = unsafe { &mut *raw_payment_address };
 
-    match get_raw_payment_address_from_ivk(ivk, diversifier_index.clone()) {
+    match get_raw_payment_address_from_ivk(ivk, *diversifier_index) {
         Some(raw_payment_address_bytes) => {
             raw_payment_address.copy_from_slice(&raw_payment_address_bytes);
             0
