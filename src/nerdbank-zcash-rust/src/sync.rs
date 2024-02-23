@@ -15,7 +15,7 @@ use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
     legacy::TransparentAddress,
     merkle_tree::HashSer,
-    transaction::{components::OutPoint, Transaction},
+    transaction::{components::OutPoint, Transaction, TxId},
     zip32::AccountId,
 };
 
@@ -101,10 +101,38 @@ pub async fn sync<P: AsRef<Path>>(
         // 4) Notify the wallet of the updated chain tip.
         db.data.update_chain_tip(tip_height)?;
 
+        fn report_new_transactions<P: AsRef<Path>>(
+            txids: Vec<TxId>,
+            progress: &Option<Box<dyn SyncUpdate>>,
+            data_file: &P,
+            db: &mut Db,
+            network: Network,
+        ) -> Result<(), Error> {
+            if !txids.is_empty() {
+                if let Some(sink) = progress.as_ref() {
+                    let mut conn = Connection::open(data_file)?;
+                    let new_transactions = get_transactions(db, &mut conn, &network, None, None)?
+                        .iter()
+                        .filter(|r| {
+                            TryInto::<[u8; 32]>::try_into(r.txid.clone())
+                                .map(|a| txids.contains(&TxId::from_bytes(a)))
+                                .unwrap_or(false)
+                        })
+                        .cloned()
+                        .collect::<Vec<_>>();
+                    if !new_transactions.is_empty() {
+                        sink.report_transactions(new_transactions);
+                    }
+                }
+            }
+
+            Ok(())
+        }
+
         // Download all the transparent ops related to the wallet first.
         // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
         for (address, height) in db.data.get_transparent_addresses_and_sync_heights()? {
-            download_transparent_transactions(
+            let txids = download_transparent_transactions(
                 &mut client,
                 &mut db,
                 &network,
@@ -114,6 +142,7 @@ pub async fn sync<P: AsRef<Path>>(
                 cancellation_token.clone(),
             )
             .await?;
+            report_new_transactions(txids, &progress, &data_file, &mut db, network)?;
         }
 
         // 5) Get the suggested scan ranges from the wallet database
@@ -239,7 +268,7 @@ pub async fn sync<P: AsRef<Path>>(
 
             // Download and decrypt the full transactions we found in the compact blocks
             // so we can save their memos to the database.
-            let new_transactions = download_full_transactions(
+            let txids_for_new_shielded_transactions = download_full_shielded_transactions(
                 &mut client,
                 &data_file,
                 &mut db,
@@ -248,11 +277,13 @@ pub async fn sync<P: AsRef<Path>>(
             )
             .await?;
 
-            if !new_transactions.is_empty() {
-                if let Some(sink) = progress.as_ref() {
-                    sink.report_transactions(new_transactions);
-                }
-            }
+            report_new_transactions(
+                txids_for_new_shielded_transactions,
+                &progress,
+                &data_file,
+                &mut db,
+                network,
+            )?;
 
             status.current_step += scan_range.len() as u64;
             update_and_report_status(&mut status, &db.data, &progress)?;
@@ -279,13 +310,13 @@ pub async fn sync<P: AsRef<Path>>(
     }
 }
 
-async fn download_full_transactions<P: AsRef<Path> + Clone>(
+async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
     client: &mut CompactTxStreamerClient<Channel>,
     data_file: P,
     db: &mut Db,
     network: &Network,
     cancellation_token: CancellationToken,
-) -> Result<Vec<crate::interop::Transaction>, Error> {
+) -> Result<Vec<TxId>, Error> {
     let client = Arc::new(Mutex::new(client));
     // Scope the database connection so it's closed before we use the db argument,
     // to avoid 'database is locked' errors.
@@ -294,7 +325,7 @@ async fn download_full_transactions<P: AsRef<Path> + Clone>(
         let conn = Connection::open(data_file.clone())?;
         let mut stmt = conn.prepare("SELECT txid FROM transactions WHERE raw IS NULL")?;
         txids = stmt
-            .query_map([], |r| r.get::<_, Vec<u8>>(0))?
+            .query_map([], |r| r.get::<_, [u8; 32]>(0).map(TxId::from_bytes))?
             .collect::<Result<Vec<_>, _>>()?;
     }
 
@@ -305,7 +336,7 @@ async fn download_full_transactions<P: AsRef<Path> + Clone>(
                     .lock()
                     .await
                     .get_transaction(TxFilter {
-                        hash: txid.clone(),
+                        hash: txid.as_ref().to_vec(),
                         ..Default::default()
                     })
                     .await?
@@ -325,12 +356,7 @@ async fn download_full_transactions<P: AsRef<Path> + Clone>(
         decrypt_and_store_transaction(network, &mut db.data, &tx)?;
     }
 
-    let mut conn = Connection::open(data_file)?;
-    Ok(get_transactions(db, &mut conn, network, None, None)?
-        .iter()
-        .filter(|r| txids.contains(&r.txid))
-        .cloned()
-        .collect::<Vec<_>>())
+    Ok(txids)
 }
 
 async fn update_subtree_roots<P: Parameters>(
@@ -367,7 +393,8 @@ async fn download_transparent_transactions(
     start: Option<BlockHeight>,
     end: BlockHeight,
     cancellation_token: CancellationToken,
-) -> Result<(), Error> {
+) -> Result<Vec<TxId>, Error> {
+    let mut txids_for_new_transparent_transactions = vec![];
     let client = Arc::new(Mutex::new(client));
     let transparent_transactions = webrequest_with_retry(
         || async {
@@ -410,6 +437,7 @@ async fn download_transparent_transactions(
                     WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), height)
                 {
                     db.data.put_received_transparent_utxo(&output)?;
+                    txids_for_new_transparent_transactions.push(tx.txid());
                 }
             }
         }
@@ -418,7 +446,7 @@ async fn download_transparent_transactions(
     db.data
         .put_latest_scanned_block_for_transparent(address, BlockHeight::from_u32(end.into()))?;
 
-    Ok(())
+    Ok(txids_for_new_transparent_transactions)
 }
 
 async fn download_and_scan_blocks(
