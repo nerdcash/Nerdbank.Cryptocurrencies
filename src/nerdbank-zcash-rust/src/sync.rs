@@ -736,7 +736,7 @@ pub fn get_transactions(
                     ),
                     None => None,
                 },
-                fee: row.get::<_, Option<u64>>("fee_paid")?.unwrap_or(0),
+                fee: row.get::<_, Option<u64>>("fee_paid")?,
                 account_balance_delta: row.get("account_balance_delta")?,
                 incoming_transparent: Vec::new(),
                 incoming_shielded: Vec::new(),

@@ -27,7 +27,7 @@ public partial record Transaction
 		bool expiredUnmined,
 		DateTimeOffset? when,
 		decimal netChange,
-		decimal fee,
+		decimal? fee,
 		ImmutableArray<SendItem> outgoing,
 		ImmutableArray<RecvItem> incoming)
 	{
@@ -72,7 +72,7 @@ public partial record Transaction
 	/// <remarks>
 	/// This fee is only relevant to the account's balance when <see cref="IsIncoming"/> is <see langword="false" />.
 	/// </remarks>
-	public decimal Fee { get; }
+	public decimal? Fee { get; }
 
 	/// <summary>
 	/// Gets the individual sent notes in this transaction.

@@ -430,7 +430,7 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t)
-		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), ZatsToZEC(t.fee), [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
+		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), t.fee.HasValue ? ZatsToZEC(t.fee.Value) : null, [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
 
 	/// <summary>
 	/// Wraps an interop invocation in a <see langword="try" /> block and wraps
