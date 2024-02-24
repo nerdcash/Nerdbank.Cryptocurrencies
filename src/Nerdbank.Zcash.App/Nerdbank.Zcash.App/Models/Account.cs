@@ -194,7 +194,7 @@ public class Account : ReactiveObject, IPersistableData
 									where !recv.IsChange
 									select new ZcashTransaction.LineItem(recv)],
 					SendItems = transaction.Outgoing.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
-					Fee = -transaction.Fee,
+					Fee = transaction.Outgoing.IsEmpty ? 0 : -transaction.Fee,
 				};
 
 				this.TransactionsMutable.Add(tx);
