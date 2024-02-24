@@ -67,8 +67,11 @@ public partial record Transaction
 	public decimal NetChange { get; }
 
 	/// <summary>
-	/// Gets the transaction fee.
+	/// Gets the transaction fee, as a <em>positive</em> value.
 	/// </summary>
+	/// <remarks>
+	/// This fee is only relevant to the account's balance when <see cref="IsIncoming"/> is <see langword="false" />.
+	/// </remarks>
 	public decimal Fee { get; }
 
 	/// <summary>
@@ -82,13 +85,7 @@ public partial record Transaction
 	public ImmutableArray<RecvItem> Incoming { get; }
 
 	/// <summary>
-	/// Gets a value indicating whether this transaction sends funds from this account.
+	/// Gets a value indicating whether this transaction did not originate from this account.
 	/// </summary>
-	/// <remarks>
-	/// Note this only indicates that funds were sent from this account,
-	/// not that they were sent to <em>another</em> account.
-	/// They may in fact have been sent to the same account.
-	/// But this value is useful to determine whether the <see cref="Fee"/> came out of this account.
-	/// </remarks>
-	public bool IsOutgoing => this.Outgoing.Length > 0;
+	public bool IsIncoming => this.Outgoing.IsEmpty;
 }
