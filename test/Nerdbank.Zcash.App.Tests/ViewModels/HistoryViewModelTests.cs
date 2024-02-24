@@ -64,7 +64,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 		SecurityAmount runningBalance = this.viewModel.SelectedSecurity.Amount(0);
 		foreach (TransactionViewModel tx in this.viewModel.Transactions)
 		{
-			runningBalance += tx.Amount;
+			runningBalance += tx.NetChange;
 			Assert.Equal(runningBalance, tx.RunningBalance);
 		}
 	}

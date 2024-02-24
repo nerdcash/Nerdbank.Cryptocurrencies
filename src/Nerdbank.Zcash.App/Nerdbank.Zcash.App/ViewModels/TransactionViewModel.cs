@@ -36,11 +36,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		this.LinkProperty(nameof(this.When), nameof(this.WhenColumnFormatted));
 		this.LinkProperty(nameof(this.When), nameof(this.WhenDetailedFormatted));
 
-		this.LinkProperty(nameof(this.AlternateAmount), nameof(this.AlternateAmountUserEdit));
+		this.LinkProperty(nameof(this.AlternateNetChange), nameof(this.AlternateNetChangeUserEdit));
 
 		if (transaction.When is not null && owner.ViewModelServices.ExchangeData.TryGetExchangeRate(transaction.When.Value, tradingPair, out ExchangeRate exchangeRate))
 		{
-			this.AlternateAmount = this.Amount * exchangeRate;
+			this.AlternateNetChange = this.NetChange * exchangeRate;
 		}
 	}
 
@@ -92,31 +92,39 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string WhenCaption => "When";
 
-	public SecurityAmount Amount => this.Security.Amount(this.Model.NetChange);
+	/// <summary>
+	/// Gets the transaction's full impact on the account balance (including fees).
+	/// </summary>
+	public SecurityAmount NetChange => this.Security.Amount(this.Model.NetChange);
 
-	public string AmountCaption => "Amount";
+	/// <summary>
+	/// Gets the sum of all line items in this transaction (the transaction's value, excluding fees).
+	/// </summary>
+	public SecurityAmount Subtotal => this.Security.Amount(this.LineItems.Sum(li => li.Amount.Amount));
+
+	public string SubtotalCaption => this.IsIncoming ? "Received" : "Sent";
 
 	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.Security.Amount(fee) : null;
 
 	public string FeeCaption => "Fee";
 
-	public SecurityAmount? AlternateAmount
+	public SecurityAmount? AlternateNetChange
 	{
 		get => this.alternateAmount;
 		internal set => this.RaiseAndSetIfChanged(ref this.alternateAmount, value);
 	}
 
-	public decimal? AlternateAmountUserEdit
+	public decimal? AlternateNetChangeUserEdit
 	{
-		get => this.AlternateAmount?.Amount;
+		get => this.AlternateNetChange?.Amount;
 		set
 		{
-			this.AlternateAmount = value is null ? null : this.Security.Amount(value.Value);
+			this.AlternateNetChange = value is null ? null : this.Security.Amount(value.Value);
 
 			// Record the exchange rate.
 			if (value is not null && this.When is not null)
 			{
-				ExchangeRate rate = new(this.AlternateSecurity.Amount(value.Value), this.Amount);
+				ExchangeRate rate = new(this.AlternateSecurity.Amount(value.Value), this.NetChange);
 				this.owner.ViewModelServices.ExchangeData.SetExchangeRate(this.When.Value, rate);
 			}
 

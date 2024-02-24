@@ -43,19 +43,19 @@
         <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding Amount}" IsUnitsVisible="False" />
+              <local:SecurityAmountDisplay Value="{Binding NetChange}" IsUnitsVisible="False" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="{Binding AlternateAmountColumnHeader}" IsVisible="{Binding IsAlternateAmountColumnVisible}">
+        <DataGridTemplateColumn Header="{Binding AlternateNetChangeColumnHeader}" IsVisible="{Binding IsAlternateNetChangeColumnVisible}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding AlternateAmount}" IsUnitsVisible="False" />
+              <local:SecurityAmountDisplay Value="{Binding AlternateNetChange}" IsUnitsVisible="False" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
           <DataGridTemplateColumn.CellEditingTemplate>
             <DataTemplate>
-              <TextBox Text="{Binding AlternateAmountUserEdit}" />
+              <TextBox Text="{Binding AlternateNetChangeUserEdit}" />
             </DataTemplate>
           </DataGridTemplateColumn.CellEditingTemplate>
         </DataGridTemplateColumn>
@@ -106,8 +106,8 @@
                 <DataGridTextColumn Header="{Binding ToAddressCaption}" Binding="{Binding ToAddress}" IsReadOnly="True" />
               </DataGrid.Columns>
             </DataGrid>
-            <Label Content="{Binding AmountCaption}" Target="{Binding #AmountBox}" Grid.Row="4" />
-            <local:SecurityAmountDisplay Value="{Binding Amount}" IsUnitsVisible="False" Name="AmountBox" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" />
+            <Label Content="{Binding SubtotalCaption}" Target="{Binding #AmountBox}" Grid.Row="4" />
+            <local:SecurityAmountDisplay Value="{Binding Subtotal}" IsUnitsVisible="False" Name="AmountBox" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" />
             <Label Content="{Binding FeeCaption}" Target="{Binding #FeeBox}" Grid.Row="5" IsVisible="{Binding !IsIncoming}" />
             <local:SecurityAmountDisplay Value="{Binding Fee}" IsUnitsVisible="False" Name="FeeBox" Grid.Row="5" Grid.Column="1" IsVisible="{Binding !IsIncoming}" HorizontalAlignment="Left" />
             <Label Content="{Binding ToAddressCaption}" Target="{Binding #ToAddressBox}" Grid.Row="6" IsVisible="{Binding IsSingleLineItem}" />

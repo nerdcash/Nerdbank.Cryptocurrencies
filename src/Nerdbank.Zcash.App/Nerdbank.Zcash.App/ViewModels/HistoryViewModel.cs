@@ -75,7 +75,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.isAlternateAmountColumnVisible = this.WhenAnyValue(
 			vm => vm.SelectedSecurity,
-			s => !s.IsTestNet).ToProperty(this, nameof(this.IsAlternateAmountColumnVisible));
+			s => !s.IsTestNet).ToProperty(this, nameof(this.IsAlternateNetChangeColumnVisible));
 
 		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
@@ -97,9 +97,9 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string AmountColumnHeader => this.SelectedSecurity.TickerSymbol;
 
-	public string AlternateAmountColumnHeader => this.alternateSecurity.TickerSymbol;
+	public string AlternateNetChangeColumnHeader => this.alternateSecurity.TickerSymbol;
 
-	public bool IsAlternateAmountColumnVisible => this.isAlternateAmountColumnVisible.Value;
+	public bool IsAlternateNetChangeColumnVisible => this.isAlternateAmountColumnVisible.Value;
 
 	public string OtherPartyNameColumnHeader => "Name";
 
@@ -147,12 +147,12 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		TradingPair tradingPair = new(this.alternateSecurity, this.SelectedSecurity);
 		foreach (TransactionViewModel tx in transactions)
 		{
-			if (tx.AlternateAmount is null && tx.When is not null)
+			if (tx.AlternateNetChange is null && tx.When is not null)
 			{
 				ExchangeRate? rate = await this.ViewModelServices.ExchangeData.GetExchangeRateAsync(this.ViewModelServices.HistoricalExchangeRateProvider, tx.When.Value, tradingPair, cancellationToken);
 				if (rate is not null)
 				{
-					tx.AlternateAmount = tx.Amount * rate;
+					tx.AlternateNetChange = tx.NetChange * rate;
 				}
 			}
 		}
@@ -188,7 +188,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		SecurityAmount runningBalance = startIndex > 0 ? this.Transactions[startIndex - 1].RunningBalance : this.SelectedSecurity.Amount(0);
 		for (int i = startIndex; i < this.Transactions.Count; i++)
 		{
-			this.Transactions[i].RunningBalance = runningBalance += this.Transactions[i].Amount;
+			this.Transactions[i].RunningBalance = runningBalance += this.Transactions[i].NetChange;
 		}
 	}
 }
