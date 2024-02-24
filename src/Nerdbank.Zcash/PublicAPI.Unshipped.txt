@@ -409,9 +409,9 @@ Nerdbank.Zcash.SproutReceiver.SproutReceiver() -> void
 Nerdbank.Zcash.SproutReceiver.SproutReceiver(System.ReadOnlySpan<byte> apk, System.ReadOnlySpan<byte> pkEnc) -> void
 Nerdbank.Zcash.Transaction
 Nerdbank.Zcash.Transaction.ExpiredUnmined.get -> bool
-Nerdbank.Zcash.Transaction.Fee.get -> decimal
+Nerdbank.Zcash.Transaction.Fee.get -> decimal?
 Nerdbank.Zcash.Transaction.Incoming.get -> System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem>
-Nerdbank.Zcash.Transaction.IsOutgoing.get -> bool
+Nerdbank.Zcash.Transaction.IsIncoming.get -> bool
 Nerdbank.Zcash.Transaction.MinedHeight.get -> uint?
 Nerdbank.Zcash.Transaction.NetChange.get -> decimal
 Nerdbank.Zcash.Transaction.Outgoing.get -> System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem>
@@ -442,7 +442,7 @@ Nerdbank.Zcash.Transaction.SendItem.SendItem(Nerdbank.Zcash.ZcashAddress! ToAddr
 Nerdbank.Zcash.Transaction.SendItem.ToAddress.get -> Nerdbank.Zcash.ZcashAddress!
 Nerdbank.Zcash.Transaction.SendItem.ToAddress.set -> void
 Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.Transaction! original) -> void
-Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.TxId transactionId, uint? minedHeight, bool expiredUnmined, System.DateTimeOffset? when, decimal netChange, decimal fee, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> outgoing, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> incoming) -> void
+Nerdbank.Zcash.Transaction.Transaction(Nerdbank.Zcash.TxId transactionId, uint? minedHeight, bool expiredUnmined, System.DateTimeOffset? when, decimal netChange, decimal? fee, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem> outgoing, System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem> incoming) -> void
 Nerdbank.Zcash.Transaction.TransactionId.get -> Nerdbank.Zcash.TxId
 Nerdbank.Zcash.Transaction.When.get -> System.DateTimeOffset?
 Nerdbank.Zcash.Transparent.PrivateKey

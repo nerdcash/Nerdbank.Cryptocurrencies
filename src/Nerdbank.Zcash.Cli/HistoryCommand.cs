@@ -58,7 +58,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 			}
 		}
 
-		if (tx.IsOutgoing)
+		if (!tx.IsIncoming)
 		{
 			console.WriteLine($"{indentation} -{tx.Fee,13:N8} transaction fee");
 		}
