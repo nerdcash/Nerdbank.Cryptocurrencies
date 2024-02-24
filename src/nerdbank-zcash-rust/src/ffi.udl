@@ -26,7 +26,7 @@ dictionary Transaction {
 	u32? mined_height;
 	boolean expired_unmined;
 	i64 account_balance_delta;
-	u64 fee;
+	u64? fee;
 	sequence<TransactionSendDetail> outgoing;
 	sequence<TransparentNote> incoming_transparent;
 	sequence<ShieldedNote> incoming_shielded;

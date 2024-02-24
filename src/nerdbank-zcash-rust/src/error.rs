@@ -6,7 +6,10 @@ use zcash_client_backend::{
     zip321::Zip321Error,
 };
 use zcash_client_sqlite::{error::SqliteClientError, wallet::init::WalletMigrationError};
-use zcash_primitives::{memo, transaction::components::amount::NonNegativeAmount};
+use zcash_primitives::{
+    memo,
+    transaction::components::amount::{BalanceError, NonNegativeAmount},
+};
 
 use crate::block_source::BlockCacheError;
 
@@ -39,6 +42,8 @@ pub enum Error {
 
     TonicStatus(tonic::Status),
 
+    Balance(BalanceError),
+
     Io(std::io::Error),
 
     Minreq(minreq::Error),
@@ -67,6 +72,9 @@ pub enum Error {
     InvalidMemo(memo::Error),
 
     Zip321(Zip321Error),
+
+    /// The operation requires an outpoint whose value is not known.
+    OutPointMissing,
 
     /// The wallet has not been synced to the chain yet, and thus has no data with which to formulate a response.
     SyncFirst,
@@ -97,6 +105,7 @@ impl std::fmt::Display for Error {
             Error::SqliteMigrator(e) => e.fmt(f),
             Error::WalletMigrator(e) => e.fmt(f),
             Error::InvalidHeight => f.write_str("Invalid height"),
+            Error::Balance(e) => e.fmt(f),
             Error::InvalidAmount => f.write_str("Invalid amount"),
             Error::InsufficientFunds {
                 required,
@@ -115,7 +124,14 @@ impl std::fmt::Display for Error {
             Error::Anyhow(e) => e.fmt(f),
             Error::SendFailed { code, reason } => write!(f, "Send failed: {}: {}", code, reason),
             Error::Minreq(e) => e.fmt(f),
+            Error::OutPointMissing => f.write_str("OutPoint missing"),
         }
+    }
+}
+
+impl From<BalanceError> for Error {
+    fn from(e: BalanceError) -> Self {
+        Error::Balance(e)
     }
 }
 

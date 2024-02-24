@@ -188,13 +188,13 @@ public class Account : ReactiveObject, IPersistableData
 				{
 					BlockNumber = transaction.MinedHeight,
 					TransactionId = transaction.TransactionId,
-					IsIncoming = !transaction.IsOutgoing,
+					IsIncoming = transaction.IsIncoming,
 					When = transaction.When,
 					RecvItems = [.. from recv in transaction.Incoming
 									where !recv.IsChange
 									select new ZcashTransaction.LineItem(recv)],
 					SendItems = transaction.Outgoing.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
-					////Fee = transaction.IsIncoming ? null : -transaction.Fee, // ZingoLib is still buggy
+					Fee = transaction.Outgoing.IsEmpty ? 0 : -transaction.Fee,
 				};
 
 				this.TransactionsMutable.Add(tx);
