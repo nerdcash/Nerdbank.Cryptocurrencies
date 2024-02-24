@@ -411,7 +411,7 @@ Nerdbank.Zcash.Transaction
 Nerdbank.Zcash.Transaction.ExpiredUnmined.get -> bool
 Nerdbank.Zcash.Transaction.Fee.get -> decimal
 Nerdbank.Zcash.Transaction.Incoming.get -> System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.RecvItem>
-Nerdbank.Zcash.Transaction.IsOutgoing.get -> bool
+Nerdbank.Zcash.Transaction.IsIncoming.get -> bool
 Nerdbank.Zcash.Transaction.MinedHeight.get -> uint?
 Nerdbank.Zcash.Transaction.NetChange.get -> decimal
 Nerdbank.Zcash.Transaction.Outgoing.get -> System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.SendItem>

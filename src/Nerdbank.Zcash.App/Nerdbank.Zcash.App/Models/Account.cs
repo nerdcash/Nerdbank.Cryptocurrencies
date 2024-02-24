@@ -188,7 +188,7 @@ public class Account : ReactiveObject, IPersistableData
 				{
 					BlockNumber = transaction.MinedHeight,
 					TransactionId = transaction.TransactionId,
-					IsIncoming = !transaction.IsOutgoing,
+					IsIncoming = transaction.IsIncoming,
 					When = transaction.When,
 					RecvItems = [.. from recv in transaction.Incoming
 									where !recv.IsChange

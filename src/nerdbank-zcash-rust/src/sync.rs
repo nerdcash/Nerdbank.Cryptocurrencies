@@ -15,7 +15,10 @@ use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
     legacy::TransparentAddress,
     merkle_tree::HashSer,
-    transaction::{components::OutPoint, Transaction, TxId},
+    transaction::{
+        components::{Amount, OutPoint},
+        Transaction, TxId,
+    },
     zip32::AccountId,
 };
 
@@ -75,6 +78,7 @@ pub async fn sync<P: AsRef<Path>>(
     let network = parse_network(&info)?;
 
     let mut db = Db::load(&data_file, network)?;
+    let conn = Connection::open(&data_file)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
@@ -106,9 +110,11 @@ pub async fn sync<P: AsRef<Path>>(
             progress: &Option<Box<dyn SyncUpdate>>,
             data_file: &P,
             db: &mut Db,
+            conn: &Connection,
             network: Network,
         ) -> Result<(), Error> {
             if !txids.is_empty() {
+                initialize_transaction_fees(db, conn)?;
                 if let Some(sink) = progress.as_ref() {
                     let mut conn = Connection::open(data_file)?;
                     let new_transactions = get_transactions(db, &mut conn, &network, None, None)?
@@ -142,7 +148,7 @@ pub async fn sync<P: AsRef<Path>>(
                 cancellation_token.clone(),
             )
             .await?;
-            report_new_transactions(txids, &progress, &data_file, &mut db, network)?;
+            report_new_transactions(txids, &progress, &data_file, &mut db, &conn, network)?;
         }
 
         // 5) Get the suggested scan ranges from the wallet database
@@ -282,6 +288,7 @@ pub async fn sync<P: AsRef<Path>>(
                 &progress,
                 &data_file,
                 &mut db,
+                &conn,
                 network,
             )?;
 
@@ -308,6 +315,76 @@ pub async fn sync<P: AsRef<Path>>(
             }?;
         }
     }
+}
+
+/// Calculates the fee for some transaction.
+///
+/// Returns `Error::OutPointMissing` if any UTXO consumed by the transaction is not already in the `utxos` table.
+fn calculate_transaction_fee(transaction: Transaction, conn: &Connection) -> Result<Amount, Error> {
+    fn get_prevout_value(outpoint: &OutPoint, conn: &Connection) -> Result<Amount, Error> {
+        Ok(Amount::try_from(
+            conn.query_row(
+                "SELECT value_zat FROM utxos WHERE prevout_txid = :txid AND prevout_idx = :idx",
+                named_params! {
+                    ":txid": outpoint.hash(),
+                    ":idx": outpoint.n(),
+                },
+                |row| row.get::<_, i64>(0),
+            )
+            .map_err(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => Error::OutPointMissing,
+                e => e.into(),
+            })?,
+        )
+        .unwrap())
+    }
+
+    let transparent_value_balance = transaction
+        .transparent_bundle()
+        .map_or(Ok(Amount::zero()), |b| {
+            b.value_balance(|outpoint| get_prevout_value(outpoint, conn))
+        })?;
+    let sprout_value_balance = transaction.sprout_bundle().map_or(Amount::zero(), |b| {
+        b.value_balance().unwrap_or(Amount::zero())
+    });
+    let sapling_value_balance = transaction.sapling_value_balance();
+    let orchard_value_balance = transaction
+        .orchard_bundle()
+        .map_or(Amount::zero(), |b| b.value_balance().to_owned());
+
+    Ok((transparent_value_balance
+        + sprout_value_balance
+        + sapling_value_balance
+        + orchard_value_balance)
+        .unwrap())
+}
+
+/// Initializes the fee column for every transaction that is missing it.
+fn initialize_transaction_fees(db: &mut Db, conn: &Connection) -> Result<(), Error> {
+    conn.prepare("SELECT txid FROM transactions WHERE fee IS NULL")?
+        .query_map([], |r| r.get::<_, [u8; 32]>(0).map(TxId::from_bytes))?
+        .try_for_each(|txid| {
+            let txid = txid?;
+            let tx = db.data.get_transaction(txid)?;
+
+            // Some fees we'll fail to calculate because we're missing UTXOs.
+            // that should only happen when it's an incoming transparent transaction from a spent UTXO,
+            // but if it's incoming, the user didn't pay the fee anyway so it's not a big deal to not display the fee.
+            // If we want to predict whether transactions in the mempool have a ZIP-317 sufficient fee, we'll have to
+            // add a way to fetch those UTXO values.
+            if let Ok(fee) = calculate_transaction_fee(tx, conn) {
+                let txid: [u8; 32] = txid.into();
+                conn.execute(
+                    "UPDATE transactions SET fee = :fee WHERE txid = :txid",
+                    named_params! {
+                        ":fee": i64::from(fee),
+                        ":txid": txid,
+                    },
+                )?;
+            }
+            Ok::<_, Error>(())
+        })?;
+    Ok(())
 }
 
 async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
