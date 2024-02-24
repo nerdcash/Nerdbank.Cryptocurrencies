@@ -98,7 +98,7 @@ pub struct Transaction {
     pub mined_height: Option<u32>,
     pub expired_unmined: bool,
     pub account_balance_delta: i64,
-    pub fee: u64,
+    pub fee: Option<u64>,
     pub outgoing: Vec<TransactionSendDetail>,
     pub incoming_transparent: Vec<TransparentNote>,
     pub incoming_shielded: Vec<ShieldedNote>,

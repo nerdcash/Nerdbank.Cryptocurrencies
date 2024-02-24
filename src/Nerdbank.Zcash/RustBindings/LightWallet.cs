@@ -1661,7 +1661,7 @@ internal record Transaction(
 	uint? @minedHeight,
 	bool @expiredUnmined,
 	long @accountBalanceDelta,
-	ulong @fee,
+	ulong? @fee,
 	List<TransactionSendDetail> @outgoing,
 	List<TransparentNote> @incomingTransparent,
 	List<ShieldedNote> @incomingShielded
@@ -1680,7 +1680,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 			@minedHeight: FfiConverterOptionalUInt32.INSTANCE.Read(stream),
 			@expiredUnmined: FfiConverterBoolean.INSTANCE.Read(stream),
 			@accountBalanceDelta: FfiConverterInt64.INSTANCE.Read(stream),
-			@fee: FfiConverterUInt64.INSTANCE.Read(stream),
+			@fee: FfiConverterOptionalUInt64.INSTANCE.Read(stream),
 			@outgoing: FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Read(stream),
 			@incomingTransparent: FfiConverterSequenceTypeTransparentNote.INSTANCE.Read(stream),
 			@incomingShielded: FfiConverterSequenceTypeShieldedNote.INSTANCE.Read(stream)
@@ -1695,7 +1695,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 			+ FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@minedHeight)
 			+ FfiConverterBoolean.INSTANCE.AllocationSize(value.@expiredUnmined)
 			+ FfiConverterInt64.INSTANCE.AllocationSize(value.@accountBalanceDelta)
-			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@fee)
+			+ FfiConverterOptionalUInt64.INSTANCE.AllocationSize(value.@fee)
 			+ FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.AllocationSize(value.@outgoing)
 			+ FfiConverterSequenceTypeTransparentNote.INSTANCE.AllocationSize(
 				value.@incomingTransparent
@@ -1711,7 +1711,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 		FfiConverterOptionalUInt32.INSTANCE.Write(value.@minedHeight, stream);
 		FfiConverterBoolean.INSTANCE.Write(value.@expiredUnmined, stream);
 		FfiConverterInt64.INSTANCE.Write(value.@accountBalanceDelta, stream);
-		FfiConverterUInt64.INSTANCE.Write(value.@fee, stream);
+		FfiConverterOptionalUInt64.INSTANCE.Write(value.@fee, stream);
 		FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Write(value.@outgoing, stream);
 		FfiConverterSequenceTypeTransparentNote.INSTANCE.Write(value.@incomingTransparent, stream);
 		FfiConverterSequenceTypeShieldedNote.INSTANCE.Write(value.@incomingShielded, stream);
@@ -2389,6 +2389,45 @@ class FfiConverterOptionalUInt32 : FfiConverterRustBuffer<uint?>
 		{
 			stream.WriteByte(1);
 			FfiConverterUInt32.INSTANCE.Write((uint)value, stream);
+		}
+	}
+}
+
+class FfiConverterOptionalUInt64 : FfiConverterRustBuffer<ulong?>
+{
+	public static FfiConverterOptionalUInt64 INSTANCE = new FfiConverterOptionalUInt64();
+
+	public override ulong? Read(BigEndianStream stream)
+	{
+		if (stream.ReadByte() == 0)
+		{
+			return null;
+		}
+		return FfiConverterUInt64.INSTANCE.Read(stream);
+	}
+
+	public override int AllocationSize(ulong? value)
+	{
+		if (value == null)
+		{
+			return 1;
+		}
+		else
+		{
+			return 1 + FfiConverterUInt64.INSTANCE.AllocationSize((ulong)value);
+		}
+	}
+
+	public override void Write(ulong? value, BigEndianStream stream)
+	{
+		if (value == null)
+		{
+			stream.WriteByte(0);
+		}
+		else
+		{
+			stream.WriteByte(1);
+			FfiConverterUInt64.INSTANCE.Write((ulong)value, stream);
 		}
 	}
 }
