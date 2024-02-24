@@ -253,5 +253,12 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		}
 
 		private string DebuggerDisplay => $"{this.Amount} {this.ToAddress} ({this.Memo})";
+
+		/// <summary>
+		/// Checks whether this line item represents change from the send.
+		/// </summary>
+		/// <param name="account">The account that 'owns' this line item.</param>
+		/// <returns>A value indicating whether this line item should be considered change.</returns>
+		public bool IsChange(Account account) => this.Memo.MemoFormat != Zip302MemoFormat.MemoFormat.Message && account.ZcashAccount.AddressSendsToThisAccount(this.ToAddress);
 	}
 }

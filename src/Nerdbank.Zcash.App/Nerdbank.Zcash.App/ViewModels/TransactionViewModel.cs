@@ -226,7 +226,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		List<LineItem> lineItems = new(this.Model.SendItems.Length + this.Model.RecvItems.Length);
 		if (this.Model.SendItems.Length > 0)
 		{
-			AddLineItems(this.Model.SendItems);
+			AddLineItems(this.Model.SendItems.Where(i => this.owner.SelectedAccount is null || !i.IsChange(this.owner.SelectedAccount)).ToImmutableArray());
 		}
 		else if (this.Model.RecvItems.Length > 0)
 		{
