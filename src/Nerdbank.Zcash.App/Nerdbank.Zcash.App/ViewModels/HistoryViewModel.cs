@@ -91,7 +91,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public SyncProgressData SyncProgress { get; }
 
-	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionViewModel.DateComparer.Instance);
+	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionChronologicalComparer.NewestToOldest);
 
 	public string WhenColumnHeader => "When";
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using Nerdbank.Cryptocurrencies;
@@ -389,51 +388,5 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 				this.otherPartyLazyInitDone = true;
 			}
 		}
-	}
-
-	internal class DateComparer : IComparer<TransactionViewModel>, IOptimizedComparer<TransactionViewModel>, System.Collections.IComparer
-	{
-		private DateComparer()
-		{
-		}
-
-		public static DateComparer Instance { get; } = new();
-
-		public int Compare(TransactionViewModel? x, TransactionViewModel? y)
-		{
-			if (x is null)
-			{
-				return y is null ? 0 : -1;
-			}
-
-			if (y is null)
-			{
-				return 1;
-			}
-
-			// Block number is always the 1st order sort.
-			if (x.BlockNumber.HasValue && y.BlockNumber.HasValue)
-			{
-				int blockNumberComparison = x.BlockNumber.Value.CompareTo(y.BlockNumber.Value);
-				if (blockNumberComparison != 0)
-				{
-					return blockNumberComparison;
-				}
-			}
-			else if (x.BlockNumber.HasValue)
-			{
-				return -1;
-			}
-			else if (y.BlockNumber.HasValue)
-			{
-				return 1;
-			}
-
-			return (x.When ?? DateTimeOffset.MaxValue).CompareTo(y.When ?? DateTimeOffset.MaxValue);
-		}
-
-		public bool IsPropertySignificant(string propertyName) => propertyName is nameof(TransactionViewModel.When) or nameof(TransactionViewModel.BlockNumber);
-
-		int IComparer.Compare(object? x, object? y) => this.Compare((TransactionViewModel?)x, (TransactionViewModel?)y);
 	}
 }
