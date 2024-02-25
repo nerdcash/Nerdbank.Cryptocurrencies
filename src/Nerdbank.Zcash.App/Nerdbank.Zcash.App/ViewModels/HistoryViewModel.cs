@@ -79,6 +79,10 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
+		this.LinkProperty(nameof(this.ShowProtocolDetails), nameof(this.IsBlockNumberVisible));
+		this.LinkProperty(nameof(this.ShowProtocolDetails), nameof(this.IsTransactionIdVisible));
+
+		this.WhenAnyValue(vm => vm.ViewModelServices.Settings.ShowProtocolDetails).Subscribe(_ => this.RaisePropertyChanged(nameof(this.ShowProtocolDetails)));
 
 		this.OnSelectedAccountChanged();
 
@@ -92,6 +96,18 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	public SyncProgressData SyncProgress { get; }
 
 	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionChronologicalComparer.NewestToOldest);
+
+	public string ShowProtocolDetailsCaption => "Show protocol details";
+
+	public bool ShowProtocolDetails
+	{
+		get => this.ViewModelServices.Settings.ShowProtocolDetails;
+		set => this.ViewModelServices.Settings.ShowProtocolDetails = value;
+	}
+
+	public bool IsBlockNumberVisible => this.ShowProtocolDetails;
+
+	public bool IsTransactionIdVisible => this.ShowProtocolDetails;
 
 	public string WhenColumnHeader => "When";
 

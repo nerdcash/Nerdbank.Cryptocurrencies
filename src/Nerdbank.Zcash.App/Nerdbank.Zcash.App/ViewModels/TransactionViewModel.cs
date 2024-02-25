@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -12,6 +13,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
 	private readonly HistoryViewModel owner;
 	private readonly TradingPair tradingPair;
+	private readonly ObservableAsPropertyHelper<bool> isToAddressVisible;
 	private SecurityAmount runningBalance;
 	private SecurityAmount? alternateAmount;
 
@@ -28,6 +30,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			this.Memo = this.LineItems[0].Memo;
 		}
 
+		this.isToAddressVisible = this.WhenAnyValue(vm => vm.OtherPartyName, vm => vm.IsSingleLineItem, vm => vm.Owner.ShowProtocolDetails)
+			.Select(((string? OtherPartyName, bool IsSingleLineItem, bool ShowProtocolDetails) x) => x.IsSingleLineItem && (string.IsNullOrEmpty(x.OtherPartyName) || x.ShowProtocolDetails))
+			.ToProperty(this, nameof(this.IsToAddressVisible));
+
 		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
 		this.LinkProperty(transaction, nameof(transaction.MutableMemo), nameof(this.MutableMemo));
@@ -42,6 +48,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			this.AlternateNetChange = this.NetChange * exchangeRate;
 		}
 	}
+
+	public HistoryViewModel Owner => this.owner;
 
 	public ZcashTransaction Model { get; }
 
@@ -199,6 +207,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	public string MemoCaption => "Shared Memo";
 
 	public string MutableMemoCaption => "Private Memo";
+
+	public bool IsToAddressVisible => this.isToAddressVisible.Value;
 
 	public string? ToAddress => this.LineItems.FirstOrDefault()?.ToAddress;
 
