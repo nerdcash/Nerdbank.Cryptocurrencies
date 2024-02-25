@@ -380,6 +380,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 					this.otherParty = otherAccount;
 					this.model.OtherPartyName = otherAccount.Name;
 				}
+				else
+				{
+					this.model.TryAssignContactAsOtherParty(this.owner.owner.ViewModelServices.ContactManager);
+				}
 
 				// Remember that we searched (and failed) so we don't search again.
 				this.otherPartyLazyInitDone = true;

@@ -260,5 +260,20 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		/// <param name="account">The account that 'owns' this line item.</param>
 		/// <returns>A value indicating whether this line item should be considered change.</returns>
 		public bool IsChange(Account account) => this.Memo.MemoFormat != Zip302MemoFormat.MemoFormat.Message && account.ZcashAccount.AddressSendsToThisAccount(this.ToAddress);
+
+		internal bool TryAssignContactAsOtherParty(IContactManager contactManager)
+		{
+			if (this is { OtherParty: null, OtherPartyName: null })
+			{
+				if (contactManager.FindContact(this.ToAddress, out Contact? contact) == ZcashAddress.Match.MatchingReceiversFound && contact is not null)
+				{
+					this.OtherParty = contact;
+					this.OtherPartyName = contact.Name;
+					return true;
+				}
+			}
+
+			return false;
+		}
 	}
 }
