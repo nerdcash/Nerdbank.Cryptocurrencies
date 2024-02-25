@@ -41,6 +41,10 @@
         <Button Command="{Binding BalanceCommand}" Content="{Binding BalanceCommandCaption}" />
         <TextBlock Text="{Binding BalanceExplanation}" />
       </StackPanel>
+      <StackPanel Classes="ButtonAndExplanation">
+        <Button Command="{Binding HistoryCommand}" Content="{Binding HistoryCommandCaption}" />
+        <TextBlock Text="{Binding HistoryExplanation}" />
+      </StackPanel>
     </StackPanel>
   </ScrollViewer>
 </UserControl>
