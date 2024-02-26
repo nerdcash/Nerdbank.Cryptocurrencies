@@ -19,8 +19,9 @@ public partial record Transaction
 	/// <param name="when">The timestamp on this transaction.</param>
 	/// <param name="netChange">The net balance change applied by this transaction.</param>
 	/// <param name="fee">The transaction fee.</param>
-	/// <param name="outgoing">A collection of individual spend details with amounts and recipients belonging to this transaction.</param>
-	/// <param name="incoming">Notes received in this transaction.</param>
+	/// <param name="outgoing">A collection of individual spend details with amounts and recipients belonging to this transaction, excluding those identified as <paramref name="change"/>.</param>
+	/// <param name="incoming">Notes received in this transaction, excluding those identified as <paramref name="change"/>.</param>
+	/// <param name="change">Notes that are both sent and received in this transaction such that it appears to be implicit change.</param>
 	public Transaction(
 		TxId transactionId,
 		uint? minedHeight,
@@ -28,8 +29,9 @@ public partial record Transaction
 		DateTimeOffset? when,
 		decimal netChange,
 		decimal? fee,
-		ImmutableArray<SendItem> outgoing,
-		ImmutableArray<RecvItem> incoming)
+		ImmutableArray<LineItem> outgoing,
+		ImmutableArray<LineItem> incoming,
+		ImmutableArray<LineItem> change)
 	{
 		this.TransactionId = transactionId.PrecacheString();
 		this.MinedHeight = minedHeight;
@@ -39,6 +41,7 @@ public partial record Transaction
 		this.Fee = fee;
 		this.Outgoing = outgoing;
 		this.Incoming = incoming;
+		this.Change = change;
 	}
 
 	/// <summary>
@@ -75,14 +78,19 @@ public partial record Transaction
 	public decimal? Fee { get; }
 
 	/// <summary>
-	/// Gets the individual sent notes in this transaction.
+	/// Gets the individual sent notes in this transaction, excluding those identified as <see cref="Change"/>.
 	/// </summary>
-	public ImmutableArray<SendItem> Outgoing { get; }
+	public ImmutableArray<LineItem> Outgoing { get; }
 
 	/// <summary>
-	/// Gets the individual received notes in this transaction.
+	/// Gets the individual received notes in this transaction, excluding those identified as <see cref="Change"/>.
 	/// </summary>
-	public ImmutableArray<RecvItem> Incoming { get; }
+	public ImmutableArray<LineItem> Incoming { get; }
+
+	/// <summary>
+	/// Gets the notes that are both sent and received in this transaction such that they appear to be implicit change.
+	/// </summary>
+	public ImmutableArray<LineItem> Change { get; }
 
 	/// <summary>
 	/// Gets a value indicating whether this transaction did not originate from this account.

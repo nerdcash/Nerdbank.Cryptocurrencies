@@ -14,6 +14,7 @@ use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
     legacy::TransparentAddress,
+    memo::Memo,
     merkle_tree::HashSer,
     transaction::{
         components::{Amount, OutPoint},
@@ -45,7 +46,7 @@ use crate::{
     block_source::BlockCacheError,
     error::Error,
     grpc::get_client,
-    interop::{ShieldedNote, SyncUpdate, SyncUpdateData, TransactionSendDetail, TransparentNote},
+    interop::{SyncUpdate, SyncUpdateData, TransactionNote},
     lightclient::parse_network,
     resilience::{webrequest_with_logged_retry, webrequest_with_retry},
     sql_statements::GET_TRANSACTIONS_SQL,
@@ -738,39 +739,35 @@ pub fn get_transactions(
                 },
                 fee: row.get::<_, Option<u64>>("fee_paid")?,
                 account_balance_delta: row.get("account_balance_delta")?,
-                incoming_transparent: Vec::new(),
-                incoming_shielded: Vec::new(),
+                incoming: Vec::new(),
                 outgoing: Vec::new(),
+                change: Vec::new(),
             };
 
-            if to_account == Some(account_id) {
-                match output_pool {
-                    0 => tx.incoming_transparent.push(TransparentNote {
-                        value,
-                        recipient: recipient.clone().unwrap(),
-                    }),
-                    1..=3 => tx.incoming_shielded.push(ShieldedNote {
-                        value,
-                        memo: memo.clone(),
-                        recipient: recipient.clone().unwrap(), // TODO: this will fail because recipient is NULL. Reconstruct from diversifier.
-                        is_change: false,
-                    }),
-                    _ => {
-                        return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
-                            format!("Unsupported output pool value {}.", output_pool),
-                        )));
-                    }
-                }
+            let note = TransactionNote {
+                value,
+                recipient: recipient.clone().unwrap(),
+                memo: if memo.is_empty() {
+                    None
+                } else {
+                    Some(memo.clone())
+                },
             };
 
-            if let Some(recipient) = recipient {
-                if from_account == Some(account_id) {
-                    tx.outgoing.push(TransactionSendDetail {
-                        recipient,
-                        memo: Some(memo),
-                        value,
-                    });
-                }
+            // We establish change by whether the memo does not contain user text,
+            // and that the recipient is to the same account.
+            let is_change = to_account == from_account
+                && Memo::from_bytes(&memo).is_ok_and(|m| match m {
+                    Memo::Text(_) => false,
+                    _ => true,
+                });
+
+            if is_change {
+                tx.change.push(note);
+            } else if to_account == Some(account_id) {
+                tx.incoming.push(note);
+            } else {
+                tx.outgoing.push(note);
             }
 
             Ok(tx)
@@ -787,10 +784,9 @@ pub fn get_transactions(
             // This row adds line items to the last transaction.
             // Pop it off the list to change it, then we'll add it back.
             let mut tx = result.pop().unwrap();
-            tx.incoming_transparent
-                .append(&mut row.incoming_transparent);
-            tx.incoming_shielded.append(&mut row.incoming_shielded);
+            tx.incoming.append(&mut row.incoming);
             tx.outgoing.append(&mut row.outgoing);
+            tx.change.append(&mut row.change);
             result.push(tx);
         } else {
             result.push(row);

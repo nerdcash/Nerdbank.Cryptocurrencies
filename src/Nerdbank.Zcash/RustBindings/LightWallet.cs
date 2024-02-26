@@ -1579,39 +1579,6 @@ class FfiConverterTypeSendTransactionResult : FfiConverterRustBuffer<SendTransac
 	}
 }
 
-internal record ShieldedNote(ulong @value, byte[] @memo, String @recipient, bool @isChange) { }
-
-class FfiConverterTypeShieldedNote : FfiConverterRustBuffer<ShieldedNote>
-{
-	public static FfiConverterTypeShieldedNote INSTANCE = new FfiConverterTypeShieldedNote();
-
-	public override ShieldedNote Read(BigEndianStream stream)
-	{
-		return new ShieldedNote(
-			@value: FfiConverterUInt64.INSTANCE.Read(stream),
-			@memo: FfiConverterByteArray.INSTANCE.Read(stream),
-			@recipient: FfiConverterString.INSTANCE.Read(stream),
-			@isChange: FfiConverterBoolean.INSTANCE.Read(stream)
-		);
-	}
-
-	public override int AllocationSize(ShieldedNote value)
-	{
-		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@value)
-			+ FfiConverterByteArray.INSTANCE.AllocationSize(value.@memo)
-			+ FfiConverterString.INSTANCE.AllocationSize(value.@recipient)
-			+ FfiConverterBoolean.INSTANCE.AllocationSize(value.@isChange);
-	}
-
-	public override void Write(ShieldedNote value, BigEndianStream stream)
-	{
-		FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
-		FfiConverterByteArray.INSTANCE.Write(value.@memo, stream);
-		FfiConverterString.INSTANCE.Write(value.@recipient, stream);
-		FfiConverterBoolean.INSTANCE.Write(value.@isChange, stream);
-	}
-}
-
 internal record SyncUpdateData(
 	uint? @lastFullyScannedBlock,
 	uint @tipHeight,
@@ -1662,9 +1629,9 @@ internal record Transaction(
 	bool @expiredUnmined,
 	long @accountBalanceDelta,
 	ulong? @fee,
-	List<TransactionSendDetail> @outgoing,
-	List<TransparentNote> @incomingTransparent,
-	List<ShieldedNote> @incomingShielded
+	List<TransactionNote> @outgoing,
+	List<TransactionNote> @incoming,
+	List<TransactionNote> @change
 ) { }
 
 class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
@@ -1681,9 +1648,9 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 			@expiredUnmined: FfiConverterBoolean.INSTANCE.Read(stream),
 			@accountBalanceDelta: FfiConverterInt64.INSTANCE.Read(stream),
 			@fee: FfiConverterOptionalUInt64.INSTANCE.Read(stream),
-			@outgoing: FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Read(stream),
-			@incomingTransparent: FfiConverterSequenceTypeTransparentNote.INSTANCE.Read(stream),
-			@incomingShielded: FfiConverterSequenceTypeShieldedNote.INSTANCE.Read(stream)
+			@outgoing: FfiConverterSequenceTypeTransactionNote.INSTANCE.Read(stream),
+			@incoming: FfiConverterSequenceTypeTransactionNote.INSTANCE.Read(stream),
+			@change: FfiConverterSequenceTypeTransactionNote.INSTANCE.Read(stream)
 		);
 	}
 
@@ -1696,11 +1663,9 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 			+ FfiConverterBoolean.INSTANCE.AllocationSize(value.@expiredUnmined)
 			+ FfiConverterInt64.INSTANCE.AllocationSize(value.@accountBalanceDelta)
 			+ FfiConverterOptionalUInt64.INSTANCE.AllocationSize(value.@fee)
-			+ FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.AllocationSize(value.@outgoing)
-			+ FfiConverterSequenceTypeTransparentNote.INSTANCE.AllocationSize(
-				value.@incomingTransparent
-			)
-			+ FfiConverterSequenceTypeShieldedNote.INSTANCE.AllocationSize(value.@incomingShielded);
+			+ FfiConverterSequenceTypeTransactionNote.INSTANCE.AllocationSize(value.@outgoing)
+			+ FfiConverterSequenceTypeTransactionNote.INSTANCE.AllocationSize(value.@incoming)
+			+ FfiConverterSequenceTypeTransactionNote.INSTANCE.AllocationSize(value.@change);
 	}
 
 	public override void Write(Transaction value, BigEndianStream stream)
@@ -1712,9 +1677,39 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 		FfiConverterBoolean.INSTANCE.Write(value.@expiredUnmined, stream);
 		FfiConverterInt64.INSTANCE.Write(value.@accountBalanceDelta, stream);
 		FfiConverterOptionalUInt64.INSTANCE.Write(value.@fee, stream);
-		FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Write(value.@outgoing, stream);
-		FfiConverterSequenceTypeTransparentNote.INSTANCE.Write(value.@incomingTransparent, stream);
-		FfiConverterSequenceTypeShieldedNote.INSTANCE.Write(value.@incomingShielded, stream);
+		FfiConverterSequenceTypeTransactionNote.INSTANCE.Write(value.@outgoing, stream);
+		FfiConverterSequenceTypeTransactionNote.INSTANCE.Write(value.@incoming, stream);
+		FfiConverterSequenceTypeTransactionNote.INSTANCE.Write(value.@change, stream);
+	}
+}
+
+internal record TransactionNote(ulong @value, byte[]? @memo, String @recipient) { }
+
+class FfiConverterTypeTransactionNote : FfiConverterRustBuffer<TransactionNote>
+{
+	public static FfiConverterTypeTransactionNote INSTANCE = new FfiConverterTypeTransactionNote();
+
+	public override TransactionNote Read(BigEndianStream stream)
+	{
+		return new TransactionNote(
+			@value: FfiConverterUInt64.INSTANCE.Read(stream),
+			@memo: FfiConverterOptionalByteArray.INSTANCE.Read(stream),
+			@recipient: FfiConverterString.INSTANCE.Read(stream)
+		);
+	}
+
+	public override int AllocationSize(TransactionNote value)
+	{
+		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@value)
+			+ FfiConverterOptionalByteArray.INSTANCE.AllocationSize(value.@memo)
+			+ FfiConverterString.INSTANCE.AllocationSize(value.@recipient);
+	}
+
+	public override void Write(TransactionNote value, BigEndianStream stream)
+	{
+		FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
+		FfiConverterOptionalByteArray.INSTANCE.Write(value.@memo, stream);
+		FfiConverterString.INSTANCE.Write(value.@recipient, stream);
 	}
 }
 
@@ -2678,52 +2673,6 @@ class FfiConverterSequenceTypeAccountInfo : FfiConverterRustBuffer<List<AccountI
 	}
 }
 
-class FfiConverterSequenceTypeShieldedNote : FfiConverterRustBuffer<List<ShieldedNote>>
-{
-	public static FfiConverterSequenceTypeShieldedNote INSTANCE =
-		new FfiConverterSequenceTypeShieldedNote();
-
-	public override List<ShieldedNote> Read(BigEndianStream stream)
-	{
-		var length = stream.ReadInt();
-		var result = new List<ShieldedNote>(length);
-		for (int i = 0; i < length; i++)
-		{
-			result.Add(FfiConverterTypeShieldedNote.INSTANCE.Read(stream));
-		}
-		return result;
-	}
-
-	public override int AllocationSize(List<ShieldedNote> value)
-	{
-		var sizeForLength = 4;
-
-		// details/1-empty-list-as-default-method-parameter.md
-		if (value == null)
-		{
-			return sizeForLength;
-		}
-
-		var sizeForItems = value
-			.Select(item => FfiConverterTypeShieldedNote.INSTANCE.AllocationSize(item))
-			.Sum();
-		return sizeForLength + sizeForItems;
-	}
-
-	public override void Write(List<ShieldedNote> value, BigEndianStream stream)
-	{
-		// details/1-empty-list-as-default-method-parameter.md
-		if (value == null)
-		{
-			stream.WriteInt(0);
-			return;
-		}
-
-		stream.WriteInt(value.Count);
-		value.ForEach(item => FfiConverterTypeShieldedNote.INSTANCE.Write(item, stream));
-	}
-}
-
 class FfiConverterSequenceTypeTransaction : FfiConverterRustBuffer<List<Transaction>>
 {
 	public static FfiConverterSequenceTypeTransaction INSTANCE =
@@ -2767,6 +2716,52 @@ class FfiConverterSequenceTypeTransaction : FfiConverterRustBuffer<List<Transact
 
 		stream.WriteInt(value.Count);
 		value.ForEach(item => FfiConverterTypeTransaction.INSTANCE.Write(item, stream));
+	}
+}
+
+class FfiConverterSequenceTypeTransactionNote : FfiConverterRustBuffer<List<TransactionNote>>
+{
+	public static FfiConverterSequenceTypeTransactionNote INSTANCE =
+		new FfiConverterSequenceTypeTransactionNote();
+
+	public override List<TransactionNote> Read(BigEndianStream stream)
+	{
+		var length = stream.ReadInt();
+		var result = new List<TransactionNote>(length);
+		for (int i = 0; i < length; i++)
+		{
+			result.Add(FfiConverterTypeTransactionNote.INSTANCE.Read(stream));
+		}
+		return result;
+	}
+
+	public override int AllocationSize(List<TransactionNote> value)
+	{
+		var sizeForLength = 4;
+
+		// details/1-empty-list-as-default-method-parameter.md
+		if (value == null)
+		{
+			return sizeForLength;
+		}
+
+		var sizeForItems = value
+			.Select(item => FfiConverterTypeTransactionNote.INSTANCE.AllocationSize(item))
+			.Sum();
+		return sizeForLength + sizeForItems;
+	}
+
+	public override void Write(List<TransactionNote> value, BigEndianStream stream)
+	{
+		// details/1-empty-list-as-default-method-parameter.md
+		if (value == null)
+		{
+			stream.WriteInt(0);
+			return;
+		}
+
+		stream.WriteInt(value.Count);
+		value.ForEach(item => FfiConverterTypeTransactionNote.INSTANCE.Write(item, stream));
 	}
 }
 

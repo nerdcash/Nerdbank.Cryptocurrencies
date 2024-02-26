@@ -45,17 +45,14 @@ internal class HistoryCommand : SyncFirstCommandBase
 		console.WriteLine($"{tx.When?.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
 		const string indentation = "                      ";
 
-		foreach (Transaction.SendItem send in tx.Outgoing)
+		foreach (Transaction.LineItem send in tx.Outgoing)
 		{
 			console.WriteLine($"{indentation} -{send.Amount,13:N8} {FormatMemo(send.Memo)} {send.ToAddress}");
 		}
 
-		foreach (Transaction.RecvItem recv in tx.Incoming)
+		foreach (Transaction.LineItem recv in tx.Incoming)
 		{
-			if (!recv.IsChange)
-			{
-				console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
-			}
+			console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
 		}
 
 		if (!tx.IsIncoming)
