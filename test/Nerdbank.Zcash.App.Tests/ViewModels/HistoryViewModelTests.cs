@@ -39,7 +39,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 					When = DateTimeOffset.UtcNow - age,
 					SendItems = sends,
 					RecvItems = receives,
-					Fee = -0.0001m,
+					Fee = 0.0001m,
 				},
 				this.viewModel)
 			{

@@ -104,6 +104,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	/// </summary>
 	public SecurityAmount NetChange => this.Security.Amount(this.Model.NetChange);
 
+	public bool IsSubtotalVisible => this.LineItems.Count > 0;
+
 	/// <summary>
 	/// Gets the sum of all line items in this transaction (the transaction's value, excluding fees).
 	/// </summary>
@@ -111,7 +113,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string SubtotalCaption => this.IsIncoming ? "Received" : "Sent";
 
-	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.Security.Amount(fee) : null;
+	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.Security.Amount(-fee) : null;
 
 	public string FeeCaption => "Fee";
 
@@ -204,6 +206,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public bool IsSingleLineItem => this.LineItems.Count == 1;
 
+	public bool IsMultiLineItem => this.LineItems.Count > 1;
+
 	public string MemoCaption => "Shared Memo";
 
 	public string MutableMemoCaption => "Private Memo";
@@ -213,6 +217,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	public string? ToAddress => this.LineItems.FirstOrDefault()?.ToAddress;
 
 	public string ToAddressCaption => "Recipient";
+
+	public bool IsMutableMemoVisible => this.LineItems.Count > 0;
 
 	public string MutableMemo
 	{
@@ -243,14 +249,14 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		List<LineItem> lineItems = new(this.Model.SendItems.Length + this.Model.RecvItems.Length);
 		if (this.Model.SendItems.Length > 0)
 		{
-			AddLineItems(this.Model.SendItems.Where(i => this.owner.SelectedAccount is null || !i.IsChange(this.owner.SelectedAccount)).ToImmutableArray());
+			AddLineItems(this.Model.SendItems.ToImmutableArray(), negate: true);
 		}
 		else if (this.Model.RecvItems.Length > 0)
 		{
 			AddLineItems(this.Model.RecvItems);
 		}
 
-		void AddLineItems(ImmutableArray<ZcashTransaction.LineItem> items)
+		void AddLineItems(ImmutableArray<ZcashTransaction.LineItem> items, bool negate = false)
 		{
 			if (items.Length == 2)
 			{
@@ -260,12 +266,12 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 				ZcashTransaction.LineItem second = items[1];
 				if (first.Memo.Equals(second.Memo) && first.Pool != second.Pool && first.Pool.HasValue && second.Pool.HasValue)
 				{
-					lineItems.Add(new LineItem(this, first, second));
+					lineItems.Add(new LineItem(this, negate, first, second));
 					return;
 				}
 			}
 
-			lineItems.AddRange(items.Select(i => new LineItem(this, i)));
+			lineItems.AddRange(items.Select(i => new LineItem(this, negate, i)));
 		}
 
 		return new(lineItems);
@@ -279,7 +285,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		private object? otherParty;
 		private bool otherPartyLazyInitDone;
 
-		public LineItem(TransactionViewModel owner, ZcashTransaction.LineItem model, ZcashTransaction.LineItem? additionalModel = null)
+		public LineItem(TransactionViewModel owner, bool negate, ZcashTransaction.LineItem model, ZcashTransaction.LineItem? additionalModel = null)
 		{
 			this.owner = owner;
 			this.model = model;
@@ -293,6 +299,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 			this.Amount = owner.Security.Amount(model.Amount + (additionalModel?.Amount ?? 0));
 			this.otherParty = model.OtherParty;
+
+			if (negate)
+			{
+				this.Amount = -this.Amount;
+			}
 		}
 
 		public SecurityAmount Amount { get; }

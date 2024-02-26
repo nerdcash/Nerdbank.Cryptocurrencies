@@ -42,7 +42,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,
-					Fee = amount > 0 ? null : -0.0001m,
+					Fee = amount > 0 ? null : 0.0001m,
 					TransactionId = TxId.Parse(txid),
 					When = DateTimeOffset.UtcNow - age,
 					SendItems = sends,
