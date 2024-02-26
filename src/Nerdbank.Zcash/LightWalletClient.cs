@@ -287,7 +287,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="progress">An optional receiver for progress updates.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The transaction ID.</returns>
-	public async Task<TxId> SendAsync(ZcashAccount account, IReadOnlyCollection<SendItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
+	public async Task<TxId> SendAsync(ZcashAccount account, IReadOnlyCollection<LineItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
 	{
 		Requires.NotNull(account);
 		Requires.NotNullOrEmpty(payments);
@@ -405,32 +405,18 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="SendItem"/> class.
+	/// Initializes a new instance of the <see cref="LineItem"/> class.
 	/// </summary>
 	/// <param name="d">The uniffi data to copy from.</param>
-	private static SendItem CreateSendItem(TransactionSendDetail d)
+	private static LineItem CreateLineItem(TransactionNote d)
 		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="RecvItem"/> class.
-	/// </summary>
-	/// <param name="d">The uniffi shielded note.</param>
-	private static RecvItem CreateRecvItem(ShieldedNote d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="RecvItem"/> class.
-	/// </summary>
-	/// <param name="d">The uniffi transparent note.</param>
-	private static RecvItem CreateRecvItem(TransparentNote d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), Memo.NoMemo, IsChange: false);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
 	/// </summary>
 	/// <param name="t">The uniffi transaction to copy data from.</param>
 	private static Transaction CreateTransaction(uniffi.LightWallet.Transaction t)
-		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), t.fee.HasValue ? ZatsToZEC(t.fee.Value) : null, [.. t.outgoing.Select(CreateSendItem)], [.. t.incomingShielded.Select(CreateRecvItem), .. t.incomingTransparent.Select(CreateRecvItem)]);
+		=> new(new TxId(t.txid), t.minedHeight, t.expiredUnmined, t.blockTime, ZatsToZEC(t.accountBalanceDelta), t.fee.HasValue ? ZatsToZEC(t.fee.Value) : null, [.. t.outgoing.Select(CreateLineItem)], [.. t.incoming.Select(CreateLineItem)], [.. t.change.Select(CreateLineItem)]);
 
 	/// <summary>
 	/// Wraps an interop invocation in a <see langword="try" /> block and wraps

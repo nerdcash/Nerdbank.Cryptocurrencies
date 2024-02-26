@@ -27,9 +27,9 @@ dictionary Transaction {
 	boolean expired_unmined;
 	i64 account_balance_delta;
 	u64? fee;
-	sequence<TransactionSendDetail> outgoing;
-	sequence<TransparentNote> incoming_transparent;
-	sequence<ShieldedNote> incoming_shielded;
+	sequence<TransactionNote> outgoing;
+	sequence<TransactionNote> incoming;
+	sequence<TransactionNote> change;
 };
 
 dictionary TransparentNote {
@@ -37,11 +37,10 @@ dictionary TransparentNote {
 	string recipient;
 };
 
-dictionary ShieldedNote {
+dictionary TransactionNote {
 	u64 value;
-	bytes memo;
+	bytes? memo;
 	string recipient;
-	boolean is_change;
 };
 
 dictionary TransactionSendDetail {
