@@ -95,7 +95,9 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public SyncProgressData SyncProgress { get; }
 
-	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionChronologicalComparer.NewestToOldest);
+	// When changing the sort order, be sure to update the UpdateBalances method (and maybe its callers)
+	// to walk the collection in the new order.
+	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionChronologicalComparer.OldestToNewest);
 
 	public string ShowProtocolDetailsCaption => "Show protocol details";
 

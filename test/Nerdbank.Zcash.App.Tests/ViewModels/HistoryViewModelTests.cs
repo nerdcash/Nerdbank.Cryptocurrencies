@@ -52,7 +52,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 	public void TransactionsSortedByDate()
 	{
 		ImmutableArray<TransactionViewModel> sortedTransactions =
-			this.viewModel.Transactions.ToImmutableArray().Sort(TransactionChronologicalComparer.NewestToOldest);
+			this.viewModel.Transactions.ToImmutableArray().Sort(TransactionChronologicalComparer.OldestToNewest);
 
 		// Assert that the transactions are sorted by date
 		Assert.Equal(sortedTransactions, this.viewModel.Transactions);
