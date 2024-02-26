@@ -240,13 +240,7 @@ public class Account : ReactiveObject, IPersistableData
 	{
 		foreach (ZcashTransaction.LineItem sendItem in transaction.SendItems)
 		{
-			if (sendItem is { OtherParty: null, OtherPartyName: null })
-			{
-				if (contactManager.FindContact(sendItem.ToAddress, out Contact? contact) == ZcashAddress.Match.MatchingReceiversFound)
-				{
-					sendItem.OtherParty = contact;
-				}
-			}
+			sendItem.TryAssignContactAsOtherParty(contactManager);
 		}
 
 		foreach (ZcashTransaction.LineItem recvItem in transaction.RecvItems)

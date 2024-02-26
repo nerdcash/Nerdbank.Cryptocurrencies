@@ -15,6 +15,7 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	private Uri lightServerUrl = new("https://zcash.mysideoftheweb.com:9067/");
 	private Uri lightServerUrlTestNet = new("https://zcash.mysideoftheweb.com:19067/");
 	private bool isDirty;
+	private bool showProtocolDetails;
 
 	public AppSettings()
 	{
@@ -26,6 +27,13 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	public event PropertyChangedEventHandler? PropertyChanged;
 
 	public event PropertyChangingEventHandler? PropertyChanging;
+
+	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+	public bool ShowProtocolDetails
+	{
+		get => this.showProtocolDetails;
+		set => this.RaiseAndSetIfChanged(ref this.showProtocolDetails, value);
+	}
 
 	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
 	public bool ExchangeRatePerTransactionHasBeenDismissed

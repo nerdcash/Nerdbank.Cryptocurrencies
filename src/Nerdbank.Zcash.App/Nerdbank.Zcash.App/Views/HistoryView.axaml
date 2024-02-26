@@ -13,6 +13,7 @@
   <DockPanel>
     <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
     <local:AccountSelector DockPanel.Dock="Top" HorizontalAlignment="Center" />
+    <CheckBox Content="{Binding ShowProtocolDetailsCaption}" IsChecked="{Binding ShowProtocolDetails}" DockPanel.Dock="Bottom" Margin="5 0" />
     <Grid Background="LightYellow" IsVisible="{Binding ExchangeRateExplanationIsVisible}" DockPanel.Dock="Bottom" ColumnDefinitions="*,auto">
       <TextBlock Text="{Binding ExchangeRateExplanation}" Padding="5" />
       <Button Content="{Binding HideExchangeRateExplanationCommandCaption}" Command="{Binding HideExchangeRateExplanationCommand}" Grid.Column="1" Margin="5 0" />
@@ -110,12 +111,12 @@
             <local:SecurityAmountDisplay Value="{Binding Subtotal}" IsUnitsVisible="False" Name="AmountBox" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" />
             <Label Content="{Binding FeeCaption}" Target="{Binding #FeeBox}" Grid.Row="5" IsVisible="{Binding !IsIncoming}" />
             <local:SecurityAmountDisplay Value="{Binding Fee}" IsUnitsVisible="False" Name="FeeBox" Grid.Row="5" Grid.Column="1" IsVisible="{Binding !IsIncoming}" HorizontalAlignment="Left" />
-            <Label Content="{Binding ToAddressCaption}" Target="{Binding #ToAddressBox}" Grid.Row="6" IsVisible="{Binding IsSingleLineItem}" />
-            <TextBox IsReadOnly="True" Text="{Binding ToAddress}" Name="ToAddressBox" Grid.Row="6" Grid.Column="1" IsVisible="{Binding IsSingleLineItem}" />
-            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="7" />
-            <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="7" Grid.Column="1" />
-            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="8" />
-            <TextBox IsReadOnly="True" Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="8" Grid.Column="1" />
+            <Label Content="{Binding ToAddressCaption}" Target="{Binding #ToAddressBox}" Grid.Row="6" IsVisible="{Binding IsToAddressVisible}" />
+            <TextBox IsReadOnly="True" Text="{Binding ToAddress}" Name="ToAddressBox" Grid.Row="6" Grid.Column="1" IsVisible="{Binding IsToAddressVisible}" />
+            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="7" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
+            <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="7" Grid.Column="1" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
+            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="8" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
+            <TextBox IsReadOnly="True" Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="8" Grid.Column="1" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
           </Grid>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>

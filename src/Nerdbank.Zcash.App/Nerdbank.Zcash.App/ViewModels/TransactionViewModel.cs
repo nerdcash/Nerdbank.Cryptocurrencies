@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -13,6 +13,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
 	private readonly HistoryViewModel owner;
 	private readonly TradingPair tradingPair;
+	private readonly ObservableAsPropertyHelper<bool> isToAddressVisible;
 	private SecurityAmount runningBalance;
 	private SecurityAmount? alternateAmount;
 
@@ -29,6 +30,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			this.Memo = this.LineItems[0].Memo;
 		}
 
+		this.isToAddressVisible = this.WhenAnyValue(vm => vm.OtherPartyName, vm => vm.IsSingleLineItem, vm => vm.Owner.ShowProtocolDetails)
+			.Select(((string? OtherPartyName, bool IsSingleLineItem, bool ShowProtocolDetails) x) => x.IsSingleLineItem && (string.IsNullOrEmpty(x.OtherPartyName) || x.ShowProtocolDetails))
+			.ToProperty(this, nameof(this.IsToAddressVisible));
+
 		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
 		this.LinkProperty(transaction, nameof(transaction.MutableMemo), nameof(this.MutableMemo));
@@ -43,6 +48,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			this.AlternateNetChange = this.NetChange * exchangeRate;
 		}
 	}
+
+	public HistoryViewModel Owner => this.owner;
 
 	public ZcashTransaction Model { get; }
 
@@ -200,6 +207,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	public string MemoCaption => "Shared Memo";
 
 	public string MutableMemoCaption => "Private Memo";
+
+	public bool IsToAddressVisible => this.isToAddressVisible.Value;
 
 	public string? ToAddress => this.LineItems.FirstOrDefault()?.ToAddress;
 
@@ -380,56 +389,14 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 					this.otherParty = otherAccount;
 					this.model.OtherPartyName = otherAccount.Name;
 				}
+				else
+				{
+					this.model.TryAssignContactAsOtherParty(this.owner.owner.ViewModelServices.ContactManager);
+				}
 
 				// Remember that we searched (and failed) so we don't search again.
 				this.otherPartyLazyInitDone = true;
 			}
 		}
-	}
-
-	internal class DateComparer : IComparer<TransactionViewModel>, IOptimizedComparer<TransactionViewModel>, System.Collections.IComparer
-	{
-		private DateComparer()
-		{
-		}
-
-		public static DateComparer Instance { get; } = new();
-
-		public int Compare(TransactionViewModel? x, TransactionViewModel? y)
-		{
-			if (x is null)
-			{
-				return y is null ? 0 : -1;
-			}
-
-			if (y is null)
-			{
-				return 1;
-			}
-
-			// Block number is always the 1st order sort.
-			if (x.BlockNumber.HasValue && y.BlockNumber.HasValue)
-			{
-				int blockNumberComparison = x.BlockNumber.Value.CompareTo(y.BlockNumber.Value);
-				if (blockNumberComparison != 0)
-				{
-					return blockNumberComparison;
-				}
-			}
-			else if (x.BlockNumber.HasValue)
-			{
-				return -1;
-			}
-			else if (y.BlockNumber.HasValue)
-			{
-				return 1;
-			}
-
-			return (x.When ?? DateTimeOffset.MaxValue).CompareTo(y.When ?? DateTimeOffset.MaxValue);
-		}
-
-		public bool IsPropertySignificant(string propertyName) => propertyName is nameof(TransactionViewModel.When) or nameof(TransactionViewModel.BlockNumber);
-
-		int IComparer.Compare(object? x, object? y) => this.Compare((TransactionViewModel?)x, (TransactionViewModel?)y);
 	}
 }

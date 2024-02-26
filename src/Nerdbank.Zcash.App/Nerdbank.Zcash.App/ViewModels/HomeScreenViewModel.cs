@@ -26,6 +26,7 @@ public class HomeScreenViewModel : ViewModelBase
 		this.ReceiveCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new ReceivingIntentSelectorViewModel(viewModelServices)));
 		this.SendCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SendingViewModel(viewModelServices)));
 		this.BalanceCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BalanceViewModel(viewModelServices)));
+		this.HistoryCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new HistoryViewModel(viewModelServices)));
 		this.BackupCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices)));
 	}
 
@@ -48,6 +49,12 @@ public class HomeScreenViewModel : ViewModelBase
 	public ReactiveCommand<Unit, BalanceViewModel> BalanceCommand { get; }
 
 	public string BalanceExplanation => "Check your balance.";
+
+	public string HistoryCommandCaption => "📜 History";
+
+	public ReactiveCommand<Unit, HistoryViewModel> HistoryCommand { get; }
+
+	public string HistoryExplanation => "See your transaction history.";
 
 	public bool IsBackupCommandPromoted => this.isBackupCommandPromoted.Value;
 

@@ -51,8 +51,8 @@ public class HistoryViewModelTests : ViewModelTestBase
 	[Fact]
 	public void TransactionsSortedByDate()
 	{
-		IOrderedEnumerable<TransactionViewModel> sortedTransactions =
-			this.viewModel.Transactions.OrderBy(t => t.When);
+		ImmutableArray<TransactionViewModel> sortedTransactions =
+			this.viewModel.Transactions.ToImmutableArray().Sort(TransactionChronologicalComparer.NewestToOldest);
 
 		// Assert that the transactions are sorted by date
 		Assert.Equal(sortedTransactions, this.viewModel.Transactions);
