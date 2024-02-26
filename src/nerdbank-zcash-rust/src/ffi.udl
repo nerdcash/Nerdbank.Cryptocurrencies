@@ -41,6 +41,7 @@ dictionary ShieldedNote {
 	u64 value;
 	bytes memo;
 	string recipient;
+	boolean is_change;
 };
 
 dictionary TransactionSendDetail {

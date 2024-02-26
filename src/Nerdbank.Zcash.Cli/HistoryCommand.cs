@@ -40,7 +40,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 		return command;
 	}
 
-	internal static void PrintTransaction(IConsole console, Transaction tx, ZcashAccount account)
+	internal static void PrintTransaction(IConsole console, Transaction tx)
 	{
 		console.WriteLine($"{tx.When?.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
 		const string indentation = "                      ";
@@ -52,7 +52,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 
 		foreach (Transaction.RecvItem recv in tx.Incoming)
 		{
-			if (!recv.IsChange(account))
+			if (!recv.IsChange)
 			{
 				console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
 			}
@@ -75,7 +75,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 		List<Transaction> txs = client.GetDownloadedTransactions(this.SelectedAccount!, this.StartingBlock);
 		foreach (Transaction tx in txs)
 		{
-			PrintTransaction(this.Console, tx, this.SelectedAccount!);
+			PrintTransaction(this.Console, tx);
 		}
 
 		return 0;

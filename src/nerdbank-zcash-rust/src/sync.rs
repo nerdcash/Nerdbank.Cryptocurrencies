@@ -14,6 +14,7 @@ use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
     legacy::TransparentAddress,
+    memo::Memo,
     merkle_tree::HashSer,
     transaction::{
         components::{Amount, OutPoint},
@@ -753,6 +754,14 @@ pub fn get_transactions(
                         value,
                         memo: memo.clone(),
                         recipient: recipient.clone().unwrap(),
+
+                        // We establish change by whether the memo does not contain user text,
+                        // and that the recipient is to the same account.
+                        is_change: to_account == from_account
+                            && Memo::from_bytes(&memo).is_ok_and(|m| match m {
+                                Memo::Text(_) => false,
+                                _ => true,
+                            }),
                     }),
                     _ => {
                         return Err(Error::SqliteClient(SqliteClientError::CorruptedData(

@@ -11,7 +11,8 @@ public partial record Transaction
 	/// <param name="ToAddress">The address the note is addressed to. This will be the specific diversified address used. If a <see cref="UnifiedAddress"/>, it will have only one receiver, even if the address used by the sender originally had multiple receivers.</param>
 	/// <param name="Amount">The amount received.</param>
 	/// <param name="Memo">The memo included in the note.</param>
-	public record struct RecvItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo)
+	/// <param name="IsChange">A value indicating whether this note represents "change" returned to the wallet in an otherwise outbound transaction.</param>
+	public record struct RecvItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo, bool IsChange)
 	{
 		/// <summary>
 		/// Gets the pool that received this note.
@@ -27,13 +28,5 @@ public partial record Transaction
 				_ => throw new NotSupportedException(),
 			};
 		}
-
-		/// <summary>
-		/// Checks whether this line item represents change going back to the sender.
-		/// </summary>
-		/// <param name="account">The account that 'owns' this line item.</param>
-		/// <returns>A value indicating whether this line item should be considered change.</returns>
-		public bool IsChange(ZcashAccount account) => this.Memo.MemoFormat != Zip302MemoFormat.MemoFormat.Message
-			&& Requires.NotNull(account).AddressSendsToThisAccount(this.ToAddress);
 	}
 }

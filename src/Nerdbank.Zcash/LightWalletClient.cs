@@ -416,14 +416,14 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="d">The uniffi shielded note.</param>
 	private static RecvItem CreateRecvItem(ShieldedNote d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()));
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RecvItem"/> class.
 	/// </summary>
 	/// <param name="d">The uniffi transparent note.</param>
 	private static RecvItem CreateRecvItem(TransparentNote d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), Memo.NoMemo);
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), Memo.NoMemo, IsChange: false);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.

@@ -77,7 +77,7 @@ internal class SyncCommand : WalletUserCommandBase
 			{
 				foreach (Transaction tx in transactions.Values.SelectMany(t => t))
 				{
-					HistoryCommand.PrintTransaction(this.Console, tx, this.SelectedAccount!);
+					HistoryCommand.PrintTransaction(this.Console, tx);
 				}
 			}),
 			this.Continually,

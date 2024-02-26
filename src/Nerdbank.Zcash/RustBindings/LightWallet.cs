@@ -1579,7 +1579,7 @@ class FfiConverterTypeSendTransactionResult : FfiConverterRustBuffer<SendTransac
 	}
 }
 
-internal record ShieldedNote(ulong @value, byte[] @memo, String @recipient) { }
+internal record ShieldedNote(ulong @value, byte[] @memo, String @recipient, bool @isChange) { }
 
 class FfiConverterTypeShieldedNote : FfiConverterRustBuffer<ShieldedNote>
 {
@@ -1590,7 +1590,8 @@ class FfiConverterTypeShieldedNote : FfiConverterRustBuffer<ShieldedNote>
 		return new ShieldedNote(
 			@value: FfiConverterUInt64.INSTANCE.Read(stream),
 			@memo: FfiConverterByteArray.INSTANCE.Read(stream),
-			@recipient: FfiConverterString.INSTANCE.Read(stream)
+			@recipient: FfiConverterString.INSTANCE.Read(stream),
+			@isChange: FfiConverterBoolean.INSTANCE.Read(stream)
 		);
 	}
 
@@ -1598,7 +1599,8 @@ class FfiConverterTypeShieldedNote : FfiConverterRustBuffer<ShieldedNote>
 	{
 		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@value)
 			+ FfiConverterByteArray.INSTANCE.AllocationSize(value.@memo)
-			+ FfiConverterString.INSTANCE.AllocationSize(value.@recipient);
+			+ FfiConverterString.INSTANCE.AllocationSize(value.@recipient)
+			+ FfiConverterBoolean.INSTANCE.AllocationSize(value.@isChange);
 	}
 
 	public override void Write(ShieldedNote value, BigEndianStream stream)
@@ -1606,6 +1608,7 @@ class FfiConverterTypeShieldedNote : FfiConverterRustBuffer<ShieldedNote>
 		FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
 		FfiConverterByteArray.INSTANCE.Write(value.@memo, stream);
 		FfiConverterString.INSTANCE.Write(value.@recipient, stream);
+		FfiConverterBoolean.INSTANCE.Write(value.@isChange, stream);
 	}
 }
 
