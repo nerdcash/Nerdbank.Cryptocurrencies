@@ -752,8 +752,7 @@ pub fn get_transactions(
                     1..=3 => tx.incoming_shielded.push(ShieldedNote {
                         value,
                         memo: memo.clone(),
-                        recipient: recipient.clone().unwrap(), // TODO: this will fail because recipient is NULL. Reconstruct from diversifier.
-                        is_change: false,
+                        recipient: recipient.clone().unwrap(),
                     }),
                     _ => {
                         return Err(Error::SqliteClient(SqliteClientError::CorruptedData(

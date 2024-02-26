@@ -418,15 +418,14 @@ Nerdbank.Zcash.Transaction.Outgoing.get -> System.Collections.Immutable.Immutabl
 Nerdbank.Zcash.Transaction.RecvItem
 Nerdbank.Zcash.Transaction.RecvItem.Amount.get -> decimal
 Nerdbank.Zcash.Transaction.RecvItem.Amount.set -> void
-Nerdbank.Zcash.Transaction.RecvItem.Deconstruct(out Nerdbank.Zcash.ZcashAddress! ToAddress, out decimal Amount, out Nerdbank.Zcash.Memo Memo, out bool IsChange) -> void
+Nerdbank.Zcash.Transaction.RecvItem.Deconstruct(out Nerdbank.Zcash.ZcashAddress! ToAddress, out decimal Amount, out Nerdbank.Zcash.Memo Memo) -> void
 Nerdbank.Zcash.Transaction.RecvItem.Equals(Nerdbank.Zcash.Transaction.RecvItem other) -> bool
-Nerdbank.Zcash.Transaction.RecvItem.IsChange.get -> bool
-Nerdbank.Zcash.Transaction.RecvItem.IsChange.set -> void
+Nerdbank.Zcash.Transaction.RecvItem.IsChange(Nerdbank.Zcash.ZcashAccount! account) -> bool
 Nerdbank.Zcash.Transaction.RecvItem.Memo.get -> Nerdbank.Zcash.Memo
 Nerdbank.Zcash.Transaction.RecvItem.Memo.set -> void
 Nerdbank.Zcash.Transaction.RecvItem.Pool.get -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.Transaction.RecvItem.RecvItem() -> void
-Nerdbank.Zcash.Transaction.RecvItem.RecvItem(Nerdbank.Zcash.ZcashAddress! ToAddress, decimal Amount, in Nerdbank.Zcash.Memo Memo, bool IsChange) -> void
+Nerdbank.Zcash.Transaction.RecvItem.RecvItem(Nerdbank.Zcash.ZcashAddress! ToAddress, decimal Amount, in Nerdbank.Zcash.Memo Memo) -> void
 Nerdbank.Zcash.Transaction.RecvItem.ToAddress.get -> Nerdbank.Zcash.ZcashAddress!
 Nerdbank.Zcash.Transaction.RecvItem.ToAddress.set -> void
 Nerdbank.Zcash.Transaction.SendItem

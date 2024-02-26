@@ -115,7 +115,6 @@ pub struct ShieldedNote {
     pub recipient: String,
     pub value: u64,
     pub memo: Vec<u8>,
-    pub is_change: bool,
 }
 
 #[derive(Debug, Clone)]

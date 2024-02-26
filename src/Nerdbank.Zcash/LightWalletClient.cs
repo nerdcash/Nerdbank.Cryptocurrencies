@@ -1,4 +1,4 @@
-﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
@@ -416,14 +416,14 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="d">The uniffi shielded note.</param>
 	private static RecvItem CreateRecvItem(ShieldedNote d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()), d.isChange);
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), new Memo(d.memo.ToArray()));
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RecvItem"/> class.
 	/// </summary>
 	/// <param name="d">The uniffi transparent note.</param>
 	private static RecvItem CreateRecvItem(TransparentNote d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), Memo.NoMemo, IsChange: false);
+		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), Memo.NoMemo);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
