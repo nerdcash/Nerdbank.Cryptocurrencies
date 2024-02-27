@@ -60,7 +60,7 @@ internal class SendCommand : SyncFirstCommandBase
 			return exitCode;
 		}
 
-		Transaction.SendItem item = new(this.Recipient, this.Amount, Zcash.Memo.FromMessage(this.Memo));
+		Transaction.LineItem item = new(this.Recipient, this.Amount, Zcash.Memo.FromMessage(this.Memo));
 		TxId txid = await client.SendAsync(
 			this.SelectedAccount!,
 			new[] { item },
