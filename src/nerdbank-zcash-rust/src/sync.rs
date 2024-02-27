@@ -757,10 +757,7 @@ pub fn get_transactions(
             // We establish change by whether the memo does not contain user text,
             // and that the recipient is to the same account.
             let is_change = to_account == from_account
-                && Memo::from_bytes(&memo).is_ok_and(|m| match m {
-                    Memo::Text(_) => false,
-                    _ => true,
-                });
+                && Memo::from_bytes(&memo).is_ok_and(|m| !matches!(m, Memo::Text(_)));
 
             if is_change {
                 tx.change.push(note);
