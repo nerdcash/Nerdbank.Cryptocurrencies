@@ -61,19 +61,19 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	}
 
 	[IgnoreMember]
-	public decimal NetChange => this.RecvItems.Sum(i => i.Amount) + this.SendItems.Sum(i => i.Amount) + (this.Fee ?? 0);
+	public decimal NetChange => this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount) - (this.Fee ?? 0);
 
 	/// <summary>
 	/// Gets the fee paid for this transaction, if known.
 	/// </summary>
-	/// <value>When specified, this is represented as a negative value.</value>
+	/// <value>When specified, this is represented as a positive value.</value>
 	[Key(4)]
 	public decimal? Fee
 	{
 		get => this.fee;
 		init
 		{
-			Requires.Range(value is not > 0, nameof(value), "Non-positive values only.");
+			Requires.Range(value is not < 0, nameof(value), "Non-negative values only.");
 			this.fee = value;
 		}
 	}
@@ -158,16 +158,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		}
 
 		[SetsRequiredMembers]
-		internal LineItem(Transaction.SendItem item)
-			: this()
-		{
-			this.ToAddress = item.ToAddress;
-			this.Amount = -item.Amount;
-			this.Memo = item.Memo;
-		}
-
-		[SetsRequiredMembers]
-		internal LineItem(Transaction.RecvItem item)
+		internal LineItem(Transaction.LineItem item)
 			: this()
 		{
 			this.ToAddress = item.ToAddress;
@@ -253,13 +244,6 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		}
 
 		private string DebuggerDisplay => $"{this.Amount} {this.ToAddress} ({this.Memo})";
-
-		/// <summary>
-		/// Checks whether this line item represents change from the send.
-		/// </summary>
-		/// <param name="account">The account that 'owns' this line item.</param>
-		/// <returns>A value indicating whether this line item should be considered change.</returns>
-		public bool IsChange(Account account) => this.Memo.MemoFormat != Zip302MemoFormat.MemoFormat.Message && account.ZcashAccount.AddressSendsToThisAccount(this.ToAddress);
 
 		internal bool TryAssignContactAsOtherParty(IContactManager contactManager)
 		{

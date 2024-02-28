@@ -73,13 +73,13 @@
         <DataTemplate x:DataType="vm:TransactionViewModel">
           <Grid RowDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto" ColumnDefinitions="auto,*">
             <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" Grid.Row="0" />
-            <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="0" Grid.Column="1" />
-            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="1"/>
-            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1" Grid.Row="1" />
+            <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" />
+            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="1" IsVisible="{Binding IsMutableMemoVisible}" />
+            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="1" Grid.Row="1" IsVisible="{Binding IsMutableMemoVisible}" />
             <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" Grid.Row="2" VerticalAlignment="Top" IsVisible="{Binding IsSingleLineItem}" />
             <SelectableTextBlock Text="{Binding Memo}" Name="MemoBox" Grid.Row="2" Grid.Column="1" IsVisible="{Binding IsSingleLineItem}" />
-            <Label Content="{Binding LineItemsCaption}" Target="{Binding #LineItemsBox}" Grid.Row="3" VerticalAlignment="Top" IsVisible="{Binding !IsSingleLineItem}" />
-            <DataGrid Name="LineItemsBox" ItemsSource="{Binding LineItems}" Grid.Row="3" Grid.Column="1" IsVisible="{Binding !IsSingleLineItem}" IsReadOnly="True">
+            <Label Content="{Binding LineItemsCaption}" Target="{Binding #LineItemsBox}" Grid.Row="3" VerticalAlignment="Top" IsVisible="{Binding IsMultiLineItem}" />
+            <DataGrid Name="LineItemsBox" ItemsSource="{Binding LineItems}" Grid.Row="3" Grid.Column="1" IsVisible="{Binding IsMultiLineItem}" IsReadOnly="True">
               <DataGrid.Columns>
                 <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
                   <DataGridTemplateColumn.CellTemplate>
@@ -107,8 +107,8 @@
                 <DataGridTextColumn Header="{Binding ToAddressCaption}" Binding="{Binding ToAddress}" IsReadOnly="True" />
               </DataGrid.Columns>
             </DataGrid>
-            <Label Content="{Binding SubtotalCaption}" Target="{Binding #AmountBox}" Grid.Row="4" />
-            <local:SecurityAmountDisplay Value="{Binding Subtotal}" IsUnitsVisible="False" Name="AmountBox" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" />
+            <Label Content="{Binding SubtotalCaption}" Target="{Binding #AmountBox}" Grid.Row="4" IsVisible="{Binding IsSubtotalVisible}" />
+            <local:SecurityAmountDisplay Value="{Binding Subtotal}" IsUnitsVisible="False" Name="AmountBox" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" IsVisible="{Binding IsSubtotalVisible}" />
             <Label Content="{Binding FeeCaption}" Target="{Binding #FeeBox}" Grid.Row="5" IsVisible="{Binding !IsIncoming}" />
             <local:SecurityAmountDisplay Value="{Binding Fee}" IsUnitsVisible="False" Name="FeeBox" Grid.Row="5" Grid.Column="1" IsVisible="{Binding !IsIncoming}" HorizontalAlignment="Left" />
             <Label Content="{Binding ToAddressCaption}" Target="{Binding #ToAddressBox}" Grid.Row="6" IsVisible="{Binding IsToAddressVisible}" />

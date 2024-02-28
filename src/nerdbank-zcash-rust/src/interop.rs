@@ -99,9 +99,12 @@ pub struct Transaction {
     pub expired_unmined: bool,
     pub account_balance_delta: i64,
     pub fee: Option<u64>,
-    pub outgoing: Vec<TransactionSendDetail>,
-    pub incoming_transparent: Vec<TransparentNote>,
-    pub incoming_shielded: Vec<ShieldedNote>,
+    /// Notes that are sent by this transaction (and do not appear in `change`).
+    pub outgoing: Vec<TransactionNote>,
+    /// Notes that are received by this transaction (and do not appear in `change`).
+    pub incoming: Vec<TransactionNote>,
+    /// Notes that are sent and received by the same account and bear other signs of being implicit change.
+    pub change: Vec<TransactionNote>,
 }
 
 #[derive(Debug, Clone)]
@@ -111,11 +114,10 @@ pub struct TransparentNote {
 }
 
 #[derive(Debug, Clone)]
-pub struct ShieldedNote {
+pub struct TransactionNote {
     pub recipient: String,
     pub value: u64,
-    pub memo: Vec<u8>,
-    pub is_change: bool,
+    pub memo: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Clone)]

@@ -190,11 +190,9 @@ public class Account : ReactiveObject, IPersistableData
 					TransactionId = transaction.TransactionId,
 					IsIncoming = transaction.IsIncoming,
 					When = transaction.When,
-					RecvItems = [.. from recv in transaction.Incoming
-									where !recv.IsChange
-									select new ZcashTransaction.LineItem(recv)],
+					RecvItems = transaction.Incoming.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
 					SendItems = transaction.Outgoing.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
-					Fee = transaction.Outgoing.IsEmpty ? 0 : -transaction.Fee,
+					Fee = transaction.Outgoing.IsEmpty && transaction.Change.IsEmpty ? 0 : transaction.Fee,
 				};
 
 				this.TransactionsMutable.Add(tx);
@@ -220,7 +218,7 @@ public class Account : ReactiveObject, IPersistableData
 
 	public override string ToString() => this.Name;
 
-	private static bool Equals_AllowApproximateRecipientMatch(ZcashTransaction.LineItem left, Transaction.SendItem right)
+	private static bool Equals_AllowApproximateRecipientMatch(ZcashTransaction.LineItem left, Transaction.LineItem right)
 	{
 		// We allow the ToAddress to match approximately because if it was originally given
 		// as a compound unified address, the transaction we download will have only one receiver.

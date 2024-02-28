@@ -214,11 +214,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		// TODO: Block sending if validation errors exist.
 		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
 
-		IEnumerable<Transaction.SendItem> lineItemsPrep =
+		IEnumerable<Transaction.LineItem> lineItemsPrep =
 			from li in this.LineItems
 			let to = li.RecipientAddressParsed
-			select new Transaction.SendItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
-		ImmutableArray<Transaction.SendItem> lineItems = lineItemsPrep.ToImmutableArray();
+			select new Transaction.LineItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
+		ImmutableArray<Transaction.LineItem> lineItems = lineItemsPrep.ToImmutableArray();
 
 		// Create a draft transaction in the account right away.
 		// This will store the mutable memo, exchange rate, and other metadata that

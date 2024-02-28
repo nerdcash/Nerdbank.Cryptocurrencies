@@ -6,12 +6,12 @@ namespace Nerdbank.Zcash;
 public partial record Transaction
 {
 	/// <summary>
-	/// Describes an individual spend in a transaction.
+	/// Describes an individual line item (a spend or a receive) in a transaction.
 	/// </summary>
 	/// <param name="Amount">The amount spent.</param>
 	/// <param name="ToAddress">The receiver of this ZEC.</param>
 	/// <param name="Memo">The memo included for this recipient.</param>
-	public record struct SendItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo)
+	public record struct LineItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo)
 	{
 		/// <summary>
 		/// Gets the pool that received this note.

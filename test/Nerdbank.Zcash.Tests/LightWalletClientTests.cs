@@ -114,14 +114,14 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	[Fact]
 	public async Task SendAsync_ValidatesNullArgs()
 	{
-		await Assert.ThrowsAsync<ArgumentNullException>("account", () => this.client.SendAsync(null!, Array.Empty<Transaction.SendItem>(), null, this.TimeoutToken));
+		await Assert.ThrowsAsync<ArgumentNullException>("account", () => this.client.SendAsync(null!, Array.Empty<Transaction.LineItem>(), null, this.TimeoutToken));
 		await Assert.ThrowsAsync<ArgumentNullException>("payments", () => this.client.SendAsync(DefaultAccount, null!, null, this.TimeoutToken));
 	}
 
 	[Fact]
 	public async Task SendAsync_EmptySendsList()
 	{
-		List<Nerdbank.Zcash.Transaction.SendItem> sends = new();
+		List<Nerdbank.Zcash.Transaction.LineItem> sends = new();
 		ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => this.client.SendAsync(DefaultAccount, sends, null, this.TimeoutToken));
 		this.logger.WriteLine(ex.ToString());
 	}
@@ -129,9 +129,9 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	[Fact]
 	public async Task SendAsync_InsufficientFunds()
 	{
-		List<Nerdbank.Zcash.Transaction.SendItem> sends = new()
+		List<Nerdbank.Zcash.Transaction.LineItem> sends = new()
 		{
-			new Nerdbank.Zcash.Transaction.SendItem(DefaultAccount.DefaultAddress, 1.0m, default),
+			new Nerdbank.Zcash.Transaction.LineItem(DefaultAccount.DefaultAddress, 1.0m, default),
 		};
 		LightWalletException ex = await Assert.ThrowsAsync<LightWalletException>(() =>
 			this.client.SendAsync(
