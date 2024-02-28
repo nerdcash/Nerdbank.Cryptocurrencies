@@ -89,6 +89,7 @@ public class WalletSyncManager : IAsyncDisposable
 		private readonly WalletSyncManager owner;
 		private readonly LightWalletClient client;
 		private readonly JoinableTask completion;
+		private readonly AsyncAutoResetEvent unblockAutoShielding = new();
 
 		public Tracker(WalletSyncManager owner, ZcashNetwork network)
 		{
@@ -102,8 +103,11 @@ public class WalletSyncManager : IAsyncDisposable
 			{
 				await this.InitializeAccountsAsync(this.owner.shutdownTokenSource.Token);
 
-				// Start the process of keeping in sync with new transactions.
-				await this.DownloadAsync(this.owner.shutdownTokenSource.Token);
+				// Start the process of keeping in sync with new transactions
+				// and activate auto-shielding.
+				await Task.WhenAll(
+					this.DownloadAsync(this.owner.shutdownTokenSource.Token),
+					this.AutoShieldAsync(this.owner.shutdownTokenSource.Token));
 			});
 		}
 
@@ -134,6 +138,8 @@ public class WalletSyncManager : IAsyncDisposable
 					{
 						sleepDeferral?.Dispose();
 						sleepDeferral = null;
+
+						this.unblockAutoShielding.Set();
 					}
 
 					foreach (Account account in this.Accounts)
@@ -158,6 +164,30 @@ public class WalletSyncManager : IAsyncDisposable
 			finally
 			{
 				sleepDeferral?.Dispose();
+			}
+		}
+
+		private async Task AutoShieldAsync(CancellationToken cancellationToken)
+		{
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				// Wait for new transactions to arrive, or at least that sync has reached the tip of the blockchain.
+				await this.unblockAutoShielding.WaitAsync(cancellationToken);
+
+				foreach (Account account in this.Accounts)
+				{
+					IReadOnlyList<(TransparentAddress Address, decimal Balance)> unshieldedBalances = this.client.GetUnshieldedBalances(account.ZcashAccount);
+					if (unshieldedBalances.Count > 0)
+					{
+						(TransparentAddress address, decimal _) = unshieldedBalances[Random.Shared.Next(unshieldedBalances.Count)];
+						await this.client.ShieldAsync(account.ZcashAccount, address, cancellationToken);
+
+						// Now that we've shielded an address, wait a random time before shielding other addresses
+						// to avoid providing evidence on the blockchain that multiple transparent addresses are
+						// owned by the same entity.
+						await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(90, 15 * 60)), cancellationToken);
+					}
+				}
 			}
 		}
 
