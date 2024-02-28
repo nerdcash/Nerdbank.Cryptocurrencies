@@ -138,13 +138,14 @@ pub async fn sync<P: AsRef<Path>>(
 
         // Download all the transparent ops related to the wallet first.
         // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
-        for (address, height) in db.data.get_transparent_addresses_and_sync_heights()? {
+        let taddrs_by_account = db.data.get_transparent_addresses_and_sync_heights()?;
+        for addr_info in taddrs_by_account {
             let txids = download_transparent_transactions(
                 &mut client,
                 &mut db,
                 &network,
-                &address,
-                height,
+                &addr_info.address,
+                addr_info.height,
                 tip_height,
                 cancellation_token.clone(),
             )
