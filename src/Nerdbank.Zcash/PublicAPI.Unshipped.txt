@@ -536,6 +536,7 @@ Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.Sapling.get -> Nerdbank.Zcash.S
 Nerdbank.Zcash.ZcashAccount.MaxTransparentAddressIndex.get -> uint?
 Nerdbank.Zcash.ZcashAccount.MaxTransparentAddressIndex.set -> void
 Nerdbank.Zcash.ZcashAccount.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.ZcashAccount.PropertyChanged -> System.ComponentModel.PropertyChangedEventHandler?
 Nerdbank.Zcash.ZcashAccount.Spending.get -> Nerdbank.Zcash.ZcashAccount.SpendingKeys?
 Nerdbank.Zcash.ZcashAccount.SpendingKeys
 Nerdbank.Zcash.ZcashAccount.SpendingKeys.Internal.get -> Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys!
@@ -958,6 +959,7 @@ virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.<Clone>$() -> Nerdbank.
 virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.EqualityContract.get -> System.Type!
 virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.Equals(Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? other) -> bool
 virtual Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.ZcashAccount.OnPropertyChanged(string? propertyName = null) -> void
 virtual Nerdbank.Zcash.ZcashAccount.SpendingKeys.<Clone>$() -> Nerdbank.Zcash.ZcashAccount.SpendingKeys!
 virtual Nerdbank.Zcash.ZcashAccount.SpendingKeys.EqualityContract.get -> System.Type!
 virtual Nerdbank.Zcash.ZcashAccount.SpendingKeys.Equals(Nerdbank.Zcash.ZcashAccount.SpendingKeys? other) -> bool
