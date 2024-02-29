@@ -22,7 +22,7 @@ public class ExchangeRateRecordTests : ModelTestBase<ExchangeRateRecord>
 		this.Model.SetExchangeRate(timestamp, rate);
 
 		// Try with original input data.
-		Assert.True(this.Model.TryGetExchangeRate(timestamp, rate.TradingPair, out ExchangeRate rate2));
+		Assert.True(this.Model.TryGetExchangeRate(timestamp, rate.TradingPair, out ExchangeRate? rate2));
 		Assert.Equal(rate, rate2);
 
 		// Try with the trading pair in reverse direction.
@@ -38,7 +38,7 @@ public class ExchangeRateRecordTests : ModelTestBase<ExchangeRateRecord>
 		this.Model.SetExchangeRate(timestamp, rate);
 
 		DateTimeOffset timestamp2 = timestamp.ToOffset(TimeSpan.FromHours(10));
-		Assert.True(this.Model.TryGetExchangeRate(timestamp, rate.TradingPair, out ExchangeRate rate2));
+		Assert.True(this.Model.TryGetExchangeRate(timestamp, rate.TradingPair, out ExchangeRate? rate2));
 		Assert.Equal(rate, rate2);
 	}
 }
