@@ -173,9 +173,9 @@ public class Account : ReactiveObject, IPersistableData
 				if (tx.When != transaction.When && transaction.When.HasValue)
 				{
 					TradingPair pair = new(appSettings.AlternateCurrency, this.ZcashAccount.Network.AsSecurity());
-					if (tx.When.HasValue && exchangeRateRecord.TryGetExchangeRate(tx.When.Value, pair, out ExchangeRate rate))
+					if (tx.When.HasValue && exchangeRateRecord.TryGetExchangeRate(tx.When.Value, pair, out ExchangeRate? rate))
 					{
-						exchangeRateRecord.SetExchangeRate(transaction.When.Value, rate);
+						exchangeRateRecord.SetExchangeRate(transaction.When.Value, rate.Value);
 					}
 
 					// Only set the When property *after* we've considered updating the exchange rate record.

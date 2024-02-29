@@ -122,7 +122,7 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			return new ValueTask<IReadOnlySet<TradingPair>>(ImmutableHashSet.Create(new TradingPair(Security.USD, Security.ZEC)));
 		}
 
-		public ValueTask<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken)
+		public ValueTask<ExchangeRate?> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken)
 		{
 			return new(new ExchangeRate(tradingPair.Basis.Amount(10 + (when.Day * 2)), tradingPair.TradeInterest.Amount(1)));
 		}
