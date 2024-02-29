@@ -58,6 +58,8 @@ public class Contact : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.isDirty, value);
 	}
 
+	public int? Id { get; set; }
+
 	public AssignedSendingAddresses GetOrCreateSendingAddressAssignment(Account account)
 	{
 		if (!this.AssignedAddresses.TryGetValue(account, out AssignedSendingAddresses? assignment))
@@ -183,6 +185,7 @@ public class Contact : ReactiveObject, IPersistableData
 		{
 			options.Security.DepthStep(ref reader);
 
+			int? id = null;
 			string name = string.Empty;
 			ObservableCollection<ZcashAddress>? receivingAddresses = null;
 			ImmutableDictionary<Account, AssignedSendingAddresses> assignedAddresses = ImmutableDictionary<Account, AssignedSendingAddresses>.Empty;
@@ -193,12 +196,15 @@ public class Contact : ReactiveObject, IPersistableData
 				switch (i)
 				{
 					case 0:
-						name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
+						id = options.Resolver.GetFormatterWithVerify<int?>().Deserialize(ref reader, options);
 						break;
 					case 1:
-						receivingAddresses = options.Resolver.GetFormatterWithVerify<ObservableCollection<ZcashAddress>>().Deserialize(ref reader, options);
+						name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options) ?? string.Empty;
 						break;
 					case 2:
+						receivingAddresses = options.Resolver.GetFormatterWithVerify<ObservableCollection<ZcashAddress>>().Deserialize(ref reader, options);
+						break;
+					case 3:
 						assignedAddresses = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<Account, AssignedSendingAddresses>>().Deserialize(ref reader, options);
 						break;
 					default:
@@ -211,6 +217,7 @@ public class Contact : ReactiveObject, IPersistableData
 
 			return new(assignedAddresses, receivingAddresses ?? new())
 			{
+				Id = id,
 				Name = name,
 				IsDirty = false,
 			};
@@ -218,7 +225,8 @@ public class Contact : ReactiveObject, IPersistableData
 
 		public void Serialize(ref MessagePackWriter writer, Contact value, MessagePackSerializerOptions options)
 		{
-			writer.WriteArrayHeader(3);
+			writer.WriteArrayHeader(4);
+			options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, value.Id, options);
 			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
 			options.Resolver.GetFormatterWithVerify<ObservableCollection<ZcashAddress>>().Serialize(ref writer, value.ReceivingAddresses, options);
 			options.Resolver.GetFormatterWithVerify<ImmutableDictionary<Account, AssignedSendingAddresses>>().Serialize(ref writer, value.AssignedAddresses, options);

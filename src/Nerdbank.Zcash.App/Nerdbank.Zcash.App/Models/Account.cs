@@ -259,7 +259,7 @@ public class Account : ReactiveObject, IPersistableData
 				// Detect the sender by the address they used to reach us.
 				if (contactManager.TryGetContact(this, recvItem.ToAddress, out Contact? contact))
 				{
-					recvItem.OtherParty = contact;
+					recvItem.OtherParty = contact.Id!.Value;
 				}
 			}
 		}

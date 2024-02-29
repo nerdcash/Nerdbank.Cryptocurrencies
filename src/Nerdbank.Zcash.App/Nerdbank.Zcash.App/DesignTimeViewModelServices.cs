@@ -102,6 +102,7 @@ internal class DesignTimeViewModelServices : IViewModelServices
 	private class DesignTimeContactManager : IContactManager
 	{
 		private ObservableCollection<Contact> contacts = new();
+		private int nextContactId;
 
 		public DesignTimeContactManager()
 		{
@@ -110,7 +111,12 @@ internal class DesignTimeViewModelServices : IViewModelServices
 
 		public ReadOnlyObservableCollection<Contact> Contacts { get; }
 
-		public void Add(Contact contact) => this.contacts.Add(contact);
+		public int Add(Contact contact)
+		{
+			contact.Id = this.nextContactId++;
+			this.contacts.Add(contact);
+			return contact.Id.Value;
+		}
 
 		public bool Remove(Contact contact) => this.Remove(contact);
 	}

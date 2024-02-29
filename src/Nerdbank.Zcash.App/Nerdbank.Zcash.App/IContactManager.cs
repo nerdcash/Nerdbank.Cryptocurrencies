@@ -9,9 +9,15 @@ public interface IContactManager
 {
 	ReadOnlyObservableCollection<Contact> Contacts { get; }
 
-	void Add(Contact contact);
+	int Add(Contact contact);
 
 	bool Remove(Contact contact);
+
+	bool TryGetContact(int id, [NotNullWhen(true)] out Contact? contact)
+	{
+		contact = this.Contacts.FirstOrDefault(c => c.Id == id);
+		return contact is not null;
+	}
 
 	/// <summary>
 	/// Searches for a contact that has been shown a particular address a the given account.

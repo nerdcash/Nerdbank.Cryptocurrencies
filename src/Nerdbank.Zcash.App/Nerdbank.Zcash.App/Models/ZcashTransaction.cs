@@ -149,7 +149,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	public class LineItem : ReactiveObject, IPersistableData
 	{
 		private bool isDirty;
-		private Contact? otherParty;
+		private int? otherParty;
 		private string? otherPartyName;
 
 		public LineItem()
@@ -188,14 +188,14 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		public required Memo Memo { get; init; }
 
 		/// <summary>
-		/// Gets or sets the contact that sent or received this transaction.
+		/// Gets or sets the <see cref="Contact.Id"/> for the contact that sent or received this transaction.
 		/// </summary>
 		/// <remarks>
 		/// <para>This will be <see langword="null" /> when the transaction was sent to another account controlled by this same user,
 		/// or when we don't already know who the transaction was with and the user hasn't set the value yet.</para>
 		/// </remarks>
 		[Key(3)]
-		public Contact? OtherParty
+		public int? OtherParty
 		{
 			get => this.otherParty;
 			set => this.RaiseAndSetIfChanged(ref this.otherParty, value);
@@ -251,7 +251,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 			{
 				if (contactManager.FindContact(this.ToAddress, out Contact? contact) == ZcashAddress.Match.MatchingReceiversFound && contact is not null)
 				{
-					this.OtherParty = contact;
+					this.OtherParty = contact.Id;
 					this.OtherPartyName = contact.Name;
 					return true;
 				}
