@@ -31,6 +31,7 @@ public class Account : ReactiveObject, IPersistableData
 
 		this.MarkSelfDirtyOnPropertyChanged();
 		this.MarkSelfDirtyOnCollectionChanged(this.TransactionsMutable);
+		account.PropertyChanged += (s, e) => this.IsDirty = true;
 	}
 
 	[IgnoreMember]
