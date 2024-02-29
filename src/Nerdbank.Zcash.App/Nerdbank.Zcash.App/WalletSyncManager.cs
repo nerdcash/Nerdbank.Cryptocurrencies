@@ -157,6 +157,7 @@ public class WalletSyncManager : IAsyncDisposable
 							account.AddTransactions(transactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
 						}
 
+						account.Balance = this.client.GetBalances(account.ZcashAccount);
 					}
 				});
 
