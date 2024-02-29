@@ -200,6 +200,10 @@ public class WalletSyncManager : IAsyncDisposable
 			{
 				account.LightWalletClient = this.client;
 				await this.client.AddAccountAsync(account.ZcashAccount, cancellationToken);
+				for (uint addressIndex = 0; addressIndex <= account.ZcashAccount.MaxTransparentAddressIndex; addressIndex++)
+				{
+					this.client.AddDiversifier(account.ZcashAccount, addressIndex);
+				}
 
 				List<Transaction> txs = this.client.GetDownloadedTransactions(account.ZcashAccount, account.LastBlockHeight);
 

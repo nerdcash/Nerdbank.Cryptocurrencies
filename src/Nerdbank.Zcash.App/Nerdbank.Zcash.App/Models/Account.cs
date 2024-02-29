@@ -216,6 +216,16 @@ public class Account : ReactiveObject, IPersistableData
 		}
 	}
 
+	public void RecordDisplayedTransparentAddress(uint addressIndex)
+	{
+		if (addressIndex > this.ZcashAccount.MaxTransparentAddressIndex || this.ZcashAccount.MaxTransparentAddressIndex is null)
+		{
+			this.ZcashAccount.MaxTransparentAddressIndex = addressIndex;
+		}
+
+		this.LightWalletClient?.AddDiversifier(this.ZcashAccount, addressIndex);
+	}
+
 	public override string ToString() => this.Name;
 
 	private static bool Equals_AllowApproximateRecipientMatch(ZcashTransaction.LineItem left, Transaction.LineItem right)
