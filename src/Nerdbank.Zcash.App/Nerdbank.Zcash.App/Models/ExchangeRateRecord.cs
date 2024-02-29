@@ -67,17 +67,18 @@ public class ExchangeRateRecord : IPersistableDataHelper
 	/// <param name="tradingPair">The trading pair.</param>
 	/// <param name="rate">Receives the exchange rate, if it is known for the given inputs.</param>
 	/// <returns><see langword="true" /> if the exchange rate was available; otherwise <see langword="false" />.</returns>
-	public bool TryGetExchangeRate(DateTimeOffset timestamp, TradingPair tradingPair, [NotNullWhen(true)] out ExchangeRate rate)
+	public bool TryGetExchangeRate(DateTimeOffset timestamp, TradingPair tradingPair, [NotNullWhen(true)] out ExchangeRate? rate)
 	{
 		if (this.dataTables.TryGetValue(tradingPair, out SortedDictionary<DateTimeOffset, ExchangeRate>? subtable))
 		{
-			if (subtable.TryGetValue(timestamp, out rate))
+			if (subtable.TryGetValue(timestamp, out ExchangeRate retrievedRate))
 			{
+				rate = retrievedRate;
 				return true;
 			}
 		}
 
-		rate = default;
+		rate = null;
 		return false;
 	}
 
@@ -94,7 +95,7 @@ public class ExchangeRateRecord : IPersistableDataHelper
 	/// </returns>
 	public async ValueTask<ExchangeRate?> GetExchangeRateAsync(IHistoricalExchangeRateProvider provider, DateTimeOffset timestamp, TradingPair tradingPair, CancellationToken cancellationToken)
 	{
-		if (this.TryGetExchangeRate(timestamp, tradingPair, out ExchangeRate rate))
+		if (this.TryGetExchangeRate(timestamp, tradingPair, out ExchangeRate? rate))
 		{
 			return rate;
 		}
@@ -107,7 +108,11 @@ public class ExchangeRateRecord : IPersistableDataHelper
 		}
 
 		rate = await provider.GetExchangeRateAsync(tradingPairWithInfo.Value, timestamp, cancellationToken);
-		this.SetExchangeRate(timestamp, rate);
+		if (rate is not null)
+		{
+			this.SetExchangeRate(timestamp, rate.Value);
+		}
+
 		return rate;
 	}
 

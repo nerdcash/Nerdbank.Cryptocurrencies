@@ -43,7 +43,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 		this.LinkProperty(nameof(this.AlternateNetChange), nameof(this.AlternateNetChangeUserEdit));
 
-		if (transaction.When is not null && owner.ViewModelServices.ExchangeData.TryGetExchangeRate(transaction.When.Value, tradingPair, out ExchangeRate exchangeRate))
+		if (transaction.When is not null && owner.ViewModelServices.ExchangeData.TryGetExchangeRate(transaction.When.Value, tradingPair, out ExchangeRate? exchangeRate))
 		{
 			this.AlternateNetChange = this.NetChange * exchangeRate;
 		}
