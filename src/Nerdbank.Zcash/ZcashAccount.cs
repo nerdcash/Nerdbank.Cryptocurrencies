@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
 using Nerdbank.Bitcoin;
 
 namespace Nerdbank.Zcash;
@@ -9,7 +10,7 @@ namespace Nerdbank.Zcash;
 /// Describes a single Zcash account, with keys for one or more Zcash pools.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public class ZcashAccount
+public class ZcashAccount : INotifyPropertyChanged
 {
 	/// <summary>
 	/// The number of transparent addresses that are likely to have been generated.
@@ -18,6 +19,8 @@ public class ZcashAccount
 	/// TODO: This number should be generated from a call to <see cref="Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint, Func{Bip32KeyPath, ValueTask{bool}}, uint)"/>.
 	/// </remarks>
 	private uint transparentAddressesToScanAsync = Bip44MultiAccountHD.RecommendedAddressGapLimit;
+	private ulong? birthdayHeight;
+	private uint? maxTransparentAddressIndex;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ZcashAccount"/> class
@@ -98,6 +101,9 @@ public class ZcashAccount
 		this.IncomingViewing = keys;
 	}
 
+	/// <inheritdoc/>
+	public event PropertyChangedEventHandler? PropertyChanged;
+
 	/// <summary>
 	/// Gets the ZIP-32 HD wallet and index that was used to generate this account, if applicable.
 	/// </summary>
@@ -126,7 +132,11 @@ public class ZcashAccount
 	/// <summary>
 	/// Gets or sets the birthday height on this account.
 	/// </summary>
-	public ulong? BirthdayHeight { get; set; }
+	public ulong? BirthdayHeight
+	{
+		get => this.birthdayHeight;
+		set => this.SetPropertyIfChanged(ref this.birthdayHeight, value);
+	}
 
 	/// <summary>
 	/// Gets the default unified address for this account.
@@ -144,7 +154,11 @@ public class ZcashAccount
 	/// <remarks>
 	/// This value is useful for scanning for UTXOs, as well as for generating new transparent addresses.
 	/// </remarks>
-	public uint? MaxTransparentAddressIndex { get; set; }
+	public uint? MaxTransparentAddressIndex
+	{
+		get => this.maxTransparentAddressIndex;
+		set => this.SetPropertyIfChanged(ref this.maxTransparentAddressIndex, value);
+	}
 
 	private string DebuggerDisplay => $"{this.DefaultAddress}";
 
@@ -376,11 +390,33 @@ public class ZcashAccount
 	}
 
 	/// <summary>
+	/// Raises the <see cref="PropertyChanged"/> event.
+	/// </summary>
+	/// <param name="propertyName">The name of the changed property.</param>
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+	/// <summary>
 	/// Gets a diversifier index that is unique to this moment in time,
 	/// for use as an input to the <see cref="GetDiversifiedAddress(ref DiversifierIndex)"/> method.
 	/// </summary>
 	/// <returns>The diversifier index.</returns>
 	private static DiversifierIndex GetTimeBasedDiversifier() => new(DateTime.UtcNow.Ticks);
+
+	/// <summary>
+	/// Updates the value of a given field and raises the <see cref="PropertyChanged"/> event if a given value is different from the current value.
+	/// </summary>
+	/// <typeparam name="T">The type of the value.</typeparam>
+	/// <param name="field">The field to update.</param>
+	/// <param name="value">The new value.</param>
+	/// <param name="propertyName">The name of the property being set.</param>
+	private void SetPropertyIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (!EqualityComparer<T>.Default.Equals(field, value))
+		{
+			field = value;
+			this.OnPropertyChanged(propertyName);
+		}
+	}
 
 	/// <summary>
 	/// Describes the parameters that were used to create this account.
