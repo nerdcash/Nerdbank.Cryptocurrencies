@@ -24,27 +24,33 @@ public class YahooFinanceTests : TestBase
 			pair = pair.OppositeDirection;
 		}
 
-		ExchangeRate rate = await this.exchange.GetExchangeRateAsync(pair, DateTimeOffset.Now, this.TimeoutToken);
+		ExchangeRate? rate = await this.exchange.GetExchangeRateAsync(pair, DateTimeOffset.Now, this.TimeoutToken);
 		this.Logger.WriteLine($"{rate}");
-		Assert.Equal(rate.Basis.Security, pair.Basis);
-		Assert.Equal(rate.TradeInterest.Security, pair.TradeInterest);
+		Assert.Equal(rate.Value.Basis.Security, pair.Basis);
+		Assert.Equal(rate.Value.TradeInterest.Security, pair.TradeInterest);
 	}
 
 	[Fact]
 	public async Task GetZecUsdHistoricalPricing()
 	{
 		DateTimeOffset when = DateTimeOffset.Parse("11/3/2022", CultureInfo.InvariantCulture);
-		ExchangeRate exchangeRate = await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken);
+		ExchangeRate? exchangeRate = await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken);
 		this.Logger.WriteLine($"{when:d} {exchangeRate}");
-		Assert.Equal(Security.USD.Amount((50.312881m + 50.36557m) / 2), exchangeRate.InBasisAmount);
+		Assert.Equal(Security.USD.Amount((50.312881m + 50.36557m) / 2), exchangeRate.Value.InBasisAmount);
 	}
 
 	[Fact]
 	public async Task GetHistoricalPricing_TooFarBack()
 	{
 		DateTimeOffset when = DateTimeOffset.Parse("11/3/2005", CultureInfo.InvariantCulture);
-		InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken));
-		this.Logger.WriteLine(ex.ToString());
+		Assert.Null(await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken));
+	}
+
+	[Fact]
+	public async Task GetHistoricalPricing_TooFarForward()
+	{
+		DateTimeOffset when = DateTimeOffset.Now.AddDays(2);
+		Assert.Null(await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken));
 	}
 
 	[Fact]

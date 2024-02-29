@@ -41,7 +41,7 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 		new TradingPair(Security.USD, Security.XNO),
 	}.ToImmutableHashSet(TradingPairEitherOrderEqualityComparer.Instance);
 
-	private readonly ConcurrentDictionary<TradingPair, ConcurrentDictionary<int, Task<IReadOnlyDictionary<DateOnly, ExchangeRate>>>> historicalExchangeRates = new(TradingPairEitherOrderEqualityComparer.Instance);
+	private readonly ConcurrentDictionary<TradingPair, ConcurrentDictionary<int, Task<IReadOnlyDictionary<DateOnly, ExchangeRate>?>>> historicalExchangeRates = new(TradingPairEitherOrderEqualityComparer.Instance);
 	private readonly HttpClient httpClient;
 
 	/// <summary>
@@ -60,7 +60,7 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<ExchangeRate> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken)
+	public async ValueTask<ExchangeRate?> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken)
 	{
 		if (!AvailableTradingPairs.TryGetValue(tradingPair, out TradingPair normalizedTradingPair))
 		{
@@ -69,7 +69,7 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 
 		var byYear = this.historicalExchangeRates.GetOrAdd(
 			normalizedTradingPair,
-			static tp => new ConcurrentDictionary<int, Task<IReadOnlyDictionary<DateOnly, ExchangeRate>>>());
+			static tp => new ConcurrentDictionary<int, Task<IReadOnlyDictionary<DateOnly, ExchangeRate>?>>());
 
 		var byDateInYear = await byYear.GetOrAdd(
 			when.UtcDateTime.Year,
@@ -84,10 +84,7 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 				HttpResponseMessage response = await arg.HttpClient.GetAsync(fetchUrl).ConfigureAwait(false);
 				if (!response.IsSuccessStatusCode)
 				{
-					string errorMessage = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-					throw new InvalidOperationException(
-						Strings.HistoricalPriceNotAvailableForThisDate,
-						new HttpRequestException(errorMessage, null, response.StatusCode));
+					return null;
 				}
 
 				using Stream csvStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
@@ -120,13 +117,13 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 							arg.NormalizedTradingPair.TradeInterest.Amount(1)));
 				}
 
-				return (IReadOnlyDictionary<DateOnly, ExchangeRate>)prices;
+				return (IReadOnlyDictionary<DateOnly, ExchangeRate>?)prices;
 			}),
 			(normalizedTradingPair, this.httpClient)).WithCancellation(cancellationToken).ConfigureAwait(false);
 
-		if (!byDateInYear.TryGetValue(DateOnly.FromDateTime(when.UtcDateTime), out ExchangeRate rate))
+		if (byDateInYear is null || !byDateInYear.TryGetValue(DateOnly.FromDateTime(when.UtcDateTime), out ExchangeRate rate))
 		{
-			throw new InvalidOperationException(Strings.HistoricalPriceNotAvailableForThisDate);
+			return null;
 		}
 
 		return tradingPair == normalizedTradingPair ? rate : rate.OppositeDirection;
