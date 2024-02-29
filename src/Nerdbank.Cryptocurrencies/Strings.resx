@@ -135,9 +135,6 @@
   <data name="HistoricalPriceNotAvailableForThisDate" xml:space="preserve">
     <value>The historical price for this trading pair at the given time is not available.</value>
   </data>
-  <data name="HistoricalPricesNotAvailable" xml:space="preserve">
-    <value>Historical prices are not available from this exchange.</value>
-  </data>
   <data name="HumanReadablePartRequired" xml:space="preserve">
     <value>An empty human-readable part is not allowed.</value>
   </data>
