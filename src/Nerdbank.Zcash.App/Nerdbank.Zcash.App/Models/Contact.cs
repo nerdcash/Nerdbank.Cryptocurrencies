@@ -13,18 +13,18 @@ namespace Nerdbank.Zcash.App.Models;
 [MessagePackFormatter(typeof(Formatter))]
 public class Contact : ReactiveObject, IPersistableData
 {
-	private readonly ImmutableDictionary<Account, AssignedSendingAddresses>.Builder assignedAddresses;
+	private readonly ImmutableDictionary<int, AssignedSendingAddresses>.Builder assignedAddresses;
 	private readonly ObservableCollection<ZcashAddress> receivingAddresses;
 	private string name = string.Empty;
 	private bool isDirty = true;
 
 	public Contact()
-		: this(ImmutableDictionary<Account, AssignedSendingAddresses>.Empty, new ObservableCollection<ZcashAddress>())
+		: this(ImmutableDictionary<int, AssignedSendingAddresses>.Empty, new ObservableCollection<ZcashAddress>())
 	{
 		this.MarkSelfDirtyOnPropertyChanged();
 	}
 
-	private Contact(ImmutableDictionary<Account, AssignedSendingAddresses> assignedAddresses, ObservableCollection<ZcashAddress> receivingAddresses)
+	private Contact(ImmutableDictionary<int, AssignedSendingAddresses> assignedAddresses, ObservableCollection<ZcashAddress> receivingAddresses)
 	{
 		this.assignedAddresses = assignedAddresses.ToBuilder();
 		this.receivingAddresses = receivingAddresses;
@@ -50,7 +50,7 @@ public class Contact : ReactiveObject, IPersistableData
 	/// Finally, users on the contact list are only shown an address from a particular account,
 	/// so it works out to record the address they saw on a per-account basis.
 	/// </remarks>
-	public ImmutableDictionary<Account, AssignedSendingAddresses> AssignedAddresses => this.assignedAddresses.ToImmutable();
+	public ImmutableDictionary<int, AssignedSendingAddresses> AssignedAddresses => this.assignedAddresses.ToImmutable();
 
 	public bool IsDirty
 	{
@@ -58,11 +58,13 @@ public class Contact : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.isDirty, value);
 	}
 
-	public int? Id { get; set; }
+	public int? Id { get; internal set; }
 
 	public AssignedSendingAddresses GetOrCreateSendingAddressAssignment(Account account)
 	{
-		if (!this.AssignedAddresses.TryGetValue(account, out AssignedSendingAddresses? assignment))
+		Requires.Argument(account.Id.HasValue, nameof(account), "This account must be added to a wallet first.");
+
+		if (!this.AssignedAddresses.TryGetValue(account.Id!.Value, out AssignedSendingAddresses? assignment))
 		{
 			DiversifierIndex diversifierIndex = new(DateTime.UtcNow.Ticks);
 
@@ -73,7 +75,7 @@ public class Contact : ReactiveObject, IPersistableData
 			{
 				Diversifier = diversifierIndex,
 			};
-			this.assignedAddresses.Add(account, assignment);
+			this.assignedAddresses.Add(account.Id!.Value, assignment);
 			this.RaisePropertyChanged(nameof(this.AssignedAddresses));
 		}
 
@@ -82,7 +84,7 @@ public class Contact : ReactiveObject, IPersistableData
 
 	public bool RemoveSendingAddressAssignment(Account account)
 	{
-		if (this.assignedAddresses.Remove(account))
+		if (this.assignedAddresses.Remove(account.Id!.Value))
 		{
 			this.RaisePropertyChanged(nameof(this.AssignedAddresses));
 			return true;
@@ -188,7 +190,7 @@ public class Contact : ReactiveObject, IPersistableData
 			int? id = null;
 			string name = string.Empty;
 			ObservableCollection<ZcashAddress>? receivingAddresses = null;
-			ImmutableDictionary<Account, AssignedSendingAddresses> assignedAddresses = ImmutableDictionary<Account, AssignedSendingAddresses>.Empty;
+			ImmutableDictionary<int, AssignedSendingAddresses> assignedAddresses = ImmutableDictionary<int, AssignedSendingAddresses>.Empty;
 
 			int length = reader.ReadArrayHeader();
 			for (int i = 0; i < length; i++)
@@ -205,7 +207,7 @@ public class Contact : ReactiveObject, IPersistableData
 						receivingAddresses = options.Resolver.GetFormatterWithVerify<ObservableCollection<ZcashAddress>>().Deserialize(ref reader, options);
 						break;
 					case 3:
-						assignedAddresses = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<Account, AssignedSendingAddresses>>().Deserialize(ref reader, options);
+						assignedAddresses = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<int, AssignedSendingAddresses>>().Deserialize(ref reader, options);
 						break;
 					default:
 						reader.Skip();
@@ -229,7 +231,7 @@ public class Contact : ReactiveObject, IPersistableData
 			options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, value.Id, options);
 			options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
 			options.Resolver.GetFormatterWithVerify<ObservableCollection<ZcashAddress>>().Serialize(ref writer, value.ReceivingAddresses, options);
-			options.Resolver.GetFormatterWithVerify<ImmutableDictionary<Account, AssignedSendingAddresses>>().Serialize(ref writer, value.AssignedAddresses, options);
+			options.Resolver.GetFormatterWithVerify<ImmutableDictionary<int, AssignedSendingAddresses>>().Serialize(ref writer, value.AssignedAddresses, options);
 		}
 	}
 }

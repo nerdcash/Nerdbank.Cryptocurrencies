@@ -74,7 +74,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnAccount_WithObservingContact_Diversified()
 	{
-		DiversifierIndex idx = this.friend.AssignedAddresses[this.defaultAccount].Diversifier;
+		DiversifierIndex idx = this.friend.AssignedAddresses[this.defaultAccount.Id!.Value].Diversifier;
 		this.viewModel.Address = this.defaultAccount.ZcashAccount.GetDiversifiedAddress(ref idx);
 		Assert.Same(this.defaultAccount, this.viewModel.Match?.Account);
 		Assert.Same(this.friend, this.viewModel.Match?.DiversifiedAddressShownToContact);
@@ -85,7 +85,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	[Fact]
 	public void MatchOnAccount_WithObservingContact_Transparent()
 	{
-		uint idx = this.friend.AssignedAddresses[this.defaultAccount].TransparentAddressIndex!.Value;
+		uint idx = this.friend.AssignedAddresses[this.defaultAccount.Id!.Value].TransparentAddressIndex!.Value;
 		this.viewModel.Address = this.defaultAccount.ZcashAccount.GetTransparentAddress(idx);
 		Assert.Same(this.defaultAccount, this.viewModel.Match?.Account);
 		Assert.Same(this.friend, this.viewModel.Match?.DiversifiedAddressShownToContact);

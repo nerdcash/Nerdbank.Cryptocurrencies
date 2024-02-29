@@ -95,7 +95,7 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 	{
 		foreach (Contact candidate in this.viewModelServices.ContactManager.Contacts)
 		{
-			if (candidate.AssignedAddresses.TryGetValue(account, out Contact.AssignedSendingAddresses? assigned))
+			if (candidate.AssignedAddresses.TryGetValue(account.Id!.Value, out Contact.AssignedSendingAddresses? assigned))
 			{
 				if (address is TransparentAddress transparentAddr && assigned.TransparentAddressIndex is uint idx)
 				{

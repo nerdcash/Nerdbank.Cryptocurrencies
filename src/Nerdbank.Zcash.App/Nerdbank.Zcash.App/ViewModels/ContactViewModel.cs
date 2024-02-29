@@ -24,7 +24,7 @@ public class ContactViewModel : ViewModelBase
 		IObservable<bool> hasContactSeenMyDiversifiedAddress = this.WhenAnyValue(
 			vm => vm.addressBook.SelectedAccount,
 			vm => vm.Model.AssignedAddresses,
-			(account, addresses) => account is not null && addresses.ContainsKey(account));
+			(account, addresses) => account is not null && addresses.ContainsKey(account.Id!.Value));
 
 		this.addresses = string.Join(' ', this.Model.ReceivingAddresses);
 

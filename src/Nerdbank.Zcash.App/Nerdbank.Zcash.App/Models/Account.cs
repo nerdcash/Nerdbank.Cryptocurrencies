@@ -103,6 +103,9 @@ public class Account : ReactiveObject, IPersistableData
 		set => this.RaiseAndSetIfChanged(ref this.optimizedBirthdayHeight, value);
 	}
 
+	[Key(6)]
+	public int? Id { get; set; }
+
 	[IgnoreMember]
 	public ReadOnlyObservableCollection<ZcashTransaction> Transactions { get; private set; }
 

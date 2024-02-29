@@ -32,7 +32,7 @@ public interface IContactManager
 
 		foreach (Contact c in this.Contacts)
 		{
-			if (c.AssignedAddresses.TryGetValue(account, out Contact.AssignedSendingAddresses? assignment))
+			if (c.AssignedAddresses.TryGetValue(account.Id!.Value, out Contact.AssignedSendingAddresses? assignment))
 			{
 				if (index is not null && assignment.Diversifier.Equals(index.Value))
 				{
