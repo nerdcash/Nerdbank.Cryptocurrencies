@@ -165,6 +165,9 @@
   <data name="MemoDataTooLarge" xml:space="preserve">
     <value>The data provided is too large to fit into the memo field.</value>
   </data>
+  <data name="MemoForTransparentReceiverNotSupported" xml:space="preserve">
+    <value>No memo can be provided when the receiver is a transparent address.</value>
+  </data>
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>

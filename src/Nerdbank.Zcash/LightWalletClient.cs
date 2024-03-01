@@ -297,8 +297,12 @@ public partial class LightWalletClient : IDisposable
 		Requires.NotNull(account);
 		Requires.NotNullOrEmpty(payments);
 
+		byte[]? GetMemoBytes(Transaction.LineItem line) =>
+			line.ToAddress.HasShieldedReceiver ? line.Memo.RawBytes.ToArray() :
+			line.Memo.MemoFormat == Zip302MemoFormat.MemoFormat.NoMemo ? null :
+			throw new InvalidOperationException(Strings.MemoForTransparentReceiverNotSupported);
 		List<TransactionSendDetail> details = [.. payments
-			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), p.Memo.RawBytes.ToArray(), p.ToAddress))];
+			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), GetMemoBytes(p), p.ToAddress))];
 
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 		try
