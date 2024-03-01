@@ -81,7 +81,7 @@
                     <Label Content="{Binding AmountCaption}" VerticalAlignment="Center" />
                     <local:DualAmountEntryView DataContext="{Binding AmountEntry}" Grid.Column="1" />
                   </Grid>
-                  <StackPanel>
+                  <StackPanel IsVisible="{Binding IsMemoVisible}">
                     <Label Content="{Binding MemoCaption}" Target="{Binding #MemoTextBox}" />
                     <TextBox Name="MemoTextBox"
                              Text="{Binding Memo}"

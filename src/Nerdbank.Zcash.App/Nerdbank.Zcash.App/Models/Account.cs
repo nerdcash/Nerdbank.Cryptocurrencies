@@ -31,6 +31,7 @@ public class Account : ReactiveObject, IPersistableData
 
 		this.MarkSelfDirtyOnPropertyChanged();
 		this.MarkSelfDirtyOnCollectionChanged(this.TransactionsMutable);
+		account.PropertyChanged += (s, e) => this.IsDirty = true;
 	}
 
 	[IgnoreMember]
@@ -101,6 +102,9 @@ public class Account : ReactiveObject, IPersistableData
 		get => this.optimizedBirthdayHeight;
 		set => this.RaiseAndSetIfChanged(ref this.optimizedBirthdayHeight, value);
 	}
+
+	[Key(6)]
+	public int? Id { get; set; }
 
 	[IgnoreMember]
 	public ReadOnlyObservableCollection<ZcashTransaction> Transactions { get; private set; }
@@ -216,6 +220,16 @@ public class Account : ReactiveObject, IPersistableData
 		}
 	}
 
+	public void RecordDisplayedTransparentAddress(uint addressIndex)
+	{
+		if (addressIndex > this.ZcashAccount.MaxTransparentAddressIndex || this.ZcashAccount.MaxTransparentAddressIndex is null)
+		{
+			this.ZcashAccount.MaxTransparentAddressIndex = addressIndex;
+		}
+
+		this.LightWalletClient?.AddDiversifier(this.ZcashAccount, addressIndex);
+	}
+
 	public override string ToString() => this.Name;
 
 	private static bool Equals_AllowApproximateRecipientMatch(ZcashTransaction.LineItem left, Transaction.LineItem right)
@@ -248,7 +262,7 @@ public class Account : ReactiveObject, IPersistableData
 				// Detect the sender by the address they used to reach us.
 				if (contactManager.TryGetContact(this, recvItem.ToAddress, out Contact? contact))
 				{
-					recvItem.OtherParty = contact;
+					recvItem.OtherParty = contact.Id!.Value;
 				}
 			}
 		}

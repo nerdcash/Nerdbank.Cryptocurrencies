@@ -327,10 +327,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 					this.otherParty = value;
 
 					// The model only sees this if it's a Contact. Accounts are only ever set on the view model.
-					this.model.OtherParty = value as Contact;
+					this.model.OtherParty = (value as Contact)?.Id;
 					if (this.additionalModel is not null)
 					{
-						this.additionalModel.OtherParty = value as Contact;
+						this.additionalModel.OtherParty = (value as Contact)?.Id;
 					}
 
 					this.RaisePropertyChanged();
@@ -378,7 +378,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			if (this.otherParty is null && !this.otherPartyLazyInitDone)
 			{
 				Account? otherAccount = null;
-				if (this.owner.IsIncoming && this.owner.Model.TransactionId.HasValue)
+				if (this.model.OtherParty is int otherPartyId && this.owner.owner.ViewModelServices.ContactManager.TryGetContact(otherPartyId, out Contact? otherParty))
+				{
+					this.otherParty = otherParty;
+				}
+				else if (this.owner.IsIncoming && this.owner.Model.TransactionId.HasValue)
 				{
 					// Incoming transactions are harder to track as to whether they came from another account,
 					// so we search for the txid in other accounts to see if they sent it.

@@ -63,16 +63,16 @@ internal static partial class ModelUtilities
 	{
 		data.PropertyChanged += static (sender, e) =>
 		{
-			if (e.PropertyName is not nameof(IPersistableData.IsDirty))
+			if (sender is IPersistableData persistable)
 			{
-				if (sender is IPersistableData persistable)
+				if (persistable.IsPersisted(e.PropertyName))
 				{
 					persistable.IsDirty = true;
 				}
-				else
-				{
-					Debug.Fail("The sender is expected to be persistable.");
-				}
+			}
+			else
+			{
+				Debug.Fail("The sender is expected to be persistable.");
 			}
 		};
 	}

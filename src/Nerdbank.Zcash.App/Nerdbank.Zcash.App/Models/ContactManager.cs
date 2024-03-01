@@ -14,6 +14,7 @@ public class ContactManager : IContactManager, IPersistableDataHelper
 {
 	private readonly ObservableCollection<Contact> contacts;
 	private bool isDirty = true;
+	private int nextContactId;
 
 	public ContactManager()
 		: this(Array.Empty<Contact>())
@@ -37,14 +38,17 @@ public class ContactManager : IContactManager, IPersistableDataHelper
 
 	public ReadOnlyObservableCollection<Contact> Contacts { get; }
 
-	public void Add(Contact contact)
+	public int Add(Contact contact)
 	{
 		if (!this.contacts.Contains(contact))
 		{
+			contact.Id ??= this.nextContactId++;
 			this.StartWatchingForDirtyChild(contact);
 			this.contacts.Add(contact);
 			this.IsDirty = true;
 		}
+
+		return contact.Id!.Value;
 	}
 
 	public bool Remove(Contact contact)
@@ -75,6 +79,7 @@ public class ContactManager : IContactManager, IPersistableDataHelper
 			options.Security.DepthStep(ref reader);
 
 			Contact[] contacts = Array.Empty<Contact>();
+			int nextContactId = 0;
 
 			int length = reader.ReadArrayHeader();
 			for (int i = 0; i < length; i++)
@@ -84,6 +89,9 @@ public class ContactManager : IContactManager, IPersistableDataHelper
 					case 0:
 						contacts = options.Resolver.GetFormatterWithVerify<Contact[]>().Deserialize(ref reader, options);
 						break;
+					case 1:
+						nextContactId = reader.ReadInt32();
+						break;
 					default:
 						reader.Skip();
 						break;
@@ -92,15 +100,16 @@ public class ContactManager : IContactManager, IPersistableDataHelper
 
 			reader.Depth--;
 
-			ContactManager result = new(contacts);
+			ContactManager result = new(contacts) { nextContactId = nextContactId };
 			result.IsDirty = false;
 			return result;
 		}
 
 		public void Serialize(ref MessagePackWriter writer, ContactManager value, MessagePackSerializerOptions options)
 		{
-			writer.WriteArrayHeader(1);
+			writer.WriteArrayHeader(2);
 			options.Resolver.GetFormatterWithVerify<IReadOnlyList<Contact>>().Serialize(ref writer, value.Contacts, options);
+			writer.Write(value.nextContactId);
 		}
 	}
 }

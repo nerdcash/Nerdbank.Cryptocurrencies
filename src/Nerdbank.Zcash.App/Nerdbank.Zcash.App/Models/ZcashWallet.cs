@@ -18,6 +18,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 	private readonly ObservableCollection<HDWallet> hdWallets;
 	private readonly ObservableCollection<Account> accounts;
 	private bool isDirty = true;
+	private int nextAccountId;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ZcashWallet"/> class.
@@ -120,6 +121,9 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 
 	public void Add(Account account)
 	{
+		Requires.Argument(account.Id is null, nameof(account), "Account already added.");
+		account.Id = this.nextAccountId++;
+
 		Requires.Argument(account.ZcashAccount.BirthdayHeight is not null, nameof(account), "Set birthday height first.");
 
 		if (account.ZcashAccount.HDDerivation is { Wallet.Mnemonic: { } mnemonic } && !this.TryGetHDWallet(account, out _))
@@ -149,6 +153,12 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		}
 
 		return false;
+	}
+
+	public bool TryGetAccount(int accountId, [NotNullWhen(true)] out Account? account)
+	{
+		account = this.Accounts.FirstOrDefault(a => a.Id == accountId);
+		return account is not null;
 	}
 
 	void IPersistableDataHelper.OnPropertyChanged(string propertyName) => this.OnPropertyChanged(propertyName);
@@ -183,6 +193,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 		{
 			HDWallet[] hdWallets = Array.Empty<HDWallet>();
 			Account[] accounts = Array.Empty<Account>();
+			int nextAccountId = 0;
 
 			int length = reader.ReadArrayHeader();
 			for (int i = 0; i < length; i++)
@@ -195,22 +206,26 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 					case 1:
 						accounts = options.Resolver.GetFormatterWithVerify<Account[]>().Deserialize(ref reader, options);
 						break;
+					case 2:
+						nextAccountId = reader.ReadInt32();
+						break;
 					default:
 						reader.Skip();
 						break;
 				}
 			}
 
-			ZcashWallet result = new(hdWallets, accounts);
+			ZcashWallet result = new(hdWallets, accounts) { nextAccountId = nextAccountId };
 			result.isDirty = false;
 			return result;
 		}
 
 		public void Serialize(ref MessagePackWriter writer, ZcashWallet value, MessagePackSerializerOptions options)
 		{
-			writer.WriteArrayHeader(2);
+			writer.WriteArrayHeader(3);
 			options.Resolver.GetFormatterWithVerify<IReadOnlyList<HDWallet>>().Serialize(ref writer, value.HDWallets, options);
 			options.Resolver.GetFormatterWithVerify<IReadOnlyList<Account>>().Serialize(ref writer, value.Accounts, options);
+			writer.Write(value.nextAccountId);
 		}
 	}
 }

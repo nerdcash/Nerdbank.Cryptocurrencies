@@ -146,10 +146,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		if (this.DisplayedAddress?.Address is TransparentAddress && this.assignedAddresses is not null)
 		{
 			this.assignedAddresses.TransparentAddressIndex ??= this.transparentAddressIndex;
-			if (this.transparentAddressIndex > this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex || this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is null)
-			{
-				this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex = this.transparentAddressIndex;
-			}
+			this.receivingAccount.RecordDisplayedTransparentAddress(this.transparentAddressIndex);
 		}
 	}
 
