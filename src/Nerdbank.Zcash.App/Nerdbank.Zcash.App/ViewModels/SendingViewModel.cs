@@ -213,12 +213,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	{
 		// TODO: Block sending if validation errors exist.
 		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
-
-		IEnumerable<Transaction.LineItem> lineItemsPrep =
+		ImmutableArray<Transaction.LineItem> lineItems = [..
 			from li in this.LineItems
 			let to = li.RecipientAddressParsed
-			select new Transaction.LineItem(to, li.Amount ?? 0m, Memo.FromMessage(li.Memo));
-		ImmutableArray<Transaction.LineItem> lineItems = lineItemsPrep.ToImmutableArray();
+			select new Transaction.LineItem(to, li.Amount ?? 0m, to.HasShieldedReceiver ? Memo.FromMessage(li.Memo) : Memo.NoMemo)];
 
 		// Create a draft transaction in the account right away.
 		// This will store the mutable memo, exchange rate, and other metadata that
@@ -370,6 +368,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		private readonly SendingViewModel owner;
 		private readonly ObservableAsPropertyHelper<ZcashAddress?> recipientAddressParsed;
 		private readonly ObservableAsPropertyHelper<bool> isValid;
+		private readonly ObservableAsPropertyHelper<bool> isMemoVisible;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
 		private object? selectedRecipient;
@@ -401,6 +400,13 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 				vm => vm.RecipientAddressParsed,
 				(amount, addr) => amount.HasValue && addr is not null)
 				.ToProperty(this, nameof(this.IsValid));
+
+			// Arrange tho hide the memo field if the address is valid and has no shielded receiver.
+			// We want to show the memo field if the address is blank or invalid while the user sorts that out.
+			this.isMemoVisible = this.WhenAnyValue(
+				vm => vm.RecipientAddressParsed)
+				.Select(addr => addr?.HasShieldedReceiver is not false)
+				.ToProperty(this, nameof(this.IsMemoVisible));
 		}
 
 		public bool IsValid => this.isValid.Value;
@@ -435,6 +441,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		}
 
 		public DualAmountEntryViewModel AmountEntry { get; }
+
+		public bool IsMemoVisible => this.isMemoVisible.Value;
 
 		public string MemoCaption => "Memo (shared with recipient):";
 
