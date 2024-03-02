@@ -245,18 +245,20 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		try
 		{
 			await sendTask;
+			SecurityAmount subtotal = this.Subtotal;
 
 			// Clear the form for the next send.
 			this.Clear();
 
 			// Display a successful message momentarily.
-			this.SendSuccessfulMessage = $"{this.Subtotal} sent successfully.";
+			this.SendSuccessfulMessage = $"{subtotal} sent successfully.";
 			await Task.Delay(3000);
 			this.SendSuccessfulMessage = null;
 		}
 		catch (Exception ex)
 		{
 			this.ErrorMessage = ex.Message;
+			this.SelectedAccount.RemoveTransaction(tx);
 		}
 
 		// If the user closes the main window, the window will hide but the process will run
