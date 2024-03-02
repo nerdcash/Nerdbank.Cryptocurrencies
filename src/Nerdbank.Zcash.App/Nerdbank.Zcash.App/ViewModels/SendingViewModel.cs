@@ -258,6 +258,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		catch (Exception ex)
 		{
 			this.ErrorMessage = ex.Message;
+			this.SelectedAccount.RemoveTransaction(tx);
 		}
 
 		// If the user closes the main window, the window will hide but the process will run

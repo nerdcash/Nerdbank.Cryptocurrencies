@@ -148,6 +148,19 @@ public class Account : ReactiveObject, IPersistableData
 		this.TransactionsMutable.Add(transaction);
 	}
 
+	/// <summary>
+	/// Removes a transaction from history.
+	/// </summary>
+	/// <param name="transaction">The transaction to remove.</param>
+	/// <remarks>
+	/// This is useful when a transaction failed to transmit, expired before being mined,
+	/// or was lost in a re-org.
+	/// </remarks>
+	public void RemoveTransaction(ZcashTransaction transaction)
+	{
+		this.TransactionsMutable.Remove(transaction);
+	}
+
 	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber, ExchangeRateRecord exchangeRateRecord, AppSettings appSettings, ZcashWallet wallet, IContactManager contactManager)
 	{
 		uint highestBlockNumber = 0;
