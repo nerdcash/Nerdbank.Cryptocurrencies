@@ -245,12 +245,13 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		try
 		{
 			await sendTask;
+			SecurityAmount subtotal = this.Subtotal;
 
 			// Clear the form for the next send.
 			this.Clear();
 
 			// Display a successful message momentarily.
-			this.SendSuccessfulMessage = $"{this.Subtotal} sent successfully.";
+			this.SendSuccessfulMessage = $"{subtotal} sent successfully.";
 			await Task.Delay(3000);
 			this.SendSuccessfulMessage = null;
 		}
