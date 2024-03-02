@@ -649,7 +649,7 @@ async fn watch_mempool(client: &mut CompactTxStreamerClient<Channel>) -> Result<
     Ok(())
 }
 
-pub fn get_transactions(
+pub(crate) fn get_transactions(
     db: &mut Db,
     conn: &mut rusqlite::Connection,
     network: &Network,
