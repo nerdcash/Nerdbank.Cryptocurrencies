@@ -76,7 +76,7 @@ Nerdbank.Zcash.LightWalletClient.GetUnshieldedBalances(Nerdbank.Zcash.ZcashAccou
 Nerdbank.Zcash.LightWalletClient.LastDownloadHeight.get -> uint?
 Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! dataFile) -> void
 Nerdbank.Zcash.LightWalletClient.Network.get -> Nerdbank.Zcash.ZcashNetwork
-Nerdbank.Zcash.LightWalletClient.SendAsync(Nerdbank.Zcash.ZcashAccount! account, System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction.LineItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.TxId>!
+Nerdbank.Zcash.LightWalletClient.SendAsync(Nerdbank.Zcash.ZcashAccount! account, System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction.LineItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.ReadOnlyMemory<Nerdbank.Zcash.TxId>>!
 Nerdbank.Zcash.LightWalletClient.SendProgress
 Nerdbank.Zcash.LightWalletClient.SendProgress.Deconstruct(out uint Id, out bool IsSendInProgress, out uint Progress, out uint Total, out string? LastError, out string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Id.get -> uint

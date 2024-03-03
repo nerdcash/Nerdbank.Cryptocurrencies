@@ -286,8 +286,13 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="payments">The payments to be made.</param>
 	/// <param name="progress">An optional receiver for progress updates.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
-	/// <returns>The transaction ID.</returns>
-	public async Task<TxId> SendAsync(ZcashAccount account, IReadOnlyCollection<LineItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
+	/// <returns>The IDs of the transaction(s) that were broadcast to complete the transfer.</returns>
+	/// <remarks>
+	/// A single logical transfer may be divided into multiple transactions, or steps, when the receiver's address
+	/// does not allow shielded funds to be sent directly to it.
+	/// In such cases, the shielded funds are sent to a transparent address, and then from there to the receiver.
+	/// </remarks>
+	public async Task<ReadOnlyMemory<TxId>> SendAsync(ZcashAccount account, IReadOnlyCollection<LineItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
 	{
 		Requires.NotNull(account);
 		Requires.NotNullOrEmpty(payments);
@@ -298,8 +303,8 @@ public partial class LightWalletClient : IDisposable
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 		try
 		{
-			SendTransactionResult result = LightWalletMethods.Send(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), MinimumConfirmations, details);
-			return new TxId(result.txid);
+			List<SendTransactionResult> result = LightWalletMethods.Send(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), MinimumConfirmations, details);
+			return result.Select(r => new TxId(r.txid)).ToArray();
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
 		{
@@ -378,7 +383,7 @@ public partial class LightWalletClient : IDisposable
 		return Task.Run(
 			delegate
 			{
-				return new TxId(LightWalletMethods.Shield(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), address).txid);
+				return new TxId(LightWalletMethods.Shield(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), address).Single().txid);
 			},
 			cancellationToken);
 	}

@@ -1300,6 +1300,7 @@ dependencies = [
  "lazy_static",
  "matches",
  "minreq",
+ "nonempty",
  "orchard",
  "pasta_curves",
  "prost",
@@ -1424,9 +1425,9 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "orchard"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92c801aeaccd19bb6916d71f25694b62d223061872900e8022221c1ad8dcad2d"
+checksum = "1fb255c3ffdccd3c84fe9ebed72aef64fdc72e6a3e4180dd411002d47abaad42"
 dependencies = [
  "aes",
  "bitvec",
@@ -1934,7 +1935,7 @@ checksum = "f98d2aa92eebf49b69786be48e4477826b256916e84a57ff2a4f21923b48eb4c"
 
 [[package]]
 name = "sapling-crypto"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aes",
  "bellman",
@@ -3002,7 +3003,7 @@ dependencies = [
 
 [[package]]
 name = "zcash_client_backend"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "base64",
  "bech32",
@@ -3043,7 +3044,7 @@ dependencies = [
 
 [[package]]
 name = "zcash_client_sqlite"
-version = "0.8.1"
+version = "0.9.0"
 dependencies = [
  "bs58",
  "byteorder",
@@ -3054,7 +3055,6 @@ dependencies = [
  "jubjub",
  "libsqlite3-sys",
  "maybe-rayon",
- "orchard",
  "prost",
  "rusqlite",
  "sapling-crypto",
@@ -3082,7 +3082,7 @@ dependencies = [
 
 [[package]]
 name = "zcash_keys"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "bech32",
  "bls12_381",
@@ -3120,7 +3120,7 @@ dependencies = [
 
 [[package]]
 name = "zcash_primitives"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "aes",
  "bip0039",
@@ -3157,7 +3157,7 @@ dependencies = [
 
 [[package]]
 name = "zcash_proofs"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "bellman",
  "blake2b_simd",
