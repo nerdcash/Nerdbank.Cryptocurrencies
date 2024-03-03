@@ -52,7 +52,8 @@ jobs:
     displayName: 💅 Verify formatted code
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
 
-- job: android
+- job: cross
+  displayName: cross-targeting
   pool:
     vmImage: Ubuntu 20.04
   steps:
@@ -87,7 +88,7 @@ jobs:
   - Windows
   - Linux
   - macOS
-  - android
+  - cross
   pool:
     vmImage: Ubuntu 20.04
   variables:

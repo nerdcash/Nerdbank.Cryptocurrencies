@@ -3,7 +3,11 @@ steps:
   displayName: 🛠️ install cross
 
 - pwsh: cross build -r --target=aarch64-linux-android
-  displayName: 🛠️ cross build
+  displayName: 🛠️ build android-arm64
+  workingDirectory: src/nerdbank-zcash-rust
+
+- pwsh: cross build -r --target=aarch64-unknown-linux-gnu
+  displayName: 🛠️ build linux-arm64
   workingDirectory: src/nerdbank-zcash-rust
 
 - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose

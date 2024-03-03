@@ -23,9 +23,9 @@
     </RustSymbol>
 
     <!-- Linux -->
-    <!-- <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)aarch64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)aarch64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
       <PackagePath>runtimes/linux-arm64/native/</PackagePath>
-    </RustBinary> -->
+    </RustBinary>
     <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)x86_64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
       <PackagePath>runtimes/linux-x64/native/</PackagePath>
     </RustBinary>
