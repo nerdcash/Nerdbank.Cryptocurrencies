@@ -1,6 +1,3 @@
-parameters:
-  includeMacOS:
-
 steps:
 - task: DownloadPipelineArtifact@2
   inputs:
@@ -20,7 +17,6 @@ steps:
     path: $(Pipeline.Workspace)/symbols/macOS
   displayName: 🔻 Download macOS symbols
   continueOnError: true
-  condition: ${{ parameters.includeMacOS }}
 
 - task: DownloadPipelineArtifact@2
   inputs:
@@ -40,7 +36,6 @@ steps:
     path: $(Pipeline.Workspace)/test_symbols/macOS
   displayName: 🔻 Download macOS test symbols
   continueOnError: true
-  condition: ${{ parameters.includeMacOS }}
 
 - task: PublishSymbols@2
   inputs:

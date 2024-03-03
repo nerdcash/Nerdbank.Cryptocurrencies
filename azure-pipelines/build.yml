@@ -3,9 +3,6 @@ parameters:
   type: object
   default:
     vmImage: windows-2022
-- name: includeMacOS
-  type: boolean
-  default: true
 - name: RunTests
   type: boolean
   default: true
@@ -56,7 +53,6 @@ jobs:
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
 
 - job: macOS
-  condition: ${{ parameters.includeMacOS }}
   pool:
     vmImage: macOS-12
   steps:
@@ -109,9 +105,5 @@ jobs:
     parameters:
       initArgs: -NoRestore
   - template: publish-symbols.yml
-    parameters:
-      includeMacOS: ${{ parameters.includeMacOS }}
   - ${{ if parameters.RunTests }}:
     - template: publish-codecoverage.yml
-      parameters:
-        includeMacOS: ${{ parameters.includeMacOS }}
