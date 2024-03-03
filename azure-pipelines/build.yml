@@ -52,6 +52,17 @@ jobs:
     displayName: 💅 Verify formatted code
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
 
+- job: android
+  pool:
+    vmImage: Ubuntu 20.04
+  steps:
+  - checkout: self
+    fetchDepth: 1
+    clean: true
+    submodules: true
+
+  - template: cross.yml
+
 - job: macOS
   pool:
     vmImage: macOS-12
@@ -76,6 +87,7 @@ jobs:
   - Windows
   - Linux
   - macOS
+  - android
   pool:
     vmImage: Ubuntu 20.04
   variables:

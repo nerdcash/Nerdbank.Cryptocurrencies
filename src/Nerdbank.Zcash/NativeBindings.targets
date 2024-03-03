@@ -29,6 +29,9 @@
     <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)x86_64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
       <PackagePath>runtimes/linux-x64/native/</PackagePath>
     </RustBinary>
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)aarch64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+      <PackagePath>runtimes/android-arm64/native/</PackagePath>
+    </RustBinary>
 
     <!-- Mac -->
     <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)aarch64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">

@@ -12,6 +12,12 @@ steps:
     targetPath: src/nerdbank-zcash-rust/target
     artifactName: rust-Linux
 - task: DownloadPipelineArtifact@2
+  displayName: 🔻 Download android binaries
+  inputs:
+    buildType: current
+    targetPath: src/nerdbank-zcash-rust/target
+    artifactName: rust-android
+- task: DownloadPipelineArtifact@2
   displayName: 🔻 Download macOS binaries
   inputs:
     buildType: current
