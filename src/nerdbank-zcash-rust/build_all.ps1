@@ -44,11 +44,4 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$configPathSegment = 'debug'
-if ($Release) { $configPathSegment = 'release' }
-$rustTargets | % {
-    New-Item -ItemType Directory -Path "..\..\obj\src\nerdbank-zcash-rust\$configPathSegment\$_" -Force | Out-Null
-    Copy-Item "target/$_/$configPathSegment/*nerdbank_zcash_rust*" "..\..\obj\src\nerdbank-zcash-rust\$configPathSegment\$_"
-}
-
 Pop-Location

@@ -1,7 +1,11 @@
-if (!(Test-Path "$PSScriptRoot/../../obj/src/nerdbank-zcash-rust/")) { return }
+$root = "$PSScriptRoot\..\..\src\nerdbank-zcash-rust\target"
+if (!(Test-Path $root)) { return }
 
-$root = "$PSScriptRoot/../../obj/src/nerdbank-zcash-rust/"
+$files = @()
+Get-ChildItem $root\*-*-* -Directory |% {
+    $files += Get-ChildItem "$($_.FullName)\*\*nerdbank_zcash_rust*"
+}
 
 @{
-    $root = Get-ChildItem $root -Recurse
+    $root = $files
 }
