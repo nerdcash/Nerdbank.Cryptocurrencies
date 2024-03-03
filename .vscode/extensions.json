@@ -9,6 +9,7 @@
     "editorconfig.editorconfig",
     "esbenp.prettier-vscode",
     "pflannery.vscode-versionlens",
+    "Swellaby.rust-pack",
     "davidanson.vscode-markdownlint",
     "dotjoshjohnson.xml",
     "ms-vscode-remote.remote-containers",
