@@ -87,6 +87,12 @@ pub enum Error {
         code: i32,
         reason: String,
     },
+
+    ProposalNotSupported,
+
+    NoSpendingKey(String),
+
+    KeyNotRecognized,
 }
 
 impl std::fmt::Display for Error {
@@ -125,6 +131,9 @@ impl std::fmt::Display for Error {
             Error::SendFailed { code, reason } => write!(f, "Send failed: {}: {}", code, reason),
             Error::Minreq(e) => e.fmt(f),
             Error::OutPointMissing => f.write_str("OutPoint missing"),
+            Error::ProposalNotSupported => f.write_str("Proposal not supported"),
+            Error::NoSpendingKey(e) => write!(f, "No spending key: {}", e),
+            Error::KeyNotRecognized => f.write_str("No account found with the given key."),
         }
     }
 }
@@ -251,7 +260,7 @@ where
             BackendError::NoteSelection(inner) => {
                 Error::Internal(format!("NoteSelection: {}", inner))
             }
-            BackendError::KeyNotRecognized => Error::Internal("KeyNotRecognized".to_string()),
+            BackendError::KeyNotRecognized => Error::KeyNotRecognized,
             BackendError::AccountNotFound(id) => {
                 Error::Internal(format!("AccountNotFound: {}", u32::from(id)))
             }
@@ -270,12 +279,12 @@ where
             BackendError::MemoForbidden => Error::Internal("MemoForbidden".to_string()),
             BackendError::NoteMismatch(_) => Error::Internal("NoteMismatch".to_string()),
             BackendError::AddressNotRecognized(_) => Error::InvalidAddress,
-            BackendError::ChildIndexOutOfRange(_) => {
-                Error::Internal("ChildIndexOutOfRange".to_string())
+            BackendError::ProposalNotSupported => Error::ProposalNotSupported,
+            BackendError::NoSpendingKey(msg) => Error::NoSpendingKey(msg),
+            BackendError::UnsupportedChangeType(pool_type) => {
+                Error::Internal(format!("UnsupportedChangeType: {}", pool_type))
             }
-            BackendError::UnsupportedPoolType(e) => {
-                Error::Internal(format!("UnsupportedPoolType: {}", e))
-            }
+            BackendError::Proposal(e) => Error::Internal(format!("Proposal: {}", e)),
             BackendError::NoSupportedReceivers(_) => {
                 Error::Internal("No supported receivers".to_string())
             }

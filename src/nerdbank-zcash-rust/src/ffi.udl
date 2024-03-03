@@ -123,13 +123,13 @@ namespace LightWallet {
 	boolean disconnect_server(string uri);
 
 	[Throws=LightWalletError]
-	SendTransactionResult send(DbInit config, string uri, bytes usk, u32 min_confirmations, sequence<TransactionSendDetail> send_details);
+	sequence<SendTransactionResult> send(DbInit config, string uri, bytes usk, u32 min_confirmations, sequence<TransactionSendDetail> send_details);
 
 	[Throws=LightWalletError]
 	sequence<TransparentNote> get_unshielded_utxos(DbInit config, u32 account_id);
 
 	[Throws=LightWalletError]
-	SendTransactionResult shield(DbInit config, string uri, bytes usk, string address);
+	sequence<SendTransactionResult> shield(DbInit config, string uri, bytes usk, string address);
 
 	[Throws=LightWalletError]
 	sequence<Transaction> get_transactions(DbInit config, u32 account_id, u32 starting_block);

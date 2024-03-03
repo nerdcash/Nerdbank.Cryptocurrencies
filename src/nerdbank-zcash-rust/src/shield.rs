@@ -1,16 +1,18 @@
 use std::path::Path;
 
 use http::Uri;
+use nonempty::NonEmpty;
 use rusqlite::{named_params, Connection};
 use zcash_client_backend::{
     data_api::wallet::{
-        create_proposed_transaction,
+        create_proposed_transactions,
         input_selection::{GreedyInputSelector, GreedyInputSelectorError},
         propose_shielding,
     },
     fees::{zip317::SingleOutputChangeStrategy, ChangeStrategy},
     keys::UnifiedSpendingKey,
     wallet::OvkPolicy,
+    ShieldedProtocol,
 };
 use zcash_client_sqlite::ReceivedNoteId;
 use zcash_primitives::{
@@ -35,7 +37,7 @@ pub async fn shield_funds_at_address<P: AsRef<Path>>(
     network: Network,
     usk: &UnifiedSpendingKey,
     address: TransparentAddress,
-) -> Result<SendTransactionResult, Error> {
+) -> Result<NonEmpty<SendTransactionResult>, Error> {
     let mut db = Db::init(data_file, network)?;
 
     // We want to be able to shield as soon as UTXOs appear in the mempool.
@@ -43,7 +45,7 @@ pub async fn shield_funds_at_address<P: AsRef<Path>>(
 
     let prover = get_prover()?;
     let input_selector = GreedyInputSelector::new(
-        SingleOutputChangeStrategy::new(FeeRule::standard(), None),
+        SingleOutputChangeStrategy::new(FeeRule::standard(), None, ShieldedProtocol::Sapling),
         Default::default(),
     );
     let proposal = propose_shielding::<_, _, _, zcash_client_sqlite::wallet::commitment_tree::Error>(
@@ -54,7 +56,7 @@ pub async fn shield_funds_at_address<P: AsRef<Path>>(
         &[address],
         min_confirmations,
     )?;
-    let txid = create_proposed_transaction::<
+    let txids = create_proposed_transactions::<
         _,
         _,
         GreedyInputSelectorError<
@@ -73,7 +75,12 @@ pub async fn shield_funds_at_address<P: AsRef<Path>>(
         &proposal,
     )?;
 
-    transmit_transaction(txid, server_uri, &mut db.data).await
+    let mut result = Vec::new();
+    for txid in txids {
+        result.push(transmit_transaction(txid, server_uri.clone(), &mut db.data).await?);
+    }
+
+    Ok(NonEmpty::from_vec(result).unwrap())
 }
 
 /// Returns a list of unshielded UTXOs for the given account,
