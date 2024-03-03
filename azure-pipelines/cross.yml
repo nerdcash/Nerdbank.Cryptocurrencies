@@ -6,6 +6,10 @@ steps:
   displayName: 🛠️ build android-arm64
   workingDirectory: src/nerdbank-zcash-rust
 
+- pwsh: cross build -r --target=x86_64-linux-android
+  displayName: 🛠️ build android-x64
+  workingDirectory: src/nerdbank-zcash-rust
+
 - pwsh: cross build -r --target=aarch64-unknown-linux-gnu
   displayName: 🛠️ build linux-arm64
   workingDirectory: src/nerdbank-zcash-rust
