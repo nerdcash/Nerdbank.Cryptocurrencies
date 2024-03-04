@@ -192,4 +192,16 @@
   <data name="UnrecognizedAccount" xml:space="preserve">
     <value>Esta cuenta aún no se ha agregado a la billetera.</value>
   </data>
+  <data name="MustUnderstandMetadataNotAllowedThisRevision" xml:space="preserve">
+    <value>Esta codificación contiene metadatos que no están permitidos (tipo código {typecode}, revisión {revisión}).</value>
+  </data>
+  <data name="OperationCanceled" xml:space="preserve">
+    <value>La operación fue cancelada.</value>
+  </data>
+  <data name="UnknownErrorAcrossInteropBoundary" xml:space="preserve">
+    <value>Se produjo un error en el motor Zcash.</value>
+  </data>
+  <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
+    <value>Esta codificación contiene metadatos que no se entienden (tipo código: {typecode}).</value>
+  </data>
 </root>
