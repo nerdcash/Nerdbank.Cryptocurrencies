@@ -17,7 +17,7 @@ public class OrchardAddress : UnifiedAddress
 
 	/// <inheritdoc cref="OrchardAddress(string, in OrchardReceiver, ZcashNetwork)"/>
 	public OrchardAddress(in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
-		: base(CreateAddress(receiver, network))
+		: base(CreateAddress(receiver, network), revision: 0)
 	{
 		this.receiver = receiver;
 		this.network = network;
@@ -30,7 +30,7 @@ public class OrchardAddress : UnifiedAddress
 	/// <param name="receiver">The encoded receiver.</param>
 	/// <param name="network">The network to which this address belongs.</param>
 	internal OrchardAddress(string address, in OrchardReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
-		: base(address)
+		: base(address, revision: 0)
 	{
 		this.receiver = receiver;
 		this.network = network;
@@ -61,8 +61,8 @@ public class OrchardAddress : UnifiedAddress
 	{
 		string humanReadablePart = network switch
 		{
-			ZcashNetwork.MainNet => HumanReadablePartMainNet,
-			ZcashNetwork.TestNet => HumanReadablePartTestNet,
+			ZcashNetwork.MainNet => HumanReadablePart.R0.MainNet,
+			ZcashNetwork.TestNet => HumanReadablePart.R0.TestNet,
 			_ => throw new NotSupportedException(Strings.FormatUnrecognizedNetwork(network)),
 		};
 

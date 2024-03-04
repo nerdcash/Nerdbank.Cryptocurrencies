@@ -83,4 +83,14 @@ public enum DecodeError
 	/// An unenumerated error occurred. See error message for details.
 	/// </summary>
 	Other,
+
+	/// <summary>
+	/// Metadata that MUST be understood is not recognized.
+	/// </summary>
+	UnrecognizedMustUnderstandMetadata,
+
+	/// <summary>
+	/// Metadata that MUST be understood was included in an encoding revision that disallowed it.
+	/// </summary>
+	MustUnderstandMetadataNotAllowed,
 }
