@@ -171,6 +171,9 @@
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
     <value>All receivers must come from the same Zcash network.</value>
   </data>
+  <data name="MustUnderstandMetadataNotAllowedThisRevision" xml:space="preserve">
+    <value>This encoding contains metadata that is not allowed (type code {typeCode}, revision {revision}).</value>
+  </data>
   <data name="NetworkMismatch" xml:space="preserve">
     <value>This server is configured for use on the {expected} network, but the input parameter is on the {actual} network.</value>
   </data>
@@ -191,6 +194,9 @@
   </data>
   <data name="UnrecognizedAddress" xml:space="preserve">
     <value>This address does not conform to any known format.</value>
+  </data>
+  <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
+    <value>This encoding contains metadata that is not understood (type code: {typeCode}).</value>
   </data>
   <data name="UnrecognizedNetwork" xml:space="preserve">
     <value>Unrecognized network '{network}'.</value>

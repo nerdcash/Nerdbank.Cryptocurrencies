@@ -3,9 +3,6 @@ parameters:
   type: object
   default:
     vmImage: windows-2022
-- name: includeMacOS
-  type: boolean
-  default: true
 - name: RunTests
   type: boolean
   default: true
@@ -55,8 +52,19 @@ jobs:
     displayName: 💅 Verify formatted code
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
 
+- job: cross
+  displayName: cross-targeting
+  pool:
+    vmImage: Ubuntu 20.04
+  steps:
+  - checkout: self
+    fetchDepth: 1
+    clean: true
+    submodules: true
+
+  - template: cross.yml
+
 - job: macOS
-  condition: ${{ parameters.includeMacOS }}
   pool:
     vmImage: macOS-12
   steps:
@@ -80,6 +88,7 @@ jobs:
   - Windows
   - Linux
   - macOS
+  - cross
   pool:
     vmImage: Ubuntu 20.04
   steps:
@@ -106,9 +115,5 @@ jobs:
     parameters:
       initArgs: -NoRestore
   - template: publish-symbols.yml
-    parameters:
-      includeMacOS: ${{ parameters.includeMacOS }}
   - ${{ if parameters.RunTests }}:
     - template: publish-codecoverage.yml
-      parameters:
-        includeMacOS: ${{ parameters.includeMacOS }}

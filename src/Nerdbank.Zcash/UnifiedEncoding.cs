@@ -37,8 +37,9 @@ internal static class UnifiedEncoding
 	/// </summary>
 	/// <param name="humanReadablePart">The human readable part for the string.</param>
 	/// <param name="elements">The elements to include.</param>
+	/// <param name="metadata">The metadata to encode.</param>
 	/// <returns>The unified encoding.</returns>
-	internal static string Encode(string humanReadablePart, IEnumerable<IUnifiedEncodingElement> elements)
+	internal static string Encode(string humanReadablePart, IEnumerable<IUnifiedEncodingElement> elements, UnifiedEncodingMetadata metadata)
 	{
 		Requires.NotNull(elements);
 
@@ -48,7 +49,8 @@ internal static class UnifiedEncoding
 		{
 			int totalLength = PaddingLength;
 
-			foreach (IUnifiedEncodingElement element in elements)
+			// Add core elements.
+			foreach (IUnifiedEncodingElement element in elements.Concat(metadata.GetElements()))
 			{
 				byte typeCode = element.UnifiedTypeCode;
 				byte[] buffer = ArrayPool<byte>.Shared.Rent(element.UnifiedDataLength);
@@ -194,7 +196,7 @@ internal static class UnifiedEncoding
 	{
 		if (ua.Length is < MinF4JumbleInputLength or > MaxF4JumbleInputLength)
 		{
-			throw new ArgumentException($"The UA cannot exceed {MaxF4JumbleInputLength} bytes.", nameof(ua));
+			throw new ArgumentException($"The UA F4Jumble length must fall within [{MinF4JumbleInputLength}, {MaxF4JumbleInputLength}] but was {ua.Length}.", nameof(ua));
 		}
 
 		Span<byte> arrayBuffer = stackalloc byte[ua.Length];

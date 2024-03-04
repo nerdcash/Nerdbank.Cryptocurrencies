@@ -432,7 +432,7 @@ pub fn send(
     usk: Vec<u8>,
     min_confirmations: u32,
     send_details: Vec<TransactionSendDetail>,
-) -> Result<SendTransactionResult, LightWalletError> {
+) -> Result<Vec<SendTransactionResult>, LightWalletError> {
     let uri: Uri = uri.parse()?;
     let usk = UnifiedSpendingKey::from_bytes(Era::Orchard, &usk).map_err(|_| {
         LightWalletError::InvalidArgument {
@@ -451,9 +451,12 @@ pub fn send(
             send_details,
         )
         .await?;
-        Ok(SendTransactionResult {
-            txid: result.txid.as_ref().to_vec(),
-        })
+        Ok(result
+            .map(|r| SendTransactionResult {
+                txid: r.txid.as_ref().to_vec(),
+            })
+            .into_iter()
+            .collect::<Vec<_>>())
     })
 }
 
@@ -475,7 +478,7 @@ pub fn shield(
     uri: String,
     usk: Vec<u8>,
     address: String,
-) -> Result<SendTransactionResult, LightWalletError> {
+) -> Result<Vec<SendTransactionResult>, LightWalletError> {
     let uri: Uri = uri.parse()?;
     let usk = UnifiedSpendingKey::from_bytes(Era::Orchard, &usk).map_err(|_| {
         LightWalletError::InvalidArgument {
@@ -486,13 +489,15 @@ pub fn shield(
     let address =
         TransparentAddress::decode(&network, &address[..]).map_err(|_| Error::InvalidAddress)?;
     RT.block_on(async move {
-        Ok(SendTransactionResult {
-            txid: shield_funds_at_address(config.data_file, uri, network, &usk, address)
+        Ok(
+            shield_funds_at_address(config.data_file, uri, network, &usk, address)
                 .await?
-                .txid
-                .as_ref()
-                .to_vec(),
-        })
+                .map(|r| SendTransactionResult {
+                    txid: r.txid.as_ref().to_vec(),
+                })
+                .into_iter()
+                .collect::<Vec<_>>(),
+        )
     })
 }
 

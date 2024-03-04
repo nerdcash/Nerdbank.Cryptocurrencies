@@ -11,23 +11,25 @@ namespace Nerdbank.Zcash;
 public abstract class UnifiedAddress : ZcashAddress
 {
 	/// <summary>
-	/// The human-readable part of a Unified Address on mainnet.
-	/// </summary>
-	private protected const string HumanReadablePartMainNet = "u";
-
-	/// <summary>
-	/// The human-readable part of a Unified Address on testnet.
-	/// </summary>
-	private protected const string HumanReadablePartTestNet = "utest";
-
-	/// <summary>
 	/// Initializes a new instance of the <see cref="UnifiedAddress"/> class.
 	/// </summary>
 	/// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
-	public UnifiedAddress(string address)
+	/// <param name="revision">The ZIP-316 revision number to which this particular unified address adheres.</param>
+	protected UnifiedAddress(string address, int revision)
 		: base(address)
 	{
+		this.Revision = revision;
 	}
+
+	/// <summary>
+	/// Gets the ZIP-316 revision number to which this particular unified address adheres.
+	/// </summary>
+	public int Revision { get; }
+
+	/// <summary>
+	/// Gets the metadata associated with this address.
+	/// </summary>
+	public UnifiedEncodingMetadata Metadata { get; protected init; } = UnifiedEncodingMetadata.Default;
 
 	/// <inheritdoc/>
 	public override ZcashNetwork Network => this.Receivers[0].Network;
@@ -43,11 +45,34 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// <inheritdoc cref="Create(IReadOnlyCollection{ZcashAddress})"/>
 	public static UnifiedAddress Create(params ZcashAddress[] receivers) => Create((IReadOnlyCollection<ZcashAddress>)receivers);
 
+	/// <inheritdoc cref="TryCreate(ref DiversifierIndex, IEnumerable{IIncomingViewingKey}, UnifiedEncodingMetadata, out UnifiedAddress?)"/>
+	public static bool TryCreate(ref DiversifierIndex startingDiversiferIndex, IEnumerable<IIncomingViewingKey> keys, [NotNullWhen(true)] out UnifiedAddress? address)
+		=> TryCreate(ref startingDiversiferIndex, keys, UnifiedEncodingMetadata.Default, minimumRevision: 0, out address);
+
+	/// <inheritdoc cref="TryCreate(ref DiversifierIndex, IEnumerable{IIncomingViewingKey}, UnifiedEncodingMetadata, int, out UnifiedAddress?)"/>
+	public static bool TryCreate(ref DiversifierIndex startingDiversiferIndex, IEnumerable<IIncomingViewingKey> keys, UnifiedEncodingMetadata metadata, [NotNullWhen(true)] out UnifiedAddress? address)
+		=> TryCreate(ref startingDiversiferIndex, keys, metadata, minimumRevision: 0, out address);
+
+	/// <inheritdoc cref="Create(IReadOnlyCollection{ZcashAddress}, UnifiedEncodingMetadata)"/>
+	public static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers) => Create(receivers, UnifiedEncodingMetadata.Default);
+
+	/// <inheritdoc cref="Create(IReadOnlyCollection{ZcashAddress}, UnifiedEncodingMetadata, int)"/>
+	public static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers, UnifiedEncodingMetadata metadata) => Create(receivers, metadata, 0);
+
+	/// <summary>
+	/// Gets a copy of this address with the specified metadata.
+	/// </summary>
+	/// <param name="metadata">The new set of metadata to apply to the address. This will replace all metadata previously in the address.</param>
+	/// <returns>The address with <paramref name="metadata"/> applied.</returns>
+	public UnifiedAddress WithMetadata(UnifiedEncodingMetadata metadata) => metadata == this.Metadata ? this : Create(this.Receivers, metadata);
+
 	/// <summary>
 	/// Creates a unified address from a list of address sources.
 	/// </summary>
 	/// <param name="startingDiversiferIndex">The diversifier index from which to start the search for an index that is compatible with all address sources.</param>
 	/// <param name="keys">The keys to use to build the receivers for the unified address.</param>
+	/// <param name="metadata">The metadata to include in the address.</param>
+	/// <param name="minimumRevision">The desired revision for the resulting address.</param>
 	/// <param name="address">Receives the unified address, if one could be created.</param>
 	/// <returns>A value indicating whether the address was successfully created.</returns>
 	/// <remarks>
@@ -55,7 +80,7 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// should only be created with receivers that all agree on the diversifier index.
 	/// This method automates construction of a compliant address.
 	/// </remarks>
-	public static bool TryCreate(ref DiversifierIndex startingDiversiferIndex, IEnumerable<IIncomingViewingKey> keys, [NotNullWhen(true)] out UnifiedAddress? address)
+	internal static bool TryCreate(ref DiversifierIndex startingDiversiferIndex, IEnumerable<IIncomingViewingKey> keys, UnifiedEncodingMetadata metadata, int minimumRevision, [NotNullWhen(true)] out UnifiedAddress? address)
 	{
 		Requires.NotNull(keys);
 
@@ -114,7 +139,7 @@ public abstract class UnifiedAddress : ZcashAddress
 			}
 		}
 
-		address = Create(receivers);
+		address = Create(receivers, metadata, minimumRevision);
 		return true;
 	}
 
@@ -127,13 +152,16 @@ public abstract class UnifiedAddress : ZcashAddress
 	/// No more than one of each type of address is allowed.
 	/// Sprout addresses are not allowed.
 	/// </param>
+	/// <param name="metadata">Metadata to embed into the address.</param>
+	/// <param name="minimumRevision">The minimum revision to create.</param>
 	/// <returns>A unified address that contains all the receivers.</returns>
-	public static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers)
+	internal static UnifiedAddress Create(IReadOnlyCollection<ZcashAddress> receivers, UnifiedEncodingMetadata metadata, int minimumRevision)
 	{
 		Requires.NotNull(receivers);
 		Requires.Argument(receivers.Count > 0, nameof(receivers), "Cannot create a unified address with no receivers.");
+		Requires.NotNull(metadata);
 
-		if (receivers.Count == 1 && receivers.Single() is UnifiedAddress existingUnifiedAddress)
+		if (receivers.Count == 1 && receivers.Single() is UnifiedAddress existingUnifiedAddress && existingUnifiedAddress.Metadata == metadata)
 		{
 			// If the only receiver is a UA, just return it.
 			return existingUnifiedAddress;
@@ -173,37 +201,53 @@ public abstract class UnifiedAddress : ZcashAddress
 			}
 		}
 
-		Requires.Argument(hasShieldedAddress, nameof(receivers), "At least one shielded address is required.");
+		int revision = Math.Max(minimumRevision, metadata.HasMustUnderstandMetadata || !hasShieldedAddress ? 1 : 0);
 
-		string humanReadablePart = network switch
+		string humanReadablePart = (network, revision) switch
 		{
-			ZcashNetwork.MainNet => HumanReadablePartMainNet,
-			ZcashNetwork.TestNet => HumanReadablePartTestNet,
+			(ZcashNetwork.MainNet, 0) => HumanReadablePart.R0.MainNet,
+			(ZcashNetwork.TestNet, 0) => HumanReadablePart.R0.TestNet,
+			(ZcashNetwork.MainNet, 1) => HumanReadablePart.R1.MainNet,
+			(ZcashNetwork.TestNet, 1) => HumanReadablePart.R1.TestNet,
 			_ => throw new NotSupportedException(),
 		};
 
-		string unifiedChars = UnifiedEncoding.Encode(humanReadablePart, receivers.Cast<IUnifiedEncodingElement>());
+		string unifiedChars = UnifiedEncoding.Encode(humanReadablePart, receivers.Cast<IUnifiedEncodingElement>(), metadata);
 
-		return new CompoundUnifiedAddress(unifiedChars, new(GetReceiversInPreferredOrder(receivers)));
+		return new CompoundUnifiedAddress(unifiedChars, new(GetReceiversInPreferredOrder(receivers)), revision)
+		{
+			Metadata = metadata,
+		};
 	}
 
 	/// <inheritdoc cref="ZcashAddress.TryDecode(string, out DecodeError?, out string?, out ZcashAddress?)" />
 	internal static bool TryParse(string address, [NotNullWhen(false)] out DecodeError? errorCode, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out UnifiedAddress? result)
 	{
-		if (!UnifiedEncoding.TryDecode(address, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? unknownElements, out errorCode, out errorMessage))
+		if (!UnifiedEncoding.TryDecode(address, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? elements, out errorCode, out errorMessage))
 		{
 			result = null;
 			return false;
 		}
 
 		ZcashNetwork network;
+		int revision;
 		switch (humanReadablePart)
 		{
-			case HumanReadablePartMainNet:
+			case HumanReadablePart.R0.MainNet:
 				network = ZcashNetwork.MainNet;
+				revision = 0;
 				break;
-			case HumanReadablePartTestNet:
+			case HumanReadablePart.R0.TestNet:
 				network = ZcashNetwork.TestNet;
+				revision = 0;
+				break;
+			case HumanReadablePart.R1.MainNet:
+				network = ZcashNetwork.MainNet;
+				revision = 1;
+				break;
+			case HumanReadablePart.R1.TestNet:
+				network = ZcashNetwork.TestNet;
+				revision = 1;
 				break;
 			default:
 				errorCode = DecodeError.UnrecognizedHRP;
@@ -213,8 +257,9 @@ public abstract class UnifiedAddress : ZcashAddress
 		}
 
 		// Walk over each receiver.
-		List<ZcashAddress> receiverAddresses = new(unknownElements.Count);
-		foreach (UnifiedEncoding.UnknownElement element in unknownElements)
+		List<ZcashAddress> receiverAddresses = new(elements.Count);
+		UnifiedEncodingMetadata metadata = UnifiedEncodingMetadata.Default;
+		foreach (UnifiedEncoding.UnknownElement element in elements)
 		{
 			switch (element.UnifiedTypeCode)
 			{
@@ -230,15 +275,31 @@ public abstract class UnifiedAddress : ZcashAddress
 				case UnifiedTypeCodes.Orchard:
 					receiverAddresses.Add(new OrchardAddress(new OrchardReceiver(element.Content.Span), network));
 					break;
+				case >= UnifiedTypeCodes.MustUnderstandTypeCodeStart and <= UnifiedTypeCodes.MustUnderstandTypeCodeEnd when revision == 0:
+					errorCode = DecodeError.MustUnderstandMetadataNotAllowed;
+					errorMessage = Strings.FormatMustUnderstandMetadataNotAllowedThisRevision(element.UnifiedTypeCode.ToString("x2"), revision);
+					result = null;
+					return false;
+				case UnifiedTypeCodes.ExpirationByUnixTimeTypeCode:
+					metadata = metadata with { ExpirationDate = UnifiedEncodingMetadata.DecodeExpirationDate(element.Content.Span) };
+					break;
+				case UnifiedTypeCodes.ExpirationByBlockHeightTypeCode:
+					metadata = metadata with { ExpirationHeight = UnifiedEncodingMetadata.DecodeExpirationHeight(element.Content.Span) };
+					break;
+				case >= UnifiedTypeCodes.MustUnderstandTypeCodeStart and <= UnifiedTypeCodes.MustUnderstandTypeCodeEnd:
+					errorCode = DecodeError.UnrecognizedMustUnderstandMetadata;
+					errorMessage = Strings.FormatUnrecognizedMustUnderstandMetadata(element.UnifiedTypeCode.ToString("x2"));
+					result = null;
+					return false;
 			}
 		}
 
 		// If we parsed exactly one Orchard receiver, just return it as its own address.
 		errorCode = null;
 		errorMessage = null;
-		result = receiverAddresses.Count == 1 && receiverAddresses[0] is OrchardAddress orchardAddr
-			? orchardAddr
-			: new CompoundUnifiedAddress(address, new(GetReceiversInPreferredOrder(receiverAddresses)));
+		result = receiverAddresses.Count == 1 && receiverAddresses[0] is OrchardAddress orchardAddr && orchardAddr.Metadata == metadata
+			? orchardAddr.WithMetadata(metadata)
+			: new CompoundUnifiedAddress(address, new(GetReceiversInPreferredOrder(receiverAddresses)), revision) { Metadata = metadata };
 		return true;
 	}
 
@@ -249,5 +310,43 @@ public abstract class UnifiedAddress : ZcashAddress
 		List<ZcashAddress> sortedAddresses = addresses.ToList();
 		sortedAddresses.Sort((a, b) => -a.UnifiedTypeCode.CompareTo(b.UnifiedTypeCode));
 		return new(sortedAddresses);
+	}
+
+	/// <summary>
+	/// The human readable parts for Unified Addresses.
+	/// </summary>
+	private protected static class HumanReadablePart
+	{
+		/// <summary>
+		/// For UA revision 0.
+		/// </summary>
+		internal static class R0
+		{
+			/// <summary>
+			/// The human-readable part of a Unified Address on mainnet, revision 0.
+			/// </summary>
+			internal const string MainNet = "u";
+
+			/// <summary>
+			/// The human-readable part of a Unified Address on testnet, revision 0.
+			/// </summary>
+			internal const string TestNet = $"{MainNet}test";
+		}
+
+		/// <summary>
+		/// For UA revision 1.
+		/// </summary>
+		internal static class R1
+		{
+			/// <summary>
+			/// The human-readable part of a Unified Address on mainnet, revision 1.
+			/// </summary>
+			internal const string MainNet = "ur";
+
+			/// <summary>
+			/// The human-readable part of a Unified Address on testnet, revision 1.
+			/// </summary>
+			internal const string TestNet = $"{MainNet}test";
+		}
 	}
 }

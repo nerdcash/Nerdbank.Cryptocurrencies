@@ -76,7 +76,7 @@ Nerdbank.Zcash.LightWalletClient.GetUnshieldedBalances(Nerdbank.Zcash.ZcashAccou
 Nerdbank.Zcash.LightWalletClient.LastDownloadHeight.get -> uint?
 Nerdbank.Zcash.LightWalletClient.LightWalletClient(System.Uri! serverUrl, Nerdbank.Zcash.ZcashNetwork network, string! dataFile) -> void
 Nerdbank.Zcash.LightWalletClient.Network.get -> Nerdbank.Zcash.ZcashNetwork
-Nerdbank.Zcash.LightWalletClient.SendAsync(Nerdbank.Zcash.ZcashAccount! account, System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction.LineItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.TxId>!
+Nerdbank.Zcash.LightWalletClient.SendAsync(Nerdbank.Zcash.ZcashAccount! account, System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction.LineItem>! payments, System.IProgress<Nerdbank.Zcash.LightWalletClient.SendProgress!>? progress, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.ReadOnlyMemory<Nerdbank.Zcash.TxId>>!
 Nerdbank.Zcash.LightWalletClient.SendProgress
 Nerdbank.Zcash.LightWalletClient.SendProgress.Deconstruct(out uint Id, out bool IsSendInProgress, out uint Progress, out uint Total, out string? LastError, out string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Id.get -> uint
@@ -478,7 +478,18 @@ Nerdbank.Zcash.TxId.this[System.Range range].get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.TxId.TxId() -> void
 Nerdbank.Zcash.TxId.TxId(System.ReadOnlySpan<byte> value) -> void
 Nerdbank.Zcash.UnifiedAddress
-Nerdbank.Zcash.UnifiedAddress.UnifiedAddress(string! address) -> void
+Nerdbank.Zcash.UnifiedAddress.Metadata.get -> Nerdbank.Zcash.UnifiedEncodingMetadata!
+Nerdbank.Zcash.UnifiedAddress.Metadata.init -> void
+Nerdbank.Zcash.UnifiedAddress.Revision.get -> int
+Nerdbank.Zcash.UnifiedAddress.UnifiedAddress(string! address, int revision) -> void
+Nerdbank.Zcash.UnifiedAddress.WithMetadata(Nerdbank.Zcash.UnifiedEncodingMetadata! metadata) -> Nerdbank.Zcash.UnifiedAddress!
+Nerdbank.Zcash.UnifiedEncodingMetadata
+Nerdbank.Zcash.UnifiedEncodingMetadata.ExpirationDate.get -> System.DateTimeOffset?
+Nerdbank.Zcash.UnifiedEncodingMetadata.ExpirationDate.init -> void
+Nerdbank.Zcash.UnifiedEncodingMetadata.ExpirationHeight.get -> uint?
+Nerdbank.Zcash.UnifiedEncodingMetadata.ExpirationHeight.init -> void
+Nerdbank.Zcash.UnifiedEncodingMetadata.UnifiedEncodingMetadata() -> void
+Nerdbank.Zcash.UnifiedEncodingMetadata.UnifiedEncodingMetadata(Nerdbank.Zcash.UnifiedEncodingMetadata! original) -> void
 Nerdbank.Zcash.UnifiedViewingKey
 Nerdbank.Zcash.UnifiedViewingKey.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.UnifiedViewingKey.Equals(Nerdbank.Zcash.UnifiedViewingKey? other) -> bool
@@ -489,7 +500,9 @@ Nerdbank.Zcash.UnifiedViewingKey.Full.IncomingViewingKey.get -> Nerdbank.Zcash.U
 Nerdbank.Zcash.UnifiedViewingKey.GetEnumerator() -> System.Collections.Generic.IEnumerator<Nerdbank.Zcash.IIncomingViewingKey!>!
 Nerdbank.Zcash.UnifiedViewingKey.GetViewingKey<T>() -> T?
 Nerdbank.Zcash.UnifiedViewingKey.Incoming
+Nerdbank.Zcash.UnifiedViewingKey.Metadata.get -> Nerdbank.Zcash.UnifiedEncodingMetadata!
 Nerdbank.Zcash.UnifiedViewingKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
+Nerdbank.Zcash.UnifiedViewingKey.Revision.get -> int
 Nerdbank.Zcash.UnifiedViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.ZcashAccount
 Nerdbank.Zcash.ZcashAccount.AddressSendsToThisAccount(Nerdbank.Zcash.ZcashAddress! address) -> bool
@@ -760,6 +773,9 @@ override Nerdbank.Zcash.TxId.Equals(object? obj) -> bool
 override Nerdbank.Zcash.TxId.GetHashCode() -> int
 override Nerdbank.Zcash.TxId.ToString() -> string!
 override Nerdbank.Zcash.UnifiedAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.UnifiedEncodingMetadata.Equals(object? obj) -> bool
+override Nerdbank.Zcash.UnifiedEncodingMetadata.GetHashCode() -> int
+override Nerdbank.Zcash.UnifiedEncodingMetadata.ToString() -> string!
 override Nerdbank.Zcash.UnifiedViewingKey.Equals(object? obj) -> bool
 override Nerdbank.Zcash.UnifiedViewingKey.GetHashCode() -> int
 override Nerdbank.Zcash.UnifiedViewingKey.ToString() -> string!
@@ -866,13 +882,19 @@ static Nerdbank.Zcash.TxId.Parse(string! txid) -> Nerdbank.Zcash.TxId
 static Nerdbank.Zcash.TxId.Parse(System.ReadOnlySpan<char> txid) -> Nerdbank.Zcash.TxId
 static Nerdbank.Zcash.UnifiedAddress.Create(params Nerdbank.Zcash.ZcashAddress![]! receivers) -> Nerdbank.Zcash.UnifiedAddress!
 static Nerdbank.Zcash.UnifiedAddress.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.ZcashAddress!>! receivers) -> Nerdbank.Zcash.UnifiedAddress!
+static Nerdbank.Zcash.UnifiedAddress.Create(System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.ZcashAddress!>! receivers, Nerdbank.Zcash.UnifiedEncodingMetadata! metadata) -> Nerdbank.Zcash.UnifiedAddress!
+static Nerdbank.Zcash.UnifiedAddress.TryCreate(ref Nerdbank.Zcash.DiversifierIndex startingDiversiferIndex, System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! keys, Nerdbank.Zcash.UnifiedEncodingMetadata! metadata, out Nerdbank.Zcash.UnifiedAddress? address) -> bool
 static Nerdbank.Zcash.UnifiedAddress.TryCreate(ref Nerdbank.Zcash.DiversifierIndex startingDiversiferIndex, System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! keys, out Nerdbank.Zcash.UnifiedAddress? address) -> bool
+static Nerdbank.Zcash.UnifiedEncodingMetadata.operator !=(Nerdbank.Zcash.UnifiedEncodingMetadata? left, Nerdbank.Zcash.UnifiedEncodingMetadata? right) -> bool
+static Nerdbank.Zcash.UnifiedEncodingMetadata.operator ==(Nerdbank.Zcash.UnifiedEncodingMetadata? left, Nerdbank.Zcash.UnifiedEncodingMetadata? right) -> bool
 static Nerdbank.Zcash.UnifiedViewingKey.Decode(string! unifiedViewingKey) -> Nerdbank.Zcash.UnifiedViewingKey!
 static Nerdbank.Zcash.UnifiedViewingKey.Full.Create(params Nerdbank.Zcash.IFullViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
 static Nerdbank.Zcash.UnifiedViewingKey.Full.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IFullViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
+static Nerdbank.Zcash.UnifiedViewingKey.Full.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IFullViewingKey!>! viewingKeys, Nerdbank.Zcash.UnifiedEncodingMetadata! metadata) -> Nerdbank.Zcash.UnifiedViewingKey.Full!
 static Nerdbank.Zcash.UnifiedViewingKey.implicit operator string?(Nerdbank.Zcash.UnifiedViewingKey? viewingKey) -> string?
 static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(params Nerdbank.Zcash.IIncomingViewingKey![]! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! viewingKeys) -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
+static Nerdbank.Zcash.UnifiedViewingKey.Incoming.Create(System.Collections.Generic.IEnumerable<Nerdbank.Zcash.IIncomingViewingKey!>! viewingKeys, Nerdbank.Zcash.UnifiedEncodingMetadata! metadata) -> Nerdbank.Zcash.UnifiedViewingKey.Incoming!
 static Nerdbank.Zcash.UnifiedViewingKey.TryDecode(string! encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.UnifiedViewingKey? key) -> bool
 static Nerdbank.Zcash.ZcashAccount.FullViewingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.FullViewingKeys? right) -> bool
 static Nerdbank.Zcash.ZcashAccount.FullViewingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? left, Nerdbank.Zcash.ZcashAccount.FullViewingKeys? right) -> bool
@@ -924,6 +946,7 @@ static Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.TryDecode(Sy
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey? key) -> bool
 static readonly Nerdbank.Zcash.LightWalletServers.ElectricCoinCo.TestNet -> System.Uri!
 static readonly Nerdbank.Zcash.LightWalletServers.Nighthawk.MainNet -> System.Uri!
+static readonly Nerdbank.Zcash.UnifiedEncodingMetadata.Default -> Nerdbank.Zcash.UnifiedEncodingMetadata!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.ByFullViewingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.ByIncomingViewingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.BySpendingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!
@@ -943,6 +966,10 @@ virtual Nerdbank.Zcash.Transaction.<Clone>$() -> Nerdbank.Zcash.Transaction!
 virtual Nerdbank.Zcash.Transaction.EqualityContract.get -> System.Type!
 virtual Nerdbank.Zcash.Transaction.Equals(Nerdbank.Zcash.Transaction? other) -> bool
 virtual Nerdbank.Zcash.Transaction.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.UnifiedEncodingMetadata.<Clone>$() -> Nerdbank.Zcash.UnifiedEncodingMetadata!
+virtual Nerdbank.Zcash.UnifiedEncodingMetadata.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.UnifiedEncodingMetadata.Equals(Nerdbank.Zcash.UnifiedEncodingMetadata? other) -> bool
+virtual Nerdbank.Zcash.UnifiedEncodingMetadata.PrintMembers(System.Text.StringBuilder! builder) -> bool
 virtual Nerdbank.Zcash.ZcashAccount.FullViewingKeys.<Clone>$() -> Nerdbank.Zcash.ZcashAccount.FullViewingKeys!
 virtual Nerdbank.Zcash.ZcashAccount.FullViewingKeys.EqualityContract.get -> System.Type!
 virtual Nerdbank.Zcash.ZcashAccount.FullViewingKeys.Equals(Nerdbank.Zcash.ZcashAccount.FullViewingKeys? other) -> bool

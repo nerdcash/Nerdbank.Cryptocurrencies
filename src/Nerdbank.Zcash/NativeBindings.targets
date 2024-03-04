@@ -1,42 +1,51 @@
 <Project>
   <PropertyGroup>
-    <RustOutputDirBase>$(RepoRootPath)obj/src/nerdbank-zcash-rust/</RustOutputDirBase>
-    <RustOutputDir>$(RustOutputDirBase)$(Configuration.ToLower())/</RustOutputDir>
+    <RustIntermediateDirBase>$(RepoRootPath)obj/src/nerdbank-zcash-rust/</RustIntermediateDirBase>
+    <RustOutputDirBase>$(RepoRootPath)src/nerdbank-zcash-rust/target/</RustOutputDirBase>
+    <RustConfiguration>$(Configuration.ToLower())</RustConfiguration>
   </PropertyGroup>
   <!-- This file is imported both by the packaging project and by the test project.
        In the case of the packaging project, which targets AnyCPU, we want all native files included.
        But in the case of the test project, we only want the one that matches the platform. -->
   <ItemGroup>
     <!-- Windows -->
-    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)aarch64-pc-windows-msvc/nerdbank_zcash_rust.dll">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)aarch64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.dll">
       <PackagePath>runtimes/win-arm64/native/</PackagePath>
     </RustBinary>
-    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)aarch64-pc-windows-msvc/nerdbank_zcash_rust.pdb">
+    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)aarch64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.pdb">
       <PackagePath>runtimes/win-arm64/native/</PackagePath>
     </RustSymbol>
-    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)x86_64-pc-windows-msvc/nerdbank_zcash_rust.dll">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)x86_64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.dll">
       <PackagePath>runtimes/win-x64/native/</PackagePath>
     </RustBinary>
-    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDir)x86_64-pc-windows-msvc/nerdbank_zcash_rust.pdb">
+    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)x86_64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.pdb">
       <PackagePath>runtimes/win-x64/native/</PackagePath>
     </RustSymbol>
 
     <!-- Linux -->
-    <!-- <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDir)aarch64-unknown-linux-gnu/libnerdbank_zcash_rust.so">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)aarch64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
       <PackagePath>runtimes/linux-arm64/native/</PackagePath>
-    </RustBinary> -->
-    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDir)x86_64-unknown-linux-gnu/libnerdbank_zcash_rust.so">
+    </RustBinary>
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)x86_64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
       <PackagePath>runtimes/linux-x64/native/</PackagePath>
     </RustBinary>
 
+    <!-- Android -->
+    <RustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputDirBase)aarch64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+      <PackagePath>runtimes/android-arm64/native/</PackagePath>
+    </RustBinary>
+    <RustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputDirBase)x86_64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+      <PackagePath>runtimes/android-x64/native/</PackagePath>
+    </RustBinary>
+
     <!-- Mac -->
-    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDir)aarch64-apple-darwin/libnerdbank_zcash_rust.dylib">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)aarch64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">
       <PackagePath>runtimes/osx-arm64/native/</PackagePath>
     </RustBinary>
-    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDir)x86_64-apple-darwin/libnerdbank_zcash_rust.dylib">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)x86_64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">
       <PackagePath>runtimes/osx-x64/native/</PackagePath>
     </RustBinary>
-    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDir)aarch64-apple-darwin/libnerdbank_zcash_rust.dylib">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)aarch64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">
       <PackagePath>runtimes/ios-arm64/native/</PackagePath>
     </RustBinary>
   </ItemGroup>
@@ -55,8 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Rust3rdPartyNotices Include="
-      $(RustOutputDirBase)THIRD_PARTY_DEPENDENCIES.txt;
-      $(RustOutputDirBase)THIRD_PARTY_LICENSES.yml;
+      $(RustIntermediateDirBase)THIRD_PARTY_DEPENDENCIES.txt;
+      $(RustIntermediateDirBase)THIRD_PARTY_LICENSES.yml;
       ">
       <PackagePath></PackagePath>
     </Rust3rdPartyNotices>

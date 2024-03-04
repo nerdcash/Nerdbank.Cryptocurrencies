@@ -1,20 +1,26 @@
 use std::{num::NonZeroU32, path::Path};
 
 use http::Uri;
+use nonempty::NonEmpty;
 use rusqlite::Connection;
 use zcash_client_backend::{
     address::Address,
     data_api::{
-        wallet::{input_selection::GreedyInputSelector, spend},
+        wallet::{
+            create_proposed_transactions,
+            input_selection::{GreedyInputSelector, GreedyInputSelectorError},
+            propose_transfer,
+        },
         WalletRead,
     },
-    fees::zip317::SingleOutputChangeStrategy,
+    fees::{zip317::SingleOutputChangeStrategy, ChangeStrategy},
     keys::UnifiedSpendingKey,
     proto::service,
     wallet::OvkPolicy,
     zip321::{Payment, TransactionRequest},
+    ShieldedProtocol,
 };
-use zcash_client_sqlite::WalletDb;
+use zcash_client_sqlite::{ReceivedNoteId, WalletDb};
 use zcash_primitives::{
     consensus::Network,
     memo::MemoBytes,
@@ -41,14 +47,14 @@ pub async fn send_transaction<P: AsRef<Path>>(
     usk: &UnifiedSpendingKey,
     min_confirmations: NonZeroU32,
     details: Vec<TransactionSendDetail>,
-) -> Result<SendTransactionResult, Error> {
+) -> Result<NonEmpty<SendTransactionResult>, Error> {
     let mut db = Db::init(data_file, network)?;
 
     let prover = get_prover()?;
 
     // TODO: revise this to a smarter change strategy that avoids unnecessarily crossing the turnstile.
     let input_selector = GreedyInputSelector::new(
-        SingleOutputChangeStrategy::new(FeeRule::standard(), None),
+        SingleOutputChangeStrategy::new(FeeRule::standard(), None, ShieldedProtocol::Sapling),
         Default::default(),
     );
 
@@ -70,20 +76,44 @@ pub async fn send_transaction<P: AsRef<Path>>(
     }
 
     let request = TransactionRequest::new(payments)?;
+    let account_id = db
+        .data
+        .get_account_for_ufvk(&usk.to_unified_full_viewing_key())?
+        .ok_or(Error::KeyNotRecognized)?;
 
-    let txid = spend(
+    let proposal = propose_transfer::<_, _, _, Error>(
+        &mut db.data,
+        &network,
+        account_id,
+        &input_selector,
+        request,
+        min_confirmations,
+    )?;
+    let txids = create_proposed_transactions::<
+        _,
+        _,
+        GreedyInputSelectorError<
+            <SingleOutputChangeStrategy as ChangeStrategy>::Error,
+            ReceivedNoteId,
+        >,
+        _,
+        _,
+    >(
         &mut db.data,
         &network,
         &prover,
         &prover,
-        &input_selector,
         usk,
-        request,
         OvkPolicy::Sender,
-        min_confirmations,
+        &proposal,
     )?;
 
-    transmit_transaction(txid, server_uri, &mut db.data).await
+    let mut result = Vec::new();
+    for txid in txids {
+        result.push(transmit_transaction(txid, server_uri.clone(), &mut db.data).await?);
+    }
+
+    Ok(NonEmpty::from_vec(result).unwrap())
 }
 
 pub(crate) async fn transmit_transaction(

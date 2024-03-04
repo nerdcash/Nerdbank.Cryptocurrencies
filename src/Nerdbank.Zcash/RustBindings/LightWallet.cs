@@ -1148,19 +1148,19 @@ static class _UniFFILib
 		}
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_send();
-			if (checksum != 1071)
+			if (checksum != 29473)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_send` checksum `1071`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_send` checksum `29473`, library returned `{checksum}`"
 				);
 			}
 		}
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_shield();
-			if (checksum != 52633)
+			if (checksum != 23886)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_shield` checksum `52633`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_shield` checksum `23886`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -2673,6 +2673,53 @@ class FfiConverterSequenceTypeAccountInfo : FfiConverterRustBuffer<List<AccountI
 	}
 }
 
+class FfiConverterSequenceTypeSendTransactionResult
+	: FfiConverterRustBuffer<List<SendTransactionResult>>
+{
+	public static FfiConverterSequenceTypeSendTransactionResult INSTANCE =
+		new FfiConverterSequenceTypeSendTransactionResult();
+
+	public override List<SendTransactionResult> Read(BigEndianStream stream)
+	{
+		var length = stream.ReadInt();
+		var result = new List<SendTransactionResult>(length);
+		for (int i = 0; i < length; i++)
+		{
+			result.Add(FfiConverterTypeSendTransactionResult.INSTANCE.Read(stream));
+		}
+		return result;
+	}
+
+	public override int AllocationSize(List<SendTransactionResult> value)
+	{
+		var sizeForLength = 4;
+
+		// details/1-empty-list-as-default-method-parameter.md
+		if (value == null)
+		{
+			return sizeForLength;
+		}
+
+		var sizeForItems = value
+			.Select(item => FfiConverterTypeSendTransactionResult.INSTANCE.AllocationSize(item))
+			.Sum();
+		return sizeForLength + sizeForItems;
+	}
+
+	public override void Write(List<SendTransactionResult> value, BigEndianStream stream)
+	{
+		// details/1-empty-list-as-default-method-parameter.md
+		if (value == null)
+		{
+			stream.WriteInt(0);
+			return;
+		}
+
+		stream.WriteInt(value.Count);
+		value.ForEach(item => FfiConverterTypeSendTransactionResult.INSTANCE.Write(item, stream));
+	}
+}
+
 class FfiConverterSequenceTypeTransaction : FfiConverterRustBuffer<List<Transaction>>
 {
 	public static FfiConverterSequenceTypeTransaction INSTANCE =
@@ -3082,7 +3129,7 @@ internal static class LightWalletMethods
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static SendTransactionResult Send(
+	public static List<SendTransactionResult> Send(
 		DbInit @config,
 		String @uri,
 		byte[] @usk,
@@ -3090,7 +3137,7 @@ internal static class LightWalletMethods
 		List<TransactionSendDetail> @sendDetails
 	)
 	{
-		return FfiConverterTypeSendTransactionResult.INSTANCE.Lift(
+		return FfiConverterSequenceTypeSendTransactionResult.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
 				FfiConverterTypeLightWalletException.INSTANCE,
 				(ref RustCallStatus _status) =>
@@ -3107,14 +3154,14 @@ internal static class LightWalletMethods
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static SendTransactionResult Shield(
+	public static List<SendTransactionResult> Shield(
 		DbInit @config,
 		String @uri,
 		byte[] @usk,
 		String @address
 	)
 	{
-		return FfiConverterTypeSendTransactionResult.INSTANCE.Lift(
+		return FfiConverterSequenceTypeSendTransactionResult.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
 				FfiConverterTypeLightWalletException.INSTANCE,
 				(ref RustCallStatus _status) =>
