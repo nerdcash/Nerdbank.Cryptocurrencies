@@ -47,12 +47,14 @@ Nerdbank.Cryptocurrencies.DecodeError.InvalidChecksum = 1 -> Nerdbank.Cryptocurr
 Nerdbank.Cryptocurrencies.DecodeError.InvalidDerivationData = 10 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.InvalidKey = 9 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.InvalidWord = 5 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.MustUnderstandMetadataNotAllowed = 16 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.NoSeparator = 3 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.Other = 14 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.TypeMismatch = 13 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnexpectedLength = 7 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnrecognizedAddressType = 11 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnrecognizedHRP = 12 -> Nerdbank.Cryptocurrencies.DecodeError
+Nerdbank.Cryptocurrencies.DecodeError.UnrecognizedMustUnderstandMetadata = 15 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodeError.UnrecognizedVersion = 8 -> Nerdbank.Cryptocurrencies.DecodeError
 Nerdbank.Cryptocurrencies.DecodingReader
 Nerdbank.Cryptocurrencies.DecodingReader.DecodingReader() -> void

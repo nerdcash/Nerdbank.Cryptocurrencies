@@ -1,21 +1,27 @@
 steps:
 - task: DownloadPipelineArtifact@2
-  displayName: 🔻 Download Windows code coverage results
+  displayName: 🔻 Download Windows binaries
   inputs:
     buildType: current
-    targetPath: obj/src/nerdbank-zcash-rust
+    targetPath: src/nerdbank-zcash-rust/target
     artifactName: rust-Windows
 - task: DownloadPipelineArtifact@2
-  displayName: 🔻 Download Linux code coverage results
+  displayName: 🔻 Download Linux binaries
   inputs:
     buildType: current
-    targetPath: obj/src/nerdbank-zcash-rust
+    targetPath: src/nerdbank-zcash-rust/target
     artifactName: rust-Linux
 - task: DownloadPipelineArtifact@2
-  displayName: 🔻 Download macOS code coverage results
+  displayName: 🔻 Download cross-targeting binaries
   inputs:
     buildType: current
-    targetPath: obj/src/nerdbank-zcash-rust
+    targetPath: src/nerdbank-zcash-rust/target
+    artifactName: rust-cross-targeting
+- task: DownloadPipelineArtifact@2
+  displayName: 🔻 Download macOS binaries
+  inputs:
+    buildType: current
+    targetPath: src/nerdbank-zcash-rust/target
     artifactName: rust-macOS
 
 - pwsh: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1

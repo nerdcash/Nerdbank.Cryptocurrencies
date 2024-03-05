@@ -1,6 +1,3 @@
-parameters:
-  includeMacOS:
-
 steps:
 - download: current
   artifact: coverageResults-Windows
@@ -14,7 +11,6 @@ steps:
   artifact: coverageResults-macOS
   displayName: 🔻 Download macOS code coverage results
   continueOnError: true
-  condition: and(succeeded(), ${{ parameters.includeMacOS }})
 - powershell: azure-pipelines/Merge-CodeCoverage.ps1 -Path '$(Pipeline.Workspace)' -OutputFile coveragereport/merged.cobertura.xml -Format Cobertura -Verbose
   displayName: ⚙ Merge coverage
 - task: PublishCodeCoverageResults@1

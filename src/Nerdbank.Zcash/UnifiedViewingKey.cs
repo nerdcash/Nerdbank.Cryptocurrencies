@@ -13,11 +13,6 @@ namespace Nerdbank.Zcash;
 /// </remarks>
 public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IIncomingViewingKey, IEquatable<UnifiedViewingKey>, IKeyWithTextEncoding
 {
-	private const string HumanReadablePartMainNetFVK = "uview";
-	private const string HumanReadablePartTestNetFVK = "uviewtest";
-	private const string HumanReadablePartMainNetIVK = "uivk";
-	private const string HumanReadablePartTestNetIVK = "uivktest";
-
 	private readonly IReadOnlyCollection<IUnifiedEncodingElement> viewingKeys;
 
 	/// <summary>
@@ -26,12 +21,24 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// <param name="encoding">The string encoding of this viewing key.</param>
 	/// <param name="viewingKeys">The viewing keys contained in this unified key.</param>
 	/// <param name="network">The network this key operates on.</param>
-	private protected UnifiedViewingKey(string encoding, IEnumerable<IIncomingViewingKey> viewingKeys, ZcashNetwork network)
+	/// <param name="revision">The ZIP-316 revision number to which this particular unified viewing key adheres.</param>
+	private protected UnifiedViewingKey(string encoding, IEnumerable<IIncomingViewingKey> viewingKeys, ZcashNetwork network, int revision)
 	{
 		this.TextEncoding = encoding;
 		this.viewingKeys = viewingKeys.Cast<IUnifiedEncodingElement>().ToArray();
 		this.Network = network;
+		this.Revision = revision;
 	}
+
+	/// <summary>
+	/// Gets the ZIP-316 revision number to which this particular unified viewing key adheres.
+	/// </summary>
+	public int Revision { get; }
+
+	/// <summary>
+	/// Gets the metadata associated with this unified viewing key.
+	/// </summary>
+	public UnifiedEncodingMetadata Metadata { get; protected init; } = UnifiedEncodingMetadata.Default;
 
 	/// <summary>
 	/// Gets the string encoding of the unified viewing key.
@@ -48,7 +55,7 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		get
 		{
 			DiversifierIndex index = default;
-			Assumes.True(UnifiedAddress.TryCreate(ref index, this.viewingKeys.Cast<IIncomingViewingKey>(), out UnifiedAddress? address));
+			Assumes.True(UnifiedAddress.TryCreate(ref index, this.viewingKeys.Cast<IIncomingViewingKey>(), this.Metadata, this.Revision, out UnifiedAddress? address));
 			return address;
 		}
 	}
@@ -102,7 +109,7 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	public static bool TryDecode(string encoding, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out UnifiedViewingKey? key)
 	{
 		Requires.NotNull(encoding);
-		if (!UnifiedEncoding.TryDecode(encoding, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? unknownElements, out decodeError, out errorMessage))
+		if (!UnifiedEncoding.TryDecode(encoding, out string? humanReadablePart, out IReadOnlyList<UnifiedEncoding.UnknownElement>? elements, out decodeError, out errorMessage))
 		{
 			key = null;
 			return false;
@@ -110,23 +117,48 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 
 		bool isFullViewingKey;
 		ZcashNetwork network;
+		int revision;
 		switch (humanReadablePart)
 		{
-			case HumanReadablePartMainNetFVK:
+			case HumanReadablePart.R0.FVK.MainNet:
 				isFullViewingKey = true;
 				network = ZcashNetwork.MainNet;
+				revision = 0;
 				break;
-			case HumanReadablePartMainNetIVK:
+			case HumanReadablePart.R0.IVK.MainNet:
 				isFullViewingKey = false;
 				network = ZcashNetwork.MainNet;
+				revision = 0;
 				break;
-			case HumanReadablePartTestNetFVK:
+			case HumanReadablePart.R0.FVK.TestNet:
 				isFullViewingKey = true;
 				network = ZcashNetwork.TestNet;
+				revision = 0;
 				break;
-			case HumanReadablePartTestNetIVK:
+			case HumanReadablePart.R0.IVK.TestNet:
 				isFullViewingKey = false;
 				network = ZcashNetwork.TestNet;
+				revision = 0;
+				break;
+			case HumanReadablePart.R1.FVK.MainNet:
+				isFullViewingKey = true;
+				network = ZcashNetwork.MainNet;
+				revision = 1;
+				break;
+			case HumanReadablePart.R1.IVK.MainNet:
+				isFullViewingKey = false;
+				network = ZcashNetwork.MainNet;
+				revision = 1;
+				break;
+			case HumanReadablePart.R1.FVK.TestNet:
+				isFullViewingKey = true;
+				network = ZcashNetwork.TestNet;
+				revision = 1;
+				break;
+			case HumanReadablePart.R1.IVK.TestNet:
+				isFullViewingKey = false;
+				network = ZcashNetwork.TestNet;
+				revision = 1;
 				break;
 			default:
 				decodeError = DecodeError.UnrecognizedHRP;
@@ -135,28 +167,48 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 				return false;
 		}
 
-		// Walk over each viewing key.
-		List<IUnifiedEncodingElement> viewingKeys = new(unknownElements.Count);
-		foreach (UnifiedEncoding.UnknownElement element in unknownElements)
+		// Walk over each viewing key and metadata.
+		List<IUnifiedEncodingElement> viewingKeys = new(elements.Count);
+		UnifiedEncodingMetadata metadata = UnifiedEncodingMetadata.Default;
+		foreach (UnifiedEncoding.UnknownElement element in elements)
 		{
-			IUnifiedEncodingElement? viewingKey = element.UnifiedTypeCode switch
+			switch (element.UnifiedTypeCode)
 			{
-				UnifiedTypeCodes.Sapling => isFullViewingKey
-					? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-					: Sapling.DiversifiableIncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
-				UnifiedTypeCodes.Orchard => isFullViewingKey
-					? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
-					: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network),
-				UnifiedTypeCodes.TransparentP2PKH => Zip32HDWallet.Transparent.ExtendedViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network, isFullViewingKey),
-				_ => element,
-			};
-
-			viewingKeys.Add(viewingKey);
+				case UnifiedTypeCodes.Sapling:
+					viewingKeys.Add(isFullViewingKey
+						? Sapling.DiversifiableFullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
+						: Sapling.DiversifiableIncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network));
+					break;
+				case UnifiedTypeCodes.Orchard:
+					viewingKeys.Add(isFullViewingKey
+						? Orchard.FullViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network)
+						: Orchard.IncomingViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network));
+					break;
+				case UnifiedTypeCodes.TransparentP2PKH:
+					viewingKeys.Add(Zip32HDWallet.Transparent.ExtendedViewingKey.DecodeUnifiedViewingKeyContribution(element.Content.Span, network, isFullViewingKey));
+					break;
+				case >= UnifiedTypeCodes.MustUnderstandTypeCodeStart and <= UnifiedTypeCodes.MustUnderstandTypeCodeEnd when revision == 0:
+					decodeError = DecodeError.MustUnderstandMetadataNotAllowed;
+					errorMessage = Strings.FormatMustUnderstandMetadataNotAllowedThisRevision(element.UnifiedTypeCode.ToString("x2"), revision);
+					key = null;
+					return false;
+				case UnifiedTypeCodes.ExpirationByUnixTimeTypeCode:
+					metadata = metadata with { ExpirationDate = UnifiedEncodingMetadata.DecodeExpirationDate(element.Content.Span) };
+					break;
+				case UnifiedTypeCodes.ExpirationByBlockHeightTypeCode:
+					metadata = metadata with { ExpirationHeight = UnifiedEncodingMetadata.DecodeExpirationHeight(element.Content.Span) };
+					break;
+				case >= UnifiedTypeCodes.MustUnderstandTypeCodeStart and <= UnifiedTypeCodes.MustUnderstandTypeCodeEnd:
+					decodeError = DecodeError.UnrecognizedMustUnderstandMetadata;
+					errorMessage = Strings.FormatUnrecognizedMustUnderstandMetadata(element.UnifiedTypeCode.ToString("x2"));
+					key = null;
+					return false;
+			}
 		}
 
 		key = isFullViewingKey
-			? new Full(encoding, viewingKeys.Cast<IFullViewingKey>(), network)
-			: new Incoming(encoding, viewingKeys.Cast<IIncomingViewingKey>(), network);
+			? new Full(encoding, viewingKeys.Cast<IFullViewingKey>(), network, revision) { Metadata = metadata }
+			: new Incoming(encoding, viewingKeys.Cast<IIncomingViewingKey>(), network, revision) { Metadata = metadata };
 		decodeError = null;
 		errorMessage = null;
 		return true;
@@ -217,6 +269,11 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 			}
 		}
 
+		if (this.Metadata != other.Metadata)
+		{
+			return false;
+		}
+
 		return true;
 	}
 
@@ -252,11 +309,14 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 	/// The caller is responsible to ensure that all <paramref name="viewingKeys"/> are all consistently
 	/// the same kind (full or incoming).
 	/// </param>
+	/// <param name="metadata">The metadata to encode into this key.</param>
+	/// <param name="minimumRevision">The minimum revision to encode.</param>
 	/// <returns>The encoded unified viewing key, and the network it operates on.</returns>
 	/// <exception cref="NotSupportedException">Thrown if any of the viewing keys do not implement <see cref="IUnifiedEncodingElement"/>.</exception>
-	private protected static (string Encoding, ZcashNetwork Network) Prepare(IEnumerable<IIncomingViewingKey> viewingKeys, bool isFullViewingKey)
+	private protected static (string Encoding, ZcashNetwork Network, int Revision) Prepare(IEnumerable<IIncomingViewingKey> viewingKeys, bool isFullViewingKey, UnifiedEncodingMetadata metadata, int minimumRevision)
 	{
 		ZcashNetwork? network = null;
+		bool hasShieldedElement = false;
 		foreach (IIncomingViewingKey key in viewingKeys)
 		{
 			if (network is null)
@@ -272,22 +332,29 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 			{
 				throw new NotSupportedException($"Key {key.GetType()} is not supported in a unified viewing key.");
 			}
+
+			hasShieldedElement |= key.DefaultAddress.HasShieldedReceiver;
 		}
 
 		Requires.Argument(network is not null, nameof(viewingKeys), "Cannot create a unified viewing key with no viewing keys.");
+		int revision = Math.Max(minimumRevision, metadata.HasMustUnderstandMetadata || !hasShieldedElement ? 1 : 0);
 
-		string humanReadablePart = (network, isFullViewingKey) switch
+		string humanReadablePart = (network, isFullViewingKey, revision) switch
 		{
-			(ZcashNetwork.MainNet, true) => HumanReadablePartMainNetFVK,
-			(ZcashNetwork.TestNet, true) => HumanReadablePartTestNetFVK,
-			(ZcashNetwork.MainNet, false) => HumanReadablePartMainNetIVK,
-			(ZcashNetwork.TestNet, false) => HumanReadablePartTestNetIVK,
+			(ZcashNetwork.MainNet, true, 0) => HumanReadablePart.R0.FVK.MainNet,
+			(ZcashNetwork.TestNet, true, 0) => HumanReadablePart.R0.FVK.TestNet,
+			(ZcashNetwork.MainNet, false, 0) => HumanReadablePart.R0.IVK.MainNet,
+			(ZcashNetwork.TestNet, false, 0) => HumanReadablePart.R0.IVK.TestNet,
+			(ZcashNetwork.MainNet, true, 1) => HumanReadablePart.R1.FVK.MainNet,
+			(ZcashNetwork.TestNet, true, 1) => HumanReadablePart.R1.FVK.TestNet,
+			(ZcashNetwork.MainNet, false, 1) => HumanReadablePart.R1.IVK.MainNet,
+			(ZcashNetwork.TestNet, false, 1) => HumanReadablePart.R1.IVK.TestNet,
 			_ => throw new NotSupportedException("Unrecognized Zcash network."),
 		};
 
-		string unifiedEncoding = UnifiedEncoding.Encode(humanReadablePart, viewingKeys.Cast<IUnifiedEncodingElement>());
+		string unifiedEncoding = UnifiedEncoding.Encode(humanReadablePart, viewingKeys.Cast<IUnifiedEncodingElement>(), metadata);
 
-		return (unifiedEncoding, network.Value);
+		return (unifiedEncoding, network.Value, revision);
 	}
 
 	/// <summary>
@@ -298,14 +365,20 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Incoming"/> class.
 		/// </summary>
-		/// <inheritdoc cref="UnifiedViewingKey(string, IEnumerable{IIncomingViewingKey}, ZcashNetwork)"/>
-		internal Incoming(string encoding, IEnumerable<IIncomingViewingKey> viewingKeys, ZcashNetwork network)
-			: base(encoding, viewingKeys, network)
+		/// <inheritdoc cref="UnifiedViewingKey(string, IEnumerable{IIncomingViewingKey}, ZcashNetwork, int)"/>
+		internal Incoming(string encoding, IEnumerable<IIncomingViewingKey> viewingKeys, ZcashNetwork network, int revision)
+			: base(encoding, viewingKeys, network, revision)
 		{
 		}
 
 		/// <inheritdoc cref="Create(IEnumerable{IIncomingViewingKey})"/>
 		public static Incoming Create(params IIncomingViewingKey[] viewingKeys) => Create((IEnumerable<IIncomingViewingKey>)viewingKeys);
+
+		/// <inheritdoc cref="Create(IEnumerable{IIncomingViewingKey}, UnifiedEncodingMetadata)"/>
+		public static Incoming Create(IEnumerable<IIncomingViewingKey> viewingKeys) => Create(viewingKeys, UnifiedEncodingMetadata.Default);
+
+		/// <inheritdoc cref="Create(IEnumerable{IIncomingViewingKey}, UnifiedEncodingMetadata, int)"/>
+		public static Incoming Create(IEnumerable<IIncomingViewingKey> viewingKeys, UnifiedEncodingMetadata metadata) => Create(viewingKeys, metadata, 0);
 
 		/// <summary>
 		/// Constructs a unified viewing key from a set of viewing keys.
@@ -316,16 +389,19 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// This must not include more than one viewing key for a given pool.
 		/// The set of keys must be of a consistent viewing type (e.g. all full viewing keys or all incoming viewing keys).
 		/// </param>
+		/// <param name="metadata">Metadata to apply to the key.</param>
+		/// <param name="minimumRevision">The minimum revision to use for the encoding.</param>
 		/// <returns>The unified viewing key.</returns>
-		public static Incoming Create(IEnumerable<IIncomingViewingKey> viewingKeys)
+		internal static Incoming Create(IEnumerable<IIncomingViewingKey> viewingKeys, UnifiedEncodingMetadata metadata, int minimumRevision)
 		{
 			Requires.NotNull(viewingKeys);
+			Requires.NotNull(metadata);
 
 			IEnumerable<IIncomingViewingKey> ivks = viewingKeys
 				.Select(vk => vk.ReduceToOnlyIVK());
 
-			(string encoding, ZcashNetwork network) = Prepare(ivks, isFullViewingKey: false);
-			return new(encoding, ivks, network);
+			(string encoding, ZcashNetwork network, int revision) = Prepare(ivks, isFullViewingKey: false, metadata, minimumRevision);
+			return new(encoding, ivks, network, revision) { Metadata = metadata };
 		}
 	}
 
@@ -337,9 +413,9 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Full"/> class.
 		/// </summary>
-		/// <inheritdoc cref="UnifiedViewingKey(string, IEnumerable{IIncomingViewingKey}, ZcashNetwork)"/>
-		internal Full(string encoding, IEnumerable<IFullViewingKey> viewingKeys, ZcashNetwork network)
-			: base(encoding, viewingKeys, network)
+		/// <inheritdoc cref="UnifiedViewingKey(string, IEnumerable{IIncomingViewingKey}, ZcashNetwork, int)"/>
+		internal Full(string encoding, IEnumerable<IFullViewingKey> viewingKeys, ZcashNetwork network, int revision)
+			: base(encoding, viewingKeys, network, revision)
 		{
 		}
 
@@ -349,13 +425,16 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// <remarks>
 		/// Implemented as described <see href="https://zips.z.cash/zip-0316#deriving-a-uivk-from-a-ufvk">in ZIP-316</see>.
 		/// </remarks>
-		public Incoming IncomingViewingKey => Incoming.Create(this.viewingKeys.Cast<IIncomingViewingKey>());
+		public Incoming IncomingViewingKey => Incoming.Create(this.viewingKeys.Cast<IIncomingViewingKey>(), this.Metadata, this.Revision);
 
 		/// <inheritdoc/>
 		IIncomingViewingKey IFullViewingKey.IncomingViewingKey => this.IncomingViewingKey;
 
 		/// <inheritdoc cref="Create(IEnumerable{IFullViewingKey})"/>
 		public static Full Create(params IFullViewingKey[] viewingKeys) => Create((IEnumerable<IFullViewingKey>)viewingKeys);
+
+		/// <inheritdoc cref="Create(IEnumerable{IFullViewingKey}, UnifiedEncodingMetadata)"/>
+		public static Full Create(IEnumerable<IFullViewingKey> viewingKeys) => Create(viewingKeys, UnifiedEncodingMetadata.Default);
 
 		/// <summary>
 		/// Constructs a unified viewing key from a set of viewing keys.
@@ -365,16 +444,18 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 		/// This must not be empty.
 		/// This must not include more than one viewing key for a given pool.
 		/// </param>
+		/// <param name="metadata">The metadata to encode into the key.</param>
 		/// <returns>The unified viewing key.</returns>
-		public static Full Create(IEnumerable<IFullViewingKey> viewingKeys)
+		public static Full Create(IEnumerable<IFullViewingKey> viewingKeys, UnifiedEncodingMetadata metadata)
 		{
 			Requires.NotNull(viewingKeys);
+			Requires.NotNull(metadata);
 
 			IEnumerable<IFullViewingKey> fvks = viewingKeys
 				.Select(vk => vk.ReduceToOnlyFVK());
 
-			(string encoding, ZcashNetwork network) = Prepare(fvks, isFullViewingKey: true);
-			return new(encoding, fvks, network);
+			(string encoding, ZcashNetwork network, int revision) = Prepare(fvks, isFullViewingKey: true, metadata, minimumRevision: 0);
+			return new(encoding, fvks, network, revision) { Metadata = metadata };
 		}
 
 		/// <summary>
@@ -393,5 +474,93 @@ public abstract class UnifiedViewingKey : IEnumerable<IIncomingViewingKey>, IInc
 
 		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+	}
+
+	/// <summary>
+	/// The human readable parts for Unified Viewing Keys.
+	/// </summary>
+	private protected static class HumanReadablePart
+	{
+		private const string TestNetSuffix = "test";
+
+		/// <summary>
+		/// For UVK revision 0.
+		/// </summary>
+		internal static class R0
+		{
+			private const string Prefix = "u";
+
+			/// <summary>
+			/// HRPs for full viewing keys.
+			/// </summary>
+			internal static class FVK
+			{
+				/// <summary>
+				/// The human-readable part of a Unified Full Viewing Key on mainnet, revision 0.
+				/// </summary>
+				internal const string MainNet = $"{Prefix}view";
+
+				/// <summary>
+				/// The human-readable part of a Unified Full Viewing Key on testnet, revision 0.
+				/// </summary>
+				internal const string TestNet = $"{MainNet}{TestNetSuffix}";
+			}
+
+			/// <summary>
+			/// HRPs for incoming viewing keys.
+			/// </summary>
+			internal static class IVK
+			{
+				/// <summary>
+				/// The human-readable part of a Unified Incoming Viewing Key on mainnet, revision 0.
+				/// </summary>
+				internal const string MainNet = $"{Prefix}ivk";
+
+				/// <summary>
+				/// The human-readable part of a Unified Incoming Viewing Key on testnet, revision 0.
+				/// </summary>
+				internal const string TestNet = $"{MainNet}{TestNetSuffix}";
+			}
+		}
+
+		/// <summary>
+		/// For UVK revision 1.
+		/// </summary>
+		internal static class R1
+		{
+			private const string Prefix = "ur";
+
+			/// <summary>
+			/// HRPs for full viewing keys.
+			/// </summary>
+			internal static class FVK
+			{
+				/// <summary>
+				/// The human-readable part of a Unified Full Viewing Key on mainnet, revision 1.
+				/// </summary>
+				internal const string MainNet = $"{Prefix}view";
+
+				/// <summary>
+				/// The human-readable part of a Unified Full Viewing Key on testnet, revision 1.
+				/// </summary>
+				internal const string TestNet = $"{MainNet}{TestNetSuffix}";
+			}
+
+			/// <summary>
+			/// HRPs for incoming viewing keys.
+			/// </summary>
+			internal static class IVK
+			{
+				/// <summary>
+				/// The human-readable part of a Unified Incoming Viewing Key on mainnet, revision 1.
+				/// </summary>
+				internal const string MainNet = $"{Prefix}ivk";
+
+				/// <summary>
+				/// The human-readable part of a Unified Incoming Viewing Key on testnet, revision 1.
+				/// </summary>
+				internal const string TestNet = $"{MainNet}{TestNetSuffix}";
+			}
+		}
 	}
 }

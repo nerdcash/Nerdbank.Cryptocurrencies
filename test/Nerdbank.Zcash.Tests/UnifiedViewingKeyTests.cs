@@ -203,10 +203,11 @@ public class UnifiedViewingKeyTests : TestBase
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
 		TransparentSK transparent = wallet.CreateTransparentAccount(0);
 		UnifiedViewingKey.Full uvk = UnifiedViewingKey.Full.Create(transparent);
+		Assert.Equal(1, uvk.Revision);
 
 		this.logger.WriteLine(uvk.TextEncoding);
 		Assert.Equal(
-			"uview1nqkrygndyfatrqlec4zhkqkjh95fgyznw08lpnezapnpktmyeams7nyman30vqhrzw9z3sp55cpdklfvqm9ajrkn0menween3ww4vfg2pmdy4zv5y4vjuwmgx2kwtf5w2hakq7agutm",
+			"urview1vnzjegxd057a8x2zx96ujjgg7fymdlq5qren6yhldtnsyne60qnltxj4kx9fd9wpyqcnympdtw405f86mdnrkaw7cgz949h3tmvpqrar23nrdvswmcxm2dh6hzt4t4kvcyyuvayc7ap",
 			uvk.TextEncoding);
 	}
 
@@ -219,7 +220,7 @@ public class UnifiedViewingKeyTests : TestBase
 
 		this.logger.WriteLine(uvk.TextEncoding);
 		Assert.Equal(
-			"uivk1urs2a7dkmy797lyqudcjpkxwsep3f7ae42jgw4265vgv2uc2kau3lcxc6vwm9hpqlcft77ew9wewa3ndmk74r4ntwkk5j2qkvqjcrq986n47lgd4t7hf8kv876nrmanalwcwx0md880",
+			"urivk1ara39tyfhuydtfvy7094q4aapjh0crswnm70k4erhcclv9tn3z0n23jr4nndz8qsfverradlnklnneja4zm44cagvqf90ytqxaedk5mafef9j55uzmmcavg8vwzjn0hzllrlcpcqhlp",
 			uvk.TextEncoding);
 	}
 
@@ -451,6 +452,106 @@ public class UnifiedViewingKeyTests : TestBase
 		UnifiedViewingKey.Full ufvk = UnifiedViewingKey.Full.Create(saplingSK, orchardSK);
 		Assert.Equal(ua, ufvk.DefaultAddress);
 		this.logger.WriteLine(ua);
+	}
+
+	[Fact]
+	public void Metadata_Propagates_FVK_IVK_Address()
+	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		SaplingSK saplingSK = wallet.CreateSaplingAccount();
+
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.UtcNow.AddDays(30),
+			ExpirationHeight = 1_000_000,
+		};
+
+		UnifiedViewingKey.Full ufvk = UnifiedViewingKey.Full.Create([saplingSK.FullViewingKey], metadata);
+		Assert.Equal(metadata, ufvk.Metadata);
+		Assert.Equal(metadata, UnifiedViewingKey.Decode(ufvk.TextEncoding).Metadata);
+
+		Assert.Equal(metadata, ufvk.IncomingViewingKey.Metadata);
+		Assert.Equal(metadata, UnifiedViewingKey.Decode(ufvk.IncomingViewingKey.TextEncoding).Metadata);
+
+		Assert.Equal(metadata, ufvk.DefaultAddress.Metadata);
+		Assert.Equal(metadata, ufvk.IncomingViewingKey.DefaultAddress.Metadata);
+	}
+
+	[Fact]
+	public void Revision_Propagates_FVK_IVK_Address()
+	{
+		// This encoding is revision 1 but contains no metadata, so it COULD be revision 0.
+		UnifiedViewingKey.Full ufvk = (UnifiedViewingKey.Full)UnifiedViewingKey.Decode("urview1qxsmd0jqtxp945955ve5mj0yh2p83gk38zayjr7edghjx694uvv9r5m4meuhkfh59edx0vzf5yaq8lr7yet5yfnckj76g9rfmtpfsq99nrs65t2d92ywgxm7p4c7pjx39gasz76yta4l30ccg6d9pq9uzgyfmvyxjpsssxkqw5ks3axwj4q5wftptt8hzrj8umpl30pfz67zs67pcjfllj0tp6s6zl3mnr0sf756kyfjxug3");
+		Assert.Equal(1, ufvk.Revision);
+		Assert.Equal(UnifiedEncodingMetadata.Default, ufvk.Metadata);
+
+		// Assert that deriving an IUVK from revision 1 UFVK will produce a revision 1 IUVK.
+		this.logger.WriteLine(ufvk.IncomingViewingKey.TextEncoding);
+		Assert.Equal(ufvk.Revision, ufvk.IncomingViewingKey.Revision);
+		Assert.Equal(UnifiedEncodingMetadata.Default, ufvk.IncomingViewingKey.Metadata);
+
+		// Assert that deriving a UA from a rev. 1 IUVK produces a rev. 1 UA.
+		Assert.Equal(ufvk.IncomingViewingKey.Revision, ufvk.IncomingViewingKey.DefaultAddress.Revision);
+		Assert.StartsWith("ur1", ufvk.IncomingViewingKey.DefaultAddress.Address);
+	}
+
+	[Fact]
+	public void Create_FVK_Metadata()
+	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		SaplingSK saplingSK = wallet.CreateSaplingAccount();
+
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.UtcNow.AddDays(30),
+			ExpirationHeight = 1_000_000,
+		};
+
+		UnifiedViewingKey.Full ufvk = UnifiedViewingKey.Full.Create([saplingSK.FullViewingKey], metadata);
+		this.logger.WriteLine(ufvk);
+		Assert.Equal(metadata, ufvk.Metadata);
+	}
+
+	[Fact]
+	public void Create_IVK_Metadata()
+	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		SaplingSK saplingSK = wallet.CreateSaplingAccount();
+
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.UtcNow.AddDays(30),
+			ExpirationHeight = 1_000_000,
+		};
+
+		UnifiedViewingKey.Incoming uivk = UnifiedViewingKey.Incoming.Create([saplingSK.FullViewingKey], metadata);
+		Assert.Equal(metadata, uivk.Metadata);
+	}
+
+	[Fact]
+	public void Equals_ConsidersMetadata()
+	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		SaplingSK saplingSK = wallet.CreateSaplingAccount();
+
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.UtcNow.AddDays(30),
+			ExpirationHeight = 1_000_000,
+		};
+
+		UnifiedEncodingMetadata metadataCopy = new()
+		{
+			ExpirationDate = metadata.ExpirationDate,
+			ExpirationHeight = 1_000_000,
+		};
+
+		UnifiedViewingKey.Full ufvkWithMetadata = UnifiedViewingKey.Full.Create([saplingSK.FullViewingKey], metadata);
+		UnifiedViewingKey.Full ufvkWithMetadata2 = UnifiedViewingKey.Full.Create([saplingSK.FullViewingKey], metadataCopy);
+		UnifiedViewingKey.Full ufvk = UnifiedViewingKey.Full.Create([saplingSK.FullViewingKey]);
+
+		Assert.True(ufvkWithMetadata2.Equals(ufvkWithMetadata));
+		Assert.False(ufvkWithMetadata.Equals(ufvk));
 	}
 
 	private static void AssertNoOutgoingKey(UnifiedViewingKey uivk)

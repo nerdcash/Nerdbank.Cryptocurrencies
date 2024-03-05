@@ -150,6 +150,7 @@ public class UnifiedAddressTests : TestBase
 			});
 		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
+		Assert.Equal(0, addr.Revision);
 		Assert.StartsWith("utest1", addr.Address);
 		Assert.Equal(ValidUnifiedAddressOrchardSaplingTestNet, addr.ToString());
 	}
@@ -186,6 +187,7 @@ public class UnifiedAddressTests : TestBase
 			ZcashAddress.Decode(ValidUnifiedAddressOrchard),
 		});
 		this.logger.WriteLine(addr.Address);
+		Assert.Equal(0, addr.Revision);
 		Assert.Equal(ValidUnifiedAddressOrchard, addr.ToString());
 	}
 
@@ -198,6 +200,7 @@ public class UnifiedAddressTests : TestBase
 		});
 		this.logger.WriteLine(addr.Address);
 		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
+		Assert.Equal(0, addr.Revision);
 		Assert.Equal(ValidUnifiedAddressSapling, addr.ToString());
 	}
 
@@ -215,13 +218,50 @@ public class UnifiedAddressTests : TestBase
 		Assert.Equal(ValidUnifiedAddressSaplingTestNet, addr.ToString());
 	}
 
+	/// <summary>
+	/// Asserts that a UA with only a transparent receiver and no metadata fails
+	/// to be created due to not satisfying the minimum length requirement for F4Jumble.
+	/// </summary>
 	[Fact]
-	public void TryCreate_TransparentOnly()
+	public void TryCreate_TransparentOnly_NoMetadata()
 	{
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
+		DiversifierIndex index = default;
+
+		// Although this is a Try method, we expect an exception to be thrown because
+		// the Try only returns false when the index is too high to find a valid diversifier.
+		ArgumentException ex = Assert.Throws<ArgumentException>(() => UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Transparent!], out UnifiedAddress? _));
+		this.logger.WriteLine(ex.Message);
+	}
+
+	[Theory, PairwiseData]
+	public void TryCreate_TryDecode_TransparentOnly(ZcashNetwork network)
+	{
+		string expectedHRP = network switch
+		{
+			ZcashNetwork.MainNet => "ur",
+			ZcashNetwork.TestNet => "urtest",
+			_ => throw new ArgumentOutOfRangeException(nameof(network)),
+		};
+
+		// We have to include expiration date metadata to push the length of the encoded data
+		// to the required 48 bytes.
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.Now,
+		};
+
+		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, network));
 
 		DiversifierIndex index = default;
-		Assert.Throws<ArgumentException>(() => UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Transparent!], out UnifiedAddress? address));
+		Assert.True(UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Transparent!], metadata, out UnifiedAddress? address));
+		this.logger.WriteLine(address);
+		Assert.Equal(1, address.Revision);
+		Assert.NotNull(address.GetPoolReceiver<TransparentP2PKHReceiver>());
+		Assert.StartsWith($"{expectedHRP}1", address.Address); // Revision 1+ is required for UAs with only a transparent receiver.
+
+		Assert.True(ZcashAddress.TryDecode(address.Address, out _, out _, out ZcashAddress? address2));
+		Assert.Equal(address, address2);
 	}
 
 	[Fact]
@@ -285,6 +325,64 @@ public class UnifiedAddressTests : TestBase
 	public void TryDecode_Invalid(string address)
 	{
 		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
+	}
+
+	[Theory]
+	[InlineData(ValidSaplingAddress)]
+	[InlineData(ValidUnifiedAddressOrchard)]
+	[InlineData(ValidTransparentP2PKHAddress)]
+	public void MetadataEncoding(string address)
+	{
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.UtcNow.AddDays(30),
+			ExpirationHeight = 1_000_000,
+		};
+
+		UnifiedAddress ua = UnifiedAddress.Create([ZcashAddress.Decode(address)], metadata);
+		this.logger.WriteLine(ua);
+		Assert.Equal(metadata, ua.Metadata);
+		Assert.Equal(metadata, ((UnifiedAddress)ZcashAddress.Decode(ua.Address)).Metadata);
+	}
+
+	[Theory]
+	[InlineData(ValidSaplingAddress)]
+	[InlineData(ValidUnifiedAddressOrchard)]
+	public void WithMetadata(string address)
+	{
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.UtcNow.AddDays(30),
+			ExpirationHeight = 1_000_000,
+		};
+
+		UnifiedAddress ua = UnifiedAddress.Create(ZcashAddress.Decode(address))
+			.WithMetadata(metadata);
+
+		Assert.Equal(metadata, ua.Metadata);
+		Assert.Equal(metadata, ((UnifiedAddress)ZcashAddress.Decode(ua.Address)).Metadata);
+	}
+
+	[Fact]
+	public void WithMetadata_Transparent()
+	{
+		UnifiedEncodingMetadata metadata = new()
+		{
+			ExpirationDate = DateTimeOffset.UtcNow.AddDays(30),
+			ExpirationHeight = 1_000_000,
+		};
+		UnifiedEncodingMetadata metadata2 = metadata with
+		{
+			ExpirationHeight = 1_000_001,
+		};
+
+		// A UA with only a transparent receiver is too short for a UA.
+		// Metadata is required to make the encoding longer so that it is allowed.
+		UnifiedAddress ua = UnifiedAddress.Create([ZcashAddress.Decode(ValidTransparentP2PKHAddress)], metadata)
+			.WithMetadata(metadata2);
+
+		Assert.Equal(metadata2, ua.Metadata);
+		Assert.Equal(metadata2, ((UnifiedAddress)ZcashAddress.Decode(ua.Address)).Metadata);
 	}
 
 	internal static void AssertAddressIndex(ZcashAccount account, DiversifierIndex expectedIndex, UnifiedAddress address)

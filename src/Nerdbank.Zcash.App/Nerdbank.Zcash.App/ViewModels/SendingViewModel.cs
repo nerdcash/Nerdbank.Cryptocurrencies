@@ -270,11 +270,14 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			try
 			{
 				this.ErrorMessage = null;
-				tx.TransactionId = await this.SelectedAccount.LightWalletClient.SendAsync(
+				ReadOnlyMemory<TxId> transactions = await this.SelectedAccount.LightWalletClient.SendAsync(
 					this.SelectedAccount.ZcashAccount,
 					lineItems,
 					new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
 					cancellationToken);
+
+				// Semantically, the most similar transaction to what the user intended will be the last one.
+				tx.TransactionId = transactions.Span[^1];
 			}
 			finally
 			{
