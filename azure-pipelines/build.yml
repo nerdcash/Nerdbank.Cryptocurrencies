@@ -45,6 +45,13 @@ jobs:
       test_target: x86_64-unknown-linux-gnu
       checks: true
 
+  - pwsh: cargo install cross --git https://github.com/cross-rs/cross --rev c87a52a60dbcde069714a8d2ed51570e7fc23cf9
+    displayName: ⚙️ install cross
+
+  - pwsh: cross build -r --target=aarch64-unknown-linux-gnu
+    displayName: 🛠️ build linux-arm64
+    workingDirectory: src/nerdbank-zcash-rust
+
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
@@ -52,8 +59,8 @@ jobs:
     displayName: 💅 Verify formatted code
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
 
-- job: cross
-  displayName: cross-targeting
+- job: android
+  displayName: android
   pool:
     vmImage: Ubuntu 20.04
   steps:
@@ -62,7 +69,7 @@ jobs:
     clean: true
     submodules: true
 
-  - template: cross.yml
+  - template: android.yml
 
 - job: macOS
   pool:
@@ -88,7 +95,7 @@ jobs:
   - Windows
   - Linux
   - macOS
-  - cross
+  - android
   pool:
     vmImage: Ubuntu 20.04
   variables:

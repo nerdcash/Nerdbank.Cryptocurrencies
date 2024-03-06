@@ -13,7 +13,13 @@ Param (
 )
 
 if ($InstallPrerequisites) {
+    if ($env:TF_BUILD) {
+        Write-Host "##[group]Install uniffi-bindgen-cs"
+    }
     cargo install uniffi-bindgen-cs --git https://github.com/NordSecurity/uniffi-bindgen-cs --tag v0.8.0+v0.25.0
+    if ($env:TF_BUILD) {
+        Write-Host "##[endgroup]"
+    }
 }
 
 $outDir = "$PSScriptRoot\..\Nerdbank.Zcash\RustBindings"
