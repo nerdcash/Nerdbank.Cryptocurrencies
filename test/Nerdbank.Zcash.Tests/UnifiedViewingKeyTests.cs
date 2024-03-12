@@ -554,6 +554,23 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.False(ufvkWithMetadata.Equals(ufvk));
 	}
 
+	[Fact]
+	public void Transparent_FVKtoIVK_AreNotSame()
+	{
+		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
+		OrchardSK orchardSK = wallet.CreateOrchardAccount();
+		TransparentSK transparentSK = wallet.CreateTransparentAccount();
+		UnifiedViewingKey.Full ufvk = UnifiedViewingKey.Full.Create(orchardSK, transparentSK);
+		UnifiedViewingKey.Incoming uivk = ufvk.IncomingViewingKey;
+
+		TransparentFVK? fvk = ufvk.GetViewingKey<TransparentFVK>();
+		TransparentFVK? ivk = uivk.GetViewingKey<TransparentFVK>();
+
+		// Per ZIP-316, the transparent key in the UIVK should be the 0 child index derived key from the UFVK's transparent key.
+		Assert.NotEqual(fvk, ivk);
+		Assert.Equal(fvk!.DerivationPath!.Append(0), ivk!.DerivationPath);
+	}
+
 	private static void AssertNoOutgoingKey(UnifiedViewingKey uivk)
 	{
 		Assert.StartsWith("uivk1", uivk.TextEncoding);
