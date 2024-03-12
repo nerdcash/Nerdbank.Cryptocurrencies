@@ -270,4 +270,7 @@
   <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
     <value>La frase inicial utilizada para generar la clave de gasto.</value>
   </data>
+  <data name="ContinuallyOptionDescription" xml:space="preserve">
+    <value>Descargue la cadena de bloques continuamente, observando nuevos bloques a medida que se agregan.</value>
+  </data>
 </root>
