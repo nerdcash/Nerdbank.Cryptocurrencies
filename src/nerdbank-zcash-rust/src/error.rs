@@ -1,4 +1,5 @@
 use schemer::MigratorError;
+use tokio::task::JoinError;
 use uniffi::deps::anyhow;
 use zcash_client_backend::{
     data_api::{chain::error::Error as ChainError, BirthdayError},
@@ -93,6 +94,8 @@ pub enum Error {
     NoSpendingKey(String),
 
     KeyNotRecognized,
+
+    Join(JoinError),
 }
 
 impl std::fmt::Display for Error {
@@ -134,6 +137,7 @@ impl std::fmt::Display for Error {
             Error::ProposalNotSupported => f.write_str("Proposal not supported"),
             Error::NoSpendingKey(e) => write!(f, "No spending key: {}", e),
             Error::KeyNotRecognized => f.write_str("No account found with the given key."),
+            Error::Join(e) => e.fmt(f),
         }
     }
 }
@@ -141,6 +145,12 @@ impl std::fmt::Display for Error {
 impl From<BalanceError> for Error {
     fn from(e: BalanceError) -> Self {
         Error::Balance(e)
+    }
+}
+
+impl From<JoinError> for Error {
+    fn from(e: JoinError) -> Self {
+        Error::Join(e)
     }
 }
 
