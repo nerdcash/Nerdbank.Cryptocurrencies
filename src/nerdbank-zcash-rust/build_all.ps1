@@ -38,7 +38,12 @@ if ($WinArm64Only) {
 
 $rustTargets | % { $buildArgs += "--target=$_"}
 
-Write-Host "Building for $buildArgs"
+if ($env:TF_BUILD) {
+    Write-Host "##[command]cargo build $buildArgs"
+} else {
+    Write-Host "Building for $buildArgs"
+}
+
 cargo build @buildArgs
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
