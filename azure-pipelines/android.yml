@@ -1,45 +1,12 @@
 steps:
-- pwsh: |
-    Function SetEnv($name, $value) {
-      Write-Host "Setting env var $name=$value"
-      Write-Host "##vso[task.setvariable variable=$name;]$value"
-      Set-Item -Path "env:$name" -Value $value
-    }
-
-    $ndkHome = $env:ANDROID_NDK_HOME
-    Write-Host "##[group]Android NDK acquisition"
-    curl -L https://dl.google.com/android/repository/android-ndk-r26c-linux.zip -o android-ndk.zip
-    $ndkHome = "$env:AGENT_TOOLSDIRECTORY/android-ndk"
-    mkdir -p $ndkHome
-    unzip -q android-ndk.zip -d $ndkHome
-    $ndkHome = "$ndkHome/android-ndk-r26c"
-    SetEnv 'ANDROID_NDK_HOME' $ndkHome
-    SetEnv 'ANDROID_NDK_ROOT' $ndkHome
-    SetEnv 'ANDROID_NDK' $ndkHome
-    Write-Host "##[endgroup]"
-
-    Write-Host "##[group]cargo-ndk acquisition"
-    Write-Host "##[command]cargo install --version ^3 cargo-ndk"
-    cargo install --version ^3 cargo-ndk
-    Write-Host "##[endgroup]"
-
-    Write-Host "##[group]rustup" 
-    Write-Host "##[command]rustup target add aarch64-linux-android x86_64-linux-android"
-    rustup target add aarch64-linux-android x86_64-linux-android
-    Write-Host "##[endgroup]"
-
-    Write-Host "##[group]env"
-    Get-ChildItem env:
-    Write-Host "##[endgroup]"
-
-    Write-Host "NDK installed to $ndkHome"
+- pwsh: tools/Install-AndroidBuildTools.ps1
   displayName: ⚙️ install android tooling
 
-- pwsh: cargo ndk --target=x86_64-linux-android build -r
+- pwsh: ./build_all.ps1 -AndroidEmulatorOnly -Release -SkipCsBindings
   displayName: 🛠️ build android-x64
   workingDirectory: src/nerdbank-zcash-rust
 
-- pwsh: cargo ndk --target=aarch64-linux-android build -r
+- pwsh: ./build_all.ps1 -AndroidDeviceOnly -Release -SkipCsBindings
   displayName: 🛠️ build android-arm64
   workingDirectory: src/nerdbank-zcash-rust
 
