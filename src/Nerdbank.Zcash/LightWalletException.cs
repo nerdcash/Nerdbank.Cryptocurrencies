@@ -25,22 +25,6 @@ public class LightWalletException : Exception
 	}
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="LightWalletException"/> class.
-	/// </summary>
-	/// <param name="ex">The interop exception to copy data from.</param>
-	internal LightWalletException(uniffi.LightWallet.LightWalletException ex)
-		: base(Strings.ErrorFromNativeSide, ex)
-	{
-		this.Code = ex switch
-		{
-			uniffi.LightWallet.LightWalletException.InvalidUri => ErrorCode.InvalidUri,
-			uniffi.LightWallet.LightWalletException.InvalidArgument => ErrorCode.InvalidArgument,
-			uniffi.LightWallet.LightWalletException.SqliteClientException => ErrorCode.Sqlite,
-			_ => ErrorCode.Other,
-		};
-	}
-
-	/// <summary>
 	/// Enumerates the error codes that may accompany a <see cref="LightWalletException"/>.
 	/// </summary>
 	public enum ErrorCode
@@ -64,10 +48,39 @@ public class LightWalletException : Exception
 		/// An error was returned by the SQLite client.
 		/// </summary>
 		Sqlite,
+
+		/// <summary>
+		/// Insufficient funds are available for a given send.
+		/// </summary>
+		InsufficientFunds,
 	}
 
 	/// <summary>
 	/// Gets the code that indicates the nature of the error.
 	/// </summary>
 	public ErrorCode Code { get; init; } = ErrorCode.Other;
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="LightWalletException"/> class.
+	/// </summary>
+	/// <param name="ex">The interop exception to copy data from.</param>
+	/// <returns>A new instance of <see cref="LightWalletException"/>.</returns>
+	internal static LightWalletException Wrap(uniffi.LightWallet.LightWalletException ex)
+	{
+		switch (ex)
+		{
+			case uniffi.LightWallet.LightWalletException.InsufficientFunds funds:
+				return new InsufficientFundsException(funds);
+		}
+
+		ErrorCode code = ex switch
+		{
+			uniffi.LightWallet.LightWalletException.InvalidUri => ErrorCode.InvalidUri,
+			uniffi.LightWallet.LightWalletException.InvalidArgument => ErrorCode.InvalidArgument,
+			uniffi.LightWallet.LightWalletException.SqliteClientException => ErrorCode.Sqlite,
+			_ => ErrorCode.Other,
+		};
+
+		return new LightWalletException(Strings.ErrorFromNativeSide, ex) { Code = code };
+	}
 }

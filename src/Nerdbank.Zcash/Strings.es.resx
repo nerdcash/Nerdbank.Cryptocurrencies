@@ -204,4 +204,13 @@
   <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
     <value>Esta codificación contiene metadatos que no se entienden (tipo código: {typecode}).</value>
   </data>
+  <data name="MemoForTransparentReceiverNotSupported" xml:space="preserve">
+    <value>No se puede proporcionar una nota cuando el receptor es una dirección transparente.</value>
+  </data>
+  <data name="FullViewingKeyRequired" xml:space="preserve">
+    <value>Se requiere una clave de visualización completa para que una cuenta simule un envío.</value>
+  </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>No hay fondos suficientes para el gasto solicitado: {requerido} se requeriría (incluidas las tarifas) pero solo {disponible} estaba disponible.</value>
+  </data>
 </root>
