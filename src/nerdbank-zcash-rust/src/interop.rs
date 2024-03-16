@@ -19,6 +19,7 @@ use zcash_client_backend::{
     keys::{Era, UnifiedSpendingKey},
 };
 use zcash_client_sqlite::error::SqliteClientError;
+use zcash_keys::keys::UnifiedFullViewingKey;
 use zcash_primitives::{consensus::Network, legacy::TransparentAddress, zip32::DiversifierIndex};
 
 use crate::{
@@ -26,7 +27,7 @@ use crate::{
     backing_store::Db,
     error::Error,
     grpc::{destroy_channel, get_client},
-    send::send_transaction,
+    send::{create_send_proposal, send_transaction},
     shield::shield_funds_at_address,
 };
 
@@ -144,6 +145,9 @@ pub enum LightWalletError {
     #[error("Sync first.")]
     SyncFirst,
 
+    #[error("Insufficient funds: {required} required but only {available} is available.")]
+    InsufficientFunds { required: u64, available: u64 },
+
     #[error("{message}")]
     Other { message: String },
 }
@@ -186,6 +190,13 @@ impl From<Error> for LightWalletError {
             }
             Error::InvalidArgument(msg) => LightWalletError::InvalidArgument { message: msg },
             Error::Internal(msg) => LightWalletError::Other { message: msg },
+            Error::InsufficientFunds {
+                required,
+                available,
+            } => LightWalletError::InsufficientFunds {
+                required: required.into(),
+                available: available.into(),
+            },
             _ => LightWalletError::Other {
                 message: e.to_string(),
             },
@@ -424,6 +435,35 @@ pub fn disconnect_server(uri: String) -> Result<bool, LightWalletError> {
 
 pub struct SendTransactionResult {
     pub txid: Vec<u8>,
+}
+
+pub struct SendDetails {
+    pub fee: u64,
+}
+
+pub fn simulate_send(
+    config: DbInit,
+    ufvk: String,
+    min_confirmations: u32,
+    send_details: Vec<TransactionSendDetail>,
+) -> Result<SendDetails, LightWalletError> {
+    let network = config.network.into();
+    let mut db = Db::init(config.data_file, network)?;
+    let ufvk = UnifiedFullViewingKey::decode(&network, &ufvk)
+        .map_err(|s| LightWalletError::InvalidArgument { message: s })?;
+    let min_confirmations =
+        NonZeroU32::try_from(min_confirmations).map_err(|_| LightWalletError::InvalidArgument {
+            message: "A positive integer is required.".to_string(),
+        })?;
+    let proposal = create_send_proposal(&mut db, network, &ufvk, min_confirmations, send_details)?;
+
+    Ok(SendDetails {
+        fee: proposal
+            .steps()
+            .iter()
+            .map(|s| Into::<u64>::into(s.balance().fee_required()))
+            .sum(),
+    })
 }
 
 pub fn send(

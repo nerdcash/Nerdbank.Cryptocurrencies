@@ -37,6 +37,12 @@ Nerdbank.Zcash.IFullViewingKey
 Nerdbank.Zcash.IFullViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.IIncomingViewingKey!
 Nerdbank.Zcash.IIncomingViewingKey
 Nerdbank.Zcash.IIncomingViewingKey.DefaultAddress.get -> Nerdbank.Zcash.ZcashAddress!
+Nerdbank.Zcash.InsufficientFundsException
+Nerdbank.Zcash.InsufficientFundsException.AvailableBalance.get -> decimal
+Nerdbank.Zcash.InsufficientFundsException.AvailableBalance.init -> void
+Nerdbank.Zcash.InsufficientFundsException.InsufficientFundsException() -> void
+Nerdbank.Zcash.InsufficientFundsException.RequiredBalance.get -> decimal
+Nerdbank.Zcash.InsufficientFundsException.RequiredBalance.init -> void
 Nerdbank.Zcash.InvalidAddressException
 Nerdbank.Zcash.InvalidAddressException.InvalidAddressException() -> void
 Nerdbank.Zcash.InvalidAddressException.InvalidAddressException(string? message) -> void
@@ -108,6 +114,11 @@ Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.UnverifiedBalance.get -> de
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.UnverifiedBalance.set -> void
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.VerifiedBalance.get -> decimal
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.VerifiedBalance.set -> void
+Nerdbank.Zcash.LightWalletClient.SimulateSend(Nerdbank.Zcash.ZcashAccount! account, System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction.LineItem>! payments) -> Nerdbank.Zcash.LightWalletClient.SpendDetails!
+Nerdbank.Zcash.LightWalletClient.SpendDetails
+Nerdbank.Zcash.LightWalletClient.SpendDetails.Fee.get -> decimal
+Nerdbank.Zcash.LightWalletClient.SpendDetails.SpendDetails(decimal fee) -> void
+Nerdbank.Zcash.LightWalletClient.SpendDetails.SpendDetails(Nerdbank.Zcash.LightWalletClient.SpendDetails! original) -> void
 Nerdbank.Zcash.LightWalletClient.SyncProgress
 Nerdbank.Zcash.LightWalletClient.SyncProgress.CurrentStep.get -> ulong
 Nerdbank.Zcash.LightWalletClient.SyncProgress.CurrentStep.init -> void
@@ -135,6 +146,7 @@ Nerdbank.Zcash.LightWalletException
 Nerdbank.Zcash.LightWalletException.Code.get -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.Code.init -> void
 Nerdbank.Zcash.LightWalletException.ErrorCode
+Nerdbank.Zcash.LightWalletException.ErrorCode.InsufficientFunds = 4 -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.ErrorCode.InvalidArgument = 2 -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.ErrorCode.InvalidUri = 1 -> Nerdbank.Zcash.LightWalletException.ErrorCode
 Nerdbank.Zcash.LightWalletException.ErrorCode.Other = 0 -> Nerdbank.Zcash.LightWalletException.ErrorCode
@@ -724,6 +736,9 @@ override Nerdbank.Zcash.LightWalletClient.SendProgress.Equals(object? obj) -> bo
 override Nerdbank.Zcash.LightWalletClient.SendProgress.GetHashCode() -> int
 override Nerdbank.Zcash.LightWalletClient.SendProgress.ToString() -> string!
 override Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.SpendDetails.Equals(object? obj) -> bool
+override Nerdbank.Zcash.LightWalletClient.SpendDetails.GetHashCode() -> int
+override Nerdbank.Zcash.LightWalletClient.SpendDetails.ToString() -> string!
 override Nerdbank.Zcash.LightWalletClient.SyncProgress.Equals(object? obj) -> bool
 override Nerdbank.Zcash.LightWalletClient.SyncProgress.GetHashCode() -> int
 override Nerdbank.Zcash.LightWalletClient.SyncProgress.ToString() -> string!
@@ -824,6 +839,8 @@ static Nerdbank.Zcash.LightWalletClient.SendProgress.operator !=(Nerdbank.Zcash.
 static Nerdbank.Zcash.LightWalletClient.SendProgress.operator ==(Nerdbank.Zcash.LightWalletClient.SendProgress? left, Nerdbank.Zcash.LightWalletClient.SendProgress? right) -> bool
 static Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.operator !=(Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance left, Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance right) -> bool
 static Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.operator ==(Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance left, Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SpendDetails.operator !=(Nerdbank.Zcash.LightWalletClient.SpendDetails? left, Nerdbank.Zcash.LightWalletClient.SpendDetails? right) -> bool
+static Nerdbank.Zcash.LightWalletClient.SpendDetails.operator ==(Nerdbank.Zcash.LightWalletClient.SpendDetails? left, Nerdbank.Zcash.LightWalletClient.SpendDetails? right) -> bool
 static Nerdbank.Zcash.LightWalletClient.SyncProgress.operator !=(Nerdbank.Zcash.LightWalletClient.SyncProgress? left, Nerdbank.Zcash.LightWalletClient.SyncProgress? right) -> bool
 static Nerdbank.Zcash.LightWalletClient.SyncProgress.operator ==(Nerdbank.Zcash.LightWalletClient.SyncProgress? left, Nerdbank.Zcash.LightWalletClient.SyncProgress? right) -> bool
 static Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance.operator !=(Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance left, Nerdbank.Zcash.LightWalletClient.TransparentPoolBalance right) -> bool
@@ -958,6 +975,10 @@ virtual Nerdbank.Zcash.LightWalletClient.SendProgress.<Clone>$() -> Nerdbank.Zca
 virtual Nerdbank.Zcash.LightWalletClient.SendProgress.EqualityContract.get -> System.Type!
 virtual Nerdbank.Zcash.LightWalletClient.SendProgress.Equals(Nerdbank.Zcash.LightWalletClient.SendProgress? other) -> bool
 virtual Nerdbank.Zcash.LightWalletClient.SendProgress.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.SpendDetails.<Clone>$() -> Nerdbank.Zcash.LightWalletClient.SpendDetails!
+virtual Nerdbank.Zcash.LightWalletClient.SpendDetails.EqualityContract.get -> System.Type!
+virtual Nerdbank.Zcash.LightWalletClient.SpendDetails.Equals(Nerdbank.Zcash.LightWalletClient.SpendDetails? other) -> bool
+virtual Nerdbank.Zcash.LightWalletClient.SpendDetails.PrintMembers(System.Text.StringBuilder! builder) -> bool
 virtual Nerdbank.Zcash.LightWalletClient.SyncProgress.<Clone>$() -> Nerdbank.Zcash.LightWalletClient.SyncProgress!
 virtual Nerdbank.Zcash.LightWalletClient.SyncProgress.EqualityContract.get -> System.Type!
 virtual Nerdbank.Zcash.LightWalletClient.SyncProgress.Equals(Nerdbank.Zcash.LightWalletClient.SyncProgress? other) -> bool

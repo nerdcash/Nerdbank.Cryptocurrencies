@@ -677,6 +677,15 @@ static class _UniFFILib
 	);
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_simulate_send(
+		RustBuffer @config,
+		RustBuffer @ufvk,
+		uint @minConfirmations,
+		RustBuffer @sendDetails,
+		ref RustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_sync(
 		RustBuffer @config,
 		RustBuffer @uri,
@@ -998,6 +1007,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_shield();
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_simulate_send();
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_sync();
 
 	[DllImport("nerdbank_zcash_rust")]
@@ -1161,6 +1173,15 @@ static class _UniFFILib
 			{
 				throw new UniffiContractChecksumException(
 					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_shield` checksum `23886`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_simulate_send();
+			if (checksum != 45162)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_simulate_send` checksum `45162`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1556,6 +1577,28 @@ class FfiConverterTypeDbInit : FfiConverterRustBuffer<DbInit>
 	}
 }
 
+internal record SendDetails(ulong @fee) { }
+
+class FfiConverterTypeSendDetails : FfiConverterRustBuffer<SendDetails>
+{
+	public static FfiConverterTypeSendDetails INSTANCE = new FfiConverterTypeSendDetails();
+
+	public override SendDetails Read(BigEndianStream stream)
+	{
+		return new SendDetails(@fee: FfiConverterUInt64.INSTANCE.Read(stream));
+	}
+
+	public override int AllocationSize(SendDetails value)
+	{
+		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@fee);
+	}
+
+	public override void Write(SendDetails value, BigEndianStream stream)
+	{
+		FfiConverterUInt64.INSTANCE.Write(value.@fee, stream);
+	}
+}
+
 internal record SendTransactionResult(byte[] @txid) { }
 
 class FfiConverterTypeSendTransactionResult : FfiConverterRustBuffer<SendTransactionResult>
@@ -1892,6 +1935,20 @@ internal class LightWalletException : UniffiException
 
 	public class SyncFirst : LightWalletException { }
 
+	public class InsufficientFunds : LightWalletException
+	{
+		// Members
+		public ulong @required;
+		public ulong @available;
+
+		// Constructor
+		public InsufficientFunds(ulong @required, ulong @available)
+		{
+			this.@required = @required;
+			this.@available = @available;
+		}
+	}
+
 	public class Other : LightWalletException
 	{
 		// Members
@@ -1932,6 +1989,11 @@ class FfiConverterTypeLightWalletException
 			case 5:
 				return new LightWalletException.SyncFirst();
 			case 6:
+				return new LightWalletException.InsufficientFunds(
+					FfiConverterUInt64.INSTANCE.Read(stream),
+					FfiConverterUInt64.INSTANCE.Read(stream)
+				);
+			case 7:
 				return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
 			default:
 				throw new InternalException(
@@ -1957,6 +2019,10 @@ class FfiConverterTypeLightWalletException
 				return 4;
 			case LightWalletException.SyncFirst variant_value:
 				return 4;
+			case LightWalletException.InsufficientFunds variant_value:
+				return 4
+					+ FfiConverterUInt64.INSTANCE.AllocationSize(variant_value.@required)
+					+ FfiConverterUInt64.INSTANCE.AllocationSize(variant_value.@available);
 			case LightWalletException.Other variant_value:
 				return 4 + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
 			default:
@@ -1990,8 +2056,13 @@ class FfiConverterTypeLightWalletException
 			case LightWalletException.SyncFirst variant_value:
 				stream.WriteInt(5);
 				break;
-			case LightWalletException.Other variant_value:
+			case LightWalletException.InsufficientFunds variant_value:
 				stream.WriteInt(6);
+				FfiConverterUInt64.INSTANCE.Write(variant_value.@required, stream);
+				FfiConverterUInt64.INSTANCE.Write(variant_value.@available, stream);
+				break;
+			case LightWalletException.Other variant_value:
+				stream.WriteInt(7);
 				FfiConverterString.INSTANCE.Write(variant_value.@message, stream);
 				break;
 			default:
@@ -3170,6 +3241,32 @@ internal static class LightWalletMethods
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterByteArray.INSTANCE.Lower(@usk),
 						FfiConverterString.INSTANCE.Lower(@address),
+						ref _status
+					)
+			)
+		);
+	}
+
+	/// <summary>
+	/// Constructs a proposal for how a given spend can be executed, and returns details for how it would work.
+	/// </summary>
+	/// <exception cref="LightWalletException"></exception>
+	public static SendDetails SimulateSend(
+		DbInit @config,
+		String @ufvk,
+		uint @minConfirmations,
+		List<TransactionSendDetail> @sendDetails
+	)
+	{
+		return FfiConverterTypeSendDetails.INSTANCE.Lift(
+			_UniffiHelpers.RustCallWithError(
+				FfiConverterTypeLightWalletException.INSTANCE,
+				(ref RustCallStatus _status) =>
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_simulate_send(
+						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
+						FfiConverterString.INSTANCE.Lower(@ufvk),
+						FfiConverterUInt32.INSTANCE.Lower(@minConfirmations),
+						FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails),
 						ref _status
 					)
 			)
