@@ -4,10 +4,13 @@ use orchard::keys::Scope;
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
 use std::{path::Path, sync::Arc};
-use tokio::{select, sync::Mutex};
+use tokio::{
+    select,
+    sync::{mpsc, Mutex},
+};
 use tokio_util::sync::CancellationToken;
 use tonic::{transport::Channel, Status};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 use uniffi::deps::anyhow;
 use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
 use zcash_keys::address::UnifiedAddress;
@@ -48,14 +51,24 @@ use crate::{
     grpc::get_client,
     interop::{SyncUpdate, SyncUpdateData, TransactionNote},
     lightclient::parse_network,
-    resilience::{webrequest_with_logged_retry, webrequest_with_retry},
+    resilience::webrequest_with_retry,
     sql_statements::GET_TRANSACTIONS_SQL,
 };
 
 type ChainError =
     zcash_client_backend::data_api::chain::error::Error<SqliteClientError, BlockCacheError>;
 
-const BATCH_SIZE: u32 = 10_000;
+/// The number of sapling spends+outputs and orchard actions that should be in each downloaded chunk.
+const BLOCK_ACTIONS_MEMORY_LIMIT: usize = 100_000;
+
+/// The capacity of the channel that receives vectors of CompactBlock.
+///
+/// This should be a relatively low number for scanning efficiency, but
+/// high enough that we don't wait too long for download before starting to scan.
+const CHUNK_CHANNEL_CAPACITY: usize = 10;
+
+/// The approximate number of actions for each chunk that we submit to the downloaded channel.
+const BLOCKS_CHUNK_THRESHOLD: usize = BLOCK_ACTIONS_MEMORY_LIMIT / CHUNK_CHANNEL_CAPACITY;
 
 pub async fn sync<P: AsRef<Path>>(
     uri: Uri,
@@ -169,7 +182,7 @@ pub async fn sync<P: AsRef<Path>>(
                         &mut client,
                         scan_range,
                         &network,
-                        &mut db,
+                        Db::load(&data_file, network)?,
                         cancellation_token.clone(),
                     )
                     .await?
@@ -242,28 +255,12 @@ pub async fn sync<P: AsRef<Path>>(
         update_and_report_status(&mut status, &db.data, &progress)?;
 
         let mut caught_up = true;
-        for scan_range in scan_ranges.into_iter().flat_map(|r| {
-            // Limit the number of blocks we download and scan at any one time.
-            (0..).scan(r, |acc, _| {
-                if acc.is_empty() {
-                    None
-                } else if let Some((cur, next)) = acc.split_at(acc.block_range().start + BATCH_SIZE)
-                {
-                    *acc = next;
-                    Some(cur)
-                } else {
-                    let cur = acc.clone();
-                    let end = acc.block_range().end;
-                    *acc = ScanRange::from_parts(end..end, acc.priority());
-                    Some(cur)
-                }
-            })
-        }) {
+        for scan_range in scan_ranges.into_iter() {
             if download_and_scan_blocks(
                 &mut client,
                 &scan_range,
                 &network,
-                &mut db,
+                Db::load(&data_file, network)?,
                 cancellation_token.clone(),
             )
             .await?
@@ -530,46 +527,72 @@ async fn download_transparent_transactions(
 
 async fn download_and_scan_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
-    scan_range: &ScanRange,
+    block_range: &ScanRange,
     network: &Network,
-    db: &mut Db,
+    mut db: Db,
     cancellation_token: CancellationToken,
 ) -> Result<bool, Error> {
+    println!("Received instructions to download [{})", block_range);
+    let (send, mut receive) = mpsc::channel::<Vec<CompactBlock>>(CHUNK_CHANNEL_CAPACITY);
+    let priorities_changed_token = cancellation_token.child_token();
+
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
-    let client = Arc::new(Mutex::new(client));
-    db.blocks.insert_range(
-        webrequest_with_logged_retry(
-            || async {
-                let mut client = client.lock().await;
-                download_blocks(&mut client, scan_range).await
-            },
-            |error, duration, failure_count| {
-                let msg = format!(
-                    "Failure {} to download blocks: {}. {}. Will retry in {:?}.",
-                    failure_count, scan_range, error, duration
-                );
-                warn!("{}", &msg);
-                println!("{}", &msg);
-            },
-            cancellation_token,
+    let mut client = client.to_owned();
+    let downloader_block_range = block_range.clone();
+    let downloader_priorities_changed_token = priorities_changed_token.clone();
+    let downloader = tokio::spawn(async move {
+        download_blocks(
+            &mut client,
+            &downloader_block_range,
+            send,
+            downloader_priorities_changed_token,
         )
-        .await?,
-    );
+        .await
+    });
 
-    // Scan the downloaded blocks.
-    let result = scan_blocks(network, db, scan_range)?;
+    let network = *network;
+    let scanner_block_range = block_range.clone();
+    let scanner = tokio::spawn(async move {
+        let mut priorities_changed = false;
+        while let Some(chunk) = receive.recv().await {
+            let scan_range = ScanRange::from_parts(
+                chunk.first().unwrap().height()..chunk.last().unwrap().height() + 1,
+                scanner_block_range.priority(),
+            );
 
-    // Now that they've been scanned, we don't need them any more.
-    db.blocks.remove_range(scan_range.block_range());
+            println!("Scanning {} blocks [{}).", chunk.len(), scan_range);
 
-    Ok(result)
+            // Insert the blocks into the block cache.
+            db.blocks.insert_range(chunk);
+
+            if scan_blocks(&network, &mut db, &scan_range)? && !priorities_changed {
+                // Notify the downloader to break out early because we'll be getting a new range request.
+                // But we don't abort here. Presumably the original scan range is still interesting
+                // (just less so), so don't throw away what we've already downloaded.
+                priorities_changed_token.cancel();
+                priorities_changed = true;
+                println!("Resetting...");
+            }
+
+            // Now that they've been scanned, we don't need them any more.
+            db.blocks.remove_range(scan_range.block_range());
+        }
+
+        Ok::<bool, Error>(priorities_changed)
+    });
+
+    let (_, scan_result) = tokio::try_join!(downloader, scanner)?;
+
+    scan_result
 }
 
 async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
     scan_range: &ScanRange,
-) -> Result<Vec<CompactBlock>, Status> {
+    sender: mpsc::Sender<Vec<CompactBlock>>,
+    cancellation_token: CancellationToken,
+) -> Result<(), Status> {
     info!("Fetching {}", scan_range);
     let mut start = service::BlockId::default();
     start.height = scan_range.block_range().start.into();
@@ -579,12 +602,39 @@ async fn download_blocks(
         start: Some(start),
         end: Some(end),
     };
-    client
-        .get_block_range(range)
-        .await?
-        .into_inner()
-        .try_collect::<Vec<_>>()
-        .await
+
+    let mut blocks = Vec::new();
+    let mut stream = client.get_block_range(range).await?.into_inner();
+    let mut accumulated_size = 0;
+    while let Some(block) = stream.try_next().await? {
+        // Process each block here
+        accumulated_size += block.vtx.iter().fold(0, |acc, tx| {
+            acc + tx.actions.len() + tx.outputs.len() + tx.spends.len()
+        });
+        blocks.push(block);
+
+        if accumulated_size > BLOCKS_CHUNK_THRESHOLD {
+            sender.send(blocks).await.unwrap();
+            blocks = Vec::new();
+            accumulated_size = 0;
+        }
+
+        if cancellation_token.is_cancelled() {
+            println!("Breaking out of download loop due to cancellation.");
+            break;
+        }
+    }
+
+    println!(
+        "Block download exiting. Cancelled? {}",
+        cancellation_token.is_cancelled()
+    );
+
+    if !blocks.is_empty() {
+        sender.send(blocks).await.unwrap();
+    }
+
+    Ok(())
 }
 
 /// Scans the given block range and checks for scanning errors that indicate the wallet's
@@ -802,7 +852,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test]
+    #[tokio::test(flavor = "multi_thread")]
     async fn test_sync() {
         let mut setup = setup_test().await;
         let (seed, birthday, account_id, _) = create_account(&mut setup).await.unwrap();

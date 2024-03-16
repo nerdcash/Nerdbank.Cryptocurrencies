@@ -9,7 +9,7 @@ use tracing::warn;
 const ATTEMPT_LIMIT: u32 = 3;
 const DELAY_BETWEEN_RETRIES: Duration = Duration::from_secs(2);
 
-pub(crate) async fn webrequest_with_logged_retry<
+pub(crate) async fn _webrequest_with_logged_retry<
     TResult,
     FRequest: FnMut() -> FResult,
     FResult: Future<Output = Result<TResult, Status>>,

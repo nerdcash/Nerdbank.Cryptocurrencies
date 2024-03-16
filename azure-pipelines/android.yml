@@ -1,0 +1,16 @@
+steps:
+- pwsh: tools/Install-AndroidBuildTools.ps1
+  displayName: ⚙️ install android tooling
+
+- pwsh: ./build_all.ps1 -AndroidEmulatorOnly -Release -SkipCsBindings
+  displayName: 🛠️ build android-x64
+  workingDirectory: src/nerdbank-zcash-rust
+
+- pwsh: ./build_all.ps1 -AndroidDeviceOnly -Release -SkipCsBindings
+  displayName: 🛠️ build android-arm64
+  workingDirectory: src/nerdbank-zcash-rust
+
+- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
+  failOnStderr: true
+  displayName: 📢 Publish artifacts
+  condition: succeededOrFailed()

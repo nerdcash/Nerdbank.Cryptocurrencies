@@ -292,27 +292,56 @@ public partial class LightWalletClient : IDisposable
 	/// does not allow shielded funds to be sent directly to it.
 	/// In such cases, the shielded funds are sent to a transparent address, and then from there to the receiver.
 	/// </remarks>
+	/// <exception cref="LightWalletException">Thrown when the spend is invalid (e.g. insufficient funds).</exception>
 	public async Task<ReadOnlyMemory<TxId>> SendAsync(ZcashAccount account, IReadOnlyCollection<LineItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
 	{
 		Requires.NotNull(account);
 		Requires.NotNullOrEmpty(payments);
 
-		byte[]? GetMemoBytes(Transaction.LineItem line) =>
-			line.ToAddress.HasShieldedReceiver ? line.Memo.RawBytes.ToArray() :
-			line.Memo.MemoFormat == Zip302MemoFormat.MemoFormat.NoMemo ? null :
-			throw new InvalidOperationException(Strings.MemoForTransparentReceiverNotSupported);
-		List<TransactionSendDetail> details = [.. payments
-			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), GetMemoBytes(p), p.ToAddress))];
+		List<TransactionSendDetail> details = LineItemsToSendDetails(payments);
 
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 		try
 		{
-			List<SendTransactionResult> result = LightWalletMethods.Send(this.dbinit, this.serverUrl.AbsoluteUri, this.GetUnifiedSpendingKeyBytes(account), MinimumConfirmations, details);
+			List<SendTransactionResult> result = LightWalletMethods.Send(
+				this.dbinit,
+				this.serverUrl.AbsoluteUri,
+				this.GetUnifiedSpendingKeyBytes(account),
+				MinimumConfirmations,
+				details);
 			return result.Select(r => new TxId(r.txid)).ToArray();
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
 		{
-			throw new LightWalletException(ex);
+			throw LightWalletException.Wrap(ex);
+		}
+	}
+
+	/// <summary>
+	/// Creates the transfer proposal for a set of payments and returns data about it.
+	/// </summary>
+	/// <param name="account">The account that will be spending the funds.</param>
+	/// <param name="payments">The line items to appear in this transaction.</param>
+	/// <returns>The details of the proposal.</returns>
+	/// <exception cref="LightWalletException">Thrown when the spend is invalid (e.g. insufficient funds).</exception>
+	public SpendDetails SimulateSend(ZcashAccount account, IReadOnlyCollection<LineItem> payments)
+	{
+		Requires.NotNull(account);
+		Requires.Argument(account.FullViewing is not null, nameof(account), Strings.FullViewingKeyRequired);
+
+		try
+		{
+			SendDetails sendDetails = LightWalletMethods.SimulateSend(
+				this.dbinit,
+				account.FullViewing.UnifiedKey.TextEncoding,
+				MinimumConfirmations,
+				LineItemsToSendDetails(payments));
+
+			return new SpendDetails(sendDetails);
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw LightWalletException.Wrap(ex);
 		}
 	}
 
@@ -419,6 +448,17 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="d">The uniffi data to copy from.</param>
 	private static LineItem CreateLineItem(TransactionNote d)
 		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
+
+	private static List<TransactionSendDetail> LineItemsToSendDetails(IReadOnlyCollection<LineItem> payments)
+	{
+		byte[]? GetMemoBytes(Transaction.LineItem line) =>
+			line.ToAddress.HasShieldedReceiver ? line.Memo.RawBytes.ToArray() :
+			line.Memo.MemoFormat == Zip302MemoFormat.MemoFormat.NoMemo ? null :
+			throw new InvalidOperationException(Strings.MemoForTransparentReceiverNotSupported);
+		List<TransactionSendDetail> details = [.. payments
+			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), GetMemoBytes(p), p.ToAddress))];
+		return details;
+	}
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Transaction"/> class.
@@ -545,6 +585,36 @@ public partial class LightWalletClient : IDisposable
 			: this(heights.originalBirthdayHeight, heights.birthdayHeight, heights.rebirthHeight)
 		{
 		}
+	}
+
+	/// <summary>
+	/// Describes a proposed spend.
+	/// </summary>
+	public record SpendDetails
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SpendDetails"/> class.
+		/// </summary>
+		/// <param name="fee">The total fee required for the transfer. This should be a positive value.</param>
+		public SpendDetails(decimal fee)
+		{
+			Requires.Range(fee >= 0, nameof(fee));
+			this.Fee = fee;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SpendDetails"/> class.
+		/// </summary>
+		/// <param name="details">The interop type to copy values from.</param>
+		internal SpendDetails(SendDetails details)
+			: this(ZatsToZEC(details.fee))
+		{
+		}
+
+		/// <summary>
+		/// Gets the total fee required for the transfer. This should be a positive value.
+		/// </summary>
+		public decimal Fee { get; private set; }
 	}
 
 	/// <summary>

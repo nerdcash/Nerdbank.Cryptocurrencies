@@ -3,6 +3,9 @@
     <RustIntermediateDirBase>$(RepoRootPath)obj/src/nerdbank-zcash-rust/</RustIntermediateDirBase>
     <RustOutputDirBase>$(RepoRootPath)src/nerdbank-zcash-rust/target/</RustOutputDirBase>
     <RustConfiguration>$(Configuration.ToLower())</RustConfiguration>
+
+    <RustOutputAndroidArm64>$(RustOutputDirBase)aarch64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidArm64>
+    <RustOutputAndroidX64>$(RustOutputDirBase)x86_64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidX64>
   </PropertyGroup>
   <!-- This file is imported both by the packaging project and by the test project.
        In the case of the packaging project, which targets AnyCPU, we want all native files included.
@@ -31,10 +34,10 @@
     </RustBinary>
 
     <!-- Android -->
-    <RustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputDirBase)aarch64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputAndroidArm64)">
       <PackagePath>runtimes/android-arm64/native/</PackagePath>
     </RustBinary>
-    <RustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputDirBase)x86_64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputAndroidX64)">
       <PackagePath>runtimes/android-x64/native/</PackagePath>
     </RustBinary>
 
@@ -55,7 +58,7 @@
       <TargetPath>/%(PackagePath)%(FileName)%(Extension)</TargetPath>
       <TargetFramework>native</TargetFramework>
     </TfmSpecificDebugSymbolsFile> -->
-    <None Include="@(RustBinary)">
+    <None Include="@(RustBinary)" Condition="'$(AndroidPackageFormat)'==''">
       <CopyToOutputDirectory Condition="'$(Platform)'!='AnyCPU'">PreserveNewest</CopyToOutputDirectory>
       <Link Condition="'$(Platform)'=='AnyCPU'">%(PackagePath)</Link>
       <Link Condition="'$(Platform)'!='AnyCPU'">%(FileName)%(Extension)</Link>

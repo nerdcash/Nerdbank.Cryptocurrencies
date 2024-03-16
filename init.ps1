@@ -20,6 +20,8 @@
     Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
 .PARAMETER NoPrerequisites
     Skips the installation of prerequisite software (e.g. SDKs, tools).
+.PARAMETER NDK
+    Installs the Android NDK if it is not already present for local Android emulator or device development.
 .PARAMETER NoRust
     Skips the installation of Rust targets.
 .PARAMETER NoNuGetCredProvider
@@ -43,6 +45,8 @@ Param (
     [string]$InstallLocality = 'user',
     [Parameter()]
     [switch]$NoPrerequisites,
+    [Parameter()]
+    [switch]$NDK,
     [Parameter()]
     [switch]$NoRust,
     [Parameter()]
@@ -82,6 +86,10 @@ if (!$NoPrerequisites) {
     if ($env:OS -eq 'Windows_NT') {
         $EnvVars['PROCDUMP_PATH'] = & "$PSScriptRoot\azure-pipelines\Get-ProcDump.ps1"
     }
+}
+
+if ($NDK) {
+    & "$PSScriptRoot\tools\Install-AndroidNdk.ps1"
 }
 
 # Workaround nuget credential provider bug that causes very unreliable package restores on Azure Pipelines
