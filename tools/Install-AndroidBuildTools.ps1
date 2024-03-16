@@ -9,11 +9,21 @@ if ($IsLinux) {
 elseif ($IsMacOS) {
     $os = 'darwin'
 }
-elseif ($IsWindows) {
+else {
     $os = 'windows'
 }
-else {
-    throw "Unsupported OS"
+
+Function Get-FileFromWeb([Uri]$Uri, $OutFile) {
+    if (!(Test-Path $OutFile)) {
+        Write-Verbose "Downloading $Uri..."
+        $OutDir = Split-Path $OutFile
+        if (!(Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir | Out-Null }
+        try {
+            (New-Object System.Net.WebClient).DownloadFile($Uri, $OutFile)
+        } finally {
+            # This try/finally causes the script to abort
+        }
+    }
 }
 
 Function SetEnv($name, $value) {
@@ -41,9 +51,11 @@ $ndkHome = Join-Path $installRoot "android-ndk-r$version"
 if (!(Test-Path $ndkHome)) {
     $NdkZipPath = "$installRoot\android-ndk.zip"
     if (!(Test-Path $NdkZipPath)) {
-        curl -L "https://dl.google.com/android/repository/android-ndk-r$version-$os.zip" -o $NdkZipPath
+        Write-Host "Downloading NDK r$version for $os"
+        Get-FileFromWeb -Uri "https://dl.google.com/android/repository/android-ndk-r$version-$os.zip" -OutFile $NdkZipPath
     }
 
+    Write-Host "Extracting NDK to $ndkHome"
     unzip -q $NdkZipPath -d $installRoot
 }
 else {
