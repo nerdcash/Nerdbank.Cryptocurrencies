@@ -761,10 +761,7 @@ pub(crate) fn get_transactions(
             let memo: Option<Vec<u8>> = row.get("memo")?;
             let memo = memo.unwrap_or_default();
 
-            let ufvk = ufvkeys.get(
-                &AccountId::try_from(account_id)
-                    .map_err(|_| Error::InvalidArgument("Invalid account ID".to_string()))?,
-            );
+            let ufvk = ufvkeys.get(&AccountId::from(account_id));
 
             // Work out the receiving address when the sqlite db doesn't record it
             // but we have a diversifier that can regenerate it.
