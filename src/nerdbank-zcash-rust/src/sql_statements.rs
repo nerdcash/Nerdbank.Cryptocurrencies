@@ -29,7 +29,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 // Note that WalletDb::get_min_unspent_height provides the rebirth height at the wallet level (instead of the account level).
 pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
 	SELECT
-		(SELECT birthday_height FROM accounts WHERE account_id = :account_id) AS "Original birthday height",
+		(SELECT birthday_height FROM accounts WHERE id = :account_id) AS "Original birthday height",
 		(SELECT MIN(mined_height) FROM v_transactions WHERE account_id = :account_id) AS "Block with first note",
 		(SELECT MIN(t.block)
 			FROM sapling_received_notes s

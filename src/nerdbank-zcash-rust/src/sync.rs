@@ -754,8 +754,8 @@ pub(crate) fn get_transactions(
         |row| -> Result<crate::interop::Transaction, Error> {
             let account_id: u32 = row.get("account_id")?;
             let output_pool: u32 = row.get("output_pool")?;
-            let from_account: Option<u32> = row.get("from_account")?;
-            let to_account: Option<u32> = row.get("to_account")?;
+            let from_account_id: Option<u32> = row.get("from_account_id")?;
+            let to_account_id: Option<u32> = row.get("to_account_id")?;
             let mut recipient: Option<String> = row.get("to_address")?;
             let value: u64 = row.get("value")?;
             let memo: Option<Vec<u8>> = row.get("memo")?;
@@ -837,12 +837,12 @@ pub(crate) fn get_transactions(
 
             // We establish change by whether the memo does not contain user text,
             // and that the recipient is to the same account.
-            let is_change = to_account == from_account
+            let is_change = to_account_id == from_account_id
                 && Memo::from_bytes(&memo).is_ok_and(|m| !matches!(m, Memo::Text(_)));
 
             if is_change {
                 tx.change.push(note);
-            } else if to_account == Some(account_id) {
+            } else if to_account_id == Some(account_id) {
                 tx.incoming.push(note);
             } else {
                 tx.outgoing.push(note);
