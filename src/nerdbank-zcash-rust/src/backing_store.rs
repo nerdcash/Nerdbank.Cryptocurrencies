@@ -8,12 +8,9 @@ use zcash_client_backend::{
     keys::UnifiedSpendingKey,
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
-use zcash_client_sqlite::{wallet::init::init_wallet_db, WalletDb};
+use zcash_client_sqlite::{wallet::init::init_wallet_db, AccountId, WalletDb};
 use zcash_keys::address::UnifiedAddress;
-use zcash_primitives::{
-    consensus::Network,
-    zip32::{AccountId, DiversifierIndex},
-};
+use zcash_primitives::{consensus::Network, zip32::DiversifierIndex};
 
 use crate::{block_source::BlockCache, error::Error};
 
