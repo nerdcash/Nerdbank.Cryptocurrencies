@@ -9,24 +9,24 @@ namespace Nerdbank.Zcash.App.Views;
 
 public partial class SecurityAmountDisplay : UserControl
 {
-	public static readonly StyledProperty<SecurityAmount> ValueProperty = AvaloniaProperty.Register<SecurityAmountDisplay, SecurityAmount>(nameof(Value));
+	public static readonly StyledProperty<SecurityAmount?> ValueProperty = AvaloniaProperty.Register<SecurityAmountDisplay, SecurityAmount?>(nameof(Value));
 
 	public static readonly StyledProperty<bool> IsUnitsVisibleProperty = AvaloniaProperty.Register<SecurityAmountDisplay, bool>(nameof(IsUnitsVisible), defaultValue: true);
 
-	public static readonly StyledProperty<SecurityAmountFormatted> ValueFormattedProperty = AvaloniaProperty.Register<SecurityAmountDisplay, SecurityAmountFormatted>(nameof(ValueFormatted));
+	public static readonly StyledProperty<SecurityAmountFormatted?> ValueFormattedProperty = AvaloniaProperty.Register<SecurityAmountDisplay, SecurityAmountFormatted?>(nameof(ValueFormatted));
 
 	public SecurityAmountDisplay()
 	{
 		this.InitializeComponent();
 	}
 
-	public SecurityAmount Value
+	public SecurityAmount? Value
 	{
 		get => this.GetValue(ValueProperty);
 		set => this.SetValue(ValueProperty, value);
 	}
 
-	public SecurityAmountFormatted ValueFormatted
+	public SecurityAmountFormatted? ValueFormatted
 	{
 		get => this.GetValue(ValueFormattedProperty);
 		set => this.SetValue(ValueFormattedProperty, value);
@@ -43,7 +43,7 @@ public partial class SecurityAmountDisplay : UserControl
 		base.OnPropertyChanged(change);
 		if (change?.Property == ValueProperty)
 		{
-			this.ValueFormatted = new SecurityAmountFormatted(change.NewValue is null ? default : (SecurityAmount)change.NewValue);
+			this.ValueFormatted = change.NewValue is null ? null : new SecurityAmountFormatted((SecurityAmount)change.NewValue);
 		}
 	}
 }

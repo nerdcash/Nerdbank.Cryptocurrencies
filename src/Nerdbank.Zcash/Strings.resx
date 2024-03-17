@@ -129,6 +129,12 @@
   <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
     <value>The unified viewing key does not include the key type required to use this API.</value>
   </data>
+  <data name="FullViewingKeyRequired" xml:space="preserve">
+    <value>A full viewing key is required for an account to simulate a send.</value>
+  </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>There are insufficient funds for the requested spend: {required} would be required (including fees) but only {available} was available.</value>
+  </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>This address is invalid or unrecognized.</value>
   </data>

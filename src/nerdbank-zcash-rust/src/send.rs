@@ -15,12 +15,14 @@ use zcash_client_backend::{
     },
     fees::{zip317::SingleOutputChangeStrategy, ChangeStrategy},
     keys::UnifiedSpendingKey,
+    proposal::Proposal,
     proto::service,
     wallet::OvkPolicy,
     zip321::{Payment, TransactionRequest},
     ShieldedProtocol,
 };
 use zcash_client_sqlite::{ReceivedNoteId, WalletDb};
+use zcash_keys::keys::UnifiedFullViewingKey;
 use zcash_primitives::{
     consensus::Network,
     memo::MemoBytes,
@@ -40,18 +42,13 @@ pub struct SendTransactionResult {
     pub transaction: Transaction,
 }
 
-pub async fn send_transaction<P: AsRef<Path>>(
-    data_file: P,
-    server_uri: Uri,
+pub fn create_send_proposal(
+    db: &mut Db,
     network: Network,
-    usk: &UnifiedSpendingKey,
+    account_ufvk: &UnifiedFullViewingKey,
     min_confirmations: NonZeroU32,
     details: Vec<TransactionSendDetail>,
-) -> Result<NonEmpty<SendTransactionResult>, Error> {
-    let mut db = Db::init(data_file, network)?;
-
-    let prover = get_prover()?;
-
+) -> Result<Proposal<FeeRule, ReceivedNoteId>, Error> {
     // TODO: revise this to a smarter change strategy that avoids unnecessarily crossing the turnstile.
     let input_selector = GreedyInputSelector::new(
         SingleOutputChangeStrategy::new(FeeRule::standard(), None, ShieldedProtocol::Sapling),
@@ -78,17 +75,37 @@ pub async fn send_transaction<P: AsRef<Path>>(
     let request = TransactionRequest::new(payments)?;
     let account_id = db
         .data
-        .get_account_for_ufvk(&usk.to_unified_full_viewing_key())?
+        .get_account_for_ufvk(account_ufvk)?
         .ok_or(Error::KeyNotRecognized)?;
 
-    let proposal = propose_transfer::<_, _, _, Error>(
+    Ok(propose_transfer::<_, _, _, Error>(
         &mut db.data,
         &network,
         account_id,
         &input_selector,
         request,
         min_confirmations,
+    )?)
+}
+
+pub async fn send_transaction<P: AsRef<Path>>(
+    data_file: P,
+    server_uri: Uri,
+    network: Network,
+    usk: &UnifiedSpendingKey,
+    min_confirmations: NonZeroU32,
+    details: Vec<TransactionSendDetail>,
+) -> Result<NonEmpty<SendTransactionResult>, Error> {
+    let mut db = Db::init(data_file, network)?;
+    let proposal = create_send_proposal(
+        &mut db,
+        network,
+        &usk.to_unified_full_viewing_key(),
+        min_confirmations,
+        details,
     )?;
+
+    let prover = get_prover()?;
     let txids = create_proposed_transactions::<
         _,
         _,

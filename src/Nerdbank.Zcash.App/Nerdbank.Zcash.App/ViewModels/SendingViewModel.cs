@@ -27,9 +27,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private string? sendSuccessfulMessage;
 	private string mutableMemo = string.Empty;
 	private SecurityAmount subtotal;
-	private SecurityAmount total;
+	private SecurityAmount? total;
 	private ReadOnlyObservableCollection<object>? possibleRecipients;
-	private SecurityAmount fee;
+	private SecurityAmount? fee;
 	private IDisposable? possibleRecipientsSubscription;
 
 	[Obsolete("For design-time use only.", error: true)]
@@ -78,7 +78,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount!.Balance.Spendable,
 			vm => vm.Total,
 			vm => vm.IsValid,
-			(sending, spendableBalance, total, valid) => valid && !sending && spendableBalance.Amount >= total.Amount);
+			(sending, spendableBalance, total, valid) => valid && !sending && spendableBalance.Amount >= total?.Amount);
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
@@ -118,7 +118,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public string FeeCaption => "Fee";
 
-	public SecurityAmount Fee
+	public SecurityAmount? Fee
 	{
 		get => this.fee;
 		private set => this.RaiseAndSetIfChanged(ref this.fee, value);
@@ -138,7 +138,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public string TotalCaption => "Total";
 
-	public SecurityAmount Total
+	public SecurityAmount? Total
 	{
 		get => this.total;
 		private set => this.RaiseAndSetIfChanged(ref this.total, value);
@@ -213,10 +213,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	{
 		// TODO: Block sending if validation errors exist.
 		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
-		ImmutableArray<Transaction.LineItem> lineItems = [..
-			from li in this.LineItems
-			let to = li.RecipientAddressParsed
-			select new Transaction.LineItem(to, li.Amount ?? 0m, to.HasShieldedReceiver ? Memo.FromMessage(li.Memo) : Memo.NoMemo)];
+		ImmutableArray<Transaction.LineItem> lineItems = this.GetLineItems();
 
 		// Create a draft transaction in the account right away.
 		// This will store the mutable memo, exchange rate, and other metadata that
@@ -286,6 +283,15 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		}
 	}
 
+	private ImmutableArray<Transaction.LineItem> GetLineItems()
+	{
+		return [..
+			from li in this.LineItems
+			let to = li.RecipientAddressParsed
+			where to is not null
+			select new Transaction.LineItem(to, li.Amount ?? 0m, to.HasShieldedReceiver ? Memo.FromMessage(li.Memo) : Memo.NoMemo)];
+	}
+
 	private void Clear()
 	{
 		this.lineItems.Clear();
@@ -324,30 +330,55 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private void RecalculateAggregates()
 	{
 		Security security = this.SelectedAccount?.ZcashAccount.Network.AsSecurity() ?? UnknownSecurity;
+		this.Subtotal = security.Amount(this.LineItems.Sum(li => li.Amount) ?? 0m);
 
-		this.Subtotal = new SecurityAmount(this.LineItems.Sum(li => li.Amount) ?? 0m, security);
-
-		this.Fee = new SecurityAmount(0.0001m, security); // TODO: calculate fee
-
-		this.Total = this.Subtotal + this.Fee;
-
-		if (this.Total.Amount > this.SelectedAccount?.Balance.Spendable.Amount)
+		try
 		{
-			// In preparing these error messages, we specifically do *not* disclose the user's actual balance
-			// because the user's payee may be looking at the screen as well, and the payee shouldn't be privy
-			// to the sender's balance.
-			if (this.Total.Amount > this.SelectedAccount.Balance.MainBalance.Amount + this.SelectedAccount.Balance.Incoming.Amount)
+			bool insufficientFunds;
+			try
 			{
-				this.ErrorMessage = "Insufficient funds to cover this expenditure. Please consult the Balance view.";
+				LightWalletClient.SpendDetails? details = this.SelectedAccount?.LightWalletClient?.SimulateSend(this.SelectedAccount.ZcashAccount, this.GetLineItems());
+				insufficientFunds = false;
+				if (details is not null)
+				{
+					this.Fee = this.SelectedSecurity.Amount(details.Fee);
+					this.Total = this.Subtotal + this.Fee;
+				}
+				else
+				{
+					this.Fee = null;
+					this.Total = null;
+				}
+			}
+			catch (InsufficientFundsException ex)
+			{
+				insufficientFunds = true;
+				this.Total = security.Amount(ex.RequiredBalance);
+				this.Fee = this.Total - this.Subtotal;
+			}
+
+			if (insufficientFunds && this.SelectedAccount is not null)
+			{
+				// In preparing these error messages, we specifically do *not* disclose the user's actual balance
+				// because the user's payee may be looking at the screen as well, and the payee shouldn't be privy
+				// to the sender's balance.
+				if (this.Total?.Amount > this.SelectedAccount.Balance.MainBalance.Amount + this.SelectedAccount.Balance.Incoming.Amount)
+				{
+					this.ErrorMessage = "Insufficient funds to cover this expenditure. Please consult the Balance view.";
+				}
+				else
+				{
+					this.ErrorMessage = "Insufficient spendable funds. Enough funds are expected to be spendable to cover this expenditure within a few minutes. Check the Balance view for details.";
+				}
 			}
 			else
 			{
-				this.ErrorMessage = "Insufficient spendable funds. Enough funds are expected to be spendable to cover this expenditure within a few minutes. Check the Balance view for details.";
+				this.ErrorMessage = null;
 			}
 		}
-		else
+		catch (LightWalletException ex)
 		{
-			this.ErrorMessage = null;
+			this.ErrorMessage = ex.Message;
 		}
 	}
 
