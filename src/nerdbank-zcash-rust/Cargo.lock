@@ -3068,6 +3068,7 @@ dependencies = [
  "jubjub",
  "libsqlite3-sys",
  "maybe-rayon",
+ "orchard",
  "prost",
  "rusqlite",
  "sapling-crypto",
