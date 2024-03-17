@@ -29,7 +29,7 @@ public class SendingViewModelTests : ViewModelTestBase
 		Assert.Equal(string.Empty, this.viewModel.LineItems[0].RecipientAddress);
 		Assert.Equal("ZEC", this.viewModel.LineItems[0].AmountEntry.TickerSymbol);
 		Assert.Null(this.viewModel.LineItems[0].Amount);
-		Assert.Equal(0.0001m, this.viewModel.Fee?.Amount);
+		Assert.Null(this.viewModel.Fee);
 		Assert.Equal(0m, this.viewModel.Subtotal.Amount);
 		Assert.Equal(this.viewModel.Subtotal.Amount + this.viewModel.Fee?.Amount, this.viewModel.Total?.Amount);
 	}
