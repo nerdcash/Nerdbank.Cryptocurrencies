@@ -536,7 +536,7 @@ async fn download_and_scan_blocks(
     mut db: Db,
     cancellation_token: CancellationToken,
 ) -> Result<bool, Error> {
-    println!("Received instructions to download [{})", block_range);
+    info!("Received instructions to download [{})", block_range);
     let (send, mut receive) = mpsc::channel::<Vec<CompactBlock>>(CHUNK_CHANNEL_CAPACITY);
     let priorities_changed_token = cancellation_token.child_token();
 
@@ -565,7 +565,7 @@ async fn download_and_scan_blocks(
                 scanner_block_range.priority(),
             );
 
-            println!("Scanning {} blocks [{}).", chunk.len(), scan_range);
+            info!("Scanning {} blocks [{}).", chunk.len(), scan_range);
 
             // Insert the blocks into the block cache.
             db.blocks.insert_range(chunk);
@@ -576,7 +576,7 @@ async fn download_and_scan_blocks(
                 // (just less so), so don't throw away what we've already downloaded.
                 priorities_changed_token.cancel();
                 priorities_changed = true;
-                println!("Resetting...");
+                info!("Resetting...");
             }
 
             // Now that they've been scanned, we don't need them any more.
@@ -624,12 +624,12 @@ async fn download_blocks(
         }
 
         if cancellation_token.is_cancelled() {
-            println!("Breaking out of download loop due to cancellation.");
+            info!("Breaking out of download loop due to cancellation.");
             break;
         }
     }
 
-    println!(
+    info!(
         "Block download exiting. Cancelled? {}",
         cancellation_token.is_cancelled()
     );
@@ -883,20 +883,20 @@ mod tests {
         .await
         .unwrap();
 
-        println!("Tip: {:?}", result.last_fully_scanned_block);
+        info!("Tip: {:?}", result.last_fully_scanned_block);
 
         if let Some(summary) = setup.db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
             for id in account_ids {
-                println!("Account index: {}", u32::from(id));
+                info!("Account index: {}", u32::from(id));
                 let b = summary.account_balances().get(&id).unwrap();
-                println!(
+                info!(
                     "Sapling balance: {}",
                     format_zec(Amount::from(b.sapling_balance().spendable_value()))
                 );
-                println!("Transparent balance: {}", format_zec(b.unshielded()));
+                info!("Transparent balance: {}", format_zec(b.unshielded()));
             }
         } else {
-            println!("No summary found");
+            info!("No summary found");
         }
     }
 
