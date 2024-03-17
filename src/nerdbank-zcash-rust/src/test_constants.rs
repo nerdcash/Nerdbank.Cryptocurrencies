@@ -7,9 +7,9 @@ use zcash_client_backend::keys::UnifiedSpendingKey;
 use zcash_client_backend::proto::service::{
     self, compact_tx_streamer_client::CompactTxStreamerClient, LightdInfo,
 };
+use zcash_client_sqlite::AccountId;
 use zcash_primitives::{
     consensus::Network,
-    zip32::AccountId,
     zip339::{Count, Mnemonic},
 };
 

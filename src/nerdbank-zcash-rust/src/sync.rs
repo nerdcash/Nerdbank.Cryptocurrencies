@@ -12,7 +12,7 @@ use tokio_util::sync::CancellationToken;
 use tonic::{transport::Channel, Status};
 use tracing::{debug, info};
 use uniffi::deps::anyhow;
-use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
+use zcash_client_sqlite::{error::SqliteClientError, AccountId, WalletDb};
 use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
@@ -23,12 +23,11 @@ use zcash_primitives::{
         components::{Amount, OutPoint},
         Transaction, TxId,
     },
-    zip32::AccountId,
 };
 
 use zcash_client_backend::{
     data_api::{
-        chain::{scan_cached_blocks, CommitmentTreeRoot},
+        chain::{scan_cached_blocks, ChainState, CommitmentTreeRoot},
         scanning::{ScanPriority, ScanRange},
         wallet::decrypt_and_store_transaction,
         WalletCommitmentTrees, WalletRead, WalletWrite,
@@ -364,7 +363,10 @@ fn initialize_transaction_fees(db: &mut Db, conn: &Connection) -> Result<(), Err
         .query_map([], |r| r.get::<_, [u8; 32]>(0).map(TxId::from_bytes))?
         .try_for_each(|txid| {
             let txid = txid?;
-            let tx = db.data.get_transaction(txid)?;
+            let tx = db
+                .data
+                .get_transaction(txid)?
+                .ok_or(Error::Internal("Transaction not found.".to_string()))?;
 
             // Some fees we'll fail to calculate because we're missing UTXOs.
             // that should only happen when it's an incoming transparent transaction from a spent UTXO,
@@ -533,7 +535,8 @@ async fn download_and_scan_blocks(
     cancellation_token: CancellationToken,
 ) -> Result<bool, Error> {
     println!("Received instructions to download [{})", block_range);
-    let (send, mut receive) = mpsc::channel::<Vec<CompactBlock>>(CHUNK_CHANNEL_CAPACITY);
+    let (send, mut receive) =
+        mpsc::channel::<(Vec<CompactBlock>, ChainState)>(CHUNK_CHANNEL_CAPACITY);
     let priorities_changed_token = cancellation_token.child_token();
 
     // Download the blocks in `scan_range` into the block source, overwriting any
@@ -555,7 +558,7 @@ async fn download_and_scan_blocks(
     let scanner_block_range = block_range.clone();
     let scanner = tokio::spawn(async move {
         let mut priorities_changed = false;
-        while let Some(chunk) = receive.recv().await {
+        while let Some((chunk, chain_state)) = receive.recv().await {
             let scan_range = ScanRange::from_parts(
                 chunk.first().unwrap().height()..chunk.last().unwrap().height() + 1,
                 scanner_block_range.priority(),
@@ -566,7 +569,7 @@ async fn download_and_scan_blocks(
             // Insert the blocks into the block cache.
             db.blocks.insert_range(chunk);
 
-            if scan_blocks(&network, &mut db, &scan_range)? && !priorities_changed {
+            if scan_blocks(&network, &mut db, &scan_range, &chain_state)? && !priorities_changed {
                 // Notify the downloader to break out early because we'll be getting a new range request.
                 // But we don't abort here. Presumably the original scan range is still interesting
                 // (just less so), so don't throw away what we've already downloaded.
@@ -590,7 +593,7 @@ async fn download_and_scan_blocks(
 async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
     scan_range: &ScanRange,
-    sender: mpsc::Sender<Vec<CompactBlock>>,
+    sender: mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
     cancellation_token: CancellationToken,
 ) -> Result<(), Status> {
     info!("Fetching {}", scan_range);
@@ -614,7 +617,7 @@ async fn download_blocks(
         blocks.push(block);
 
         if accumulated_size > BLOCKS_CHUNK_THRESHOLD {
-            sender.send(blocks).await.unwrap();
+            send_blocks_and_chainstate(client, blocks, &sender).await?;
             blocks = Vec::new();
             accumulated_size = 0;
         }
@@ -631,7 +634,27 @@ async fn download_blocks(
     );
 
     if !blocks.is_empty() {
-        sender.send(blocks).await.unwrap();
+        send_blocks_and_chainstate(client, blocks, &sender).await?;
+    }
+
+    async fn send_blocks_and_chainstate(
+        client: &mut CompactTxStreamerClient<Channel>,
+        blocks: Vec<CompactBlock>,
+        sender: &mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
+    ) -> Result<(), Status> {
+        let base_height = blocks[0].height - 1;
+        let tree_state = client
+            .get_tree_state(service::BlockId {
+                height: base_height,
+                ..Default::default()
+            })
+            .await?
+            .into_inner();
+        let chain_state = tree_state.to_chain_state()?;
+
+        sender.send((blocks, chain_state)).await.unwrap();
+
+        Ok(())
     }
 
     Ok(())
@@ -641,12 +664,18 @@ async fn download_blocks(
 /// chain tip is out of sync with blockchain history.
 ///
 /// Returns `true` if scanning these blocks materially changed the suggested scan ranges.
-fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result<bool, Error> {
+fn scan_blocks(
+    network: &Network,
+    db: &mut Db,
+    scan_range: &ScanRange,
+    chain_state: &ChainState,
+) -> Result<bool, Error> {
     let scan_result = scan_cached_blocks(
         network,
         &db.blocks,
         &mut db.data,
         scan_range.block_range().start,
+        chain_state,
         scan_range.len(),
     );
 
