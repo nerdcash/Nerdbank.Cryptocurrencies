@@ -48,7 +48,7 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	FROM v_tx_outputs o
 	INNER JOIN transactions tx ON tx.txid = o.txid
 	LEFT OUTER JOIN sapling_received_notes s ON s.tx = tx.id_tx
-	WHERE o.to_account = :account_id AND s.spent IS NULL AND o.output_pool > 0
+	WHERE o.to_account_id = :account_id AND s.spent IS NULL AND o.output_pool > 0
 
 	UNION
 	
@@ -58,7 +58,7 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 		0, -- output_pool
 		0  -- is_change
 	FROM utxos
-	WHERE received_by_account = :account_id AND spent_in_tx IS NULL
+	WHERE received_by_account_id = :account_id AND spent_in_tx IS NULL
 "#;
 
 pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
