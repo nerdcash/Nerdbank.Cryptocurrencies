@@ -67,6 +67,6 @@ pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
 		value_zat,
 		address
 	FROM utxos
-	WHERE received_by_account = :account_id AND spent_in_tx IS NULL
+	WHERE received_by_account_id = :account_id AND spent_in_tx IS NULL
 	ORDER BY height
 "#;
