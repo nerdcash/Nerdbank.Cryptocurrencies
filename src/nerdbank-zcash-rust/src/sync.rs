@@ -441,9 +441,9 @@ async fn update_subtree_roots<P: Parameters>(
     client: &mut CompactTxStreamerClient<Channel>,
     db_data: &mut WalletDb<rusqlite::Connection, P>,
 ) -> Result<(), anyhow::Error> {
+    // Update sapling subtree roots
     let mut request = service::GetSubtreeRootsArg::default();
     request.set_shielded_protocol(service::ShieldedProtocol::Sapling);
-
     let roots: Vec<CommitmentTreeRoot<sapling::Node>> = client
         .get_subtree_roots(request)
         .await?
@@ -457,8 +457,25 @@ async fn update_subtree_roots<P: Parameters>(
         })
         .try_collect()
         .await?;
-
     db_data.put_sapling_subtree_roots(0, &roots)?;
+
+    // Update orchard subtree roots
+    request = service::GetSubtreeRootsArg::default();
+    request.set_shielded_protocol(service::ShieldedProtocol::Orchard);
+    let roots: Vec<CommitmentTreeRoot<orchard::tree::MerkleHashOrchard>> = client
+        .get_subtree_roots(request)
+        .await?
+        .into_inner()
+        .and_then(|root| async move {
+            let root_hash = orchard::tree::MerkleHashOrchard::read(&root.root_hash[..])?;
+            Ok(CommitmentTreeRoot::from_parts(
+                BlockHeight::from_u32(root.completing_block_height as u32),
+                root_hash,
+            ))
+        })
+        .try_collect()
+        .await?;
+    db_data.put_orchard_subtree_roots(0, &roots)?;
 
     Ok(())
 }
@@ -915,6 +932,10 @@ mod tests {
             for id in account_ids {
                 info!("Account index: {}", u32::from(id));
                 let b = summary.account_balances().get(&id).unwrap();
+                info!(
+                    "Orchard balance: {}",
+                    format_zec(Amount::from(b.orchard_balance().spendable_value()))
+                );
                 info!(
                     "Sapling balance: {}",
                     format_zec(Amount::from(b.sapling_balance().spendable_value()))
