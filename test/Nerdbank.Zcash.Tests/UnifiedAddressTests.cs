@@ -244,11 +244,11 @@ public class UnifiedAddressTests : TestBase
 			_ => throw new ArgumentOutOfRangeException(nameof(network)),
 		};
 
-		// We have to include expiration date metadata to push the length of the encoded data
-		// to the required 48 bytes.
+		// We have to include expiration block metadata to push the length of the encoded data
+		// to the required 40 bytes.
 		UnifiedEncodingMetadata metadata = new()
 		{
-			ExpirationDate = DateTimeOffset.Now,
+			ExpirationHeight = 100,
 		};
 
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, network));
