@@ -49,8 +49,8 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 		COALESCE(txo.from_account_id = txo.to_account_id, 0) AS is_change
 	FROM v_tx_outputs txo
 	INNER JOIN transactions tx ON tx.txid = txo.txid
-	LEFT OUTER JOIN sapling_received_notes s ON s.tx = tx.id_tx
-	LEFT OUTER JOIN orchard_received_notes o ON o.tx = tx.id_tx
+	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.tx = tx.id_tx AND s.output_index = txo.output_index
+	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.tx = tx.id_tx AND o.action_index = txo.output_index
 	WHERE txo.to_account_id = :account_id AND s.spent IS NULL AND o.spent IS NULL AND txo.output_pool > 0
 
 	UNION
