@@ -20,7 +20,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 	FROM v_transactions t
 	LEFT OUTER JOIN v_tx_outputs o ON t.txid = o.txid
 	LEFT OUTER JOIN transactions tx ON tx.txid = t.txid
-	LEFT OUTER JOIN sapling_received_notes s ON tx.id_tx = s.tx
+	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.tx = tx.id_tx AND s.output_index = o.output_index
 	WHERE (:account_id IS NULL OR t.account_id = :account_id) AND (t.mined_height IS NULL OR :starting_block IS NULL OR t.mined_height >= :starting_block)
 	ORDER BY t.mined_height, t.tx_index
 "#;
@@ -51,7 +51,7 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	WHERE o.to_account_id = :account_id AND s.spent IS NULL AND o.output_pool > 0
 
 	UNION
-	
+
 	SELECT
 		height,
 		value_zat,
