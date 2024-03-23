@@ -11,7 +11,7 @@ use zcash_client_backend::{
             input_selection::{GreedyInputSelector, GreedyInputSelectorError},
             propose_transfer,
         },
-        WalletRead,
+        Account, WalletRead,
     },
     fees::{zip317::SingleOutputChangeStrategy, ChangeStrategy},
     keys::UnifiedSpendingKey,
@@ -73,7 +73,7 @@ pub fn create_send_proposal(
     }
 
     let request = TransactionRequest::new(payments)?;
-    let account_id = db
+    let account = db
         .data
         .get_account_for_ufvk(account_ufvk)?
         .ok_or(Error::KeyNotRecognized)?;
@@ -81,7 +81,7 @@ pub fn create_send_proposal(
     Ok(propose_transfer::<_, _, _, Error>(
         &mut db.data,
         &network,
-        account_id,
+        account.id(),
         &input_selector,
         request,
         min_confirmations,
@@ -139,11 +139,14 @@ pub(crate) async fn transmit_transaction(
     db: &mut WalletDb<Connection, Network>,
 ) -> Result<SendTransactionResult, Error> {
     let mut client = get_client(server_uri).await?;
-    let (tx, raw_tx) = db.get_transaction(txid).map(|tx| {
-        let mut raw_tx = service::RawTransaction::default();
-        tx.write(&mut raw_tx.data).unwrap();
-        (tx, raw_tx)
-    })?;
+    let (tx, raw_tx) = db
+        .get_transaction(txid)?
+        .ok_or(Error::Internal("Transaction not found".to_string()))
+        .map(|tx| {
+            let mut raw_tx = service::RawTransaction::default();
+            tx.write(&mut raw_tx.data).unwrap();
+            (tx, raw_tx)
+        })?;
     let response = client.send_transaction(raw_tx).await?.into_inner();
     if response.error_code != 0 {
         Err(Error::SendFailed {

@@ -12,7 +12,7 @@ use tokio_util::sync::CancellationToken;
 use tonic::{transport::Channel, Status};
 use tracing::{debug, info};
 use uniffi::deps::anyhow;
-use zcash_client_sqlite::{error::SqliteClientError, WalletDb};
+use zcash_client_sqlite::{error::SqliteClientError, AccountId, WalletDb};
 use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
     consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
@@ -23,12 +23,11 @@ use zcash_primitives::{
         components::{Amount, OutPoint},
         Transaction, TxId,
     },
-    zip32::AccountId,
 };
 
 use zcash_client_backend::{
     data_api::{
-        chain::{scan_cached_blocks, CommitmentTreeRoot},
+        chain::{scan_cached_blocks, ChainState, CommitmentTreeRoot},
         scanning::{ScanPriority, ScanRange},
         wallet::decrypt_and_store_transaction,
         WalletCommitmentTrees, WalletRead, WalletWrite,
@@ -364,7 +363,10 @@ fn initialize_transaction_fees(db: &mut Db, conn: &Connection) -> Result<(), Err
         .query_map([], |r| r.get::<_, [u8; 32]>(0).map(TxId::from_bytes))?
         .try_for_each(|txid| {
             let txid = txid?;
-            let tx = db.data.get_transaction(txid)?;
+            let tx = db
+                .data
+                .get_transaction(txid)?
+                .ok_or(Error::Internal("Transaction not found.".to_string()))?;
 
             // Some fees we'll fail to calculate because we're missing UTXOs.
             // that should only happen when it's an incoming transparent transaction from a spent UTXO,
@@ -505,15 +507,19 @@ async fn download_transparent_transactions(
     for rawtx in transparent_transactions {
         let height = BlockHeight::from_u32(rawtx.height as u32);
         let tx = Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
+        txids_for_new_transparent_transactions.push(tx.txid());
+
+        // Record spends
+        decrypt_and_store_transaction(network, &mut db.data, &tx)?;
+
+        // Record receives.
         if let Some(t) = tx.transparent_bundle() {
-            // TODO: record UTXOs SPENDING too
             for (txout_index, txout) in t.vout.iter().enumerate() {
                 let outpoint = OutPoint::new(tx.txid().as_ref().to_owned(), txout_index as u32);
                 if let Some(output) =
                     WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), height)
                 {
                     db.data.put_received_transparent_utxo(&output)?;
-                    txids_for_new_transparent_transactions.push(tx.txid());
                 }
             }
         }
@@ -532,8 +538,9 @@ async fn download_and_scan_blocks(
     mut db: Db,
     cancellation_token: CancellationToken,
 ) -> Result<bool, Error> {
-    println!("Received instructions to download [{})", block_range);
-    let (send, mut receive) = mpsc::channel::<Vec<CompactBlock>>(CHUNK_CHANNEL_CAPACITY);
+    info!("Received instructions to download [{})", block_range);
+    let (send, mut receive) =
+        mpsc::channel::<(Vec<CompactBlock>, ChainState)>(CHUNK_CHANNEL_CAPACITY);
     let priorities_changed_token = cancellation_token.child_token();
 
     // Download the blocks in `scan_range` into the block source, overwriting any
@@ -555,24 +562,24 @@ async fn download_and_scan_blocks(
     let scanner_block_range = block_range.clone();
     let scanner = tokio::spawn(async move {
         let mut priorities_changed = false;
-        while let Some(chunk) = receive.recv().await {
+        while let Some((chunk, chain_state)) = receive.recv().await {
             let scan_range = ScanRange::from_parts(
                 chunk.first().unwrap().height()..chunk.last().unwrap().height() + 1,
                 scanner_block_range.priority(),
             );
 
-            println!("Scanning {} blocks [{}).", chunk.len(), scan_range);
+            info!("Scanning {} blocks [{}).", chunk.len(), scan_range);
 
             // Insert the blocks into the block cache.
             db.blocks.insert_range(chunk);
 
-            if scan_blocks(&network, &mut db, &scan_range)? && !priorities_changed {
+            if scan_blocks(&network, &mut db, &scan_range, &chain_state)? && !priorities_changed {
                 // Notify the downloader to break out early because we'll be getting a new range request.
                 // But we don't abort here. Presumably the original scan range is still interesting
                 // (just less so), so don't throw away what we've already downloaded.
                 priorities_changed_token.cancel();
                 priorities_changed = true;
-                println!("Resetting...");
+                info!("Resetting...");
             }
 
             // Now that they've been scanned, we don't need them any more.
@@ -590,7 +597,7 @@ async fn download_and_scan_blocks(
 async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
     scan_range: &ScanRange,
-    sender: mpsc::Sender<Vec<CompactBlock>>,
+    sender: mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
     cancellation_token: CancellationToken,
 ) -> Result<(), Status> {
     info!("Fetching {}", scan_range);
@@ -614,24 +621,44 @@ async fn download_blocks(
         blocks.push(block);
 
         if accumulated_size > BLOCKS_CHUNK_THRESHOLD {
-            sender.send(blocks).await.unwrap();
+            send_blocks_and_chainstate(client, blocks, &sender).await?;
             blocks = Vec::new();
             accumulated_size = 0;
         }
 
         if cancellation_token.is_cancelled() {
-            println!("Breaking out of download loop due to cancellation.");
+            info!("Breaking out of download loop due to cancellation.");
             break;
         }
     }
 
-    println!(
+    info!(
         "Block download exiting. Cancelled? {}",
         cancellation_token.is_cancelled()
     );
 
     if !blocks.is_empty() {
-        sender.send(blocks).await.unwrap();
+        send_blocks_and_chainstate(client, blocks, &sender).await?;
+    }
+
+    async fn send_blocks_and_chainstate(
+        client: &mut CompactTxStreamerClient<Channel>,
+        blocks: Vec<CompactBlock>,
+        sender: &mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
+    ) -> Result<(), Status> {
+        let base_height = blocks[0].height - 1;
+        let tree_state = client
+            .get_tree_state(service::BlockId {
+                height: base_height,
+                ..Default::default()
+            })
+            .await?
+            .into_inner();
+        let chain_state = tree_state.to_chain_state()?;
+
+        sender.send((blocks, chain_state)).await.unwrap();
+
+        Ok(())
     }
 
     Ok(())
@@ -641,12 +668,18 @@ async fn download_blocks(
 /// chain tip is out of sync with blockchain history.
 ///
 /// Returns `true` if scanning these blocks materially changed the suggested scan ranges.
-fn scan_blocks(network: &Network, db: &mut Db, scan_range: &ScanRange) -> Result<bool, Error> {
+fn scan_blocks(
+    network: &Network,
+    db: &mut Db,
+    scan_range: &ScanRange,
+    chain_state: &ChainState,
+) -> Result<bool, Error> {
     let scan_result = scan_cached_blocks(
         network,
         &db.blocks,
         &mut db.data,
         scan_range.block_range().start,
+        chain_state,
         scan_range.len(),
     );
 
@@ -721,17 +754,14 @@ pub(crate) fn get_transactions(
         |row| -> Result<crate::interop::Transaction, Error> {
             let account_id: u32 = row.get("account_id")?;
             let output_pool: u32 = row.get("output_pool")?;
-            let from_account: Option<u32> = row.get("from_account")?;
-            let to_account: Option<u32> = row.get("to_account")?;
+            let from_account_id: Option<u32> = row.get("from_account_id")?;
+            let to_account_id: Option<u32> = row.get("to_account_id")?;
             let mut recipient: Option<String> = row.get("to_address")?;
             let value: u64 = row.get("value")?;
             let memo: Option<Vec<u8>> = row.get("memo")?;
             let memo = memo.unwrap_or_default();
 
-            let ufvk = ufvkeys.get(
-                &AccountId::try_from(account_id)
-                    .map_err(|_| Error::InvalidArgument("Invalid account ID".to_string()))?,
-            );
+            let ufvk = ufvkeys.get(&AccountId::from(account_id));
 
             // Work out the receiving address when the sqlite db doesn't record it
             // but we have a diversifier that can regenerate it.
@@ -807,15 +837,20 @@ pub(crate) fn get_transactions(
 
             // We establish change by whether the memo does not contain user text,
             // and that the recipient is to the same account.
-            let is_change = to_account == from_account
+            let is_change = to_account_id == from_account_id
                 && Memo::from_bytes(&memo).is_ok_and(|m| !matches!(m, Memo::Text(_)));
 
             if is_change {
                 tx.change.push(note);
-            } else if to_account == Some(account_id) {
-                tx.incoming.push(note);
             } else {
-                tx.outgoing.push(note);
+                // A 'send to self' will appear as both incoming and outgoing.
+                if to_account_id == Some(account_id) {
+                    tx.incoming.push(note.clone());
+                }
+
+                if from_account_id == Some(account_id) {
+                    tx.outgoing.push(note);
+                }
             }
 
             Ok(tx)
@@ -879,20 +914,20 @@ mod tests {
         .await
         .unwrap();
 
-        println!("Tip: {:?}", result.last_fully_scanned_block);
+        info!("Tip: {:?}", result.last_fully_scanned_block);
 
         if let Some(summary) = setup.db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
             for id in account_ids {
-                println!("Account index: {}", u32::from(id));
+                info!("Account index: {}", u32::from(id));
                 let b = summary.account_balances().get(&id).unwrap();
-                println!(
+                info!(
                     "Sapling balance: {}",
                     format_zec(Amount::from(b.sapling_balance().spendable_value()))
                 );
-                println!("Transparent balance: {}", format_zec(b.unshielded()));
+                info!("Transparent balance: {}", format_zec(b.unshielded()));
             }
         } else {
-            println!("No summary found");
+            info!("No summary found");
         }
     }
 

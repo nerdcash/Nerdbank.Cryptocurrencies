@@ -271,9 +271,6 @@ where
                 Error::Internal(format!("NoteSelection: {}", inner))
             }
             BackendError::KeyNotRecognized => Error::KeyNotRecognized,
-            BackendError::AccountNotFound(id) => {
-                Error::Internal(format!("AccountNotFound: {}", u32::from(id)))
-            }
             BackendError::BalanceError(inner) => {
                 Error::Internal(format!("BalanceError: {}", inner))
             }
