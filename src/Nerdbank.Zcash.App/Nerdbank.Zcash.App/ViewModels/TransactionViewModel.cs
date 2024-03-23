@@ -251,7 +251,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		{
 			AddLineItems(this.Model.SendItems.ToImmutableArray(), negate: true);
 		}
-		else if (this.Model.RecvItems.Length > 0)
+
+		if (this.Model.RecvItems.Length > 0)
 		{
 			AddLineItems(this.Model.RecvItems);
 		}
