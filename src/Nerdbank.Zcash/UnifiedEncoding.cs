@@ -19,7 +19,7 @@ internal static class UnifiedEncoding
 	/// <summary>
 	/// The shortest allowed length of the input to the <see cref="F4Jumble"/> function.
 	/// </summary>
-	internal const int MinF4JumbleInputLength = 48;
+	internal const int MinF4JumbleInputLength = 40;
 
 	/// <summary>
 	/// The longest allowed length of the input to the <see cref="F4Jumble"/> function.
