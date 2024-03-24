@@ -50,7 +50,7 @@ impl Db {
             AccountBirthday::from_treestate(treestate, None)?
         };
 
-        Ok(self.data.create_account(seed, birthday)?)
+        Ok(self.data.create_account(seed, &birthday)?)
     }
 
     pub(crate) fn add_diversifier(
