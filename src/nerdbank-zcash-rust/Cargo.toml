@@ -26,7 +26,7 @@ orchard = "0.7.0"
 pasta_curves = "0.5"
 prost = "0.12"
 rusqlite = "0.29"
-sapling = { package = "sapling-crypto", version = "0.1" }
+sapling = { package = "sapling-crypto", version = "0.1.2" }
 schemer = "0.2"
 secrecy = "0.8.0"
 thiserror = "1.0"
@@ -73,3 +73,6 @@ matches = "0.1"
 [patch.crates-io]
 hdwallet = { path = "../../external/hdwallet" }
 sapling = { package = "sapling-crypto", path = "../../external/sapling-crypto" }
+orchard = { git = "https://github.com/zcash/orchard", rev = "e74879dd0ad0918f4ffe0826e03905cd819981bd" }
+incrementalmerkletree = { git = "https://github.com/nuttycom/incrementalmerkletree", rev = "fa147c89c6c98a03bba745538f4e68d4eaed5146" }
+shardtree = { git = "https://github.com/nuttycom/incrementalmerkletree", rev = "fa147c89c6c98a03bba745538f4e68d4eaed5146" }

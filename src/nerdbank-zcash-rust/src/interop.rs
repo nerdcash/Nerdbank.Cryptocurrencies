@@ -323,14 +323,7 @@ pub fn add_diversifier(
                 })?;
         let diversifier_index = DiversifierIndex::from(diversified_index);
         Ok(db
-            .add_diversifier(
-                account
-                    .try_into()
-                    .map_err(|_| LightWalletError::InvalidArgument {
-                        message: "invalid account id".to_string(),
-                    })?,
-                diversifier_index,
-            )?
+            .add_diversifier(account.into(), diversifier_index)?
             .encode(&network))
     })
 }
@@ -404,12 +397,7 @@ pub fn get_birthday_heights(
 ) -> Result<BirthdayHeights, LightWalletError> {
     use crate::analysis::get_birthday_heights;
 
-    Ok(get_birthday_heights(
-        config,
-        account_id
-            .try_into()
-            .map_err(|_| Error::InvalidArgument("bad account id".to_string()))?,
-    )?)
+    Ok(get_birthday_heights(config, account_id.into())?)
 }
 
 pub fn get_user_balances(
@@ -420,9 +408,7 @@ pub fn get_user_balances(
     use crate::analysis::get_user_balances;
     Ok(get_user_balances(
         config,
-        account_id
-            .try_into()
-            .map_err(|_| Error::InvalidArgument("Invalid account id".to_string()))?,
+        account_id.into(),
         NonZeroU32::try_from(min_confirmations)
             .map_err(|_| Error::InvalidArgument("A positive integer is required.".to_string()))?,
     )?)

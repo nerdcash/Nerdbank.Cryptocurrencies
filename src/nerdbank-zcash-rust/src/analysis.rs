@@ -1,9 +1,9 @@
 use std::num::NonZeroU32;
 
 use rusqlite::{named_params, Connection};
+use zcash_client_sqlite::AccountId;
 use zcash_primitives::consensus::{Network, NetworkUpgrade, Parameters};
 use zcash_primitives::transaction::fees::zip317::{FeeRule, MINIMUM_FEE};
-use zcash_primitives::zip32::AccountId;
 
 use zcash_client_backend::data_api::WalletRead;
 
