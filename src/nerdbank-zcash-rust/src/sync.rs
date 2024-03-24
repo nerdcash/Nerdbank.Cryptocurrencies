@@ -842,10 +842,15 @@ pub(crate) fn get_transactions(
 
             if is_change {
                 tx.change.push(note);
-            } else if to_account_id == Some(account_id) {
-                tx.incoming.push(note);
             } else {
-                tx.outgoing.push(note);
+                // A 'send to self' will appear as both incoming and outgoing.
+                if to_account_id == Some(account_id) {
+                    tx.incoming.push(note.clone());
+                }
+
+                if from_account_id == Some(account_id) {
+                    tx.outgoing.push(note);
+                }
             }
 
             Ok(tx)
