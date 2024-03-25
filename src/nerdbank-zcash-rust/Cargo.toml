@@ -22,7 +22,7 @@ jubjub = "0.10"
 lazy_static = "1.4"
 minreq = "2.11.0"
 nonempty="0.7"
-orchard = "0.7.0"
+orchard = "0.8.0"
 pasta_curves = "0.5"
 prost = "0.12"
 rusqlite = "0.29"
@@ -76,6 +76,3 @@ matches = "0.1"
 [patch.crates-io]
 hdwallet = { path = "../../external/hdwallet" }
 sapling = { package = "sapling-crypto", path = "../../external/sapling-crypto" }
-orchard = { git = "https://github.com/zcash/orchard", rev = "33474bdbfd7268e1f84718078d47f63d01a879d5" }
-incrementalmerkletree = { git = "https://github.com/zcash/incrementalmerkletree", rev = "e1a7a80212c22e5a8912d05860f7eb6899c56a7c" }
-shardtree = { git = "https://github.com/zcash/incrementalmerkletree", rev = "e1a7a80212c22e5a8912d05860f7eb6899c56a7c" }

@@ -1,6 +1,6 @@
 use futures_util::TryStreamExt;
 use http::Uri;
-use orchard::keys::Scope;
+use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
 use std::{path::Path, sync::Arc};
@@ -462,12 +462,12 @@ async fn update_subtree_roots<P: Parameters>(
     // Update orchard subtree roots
     request = service::GetSubtreeRootsArg::default();
     request.set_shielded_protocol(service::ShieldedProtocol::Orchard);
-    let roots: Vec<CommitmentTreeRoot<orchard::tree::MerkleHashOrchard>> = client
+    let roots: Vec<CommitmentTreeRoot<MerkleHashOrchard>> = client
         .get_subtree_roots(request)
         .await?
         .into_inner()
         .and_then(|root| async move {
-            let root_hash = orchard::tree::MerkleHashOrchard::read(&root.root_hash[..])?;
+            let root_hash = MerkleHashOrchard::read(&root.root_hash[..])?;
             Ok(CommitmentTreeRoot::from_parts(
                 BlockHeight::from_u32(root.completing_block_height as u32),
                 root_hash,
@@ -475,7 +475,7 @@ async fn update_subtree_roots<P: Parameters>(
         })
         .try_collect()
         .await?;
-    db_data.put_orchard_subtree_roots(0, &roots)?;
+    db_data.put_orchard_subtree_roots(0, roots.as_slice())?;
 
     Ok(())
 }
