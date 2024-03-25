@@ -14,12 +14,11 @@ use zcash_client_backend::{
     wallet::OvkPolicy,
     ShieldedProtocol,
 };
-use zcash_client_sqlite::ReceivedNoteId;
+use zcash_client_sqlite::{AccountId, ReceivedNoteId};
 use zcash_primitives::{
     consensus::Network,
     legacy::TransparentAddress,
     transaction::fees::zip317::{FeeRule, MINIMUM_FEE},
-    zip32::AccountId,
 };
 
 use crate::{
@@ -106,4 +105,21 @@ pub fn get_unshielded_utxos(
     }
 
     Ok(utxos)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::test_constants::setup_test;
+
+    use super::*;
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_get_unshielded_utxos() {
+        let mut setup = setup_test().await;
+        let (_, _, account_id, _) = setup.create_account().await.unwrap();
+        setup.sync().await;
+
+        let utxos = get_unshielded_utxos(setup.db_init, account_id).unwrap();
+        assert_eq!(0, utxos.len());
+    }
 }

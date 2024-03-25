@@ -14,7 +14,9 @@ use zcash_primitives::{
 };
 
 use crate::error::Error;
+use crate::interop::SyncUpdateData;
 use crate::resilience::webrequest_with_retry;
+use crate::sync::sync;
 use crate::{backing_store::Db, grpc::get_client, interop::DbInit, lightclient::parse_network};
 
 lazy_static! {
@@ -75,16 +77,30 @@ pub(crate) async fn setup_test() -> TestSetup {
     }
 }
 
-pub(crate) async fn create_account(
-    setup: &mut TestSetup,
-) -> Result<(Secret<Vec<u8>>, u64, AccountId, UnifiedSpendingKey), Error> {
-    let seed: secrecy::Secret<Vec<u8>> =
-        SecretVec::new(Mnemonic::generate(Count::Words24).to_seed("").to_vec());
+impl TestSetup {
+    pub async fn create_account(
+        &mut self,
+    ) -> Result<(Secret<Vec<u8>>, u64, AccountId, UnifiedSpendingKey), Error> {
+        let seed: secrecy::Secret<Vec<u8>> =
+            SecretVec::new(Mnemonic::generate(Count::Words24).to_seed("").to_vec());
 
-    let birthday = setup.server_info.block_height.saturating_sub(100);
-    let account = setup
-        .db
-        .add_account(&seed, birthday, &mut setup.client)
-        .await?;
-    Ok((seed, birthday, account.0, account.1))
+        let birthday = self.server_info.block_height.saturating_sub(100);
+        let account = self
+            .db
+            .add_account(&seed, birthday, &mut self.client)
+            .await?;
+        Ok((seed, birthday, account.0, account.1))
+    }
+
+    pub async fn sync(&mut self) -> SyncUpdateData {
+        sync(
+            self.server_uri.clone(),
+            &self.data_file,
+            None,
+            false,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap()
+    }
 }
