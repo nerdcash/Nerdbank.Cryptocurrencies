@@ -35,8 +35,10 @@ pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
 		(SELECT MIN(t.block)
 			FROM transactions t 
 			LEFT OUTER JOIN sapling_received_notes s ON s.tx = t.id_tx
+			LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id
 			LEFT OUTER JOIN orchard_received_notes o ON o.tx = t.id_tx
-			WHERE (s.account_id = :account_id AND s.spent IS NULL) OR (o.account_id = :account_id AND o.spent IS NULL)
+			LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id
+			WHERE (s.account_id = :account_id AND ss.transaction_id IS NULL) OR (o.account_id = :account_id AND os.transaction_id IS NULL)
 		) AS "Block with first unspent note"
 "#;
 
@@ -50,8 +52,10 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	FROM v_tx_outputs txo
 	INNER JOIN transactions tx ON tx.txid = txo.txid
 	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.tx = tx.id_tx AND s.output_index = txo.output_index
+	LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id
 	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.tx = tx.id_tx AND o.action_index = txo.output_index
-	WHERE txo.to_account_id = :account_id AND s.spent IS NULL AND o.spent IS NULL AND txo.output_pool > 0
+	LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id
+	WHERE txo.to_account_id = :account_id AND ss.transaction_id IS NULL AND os.transaction_id IS NULL AND txo.output_pool > 0
 
 	UNION
 	
@@ -61,7 +65,8 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 		0, -- output_pool
 		0  -- is_change
 	FROM utxos
-	WHERE received_by_account_id = :account_id AND spent_in_tx IS NULL
+	LEFT OUTER JOIN transparent_received_output_spends j ON utxos.id = j.transparent_received_output_id
+	WHERE received_by_account_id = :account_id AND j.transaction_id IS NULL
 "#;
 
 pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
@@ -70,6 +75,7 @@ pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
 		value_zat,
 		address
 	FROM utxos
-	WHERE received_by_account_id = :account_id AND spent_in_tx IS NULL
+	LEFT OUTER JOIN transparent_received_output_spends j ON utxos.id = j.transparent_received_output_id
+	WHERE received_by_account_id = :account_id AND j.transaction_id IS NULL
 	ORDER BY height
 "#;
