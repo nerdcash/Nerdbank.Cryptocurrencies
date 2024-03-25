@@ -191,3 +191,37 @@ pub fn get_user_balances(
         Ok(Default::default())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use matches::assert_matches;
+
+    use crate::test_constants::{setup_test, MIN_CONFIRMATIONS};
+
+    use super::*;
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_get_birthday_heights() {
+        let mut setup = setup_test().await;
+        let (_, _, account_id, _) = setup.create_account().await.unwrap();
+        let heights = get_birthday_heights(setup.db_init, account_id).unwrap();
+        assert_ne!(heights.birthday_height, 0);
+        assert_ne!(heights.original_birthday_height, 0);
+        assert_matches!(heights.rebirth_height, None);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_get_user_balances() {
+        let mut setup = setup_test().await;
+        let (_, _, account_id, _) = setup.create_account().await.unwrap();
+        setup.sync().await;
+
+        let balances = get_user_balances(
+            setup.db_init,
+            account_id,
+            MIN_CONFIRMATIONS.try_into().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(balances.spendable, 0);
+    }
+}

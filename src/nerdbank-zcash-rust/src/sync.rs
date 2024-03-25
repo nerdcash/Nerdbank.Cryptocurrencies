@@ -895,14 +895,14 @@ pub(crate) fn get_transactions(
 mod tests {
     use zcash_primitives::transaction::components::Amount;
 
-    use crate::test_constants::{create_account, setup_test, MIN_CONFIRMATIONS};
+    use crate::test_constants::{setup_test, MIN_CONFIRMATIONS};
 
     use super::*;
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_sync() {
         let mut setup = setup_test().await;
-        let (seed, birthday, account_id, _) = create_account(&mut setup).await.unwrap();
+        let (seed, birthday, account_id, _) = setup.create_account().await.unwrap();
 
         // Add one more account two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
         let account_ids = [
@@ -945,6 +945,10 @@ mod tests {
         } else {
             info!("No summary found");
         }
+
+        let mut conn = Connection::open(setup.db_init.data_file).unwrap();
+        let txs = get_transactions(&mut setup.db, &mut conn, &setup.network, None, None).unwrap();
+        assert_eq!(txs.len(), 0);
     }
 
     const COIN: u64 = 1_0000_0000;

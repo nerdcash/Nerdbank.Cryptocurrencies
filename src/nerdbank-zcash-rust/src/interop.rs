@@ -491,12 +491,7 @@ pub fn get_unshielded_utxos(
     account_id: u32,
 ) -> Result<Vec<TransparentNote>, LightWalletError> {
     use crate::shield::get_unshielded_utxos;
-    Ok(get_unshielded_utxos(
-        config,
-        account_id
-            .try_into()
-            .map_err(|_| Error::InvalidArgument("Invalid account id".to_string()))?,
-    )?)
+    Ok(get_unshielded_utxos(config, account_id.into())?)
 }
 
 pub fn shield(
