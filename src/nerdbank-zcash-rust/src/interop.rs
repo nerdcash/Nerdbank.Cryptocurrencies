@@ -388,6 +388,7 @@ pub fn get_transactions(
         &network,
         Some(account_id),
         Some(starting_block),
+        None,
     )?)
 }
 

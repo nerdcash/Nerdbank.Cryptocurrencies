@@ -3,7 +3,7 @@ use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
-use std::{collections::HashMap, path::Path, sync::Arc};
+use std::{collections::HashMap, ops::Range, path::Path, sync::Arc};
 use tokio::{
     select,
     sync::{mpsc, Mutex},
@@ -132,18 +132,49 @@ pub async fn sync<P: AsRef<Path>>(
                 initialize_transaction_fees(db, conn)?;
                 if let Some(sink) = progress.as_ref() {
                     let mut conn = Connection::open(data_file)?;
-                    let new_transactions = get_transactions(db, &mut conn, &network, None, None)?
-                        .iter()
-                        .filter(|r| {
-                            TryInto::<[u8; 32]>::try_into(r.txid.clone())
-                                .map(|a| txids.contains(&TxId::from_bytes(a)))
-                                .unwrap_or(false)
-                        })
-                        .cloned()
-                        .collect::<Vec<_>>();
+                    let new_transactions =
+                        get_transactions(db, &mut conn, &network, None, None, None)?
+                            .iter()
+                            .filter(|r| {
+                                TryInto::<[u8; 32]>::try_into(r.txid.clone())
+                                    .map(|a| txids.contains(&TxId::from_bytes(a)))
+                                    .unwrap_or(false)
+                            })
+                            .cloned()
+                            .collect::<Vec<_>>();
                     if !new_transactions.is_empty() {
                         sink.report_transactions(new_transactions);
                     }
+                }
+            }
+
+            Ok(())
+        }
+
+        fn report_transactions_in_range<P: AsRef<Path>>(
+            range: &Range<BlockHeight>,
+            progress: &Option<Box<dyn SyncUpdate>>,
+            data_file: &P,
+            db: &mut Db,
+            conn: &Connection,
+            network: Network,
+        ) -> Result<(), Error> {
+            initialize_transaction_fees(db, conn)?;
+            if let Some(sink) = progress.as_ref() {
+                let mut conn = Connection::open(data_file)?;
+                let new_transactions = get_transactions(
+                    db,
+                    &mut conn,
+                    &network,
+                    None,
+                    Some(range.start.into()),
+                    Some(range.end.into()),
+                )?
+                .iter()
+                .cloned()
+                .collect::<Vec<_>>();
+                if !new_transactions.is_empty() {
+                    sink.report_transactions(new_transactions);
                 }
             }
 
@@ -282,7 +313,7 @@ pub async fn sync<P: AsRef<Path>>(
 
             // Download and decrypt the full transactions we found in the compact blocks
             // so we can save their memos to the database.
-            let txids_for_new_shielded_transactions = download_full_shielded_transactions(
+            download_full_shielded_transactions(
                 &mut client,
                 &data_file,
                 &mut db,
@@ -291,8 +322,12 @@ pub async fn sync<P: AsRef<Path>>(
             )
             .await?;
 
-            report_new_transactions(
-                txids_for_new_shielded_transactions,
+            // Report all transactions that are in the block range we just scanned,
+            // even if we didn't just download them (which would have only included shielded transactions).
+            // Transparent transactions in this range only just now got assigned their block height,
+            // so reporting them (again) at this point is good for the client.
+            report_transactions_in_range(
+                scan_range.block_range(),
                 &progress,
                 &data_file,
                 &mut db,
@@ -826,6 +861,7 @@ pub(crate) fn get_transactions(
     network: &Network,
     account_id_filter: Option<u32>,
     starting_block_filter: Option<u32>,
+    ending_block_filter: Option<u32>,
 ) -> Result<Vec<crate::interop::Transaction>, Error> {
     let ufvkeys = db.data.get_unified_full_viewing_keys()?;
 
@@ -837,6 +873,7 @@ pub(crate) fn get_transactions(
         named_params! {
             ":account_id": account_id_filter,
             ":starting_block": starting_block_filter,
+            ":ending_block": ending_block_filter,
         },
         |row| -> Result<crate::interop::Transaction, Error> {
             let account_id: u32 = row.get("account_id")?;
@@ -1017,7 +1054,8 @@ mod tests {
         }
 
         let mut conn = Connection::open(setup.db_init.data_file).unwrap();
-        let txs = get_transactions(&mut setup.db, &mut conn, &setup.network, None, None).unwrap();
+        let txs =
+            get_transactions(&mut setup.db, &mut conn, &setup.network, None, None, None).unwrap();
         assert_eq!(txs.len(), 0);
     }
 
