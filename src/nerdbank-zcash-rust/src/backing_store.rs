@@ -60,7 +60,7 @@ impl Db {
     ) -> Result<UnifiedAddress, Error> {
         Ok(self
             .data
-            .insert_address_with_diversifier_index(account_id, diversifier_index)?)
+            .put_address_with_diversifier_index(&account_id, diversifier_index)?)
     }
 }
 

@@ -3,7 +3,7 @@ use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
-use std::{path::Path, sync::Arc};
+use std::{collections::HashMap, path::Path, sync::Arc};
 use tokio::{
     select,
     sync::{mpsc, Mutex},
@@ -30,7 +30,7 @@ use zcash_client_backend::{
         chain::{scan_cached_blocks, ChainState, CommitmentTreeRoot},
         scanning::{ScanPriority, ScanRange},
         wallet::decrypt_and_store_transaction,
-        WalletCommitmentTrees, WalletRead, WalletWrite,
+        TransparentAddressSyncInfo, WalletCommitmentTrees, WalletRead, WalletWrite,
     },
     encoding::AddressCodec,
     proto::{
@@ -56,6 +56,8 @@ use crate::{
 
 type ChainError =
     zcash_client_backend::data_api::chain::error::Error<SqliteClientError, BlockCacheError>;
+
+const TADDR_INDEX_GAP_LIMIT: u32 = 20;
 
 /// The number of sapling spends+outputs and orchard actions that should be in each downloaded chunk.
 const BLOCK_ACTIONS_MEMORY_LIMIT: usize = 100_000;
@@ -150,19 +152,27 @@ pub async fn sync<P: AsRef<Path>>(
 
         // Download all the transparent ops related to the wallet first.
         // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
-        let taddrs_by_account = db.data.get_transparent_addresses_and_sync_heights()?;
-        for addr_info in taddrs_by_account {
-            let txids = download_transparent_transactions(
-                &mut client,
-                &mut db,
-                &network,
-                &addr_info.address,
-                addr_info.height,
-                tip_height,
-                cancellation_token.clone(),
-            )
-            .await?;
-            report_new_transactions(txids, &progress, &data_file, &mut db, &conn, network)?;
+        let mut taddrs = db.data.get_transparent_addresses_and_sync_heights()?;
+        let mut taddrs_to_scan = taddrs.clone();
+        while !taddrs_to_scan.is_empty() {
+            for addr_info in taddrs.iter_mut().filter(|a| taddrs_to_scan.contains(&a)) {
+                let txids = download_transparent_transactions(
+                    &mut client,
+                    &mut db,
+                    &network,
+                    &addr_info.address,
+                    addr_info.height,
+                    tip_height,
+                    cancellation_token.clone(),
+                )
+                .await?;
+                if !txids.is_empty() {
+                    addr_info.used = true;
+                    report_new_transactions(txids, &progress, &data_file, &mut db, &conn, network)?;
+                }
+            }
+
+            taddrs_to_scan = fill_in_taddrs_to_gap_limit(&mut taddrs, &mut db.data)?;
         }
 
         // 5) Get the suggested scan ranges from the wallet database
@@ -313,6 +323,66 @@ pub async fn sync<P: AsRef<Path>>(
             }?;
         }
     }
+}
+
+fn fill_in_taddrs_to_gap_limit(
+    taddrs: &mut Vec<TransparentAddressSyncInfo<AccountId>>,
+    db: &mut WalletDb<Connection, Network>,
+) -> Result<Vec<TransparentAddressSyncInfo<AccountId>>, Error> {
+    // Transform the vector of addresses into this structure:
+    // Account -> (DiversifierIndex -> TransparentAddressSyncInfo)
+    let mut taddrs_by_account: HashMap<
+        AccountId,
+        HashMap<u32, TransparentAddressSyncInfo<AccountId>>,
+    > = HashMap::new();
+    for taddr in taddrs.iter() {
+        let account = taddr.account_id;
+        taddrs_by_account
+            .entry(account)
+            .or_default()
+            .insert(taddr.index, taddr.clone());
+    }
+
+    let mut added = Vec::new();
+
+    // For each account, loop over each address index, filling in any missing ones, so long as
+    // we have transactions for them or have not yet reached the gap limit.
+    for (account, taddrs_in_account) in taddrs_by_account.iter() {
+        let mut index = 0;
+        let mut consecutive_unused_addresses = 0;
+        while consecutive_unused_addresses < TADDR_INDEX_GAP_LIMIT {
+            match taddrs_in_account.get(&index) {
+                None => {
+                    let ua = db.put_address_with_diversifier_index(account, index.into())?;
+                    if let Some(taddr) = ua.transparent() {
+                        let sync_info = TransparentAddressSyncInfo {
+                            account_id: *account,
+                            index,
+                            address: *taddr,
+                            height: None,
+                            used: false,
+                        };
+                        added.push(sync_info.clone());
+                        taddrs.push(sync_info);
+                    }
+
+                    consecutive_unused_addresses += 1;
+                }
+                Some(addr_info) => {
+                    // Has this address been used?
+                    if addr_info.used {
+                        consecutive_unused_addresses = 0;
+                    } else {
+                        consecutive_unused_addresses += 1;
+                    }
+                }
+            }
+
+            index += 1;
+        }
+    }
+
+    Ok(added)
 }
 
 /// Calculates the fee for some transaction.
