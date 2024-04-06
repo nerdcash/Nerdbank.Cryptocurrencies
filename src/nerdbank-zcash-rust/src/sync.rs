@@ -1,9 +1,9 @@
 use futures_util::TryStreamExt;
 use http::Uri;
-use orchard::keys::Scope;
+use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
-use std::{path::Path, sync::Arc};
+use std::{collections::HashMap, ops::Range, path::Path, sync::Arc};
 use tokio::{
     select,
     sync::{mpsc, Mutex},
@@ -30,7 +30,7 @@ use zcash_client_backend::{
         chain::{scan_cached_blocks, ChainState, CommitmentTreeRoot},
         scanning::{ScanPriority, ScanRange},
         wallet::decrypt_and_store_transaction,
-        WalletCommitmentTrees, WalletRead, WalletWrite,
+        TransparentAddressSyncInfo, WalletCommitmentTrees, WalletRead, WalletWrite,
     },
     encoding::AddressCodec,
     proto::{
@@ -56,6 +56,8 @@ use crate::{
 
 type ChainError =
     zcash_client_backend::data_api::chain::error::Error<SqliteClientError, BlockCacheError>;
+
+const TADDR_INDEX_GAP_LIMIT: u32 = 20;
 
 /// The number of sapling spends+outputs and orchard actions that should be in each downloaded chunk.
 const BLOCK_ACTIONS_MEMORY_LIMIT: usize = 100_000;
@@ -130,15 +132,16 @@ pub async fn sync<P: AsRef<Path>>(
                 initialize_transaction_fees(db, conn)?;
                 if let Some(sink) = progress.as_ref() {
                     let mut conn = Connection::open(data_file)?;
-                    let new_transactions = get_transactions(db, &mut conn, &network, None, None)?
-                        .iter()
-                        .filter(|r| {
-                            TryInto::<[u8; 32]>::try_into(r.txid.clone())
-                                .map(|a| txids.contains(&TxId::from_bytes(a)))
-                                .unwrap_or(false)
-                        })
-                        .cloned()
-                        .collect::<Vec<_>>();
+                    let new_transactions =
+                        get_transactions(db, &mut conn, &network, None, None, None)?
+                            .iter()
+                            .filter(|r| {
+                                TryInto::<[u8; 32]>::try_into(r.txid.clone())
+                                    .map(|a| txids.contains(&TxId::from_bytes(a)))
+                                    .unwrap_or(false)
+                            })
+                            .cloned()
+                            .collect::<Vec<_>>();
                     if !new_transactions.is_empty() {
                         sink.report_transactions(new_transactions);
                     }
@@ -148,21 +151,57 @@ pub async fn sync<P: AsRef<Path>>(
             Ok(())
         }
 
+        fn report_transactions_in_range<P: AsRef<Path>>(
+            range: &Range<BlockHeight>,
+            progress: &Option<Box<dyn SyncUpdate>>,
+            data_file: &P,
+            db: &mut Db,
+            conn: &Connection,
+            network: Network,
+        ) -> Result<(), Error> {
+            initialize_transaction_fees(db, conn)?;
+            if let Some(sink) = progress.as_ref() {
+                let mut conn = Connection::open(data_file)?;
+                let new_transactions = get_transactions(
+                    db,
+                    &mut conn,
+                    &network,
+                    None,
+                    Some(range.start.into()),
+                    Some(range.end.into()),
+                )?
+                .to_vec();
+                if !new_transactions.is_empty() {
+                    sink.report_transactions(new_transactions);
+                }
+            }
+
+            Ok(())
+        }
+
         // Download all the transparent ops related to the wallet first.
         // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
-        let taddrs_by_account = db.data.get_transparent_addresses_and_sync_heights()?;
-        for addr_info in taddrs_by_account {
-            let txids = download_transparent_transactions(
-                &mut client,
-                &mut db,
-                &network,
-                &addr_info.address,
-                addr_info.height,
-                tip_height,
-                cancellation_token.clone(),
-            )
-            .await?;
-            report_new_transactions(txids, &progress, &data_file, &mut db, &conn, network)?;
+        let mut taddrs = db.data.get_transparent_addresses_and_sync_heights()?;
+        let mut taddrs_to_scan = taddrs.clone();
+        while !taddrs_to_scan.is_empty() {
+            for addr_info in taddrs.iter_mut().filter(|a| taddrs_to_scan.contains(a)) {
+                let txids = download_transparent_transactions(
+                    &mut client,
+                    &mut db,
+                    &network,
+                    &addr_info.address,
+                    addr_info.height,
+                    tip_height,
+                    cancellation_token.clone(),
+                )
+                .await?;
+                if !txids.is_empty() {
+                    addr_info.used = true;
+                    report_new_transactions(txids, &progress, &data_file, &mut db, &conn, network)?;
+                }
+            }
+
+            taddrs_to_scan = fill_in_taddrs_to_gap_limit(&mut taddrs, &mut db.data)?;
         }
 
         // 5) Get the suggested scan ranges from the wallet database
@@ -272,7 +311,7 @@ pub async fn sync<P: AsRef<Path>>(
 
             // Download and decrypt the full transactions we found in the compact blocks
             // so we can save their memos to the database.
-            let txids_for_new_shielded_transactions = download_full_shielded_transactions(
+            download_full_shielded_transactions(
                 &mut client,
                 &data_file,
                 &mut db,
@@ -281,8 +320,12 @@ pub async fn sync<P: AsRef<Path>>(
             )
             .await?;
 
-            report_new_transactions(
-                txids_for_new_shielded_transactions,
+            // Report all transactions that are in the block range we just scanned,
+            // even if we didn't just download them (which would have only included shielded transactions).
+            // Transparent transactions in this range only just now got assigned their block height,
+            // so reporting them (again) at this point is good for the client.
+            report_transactions_in_range(
+                scan_range.block_range(),
                 &progress,
                 &data_file,
                 &mut db,
@@ -313,6 +356,66 @@ pub async fn sync<P: AsRef<Path>>(
             }?;
         }
     }
+}
+
+fn fill_in_taddrs_to_gap_limit(
+    taddrs: &mut Vec<TransparentAddressSyncInfo<AccountId>>,
+    db: &mut WalletDb<Connection, Network>,
+) -> Result<Vec<TransparentAddressSyncInfo<AccountId>>, Error> {
+    // Transform the vector of addresses into this structure:
+    // Account -> (DiversifierIndex -> TransparentAddressSyncInfo)
+    let mut taddrs_by_account: HashMap<
+        AccountId,
+        HashMap<u32, TransparentAddressSyncInfo<AccountId>>,
+    > = HashMap::new();
+    for taddr in taddrs.iter() {
+        let account = taddr.account_id;
+        taddrs_by_account
+            .entry(account)
+            .or_default()
+            .insert(taddr.index, taddr.clone());
+    }
+
+    let mut added = Vec::new();
+
+    // For each account, loop over each address index, filling in any missing ones, so long as
+    // we have transactions for them or have not yet reached the gap limit.
+    for (account, taddrs_in_account) in taddrs_by_account.iter() {
+        let mut index = 0;
+        let mut consecutive_unused_addresses = 0;
+        while consecutive_unused_addresses < TADDR_INDEX_GAP_LIMIT {
+            match taddrs_in_account.get(&index) {
+                None => {
+                    let ua = db.put_address_with_diversifier_index(account, index.into())?;
+                    if let Some(taddr) = ua.transparent() {
+                        let sync_info = TransparentAddressSyncInfo {
+                            account_id: *account,
+                            index,
+                            address: *taddr,
+                            height: None,
+                            used: false,
+                        };
+                        added.push(sync_info.clone());
+                        taddrs.push(sync_info);
+                    }
+
+                    consecutive_unused_addresses += 1;
+                }
+                Some(addr_info) => {
+                    // Has this address been used?
+                    if addr_info.used {
+                        consecutive_unused_addresses = 0;
+                    } else {
+                        consecutive_unused_addresses += 1;
+                    }
+                }
+            }
+
+            index += 1;
+        }
+    }
+
+    Ok(added)
 }
 
 /// Calculates the fee for some transaction.
@@ -441,9 +544,9 @@ async fn update_subtree_roots<P: Parameters>(
     client: &mut CompactTxStreamerClient<Channel>,
     db_data: &mut WalletDb<rusqlite::Connection, P>,
 ) -> Result<(), anyhow::Error> {
+    // Update sapling subtree roots
     let mut request = service::GetSubtreeRootsArg::default();
     request.set_shielded_protocol(service::ShieldedProtocol::Sapling);
-
     let roots: Vec<CommitmentTreeRoot<sapling::Node>> = client
         .get_subtree_roots(request)
         .await?
@@ -457,8 +560,25 @@ async fn update_subtree_roots<P: Parameters>(
         })
         .try_collect()
         .await?;
-
     db_data.put_sapling_subtree_roots(0, &roots)?;
+
+    // Update orchard subtree roots
+    request = service::GetSubtreeRootsArg::default();
+    request.set_shielded_protocol(service::ShieldedProtocol::Orchard);
+    let roots: Vec<CommitmentTreeRoot<MerkleHashOrchard>> = client
+        .get_subtree_roots(request)
+        .await?
+        .into_inner()
+        .and_then(|root| async move {
+            let root_hash = MerkleHashOrchard::read(&root.root_hash[..])?;
+            Ok(CommitmentTreeRoot::from_parts(
+                BlockHeight::from_u32(root.completing_block_height as u32),
+                root_hash,
+            ))
+        })
+        .try_collect()
+        .await?;
+    db_data.put_orchard_subtree_roots(0, roots.as_slice())?;
 
     Ok(())
 }
@@ -739,6 +859,7 @@ pub(crate) fn get_transactions(
     network: &Network,
     account_id_filter: Option<u32>,
     starting_block_filter: Option<u32>,
+    ending_block_filter: Option<u32>,
 ) -> Result<Vec<crate::interop::Transaction>, Error> {
     let ufvkeys = db.data.get_unified_full_viewing_keys()?;
 
@@ -750,6 +871,7 @@ pub(crate) fn get_transactions(
         named_params! {
             ":account_id": account_id_filter,
             ":starting_block": starting_block_filter,
+            ":ending_block": ending_block_filter,
         },
         |row| -> Result<crate::interop::Transaction, Error> {
             let account_id: u32 = row.get("account_id")?;
@@ -883,14 +1005,14 @@ pub(crate) fn get_transactions(
 mod tests {
     use zcash_primitives::transaction::components::Amount;
 
-    use crate::test_constants::{create_account, setup_test, MIN_CONFIRMATIONS};
+    use crate::test_constants::{setup_test, MIN_CONFIRMATIONS};
 
     use super::*;
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_sync() {
         let mut setup = setup_test().await;
-        let (seed, birthday, account_id, _) = create_account(&mut setup).await.unwrap();
+        let (seed, birthday, account_id, _) = setup.create_account().await.unwrap();
 
         // Add one more account two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
         let account_ids = [
@@ -921,6 +1043,10 @@ mod tests {
                 info!("Account index: {}", u32::from(id));
                 let b = summary.account_balances().get(&id).unwrap();
                 info!(
+                    "Orchard balance: {}",
+                    format_zec(Amount::from(b.orchard_balance().spendable_value()))
+                );
+                info!(
                     "Sapling balance: {}",
                     format_zec(Amount::from(b.sapling_balance().spendable_value()))
                 );
@@ -929,6 +1055,11 @@ mod tests {
         } else {
             info!("No summary found");
         }
+
+        let mut conn = Connection::open(setup.db_init.data_file).unwrap();
+        let txs =
+            get_transactions(&mut setup.db, &mut conn, &setup.network, None, None, None).unwrap();
+        assert_eq!(txs.len(), 0);
     }
 
     const COIN: u64 = 1_0000_0000;
