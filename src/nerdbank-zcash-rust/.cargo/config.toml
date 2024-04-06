@@ -1,3 +1,1 @@
 [build]
-rustflags = ['--cfg','zcash_unstable="orchard"']
-rustdocflags = ['--cfg','zcash_unstable="orchard"']
