@@ -22,7 +22,7 @@ jubjub = "0.10"
 lazy_static = "1.4"
 minreq = "2.11.0"
 nonempty="0.7"
-orchard = "0.7.0"
+orchard = "0.8.0"
 pasta_curves = "0.5"
 prost = "0.12"
 rusqlite = "0.29"
@@ -49,13 +49,16 @@ zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backen
 	"test-dependencies",
 	"transparent-inputs",
 	"lightwalletd-tonic",
+	"orchard",
 ] }
 zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite", features = [
 	"multicore",
 	"transparent-inputs",
+	"orchard",
 	"unstable",
 ] }
 zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
+	"orchard",
 	"unstable",
 	"test-dependencies",
 ] }
@@ -73,6 +76,3 @@ matches = "0.1"
 [patch.crates-io]
 hdwallet = { path = "../../external/hdwallet" }
 sapling = { package = "sapling-crypto", path = "../../external/sapling-crypto" }
-orchard = { git = "https://github.com/zcash/orchard", rev = "e74879dd0ad0918f4ffe0826e03905cd819981bd" }
-incrementalmerkletree = { git = "https://github.com/nuttycom/incrementalmerkletree", rev = "fa147c89c6c98a03bba745538f4e68d4eaed5146" }
-shardtree = { git = "https://github.com/nuttycom/incrementalmerkletree", rev = "fa147c89c6c98a03bba745538f4e68d4eaed5146" }
