@@ -170,9 +170,7 @@ pub async fn sync<P: AsRef<Path>>(
                     Some(range.start.into()),
                     Some(range.end.into()),
                 )?
-                .iter()
-                .cloned()
-                .collect::<Vec<_>>();
+                .to_vec();
                 if !new_transactions.is_empty() {
                     sink.report_transactions(new_transactions);
                 }
@@ -186,7 +184,7 @@ pub async fn sync<P: AsRef<Path>>(
         let mut taddrs = db.data.get_transparent_addresses_and_sync_heights()?;
         let mut taddrs_to_scan = taddrs.clone();
         while !taddrs_to_scan.is_empty() {
-            for addr_info in taddrs.iter_mut().filter(|a| taddrs_to_scan.contains(&a)) {
+            for addr_info in taddrs.iter_mut().filter(|a| taddrs_to_scan.contains(a)) {
                 let txids = download_transparent_transactions(
                     &mut client,
                     &mut db,
