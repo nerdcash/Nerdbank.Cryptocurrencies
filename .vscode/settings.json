@@ -24,4 +24,9 @@
   "rust-analyzer.linkedProjects": [
     ".\\src\\nerdbank-zcash-rust\\Cargo.toml"
   ],
+  "rust-analyzer.cargo.features": [
+    "transparent-inputs",
+    "sapling",
+    "orchard",
+  ]
 }

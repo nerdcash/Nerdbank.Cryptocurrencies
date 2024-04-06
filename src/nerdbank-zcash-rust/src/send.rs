@@ -168,7 +168,7 @@ mod tests {
 
     use crate::{
         sync::sync,
-        test_constants::{create_account, setup_test, MIN_CONFIRMATIONS, VALID_SAPLING_TESTNET},
+        test_constants::{setup_test, MIN_CONFIRMATIONS, VALID_SAPLING_TESTNET},
     };
 
     use super::*;
@@ -176,7 +176,7 @@ mod tests {
     #[tokio::test]
     async fn test_send_insufficient_funds() {
         let mut setup = setup_test().await;
-        let account = create_account(&mut setup).await.unwrap();
+        let account = setup.create_account().await.unwrap();
         sync(
             setup.server_uri.clone(),
             setup.data_file.clone(),
