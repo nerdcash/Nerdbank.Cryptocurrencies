@@ -107,7 +107,7 @@ public abstract class ViewModelTestBase : IAsyncLifetime
 			NonConfidentialDataPath = this.PersistedPaths?.Settings,
 		};
 
-		App app = new(appPlatformSettings, new MockPlatformServices());
+		App app = new(appPlatformSettings, new MockPlatformServices(), null);
 		app.InitializeFields();
 		return app;
 	}

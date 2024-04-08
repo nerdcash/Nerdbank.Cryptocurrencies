@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <VelopackRuntimeRequired>net8.0</VelopackRuntimeRequired>
+    <VelopackStorageAccount>ezcash</VelopackStorageAccount>
+    <VelopackContainer>appupdates</VelopackContainer>
+    <VelopackUpdateUrl>https://$(VelopackStorageAccount).blob.core.windows.net/$(VelopackContainer)</VelopackUpdateUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalThisAssemblyFields Include="VelopackUpdateUrl" String="$(VelopackUpdateUrl)" />
+  </ItemGroup>
+
+  <Target Name="WriteVelopackUpdateUrlFile" BeforeTargets="CoreCompile" Inputs="$(MSBuildProjectFile)" Outputs="$(IntermediateOutputPath)velopack-data.json">
+    <ItemGroup>
+      <VelopackLines Include="{" />
+      <VelopackLines Include='"url": "$(VelopackUpdateUrl)",' />
+      <VelopackLines Include='"runtime": "$(VelopackRuntimeRequired)",' />
+      <VelopackLines Include='"storageAccount": "$(VelopackStorageAccount)",' />
+      <VelopackLines Include='"container": "$(VelopackContainer)",' />
+      <VelopackLines Include='"exeName": "$(TargetName).exe"' />
+      <VelopackLines Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)velopack-data.json" Lines="@(VelopackLines)" Overwrite="true" />
+  </Target>
+</Project>

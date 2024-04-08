@@ -141,6 +141,9 @@
   <data name="DonationMemo" xml:space="preserve">
     <value>Thank you for {AppTitle}.</value>
   </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Downloading v{0}</value>
+  </data>
   <data name="ImportWalletButtonText" xml:space="preserve">
     <value>Import an existing wallet</value>
   </data>

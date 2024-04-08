@@ -32,6 +32,8 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public Bitmap Logo => Resources.ZcashLogo;
 
+	public UpdatingViewModel SelfUpdating => this.viewModelServices.App.SelfUpdating;
+
 	public string ReceiveCommandCaption => "📥 Receive";
 
 	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }

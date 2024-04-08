@@ -6,6 +6,12 @@ parameters:
 - name: RunTests
   type: boolean
   default: true
+- name: desktopAppAgents
+  type: object
+  default:
+  - Windows
+#  - Linux
+#  - macOS
 
 jobs:
 - job: Windows
@@ -109,13 +115,27 @@ jobs:
   - template: install-dependencies.yml
   - template: pack.yml
 
+- job: Publish
+  dependsOn: ${{ parameters.desktopAppAgents }}
+  variables:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    - group: eZcash App Updates storage
+  pool: ${{ parameters.windowsPool }}
+  steps:
+  - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+    clean: true
+  - template: install-dependencies.yml
+  - template: publish.yml
+    parameters:
+      agents: ${{ parameters.desktopAppAgents }}
+
 - job: WrapUp
   dependsOn:
   - Windows
   - Linux
   - macOS
   pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
-  condition: succeededOrFailed()
   steps:
   - checkout: self
     fetchDepth: 1

@@ -9,42 +9,56 @@
   <Design.DataContext>
     <vm:HomeScreenViewModel />
   </Design.DataContext>
-  <ScrollViewer>
-    <StackPanel Spacing="15" MaxWidth="400">
-      <StackPanel.Styles>
-        <Style Selector="Button">
-          <Setter Property="HorizontalAlignment" Value="Stretch" />
-          <Setter Property="HorizontalContentAlignment" Value="Center" />
-          <Setter Property="Margin" Value="8" />
-        </Style>
-        <Style Selector="TextBlock">
-          <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
-        <Style Selector="StackPanel.ButtonAndExplanation">
-          <Setter Property="Background" Value="LightCyan" />
-        </Style>
-      </StackPanel.Styles>
-      <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
-      <StackPanel Classes="ButtonAndExplanation" IsVisible="{Binding IsBackupCommandPromoted}">
-        <Button Command="{Binding BackupCommand}" Content="{Binding BackupCommandCaption}" />
-        <TextBlock Text="{Binding BackupExplanation}" />
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Bottom"
+                DataContext="{Binding SelfUpdating}">
+      <StackPanel DataContext="{Binding UpdateDownloading}"
+                  IsVisible="{Binding IsInProgress}">
+        <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" />
+        <ProgressBar Value="{Binding Current}" Minimum="{Binding From}" Maximum="{Binding To}" />
       </StackPanel>
-      <StackPanel Classes="ButtonAndExplanation">
-        <Button Command="{Binding ReceiveCommand}" Content="{Binding ReceiveCommandCaption}" />
-        <TextBlock Text="{Binding ReceiveExplanation}" />
-      </StackPanel>
-      <StackPanel Classes="ButtonAndExplanation">
-        <Button Command="{Binding SendCommand}" Content="{Binding SendCommandCaption}" />
-        <TextBlock Text="{Binding SendExplanation}" />
-      </StackPanel>
-      <StackPanel Classes="ButtonAndExplanation">
-        <Button Command="{Binding BalanceCommand}" Content="{Binding BalanceCommandCaption}" />
-        <TextBlock Text="{Binding BalanceExplanation}" />
-      </StackPanel>
-      <StackPanel Classes="ButtonAndExplanation">
-        <Button Command="{Binding HistoryCommand}" Content="{Binding HistoryCommandCaption}" />
-        <TextBlock Text="{Binding HistoryExplanation}" />
-      </StackPanel>
+      <Button Command="{Binding UpdateAndRestartCommand}"
+              Content="{Binding UpdateAndRestartCommandCaption}"
+              IsVisible="{Binding IsUpdateAndRestartCommandVisible}"
+              HorizontalAlignment="Center" />
     </StackPanel>
-  </ScrollViewer>
+    <ScrollViewer>
+      <StackPanel Spacing="15" MaxWidth="400">
+        <StackPanel.Styles>
+          <Style Selector="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Margin" Value="8" />
+          </Style>
+          <Style Selector="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+          </Style>
+          <Style Selector="StackPanel.ButtonAndExplanation">
+            <Setter Property="Background" Value="LightCyan" />
+          </Style>
+        </StackPanel.Styles>
+        <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
+        <StackPanel Classes="ButtonAndExplanation" IsVisible="{Binding IsBackupCommandPromoted}">
+          <Button Command="{Binding BackupCommand}" Content="{Binding BackupCommandCaption}" />
+          <TextBlock Text="{Binding BackupExplanation}" />
+        </StackPanel>
+        <StackPanel Classes="ButtonAndExplanation">
+          <Button Command="{Binding ReceiveCommand}" Content="{Binding ReceiveCommandCaption}" />
+          <TextBlock Text="{Binding ReceiveExplanation}" />
+        </StackPanel>
+        <StackPanel Classes="ButtonAndExplanation">
+          <Button Command="{Binding SendCommand}" Content="{Binding SendCommandCaption}" />
+          <TextBlock Text="{Binding SendExplanation}" />
+        </StackPanel>
+        <StackPanel Classes="ButtonAndExplanation">
+          <Button Command="{Binding BalanceCommand}" Content="{Binding BalanceCommandCaption}" />
+          <TextBlock Text="{Binding BalanceExplanation}" />
+        </StackPanel>
+        <StackPanel Classes="ButtonAndExplanation">
+          <Button Command="{Binding HistoryCommand}" Content="{Binding HistoryCommandCaption}" />
+          <TextBlock Text="{Binding HistoryExplanation}" />
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>
