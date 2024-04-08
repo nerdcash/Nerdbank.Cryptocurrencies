@@ -11,6 +11,8 @@ namespace Nerdbank.Zcash.App.Desktop;
 
 internal class Program
 {
+	private static readonly UriSchemeRegistration ZcashScheme = new("zcash");
+
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
@@ -18,6 +20,18 @@ internal class Program
 	public static void Main(string[] args)
 	{
 		VelopackApp velopackBuilder = VelopackApp.Build();
+
+#if WINDOWS
+		velopackBuilder.WithAfterInstallFastCallback(v =>
+		{
+			UriSchemeRegistration.Register(ZcashScheme);
+		});
+		velopackBuilder.WithBeforeUninstallFastCallback(v =>
+		{
+			UriSchemeRegistration.Unregister(ZcashScheme);
+		});
+#endif
+
 		velopackBuilder.Run();
 
 		BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
