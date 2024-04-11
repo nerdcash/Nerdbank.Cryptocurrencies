@@ -18,7 +18,12 @@ public partial class App : Application, IAsyncDisposable
 	private const string SettingsJsonFileName = "settings.json";
 
 	private readonly List<Task> sendTransactionTasks = new();
+	private readonly CancellationTokenSource shutdownTokenSource = new();
+
 	private JoinableTaskContext? joinableTaskContext;
+	private JoinableTaskFactory? shutdownBlockingTaskFactory;
+	private JoinableTaskCollection? shutdownBlockingTasks;
+
 	private AutoSaveManager<AppSettings>? appSettingsManager;
 	private AppSettings? settings;
 	private DataRoot? data;
@@ -27,19 +32,26 @@ public partial class App : Application, IAsyncDisposable
 
 	[Obsolete("Design-time only", error: true)]
 	public App()
-		: this(CreateDesignTimeAppPlatformSettings(), new DesignTimePlatformServices())
+		: this(CreateDesignTimeAppPlatformSettings(), new DesignTimePlatformServices(), null)
 	{
 		Assumes.NotNull(SynchronizationContext.Current);
 		this.InitializeFields();
 	}
 
-	public App(AppPlatformSettings platformSettings, IPlatformServices platformServices)
+	public App(AppPlatformSettings platformSettings, IPlatformServices platformServices, string? velopackUpdateUrl)
 	{
 		this.AppPlatformSettings = platformSettings;
 		this.PlatformServices = platformServices;
+		this.SelfUpdating = new(this, velopackUpdateUrl);
 	}
 
+	public static new App? Current => (App?)Application.Current;
+
+	public bool IsDesignTime => this.PlatformServices is DesignTimePlatformServices;
+
 	public AppSettings Settings => this.settings ?? throw new InvalidOperationException();
+
+	public UpdatingViewModel SelfUpdating { get; }
 
 	public DataRoot Data => this.data ?? throw new InvalidOperationException();
 
@@ -68,11 +80,12 @@ public partial class App : Application, IAsyncDisposable
 
 			// Give ourselves a chance to clean up nicely.
 			desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-			desktop.MainWindow.Closed += async (_, _) =>
+			desktop.MainWindow.Closed += (_, _) => this.DisposeAsync().Forget();
+
+			if (this.SelfUpdating is not null)
 			{
-				await this.DisposeAsync();
-				desktop.Shutdown();
-			};
+				_ = this.shutdownBlockingTaskFactory!.RunAsync(() => this.SelfUpdating.UpdateMyAppAsync(this.shutdownTokenSource.Token));
+			}
 
 			mainViewModel.TopLevel = TopLevel.GetTopLevel(desktop.MainWindow);
 		}
@@ -100,6 +113,8 @@ public partial class App : Application, IAsyncDisposable
 
 		Assumes.NotNull(SynchronizationContext.Current);
 		this.joinableTaskContext = new JoinableTaskContext();
+		this.shutdownBlockingTasks = this.joinableTaskContext.CreateCollection();
+		this.shutdownBlockingTaskFactory = this.joinableTaskContext.CreateFactory(this.shutdownBlockingTasks);
 
 		this.appSettingsManager = this.AppPlatformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
 		this.dataRootManager = this.AppPlatformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
@@ -114,6 +129,8 @@ public partial class App : Application, IAsyncDisposable
 
 	public async ValueTask DisposeAsync()
 	{
+		await this.shutdownTokenSource.CancelAsync();
+
 		await this.WaitForSendsAsync();
 
 		if (this.walletSyncManager is not null)
@@ -129,6 +146,16 @@ public partial class App : Application, IAsyncDisposable
 		if (this.dataRootManager is not null)
 		{
 			await this.dataRootManager.DisposeAsync();
+		}
+
+		if (this.shutdownBlockingTasks is not null)
+		{
+			await this.shutdownBlockingTasks.JoinTillEmptyAsync();
+		}
+
+		if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			desktop.Shutdown();
 		}
 	}
 

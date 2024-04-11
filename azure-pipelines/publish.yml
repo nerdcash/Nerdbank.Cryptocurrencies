@@ -1,0 +1,73 @@
+parameters:
+- name: BaseChannelName
+  default: ci
+- name: KeepMaxReleases
+  type: number
+  default: 10
+- name: agents
+  type: object
+
+# The following parameters are only for internal use by this file and should not be set by callers.
+- name: velopackJsonFileName
+  default: velopack-data.json
+- name: AppPackagesPath
+  default: $(Pipeline.Workspace)/app-packages
+
+steps:
+- ${{ each agent in parameters.agents }}:
+  - download: current
+    artifact: apps-${{ agent }}
+    displayName: 🔻 Download ${{ agent }} apps
+
+  - pwsh: |
+      $path = '$(Pipeline.Workspace)/apps-${{ agent }}'
+      $VelopackData = Get-Content -Path '$(Pipeline.Workspace)/apps-${{ agent }}/${{ parameters.velopackJsonFileName }}' | ConvertFrom-Json
+      $BaseChannelName = '${{ parameters.BaseChannelName }}'
+      $packageVersion = dotnet nbgv get-version -v SemVer2
+      Get-ChildItem -Directory $path |% {
+        $Channel = "$BaseChannelName-$($_.Name)"
+        $arch = $_.Name.Split('-')[1]
+        Write-Host "##[section]Creating velopack for channel $Channel..."
+        $vpkCommand = @(
+          'vpk','pack',
+          '--packVersion', $packageVersion,
+          '--channel', $Channel,
+          '--packId', 'Nerdbank.Zcash.App',
+          '--packTitle', 'eZcash',
+          '--packAuthors', 'Nerdbank',
+          '--mainExe', $VelopackData.exeName,
+          '--packDir', $_,
+          '--outputDir', '${{ parameters.AppPackagesPath }}',
+          '--framework', "$($VelopackData.runtime)-$arch-desktop"
+        )
+        Write-Host "##[command]dotnet tool run -- $vpkCommand"
+        dotnet tool run -- @vpkCommand
+      }
+    displayName: 🛠️ Build ${{ agent }} app packages
+
+- publish: ${{ parameters.AppPackagesPath }}
+  artifact: velopack-packages
+  displayName: 📢 Collect app artifacts
+
+- ${{ each agent in parameters.agents }}:
+  - pwsh: |
+      $path = '$(Pipeline.Workspace)/apps-${{ agent }}'
+      $VelopackData = Get-Content -Path '$(Pipeline.Workspace)/apps-${{ agent }}/${{ parameters.velopackJsonFileName }}' | ConvertFrom-Json
+      $BaseChannelName = '${{ parameters.BaseChannelName }}'
+      Get-ChildItem -Directory $path |% {
+        $Channel = "$BaseChannelName-$($_.Name)"
+        Write-Host "##[section]Uploading $Channel channel velopack to Azure Blob Storage..."
+        $vpkCommand = @(
+          'vpk','upload','az',
+          '--keepMaxReleases', '${{ parameters.KeepMaxReleases }}',
+          '--account', $VelopackData.storageAccount,
+          '--container', $VelopackData.container,
+          '--outputDir', '${{ parameters.AppPackagesPath }}',
+          '--channel', $Channel,
+          '--sas', '$(AutoUpdateStorageSASToken)'
+        )
+        Write-Host "##[command]dotnet tool run -- $vpkCommand"
+        dotnet tool run -- @vpkCommand
+      }
+    displayName: 📦 Publish ${{ agent }} app packages
+    condition: and(succeeded(), ne(variables['AutoUpdateStorageSASToken'], ''))

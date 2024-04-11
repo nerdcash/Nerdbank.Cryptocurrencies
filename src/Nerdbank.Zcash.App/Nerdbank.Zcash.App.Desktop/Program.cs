@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using Velopack;
 
 namespace Nerdbank.Zcash.App.Desktop;
 
@@ -14,13 +15,18 @@ internal class Program
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
 	[STAThread]
-	public static void Main(string[] args) => BuildAvaloniaApp()
-		.StartWithClassicDesktopLifetime(args);
+	public static void Main(string[] args)
+	{
+		VelopackApp velopackBuilder = VelopackApp.Build();
+		velopackBuilder.Run();
+
+		BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+	}
 
 	// Avalonia configuration, don't remove; also used by visual designer.
 	public static AppBuilder BuildAvaloniaApp()
 	{
-		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), new WindowsPlatformServices()))
+		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), new WindowsPlatformServices(), ThisAssembly.VelopackUpdateUrl))
 			.UsePlatformDetect()
 			.WithInterFont()
 			.LogToTrace()

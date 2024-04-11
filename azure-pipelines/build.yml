@@ -6,6 +6,12 @@ parameters:
 - name: RunTests
   type: boolean
   default: true
+- name: desktopAppAgents
+  type: object
+  default:
+  - Windows
+#  - Linux
+#  - macOS
 
 jobs:
 - job: Windows
@@ -24,6 +30,7 @@ jobs:
   - template: cargo.yml
     parameters:
       test_target: x86_64-pc-windows-msvc
+      RunTests: ${{ parameters.RunTests }}
 
   - template: dotnet.yml
     parameters:
@@ -43,6 +50,7 @@ jobs:
   - template: cargo.yml
     parameters:
       test_target: x86_64-unknown-linux-gnu
+      RunTests: ${{ parameters.RunTests }}
       checks: true
 
   - pwsh: cargo install cross --git https://github.com/cross-rs/cross --rev c87a52a60dbcde069714a8d2ed51570e7fc23cf9
@@ -84,6 +92,7 @@ jobs:
 
   - template: cargo.yml
     parameters:
+      RunTests: ${{ parameters.RunTests }}
       test_target: x86_64-apple-darwin
 
   - template: dotnet.yml
@@ -106,13 +115,27 @@ jobs:
   - template: install-dependencies.yml
   - template: pack.yml
 
+- job: Publish
+  dependsOn: ${{ parameters.desktopAppAgents }}
+  variables:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    - group: eZcash App Updates storage
+  pool: ${{ parameters.windowsPool }}
+  steps:
+  - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+    clean: true
+  - template: install-dependencies.yml
+  - template: publish.yml
+    parameters:
+      agents: ${{ parameters.desktopAppAgents }}
+
 - job: WrapUp
   dependsOn:
   - Windows
   - Linux
   - macOS
   pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
-  condition: succeededOrFailed()
   steps:
   - checkout: self
     fetchDepth: 1

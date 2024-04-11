@@ -4,12 +4,10 @@
     <!--If you are willing to use Windows/MacOS native APIs you will need to create 3 projects.
     One for Windows with net8.0-windows TFM, one for MacOS with net8.0-macos and one with net8.0 TFM for Linux.-->
     <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <SelfContained>false</SelfContained>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <Platforms>x64;ARM64</Platforms>
     <UseWindowsForms Condition="'$(TargetFramework)'=='net8.0-windows10.0.22621.0'">true</UseWindowsForms>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -25,4 +23,5 @@
   </ItemGroup>
 
   <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
+  <Import Project="$(MSBuildProjectName).targets" />
 </Project>

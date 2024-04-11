@@ -27,17 +27,14 @@ steps:
 - pwsh: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
   displayName: 🪪 3rd party licenses
 
-- script: dotnet build -t:build,pack -p:Platform=x64 --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack_x64.binlog"
-  displayName: 🛠 build (x64)
-
-- script: dotnet build -t:build,pack -p:Platform=arm64 --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack_arm64.binlog"
-  displayName: 🛠 build (arm64)
+- script: dotnet pack --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack_x64.binlog"
+  displayName: 🛠 pack
 
 - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
   failOnStderr: true
   displayName: 📢 Publish artifacts
   condition: succeededOrFailed()
 
-- powershell: dotnet nuget push 'bin/Packages/$(BuildConfiguration)/*.nupkg' -s $(ci_feed) -k azdo --skip-duplicate
+- powershell: dotnet nuget push 'bin/Packages/$(BuildConfiguration)/NuGet/*.nupkg' -s $(ci_feed) -k azdo --skip-duplicate
   displayName: 📦 Push packages to CI feed
   condition: and(succeeded(), ne(variables['ci_feed'], ''), ne(variables['Build.Reason'], 'PullRequest'))
