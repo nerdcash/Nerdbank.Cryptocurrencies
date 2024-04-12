@@ -28,6 +28,19 @@ steps:
         $Channel = "$BaseChannelName-$($_.Name)"
         $arch = $_.Name.Split('-')[1]
         Write-Host "##[section]Creating velopack for channel $Channel..."
+
+        $vpkCommand = @(
+          'vpk','download','http',
+          '--url',$VelopackData.url,
+          '--outputDir','${{ parameters.AppPackagesPath }}',
+          '--channel',$Channel
+        )
+        Write-Host "##[command]dotnet $vpkCommand"
+        dotnet @vpkCommand
+        if ($LastExitCode -ne 0) {
+          Write-Host "##[warning]Failed to download most recent release for the channel. This is expected if this is the first release for the channel."
+        }
+
         $vpkCommand = @(
           'vpk','pack',
           '--packVersion', $packageVersion,
