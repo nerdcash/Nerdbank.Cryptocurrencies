@@ -1,5 +1,8 @@
 parameters:
 - name: RunTests
+- name: osRID
+  type: string
+  default: ''
 - name: publishPlatforms
   type: object
   default:
@@ -15,10 +18,11 @@ steps:
   displayName: 🧪 dotnet test
   condition: and(succeeded(), ${{ parameters.RunTests }})
 
-- ${{ each platform in parameters.publishPlatforms }}:
-  - script: dotnet publish -c $(BuildConfiguration) -p:Platform=${{ platform }} -r win-${{ platform }}
-    displayName: 📦 dotnet publish ${{ platform }}
-    workingDirectory: src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop
+- ${{ if ne(parameters.osRID, '') }}:
+  - ${{ each platform in parameters.publishPlatforms }}:
+    - script: dotnet publish -c $(BuildConfiguration) -p:Platform=${{ platform }} -r ${{ parameters.osRID }}-${{ platform }}
+      displayName: 📦 dotnet publish ${{ platform }}
+      workingDirectory: src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
