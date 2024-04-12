@@ -51,6 +51,7 @@ steps:
           '--mainExe', $VelopackData.exeName,
           '--packDir', $_,
           '--outputDir', '${{ parameters.AppPackagesPath }}',
+          '--runtime', "win-$arch",
           '--framework', "$($VelopackData.runtime)-$arch-desktop"
         )
         Write-Host "##[command]dotnet tool run -- $vpkCommand"
