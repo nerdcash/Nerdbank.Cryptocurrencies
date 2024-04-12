@@ -4,12 +4,12 @@ if (!$BuildConfiguration) {
     $BuildConfiguration = 'Debug'
 }
 
-$PublishRoot = "$RepoRoot/bin/publish/$BuildConfiguration"
+$VelopackPackageDir = "$RepoRoot/bin/Packages/$BuildConfiguration/velopack"
 $VelopackDataDir = "$RepoRoot/obj/src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop/x64/$BuildConfiguration"
 
-if (!(Test-Path $PublishRoot))  { return }
+if (!(Test-Path $VelopackPackageDir))  { return }
 
 @{
-    "$PublishRoot" = (Get-ChildItem $PublishRoot -Recurse);
+    "$VelopackPackageDir" = (Get-ChildItem $VelopackPackageDir -Recurse);
     "$VelopackDataDir" = (Get-ChildItem "$VelopackDataDir\velopack-data.json");
 }
