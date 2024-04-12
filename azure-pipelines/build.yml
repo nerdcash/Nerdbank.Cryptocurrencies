@@ -118,7 +118,7 @@ jobs:
 - job: Publish
   dependsOn: ${{ parameters.desktopAppAgents }}
   variables:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/app') }}:
     - group: eZcash App Updates storage
   pool: ${{ parameters.windowsPool }}
   steps:
