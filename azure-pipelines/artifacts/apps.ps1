@@ -5,7 +5,7 @@ if (!$BuildConfiguration) {
 }
 
 $VelopackPackageDir = "$RepoRoot/bin/Packages/$BuildConfiguration/velopack"
-$VelopackDataDir = "$RepoRoot/obj/src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop/x64/$BuildConfiguration"
+$VelopackDataDir = "$RepoRoot/obj/src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop/x64/$BuildConfiguration/net8.0"
 
 if (!(Test-Path $VelopackPackageDir))  { return }
 
