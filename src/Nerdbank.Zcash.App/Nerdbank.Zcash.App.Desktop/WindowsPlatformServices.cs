@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if WINDOWS
+
 using System.Reactive.Disposables;
 using Microsoft.Win32;
 using ReactiveUI;
@@ -9,8 +11,6 @@ using Windows.Win32;
 using Windows.Win32.System.Power;
 
 namespace Nerdbank.Zcash.App.Desktop;
-
-#if WINDOWS
 
 internal class WindowsPlatformServices : ReactiveObject, IPlatformServices
 {
