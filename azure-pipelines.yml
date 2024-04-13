@@ -29,3 +29,5 @@ jobs:
 - template: azure-pipelines/build.yml
   parameters:
     RunTests: ${{ parameters.RunTests }}
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/app') }}:
+      BaseChannelName: ci

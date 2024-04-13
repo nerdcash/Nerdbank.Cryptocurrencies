@@ -1,24 +1,88 @@
 parameters:
 - name: RunTests
+- name: BaseChannelName
+- name: osRID
+  type: string
 - name: publishPlatforms
   type: object
   default:
   - x64
-  - arm64
+  - ARM64
 
 steps:
 
 - script: dotnet build --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
-  displayName: 🛠 dotnet build
+  displayName: 🛠️ dotnet build
 
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test
   condition: and(succeeded(), ${{ parameters.RunTests }})
 
-- ${{ each platform in parameters.publishPlatforms }}:
-  - script: dotnet publish -c $(BuildConfiguration) -p:Platform=${{ platform }} -r win-${{ platform }}
-    displayName: 📦 dotnet publish ${{ platform }}
-    workingDirectory: src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop
+- ${{ if eq(parameters.osRID, 'win') }}:
+  - ${{ each platform in parameters.publishPlatforms }}:
+    - pwsh: |
+        $platform = '${{ platform }}'.ToLower()
+        $publishCommand = @(
+          'publish',
+          '-c','$(BuildConfiguration)',
+          "-p:Platform=$platform",
+          '-r',"${{ parameters.osRID }}-$platform",
+          '-warnaserror',
+          '-bl:"$(Build.ArtifactStagingDirectory)/build_logs/publish_${{ platform }}.binlog"'
+        )
+        if ('${{ parameters.osRID }}' -ne 'win') {
+          $publishCommand += '--self-contained'
+        }
+        Write-Host "##[command]$pwd $ dotnet $publishCommand"
+        dotnet @publishCommand
+      displayName: 🛠️️ dotnet publish ${{ platform }}
+      workingDirectory: src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop
+
+    - pwsh: |
+        $rid = '${{ parameters.osRID }}-${{ platform }}'.ToLower()
+        $VelopackData = Get-Content -Path "obj/src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop/${{ platform }}/$(BuildConfiguration)/$rid/velopack-data.json" | ConvertFrom-Json
+        $packageVersion = dotnet nbgv get-version -v SemVer2
+        $OutputDir = 'bin/Packages/$(BuildConfiguration)/velopack'
+        $BaseChannelName = '${{ parameters.BaseChannelName }}'
+        $WillPublish = !!$BaseChannelName
+        if (!$WillPublish) {
+          $BaseChannelName = 'unpublished' # We won't publish this, but we should build some reasonable channel name for logging.
+        }
+        $Channel = "$BaseChannelName-$rid"
+        Write-Host "##[section]Creating velopack for channel $Channel..."
+
+        if ($WillPublish) {
+          $vpkCommand = @(
+            'vpk','download','http',
+            '--url',$VelopackData.url,
+            '--outputDir',$OutputDir
+            '--channel',$Channel
+          )
+          Write-Host "##[command]$pwd $ dotnet $vpkCommand"
+          dotnet @vpkCommand
+          if ($LastExitCode -ne 0) {
+            Write-Host "##[warning]Failed to download most recent release for the channel. This is expected if this is the first release for the channel."
+          }
+        }
+
+        $vpkCommand = @(
+          'vpk','pack',
+          '--packVersion', $packageVersion,
+          '--channel', $Channel,
+          '--packId', 'Nerdbank.Zcash.App',
+          '--packTitle', 'eZcash',
+          '--packAuthors', 'Nerdbank',
+          '--mainExe', $VelopackData.exeName,
+          '--packDir', "bin/publish/$(BuildConfiguration)/$rid",
+          '--outputDir', $OutputDir
+          '--runtime', $rid
+        )
+        if ('${{ parameters.osRID }}' -eq 'win') {
+          $vpkCommand += '--framework', "$($VelopackData.runtime)-${{ platform }}-desktop".ToLower()
+        }
+        Write-Host "##[command]$pwd $ dotnet $vpkCommand"
+        dotnet @vpkCommand
+      displayName: 📦 Build ${{ platform }} app package
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true

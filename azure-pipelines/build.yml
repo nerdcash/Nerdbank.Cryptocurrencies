@@ -6,6 +6,9 @@ parameters:
 - name: RunTests
   type: boolean
   default: true
+- name: BaseChannelName
+  type: string
+  default: ''
 - name: desktopAppAgents
   type: object
   default:
@@ -35,6 +38,8 @@ jobs:
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
+      osRID: win
+      BaseChannelName: ${{ parameters.BaseChannelName }}
 
 - job: Linux
   pool:
@@ -63,6 +68,8 @@ jobs:
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
+      osRID: linux
+      BaseChannelName: ${{ parameters.BaseChannelName }}
   - script: dotnet format --verify-no-changes --no-restore
     displayName: 💅 Verify formatted code
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
@@ -98,6 +105,8 @@ jobs:
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
+      osRID: osx
+      BaseChannelName: ${{ parameters.BaseChannelName }}
 
 - job: Pack
   dependsOn:
@@ -115,20 +124,21 @@ jobs:
   - template: install-dependencies.yml
   - template: pack.yml
 
-- job: Publish
-  dependsOn: ${{ parameters.desktopAppAgents }}
-  variables:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+- ${{ if ne(parameters.BaseChannelName, '') }}:
+  - job: Publish
+    dependsOn: ${{ parameters.desktopAppAgents }}
+    variables:
     - group: eZcash App Updates storage
-  pool: ${{ parameters.windowsPool }}
-  steps:
-  - checkout: self
-    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
-    clean: true
-  - template: install-dependencies.yml
-  - template: publish.yml
-    parameters:
-      agents: ${{ parameters.desktopAppAgents }}
+    pool:
+      vmImage: Ubuntu 20.04
+    steps:
+    - checkout: self
+      fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+      clean: true
+    - template: install-dependencies.yml
+    - template: publish.yml
+      parameters:
+        agents: ${{ parameters.desktopAppAgents }}
 
 - job: WrapUp
   dependsOn:
