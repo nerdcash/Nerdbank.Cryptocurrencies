@@ -70,6 +70,13 @@ steps:
         }
       }
 
+      # Workaround broken win-arm64 installer (https://github.com/velopack/velopack/issues/85)
+      # by using a win-x64 installer, even though the app itself will be arm64.
+      $installerRID = $rid
+      if ('${{ parameters.osRID }}' -eq 'win') {
+        $installerRID = 'win-x64'
+      }
+
       $vpkCommand = @(
         'vpk','pack',
         '--packVersion', $packageVersion,
@@ -80,7 +87,7 @@ steps:
         '--mainExe', $VelopackData.exeName,
         '--packDir', "bin/publish/$(BuildConfiguration)/$rid",
         '--outputDir', $OutputDir
-        '--runtime', $rid
+        '--runtime', $installerRID
       )
       if ('${{ parameters.osRID }}' -eq 'win') {
         $vpkCommand += '--framework', "$($VelopackData.runtime)-${{ platform }}-desktop".ToLower()
