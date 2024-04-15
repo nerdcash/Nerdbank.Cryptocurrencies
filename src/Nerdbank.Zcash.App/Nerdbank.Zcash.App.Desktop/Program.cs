@@ -86,6 +86,10 @@ internal class Program
 			{
 				// NTFS encryption not supported on this platform.
 			}
+			catch (IOException)
+			{
+				// NTFS encryption not supported on this platform.
+			}
 		}
 
 		// Create the directory for settings.
