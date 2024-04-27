@@ -26,13 +26,13 @@ steps:
         '-c','$(BuildConfiguration)',
         "-p:Platform=$platform",
         '-r',"${{ parameters.osRID }}-$platform",
+        '--self-contained',
         '-warnaserror',
         '-bl:"$(Build.ArtifactStagingDirectory)/build_logs/publish_${{ platform }}.binlog"'
       )
       if ('${{ parameters.osRID }}' -eq 'win') {
         $tfm = 'net8.0-windows10.0.22621.0'
       } else {
-        $publishCommand += '--self-contained'
         $tfm = 'net8.0'
       }
       $publishCommand += '-f',$tfm
@@ -89,9 +89,6 @@ steps:
         '--outputDir', $OutputDir
         '--runtime', $installerRID
       )
-      if ('${{ parameters.osRID }}' -eq 'win') {
-        $vpkCommand += '--framework', "$($VelopackData.runtime)-${{ platform }}-desktop".ToLower()
-      }
       Write-Host "##[command]$pwd $ dotnet $vpkCommand"
       dotnet @vpkCommand
     displayName: 📦 Build ${{ platform }} app package
