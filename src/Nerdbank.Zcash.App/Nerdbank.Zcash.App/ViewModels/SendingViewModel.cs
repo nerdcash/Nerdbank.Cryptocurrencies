@@ -22,7 +22,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
 	private readonly ObservableAsPropertyHelper<bool> isTestNetWarningVisible;
 	private readonly ObservableAsPropertyHelper<bool> isSendingInProgress;
-	private bool isValid;
+	private bool areLineItemsValid;
 	private string? errorMessage;
 	private string? sendSuccessfulMessage;
 	private string mutableMemo = string.Empty;
@@ -77,7 +77,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount!.SendProgress.IsInProgress,
 			vm => vm.SelectedAccount!.Balance.Spendable,
 			vm => vm.Total,
-			vm => vm.IsValid,
+			vm => vm.AreLineItemsValid,
 			(sending, spendableBalance, total, valid) => valid && !sending && spendableBalance.Amount >= total?.Amount);
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
@@ -90,10 +90,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public SyncProgressData SyncProgress { get; }
 
-	public bool IsValid
+	public bool AreLineItemsValid
 	{
-		get => this.isValid;
-		private set => this.RaiseAndSetIfChanged(ref this.isValid, value);
+		get => this.areLineItemsValid;
+		private set => this.RaiseAndSetIfChanged(ref this.areLineItemsValid, value);
 	}
 
 	public string FromAccountCaption => "From account:";
@@ -314,17 +314,17 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			case nameof(LineItem.RecipientAddress): // Changing the target pool can change fees.
 			case nameof(LineItem.Amount):
 				this.RecalculateAggregates();
-				this.UpdateIsValidProperty();
+				this.UpdateAreLineItemsValidProperty();
 				break;
-			case nameof(LineItem.IsValid):
-				this.UpdateIsValidProperty();
+			case nameof(LineItem.IsLineItemValid):
+				this.UpdateAreLineItemsValidProperty();
 				break;
 		}
 	}
 
-	private void UpdateIsValidProperty()
+	private void UpdateAreLineItemsValidProperty()
 	{
-		this.IsValid = this.LineItems.Count > 0 && this.LineItems.All(li => li.IsValid);
+		this.AreLineItemsValid = this.LineItems.Count > 0 && this.LineItems.All(li => li.IsLineItemValid);
 	}
 
 	private void RecalculateAggregates()
@@ -388,7 +388,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		lineItem.PropertyChanged += this.LineItem_PropertyChanged;
 
 		this.lineItems.Add(lineItem);
-		this.UpdateIsValidProperty();
+		this.UpdateAreLineItemsValidProperty();
 		return lineItem;
 	}
 
@@ -396,14 +396,14 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	{
 		this.lineItems.Remove(lineItem);
 		this.RecalculateAggregates();
-		this.UpdateIsValidProperty();
+		this.UpdateAreLineItemsValidProperty();
 	}
 
 	public class LineItem : ViewModelBaseWithAccountSelector
 	{
 		private readonly SendingViewModel owner;
 		private readonly ObservableAsPropertyHelper<ZcashAddress?> recipientAddressParsed;
-		private readonly ObservableAsPropertyHelper<bool> isValid;
+		private readonly ObservableAsPropertyHelper<bool> isLineItemValid;
 		private readonly ObservableAsPropertyHelper<bool> isMemoVisible;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
@@ -431,11 +431,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 					_ => throw new InvalidOperationException("Unexpected recipient type"),
 				}).ToProperty(this, nameof(this.RecipientAddressParsed));
 
-			this.isValid = this.WhenAnyValue(
+			this.isLineItemValid = this.WhenAnyValue(
 				vm => vm.Amount,
 				vm => vm.RecipientAddressParsed,
 				(amount, addr) => amount.HasValue && addr is not null)
-				.ToProperty(this, nameof(this.IsValid));
+				.ToProperty(this, nameof(this.IsLineItemValid));
 
 			// Arrange tho hide the memo field if the address is valid and has no shielded receiver.
 			// We want to show the memo field if the address is blank or invalid while the user sorts that out.
@@ -445,7 +445,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 				.ToProperty(this, nameof(this.IsMemoVisible));
 		}
 
-		public bool IsValid => this.isValid.Value;
+		public bool IsLineItemValid => this.isLineItemValid.Value;
 
 		public string RecipientAddressCaption => "Recipient:";
 

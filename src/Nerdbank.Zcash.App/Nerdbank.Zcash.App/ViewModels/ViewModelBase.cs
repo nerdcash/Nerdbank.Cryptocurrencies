@@ -6,22 +6,66 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reactive.Disposables;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
+public abstract class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 {
 	private readonly Dictionary<string, ValidationResult[]> errors = new(StringComparer.Ordinal);
-	private bool hasErrors;
+	private readonly HashSet<string> propertiesWithAnnotationErrors = new(StringComparer.Ordinal);
+
+	public ViewModelBase()
+	{
+		this.IsValid = this.WhenAnyValue(vm => vm.HasAnyErrors, hasErrors => !hasErrors);
+		this.PropertyChanged += (sender, e) =>
+		{
+			if (e.PropertyName is null or nameof(this.HasAnyErrors))
+			{
+				return;
+			}
+
+			if (e.PropertyName is nameof(this.HasErrors))
+			{
+				this.RaisePropertyChanged(nameof(this.HasAnyErrors));
+				return;
+			}
+
+			if (this.GetType().GetProperty(e.PropertyName, BindingFlags.Instance | BindingFlags.Public) is PropertyInfo property)
+			{
+				bool oldHasAnyErrorsValue = this.HasAnyErrors;
+				if (this.CheckPropertyAnnotations(property) && oldHasAnyErrorsValue != this.HasAnyErrors)
+				{
+					this.RaisePropertyChanged(nameof(this.HasAnyErrors));
+				}
+			}
+		};
+
+		// Initialize default validity state.
+		foreach (PropertyInfo property in this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+		{
+			this.CheckPropertyAnnotations(property);
+		}
+	}
 
 	public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
-	public bool HasErrors
-	{
-		get => this.hasErrors;
-		private set => this.RaiseAndSetIfChanged(ref this.hasErrors, value);
-	}
+	public bool HasErrors => this.errors.Count > 0;
+
+	/// <summary>
+	/// Gets a value indicating whether this view model has any errors, including from validation attributes
+	/// on its members.
+	/// </summary>
+	protected bool HasAnyErrors => this.HasErrors || this.propertiesWithAnnotationErrors.Count > 0;
+
+	/// <summary>
+	/// Gets an observable value indicating whether everything in this view model is valid.
+	/// </summary>
+	/// <remarks>
+	/// This is always the inverse of <see cref="HasAnyErrors"/>.
+	/// </remarks>
+	protected IObservable<bool> IsValid { get; }
 
 	public IEnumerable GetErrors(string? propertyName)
 	{
@@ -42,12 +86,14 @@ public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 		{
 			if (this.errors.Remove(propertyName))
 			{
+				this.RaisePropertyChanged(nameof(this.HasErrors));
 				this.OnErrorsChanged(new DataErrorsChangedEventArgs(propertyName));
 			}
 		}
 		else
 		{
-			this.errors[propertyName] = new ValidationResult[] { new(message) };
+			this.errors[propertyName] = [new(message)];
+			this.RaisePropertyChanged(nameof(this.HasErrors));
 			this.OnErrorsChanged(new DataErrorsChangedEventArgs(propertyName));
 		}
 	}
@@ -117,5 +163,20 @@ public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
 				}
 			}
 		}
+	}
+
+	private bool CheckPropertyAnnotations(PropertyInfo property)
+	{
+		ValidationContext context = new(this)
+		{
+			DisplayName = property.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? property.Name,
+			MemberName = property.Name,
+		};
+
+		bool hasErrors = property.GetCustomAttributes<ValidationAttribute>(inherit: true)
+			.Any(att => att.GetValidationResult(property.GetValue(this), context) is { ErrorMessage: not null });
+		return hasErrors
+			? this.propertiesWithAnnotationErrors.Add(property.Name)
+			: this.propertiesWithAnnotationErrors.Remove(property.Name);
 	}
 }
