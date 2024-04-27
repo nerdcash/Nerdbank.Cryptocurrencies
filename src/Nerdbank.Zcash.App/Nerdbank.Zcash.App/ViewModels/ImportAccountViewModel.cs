@@ -8,12 +8,11 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataErrorInfo
 {
-	private readonly ObservableBox<bool> importCommandEnabled = new(false);
 	private readonly IViewModelServices viewModelServices;
 	private string key = string.Empty;
 	private string seedPassword = string.Empty;
 	private bool isTestNet;
-	private ulong birthdayHeight;
+	private ulong? birthdayHeight;
 	private Bip39Mnemonic? mnemonic;
 	private bool inputIsValidKey;
 	private bool isSeed;
@@ -29,13 +28,13 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	public ImportAccountViewModel(IViewModelServices viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
-		this.ImportCommand = ReactiveCommand.Create(this.Import, this.importCommandEnabled);
+		this.ImportCommand = ReactiveCommand.Create(this.Import, this.IsValid);
 
 		this.LinkProperty(nameof(this.IsSeed), nameof(this.IsTestNetVisible));
 		this.LinkProperty(nameof(this.SeedPassword), nameof(this.SeedPasswordHasWhitespace));
 		this.LinkProperty(nameof(this.IsTestNet), nameof(this.MinimumBirthdayHeight));
 
-		this.birthdayHeight = this.NetworkParameters.SaplingActivationHeight;
+		this.BirthdayHeight = this.NetworkParameters.SaplingActivationHeight;
 
 		if (viewModelServices.Wallet.IsEmpty)
 		{
@@ -123,7 +122,8 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public bool IsTestNetVisible => this.IsSeed;
 
-	public ulong BirthdayHeight
+	[Required]
+	public ulong? BirthdayHeight
 	{
 		get => this.birthdayHeight;
 		set => this.RaiseAndSetIfChanged(ref this.birthdayHeight, value);
@@ -163,9 +163,9 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		this.IsPasswordVisible = this.mnemonic?.Password.Length == 0 || this.SeedPassword.Length > 0;
 
 		this.inputIsValidKey = this.mnemonic is null && ZcashAccount.TryImportAccount(this.Key, out _);
-		this.importCommandEnabled.Value = this.mnemonic is not null || this.inputIsValidKey;
+		bool isValidInput = this.mnemonic is not null || this.inputIsValidKey;
 
-		this.RecordValidationError(this.Key.Length == 0 || this.importCommandEnabled.Value ? null : Strings.BadOrUnsupportedImportKey, nameof(this.Key));
+		this.RecordValidationError(this.Key.Length == 0 || isValidInput ? null : Strings.BadOrUnsupportedImportKey, nameof(this.Key));
 	}
 
 	private bool TryInitializeMnemonic()
