@@ -14,6 +14,12 @@ public class ProgressData : ViewModelBase
 	private ulong to;
 	private ulong current;
 
+	public ProgressData()
+	{
+		this.LinkProperty(nameof(this.From), nameof(this.ProgressTextFormat));
+		this.LinkProperty(nameof(this.To), nameof(this.ProgressTextFormat));
+	}
+
 	public virtual string Caption => "In progress";
 
 	public bool IsInProgress
@@ -38,6 +44,36 @@ public class ProgressData : ViewModelBase
 	{
 		get => this.current;
 		set => this.RaiseAndSetIfChanged(ref this.current, value);
+	}
+
+	public string ProgressTextFormat => $$"""{1:N{{this.RequiredPrecision}}}%""";
+
+	/// <summary>
+	/// Gets the number of steps between <see cref="From"/> and <see cref="To"/> that must be visibly apparent to the user via the numeric % displayed to the user.
+	/// </summary>
+	/// <remarks>
+	/// <para>The lower the number, the higher the % precision that may be displayed.</para>
+	/// <para>A <see langword="null" /> value indicates that the % displayed should never include decimal points in the % displayed.</para>
+	/// </remarks>
+	public virtual uint? VisiblyApparentStepSize => null;
+
+	/// <summary>
+	/// Gets the number of decimal places that should be displayed in the % complete.
+	/// </summary>
+	private uint RequiredPrecision
+	{
+		get
+		{
+			uint precision = 0;
+			if (this.VisiblyApparentStepSize is uint step)
+			{
+				double length = this.To - this.From;
+				const uint ImplicitPrecision = 2; // % gives us 0-1 with 2 decimal places
+				precision = Math.Max(ImplicitPrecision, (uint)Math.Ceiling(Math.Log10(length / step))) - ImplicitPrecision;
+			}
+
+			return precision;
+		}
 	}
 
 	/// <summary>
