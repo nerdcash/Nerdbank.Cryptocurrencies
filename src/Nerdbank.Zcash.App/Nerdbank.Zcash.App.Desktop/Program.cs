@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using Nerdbank.Zcash.App.ViewModels;
 using Velopack;
 
 namespace Nerdbank.Zcash.App.Desktop;
@@ -35,32 +36,35 @@ internal class Program
 
 		velopackBuilder.Run();
 
-		AppBuilder appBuilder = BuildAvaloniaApp();
+		AppBuilder appBuilder = BuildAvaloniaApp(args);
 
 		OneProcessManager processManager = new();
-		processManager.SecondaryProcessStarted += (sender, e) =>
+		processManager.SecondaryProcessStarted += async (sender, e) =>
 		{
-			if (e.CommandLineArgs is not null)
+			try
 			{
-				if (ZcashScheme.TryParseUriLaunch(e.CommandLineArgs, out Uri? zcashPaymentRequest))
+				if (e.CommandLineArgs is not null && App.Current?.ViewModel is not null)
 				{
-					// Navigate the app to the payment screen and initialize with content from the request URI.
-					// If the payment screen is already displayed, we should prompt the user
-					// to confirm the new request to avoid another app writing over a payment
-					// just before it is made by the user.
+					if (ZcashScheme.TryParseUriLaunch(e.CommandLineArgs, out Uri? zcashPaymentRequest))
+					{
+						await App.Current.JoinableTaskContext.Factory.SwitchToMainThreadAsync();
+						SendingViewModel viewModel = new(App.Current.ViewModel);
+						if (viewModel.TryApplyPaymentRequest(zcashPaymentRequest))
+						{
+							App.Current.ViewModel.NavigateTo(viewModel);
+						}
+					}
 				}
+			}
+			catch
+			{
+				// Don't crash the app when failing to process such messages.
 			}
 		};
 
 		if (processManager.TryClaimPrimaryProcess())
 		{
-			if (ZcashScheme.TryParseUriLaunch(args, out Uri? zcashPaymentRequest))
-			{
-				// Prepare the new application to respond to the payment request.
-				// We must consider that the app may not have created a wallet yet,
-				// in which case we need to instruct the user to create one.
-			}
-
+			UriSchemeRegistration.Register(ZcashScheme);
 			return appBuilder.StartWithClassicDesktopLifetime(args);
 		}
 		else
@@ -70,15 +74,23 @@ internal class Program
 	}
 
 	// Avalonia configuration, don't remove; also used by visual designer.
-	public static AppBuilder BuildAvaloniaApp()
+	public static AppBuilder BuildAvaloniaApp() => BuildAvaloniaApp([]);
+
+	public static AppBuilder BuildAvaloniaApp(string[] args)
 	{
+		ZcashScheme.TryParseUriLaunch(args, out Uri? zcashPaymentRequest);
+		StartupInstructions startup = new()
+		{
+			PaymentRequestUri = zcashPaymentRequest,
+		};
+
 		IPlatformServices platformServices =
 #if WINDOWS
 			new WindowsPlatformServices();
 #else
 			new FallbackPlatformServices();
 #endif
-		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), platformServices, ThisAssembly.VelopackUpdateUrl))
+		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), platformServices, startup, ThisAssembly.VelopackUpdateUrl))
 			.UsePlatformDetect()
 			.WithInterFont()
 			.LogToTrace()

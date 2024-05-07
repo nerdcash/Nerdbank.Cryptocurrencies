@@ -162,6 +162,63 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.sendSuccessfulMessage, value);
 	}
 
+	public bool TryApplyPaymentRequest(Uri paymentRequestUri)
+	{
+		if (!Zip321PaymentRequestUris.PaymentRequest.TryParse(paymentRequestUri.OriginalString, out Zip321PaymentRequestUris.PaymentRequest? paymentRequest))
+		{
+			return false;
+		}
+
+		return this.TryApplyPaymentRequest(paymentRequest);
+	}
+
+	public bool TryApplyPaymentRequest(Zip321PaymentRequestUris.PaymentRequest paymentRequest)
+	{
+		this.Clear(leaveOneEmptyLineItem: false);
+
+		ZcashNetwork? network = null;
+		foreach (Zip321PaymentRequestUris.PaymentRequestDetails payment in paymentRequest.Payments)
+		{
+			if (network is null)
+			{
+				network = payment.Address.Network;
+			}
+			else if (network != payment.Address.Network)
+			{
+				// Inconsistent networks in payment request.
+				return false;
+			}
+
+			LineItem lineItem = this.AddLineItem();
+			lineItem.RecipientAddress = payment.Address;
+			lineItem.Amount = payment.Amount;
+			lineItem.Memo = payment.Memo.Message ?? string.Empty;
+		}
+
+		// Ensure the selected sending account is not incompatible with the recipients in the payment request.
+		if (this.SelectedAccount is not null && this.SelectedAccount.Network != network)
+		{
+			Account[] compatibleAccounts = this.Accounts.Where(a => a.Network == network).Take(2).ToArray();
+			switch (compatibleAccounts.Length)
+			{
+				case 0:
+					this.SelectedAccount = null;
+
+					// Display an error to the user to indicate that this payment goes to a network for which they have no accounts.
+					//// TODO: code here
+					break;
+				case 1:
+					this.SelectedAccount = compatibleAccounts[0];
+					break;
+				default:
+					this.SelectedAccount = null;
+					break;
+			}
+		}
+
+		return true;
+	}
+
 	protected override void OnSelectedAccountChanged()
 	{
 		this.RefreshRecipientsList();
@@ -245,7 +302,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			SecurityAmount subtotal = this.Subtotal;
 
 			// Clear the form for the next send.
-			this.Clear();
+			this.Clear(leaveOneEmptyLineItem: true);
 
 			// Display a successful message momentarily.
 			this.SendSuccessfulMessage = $"{subtotal} sent successfully.";
@@ -292,11 +349,16 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			select new Transaction.LineItem(to, li.Amount ?? 0m, to.HasShieldedReceiver ? Memo.FromMessage(li.Memo) : Memo.NoMemo)];
 	}
 
-	private void Clear()
+	private void Clear(bool leaveOneEmptyLineItem)
 	{
 		this.lineItems.Clear();
-		this.AddLineItem();
+		if (leaveOneEmptyLineItem)
+		{
+			this.AddLineItem();
+		}
+
 		this.RecalculateAggregates();
+		this.UpdateAreLineItemsValidProperty();
 	}
 
 	private void RaisePropertyChangedOnLineItems(string propertyName)
