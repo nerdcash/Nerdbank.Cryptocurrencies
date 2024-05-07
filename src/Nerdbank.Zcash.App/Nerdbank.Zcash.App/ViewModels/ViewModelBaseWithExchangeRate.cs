@@ -49,7 +49,7 @@ public abstract class ViewModelBaseWithExchangeRate : ViewModelBaseWithAccountSe
 				ExchangeRate rate = await this.ViewModelServices.ExchangeRateProvider.GetExchangeRateAsync(pair.Value, cancellationToken);
 
 				// Only set this if the selected network still matches what we calculated.
-				if (this.SelectedAccount.Network.AsSecurity() == rate.TradeInterest.Security)
+				if (this.SelectedAccount?.Network.AsSecurity() == rate.TradeInterest.Security)
 				{
 					this.ExchangeRate = rate;
 				}
