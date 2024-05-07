@@ -99,7 +99,7 @@ internal record UriSchemeRegistration
 		}
 	}
 
-	internal bool TryHandleUriLaunch(string[] args, [NotNullWhen(true)] out Uri? uri)
+	internal bool TryParseUriLaunch(string[] args, [NotNullWhen(true)] out Uri? uri)
 	{
 		if (args.Length == this.ActivationArgs.Length + 1 && args[..this.ActivationArgs.Length].SequenceEqual(this.ActivationArgs))
 		{

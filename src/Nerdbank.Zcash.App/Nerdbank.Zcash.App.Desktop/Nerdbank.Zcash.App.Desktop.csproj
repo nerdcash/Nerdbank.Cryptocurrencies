@@ -13,8 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net8.0-windows10.0.22621.0'">
     <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
   </ItemGroup>
 

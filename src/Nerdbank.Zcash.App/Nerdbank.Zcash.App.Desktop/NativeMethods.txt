@@ -1,1 +1,4 @@
-﻿SetThreadExecutionState
+﻿GetNamedPipeClientProcessId
+GetNamedPipeServerProcessId
+SetForegroundWindow
+SetThreadExecutionState

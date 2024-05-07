@@ -17,33 +17,66 @@ internal class Program
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
 	[STAThread]
-	public static void Main(string[] args)
+	public static int Main(string[] args)
 	{
 		VelopackApp velopackBuilder = VelopackApp.Build();
 
-#if WINDOWS
-		velopackBuilder.WithAfterInstallFastCallback(v =>
+		if (OperatingSystem.IsWindows())
 		{
-			UriSchemeRegistration.Register(ZcashScheme);
-		});
-		velopackBuilder.WithBeforeUninstallFastCallback(v =>
-		{
-			UriSchemeRegistration.Unregister(ZcashScheme);
-		});
-#endif
+			velopackBuilder.WithAfterInstallFastCallback(v =>
+			{
+				UriSchemeRegistration.Register(ZcashScheme);
+			});
+			velopackBuilder.WithBeforeUninstallFastCallback(v =>
+			{
+				UriSchemeRegistration.Unregister(ZcashScheme);
+			});
+		}
 
 		velopackBuilder.Run();
 
-		BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+		AppBuilder appBuilder = BuildAvaloniaApp();
+
+		OneProcessManager processManager = new();
+		processManager.SecondaryProcessStarted += (sender, e) =>
+		{
+			if (e.CommandLineArgs is not null)
+			{
+				if (ZcashScheme.TryParseUriLaunch(e.CommandLineArgs, out Uri? zcashPaymentRequest))
+				{
+					// Navigate the app to the payment screen and initialize with content from the request URI.
+					// If the payment screen is already displayed, we should prompt the user
+					// to confirm the new request to avoid another app writing over a payment
+					// just before it is made by the user.
+				}
+			}
+		};
+
+		if (processManager.TryClaimPrimaryProcess())
+		{
+			if (ZcashScheme.TryParseUriLaunch(args, out Uri? zcashPaymentRequest))
+			{
+				// Prepare the new application to respond to the payment request.
+				// We must consider that the app may not have created a wallet yet,
+				// in which case we need to instruct the user to create one.
+			}
+
+			return appBuilder.StartWithClassicDesktopLifetime(args);
+		}
+		else
+		{
+			return 0;
+		}
 	}
 
 	// Avalonia configuration, don't remove; also used by visual designer.
 	public static AppBuilder BuildAvaloniaApp()
 	{
+		IPlatformServices platformServices =
 #if WINDOWS
-		IPlatformServices platformServices = new WindowsPlatformServices();
+			new WindowsPlatformServices();
 #else
-		IPlatformServices platformServices = new FallbackPlatformServices();
+			new FallbackPlatformServices();
 #endif
 		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), platformServices, ThisAssembly.VelopackUpdateUrl))
 			.UsePlatformDetect()
