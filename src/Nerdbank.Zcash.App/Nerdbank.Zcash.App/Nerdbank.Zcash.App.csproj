@@ -29,6 +29,7 @@
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.ReactiveUI" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Markdown.Avalonia.SyntaxHigh" />
     <PackageReference Include="Markdown.Avalonia.Tight" />
     <PackageReference Include="MessagePack" />
     <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />

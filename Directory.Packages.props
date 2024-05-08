@@ -5,6 +5,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <AvaloniaVersion>11.0.10</AvaloniaVersion>
+    <AvaloniaMarkdownVersion>11.0.2</AvaloniaMarkdownVersion>
     <RoslynVersion>3.11.0-beta1.24104.1</RoslynVersion>
     <MessagePackVersion>2.5.140</MessagePackVersion>
   </PropertyGroup>
@@ -18,7 +19,8 @@
     <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Simple" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
+    <PackageVersion Include="Markdown.Avalonia.SyntaxHigh" Version="$(AvaloniaMarkdownVersion)" />
+    <PackageVersion Include="Markdown.Avalonia.Tight" Version="$(AvaloniaMarkdownVersion)" />
     <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePack.Annotations" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
