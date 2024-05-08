@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.VisualStudio.Threading;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Nerdbank.Zcash.App;
 
@@ -223,9 +224,28 @@ public class OneProcessManager : IDisposable
 			if (PInvoke.GetNamedPipeServerProcessId(clientPipe.SafePipeHandle, out uint primaryProcessPid))
 			{
 				using Process p = Process.GetProcessById((int)primaryProcessPid);
-				if (!PInvoke.SetForegroundWindow((HWND)p.MainWindowHandle))
+				HWND hWnd = (HWND)p.MainWindowHandle;
+				if (!PInvoke.SetForegroundWindow(hWnd))
 				{
 					Debug.Fail("Failed to activate the primary process.");
+					return;
+				}
+
+				WINDOWPLACEMENT windowPlacement = default;
+				if (!PInvoke.GetWindowPlacement(hWnd, ref windowPlacement))
+				{
+					Debug.Fail("Failed to get the window's current placement.");
+					return;
+				}
+
+				if (windowPlacement.showCmd == SHOW_WINDOW_CMD.SW_SHOWMINIMIZED)
+				{
+					// SW_RESTORE will un-minimize the window to its 'normal/restored' or maximized state -- whatever it was in previously.
+					if (!PInvoke.ShowWindowAsync(hWnd, SHOW_WINDOW_CMD.SW_RESTORE))
+					{
+						Debug.Fail("Failed to un-minimize the primary process window.");
+						return;
+					}
 				}
 			}
 		}
