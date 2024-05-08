@@ -33,6 +33,13 @@
         <TextBlock Text="{Binding LicenseAcceptance}" />
         <Button Content="{Binding ViewLicenseCommandCaption}" Command="{Binding ViewLicenseCommand}" HorizontalAlignment="Center" />
       </StackPanel>
+      <StackPanel>
+        <TextBlock Text="{Binding WalletForHeading}" HorizontalAlignment="Center" />
+        <WrapPanel HorizontalAlignment="Center">
+          <Image Source="{SvgImage /Assets/Zcash Media Kit/Primary-Logo-Black-Yellow.svg}"
+                 Height="64" />
+        </WrapPanel>
+      </StackPanel>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

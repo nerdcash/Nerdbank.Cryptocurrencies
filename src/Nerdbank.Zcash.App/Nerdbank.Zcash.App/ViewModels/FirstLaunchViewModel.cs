@@ -28,7 +28,9 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 	public string Greeting => Strings.AppGreeting;
 
-	public Bitmap Logo => Resources.ZcashLogo;
+	public Bitmap Logo => Resources.AppLogo;
+
+	public string WalletForHeading => "A wallet for";
 
 	public string StartNewWalletButtonText => Strings.StartNewWalletButtonText;
 

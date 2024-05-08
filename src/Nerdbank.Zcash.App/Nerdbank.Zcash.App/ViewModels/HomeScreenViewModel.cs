@@ -30,7 +30,7 @@ public class HomeScreenViewModel : ViewModelBase
 		this.BackupCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices)));
 	}
 
-	public Bitmap Logo => Resources.ZcashLogo;
+	public Bitmap Logo => Resources.AppLogo;
 
 	public UpdatingViewModel SelfUpdating => this.viewModelServices.App.SelfUpdating;
 
