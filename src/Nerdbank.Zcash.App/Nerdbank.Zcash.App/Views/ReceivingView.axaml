@@ -59,13 +59,16 @@
           <Grid RowDefinitions="auto, *, auto, auto">
             <TextBlock Text="{Binding Subheading}" HorizontalAlignment="Center" />
             <Image Source="{Binding QRCode}" Margin="10" Grid.Row="1" />
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
-              <TextBlock Text="{Binding ShortText}" VerticalAlignment="Center" />
-              <Button Classes="Copy" Background="Transparent" Command="{Binding CopyCommand}">
-                <Button.Content>
-                  <Image Source="/Assets/copy.png" Height="12" />
-                </Button.Content>
-              </Button>
+            <StackPanel Grid.Row="2">
+              <TextBlock HorizontalAlignment="Center" Text="{Binding CopyTextPrompt}" />
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding ShortText}" VerticalAlignment="Center" />
+                <Button Classes="Copy" Background="Transparent" Command="{Binding CopyCommand}">
+                  <Button.Content>
+                    <Image Source="/Assets/copy.png" Height="12" />
+                  </Button.Content>
+                </Button>
+              </StackPanel>
             </StackPanel>
           </Grid>
         </DataTemplate>

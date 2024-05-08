@@ -55,6 +55,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nerdbank.Zcash.App", "Nerdbank.Zcash.App", "{60403FE5-ED42-481F-A229-C96D398F7680}"
 	ProjectSection(SolutionItems) = preProject
 		src\Nerdbank.Zcash.App\.editorconfig = src\Nerdbank.Zcash.App\.editorconfig
+		src\Nerdbank.Zcash.App\applogo.png = src\Nerdbank.Zcash.App\applogo.png
 		src\Nerdbank.Zcash.App\Directory.Build.props = src\Nerdbank.Zcash.App\Directory.Build.props
 		src\Nerdbank.Zcash.App\README.md = src\Nerdbank.Zcash.App\README.md
 	EndProjectSection

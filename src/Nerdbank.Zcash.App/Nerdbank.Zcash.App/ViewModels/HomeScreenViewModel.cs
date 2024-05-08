@@ -30,7 +30,7 @@ public class HomeScreenViewModel : ViewModelBase
 		this.BackupCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices)));
 	}
 
-	public Bitmap Logo => Resources.ZcashLogo;
+	public Bitmap Logo => Resources.AppLogo;
 
 	public UpdatingViewModel SelfUpdating => this.viewModelServices.App.SelfUpdating;
 
@@ -38,7 +38,7 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }
 
-	public string ReceiveExplanation => "Help someone send you Zcash by sharing your address with them.";
+	public string ReceiveExplanation => "Share your Zcash address or a payment request with others so they can send you Zcash.";
 
 	public string SendCommandCaption => "📤 Send";
 

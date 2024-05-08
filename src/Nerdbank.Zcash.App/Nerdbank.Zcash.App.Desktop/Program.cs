@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using Avalonia.Svg.Skia;
 using Nerdbank.Zcash.App.ViewModels;
 using Velopack;
 
@@ -78,6 +79,10 @@ internal class Program
 
 	public static AppBuilder BuildAvaloniaApp(string[] args)
 	{
+		// Make SVG rendering work in the Avalonia previewer.
+		GC.KeepAlive(typeof(SvgImageExtension).Assembly);
+		GC.KeepAlive(typeof(Avalonia.Svg.Skia.Svg).Assembly);
+
 		ZcashScheme.TryParseUriLaunch(args, out Uri? zcashPaymentRequest);
 		StartupInstructions startup = new()
 		{

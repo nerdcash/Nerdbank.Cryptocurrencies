@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
-using DynamicData.Binding;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -10,6 +9,7 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 {
 	private Contact? selectedReceiver;
 	private string receiverIdentity = string.Empty;
+	private ObservableAsPropertyHelper<string> proceedCaption;
 
 	[Obsolete("Design-time only", error: true)]
 	public ReceivingIntentSelectorViewModel()
@@ -23,7 +23,12 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 		this.PaymentRequestDetails = new PaymentRequestDetailsViewModel(viewModelServices);
 
 		this.ProceedCommand = ReactiveCommand.Create(this.Proceed);
-		this.LinkProperty(nameof(this.ReceiverIdentity), nameof(this.ProceedCaption));
+
+		this.proceedCaption = this.WhenAnyValue(
+			x => x.ReceiverIdentity,
+			x => x.PaymentRequestDetails.IsEmpty,
+			(receiverIdentity, emptyPaymentRequest) => emptyPaymentRequest ? (receiverIdentity.Length == 0 ? "I'm just looking" : "Show my address") : "Show the invoice")
+			.ToProperty(this, nameof(this.ProceedCaption));
 	}
 
 	public string Title => "Receive Zcash";
@@ -48,7 +53,7 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 
 	public string ReceiverExplanation => "A unique address is generated every time you share your address with someone. This enhances your privacy and helps you identify where payments come from.";
 
-	public string ProceedCaption => this.ReceiverIdentity.Length == 0 ? "I'm just looking" : "Show my address";
+	public string ProceedCaption => this.proceedCaption.Value;
 
 	public ReactiveCommand<Unit, Unit> ProceedCommand { get; }
 
