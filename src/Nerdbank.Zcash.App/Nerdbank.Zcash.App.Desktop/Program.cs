@@ -5,33 +5,92 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using Nerdbank.Zcash.App.ViewModels;
 using Velopack;
 
 namespace Nerdbank.Zcash.App.Desktop;
 
 internal class Program
 {
+	private static readonly UriSchemeRegistration ZcashScheme = new("zcash");
+
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
 	[STAThread]
-	public static void Main(string[] args)
+	public static int Main(string[] args)
 	{
 		VelopackApp velopackBuilder = VelopackApp.Build();
+
+		if (OperatingSystem.IsWindows())
+		{
+			velopackBuilder.WithAfterInstallFastCallback(v =>
+			{
+				UriSchemeRegistration.Register(ZcashScheme);
+			});
+			velopackBuilder.WithBeforeUninstallFastCallback(v =>
+			{
+				UriSchemeRegistration.Unregister(ZcashScheme);
+			});
+		}
+
 		velopackBuilder.Run();
 
-		BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+		AppBuilder appBuilder = BuildAvaloniaApp(args);
+
+		OneProcessManager processManager = new();
+		processManager.SecondaryProcessStarted += async (sender, e) =>
+		{
+			try
+			{
+				if (e.CommandLineArgs is not null && App.Current?.ViewModel is not null)
+				{
+					if (ZcashScheme.TryParseUriLaunch(e.CommandLineArgs, out Uri? zcashPaymentRequest))
+					{
+						await App.Current.JoinableTaskContext.Factory.SwitchToMainThreadAsync();
+						SendingViewModel viewModel = new(App.Current.ViewModel);
+						if (viewModel.TryApplyPaymentRequest(zcashPaymentRequest))
+						{
+							App.Current.ViewModel.NavigateTo(viewModel);
+						}
+					}
+				}
+			}
+			catch
+			{
+				// Don't crash the app when failing to process such messages.
+			}
+		};
+
+		if (processManager.TryClaimPrimaryProcess())
+		{
+			UriSchemeRegistration.Register(ZcashScheme);
+			return appBuilder.StartWithClassicDesktopLifetime(args);
+		}
+		else
+		{
+			return 0;
+		}
 	}
 
 	// Avalonia configuration, don't remove; also used by visual designer.
-	public static AppBuilder BuildAvaloniaApp()
+	public static AppBuilder BuildAvaloniaApp() => BuildAvaloniaApp([]);
+
+	public static AppBuilder BuildAvaloniaApp(string[] args)
 	{
+		ZcashScheme.TryParseUriLaunch(args, out Uri? zcashPaymentRequest);
+		StartupInstructions startup = new()
+		{
+			PaymentRequestUri = zcashPaymentRequest,
+		};
+
+		IPlatformServices platformServices =
 #if WINDOWS
-		IPlatformServices platformServices = new WindowsPlatformServices();
+			new WindowsPlatformServices();
 #else
-		IPlatformServices platformServices = new FallbackPlatformServices();
+			new FallbackPlatformServices();
 #endif
-		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), platformServices, ThisAssembly.VelopackUpdateUrl))
+		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), platformServices, startup, ThisAssembly.VelopackUpdateUrl))
 			.UsePlatformDetect()
 			.WithInterFont()
 			.LogToTrace()

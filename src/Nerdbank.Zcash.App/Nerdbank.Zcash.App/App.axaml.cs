@@ -24,6 +24,7 @@ public partial class App : Application, IAsyncDisposable
 	private JoinableTaskFactory? shutdownBlockingTaskFactory;
 	private JoinableTaskCollection? shutdownBlockingTasks;
 
+	private StartupInstructions? startupInstructions;
 	private AutoSaveManager<AppSettings>? appSettingsManager;
 	private AppSettings? settings;
 	private DataRoot? data;
@@ -32,20 +33,23 @@ public partial class App : Application, IAsyncDisposable
 
 	[Obsolete("Design-time only", error: true)]
 	public App()
-		: this(CreateDesignTimeAppPlatformSettings(), new DesignTimePlatformServices(), null)
+		: this(CreateDesignTimeAppPlatformSettings(), new DesignTimePlatformServices(), null, null)
 	{
 		Assumes.NotNull(SynchronizationContext.Current);
 		this.InitializeFields();
 	}
 
-	public App(AppPlatformSettings platformSettings, IPlatformServices platformServices, string? velopackUpdateUrl)
+	public App(AppPlatformSettings platformSettings, IPlatformServices platformServices, StartupInstructions? startupInstructions, string? velopackUpdateUrl)
 	{
 		this.AppPlatformSettings = platformSettings;
 		this.PlatformServices = platformServices;
+		this.startupInstructions = startupInstructions;
 		this.SelfUpdating = new(this, velopackUpdateUrl);
 	}
 
 	public static new App? Current => (App?)Application.Current;
+
+	public JoinableTaskContext JoinableTaskContext => this.joinableTaskContext ?? throw new InvalidOperationException();
 
 	public bool IsDesignTime => this.PlatformServices is DesignTimePlatformServices;
 
@@ -59,6 +63,8 @@ public partial class App : Application, IAsyncDisposable
 
 	public IPlatformServices PlatformServices { get; }
 
+	public MainViewModel? ViewModel { get; private set; }
+
 	/// <inheritdoc/>
 	public override void Initialize()
 	{
@@ -70,12 +76,11 @@ public partial class App : Application, IAsyncDisposable
 	{
 		this.InitializeFields();
 
-		MainViewModel mainViewModel;
 		if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 		{
 			desktop.MainWindow = new MainWindow
 			{
-				DataContext = mainViewModel = new MainWindowViewModel(this),
+				DataContext = this.ViewModel = new MainWindowViewModel(this),
 			};
 
 			// Give ourselves a chance to clean up nicely.
@@ -87,18 +92,20 @@ public partial class App : Application, IAsyncDisposable
 				_ = this.shutdownBlockingTaskFactory!.RunAsync(() => this.SelfUpdating.UpdateMyAppAsync(this.shutdownTokenSource.Token));
 			}
 
-			mainViewModel.TopLevel = TopLevel.GetTopLevel(desktop.MainWindow);
+			this.ViewModel.TopLevel = TopLevel.GetTopLevel(desktop.MainWindow);
 		}
 		else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
 		{
 			singleViewPlatform.MainView = new MainView
 			{
-				DataContext = mainViewModel = new MainViewModel(this),
+				DataContext = this.ViewModel = new MainViewModel(this),
 			};
-			mainViewModel.TopLevel = TopLevel.GetTopLevel(singleViewPlatform.MainView);
+			this.ViewModel.TopLevel = TopLevel.GetTopLevel(singleViewPlatform.MainView);
 		}
 
 		base.OnFrameworkInitializationCompleted();
+
+		this.HandleStartupInstructions();
 	}
 
 	/// <summary>
@@ -184,6 +191,18 @@ public partial class App : Application, IAsyncDisposable
 		while (this.sendTransactionTasks.Count > 0)
 		{
 			await Task.WhenAll(this.sendTransactionTasks).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+		}
+	}
+
+	private void HandleStartupInstructions()
+	{
+		if (this.ViewModel is not null && this.startupInstructions?.PaymentRequestUri is Uri paymentRequest)
+		{
+			SendingViewModel viewModel = new(this.ViewModel);
+			if (viewModel.TryApplyPaymentRequest(paymentRequest))
+			{
+				this.ViewModel.NavigateTo(viewModel);
+			}
 		}
 	}
 

@@ -37,6 +37,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		: this(new DesignTimeViewModelServices())
 	{
 		this.LineItems[0].AmountEntry.Amount = 1.23m;
+		this.LineItems[0].RecipientLabel = "Best Buy";
+		this.LineItems[0].Message = "Thank you for your purchase!";
 		this.fee = new(0.0001m, this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity);
 	}
 
@@ -162,6 +164,72 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.sendSuccessfulMessage, value);
 	}
 
+	public bool TryApplyPaymentRequest(Uri paymentRequestUri)
+	{
+		if (!Zip321PaymentRequestUris.PaymentRequest.TryParse(paymentRequestUri.OriginalString, out Zip321PaymentRequestUris.PaymentRequest? paymentRequest))
+		{
+			return false;
+		}
+
+		return this.TryApplyPaymentRequest(paymentRequest);
+	}
+
+	public bool TryApplyPaymentRequest(Zip321PaymentRequestUris.PaymentRequest paymentRequest)
+	{
+		if (this.Accounts.Count == 0)
+		{
+			// No accounts to send from.
+			return false;
+		}
+
+		this.Clear(leaveOneEmptyLineItem: false);
+
+		ZcashNetwork? network = null;
+		foreach (Zip321PaymentRequestUris.PaymentRequestDetails payment in paymentRequest.Payments)
+		{
+			if (network is null)
+			{
+				network = payment.Address.Network;
+			}
+			else if (network != payment.Address.Network)
+			{
+				// Inconsistent networks in payment request.
+				return false;
+			}
+
+			LineItem lineItem = this.AddLineItem();
+			lineItem.RecipientAddress = payment.Address;
+			lineItem.IsRecipientLocked = true;
+			lineItem.Amount = payment.Amount;
+			lineItem.Memo = payment.Memo.Message ?? string.Empty;
+			lineItem.Message = payment.Message;
+			lineItem.RecipientLabel = payment.Label;
+		}
+
+		// Ensure the selected sending account is not incompatible with the recipients in the payment request.
+		if (this.SelectedAccount is not null && this.SelectedAccount.Network != network)
+		{
+			Account[] compatibleAccounts = this.Accounts.Where(a => a.Network == network).Take(2).ToArray();
+			switch (compatibleAccounts.Length)
+			{
+				case 0:
+					this.SelectedAccount = null;
+
+					// Display an error to the user to indicate that this payment goes to a network for which they have no accounts.
+					//// TODO: code here
+					break;
+				case 1:
+					this.SelectedAccount = compatibleAccounts[0];
+					break;
+				default:
+					this.SelectedAccount = null;
+					break;
+			}
+		}
+
+		return true;
+	}
+
 	protected override void OnSelectedAccountChanged()
 	{
 		this.RefreshRecipientsList();
@@ -245,7 +313,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			SecurityAmount subtotal = this.Subtotal;
 
 			// Clear the form for the next send.
-			this.Clear();
+			this.Clear(leaveOneEmptyLineItem: true);
 
 			// Display a successful message momentarily.
 			this.SendSuccessfulMessage = $"{subtotal} sent successfully.";
@@ -292,11 +360,16 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			select new Transaction.LineItem(to, li.Amount ?? 0m, to.HasShieldedReceiver ? Memo.FromMessage(li.Memo) : Memo.NoMemo)];
 	}
 
-	private void Clear()
+	private void Clear(bool leaveOneEmptyLineItem)
 	{
 		this.lineItems.Clear();
-		this.AddLineItem();
+		if (leaveOneEmptyLineItem)
+		{
+			this.AddLineItem();
+		}
+
 		this.RecalculateAggregates();
+		this.UpdateAreLineItemsValidProperty();
 	}
 
 	private void RaisePropertyChangedOnLineItems(string propertyName)
@@ -407,6 +480,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		private readonly ObservableAsPropertyHelper<bool> isMemoVisible;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
+		private bool isRecipientLocked;
+		private string? recipientLabel;
+		private string? message;
 		private object? selectedRecipient;
 
 		public LineItem(SendingViewModel owner)
@@ -451,6 +527,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public string RecipientBoxWatermark => "Zcash address or contact name";
 
+		public bool IsRecipientLocked
+		{
+			get => this.isRecipientLocked;
+			set => this.RaiseAndSetIfChanged(ref this.isRecipientLocked, value);
+		}
+
 		[Required, ZcashAddress]
 		public string RecipientAddress
 		{
@@ -467,6 +549,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		public ReadOnlyObservableCollection<object> PossibleRecipients => this.owner.possibleRecipients ?? throw Assumes.NotReachable();
 
 		public ZcashAddress? RecipientAddressParsed => this.recipientAddressParsed.Value;
+
+		public string? RecipientLabel
+		{
+			get => this.recipientLabel;
+			set => this.RaiseAndSetIfChanged(ref this.recipientLabel, value);
+		}
 
 		public string AmountCaption => "Amount:";
 
@@ -486,6 +574,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		{
 			get => this.memo;
 			set => this.RaiseAndSetIfChanged(ref this.memo, value);
+		}
+
+		public string? Message
+		{
+			get => this.message;
+			set => this.RaiseAndSetIfChanged(ref this.message, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> ScanCommand { get; }
