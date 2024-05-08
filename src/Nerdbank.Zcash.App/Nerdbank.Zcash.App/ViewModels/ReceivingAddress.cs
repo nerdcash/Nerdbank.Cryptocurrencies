@@ -57,6 +57,8 @@ public class ReceivingAddress : IDisposable
 
 	public string ShortText { get; }
 
+	public string CopyTextPrompt => "Copy the text below to share without a camera.";
+
 	public ReactiveCommand<Unit, Unit> CopyCommand { get; }
 
 	public void Dispose()
