@@ -176,6 +176,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public bool TryApplyPaymentRequest(Zip321PaymentRequestUris.PaymentRequest paymentRequest)
 	{
+		if (this.Accounts.Count == 0)
+		{
+			// No accounts to send from.
+			return false;
+		}
+
 		this.Clear(leaveOneEmptyLineItem: false);
 
 		ZcashNetwork? network = null;
