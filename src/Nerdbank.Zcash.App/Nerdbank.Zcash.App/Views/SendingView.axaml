@@ -27,6 +27,14 @@
     </DataTemplate>
   </UserControl.DataTemplates>
   <Grid>
+    <Grid.Styles>
+      <Style Selector="TextBlock.PaymentRequestText">
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontStyle" Value="Italic" />
+        <Setter Property="Foreground" Value="DarkBlue" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style>
+    </Grid.Styles>
     <DockPanel>
       <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
       <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" DockPanel.Dock="Bottom" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -58,14 +66,22 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Background="LightCyan" Margin="0 10">
-                  <Label Content="{Binding RecipientAddressCaption}" />
+                  <TextBlock Text="{Binding Message}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                             Classes="PaymentRequestText" Margin="3" />
+                  <WrapPanel>
+                    <Label Content="{Binding RecipientAddressCaption}" Target="{Binding #RecipientBox}" />
+                    <TextBlock Text=" " />
+                    <TextBlock Text="{Binding RecipientLabel}" Classes="PaymentRequestText" IsVisible="{Binding RecipientLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </WrapPanel>
                   <DockPanel>
                     <Button Classes="Scan" Background="Transparent" Command="{Binding ScanCommand}" DockPanel.Dock="Right" IsVisible="{Binding IsScanCommandAvailable}">
                       <Button.Content>
                         <Image Source="/Assets/qr-code-scan.png" Height="16" />
                       </Button.Content>
                     </Button>
-                    <AutoCompleteBox Text="{Binding RecipientAddress}"
+                    <AutoCompleteBox Name="RecipientBox"
+                                     Text="{Binding RecipientAddress}"
+                                     IsVisible="{Binding !IsRecipientLocked}"
                                      Watermark="{Binding RecipientBoxWatermark}"
                                      FilterMode="Contains"
                                      ItemsSource="{Binding PossibleRecipients}"
@@ -76,10 +92,13 @@
                         </DataTemplate>
                       </AutoCompleteBox.ItemTemplate>
                     </AutoCompleteBox>
+                    <TextBox Text="{Binding RecipientAddress}"
+                             IsVisible="{Binding IsRecipientLocked}"
+                             IsReadOnly="True" />
                   </DockPanel>
                   <Grid ColumnDefinitions="auto, *" Margin="0 5">
-                    <Label Content="{Binding AmountCaption}" VerticalAlignment="Center" />
-                    <local:DualAmountEntryView DataContext="{Binding AmountEntry}" Grid.Column="1" />
+                    <Label Content="{Binding AmountCaption}" VerticalAlignment="Center" Target="{Binding #AmountBox}" />
+                    <local:DualAmountEntryView DataContext="{Binding AmountEntry}" Grid.Column="1" Name="AmountBox" />
                   </Grid>
                   <StackPanel IsVisible="{Binding IsMemoVisible}">
                     <Label Content="{Binding MemoCaption}" Target="{Binding #MemoTextBox}" />

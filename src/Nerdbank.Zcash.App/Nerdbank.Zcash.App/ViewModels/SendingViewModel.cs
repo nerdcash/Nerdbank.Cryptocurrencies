@@ -37,6 +37,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		: this(new DesignTimeViewModelServices())
 	{
 		this.LineItems[0].AmountEntry.Amount = 1.23m;
+		this.LineItems[0].RecipientLabel = "Best Buy";
+		this.LineItems[0].Message = "Thank you for your purchase!";
 		this.fee = new(0.0001m, this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity);
 	}
 
@@ -191,8 +193,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 			LineItem lineItem = this.AddLineItem();
 			lineItem.RecipientAddress = payment.Address;
+			lineItem.IsRecipientLocked = true;
 			lineItem.Amount = payment.Amount;
 			lineItem.Memo = payment.Memo.Message ?? string.Empty;
+			lineItem.Message = payment.Message;
+			lineItem.RecipientLabel = payment.Label;
 		}
 
 		// Ensure the selected sending account is not incompatible with the recipients in the payment request.
@@ -469,6 +474,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		private readonly ObservableAsPropertyHelper<bool> isMemoVisible;
 		private string memo = string.Empty;
 		private string recipientAddress = string.Empty;
+		private bool isRecipientLocked;
+		private string? recipientLabel;
+		private string? message;
 		private object? selectedRecipient;
 
 		public LineItem(SendingViewModel owner)
@@ -513,6 +521,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public string RecipientBoxWatermark => "Zcash address or contact name";
 
+		public bool IsRecipientLocked
+		{
+			get => this.isRecipientLocked;
+			set => this.RaiseAndSetIfChanged(ref this.isRecipientLocked, value);
+		}
+
 		[Required, ZcashAddress]
 		public string RecipientAddress
 		{
@@ -529,6 +543,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		public ReadOnlyObservableCollection<object> PossibleRecipients => this.owner.possibleRecipients ?? throw Assumes.NotReachable();
 
 		public ZcashAddress? RecipientAddressParsed => this.recipientAddressParsed.Value;
+
+		public string? RecipientLabel
+		{
+			get => this.recipientLabel;
+			set => this.RaiseAndSetIfChanged(ref this.recipientLabel, value);
+		}
 
 		public string AmountCaption => "Amount:";
 
@@ -548,6 +568,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		{
 			get => this.memo;
 			set => this.RaiseAndSetIfChanged(ref this.memo, value);
+		}
+
+		public string? Message
+		{
+			get => this.message;
+			set => this.RaiseAndSetIfChanged(ref this.message, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> ScanCommand { get; }
