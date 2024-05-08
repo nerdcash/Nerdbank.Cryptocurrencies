@@ -1,4 +1,6 @@
 ﻿GetNamedPipeClientProcessId
 GetNamedPipeServerProcessId
+GetWindowPlacement
 SetForegroundWindow
 SetThreadExecutionState
+ShowWindowAsync
