@@ -460,9 +460,9 @@ fn calculate_transaction_fee(transaction: Transaction, conn: &Connection) -> Res
         .unwrap())
 }
 
-/// Initializes the fee column for every transaction that is missing it.
+/// Initializes the fee column for every transaction that is missing it (and that have blocks that have been downloaded).
 fn initialize_transaction_fees(db: &mut Db, conn: &Connection) -> Result<(), Error> {
-    conn.prepare("SELECT txid FROM transactions WHERE fee IS NULL")?
+    conn.prepare("SELECT txid FROM transactions WHERE fee IS NULL AND block IS NOT NULL")?
         .query_map([], |r| r.get::<_, [u8; 32]>(0).map(TxId::from_bytes))?
         .try_for_each(|txid| {
             let txid = txid?;
