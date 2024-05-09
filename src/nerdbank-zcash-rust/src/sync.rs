@@ -460,9 +460,9 @@ fn calculate_transaction_fee(transaction: Transaction, conn: &Connection) -> Res
         .unwrap())
 }
 
-/// Initializes the fee column for every transaction that is missing it.
+/// Initializes the fee column for every transaction that is missing it (and that have blocks that have been downloaded).
 fn initialize_transaction_fees(db: &mut Db, conn: &Connection) -> Result<(), Error> {
-    conn.prepare("SELECT txid FROM transactions WHERE fee IS NULL")?
+    conn.prepare("SELECT txid FROM transactions WHERE fee IS NULL AND block IS NOT NULL")?
         .query_map([], |r| r.get::<_, [u8; 32]>(0).map(TxId::from_bytes))?
         .try_for_each(|txid| {
             let txid = txid?;
@@ -629,7 +629,7 @@ async fn download_transparent_transactions(
         let tx = Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
         txids_for_new_transparent_transactions.push(tx.txid());
 
-        // Record spends
+        // Record spends.
         decrypt_and_store_transaction(network, &mut db.data, &tx)?;
 
         // Record receives.
@@ -639,7 +639,11 @@ async fn download_transparent_transactions(
                 if let Some(output) =
                     WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), height)
                 {
-                    db.data.put_received_transparent_utxo(&output)?;
+                    match db.data.put_received_transparent_utxo(&output) {
+                        Ok(_) => (),
+                        Err(SqliteClientError::AddressNotRecognized(_)) => (), // Not all tx outputs will be for our wallet. We only want to record the ones that are.
+                        Err(x) => return Err(x.into()),
+                    };
                 }
             }
         }
@@ -682,7 +686,11 @@ async fn download_and_scan_blocks(
     let scanner_block_range = block_range.clone();
     let scanner = tokio::spawn(async move {
         let mut priorities_changed = false;
-        while let Some((chunk, chain_state)) = receive.recv().await {
+        let receive_or_cancel = select! {
+            result = receive.recv() => Ok(result),
+            _ = cancellation_token.cancelled() => Err(Error::Canceled),
+        }?;
+        while let Some((chunk, chain_state)) = receive_or_cancel.to_owned() {
             let scan_range = ScanRange::from_parts(
                 chunk.first().unwrap().height()..chunk.last().unwrap().height() + 1,
                 scanner_block_range.priority(),
@@ -704,6 +712,10 @@ async fn download_and_scan_blocks(
 
             // Now that they've been scanned, we don't need them any more.
             db.blocks.remove_range(scan_range.block_range());
+
+            if cancellation_token.is_cancelled() {
+                return Err(Error::Canceled);
+            }
         }
 
         Ok::<bool, Error>(priorities_changed)

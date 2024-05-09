@@ -188,6 +188,7 @@ impl From<Error> for LightWalletError {
             Error::TonicStatus(status) if status.code() == tonic::Code::Cancelled => {
                 LightWalletError::Canceled
             }
+            Error::Canceled => LightWalletError::Canceled,
             Error::InvalidArgument(msg) => LightWalletError::InvalidArgument { message: msg },
             Error::Internal(msg) => LightWalletError::Other { message: msg },
             Error::InsufficientFunds {
