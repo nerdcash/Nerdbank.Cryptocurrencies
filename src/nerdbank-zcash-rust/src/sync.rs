@@ -629,7 +629,7 @@ async fn download_transparent_transactions(
         let tx = Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
         txids_for_new_transparent_transactions.push(tx.txid());
 
-        // Record spends
+        // Record spends.
         decrypt_and_store_transaction(network, &mut db.data, &tx)?;
 
         // Record receives.
@@ -639,7 +639,11 @@ async fn download_transparent_transactions(
                 if let Some(output) =
                     WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), height)
                 {
-                    db.data.put_received_transparent_utxo(&output)?;
+                    match db.data.put_received_transparent_utxo(&output) {
+                        Ok(_) => (),
+                        Err(SqliteClientError::AddressNotRecognized(_)) => (), // Not all tx outputs will be for our wallet. We only want to record the ones that are.
+                        Err(x) => return Err(x.into()),
+                    };
                 }
             }
         }
