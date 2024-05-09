@@ -686,7 +686,11 @@ async fn download_and_scan_blocks(
     let scanner_block_range = block_range.clone();
     let scanner = tokio::spawn(async move {
         let mut priorities_changed = false;
-        while let Some((chunk, chain_state)) = receive.recv().await {
+        let receive_or_cancel = select! {
+            result = receive.recv() => Ok(result),
+            _ = cancellation_token.cancelled() => Err(Error::Canceled),
+        }?;
+        while let Some((chunk, chain_state)) = receive_or_cancel.to_owned() {
             let scan_range = ScanRange::from_parts(
                 chunk.first().unwrap().height()..chunk.last().unwrap().height() + 1,
                 scanner_block_range.priority(),
@@ -708,6 +712,10 @@ async fn download_and_scan_blocks(
 
             // Now that they've been scanned, we don't need them any more.
             db.blocks.remove_range(scan_range.block_range());
+
+            if cancellation_token.is_cancelled() {
+                return Err(Error::Canceled);
+            }
         }
 
         Ok::<bool, Error>(priorities_changed)
