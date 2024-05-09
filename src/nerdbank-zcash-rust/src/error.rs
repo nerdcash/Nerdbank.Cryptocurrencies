@@ -96,6 +96,8 @@ pub enum Error {
     KeyNotRecognized,
 
     Join(JoinError),
+
+    Canceled,
 }
 
 impl std::fmt::Display for Error {
@@ -138,6 +140,7 @@ impl std::fmt::Display for Error {
             Error::NoSpendingKey(e) => write!(f, "No spending key: {}", e),
             Error::KeyNotRecognized => f.write_str("No account found with the given key."),
             Error::Join(e) => e.fmt(f),
+            Error::Canceled => f.write_str("Canceled"),
         }
     }
 }
