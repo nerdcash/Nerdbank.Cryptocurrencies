@@ -3,7 +3,7 @@ use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
-use std::{collections::HashMap, ops::Range, path::Path, sync::Arc};
+use std::{borrow::Borrow, collections::HashMap, ops::Range, path::Path, sync::Arc};
 use tokio::{
     select,
     sync::{mpsc, Mutex},
@@ -99,6 +99,7 @@ pub async fn sync<P: AsRef<Path>>(
     // 2) Pass the commitment tree data to the database.
     update_subtree_roots(&mut client.clone(), &mut db.data).await?;
 
+    let progress = Arc::new(progress);
     let mut tip_height: BlockHeight;
     loop {
         // 3) Download chain tip metadata from lightwalletd
@@ -197,7 +198,14 @@ pub async fn sync<P: AsRef<Path>>(
                 .await?;
                 if !txids.is_empty() {
                     addr_info.used = true;
-                    report_new_transactions(txids, &progress, &data_file, &mut db, &conn, network)?;
+                    report_new_transactions(
+                        txids,
+                        progress.borrow(),
+                        &data_file,
+                        &mut db,
+                        &conn,
+                        network,
+                    )?;
                 }
             }
 
@@ -216,15 +224,18 @@ pub async fn sync<P: AsRef<Path>>(
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if download_and_scan_blocks(
+                    let scan_result = download_and_scan_blocks(
                         &mut client,
                         scan_range,
                         &network,
                         Db::load(&data_file, network)?,
+                        None,
+                        progress.clone(),
                         cancellation_token.clone(),
                     )
-                    .await?
-                    {
+                    .await?;
+
+                    if scan_result.priorities_changed {
                         // The suggested scan ranges have been updated, so we re-request.
                         scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
@@ -266,43 +277,21 @@ pub async fn sync<P: AsRef<Path>>(
             last_error: None,
         };
 
-        fn update_status<'a>(
-            status: &'a mut SyncUpdateData,
-            data: &WalletDb<Connection, Network>,
-        ) -> Result<&'a SyncUpdateData, Error> {
-            status.last_fully_scanned_block =
-                data.block_fully_scanned()?.map(|b| b.block_height().into());
-            Ok(status)
-        }
-
-        fn report_status(status: &SyncUpdateData, progress: &Option<Box<dyn SyncUpdate>>) {
-            if let Some(sink) = progress.as_ref() {
-                sink.update_status(status.clone());
-            }
-        }
-
-        fn update_and_report_status(
-            status: &mut SyncUpdateData,
-            data: &WalletDb<Connection, Network>,
-            progress: &Option<Box<dyn SyncUpdate>>,
-        ) -> Result<(), Error> {
-            report_status(update_status(status, data)?, progress);
-            Ok(())
-        }
-
         update_and_report_status(&mut status, &db.data, &progress)?;
 
         let mut caught_up = true;
         for scan_range in scan_ranges.into_iter() {
-            if download_and_scan_blocks(
+            let scan_result = download_and_scan_blocks(
                 &mut client,
                 &scan_range,
                 &network,
                 Db::load(&data_file, network)?,
+                Some(status.clone()),
+                progress.clone(),
                 cancellation_token.clone(),
             )
-            .await?
-            {
+            .await?;
+            if scan_result.priorities_changed {
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
                 caught_up = false;
@@ -356,6 +345,33 @@ pub async fn sync<P: AsRef<Path>>(
             }?;
         }
     }
+}
+
+fn update_status<'a>(
+    status: &'a mut SyncUpdateData,
+    data: &WalletDb<Connection, Network>,
+) -> Result<&'a SyncUpdateData, Error> {
+    status.last_fully_scanned_block = data.block_fully_scanned()?.map(|b| b.block_height().into());
+    Ok(status)
+}
+
+fn report_status(status: &SyncUpdateData, progress: &Option<Box<dyn SyncUpdate>>) {
+    if let Some(sink) = progress.as_ref() {
+        sink.update_status(status.clone());
+    }
+}
+
+fn update_and_report_status(
+    status: &mut SyncUpdateData,
+    data: &WalletDb<Connection, Network>,
+    progress: &Option<Box<dyn SyncUpdate>>,
+) -> Result<(), Error> {
+    report_status(update_status(status, data)?, progress);
+    Ok(())
+}
+
+struct DownloadAndScanResult {
+    priorities_changed: bool,
 }
 
 fn fill_in_taddrs_to_gap_limit(
@@ -660,8 +676,10 @@ async fn download_and_scan_blocks(
     block_range: &ScanRange,
     network: &Network,
     mut db: Db,
+    mut status: Option<SyncUpdateData>,
+    progress: Arc<Option<Box<dyn SyncUpdate>>>,
     cancellation_token: CancellationToken,
-) -> Result<bool, Error> {
+) -> Result<DownloadAndScanResult, Error> {
     info!("Received instructions to download [{})", block_range);
     let (send, mut receive) =
         mpsc::channel::<(Vec<CompactBlock>, ChainState)>(CHUNK_CHANNEL_CAPACITY);
@@ -712,12 +730,17 @@ async fn download_and_scan_blocks(
             // Now that they've been scanned, we don't need them any more.
             db.blocks.remove_range(scan_range.block_range());
 
+            if let Some(s) = status.as_mut() {
+                s.current_step += scan_range.len() as u64;
+                update_and_report_status(s, &db.data, progress.borrow())?;
+            }
+
             if cancellation_token.is_cancelled() {
                 return Err(Error::Canceled);
             }
         }
 
-        Ok::<bool, Error>(priorities_changed)
+        Ok::<_, Error>(DownloadAndScanResult { priorities_changed })
     });
 
     let (_, scan_result) = tokio::try_join!(downloader, scanner)?;
