@@ -950,6 +950,7 @@ static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.operator !=
 static Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails.operator ==(Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails? left, Nerdbank.Zcash.Zip321PaymentRequestUris.PaymentRequestDetails? right) -> bool
 static Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag.From(in Nerdbank.Bitcoin.Bip32HDWallet.ParentFingerprint value) -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag
 static Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag.From(System.ReadOnlySpan<byte> value) -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyTag
+static Nerdbank.Zcash.Zip32HDWallet.HasAtLeastRecommendedEntropy(Nerdbank.Bitcoin.Bip39Mnemonic! mnemonic) -> bool
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(Nerdbank.Bitcoin.Bip39Mnemonic! mnemonic, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Zip32HDWallet.Orchard.ExtendedSpendingKey? key) -> bool

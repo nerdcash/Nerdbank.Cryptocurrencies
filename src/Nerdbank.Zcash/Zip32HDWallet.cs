@@ -55,7 +55,7 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
 	public Zip32HDWallet(Bip39Mnemonic mnemonic, ZcashNetwork network = ZcashNetwork.MainNet)
 #pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-		: this(ThrowIfEntropyTooShort(Requires.NotNull(mnemonic)).Seed, network)
+		: this(Requires.NotNull(mnemonic).Seed, network)
 	{
 		this.Mnemonic = mnemonic;
 	}
@@ -96,6 +96,13 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 	/// Gets the coin type to use, considering the <see cref="Network"/> this wallet operates on.
 	/// </summary>
 	private uint CoinType => this.Network == ZcashNetwork.MainNet ? MainNetCoinType : TestNetCoinType;
+
+	/// <summary>
+	/// Checks whether a given mnemonic is long enough to meet Zcash security recommendations.
+	/// </summary>
+	/// <param name="mnemonic">The mnemonic to test.</param>
+	/// <returns><see langword="true" /> if the mnemonic is long enough; <see langword="false"/> otherwise.</returns>
+	public static bool HasAtLeastRecommendedEntropy(Bip39Mnemonic mnemonic) => Requires.NotNull(mnemonic).Entropy.Length * 8 >= MinimumEntropyLengthInBits;
 
 	/// <summary>
 	/// Creates a key derivation path that conforms to the <see href="https://zips.z.cash/zip-0032#specification-wallet-usage">ZIP-32</see> specification
@@ -232,15 +239,5 @@ public partial class Zip32HDWallet : IEquatable<Zip32HDWallet>
 		{
 			throw new ArgumentException(Strings.FormatLengthRangeNotMet(MasterSeedAllowedLength.Min, MasterSeedAllowedLength.Max), nameof(seed));
 		}
-	}
-
-	private static Bip39Mnemonic ThrowIfEntropyTooShort(Bip39Mnemonic mnemonic)
-	{
-		if (mnemonic.Entropy.Length * 8 < MinimumEntropyLengthInBits)
-		{
-			throw new ArgumentException(Strings.FormatNotEnoughEntropy(MinimumEntropyLengthInBits / 8), nameof(mnemonic));
-		}
-
-		return mnemonic;
 	}
 }

@@ -92,24 +92,30 @@ public class Zip32HDWalletTests : TestBase
 	public void Zip32_Ctor_SeedPhraseLengthRequirements()
 	{
 		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
-		ArgumentException ex = Assert.Throws<ArgumentException>(() => new Zip32HDWallet(shortMnemonic, ZcashNetwork.MainNet));
-		this.logger.WriteLine(ex.Message);
+		var x = new Zip32HDWallet(shortMnemonic, ZcashNetwork.MainNet);
+	}
+
+	[Fact]
+	public void HasAtLeastRecommendedEntropy()
+	{
+		Bip39Mnemonic goodMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
+		Assert.True(Zip32HDWallet.HasAtLeastRecommendedEntropy(goodMnemonic));
+		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
+		Assert.False(Zip32HDWallet.HasAtLeastRecommendedEntropy(shortMnemonic));
 	}
 
 	[Fact]
 	public void Orchard_Create_SeedPhraseLengthRequirements()
 	{
 		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
-		ArgumentException ex = Assert.Throws<ArgumentException>(() => Zip32HDWallet.Orchard.Create(shortMnemonic, ZcashNetwork.MainNet));
-		this.logger.WriteLine(ex.Message);
+		Assert.NotNull(Zip32HDWallet.Orchard.Create(shortMnemonic, ZcashNetwork.MainNet));
 	}
 
 	[Fact]
 	public void Sapling_Create_SeedPhraseLengthRequirements()
 	{
 		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
-		ArgumentException ex = Assert.Throws<ArgumentException>(() => Zip32HDWallet.Sapling.Create(shortMnemonic, ZcashNetwork.MainNet));
-		this.logger.WriteLine(ex.Message);
+		Assert.NotNull(Zip32HDWallet.Sapling.Create(shortMnemonic, ZcashNetwork.MainNet));
 	}
 
 	[Fact]
