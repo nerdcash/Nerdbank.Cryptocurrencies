@@ -44,7 +44,7 @@ public class SyncProgressData : ProgressData
 
 	public override string Caption => "Sync in progress";
 
-	public override uint? VisiblyApparentStepSize => 1_000; // A step size that will likely be crossed within a couple minutes on any device.
+	public override uint? VisiblyApparentStepSize => 10_000; // A step size that will likely be crossed within a couple minutes on any device.
 
 	internal void Apply(LightWalletClient.SyncProgress? progress)
 	{
