@@ -181,6 +181,7 @@ mod tests {
             setup.server_uri.clone(),
             setup.data_file.clone(),
             None,
+            setup.db_init.min_confirmations,
             false,
             CancellationToken::new(),
         )

@@ -47,7 +47,7 @@ public partial class LightWalletClient : IDisposable
 	{
 		Requires.NotNull(serverUrl);
 
-		this.dbinit = new(dataFile, ToChainType(network));
+		this.dbinit = new(dataFile, ToChainType(network), MinimumConfirmations);
 		this.serverUrl = serverUrl;
 		this.Network = network;
 
@@ -307,7 +307,6 @@ public partial class LightWalletClient : IDisposable
 				this.dbinit,
 				this.serverUrl.AbsoluteUri,
 				this.GetUnifiedSpendingKeyBytes(account),
-				MinimumConfirmations,
 				details);
 			return result.Select(r => new TxId(r.txid)).ToArray();
 		}
@@ -334,7 +333,6 @@ public partial class LightWalletClient : IDisposable
 			SendDetails sendDetails = LightWalletMethods.SimulateSend(
 				this.dbinit,
 				account.FullViewing.UnifiedKey.TextEncoding,
-				MinimumConfirmations,
 				LineItemsToSendDetails(payments));
 
 			return new SpendDetails(sendDetails);
@@ -358,7 +356,7 @@ public partial class LightWalletClient : IDisposable
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
 		}
 
-		return new(this.Network.AsSecurity(), LightWalletMethods.GetUserBalances(this.dbinit, accountId, MinimumConfirmations));
+		return new(this.Network.AsSecurity(), LightWalletMethods.GetUserBalances(this.dbinit, accountId));
 	}
 
 	/// <summary>

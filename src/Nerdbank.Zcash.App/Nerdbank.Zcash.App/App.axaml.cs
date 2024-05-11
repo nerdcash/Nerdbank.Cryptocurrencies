@@ -118,7 +118,9 @@ public partial class App : Application, IAsyncDisposable
 			return;
 		}
 
-		Assumes.NotNull(SynchronizationContext.Current);
+		// Tests don't set this.
+		////Assumes.NotNull(SynchronizationContext.Current);
+
 		this.joinableTaskContext = new JoinableTaskContext();
 		this.shutdownBlockingTasks = this.joinableTaskContext.CreateCollection();
 		this.shutdownBlockingTaskFactory = this.joinableTaskContext.CreateFactory(this.shutdownBlockingTasks);

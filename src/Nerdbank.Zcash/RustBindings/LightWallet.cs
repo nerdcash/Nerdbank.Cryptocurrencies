@@ -483,7 +483,7 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_user_balances(RustBuffer @config,uint @accountId,uint @minConfirmations,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_user_balances(RustBuffer @config,uint @accountId,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
@@ -491,7 +491,7 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_send(RustBuffer @config,RustBuffer @uri,RustBuffer @usk,uint @minConfirmations,RustBuffer @sendDetails,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_send(RustBuffer @config,RustBuffer @uri,RustBuffer @usk,RustBuffer @sendDetails,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
@@ -499,7 +499,7 @@ static class _UniFFILib {
     );
 
     [DllImport("nerdbank_zcash_rust")]
-    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_simulate_send(RustBuffer @config,RustBuffer @ufvk,uint @minConfirmations,RustBuffer @sendDetails,ref RustCallStatus _uniffi_out_err
+    public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_simulate_send(RustBuffer @config,RustBuffer @ufvk,RustBuffer @sendDetails,ref RustCallStatus _uniffi_out_err
     );
 
     [DllImport("nerdbank_zcash_rust")]
@@ -896,8 +896,8 @@ static class _UniFFILib {
         }
         {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_user_balances();
-            if (checksum != 12983) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_user_balances` checksum `12983`, library returned `{checksum}`");
+            if (checksum != 20744) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_user_balances` checksum `20744`, library returned `{checksum}`");
             }
         }
         {
@@ -908,8 +908,8 @@ static class _UniFFILib {
         }
         {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_send();
-            if (checksum != 29473) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_send` checksum `29473`, library returned `{checksum}`");
+            if (checksum != 5940) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_send` checksum `5940`, library returned `{checksum}`");
             }
         }
         {
@@ -920,8 +920,8 @@ static class _UniFFILib {
         }
         {
             var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_simulate_send();
-            if (checksum != 45162) {
-                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_simulate_send` checksum `45162`, library returned `{checksum}`");
+            if (checksum != 63526) {
+                throw new UniffiContractChecksumException($"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_simulate_send` checksum `63526`, library returned `{checksum}`");
             }
         }
         {
@@ -1243,7 +1243,8 @@ class FfiConverterTypeBirthdayHeights: FfiConverterRustBuffer<BirthdayHeights> {
 
 internal record DbInit (
     String @dataFile, 
-    ChainType @network
+    ChainType @network, 
+    uint @minConfirmations
 ) {
 }
 
@@ -1253,19 +1254,22 @@ class FfiConverterTypeDbInit: FfiConverterRustBuffer<DbInit> {
     public override DbInit Read(BigEndianStream stream) {
         return new DbInit(
             @dataFile: FfiConverterString.INSTANCE.Read(stream),
-            @network: FfiConverterTypeChainType.INSTANCE.Read(stream)
+            @network: FfiConverterTypeChainType.INSTANCE.Read(stream),
+            @minConfirmations: FfiConverterUInt32.INSTANCE.Read(stream)
         );
     }
 
     public override int AllocationSize(DbInit value) {
         return
             FfiConverterString.INSTANCE.AllocationSize(value.@dataFile) +
-            FfiConverterTypeChainType.INSTANCE.AllocationSize(value.@network);
+            FfiConverterTypeChainType.INSTANCE.AllocationSize(value.@network) +
+            FfiConverterUInt32.INSTANCE.AllocationSize(value.@minConfirmations);
     }
 
     public override void Write(DbInit value, BigEndianStream stream) {
             FfiConverterString.INSTANCE.Write(value.@dataFile, stream);
             FfiConverterTypeChainType.INSTANCE.Write(value.@network, stream);
+            FfiConverterUInt32.INSTANCE.Write(value.@minConfirmations, stream);
     }
 }
 
@@ -2572,10 +2576,10 @@ internal static class LightWalletMethods {
     }
 
     /// <exception cref="LightWalletException"></exception>
-    public static UserBalances GetUserBalances(DbInit @config, uint @accountId, uint @minConfirmations) {
+    public static UserBalances GetUserBalances(DbInit @config, uint @accountId) {
         return FfiConverterTypeUserBalances.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_user_balances(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterUInt32.INSTANCE.Lower(@accountId), FfiConverterUInt32.INSTANCE.Lower(@minConfirmations), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_user_balances(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterUInt32.INSTANCE.Lower(@accountId), ref _status)
 ));
     }
 
@@ -2588,10 +2592,10 @@ internal static class LightWalletMethods {
     }
 
     /// <exception cref="LightWalletException"></exception>
-    public static List<SendTransactionResult> Send(DbInit @config, String @uri, byte[] @usk, uint @minConfirmations, List<TransactionSendDetail> @sendDetails) {
+    public static List<SendTransactionResult> Send(DbInit @config, String @uri, byte[] @usk, List<TransactionSendDetail> @sendDetails) {
         return FfiConverterSequenceTypeSendTransactionResult.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_send(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterString.INSTANCE.Lower(@uri), FfiConverterByteArray.INSTANCE.Lower(@usk), FfiConverterUInt32.INSTANCE.Lower(@minConfirmations), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_send(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterString.INSTANCE.Lower(@uri), FfiConverterByteArray.INSTANCE.Lower(@usk), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
 ));
     }
 
@@ -2607,10 +2611,10 @@ internal static class LightWalletMethods {
     /// Constructs a proposal for how a given spend can be executed, and returns details for how it would work.
     /// </summary>
     /// <exception cref="LightWalletException"></exception>
-    public static SendDetails SimulateSend(DbInit @config, String @ufvk, uint @minConfirmations, List<TransactionSendDetail> @sendDetails) {
+    public static SendDetails SimulateSend(DbInit @config, String @ufvk, List<TransactionSendDetail> @sendDetails) {
         return FfiConverterTypeSendDetails.INSTANCE.Lift(
     _UniffiHelpers.RustCallWithError(FfiConverterTypeLightWalletException.INSTANCE, (ref RustCallStatus _status) =>
-    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_simulate_send(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterString.INSTANCE.Lower(@ufvk), FfiConverterUInt32.INSTANCE.Lower(@minConfirmations), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
+    _UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_simulate_send(FfiConverterTypeDbInit.INSTANCE.Lower(@config), FfiConverterString.INSTANCE.Lower(@ufvk), FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails), ref _status)
 ));
     }
 

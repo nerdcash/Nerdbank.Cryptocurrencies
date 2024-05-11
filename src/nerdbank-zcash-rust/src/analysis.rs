@@ -114,14 +114,14 @@ pub struct UserBalances {
 }
 
 pub fn get_user_balances(
-    config: DbInit,
+    config: &DbInit,
     account_id: AccountId,
     min_confirmations: NonZeroU32,
 ) -> Result<UserBalances, Error> {
     let marginal_fee: u64 = FeeRule::standard().marginal_fee().into();
     let db = Db::load(&config.data_file, config.network.into())?;
     if let Some((_, anchor)) = db.data.get_target_and_anchor_heights(min_confirmations)? {
-        let conn = Connection::open(config.data_file)?;
+        let conn = Connection::open(config.data_file.clone())?;
         let mut balances_query = conn.prepare(GET_UNSPENT_NOTES)?;
         let mut rows = balances_query.query(named_params! {
             ":account_id": u32::from(account_id),
@@ -217,7 +217,7 @@ mod tests {
         setup.sync().await;
 
         let balances = get_user_balances(
-            setup.db_init,
+            &setup.db_init,
             account_id,
             MIN_CONFIRMATIONS.try_into().unwrap(),
         )
