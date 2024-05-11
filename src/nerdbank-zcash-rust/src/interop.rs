@@ -369,6 +369,7 @@ pub fn sync(
             uri,
             config.data_file,
             progress,
+            config.min_confirmations,
             continually,
             cancellation_token.0.clone(),
         )

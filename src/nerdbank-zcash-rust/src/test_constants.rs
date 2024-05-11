@@ -98,6 +98,7 @@ impl TestSetup {
             self.server_uri.clone(),
             &self.data_file,
             None,
+            self.db_init.min_confirmations,
             false,
             CancellationToken::new(),
         )
