@@ -121,10 +121,10 @@
     <value>This address uses {AddressTicker} on {AddressNetwork}, but the selected account uses {AccountTicker} on {AccountNetwork}.</value>
   </data>
   <data name="AppGreeting" xml:space="preserve">
-    <value>Welcome to eZCash!</value>
+    <value>Welcome to eZcash!</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
-    <value>eZCash</value>
+    <value>eZcash</value>
   </data>
   <data name="BadOrUnsupportedImportKey" xml:space="preserve">
     <value>This doesn't look like a valid, supported key or seed phrase.</value>
