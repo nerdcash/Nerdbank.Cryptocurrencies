@@ -48,7 +48,7 @@ public class AppSettingsTests
 		}
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task AutoSave()
 	{
 		string jsonSettingsPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

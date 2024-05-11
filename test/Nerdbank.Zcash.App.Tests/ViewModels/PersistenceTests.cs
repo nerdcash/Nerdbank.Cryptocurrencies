@@ -12,7 +12,7 @@ public class PersistenceTests : ViewModelTestBase
 	{
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task CreateAndBackupAsync()
 	{
 		FirstLaunchViewModel firstLaunch = Assert.IsType<FirstLaunchViewModel>(this.MainViewModel.Content);

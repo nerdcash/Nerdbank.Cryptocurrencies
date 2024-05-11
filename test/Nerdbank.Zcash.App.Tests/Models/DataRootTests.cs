@@ -14,7 +14,7 @@ public class DataRootTests : ModelTestBase<DataRoot>
 
 	public override DataRoot Model => this.DataRoot;
 
-	[Fact]
+	[UIFact]
 	public async Task AutoSave()
 	{
 		string dataPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
