@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="35"
+             x:Class="Nerdbank.Zcash.App.Views.SyncHeaderControl"
+             x:DataType="vm:ProgressData">
+  <Design.DataContext>
+    <vm:ProgressData Current="485" From="0" To="1000" IsInProgress="True" />
+  </Design.DataContext>
+  <Grid IsVisible="{Binding IsInProgress}">
+    <Rectangle Fill="Orange" />
+    <StackPanel>
+      <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" />
+      <ProgressBar Value="{Binding Current}"
+                   Minimum="{Binding From}"
+                   Maximum="{Binding To}"
+                   ShowProgressText="True"
+                   ProgressTextFormat="{Binding ProgressTextFormat}" />
+    </StackPanel>
+  </Grid>
+</UserControl>

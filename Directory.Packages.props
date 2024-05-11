@@ -4,9 +4,33 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <AvaloniaVersion>11.0.10</AvaloniaVersion>
+    <AvaloniaMarkdownVersion>11.0.2</AvaloniaMarkdownVersion>
     <RoslynVersion>3.11.0-beta1.24104.1</RoslynVersion>
+    <MessagePackVersion>2.5.140</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Controls.ColorPicker" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Svg.Skia" Version="11.0.0.18" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.iOS" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Themes.Simple" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Markdown.Avalonia.SyntaxHigh" Version="$(AvaloniaMarkdownVersion)" />
+    <PackageVersion Include="Markdown.Avalonia.Tight" Version="$(AvaloniaMarkdownVersion)" />
+    <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="MessagePack.Annotations" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" />
+    <PackageVersion Include="Velopack" Version="0.0.359" />
+    <PackageVersion Include="Xamarin.AndroidX.Annotation" Version="1.7.0.2" />
+    <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1" />
+    <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="BouncyCastle.Cryptography" Version="2.3.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.26.1" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.62.0" />
@@ -30,6 +54,7 @@
     <PackageVersion Include="xunit" Version="2.8.0" />
     <PackageVersion Include="ZXing.Net" Version="0.16.9" />
     <PackageVersion Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.12" />
+    <PackageVersion Include="ZXing.Net.Mobile" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" />

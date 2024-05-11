@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.BackupView"
+             x:DataType="vm:BackupViewModel">
+  <Design.DataContext>
+    <vm:BackupViewModel />
+  </Design.DataContext>
+  <TabControl SelectedIndex="{Binding SelectedTaxIndex}">
+    <TabItem Header="Backup">
+      <local:BackupFileView DataContext="{Binding BackupFileViewModel}" />
+    </TabItem>
+    <TabItem Header="Export">
+      <DockPanel>
+        <local:AccountSelector HorizontalAlignment="Center" DockPanel.Dock="Top" />
+        <ScrollViewer IsVisible="{Binding IsRevealed}">
+          <ContentControl Content="{Binding ExportAccountViewModel}" />
+        </ScrollViewer>
+        <Panel IsVisible="{Binding !IsRevealed}">
+          <StackPanel VerticalAlignment="Center">
+            <ItemsControl ItemsSource="{Binding RevealCautions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding}" Margin="0,0,0,10" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Command="{Binding RevealCommand}" Content="{Binding RevealCommandCaption}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </StackPanel>
+        </Panel>
+      </DockPanel>
+    </TabItem>
+  </TabControl>
+</UserControl>

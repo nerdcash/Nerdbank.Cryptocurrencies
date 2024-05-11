@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.MatchAddressView"
+             x:DataType="vm:MatchAddressViewModel">
+  <Design.DataContext>
+    <vm:MatchAddressViewModel />
+  </Design.DataContext>
+  <DockPanel>
+    <StackPanel>
+      <TextBlock Text="{Binding Explanation}" Margin="0,0,0,10" />
+      <TextBox Name="AddressBox" Text="{Binding Address}" Watermark="{Binding AddressWatermark}" />
+      <StackPanel IsVisible="{Binding Match, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel IsVisible="{Binding Match.Account, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock Text="{Binding MatchedAccountTitle}" />
+          <TextBlock Text="{Binding Match.Account.Name}" />
+          <StackPanel IsVisible="{Binding Match.DiversifiedAddressShownToContact, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Text="{Binding DiversifiedAddressShownToContactCaption}" />
+            <TextBlock Text="{Binding Match.DiversifiedAddressShownToContact.Name}" />
+          </StackPanel>
+        </StackPanel>
+        <StackPanel IsVisible="{Binding Match.Contact, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock Text="{Binding MatchedContactTitle}" />
+          <TextBlock Text="{Binding Match.Contact.Name}" />
+          <TextBlock Text="{Binding Match.ContactMatchCaveats}" Foreground="Orange" />
+        </StackPanel>
+        <StackPanel IsVisible="{Binding Match.IsNoMatch}">
+          <TextBlock Text="{Binding NoMatchTitle}" />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </DockPanel>
+</UserControl>

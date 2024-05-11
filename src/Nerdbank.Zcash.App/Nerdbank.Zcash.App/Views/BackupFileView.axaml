@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.BackupFileView"
+             x:DataType="vm:BackupFileViewModel">
+  <Design.DataContext>
+    <vm:BackupFileViewModel />
+  </Design.DataContext>
+  <ScrollViewer>
+    <StackPanel>
+      <TextBlock Text="{Binding BackupToFileExplanation}"/>
+      <Label Content="{Binding BackupFilePasswordCaption}" Target="{Binding #BackupFilePasswordBox}" />
+      <TextBox Name="BackupFilePasswordBox"
+               Watermark="{Binding BackupFilePasswordWatermark}"
+               Classes.revealPasswordButton="{Binding EnableHidingPassword}"
+               PasswordChar="{Binding ConcealPasswordChar}"
+               Text="{Binding BackupFilePassword}" />
+      <Button Command="{Binding GenerateSecurePasswordCommand}" Content="{Binding GenerateSecurePasswordCaption}"
+              HorizontalAlignment="Center"/>
+      <TextBlock Text="{Binding BackupFilePasswordExplanation}" />
+      <Button Command="{Binding BackupCommand}"
+              Content="{Binding BackupCommandCaption}"
+              HorizontalAlignment="Center"
+              Margin="0 10" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

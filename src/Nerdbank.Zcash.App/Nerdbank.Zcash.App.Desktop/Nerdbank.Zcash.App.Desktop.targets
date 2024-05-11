@@ -1,0 +1,34 @@
+<Project>
+  <PropertyGroup>
+    <VelopackRuntimeRequired>net8.0</VelopackRuntimeRequired>
+    <VelopackStorageAccount>ezcash</VelopackStorageAccount>
+    <VelopackContainer>appupdates</VelopackContainer>
+    <VelopackUpdateUrl>https://$(VelopackStorageAccount).blob.core.windows.net/$(VelopackContainer)</VelopackUpdateUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalThisAssemblyFields Include="VelopackUpdateUrl" String="$(VelopackUpdateUrl)" />
+  </ItemGroup>
+
+  <Target Name="WriteVelopackUpdateUrlFile"
+          BeforeTargets="CoreCompile"
+          Inputs="$(MSBuildProjectFile)"
+          Outputs="$(IntermediateOutputPath)velopack-data.json"
+          Condition="'$(TargetFramework)'!=''">
+    <PropertyGroup>
+      <VelopackExeName>$(TargetName)</VelopackExeName>
+      <!-- VelopackExeName's extension should actually be based on RID -->
+      <VelopackExeName Condition="'$(RuntimeIdentifier)'=='' or $(RuntimeIdentifier.StartsWith('win-'))">$(VelopackExeName).exe</VelopackExeName>
+    </PropertyGroup>
+    <ItemGroup>
+      <VelopackLines Include="{" />
+      <VelopackLines Include='"url": "$(VelopackUpdateUrl)",' />
+      <VelopackLines Include='"runtime": "$(VelopackRuntimeRequired)",' />
+      <VelopackLines Include='"storageAccount": "$(VelopackStorageAccount)",' />
+      <VelopackLines Include='"container": "$(VelopackContainer)",' />
+      <VelopackLines Include='"exeName": "$(VelopackExeName)"' />
+      <VelopackLines Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)velopack-data.json" Lines="@(VelopackLines)" Overwrite="true" />
+  </Target>
+</Project>

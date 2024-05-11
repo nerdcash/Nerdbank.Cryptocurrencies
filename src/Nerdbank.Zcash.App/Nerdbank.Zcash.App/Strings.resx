@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddressNetworkMismatch" xml:space="preserve">
+    <value>This address uses {AddressTicker} on {AddressNetwork}, but the selected account uses {AccountTicker} on {AccountNetwork}.</value>
+  </data>
+  <data name="AppGreeting" xml:space="preserve">
+    <value>Welcome to eZCash!</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>eZCash</value>
+  </data>
+  <data name="BadOrUnsupportedImportKey" xml:space="preserve">
+    <value>This doesn't look like a valid, supported key or seed phrase.</value>
+  </data>
+  <data name="DefaultNameForFirstAccountWithTicker" xml:space="preserve">
+    <value>Main {Ticker}</value>
+  </data>
+  <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
+    <value>Main HD</value>
+  </data>
+  <data name="DefaultNameForFirstImportedAccount" xml:space="preserve">
+    <value>Main</value>
+  </data>
+  <data name="DonationMemo" xml:space="preserve">
+    <value>Thank you for {AppTitle}.</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Downloading v{0}</value>
+  </data>
+  <data name="ImportWalletButtonText" xml:space="preserve">
+    <value>Import an existing wallet</value>
+  </data>
+  <data name="ImportWalletExplanation" xml:space="preserve">
+    <value>Choose this if you have a seed phrase (typically 24 words) or a particular key that you've saved from another wallet.</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>This isn't a valid Zcash address</value>
+  </data>
+  <data name="LoneAccountGroupName" xml:space="preserve">
+    <value>Imported accounts</value>
+  </data>
+  <data name="SaplingReceivingAddressHeader" xml:space="preserve">
+    <value>Sapling</value>
+  </data>
+  <data name="ServerNetworkMismatch" xml:space="preserve">
+    <value>This URL serves the {0} network.</value>
+  </data>
+  <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
+    <value>Create a new wallet (advanced)...</value>
+  </data>
+  <data name="StartNewWalletButtonText" xml:space="preserve">
+    <value>Create a new wallet</value>
+  </data>
+  <data name="StartNewWalletExplanation" xml:space="preserve">
+    <value>Choose this if you've never used a Zcash wallet before.</value>
+  </data>
+  <data name="TestNetIsWorthlessWarning" xml:space="preserve">
+    <value>The account you have selected uses the test network. Zcash on the test network has no value.</value>
+  </data>
+  <data name="TransparentAddressSubheading" xml:space="preserve">
+    <value>When funds are sent to this address, anyone can see the address and amount. They will be shielded upon receipt to improve your privacy.</value>
+  </data>
+  <data name="TransparentReceivingAddressHeader" xml:space="preserve">
+    <value>Transparent</value>
+  </data>
+  <data name="UnifiedReceivingAddressHeader" xml:space="preserve">
+    <value>Unified</value>
+  </data>
+</root>

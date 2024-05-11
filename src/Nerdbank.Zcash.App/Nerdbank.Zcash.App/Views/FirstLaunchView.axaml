@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+             x:Class="Nerdbank.Zcash.App.Views.FirstLaunchView"
+             x:DataType="vm:FirstLaunchViewModel">
+  <Design.DataContext>
+    <vm:FirstLaunchViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer>
+    <StackPanel Spacing="15" VerticalAlignment="Center" MaxWidth="400">
+      <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
+      <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
+      <StackPanel Classes="ButtonAndExplanation" HorizontalAlignment="Stretch">
+        <SplitButton Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" HorizontalAlignment="Stretch">
+          <SplitButton.Flyout>
+            <Flyout>
+              <MenuItem Command="{Binding StartNewWalletAdvancedCommand}" Header="{Binding StartNewWalletAdvancedCommandCaption}" />
+            </Flyout>
+          </SplitButton.Flyout>
+        </SplitButton>
+        <TextBlock Text="{Binding StartNewWalletExplanation}" />
+      </StackPanel>
+      <StackPanel Classes="ButtonAndExplanation">
+        <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
+        <TextBlock Text="{Binding ImportWalletExplanation}" />
+      </StackPanel>
+      <StackPanel Classes="ButtonAndExplanation">
+        <TextBlock Text="{Binding LicenseAcceptance}" />
+        <Button Content="{Binding ViewLicenseCommandCaption}" Command="{Binding ViewLicenseCommand}" HorizontalAlignment="Center" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Text="{Binding WalletForHeading}" HorizontalAlignment="Center" />
+        <WrapPanel HorizontalAlignment="Center">
+          <Image Source="{SvgImage /Assets/Zcash Media Kit/Primary-Logo-Black-Yellow.svg}"
+                 Height="64" />
+        </WrapPanel>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
