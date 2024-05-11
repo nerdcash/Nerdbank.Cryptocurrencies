@@ -3,7 +3,7 @@ use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
-use std::{collections::HashMap, ops::Range, path::Path, sync::Arc};
+use std::{borrow::Borrow, collections::HashMap, ops::Range, path::Path, sync::Arc};
 use tokio::{
     select,
     sync::{mpsc, Mutex},
@@ -75,6 +75,7 @@ pub async fn sync<P: AsRef<Path>>(
     uri: Uri,
     data_file: P,
     progress: Option<Box<dyn SyncUpdate>>,
+    min_confirmations: u32,
     continually: bool,
     cancellation_token: CancellationToken,
 ) -> Result<SyncUpdateData, Error> {
@@ -90,19 +91,31 @@ pub async fn sync<P: AsRef<Path>>(
         cancellation_token.clone(),
     )
     .await?;
-    let network = parse_network(&info)?;
+    let state = SyncState {
+        cancellation_token,
+        min_confirmations,
+        network: parse_network(&info)?,
+        progress: Arc::new(progress),
+    };
 
-    let mut db = Db::load(&data_file, network)?;
+    let mut db = Db::load(&data_file, state.network)?;
     let conn = Connection::open(&data_file)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
     update_subtree_roots(&mut client.clone(), &mut db.data).await?;
 
-    let mut tip_height: BlockHeight;
+    let mut status = SyncUpdateData {
+        current_step: 0,
+        total_steps: 0,
+        last_fully_scanned_block: None,
+        tip_height: 0,
+        last_error: None,
+    };
+
     loop {
         // 3) Download chain tip metadata from lightwalletd
-        tip_height = webrequest_with_retry(
+        status.tip_height = webrequest_with_retry(
             || async {
                 Ok(client
                     .clone()
@@ -111,14 +124,14 @@ pub async fn sync<P: AsRef<Path>>(
                     .get_ref()
                     .height)
             },
-            cancellation_token.clone(),
+            state.cancellation_token.clone(),
         )
         .await?
         .try_into()
         .map_err(|e| Error::Internal(format!("Invalid block height: {}", e)))?;
 
         // 4) Notify the wallet of the updated chain tip.
-        db.data.update_chain_tip(tip_height)?;
+        db.data.update_chain_tip(status.tip_height.into())?;
 
         fn report_new_transactions<P: AsRef<Path>>(
             txids: Vec<TxId>,
@@ -157,7 +170,7 @@ pub async fn sync<P: AsRef<Path>>(
             data_file: &P,
             db: &mut Db,
             conn: &Connection,
-            network: Network,
+            network: &Network,
         ) -> Result<(), Error> {
             initialize_transaction_fees(db, conn)?;
             if let Some(sink) = progress.as_ref() {
@@ -165,7 +178,7 @@ pub async fn sync<P: AsRef<Path>>(
                 let new_transactions = get_transactions(
                     db,
                     &mut conn,
-                    &network,
+                    network,
                     None,
                     Some(range.start.into()),
                     Some(range.end.into()),
@@ -188,16 +201,23 @@ pub async fn sync<P: AsRef<Path>>(
                 let txids = download_transparent_transactions(
                     &mut client,
                     &mut db,
-                    &network,
+                    &state.network,
                     &addr_info.address,
                     addr_info.height,
-                    tip_height,
-                    cancellation_token.clone(),
+                    status.tip_height.into(),
+                    state.cancellation_token.clone(),
                 )
                 .await?;
                 if !txids.is_empty() {
                     addr_info.used = true;
-                    report_new_transactions(txids, &progress, &data_file, &mut db, &conn, network)?;
+                    report_new_transactions(
+                        txids,
+                        state.progress.borrow(),
+                        &data_file,
+                        &mut db,
+                        &conn,
+                        state.network,
+                    )?;
                 }
             }
 
@@ -216,15 +236,16 @@ pub async fn sync<P: AsRef<Path>>(
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
-                    if download_and_scan_blocks(
+                    let scan_result = download_and_scan_blocks(
                         &mut client,
+                        Db::load(&data_file, state.network)?,
+                        &state,
+                        None,
                         scan_range,
-                        &network,
-                        Db::load(&data_file, network)?,
-                        cancellation_token.clone(),
                     )
-                    .await?
-                    {
+                    .await?;
+
+                    if scan_result.priorities_changed {
                         // The suggested scan ranges have been updated, so we re-request.
                         scan_ranges = db.data.suggest_scan_ranges()?;
                     } else {
@@ -256,57 +277,24 @@ pub async fn sync<P: AsRef<Path>>(
         let scan_ranges = db.data.suggest_scan_ranges()?;
         debug!("Suggested ranges: {:?}", scan_ranges);
 
-        let mut status = SyncUpdateData {
-            current_step: 0,
-            // Establish the total work required.
-            // For now, we'll just count blocks. But a far better measure is by number of outputs we'll need to scan.
-            total_steps: scan_ranges.iter().map(|r| r.len()).sum::<usize>() as u64,
-            last_fully_scanned_block: None,
-            tip_height: u32::from(tip_height),
-            last_error: None,
-        };
+        // The total_steps is the sum of the current_step and the sum of the lengths of the scan_ranges.
+        status.total_steps =
+            status.current_step + scan_ranges.iter().map(|r| r.len()).sum::<usize>() as u64;
 
-        fn update_status<'a>(
-            status: &'a mut SyncUpdateData,
-            data: &WalletDb<Connection, Network>,
-        ) -> Result<&'a SyncUpdateData, Error> {
-            status.last_fully_scanned_block =
-                data.block_fully_scanned()?.map(|b| b.block_height().into());
-            Ok(status)
-        }
-
-        fn report_status(status: &SyncUpdateData, progress: &Option<Box<dyn SyncUpdate>>) {
-            if let Some(sink) = progress.as_ref() {
-                sink.update_status(status.clone());
-            }
-        }
-
-        fn update_and_report_status(
-            status: &mut SyncUpdateData,
-            data: &WalletDb<Connection, Network>,
-            progress: &Option<Box<dyn SyncUpdate>>,
-        ) -> Result<(), Error> {
-            report_status(update_status(status, data)?, progress);
-            Ok(())
-        }
-
-        update_and_report_status(&mut status, &db.data, &progress)?;
+        update_and_report_status(&mut status, &db.data, min_confirmations, &state.progress)?;
 
         let mut caught_up = true;
         for scan_range in scan_ranges.into_iter() {
-            if download_and_scan_blocks(
+            let scan_result = download_and_scan_blocks(
                 &mut client,
+                Db::load(&data_file, state.network)?,
+                &state,
+                Some(&status),
                 &scan_range,
-                &network,
-                Db::load(&data_file, network)?,
-                cancellation_token.clone(),
             )
-            .await?
-            {
-                // The suggested scan ranges have been updated (either due to a continuity
-                // error or because a higher priority range has been added).
-                caught_up = false;
-                break;
+            .await?;
+            if let Some(s) = scan_result.status {
+                status = s;
             }
 
             // Download and decrypt the full transactions we found in the compact blocks
@@ -315,8 +303,8 @@ pub async fn sync<P: AsRef<Path>>(
                 &mut client,
                 &data_file,
                 &mut db,
-                &network,
-                cancellation_token.clone(),
+                &state.network,
+                state.cancellation_token.clone(),
             )
             .await?;
 
@@ -326,36 +314,85 @@ pub async fn sync<P: AsRef<Path>>(
             // so reporting them (again) at this point is good for the client.
             report_transactions_in_range(
                 scan_range.block_range(),
-                &progress,
+                &state.progress,
                 &data_file,
                 &mut db,
                 &conn,
-                network,
+                &state.network,
             )?;
 
-            status.current_step += scan_range.len() as u64;
-            update_and_report_status(&mut status, &db.data, &progress)?;
+            update_and_report_status(&mut status, &db.data, min_confirmations, &state.progress)?;
+
+            if scan_result.priorities_changed {
+                // The suggested scan ranges have been updated (either due to a continuity
+                // error or because a higher priority range has been added).
+                caught_up = false;
+                break;
+            }
         }
 
         if caught_up {
-            update_status(&mut status, &db.data)?;
+            update_status(&mut status, &db.data, min_confirmations)?;
 
             if !continually {
                 return Ok(status);
             }
 
-            report_status(&status, &progress);
+            report_status(&status, &state.progress);
 
             // We'll loop around again when the next block is mined.
             // Eventually we should actually do something with the transactions in the mempool too.
             // WARNING: This is vulnerable to a race condition, because if a new block has *already* been mined
             // but not noticed above, we'll end up waiting for yet *another* block to be mined.
             select! {
-                _ = cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
+                _ = state.cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
                 _ = watch_mempool(&mut client) => Ok(()),
             }?;
         }
     }
+}
+
+fn update_status<'a>(
+    status: &'a mut SyncUpdateData,
+    data: &WalletDb<Connection, Network>,
+    min_confirmations: u32,
+) -> Result<&'a SyncUpdateData, Error> {
+    status.last_fully_scanned_block = data.block_fully_scanned()?.map(|b| b.block_height().into());
+
+    // Disabled for now because it's unstable -- it goes backwards, jumps around, etc.
+    if false {
+        if let Some(wallet_progress) = data
+            .get_wallet_summary(min_confirmations)
+            .unwrap_or(None)
+            .and_then(|s| s.scan_progress())
+        {
+            status.current_step = *wallet_progress.numerator();
+            status.total_steps = *wallet_progress.denominator();
+        }
+    }
+
+    Ok(status)
+}
+
+fn report_status(status: &SyncUpdateData, progress: &Option<Box<dyn SyncUpdate>>) {
+    if let Some(sink) = progress.as_ref() {
+        sink.update_status(status.clone());
+    }
+}
+
+fn update_and_report_status(
+    status: &mut SyncUpdateData,
+    data: &WalletDb<Connection, Network>,
+    min_confirmations: u32,
+    progress: &Option<Box<dyn SyncUpdate>>,
+) -> Result<(), Error> {
+    report_status(update_status(status, data, min_confirmations)?, progress);
+    Ok(())
+}
+
+struct DownloadAndScanResult {
+    priorities_changed: bool,
+    status: Option<SyncUpdateData>,
 }
 
 fn fill_in_taddrs_to_gap_limit(
@@ -655,17 +692,25 @@ async fn download_transparent_transactions(
     Ok(txids_for_new_transparent_transactions)
 }
 
+#[derive(Debug, Clone)]
+struct SyncState {
+    network: Network,
+    progress: Arc<Option<Box<dyn SyncUpdate>>>,
+    min_confirmations: u32,
+    cancellation_token: CancellationToken,
+}
+
 async fn download_and_scan_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
-    block_range: &ScanRange,
-    network: &Network,
     mut db: Db,
-    cancellation_token: CancellationToken,
-) -> Result<bool, Error> {
+    state: &SyncState,
+    status: Option<&SyncUpdateData>,
+    block_range: &ScanRange,
+) -> Result<DownloadAndScanResult, Error> {
     info!("Received instructions to download [{})", block_range);
     let (send, mut receive) =
         mpsc::channel::<(Vec<CompactBlock>, ChainState)>(CHUNK_CHANNEL_CAPACITY);
-    let priorities_changed_token = cancellation_token.child_token();
+    let priorities_changed_token = state.cancellation_token.child_token();
 
     // Download the blocks in `scan_range` into the block source, overwriting any
     // existing blocks in this range.
@@ -682,13 +727,14 @@ async fn download_and_scan_blocks(
         .await
     });
 
-    let network = *network;
+    let state = state.clone();
+    let mut status = status.cloned();
     let scanner_block_range = block_range.clone();
     let scanner = tokio::spawn(async move {
         let mut priorities_changed = false;
         while let Some((chunk, chain_state)) = select! {
             result = receive.recv() => Ok(result),
-            _ = cancellation_token.cancelled() => Err(Error::Canceled),
+            _ = state.cancellation_token.cancelled() => Err(Error::Canceled),
         }? {
             let scan_range = ScanRange::from_parts(
                 chunk.first().unwrap().height()..chunk.last().unwrap().height() + 1,
@@ -700,7 +746,9 @@ async fn download_and_scan_blocks(
             // Insert the blocks into the block cache.
             db.blocks.insert_range(chunk);
 
-            if scan_blocks(&network, &mut db, &scan_range, &chain_state)? && !priorities_changed {
+            if scan_blocks(&state.network, &mut db, &scan_range, &chain_state)?
+                && !priorities_changed
+            {
                 // Notify the downloader to break out early because we'll be getting a new range request.
                 // But we don't abort here. Presumably the original scan range is still interesting
                 // (just less so), so don't throw away what we've already downloaded.
@@ -712,12 +760,25 @@ async fn download_and_scan_blocks(
             // Now that they've been scanned, we don't need them any more.
             db.blocks.remove_range(scan_range.block_range());
 
-            if cancellation_token.is_cancelled() {
+            if let Some(s) = status.as_mut() {
+                s.current_step += scan_range.len() as u64;
+                update_and_report_status(
+                    s,
+                    &db.data,
+                    state.min_confirmations,
+                    state.progress.borrow(),
+                )?;
+            }
+
+            if state.cancellation_token.is_cancelled() {
                 return Err(Error::Canceled);
             }
         }
 
-        Ok::<bool, Error>(priorities_changed)
+        Ok::<_, Error>(DownloadAndScanResult {
+            priorities_changed,
+            status,
+        })
     });
 
     let (_, scan_result) = tokio::try_join!(downloader, scanner)?;
@@ -1016,7 +1077,7 @@ pub(crate) fn get_transactions(
 mod tests {
     use zcash_primitives::transaction::components::Amount;
 
-    use crate::test_constants::{setup_test, MIN_CONFIRMATIONS};
+    use crate::test_constants::setup_test;
 
     use super::*;
 
@@ -1041,6 +1102,7 @@ mod tests {
             setup.server_uri.clone(),
             &setup.data_file,
             None,
+            setup.db_init.min_confirmations,
             false,
             CancellationToken::new(),
         )
@@ -1049,7 +1111,12 @@ mod tests {
 
         info!("Tip: {:?}", result.last_fully_scanned_block);
 
-        if let Some(summary) = setup.db.data.get_wallet_summary(MIN_CONFIRMATIONS).unwrap() {
+        if let Some(summary) = setup
+            .db
+            .data
+            .get_wallet_summary(setup.db_init.min_confirmations)
+            .unwrap()
+        {
             for id in account_ids {
                 info!("Account index: {}", u32::from(id));
                 let b = summary.account_balances().get(&id).unwrap();
