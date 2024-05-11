@@ -209,6 +209,7 @@ impl From<Error> for LightWalletError {
 pub struct DbInit {
     pub data_file: String,
     pub network: ChainType,
+    pub min_confirmations: u32,
 }
 
 lazy_static! {
@@ -405,13 +406,12 @@ pub fn get_birthday_heights(
 pub fn get_user_balances(
     config: DbInit,
     account_id: u32,
-    min_confirmations: u32,
 ) -> Result<UserBalances, LightWalletError> {
     use crate::analysis::get_user_balances;
     Ok(get_user_balances(
-        config,
+        &config,
         account_id.into(),
-        NonZeroU32::try_from(min_confirmations)
+        NonZeroU32::try_from(config.min_confirmations)
             .map_err(|_| Error::InvalidArgument("A positive integer is required.".to_string()))?,
     )?)
 }
@@ -432,17 +432,17 @@ pub struct SendDetails {
 pub fn simulate_send(
     config: DbInit,
     ufvk: String,
-    min_confirmations: u32,
     send_details: Vec<TransactionSendDetail>,
 ) -> Result<SendDetails, LightWalletError> {
     let network = config.network.into();
     let mut db = Db::init(config.data_file, network)?;
     let ufvk = UnifiedFullViewingKey::decode(&network, &ufvk)
         .map_err(|s| LightWalletError::InvalidArgument { message: s })?;
-    let min_confirmations =
-        NonZeroU32::try_from(min_confirmations).map_err(|_| LightWalletError::InvalidArgument {
+    let min_confirmations = NonZeroU32::try_from(config.min_confirmations).map_err(|_| {
+        LightWalletError::InvalidArgument {
             message: "A positive integer is required.".to_string(),
-        })?;
+        }
+    })?;
     let proposal = create_send_proposal(&mut db, network, &ufvk, min_confirmations, send_details)?;
 
     Ok(SendDetails {
@@ -458,7 +458,6 @@ pub fn send(
     config: DbInit,
     uri: String,
     usk: Vec<u8>,
-    min_confirmations: u32,
     send_details: Vec<TransactionSendDetail>,
 ) -> Result<Vec<SendTransactionResult>, LightWalletError> {
     let uri: Uri = uri.parse()?;
@@ -473,7 +472,7 @@ pub fn send(
             uri,
             config.network.into(),
             &usk,
-            NonZeroU32::try_from(min_confirmations).map_err(|_| {
+            NonZeroU32::try_from(config.min_confirmations).map_err(|_| {
                 Error::InvalidArgument("A positive integer is required.".to_string())
             })?,
             send_details,

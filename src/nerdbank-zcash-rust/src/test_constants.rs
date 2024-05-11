@@ -70,6 +70,7 @@ pub(crate) async fn setup_test() -> TestSetup {
         db_init: DbInit {
             data_file: data_file.into_os_string().into_string().unwrap(),
             network: network.into(),
+            min_confirmations: 3,
         },
         db,
         server_info,
