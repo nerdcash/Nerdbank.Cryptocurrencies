@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
+
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class AboutViewModel : ViewModelBase, IHasTitle
@@ -20,7 +22,11 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 		this.WalletStorageLocation = new WalletStorageLocationViewModel(viewModelServices);
 		this.DonateCommand = ReactiveCommand.Create(this.Donate, nonEmptyWallet);
-		this.SupportCommand = ReactiveCommand.Create(() => { });
+		this.SupportCommand = ReactiveCommand.Create(() =>
+		{
+			this.ShowSupport();
+			return Unit.Default;
+		});
 		this.viewModelServices = viewModelServices;
 	}
 
@@ -56,4 +62,6 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 		return this.viewModelServices.NavigateTo(viewModel);
 	}
+
+	public void ShowSupport() => Process.Start(new ProcessStartInfo("https://discord.com/channels/1238987379923222618/1239302972048015422") { UseShellExecute = true });
 }
