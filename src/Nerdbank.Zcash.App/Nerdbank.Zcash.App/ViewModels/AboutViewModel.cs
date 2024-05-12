@@ -70,5 +70,5 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public CapabilitiesViewModel ShowCapabilities() => this.viewModelServices.NavigateTo(new CapabilitiesViewModel());
 
-	public void ShowSupport() => Process.Start(new ProcessStartInfo("https://discord.com/channels/1238987379923222618/1239302972048015422") { UseShellExecute = true });
+	public void ShowSupport() => Process.Start(new ProcessStartInfo("https://discord.gg/dR9v9SWMYF") { UseShellExecute = true });
 }
