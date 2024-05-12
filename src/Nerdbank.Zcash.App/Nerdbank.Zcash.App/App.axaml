@@ -54,6 +54,22 @@
     <Style Selector="Grid Label">
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <Style Selector="Button.Hyperlink">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <TextBlock Text="{TemplateBinding Content}" Foreground="{StaticResource SystemAccentColor}" TextDecorations="Underline">
+            <TextBlock.Styles>
+              <Style Selector="TextBlock:pointerover">
+                <Setter Property="Foreground" Value="{StaticResource SystemAccentColorLight1}"/>
+              </Style>
+            </TextBlock.Styles>
+          </TextBlock>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Margin" Value="0" />
+    </Style>
     <Style Selector="Button.Copy">
       <!--<Setter Property="Content">
         <Setter.Value>

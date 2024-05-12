@@ -27,6 +27,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 			this.ShowSupport();
 			return Unit.Default;
 		});
+		this.ShowCapabilitiesCommand = ReactiveCommand.Create(this.ShowCapabilities);
 		this.viewModelServices = viewModelServices;
 	}
 
@@ -50,6 +51,10 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public ReactiveCommand<Unit, SendingViewModel> DonateCommand { get; }
 
+	public string ShowCapabilitiesCommandCaption => Strings.ShowCapabilitiesCommandCaption;
+
+	public ReactiveCommand<Unit, CapabilitiesViewModel> ShowCapabilitiesCommand { get; }
+
 	public string Version => ThisAssembly.AssemblyInformationalVersion;
 
 	public string VersionCaption => "You are using version";
@@ -62,6 +67,8 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 		return this.viewModelServices.NavigateTo(viewModel);
 	}
+
+	public CapabilitiesViewModel ShowCapabilities() => this.viewModelServices.NavigateTo(new CapabilitiesViewModel());
 
 	public void ShowSupport() => Process.Start(new ProcessStartInfo("https://discord.com/channels/1238987379923222618/1239302972048015422") { UseShellExecute = true });
 }
