@@ -32,7 +32,15 @@ public class OneProcessManager : IDisposable
 
 		for (int i = 0; i < 10; i++)
 		{
-			this.mutexOwned |= this.oneProcessMutex.WaitOne(TimeSpan.Zero, true);
+			try
+			{
+				this.mutexOwned |= this.oneProcessMutex.WaitOne(TimeSpan.Zero, true);
+			}
+			catch (AbandonedMutexException)
+			{
+				// We now own the mutex. There's nothing we need to do to clean up the previous owner.
+				this.mutexOwned = true;
+			}
 
 			PipeOptions pipeOptions = PipeOptions.CurrentUserOnly;
 			if (this.mutexOwned)
