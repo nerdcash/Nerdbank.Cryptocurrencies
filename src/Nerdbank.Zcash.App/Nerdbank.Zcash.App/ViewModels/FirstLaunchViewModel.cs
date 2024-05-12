@@ -21,6 +21,7 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		this.StartNewWalletAdvancedCommand = ReactiveCommand.Create(this.CreateNewAccountAdvanced);
 		this.ImportWalletCommand = ReactiveCommand.Create(this.ImportWallet);
 		this.ViewLicenseCommand = ReactiveCommand.Create(this.ViewLicense);
+		this.ShowCapabilitiesCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new CapabilitiesViewModel()));
 		this.viewModelServices = viewModelServices;
 	}
 
@@ -47,6 +48,10 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 	public ReactiveCommand<Unit, Unit> ViewLicenseCommand { get; }
 
 	public ReactiveCommand<Unit, Unit> StartNewWalletCommand { get; }
+
+	public string ShowCapabilitiesCommandCaption => Strings.FirstLaunchWalletCapabilitiesCommandCaption;
+
+	public ReactiveCommand<Unit, CapabilitiesViewModel> ShowCapabilitiesCommand { get; }
 
 	public string StartNewWalletAdvancedCommandCaption => Strings.StartNewWalletAdvancedCommandCaption;
 

@@ -28,6 +28,8 @@
       <StackPanel Classes="ButtonAndExplanation">
         <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
         <TextBlock Text="{Binding ImportWalletExplanation}" />
+        <Button Command="{Binding ShowCapabilitiesCommand}" Content="{Binding ShowCapabilitiesCommandCaption}"
+                Classes="Hyperlink" />
       </StackPanel>
       <StackPanel Classes="ButtonAndExplanation">
         <TextBlock Text="{Binding LicenseAcceptance}" />

@@ -144,6 +144,9 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Downloading v{0}</value>
   </data>
+  <data name="FirstLaunchWalletCapabilitiesCommandCaption" xml:space="preserve">
+    <value>Review wallet capabilities for compatibility.</value>
+  </data>
   <data name="ImportWalletButtonText" xml:space="preserve">
     <value>Import an existing wallet</value>
   </data>
@@ -161,6 +164,9 @@
   </data>
   <data name="ServerNetworkMismatch" xml:space="preserve">
     <value>This URL serves the {0} network.</value>
+  </data>
+  <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
+    <value>Wallet capabilities</value>
   </data>
   <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
     <value>Create a new wallet (advanced)...</value>
