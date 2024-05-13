@@ -24,7 +24,7 @@ public class PaymentRequestDetailsViewModel : ViewModelBaseWithAccountSelector
 			.ToProperty(this, nameof(this.IsEmpty));
 	}
 
-	public string LabelCaption => "Your name:";
+	public string LabelCaption => PaymentRequestDetailsStrings.LabelCaption;
 
 	/// <summary>
 	/// Gets or sets the label for an address (e.g. name of receiver).
@@ -40,7 +40,7 @@ public class PaymentRequestDetailsViewModel : ViewModelBaseWithAccountSelector
 		set => this.RaiseAndSetIfChanged(ref this.label, value);
 	}
 
-	public string MemoCaption => "Memo suggestion:";
+	public string MemoCaption => PaymentRequestDetailsStrings.MemoCaption;
 
 	/// <summary>
 	/// Gets or sets or sets the memo that may be required to include in the payment.
@@ -51,7 +51,7 @@ public class PaymentRequestDetailsViewModel : ViewModelBaseWithAccountSelector
 		set => this.RaiseAndSetIfChanged(ref this.memo, value);
 	}
 
-	public string MessageCaption => "Message:";
+	public string MessageCaption => PaymentRequestDetailsStrings.MessageCaption;
 
 	/// <summary>
 	/// Gets or sets the message to display from the requester to the payer.
@@ -62,7 +62,7 @@ public class PaymentRequestDetailsViewModel : ViewModelBaseWithAccountSelector
 		set => this.RaiseAndSetIfChanged(ref this.message, value);
 	}
 
-	public string AmountCaption => $"Invoice amount:";
+	public string AmountCaption => PaymentRequestDetailsStrings.AmountCaption;
 
 	public DualAmountEntryViewModel AmountEntry { get; }
 

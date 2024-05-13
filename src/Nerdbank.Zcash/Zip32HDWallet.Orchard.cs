@@ -17,7 +17,7 @@ public partial class Zip32HDWallet
 		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)"/>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
 		/// <param name="network"><inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)" path="/param[@name='network']"/></param>
-		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network) => Create(ThrowIfEntropyTooShort(Requires.NotNull(mnemonic)).Seed, network);
+		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network) => Create(Requires.NotNull(mnemonic).Seed, network);
 
 		/// <summary>
 		/// Creates a master key for the Orchard pool.

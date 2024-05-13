@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using DynamicData;
 using Microsoft.VisualStudio.Threading;
@@ -91,7 +90,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.Transactions.CollectionChanged += this.Transactions_CollectionChanged;
 	}
 
-	public string Title => "History";
+	public string Title => HistoryStrings.Title;
 
 	public SyncProgressData SyncProgress { get; }
 
@@ -99,7 +98,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	// to walk the collection in the new order.
 	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionChronologicalComparer.OldestToNewest);
 
-	public string ShowProtocolDetailsCaption => "Show protocol details";
+	public string ShowProtocolDetailsCaption => HistoryStrings.ShowProtocolDetailsCaption;
 
 	public bool ShowProtocolDetails
 	{
@@ -111,7 +110,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public bool IsTransactionIdVisible => this.ShowProtocolDetails;
 
-	public string WhenColumnHeader => "When";
+	public string WhenColumnHeader => HistoryStrings.WhenColumnHeader;
 
 	public string AmountColumnHeader => this.SelectedSecurity.TickerSymbol;
 
@@ -119,11 +118,11 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public bool IsAlternateNetChangeColumnVisible => this.isAlternateAmountColumnVisible.Value;
 
-	public string OtherPartyNameColumnHeader => "Name";
+	public string OtherPartyNameColumnHeader => HistoryStrings.OtherPartyNameColumnHeader;
 
-	public string MemoColumnHeader => "Memo";
+	public string MemoColumnHeader => HistoryStrings.MemoColumnHeader;
 
-	public string RunningBalanceColumnHeader => "Balance";
+	public string RunningBalanceColumnHeader => HistoryStrings.RunningBalanceColumnHeader;
 
 	public TransactionViewModel? SelectedTransaction
 	{
@@ -133,13 +132,13 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public bool IsTransactionDetailsVisible => this.SelectedTransaction is not null;
 
-	public string ExchangeRateExplanation => "The value in fiat currency is based on the exchange rate at the time of each transaction.";
+	public string ExchangeRateExplanation => HistoryStrings.ExchangeRateExplanation;
 
 	public bool ExchangeRateExplanationIsVisible => this.exchangeRateExplanationIsVisible.Value;
 
 	public ReactiveCommand<Unit, Unit> HideExchangeRateExplanationCommand { get; }
 
-	public string HideExchangeRateExplanationCommandCaption => "Got it";
+	public string HideExchangeRateExplanationCommandCaption => HistoryStrings.HideExchangeRateExplanationCommandCaption;
 
 	protected override void OnSelectedAccountChanged()
 	{

@@ -18,11 +18,11 @@ public class ExportLoneAccountViewModel : ExportAccountViewModelBase
 		this.IncomingViewingKey = account.ZcashAccount.IncomingViewing?.UnifiedKey;
 	}
 
-	public string FullViewingKeyCaption => "Full viewing key";
+	public string FullViewingKeyCaption => ExportLoneAccountStrings.FullViewingKeyCaption;
 
 	public string? FullViewingKey { get; }
 
-	public string IncomingViewingKeyCaption => "Incoming viewing key";
+	public string IncomingViewingKeyCaption => ExportLoneAccountStrings.IncomingViewingKeyCaption;
 
 	public string? IncomingViewingKey { get; }
 }

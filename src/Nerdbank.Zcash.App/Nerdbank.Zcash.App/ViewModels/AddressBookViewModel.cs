@@ -28,17 +28,17 @@ public class AddressBookViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public ObservableCollection<ContactViewModel> Contacts { get; } = new();
 
-	public string Title => "Address Book";
+	public string Title => AddressBookStrings.Title;
 
-	public string NameColumnHeader => "Name";
+	public string NameColumnHeader => AddressBookStrings.NameColumnHeader;
 
-	public string SendCommandColumnHeader => "Has Address";
+	public string SendCommandColumnHeader => AddressBookStrings.SendCommandColumnHeader;
 
 	public ReactiveCommand<Unit, ContactViewModel> NewContactCommand { get; }
 
-	public string NewContactCaption => "New";
+	public string NewContactCaption => AddressBookStrings.NewContactCaption;
 
-	public string DeleteContactCaption => "Delete";
+	public string DeleteContactCaption => AddressBookStrings.DeleteContactCaption;
 
 	public ReactiveCommand<Unit, Unit> DeleteContactCommand { get; }
 

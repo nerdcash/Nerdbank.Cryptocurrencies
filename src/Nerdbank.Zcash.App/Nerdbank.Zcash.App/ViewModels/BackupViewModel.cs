@@ -33,7 +33,7 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			.ToProperty(this, nameof(this.ExportAccountViewModel));
 	}
 
-	public string Title => "Backup";
+	public string Title => BackupStrings.Title;
 
 	public int SelectedTaxIndex
 	{
@@ -47,7 +47,7 @@ public class BackupViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public ReactiveCommand<Unit, Unit> RevealCommand { get; }
 
-	public string RevealCommandCaption => "Reveal secrets";
+	public string RevealCommandCaption => BackupStrings.RevealCommandCaption;
 
 	public List<string> RevealCautions => new()
 	{

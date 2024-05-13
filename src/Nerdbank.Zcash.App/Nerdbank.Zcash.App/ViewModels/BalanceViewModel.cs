@@ -131,51 +131,51 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public SyncProgressData SyncProgress { get; }
 
-	public string Title => "Balance";
+	public string Title => BalanceStrings.Title;
 
 	public SecurityAmount? Balance => this.balance.Value;
 
-	public string BalanceCaption => "💰 Balance";
+	public string BalanceCaption => BalanceStrings.BalanceCaption;
 
-	public string AnticipatedFeesCaption => "🪙 Anticipated fees";
+	public string AnticipatedFeesCaption => BalanceStrings.AnticipatedFeesCaption;
 
 	public bool IsAnticipatedFeesVisible => this.isAnticipatedFeesVisible.Value;
 
 	public SecurityAmount? AnticipatedFees => this.anticipatedFees.Value;
 
-	public string AnticipatedFeesExplanation => "This is the estimated portion of your balance that will go to fees when you spend your Zcash.";
+	public string AnticipatedFeesExplanation => BalanceStrings.AnticipatedFeesExplanation;
 
 	public bool IsImmatureIncomeVisible => this.isImmatureIncomeVisible.Value;
 
 	public SecurityAmount? ImmatureIncome => this.immatureIncome.Value;
 
-	public string ImmatureIncomeCaption => "📩 Immature";
+	public string ImmatureIncomeCaption => BalanceStrings.ImmatureIncomeCaption;
 
-	public string ImmatureIncomeExplanation => "Zcash has been sent to you and confirmed, but is not yet available to spend. This stage can last several minutes.";
+	public string ImmatureIncomeExplanation => BalanceStrings.ImmatureIncomeExplanation;
 
 	public SecurityAmount? UnconfirmedIncome => this.unconfirmedIncome.Value;
 
 	public bool IsUnconfirmedIncomeVisible => this.isUnconfirmedIncomeVisible.Value;
 
-	public string UnconfirmedIncomeCaption => "📥 Incoming";
+	public string UnconfirmedIncomeCaption => BalanceStrings.UnconfirmedIncomeCaption;
 
-	public string UnconfirmedIncomeExplanation => "Zcash has been sent to you but has not yet been confirmed. Unconfirmed funds aren't guaranteed to be yours yet. This usually clears up in a minute or two.";
+	public string UnconfirmedIncomeExplanation => BalanceStrings.UnconfirmedIncomeExplanation;
 
 	public bool IsBalanceBreakdownVisible => this.isBalanceBreakdownVisible.Value;
 
 	public SecurityAmount? SpendableBalance => this.spendableBalance.Value;
 
-	public string SpendableBalanceCaption => "💵 Spendable";
+	public string SpendableBalanceCaption => BalanceStrings.SpendableBalanceCaption;
 
-	public string SpendableBalanceExplanation => "This is the Zcash you can spend right now.";
+	public string SpendableBalanceExplanation => BalanceStrings.SpendableBalanceExplanation;
 
 	public bool IsUnspendableChangeVisible => this.isUnspendableChangeVisible.Value;
 
 	public SecurityAmount? UnspendableChange => this.unspendableChange.Value;
 
-	public string UnspendableChangeCaption => "🪢 Tied up";
+	public string UnspendableChangeCaption => BalanceStrings.UnspendableChangeCaption;
 
-	public string UnspendableChangeExplanation => "Recent spends can tie up some of your Zcash for a few minutes.";
+	public string UnspendableChangeExplanation => BalanceStrings.UnspendableChangeExplanation;
 
 	public bool ShowAlternateCurrency
 	{
@@ -188,7 +188,7 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	/// </summary>
 	public ReactiveCommand<Unit, Unit> SwitchCurrencyCommand { get; }
 
-	public string SwitchCurrencyCaption => "💱 Switch currency";
+	public string SwitchCurrencyCaption => BalanceStrings.SwitchCurrencyCaption;
 
 	public bool IsSwitchCurrencyVisible => this.isSwitchCurrencyCommandVisible.Value;
 

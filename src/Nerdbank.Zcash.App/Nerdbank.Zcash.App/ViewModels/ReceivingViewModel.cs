@@ -50,13 +50,13 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		{
 			DiversifierIndex diversifierIndex = this.assignedAddresses?.Diversifier ?? new(DateTime.UtcNow.Ticks);
 			UnifiedAddress unifiedAddress = this.receivingAccount.ZcashAccount.GetDiversifiedAddress(ref diversifierIndex);
-			this.Addresses.Add(new(viewModelServices, unifiedAddress, paymentRequestDetailsViewModel, Strings.UnifiedReceivingAddressHeader));
+			this.Addresses.Add(new(viewModelServices, unifiedAddress, paymentRequestDetailsViewModel, ReceivingStrings.UnifiedReceivingAddressHeader));
 			rawReceiverAddresses.AddRange(unifiedAddress.Receivers);
 
 			if (unifiedAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver)
 			{
 				SaplingAddress saplingAddress = new(saplingReceiver, unifiedAddress.Network);
-				this.Addresses.Add(new(viewModelServices, saplingAddress, paymentRequestDetailsViewModel, Strings.SaplingReceivingAddressHeader));
+				this.Addresses.Add(new(viewModelServices, saplingAddress, paymentRequestDetailsViewModel, ReceivingStrings.SaplingReceivingAddressHeader));
 			}
 		}
 
@@ -66,7 +66,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			// We'll bump the max index up by one if the owner indicates the address was actually 'consumed' by the receiver.
 			this.transparentAddressIndex = this.assignedAddresses?.TransparentAddressIndex ?? (this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
 			TransparentAddress transparentAddress = this.receivingAccount.ZcashAccount.GetTransparentAddress(this.transparentAddressIndex);
-			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, Strings.TransparentReceivingAddressHeader));
+			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, ReceivingStrings.TransparentReceivingAddressHeader));
 			rawReceiverAddresses.Add(transparentAddress);
 		}
 
@@ -84,7 +84,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		this.RecordTransparentAddressShownIfApplicable();
 	}
 
-	public string Title => "Receive Zcash";
+	public string Title => ReceivingStrings.Title;
 
 	public SyncProgressData SyncProgress { get; }
 
@@ -96,7 +96,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public bool AddressAssignedToContactIsVisible => this.observingContact is not null;
 
-	public string AddressAssignedToContactExplanation => $"This receiving address is only for **{this.observingContact?.Name}**.";
+	public string AddressAssignedToContactExplanation => ReceivingStrings.FormatAddressAssignedToContactExplanation(this.observingContact?.Name);
 
 	public ReceivingAddress? DisplayedAddress
 	{
@@ -110,7 +110,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public ObservableCollection<ReceivingAddress> Addresses { get; } = new();
 
-	public string AddPaymentRequestCaption => "Payment details";
+	public string AddPaymentRequestCaption => ReceivingStrings.AddPaymentRequestCaption;
 
 	/// <summary>
 	/// Gets a message informing the user as to when the last payment was received at this address, if any.

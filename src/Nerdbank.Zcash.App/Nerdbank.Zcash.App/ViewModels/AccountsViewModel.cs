@@ -33,25 +33,25 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 			.ToProperty(this, nameof(this.GroupAccountsByHDWallets), initialValue: ShouldGroupAccounts());
 	}
 
-	public string Title => "Accounts";
+	public string Title => AccountsStrings.Title;
 
 	public ObservableCollection<AccountViewModel> Accounts { get; } = new();
 
 	public bool GroupAccountsByHDWallets => this.groupAccountsByHDWallets.Value;
 
-	public string AccountNameColumnHeader => "Name";
+	public string AccountNameColumnHeader => AccountsStrings.AccountNameColumnHeader;
 
-	public string AccountBalanceColumnHeader => $"Balance";
+	public string AccountBalanceColumnHeader => AccountsStrings.AccountBalanceColumnHeader;
 
-	public string AccountIndexColumnHeader => "Index";
+	public string AccountIndexColumnHeader => AccountsStrings.AccountIndexColumnHeader;
 
 	public ReactiveCommand<Unit, Unit> NewAccountCommand { get; }
 
-	public string NewAccountCommandCaption => "New account";
+	public string NewAccountCommandCaption => AccountsStrings.NewAccountCommandCaption;
 
 	public ReactiveCommand<Unit, ImportAccountViewModel> ImportAccountCommand { get; }
 
-	public string ImportAccountCommandCaption => "Import account";
+	public string ImportAccountCommandCaption => AccountsStrings.ImportAccountCommandCaption;
 
 	public ImportAccountViewModel ImportAccount()
 	{

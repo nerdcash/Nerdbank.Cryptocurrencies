@@ -12,7 +12,7 @@ public class SelfUpdateProgressData : ProgressData
 	public void NotifyDownloadingUpdate(string newVersion)
 	{
 		this.Clear();
-		this.SetCaption(Strings.FormatDownloadingUpdate(newVersion));
+		this.SetCaption(UpdatingStrings.FormatDownloadingUpdate(newVersion));
 		this.IsInProgress = true;
 
 		// Velopack counts to 100%.

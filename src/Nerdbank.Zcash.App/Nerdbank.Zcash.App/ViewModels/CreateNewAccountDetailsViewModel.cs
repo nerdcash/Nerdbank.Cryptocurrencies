@@ -64,7 +64,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public bool IsHDWalletSelectionVisible => this.isHDWalletSelectionVisible.Value;
 
-	public string HDWalletCaption => "HD wallet to create the account within";
+	public string HDWalletCaption => CreateNewAccountDetailsStrings.HDWalletCaption;
 
 	public HDWallet? HDWallet
 	{
@@ -83,7 +83,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public ReadOnlyObservableCollection<HDWallet> HDWallets => this.viewModelServices.Wallet.HDWallets;
 
-	public string NetworkCaption => "Network";
+	public string NetworkCaption => CreateNewAccountDetailsStrings.NetworkCaption;
 
 	public ZcashNetwork Network
 	{
@@ -123,13 +123,13 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 		set => this.Network = value ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 	}
 
-	public string MainNetCaption => "Real Zcash (ZEC)";
+	public string MainNetCaption => CreateNewAccountDetailsStrings.FormatMainNetCaption(ZcashNetwork.MainNet.AsSecurity().TickerSymbol);
 
-	public string TestNetCaption => "Play money (TAZ)";
+	public string TestNetCaption => CreateNewAccountDetailsStrings.FormatTestNetCaption(ZcashNetwork.TestNet.AsSecurity().TickerSymbol);
 
-	public string TestNetExplanation => "TAZ is worthless, but can be useful when learning how to use Zcash. You can get TAZ for free from a faucet.";
+	public string TestNetExplanation => CreateNewAccountDetailsStrings.TestNetExplanation;
 
-	public string IndexCaption => "Account index";
+	public string IndexCaption => CreateNewAccountDetailsStrings.IndexCaption;
 
 	public uint Index
 	{
@@ -152,9 +152,9 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public uint MaximumIndex => uint.MaxValue;
 
-	public string IndexExplanation => "A seed phrase, network, and account index together can recreate any account and discover transaction history and spend the balance. The original birthday height is important to recover past transactions and available funds.";
+	public string IndexExplanation => CreateNewAccountDetailsStrings.IndexExplanation;
 
-	public string NameCaption => "Account Name";
+	public string NameCaption => CreateNewAccountDetailsStrings.NameCaption;
 
 	[Required]
 	public string Name
@@ -163,7 +163,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref this.name, value);
 	}
 
-	public string BirthdayHeightCaption => "Birthday height";
+	public string BirthdayHeightCaption => CreateNewAccountDetailsStrings.BirthdayHeightCaption;
 
 	public ulong BirthdayHeight
 	{
@@ -181,11 +181,11 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public string? MinimumBirthdayHeightForHDWalletAdvisory => this.minimumBirthdayHeightForHDWalletAdvisory.Value;
 
-	public string CreateAccountCommandCaption => "Create";
+	public string CreateAccountCommandCaption => CreateNewAccountDetailsStrings.CreateAccountCommandCaption;
 
 	public ReactiveCommand<Unit, Account> CreateAccountCommand { get; }
 
-	public string SetBirthdayHeightToTipCommandCaption => "Set height for new account";
+	public string SetBirthdayHeightToTipCommandCaption => CreateNewAccountDetailsStrings.SetBirthdayHeightToTipCommandCaption;
 
 	public ReactiveCommand<Unit, Unit> SetBirthdayHeightToTipCommand { get; }
 

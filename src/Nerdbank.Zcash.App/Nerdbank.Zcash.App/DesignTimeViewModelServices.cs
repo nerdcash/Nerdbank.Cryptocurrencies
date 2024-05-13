@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -22,7 +21,7 @@ internal class DesignTimeViewModelServices : IViewModelServices
 			Zip32HDWallet mainNet = new(mnemonic, ZcashNetwork.MainNet);
 			Zip32HDWallet testNet = new(mnemonic, ZcashNetwork.TestNet);
 
-			Account playMoneyAccount = NewAccount(testNet, 0, Strings.FormatDefaultNameForFirstAccountWithTicker(ZcashNetwork.TestNet), 1.23m);
+			Account playMoneyAccount = NewAccount(testNet, 0, FirstLaunchStrings.FormatDefaultNameForFirstAccountWithTicker(ZcashNetwork.TestNet), 1.23m);
 			Account realAccount = NewAccount(mainNet, 0, "Real ZEC", 0.023m);
 			Account savingsAccount = NewAccount(mainNet, 1, "Savings", 3.45m);
 

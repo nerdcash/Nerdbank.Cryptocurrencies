@@ -36,8 +36,8 @@ public class ContactViewModel : ViewModelBase
 		IObservable<bool> hasShieldedAddress = parsedReceivingAddresses.Select(a => a.Any(b => b.HasShieldedReceiver is true));
 
 		this.hasContactSeenMyDiversifiedAddressCaption = hasContactSeenMyDiversifiedAddress.Select(v => v
-			? "✅ This contact has seen your diversified address."
-			: "❌ This contact has not seen your diversified address.")
+			? ("✅ " + ContactStrings.ContactHasSeenDiversifiedAddress)
+			: ("❌ " + ContactStrings.ContactHasNotSeenDiversifiedAddress))
 			.ToProperty(this, nameof(this.HasContactSeenMyDiversifiedAddressCaption));
 
 		this.isEmpty = this.WhenAnyValue(
@@ -51,7 +51,7 @@ public class ContactViewModel : ViewModelBase
 			.ToProperty(this, nameof(this.HasShieldedReceivingAddress));
 		this.hasAddress = hasValidAddress
 			.ToProperty(this, nameof(this.HasAddress));
-		this.sendCommandCaption = hasShieldedAddress.Select(has => has ? "Send 🛡️" : "Send")
+		this.sendCommandCaption = hasShieldedAddress.Select(has => ContactStrings.SendCommandCaption + (has ? " 🛡️" : string.Empty))
 			.ToProperty(this, nameof(this.SendCommandCaption));
 
 		this.ShowDiversifiedAddressCommand = ReactiveCommand.Create(this.ShowDiversifiedAddress);
@@ -124,7 +124,7 @@ public class ContactViewModel : ViewModelBase
 		}
 	}
 
-	public string AddressCaption => "Address";
+	public string AddressCaption => ContactStrings.AddressCaption;
 
 	public bool HasAddress => this.hasAddress.Value;
 
@@ -132,7 +132,7 @@ public class ContactViewModel : ViewModelBase
 
 	public bool IsShowDiversifiedAddressButtonVisible => true;
 
-	public string ShowDiversifiedAddressCommandCaption => "Share my diversified address with this contact";
+	public string ShowDiversifiedAddressCommandCaption => ContactStrings.ShowDiversifiedAddressCommandCaption;
 
 	public ReactiveCommand<Unit, ReceivingViewModel> ShowDiversifiedAddressCommand { get; }
 

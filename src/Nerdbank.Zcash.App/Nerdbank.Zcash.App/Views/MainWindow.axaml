@@ -16,25 +16,25 @@
   </Design.DataContext>
   <DockPanel>
     <Menu DockPanel.Dock="Top">
-      <MenuItem Header="Back" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
-      <MenuItem Header="_App">
-        <MenuItem Header="_Home" Command="{Binding HomeCommand}" />
-        <MenuItem Header="_Address book" Command="{Binding AddressBookCommand}" />
-        <MenuItem Header="A_ccounts" Command="{Binding AccountsListCommand}" />
+      <MenuItem Header="{Binding BackCommandCaption}" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
+      <MenuItem Header="{Binding AppMenuCaption}">
+        <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
+        <MenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
+        <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
         <Separator />
-        <MenuItem Header="_Settings" Command="{Binding SettingsCommand}" />
-        <MenuItem Header="_Backup" Command="{Binding BackupCommand}" />
+        <MenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
+        <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" />
         <Separator />
-        <MenuItem Header="Ab_out" Command="{Binding AboutCommand}" />
+        <MenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
       </MenuItem>
-      <MenuItem Header="_Transactions">
-        <MenuItem Header="_Balance" Command="{Binding AccountBalanceCommand}" />
-        <MenuItem Header="_History" Command="{Binding TransactionHistoryCommand}" />
-        <MenuItem Header="_Send" Command="{Binding SendCommand}" />
-        <MenuItem Header="_Receive" Command="{Binding ReceiveCommand}" />
+      <MenuItem Header="{Binding TransactionsMenuCaption}">
+        <MenuItem Header="{Binding AccountBalanceCommandCaption}" Command="{Binding AccountBalanceCommand}" />
+        <MenuItem Header="{Binding TransactionHistoryCommandCaption}" Command="{Binding TransactionHistoryCommand}" />
+        <MenuItem Header="{Binding SendCommandCaption}" Command="{Binding SendCommand}" />
+        <MenuItem Header="{Binding ReceiveCommandCaption}" Command="{Binding ReceiveCommand}" />
       </MenuItem>
-      <MenuItem Header="T_ools">
-        <MenuItem Header="_Address check" Command="{Binding AddressCheckCommand}" />
+      <MenuItem Header="{Binding ToolsMenuCaption}">
+        <MenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
       </MenuItem>
     </Menu>
     <views:SyncHeaderControl DataContext="{Binding SendProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />

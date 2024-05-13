@@ -18,11 +18,11 @@ public class WalletStorageLocationViewModel : ViewModelBase
 		this.viewModelServices = viewModelServices;
 	}
 
-	public string WalletStorageLocation => $"Wallet storage location: \"{this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPath}\".";
+	public string WalletStorageLocation => WalletStorageLocationStrings.FormatWalletStorageLocation(this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPath);
 
 	public bool WalletIsEncrypted => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPathIsEncrypted;
 
 	public string WalletEncryptionExplanation => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPathIsEncrypted
-		? "Encryption is active so only your local device account can access your wallet. This guards against other accounts on this device stealing your wallet.\nViruses and malware that may be running under your same account may still be able to access your wallet."
-		: "Encryption is not available on this device to protect your wallet.";
+		? WalletStorageLocationStrings.WalletEncryptedExplanation
+		: WalletStorageLocationStrings.WalletNotEncryptedExplanation;
 }

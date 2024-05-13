@@ -25,35 +25,35 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		this.viewModelServices = viewModelServices;
 	}
 
-	public string Title => "Welcome";
+	public string Title => FirstLaunchStrings.Title;
 
-	public string Greeting => Strings.AppGreeting;
+	public string Greeting => FirstLaunchStrings.AppGreeting;
 
 	public Bitmap Logo => Resources.AppLogo;
 
-	public string WalletForHeading => "A wallet for";
+	public string WalletForHeading => FirstLaunchStrings.WalletForHeading;
 
-	public string StartNewWalletButtonText => Strings.StartNewWalletButtonText;
+	public string StartNewWalletButtonText => FirstLaunchStrings.StartNewWalletButtonText;
 
-	public string StartNewWalletExplanation => Strings.StartNewWalletExplanation;
+	public string StartNewWalletExplanation => FirstLaunchStrings.StartNewWalletExplanation;
 
-	public string ImportWalletButtonText => Strings.ImportWalletButtonText;
+	public string ImportWalletButtonText => FirstLaunchStrings.ImportWalletButtonText;
 
-	public string ImportWalletExplanation => Strings.ImportWalletExplanation;
+	public string ImportWalletExplanation => FirstLaunchStrings.ImportWalletExplanation;
 
-	public string LicenseAcceptance => "Use of this application expresses agreement to its license terms. Absolutely no warranty is provided.";
+	public string LicenseAcceptance => FirstLaunchStrings.LicenseAcceptance;
 
-	public string ViewLicenseCommandCaption => "View license";
+	public string ViewLicenseCommandCaption => FirstLaunchStrings.ViewLicenseCommandCaption;
 
 	public ReactiveCommand<Unit, Unit> ViewLicenseCommand { get; }
 
 	public ReactiveCommand<Unit, Unit> StartNewWalletCommand { get; }
 
-	public string ShowCapabilitiesCommandCaption => Strings.FirstLaunchWalletCapabilitiesCommandCaption;
+	public string ShowCapabilitiesCommandCaption => FirstLaunchStrings.FirstLaunchWalletCapabilitiesCommandCaption;
 
 	public ReactiveCommand<Unit, CapabilitiesViewModel> ShowCapabilitiesCommand { get; }
 
-	public string StartNewWalletAdvancedCommandCaption => Strings.StartNewWalletAdvancedCommandCaption;
+	public string StartNewWalletAdvancedCommandCaption => FirstLaunchStrings.StartNewWalletAdvancedCommandCaption;
 
 	public ReactiveCommand<Unit, CreateNewWalletViewModel> StartNewWalletAdvancedCommand { get; }
 
@@ -75,9 +75,9 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 
 		Zip32HDWallet zip32 = new(mnemonic, network);
 		Account accountModel = this.viewModelServices.Wallet.Add(new ZcashAccount(zip32) { BirthdayHeight = birthdayHeight });
-		accountModel.Name = Strings.FormatDefaultNameForFirstAccountWithTicker(network.AsSecurity().TickerSymbol);
+		accountModel.Name = FirstLaunchStrings.FormatDefaultNameForFirstAccountWithTicker(network.AsSecurity().TickerSymbol);
 		Assumes.True(this.viewModelServices.Wallet.TryGetHDWallet(accountModel, out HDWallet? wallet));
-		wallet.Name = Strings.DefaultNameForFirstHDWallet;
+		wallet.Name = FirstLaunchStrings.DefaultNameForFirstHDWallet;
 	}
 
 	private CreateNewWalletViewModel CreateNewAccountAdvanced()

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using Nerdbank.Cryptocurrencies;
@@ -57,11 +56,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string BlockNumberFormatted => $"{this.BlockNumber:N0}";
 
-	public string BlockNumberCaption => "Block #";
+	public string BlockNumberCaption => TransactionStrings.BlockNumberCaption;
 
 	public string TransactionId => this.Model.TransactionId?.ToString() ?? string.Empty;
 
-	public string TransactionIdCaption => "Transaction ID";
+	public string TransactionIdCaption => TransactionStrings.TransactionIdCaption;
 
 	public DateTimeOffset? When => this.Model.When?.ToLocalTime();
 
@@ -97,7 +96,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string WhenDetailedFormatted => this.When?.ToString("g") ?? string.Empty;
 
-	public string WhenCaption => "When";
+	public string WhenCaption => TransactionStrings.WhenCaption;
 
 	/// <summary>
 	/// Gets the transaction's full impact on the account balance (including fees).
@@ -111,11 +110,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	/// </summary>
 	public SecurityAmount Subtotal => this.Security.Amount(this.LineItems.Sum(li => li.Amount.Amount));
 
-	public string SubtotalCaption => this.IsIncoming ? "Received" : "Sent";
+	public string SubtotalCaption => this.IsIncoming ? TransactionStrings.SubtotalCaption_Received : TransactionStrings.SubtotalCaption_Sent;
 
 	public SecurityAmount? Fee => this.Model.Fee is decimal fee ? this.Security.Amount(-fee) : null;
 
-	public string FeeCaption => "Fee";
+	public string FeeCaption => TransactionStrings.FeeCaption;
 
 	public SecurityAmount? AlternateNetChange
 	{
@@ -141,7 +140,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		}
 	}
 
-	public string OtherPartyNameColumnHeader => "Name";
+	public string OtherPartyNameColumnHeader => TransactionStrings.OtherPartyNameColumnHeader;
 
 	public string? OtherPartyName
 	{
@@ -169,7 +168,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		}
 	}
 
-	public string OtherPartyNameCaption => "Name";
+	public string OtherPartyNameCaption => TransactionStrings.OtherPartyNameCaption;
 
 	public object? OtherParty
 	{
@@ -208,15 +207,15 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public bool IsMultiLineItem => this.LineItems.Count > 1;
 
-	public string MemoCaption => "Shared Memo";
+	public string MemoCaption => TransactionStrings.MemoCaption;
 
-	public string MutableMemoCaption => "Private Memo";
+	public string MutableMemoCaption => TransactionStrings.MutableMemoCaption;
 
 	public bool IsToAddressVisible => this.isToAddressVisible.Value;
 
 	public string? ToAddress => this.LineItems.FirstOrDefault()?.ToAddress;
 
-	public string ToAddressCaption => "Recipient";
+	public string ToAddressCaption => TransactionStrings.ToAddressCaption;
 
 	public bool IsMutableMemoVisible => this.LineItems.Count > 0;
 
@@ -226,11 +225,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		set => this.Model.MutableMemo = value;
 	}
 
-	public string LineItemsCaption => "Line Items";
+	public string LineItemsCaption => TransactionStrings.LineItemsCaption;
 
 	public ReadOnlyCollection<LineItem> LineItems { get; }
 
-	public string AmountColumnHeader => "Amount";
+	public string AmountColumnHeader => TransactionStrings.AmountColumnHeader;
 
 	public bool IsIncoming => this.Model.IsIncoming;
 

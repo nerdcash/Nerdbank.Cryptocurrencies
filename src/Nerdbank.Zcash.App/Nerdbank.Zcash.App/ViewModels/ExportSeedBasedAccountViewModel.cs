@@ -39,23 +39,23 @@ public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 		this.ShowViewingKeysCommand = ReactiveCommand.Create(this.ShowViewingKeys);
 	}
 
-	public string BackupSeedPhraseExplanation => "Your seed phrase is the key to viewing and spending your Zcash. If you use this instead of the Backup option, copy down your seed phrase and password to a secure location (e.g. on paper, in a safe deposit box).";
+	public string BackupSeedPhraseExplanation => ExportSeedBasedAccountStrings.BackupSeedPhraseExplanation;
 
 	public string SeedPhrase => this.mnemonic.SeedPhrase;
 
-	public string SeedPhraseCaption => "Seed phrase";
+	public string SeedPhraseCaption => ExportSeedBasedAccountStrings.SeedPhraseCaption;
 
 	public ReadOnlyCollection<SeedPhraseRow> SeedPhraseRows { get; }
 
-	public string PasswordCaption => "Password (if any)";
+	public string PasswordCaption => ExportSeedBasedAccountStrings.PasswordCaption;
 
 	public string Password { get; init; } = string.Empty;
 
-	public string AccountIndexCaption => "Account index";
+	public string AccountIndexCaption => ExportSeedBasedAccountStrings.AccountIndexCaption;
 
 	public uint AccountIndex { get; init; }
 
-	public string IsSeedPhraseBackedUpCaption => "I have copied down my seed phrase (and password)";
+	public string IsSeedPhraseBackedUpCaption => ExportSeedBasedAccountStrings.IsSeedPhraseBackedUpCaption;
 
 	public bool IsSeedPhraseBackedUp
 	{
@@ -70,9 +70,9 @@ public class ExportSeedBasedAccountViewModel : ExportAccountViewModelBase
 		}
 	}
 
-	public string ShowViewingKeysExplanation => "Viewing keys can be shared to irrevocably grant another wallet or person the ability to view all your past and future transactions for this account, without granting the ability to spend your money.";
+	public string ShowViewingKeysExplanation => ExportSeedBasedAccountStrings.ShowViewingKeysExplanation;
 
-	public string ShowViewingKeysCommandCaption => "Show viewing keys";
+	public string ShowViewingKeysCommandCaption => ExportSeedBasedAccountStrings.ShowViewingKeysCommandCaption;
 
 	public ReactiveCommand<Unit, Unit> ShowViewingKeysCommand { get; }
 

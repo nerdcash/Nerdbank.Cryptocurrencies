@@ -38,13 +38,13 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 		if (viewModelServices.Wallet.IsEmpty)
 		{
-			this.Name = Strings.DefaultNameForFirstImportedAccount;
+			this.Name = ImportAccountStrings.DefaultNameForFirstImportedAccount;
 		}
 	}
 
-	public string Title => "Import Account";
+	public string Title => ImportAccountStrings.Title;
 
-	public string NameCaption => "Account name";
+	public string NameCaption => ImportAccountStrings.NameCaption;
 
 	[Required]
 	public string Name
@@ -68,9 +68,9 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		}
 	}
 
-	public string KeyCaption => "Enter the seed, private key, full or incoming viewing key for the account you wish to import.";
+	public string KeyCaption => ImportAccountStrings.KeyCaption;
 
-	public string SeedPasswordCaption => "Seed password (if applicable)";
+	public string SeedPasswordCaption => ImportAccountStrings.SeedPasswordCaption;
 
 	public string SeedPassword
 	{
@@ -88,7 +88,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public bool SeedPasswordHasWhitespace => this.SeedPassword.Any(char.IsWhiteSpace);
 
-	public string SeedPasswordWhitespaceWarning => "The password includes whitespace. This is not recommended.";
+	public string SeedPasswordWhitespaceWarning => ImportAccountStrings.SeedPasswordWhitespaceWarning;
 
 	public bool IsSeed
 	{
@@ -118,7 +118,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		}
 	}
 
-	public string IsTestNetCaption => "This is a testnet account";
+	public string IsTestNetCaption => ImportAccountStrings.IsTestNetCaption;
 
 	public bool IsTestNetVisible => this.IsSeed;
 
@@ -129,11 +129,11 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		set => this.RaiseAndSetIfChanged(ref this.birthdayHeight, value);
 	}
 
-	public string BirthdayHeightCaption => "Birthday height";
+	public string BirthdayHeightCaption => ImportAccountStrings.BirthdayHeightCaption;
 
 	public ulong MinimumBirthdayHeight => this.NetworkParameters.SaplingActivationHeight;
 
-	public string ImportCommandCaption => "Import";
+	public string ImportCommandCaption => ImportAccountStrings.ImportCommandCaption;
 
 	public ReactiveCommand<Unit, Account?> ImportCommand { get; }
 
@@ -165,7 +165,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		this.inputIsValidKey = this.mnemonic is null && ZcashAccount.TryImportAccount(this.Key, out _);
 		bool isValidInput = this.mnemonic is not null || this.inputIsValidKey;
 
-		this.RecordValidationError(this.Key.Length == 0 || isValidInput ? null : Strings.BadOrUnsupportedImportKey, nameof(this.Key));
+		this.RecordValidationError(this.Key.Length == 0 || isValidInput ? null : ImportAccountStrings.BadOrUnsupportedImportKey, nameof(this.Key));
 	}
 
 	private bool TryInitializeMnemonic()
