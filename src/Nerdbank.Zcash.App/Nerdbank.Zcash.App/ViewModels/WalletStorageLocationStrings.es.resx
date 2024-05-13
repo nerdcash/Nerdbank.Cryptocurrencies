@@ -124,6 +124,6 @@
     <value>El cifrado no está disponible en este dispositivo para proteger su billetera.</value>
   </data>
   <data name="WalletStorageLocation" xml:space="preserve">
-    <value>Ubicación de almacenamiento de billetera: "{ruta}".</value>
+    <value>Ubicación de almacenamiento de billetera: "{Path}".</value>
   </data>
 </root>

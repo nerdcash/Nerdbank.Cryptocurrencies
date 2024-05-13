@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AddressNetworkMismatch" xml:space="preserve">
-    <value>Этот адрес использует {AddicTicker} on {AdaderNetwork}, но выбранная учетная запись использует {AccountTicker} на {AccountNetwork}.</value>
+    <value>Этот адрес использует {AddressTicker} on {AddressNetwork}, но выбранная учетная запись использует {AccountTicker} на {AccountNetwork}.</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
     <value>Эзкаш</value>

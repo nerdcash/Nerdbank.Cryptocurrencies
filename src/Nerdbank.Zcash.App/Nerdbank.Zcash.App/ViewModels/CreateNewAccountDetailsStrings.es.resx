@@ -133,7 +133,7 @@
     <value>Una frase semilla, red e índice de cuentas juntos puede recrear cualquier cuenta y descubrir el historial de transacciones y gastar el saldo. La altura de cumpleaños original es importante para recuperar transacciones pasadas y fondos disponibles.</value>
   </data>
   <data name="MainNetCaption" xml:space="preserve">
-    <value>REAL ZCASH ({Ticker})</value>
+    <value>Real Zcash ({Ticker})</value>
   </data>
   <data name="NameCaption" xml:space="preserve">
     <value>Nombre de la cuenta</value>

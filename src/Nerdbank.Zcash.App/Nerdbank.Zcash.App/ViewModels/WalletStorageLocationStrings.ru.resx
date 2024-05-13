@@ -124,6 +124,6 @@
     <value>Шифрование недоступно на этом устройстве для защиты вашего кошелька.</value>
   </data>
   <data name="WalletStorageLocation" xml:space="preserve">
-    <value>Расположение хранения кошелька: "{path}".</value>
+    <value>Расположение хранения кошелька: "{Path}".</value>
   </data>
 </root>

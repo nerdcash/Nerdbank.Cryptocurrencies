@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AboutHeading" xml:space="preserve">
-    <value>Acerca de {appTitle}</value>
+    <value>Acerca de {AppTitle}</value>
   </data>
   <data name="Donate" xml:space="preserve">
     <value>Donar</value>
@@ -139,7 +139,7 @@
     <value>Estás usando la versión</value>
   </data>
   <data name="DonationMemo" xml:space="preserve">
-    <value>Gracias por {appTitle}.</value>
+    <value>Gracias por {AppTitle}.</value>
   </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Capacidades de billetera</value>

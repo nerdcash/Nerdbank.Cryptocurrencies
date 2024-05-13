@@ -121,7 +121,7 @@
     <value>Детали оплаты</value>
   </data>
   <data name="AddressAssignedToContactExplanation" xml:space="preserve">
-    <value>Этот приемный адрес предназначен только для ** {name} **.</value>
+    <value>Этот приемный адрес предназначен только для ** {Name} **.</value>
   </data>
   <data name="CopyTextPrompt" xml:space="preserve">
     <value>Скопируйте текст ниже, чтобы поделиться без камеры.</value>

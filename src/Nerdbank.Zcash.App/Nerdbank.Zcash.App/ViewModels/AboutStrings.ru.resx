@@ -124,7 +124,7 @@
     <value>Пожертвовать</value>
   </data>
   <data name="DonationMemo" xml:space="preserve">
-    <value>Спасибо за {apptitle}.</value>
+    <value>Спасибо за {AppTitle}.</value>
   </data>
   <data name="GetSupport" xml:space="preserve">
     <value>Получать поддержку</value>

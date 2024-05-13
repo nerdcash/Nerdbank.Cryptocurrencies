@@ -121,7 +121,7 @@
     <value>Добро пожаловать в Эзкаш!</value>
   </data>
   <data name="DefaultNameForFirstAccountWithTicker" xml:space="preserve">
-    <value>Main {тикер}</value>
+    <value>Main {Ticker}</value>
   </data>
   <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
     <value>Главный HD</value>

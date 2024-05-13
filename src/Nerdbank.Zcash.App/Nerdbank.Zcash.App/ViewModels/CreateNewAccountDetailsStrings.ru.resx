@@ -133,7 +133,7 @@
     <value>Семенная фраза, сеть и индекс счетов вместе могут воссоздать любую учетную запись и обнаружить историю транзакций и потратить баланс. Первоначальная высота дня рождения важна для восстановления прошлых транзакций и доступных средств.</value>
   </data>
   <data name="MainNetCaption" xml:space="preserve">
-    <value>Real Zcash ({тикер})</value>
+    <value>Real Zcash ({Ticker})</value>
   </data>
   <data name="NameCaption" xml:space="preserve">
     <value>Имя учетной записи</value>
@@ -145,7 +145,7 @@
     <value>Установите высоту для новой учетной записи</value>
   </data>
   <data name="TestNetCaption" xml:space="preserve">
-    <value>Играй деньги ({тикер})</value>
+    <value>Играй деньги ({Ticker})</value>
   </data>
   <data name="TestNetExplanation" xml:space="preserve">
     <value>Таз бесполезен, но может быть полезен при изучении того, как использовать Zcash. Вы можете бесплатно получить Taz из крана.</value>
