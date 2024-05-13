@@ -180,9 +180,6 @@
   <data name="LengthRangeNotMet" xml:space="preserve">
     <value>Este valor debe tener una longitud de {minimum}-{maximum}.</value>
   </data>
-  <data name="NotEnoughEntropy" xml:space="preserve">
-    <value>La entropía es demasiado corta. Se requieren al menos {minimum} bytes.</value>
-  </data>
   <data name="ErrorFromNativeSide" xml:space="preserve">
     <value>Se produjo un error no asignado en la capa de interoperabilidad.</value>
   </data>
