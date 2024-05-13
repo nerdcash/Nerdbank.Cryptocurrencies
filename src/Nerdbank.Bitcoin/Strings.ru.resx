@@ -133,7 +133,7 @@
     <value>Этот полученный ключ недействителен для статистически очень невероятной причины. Пожалуйста, перейдите к следующему ребенку.</value>
   </data>
   <data name="VeryUnlikelyUnvalidChildKeyOnPath" xml:space="preserve">
-    <value>Отказ генерации ключей в {Keypath}.</value>
+    <value>Отказ генерации ключей в {keyPath}.</value>
   </data>
   <data name="WordNotOnWordList" xml:space="preserve">
     <value>Слово '{word}' не отображается в разрешенном списке слов.</value>
