@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccountIndexOptionDescription" xml:space="preserve">
+    <value>Индекс учетной записи для создания.</value>
+  </data>
+  <data name="AccountsCommandDescription" xml:space="preserve">
+    <value>Список всех учетных записей, известных в базе данных.</value>
+  </data>
+  <data name="BadSeedPhraseLength" xml:space="preserve">
+    <value>Длина семян длина должна быть не менее 24, а кратная 3.</value>
+  </data>
+  <data name="BalanceCommandDescription" xml:space="preserve">
+    <value>Отчеты о балансах для каждого бассейна.</value>
+  </data>
+  <data name="BirthdayHeightOptionDescription" xml:space="preserve">
+    <value>Принуждает конкретный рост дня рождения записан в новой учетной записи. По умолчанию это будет текущая длина блокчейна, если в режиме онлайн.</value>
+  </data>
+  <data name="ContinuallyOptionDescription" xml:space="preserve">
+    <value>Скачайте блокчейн постоянно, наблюдая за новыми блоками по мере их добавления.</value>
+  </data>
+  <data name="HistoryCommandDescription" xml:space="preserve">
+    <value>Перечислите транзакции из блокчейна, принадлежащего этому кошельку.</value>
+  </data>
+  <data name="HistoryStartingBlockOptionDescription" xml:space="preserve">
+    <value>Первый блок, чьи транзакции должны быть включены в список транзакций.</value>
+  </data>
+  <data name="ImportAccountCommandDescription" xml:space="preserve">
+    <value>Создает новую учетную запись на основе ключа просмотра.</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>Адрес диаграмма ошибок: "{Adder}". {ошибка}</value>
+  </data>
+  <data name="InvalidSeedPhrase" xml:space="preserve">
+    <value>Неверная начальная фраза.</value>
+  </data>
+  <data name="KeyArgumentDescription" xml:space="preserve">
+    <value>Ключ для просмотра на основе новой учетной записи.</value>
+  </data>
+  <data name="LightServerUrlOptionDescription" xml:space="preserve">
+    <value>URL -адрес на сервере Lightwallet для запроса на длину цепи блока для печати высоты дня рождения. По умолчанию зависит от того, генерируется ли генерация для Mainnet или Testnet.</value>
+  </data>
+  <data name="NewAccountCommandDescription" xml:space="preserve">
+    <value>Создает новую учетную запись Zcash.</value>
+  </data>
+  <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
+    <value>Путь к файлу кошелька для создания.</value>
+  </data>
+  <data name="NoSyncOption" xml:space="preserve">
+    <value>Не загружайте последние блоки в блокчейне. Это ускорит команду, но может привести ее к сбою или сообщать о устаревших данных.</value>
+  </data>
+  <data name="NotAUnifiedAddress" xml:space="preserve">
+    <value>Это не единый адрес.</value>
+  </data>
+  <data name="NoUnshieldedFunds" xml:space="preserve">
+    <value>Нет прозрачных средств для защиты.</value>
+  </data>
+  <data name="OfflineOptionDescription" xml:space="preserve">
+    <value>Подавляет все сетевые коммуникации. В частности, это подавит отображение высоты дня рождения для новой учетной записи.</value>
+  </data>
+  <data name="PasswordOptionDescription" xml:space="preserve">
+    <value>Пароль в дополнение к семенной фразе, которая разблокирует учетную запись. В то время как любая фраза подойдет, некоторые кошельки принимают только одно слово.</value>
+  </data>
+  <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
+    <value>Сумма для запроса на конкретный платеж.</value>
+  </data>
+  <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
+    <value>Переключатель {SwitchName} должен иметь такое же количество аргументов, что и количество Payees ({ожидаемо}), но имел {фактическое}.</value>
+  </data>
+  <data name="RequestPaymentCommandDescription" xml:space="preserve">
+    <value>Создайте URI запроса на оплату и, необязательно, QR -код.</value>
+  </data>
+  <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
+    <value>Человеческая читаемая этикетка, которая идентифицирует полученный адрес.</value>
+  </data>
+  <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
+    <value>Меморандум, связанная с конкретным платежом.</value>
+  </data>
+  <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
+    <value>Человеческое читаемое сообщение, связанное с конкретным платежом.</value>
+  </data>
+  <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
+    <value>Zcash Address (ES) для получения платежей.</value>
+  </data>
+  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
+    <value>Путь к изображению для сохранения с QR -кодом.</value>
+  </data>
+  <data name="RootCommandDescription" xml:space="preserve">
+    <value>Выполняет операции Zcash.</value>
+  </data>
+  <data name="SeedLengthAndSeedPhraseNotAllowed" xml:space="preserve">
+    <value>Не указывайте как семенную фразу, так и длину для полученной семенной фразы.</value>
+  </data>
+  <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
+    <value>Количество слов в сгенерированной семенной фразе. Должно быть 24 или более, а также кратное 3.</value>
+  </data>
+  <data name="SeedPhraseOptionDescription" xml:space="preserve">
+    <value>Используйте определенную семенную фразу. Укажите один как аргумент, иначе подсказка будет собирать его интерактивно.</value>
+  </data>
+  <data name="SeedPhrasePrompt" xml:space="preserve">
+    <value>Введите семенную фразу:</value>
+  </data>
+  <data name="SelectedAccountArgumentDescription" xml:space="preserve">
+    <value>Определяет учетную запись для работы, учитывая его адрес по умолчанию.</value>
+  </data>
+  <data name="SendAmountArgumentDescription" xml:space="preserve">
+    <value>Сумма для отправки (в ZEC).</value>
+  </data>
+  <data name="SendCommandDescription" xml:space="preserve">
+    <value>Отправляет Zcash по данному адресу.</value>
+  </data>
+  <data name="SendFeeOptionDescription" xml:space="preserve">
+    <value>Переопределяет расчет платы по умолчанию с определенным значением (в ZEC).</value>
+  </data>
+  <data name="SendMemoOptionDescription" xml:space="preserve">
+    <value>Памятка включает в транзакцию.</value>
+  </data>
+  <data name="SendRecipientArgumentDescription" xml:space="preserve">
+    <value>Адрес для получения средств.</value>
+  </data>
+  <data name="ShieldAllOptionDescription" xml:space="preserve">
+    <value>Прозрачные средства щита от всех прозрачных адресов, а не только один. Экранирование всех прозрачных адресов одновременно может позволить другим соотносить ваши прозрачные адреса с помощью общественной информации на блокчейне. Конфиденциальность улучшается, добавляя случайные задержки между экранированием каждого прозрачного адреса. Эти задержки должны быть в * по меньшей мере *, чтобы гарантировать, что каждая транзакция находится в своем собственном блоке.</value>
+  </data>
+  <data name="ShieldCommandDescription" xml:space="preserve">
+    <value>Щиты прозрачные фонды. Код выхода 1 указывает на то, что дополнительные прозрачные адреса остаются при защите ненулевых уравностей.</value>
+  </data>
+  <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
+    <value>Индекс учетной записи под семенной фразой, используемый для генерации ключа расходов.</value>
+  </data>
+  <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
+    <value>Семенная фраза, используемая для генерации ключа расходов.</value>
+  </data>
+  <data name="SyncCommandDescription" xml:space="preserve">
+    <value>Загрузка транзакций с блокчейна.</value>
+  </data>
+  <data name="TestNetOptionDescription" xml:space="preserve">
+    <value>Указывает, что учетная запись будет использоваться в Testnet вместо Mainnet.</value>
+  </data>
+  <data name="UACommandDescription" xml:space="preserve">
+    <value>Кодирует или декодирует адреса UA.</value>
+  </data>
+  <data name="UAConstructCommandDescription" xml:space="preserve">
+    <value>Создает единый адрес из набора приемников.</value>
+  </data>
+  <data name="UAConstructReceiversArgumentDescription" xml:space="preserve">
+    <value>Приемники включают в единый адрес.</value>
+  </data>
+  <data name="UAParseArgumentDescription" xml:space="preserve">
+    <value>Унифицированный адрес, который будет декодирован.</value>
+  </data>
+  <data name="UAParseCommandDescription" xml:space="preserve">
+    <value>Подготовки UA в адрес его компонентных приемников.</value>
+  </data>
+  <data name="UnrecognizedKeyFormat" xml:space="preserve">
+    <value>Этот ключевой формат не распознается.</value>
+  </data>
+  <data name="WalletPathArgumentDescription" xml:space="preserve">
+    <value>Путь к файлу кошелька.</value>
+  </data>
+</root>
