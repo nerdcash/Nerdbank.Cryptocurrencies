@@ -34,35 +34,35 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public UpdatingViewModel SelfUpdating => this.viewModelServices.App.SelfUpdating;
 
-	public string ReceiveCommandCaption => "📥 Receive";
+	public string ReceiveCommandCaption => HomeScreenStrings.ReceiveCommandCaption;
 
 	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }
 
-	public string ReceiveExplanation => "Share your Zcash address or a payment request with others so they can send you Zcash.";
+	public string ReceiveExplanation => HomeScreenStrings.ReceiveExplanation;
 
-	public string SendCommandCaption => "📤 Send";
+	public string SendCommandCaption => HomeScreenStrings.SendCommandCaption;
 
 	public ReactiveCommand<Unit, SendingViewModel> SendCommand { get; }
 
-	public string SendExplanation => "Send someone Zcash.";
+	public string SendExplanation => HomeScreenStrings.SendExplanation;
 
-	public string BalanceCommandCaption => "⚖️ Balance";
+	public string BalanceCommandCaption => HomeScreenStrings.BalanceCommandCaption;
 
 	public ReactiveCommand<Unit, BalanceViewModel> BalanceCommand { get; }
 
-	public string BalanceExplanation => "Check your balance.";
+	public string BalanceExplanation => HomeScreenStrings.BalanceExplanation;
 
-	public string HistoryCommandCaption => "📜 History";
+	public string HistoryCommandCaption => HomeScreenStrings.HistoryCommandCaption;
 
 	public ReactiveCommand<Unit, HistoryViewModel> HistoryCommand { get; }
 
-	public string HistoryExplanation => "See your transaction history.";
+	public string HistoryExplanation => HomeScreenStrings.HistoryExplanation;
 
 	public bool IsBackupCommandPromoted => this.isBackupCommandPromoted.Value;
 
-	public string BackupCommandCaption => "🗻 Backup your wallet";
+	public string BackupCommandCaption => HomeScreenStrings.BackupCommandCaption;
 
 	public ReactiveCommand<Unit, BackupViewModel> BackupCommand { get; }
 
-	public string BackupExplanation => "No bank is backing your Zcash for you. If you lose this device, you lose your Zcash. Back up your wallet to protect your Zcash or use it from multiple devices.";
+	public string BackupExplanation => HomeScreenStrings.BackupExplanation;
 }

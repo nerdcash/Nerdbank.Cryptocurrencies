@@ -23,7 +23,7 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 		}
 		else
 		{
-			this.GroupName = Strings.LoneAccountGroupName;
+			this.GroupName = AccountStrings.LoneAccountGroupName;
 		}
 	}
 
@@ -48,13 +48,13 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 
 	public bool IsIndexVisible => this.Account.ZcashAccount.HDDerivation is not null;
 
-	public string IndexCaption => "Account index:";
+	public string IndexCaption => AccountStrings.IndexCaption;
 
 	public uint? Index => this.Account.ZcashAccount.HDDerivation?.AccountIndex;
 
 	public bool IsBirthdayHeightVisible => this.Account.ZcashAccount.BirthdayHeight is not null;
 
-	public string BirthdayHeightCaption => "Birthday height:";
+	public string BirthdayHeightCaption => AccountStrings.BirthdayHeightCaption;
 
 	public ulong? BirthdayHeight => this.Account.ZcashAccount.BirthdayHeight;
 
@@ -66,13 +66,13 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 		set => this.RaiseAndSetIfChanged(ref this.areKeysRevealed, value);
 	}
 
-	public string FullViewingKeyCaption => "Full viewing key";
+	public string FullViewingKeyCaption => AccountStrings.FullViewingKeyCaption;
 
 	public string? FullViewingKey { get; }
 
-	public string IncomingViewingKeyCaption => "Incoming viewing key";
+	public string IncomingViewingKeyCaption => AccountStrings.IncomingViewingKeyCaption;
 
 	public string IncomingViewingKey { get; }
 
-	public string RevealKeysCommandCaption => "Reveal keys";
+	public string RevealKeysCommandCaption => AccountStrings.RevealKeysCommandCaption;
 }

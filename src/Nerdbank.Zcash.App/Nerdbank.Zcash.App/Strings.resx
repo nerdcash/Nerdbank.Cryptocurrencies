@@ -120,73 +120,13 @@
   <data name="AddressNetworkMismatch" xml:space="preserve">
     <value>This address uses {AddressTicker} on {AddressNetwork}, but the selected account uses {AccountTicker} on {AccountNetwork}.</value>
   </data>
-  <data name="AppGreeting" xml:space="preserve">
-    <value>Welcome to eZcash!</value>
-  </data>
   <data name="AppTitle" xml:space="preserve">
     <value>eZcash</value>
-  </data>
-  <data name="BadOrUnsupportedImportKey" xml:space="preserve">
-    <value>This doesn't look like a valid, supported key or seed phrase.</value>
-  </data>
-  <data name="DefaultNameForFirstAccountWithTicker" xml:space="preserve">
-    <value>Main {Ticker}</value>
-  </data>
-  <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
-    <value>Main HD</value>
-  </data>
-  <data name="DefaultNameForFirstImportedAccount" xml:space="preserve">
-    <value>Main</value>
-  </data>
-  <data name="DonationMemo" xml:space="preserve">
-    <value>Thank you for {AppTitle}.</value>
-  </data>
-  <data name="DownloadingUpdate" xml:space="preserve">
-    <value>Downloading v{0}</value>
-  </data>
-  <data name="FirstLaunchWalletCapabilitiesCommandCaption" xml:space="preserve">
-    <value>Review wallet capabilities for compatibility.</value>
-  </data>
-  <data name="ImportWalletButtonText" xml:space="preserve">
-    <value>Import an existing wallet</value>
-  </data>
-  <data name="ImportWalletExplanation" xml:space="preserve">
-    <value>Choose this if you have a seed phrase (typically 24 words) or a particular key that you've saved from another wallet.</value>
   </data>
   <data name="InvalidAddress" xml:space="preserve">
     <value>This isn't a valid Zcash address</value>
   </data>
-  <data name="LoneAccountGroupName" xml:space="preserve">
-    <value>Imported accounts</value>
-  </data>
-  <data name="SaplingReceivingAddressHeader" xml:space="preserve">
-    <value>Sapling</value>
-  </data>
-  <data name="ServerNetworkMismatch" xml:space="preserve">
-    <value>This URL serves the {0} network.</value>
-  </data>
-  <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
-    <value>Wallet capabilities</value>
-  </data>
-  <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
-    <value>Create a new wallet (advanced)...</value>
-  </data>
-  <data name="StartNewWalletButtonText" xml:space="preserve">
-    <value>Create a new wallet</value>
-  </data>
-  <data name="StartNewWalletExplanation" xml:space="preserve">
-    <value>Choose this if you've never used a Zcash wallet before.</value>
-  </data>
   <data name="TestNetIsWorthlessWarning" xml:space="preserve">
     <value>The account you have selected uses the test network. Zcash on the test network has no value.</value>
-  </data>
-  <data name="TransparentAddressSubheading" xml:space="preserve">
-    <value>When funds are sent to this address, anyone can see the address and amount. They will be shielded upon receipt to improve your privacy.</value>
-  </data>
-  <data name="TransparentReceivingAddressHeader" xml:space="preserve">
-    <value>Transparent</value>
-  </data>
-  <data name="UnifiedReceivingAddressHeader" xml:space="preserve">
-    <value>Unified</value>
   </data>
 </root>

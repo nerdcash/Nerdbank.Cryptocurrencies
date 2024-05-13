@@ -29,11 +29,11 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		this.RemoveWhitespaceCommand = ReactiveCommand.Create(this.RemoveWhitespace, containsWhitespace);
 	}
 
-	public string Title => "Create new wallet";
+	public string Title => CreateNewWalletStrings.Title;
 
-	public string Introduction => "A new wallet will be created for you. It will be based on a secret you can write down later to restore your wallet on another device or wallet app.";
+	public string Introduction => CreateNewWalletStrings.Introduction;
 
-	public string PasswordCaption => "Password";
+	public string PasswordCaption => CreateNewWalletStrings.PasswordCaption;
 
 	public string Password
 	{
@@ -41,15 +41,15 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.password, value);
 	}
 
-	public string PasswordExplanation => "A password is optional. If specified, it is effectively an extra word in your seed phrase that is required to restore access to your funds on another device or wallet app. This password is not required on every launch of this app.";
+	public string PasswordExplanation => CreateNewWalletStrings.PasswordExplanation;
 
 	public bool PasswordContainsWhitespace => this.passwordContainsWhitespace.Value;
 
-	public string PasswordContainsWhitespaceWarning => "Warning: whitespace detected in password. This may prevent you from restoring your wallet in other apps.";
+	public string PasswordContainsWhitespaceWarning => CreateNewWalletStrings.PasswordContainsWhitespaceWarning;
 
 	public ReactiveCommand<Unit, Unit> RemoveWhitespaceCommand { get; }
 
-	public string RemoveWhitespaceCommandCaption => "Remove whitespace from password";
+	public string RemoveWhitespaceCommandCaption => CreateNewWalletStrings.RemoveWhitespaceCommandCaption;
 
 	public bool IsTestNet
 	{
@@ -57,9 +57,9 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.isTestNet, value);
 	}
 
-	public string IsTestNetCaption => "Create this on testnet (TAZ). This is NOT for real Zcash (ZEC).";
+	public string IsTestNetCaption => CreateNewWalletStrings.IsTestNetCaption;
 
-	public string CreateAccountButtonText => "Create account";
+	public string CreateAccountButtonText => CreateNewWalletStrings.CreateAccountButtonText;
 
 	public ReactiveCommand<Unit, Account> CreateAccountCommand { get; }
 

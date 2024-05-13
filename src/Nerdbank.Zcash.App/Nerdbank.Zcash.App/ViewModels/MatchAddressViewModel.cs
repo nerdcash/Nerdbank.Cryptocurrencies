@@ -25,11 +25,11 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 		this.WhenAnyPropertyChanged(nameof(this.Address)).Subscribe(_ => this.DoMatch());
 	}
 
-	public string Title => $"Match Address";
+	public string Title => MatchAddressStrings.Title;
 
-	public string Explanation => "Use this tool to find who owns a particular Zcash address. It can match on any of your own addresses, or on any of your contacts' addresses.";
+	public string Explanation => MatchAddressStrings.Explanation;
 
-	public string AddressWatermark => "Zcash address";
+	public string AddressWatermark => MatchAddressStrings.AddressWatermark;
 
 	[Required, ZcashAddress]
 	public string Address
@@ -44,13 +44,13 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 		private set => this.RaiseAndSetIfChanged(ref this.match, value);
 	}
 
-	public string MatchedContactTitle => "✅ Matched contact";
+	public string MatchedContactTitle => "✅ " + MatchAddressStrings.MatchedContactTitle;
 
-	public string MatchedAccountTitle => "✅ Matched account";
+	public string MatchedAccountTitle => "✅ " + MatchAddressStrings.MatchedAccountTitle;
 
-	public string NoMatchTitle => "❌ No match";
+	public string NoMatchTitle => "❌ " + MatchAddressStrings.NoMatchTitle;
 
-	public string DiversifiedAddressShownToContactCaption => "This address was shown to this contact:";
+	public string DiversifiedAddressShownToContactCaption => MatchAddressStrings.DiversifiedAddressShownToContactCaption;
 
 	private void DoMatch()
 	{

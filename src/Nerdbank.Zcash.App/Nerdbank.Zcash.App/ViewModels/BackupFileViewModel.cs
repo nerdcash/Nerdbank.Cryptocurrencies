@@ -28,19 +28,19 @@ public class BackupFileViewModel : ViewModelBase
 		this.LinkProperty(nameof(this.EnableHidingPassword), nameof(this.ConcealPasswordChar));
 	}
 
-	public string BackupCommandCaption => "Backup to file";
+	public string BackupCommandCaption => BackupFileStrings.BackupCommandCaption;
 
 	public ReactiveCommand<Unit, Unit> BackupCommand { get; }
 
-	public string BackupToFileExplanation => "Backing up your wallet will save your seed phrase, contacts and transaction history, allowing you to restore your wallet completely and quickly on another device.";
+	public string BackupToFileExplanation => BackupFileStrings.BackupToFileExplanation;
 
-	public string BackupFilePasswordCaption => "Protect your backup file with a secure password:";
+	public string BackupFilePasswordCaption => BackupFileStrings.BackupFilePasswordCaption;
 
-	public string GenerateSecurePasswordCaption => "Generate secure password";
+	public string GenerateSecurePasswordCaption => BackupFileStrings.GenerateSecurePasswordCaption;
 
 	public ReactiveCommand<Unit, Unit> GenerateSecurePasswordCommand { get; }
 
-	public string BackupFilePasswordExplanation => "You will need to enter this password when restoring your wallet. If you forget this password, you will not be able to restore your wallet. Anyone with the backup file and the password will be able to spend your Zcash and view all your transactions.";
+	public string BackupFilePasswordExplanation => BackupFileStrings.BackupFilePasswordExplanation;
 
 	public string BackupFilePassword
 	{
@@ -55,7 +55,7 @@ public class BackupFileViewModel : ViewModelBase
 		}
 	}
 
-	public string BackupFilePasswordWatermark => "Password";
+	public string BackupFilePasswordWatermark => BackupFileStrings.BackupFilePasswordWatermark;
 
 	public bool EnableHidingPassword
 	{

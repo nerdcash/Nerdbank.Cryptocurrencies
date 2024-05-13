@@ -47,7 +47,7 @@ public class ReceivingAddress : IDisposable
 
 	public string Header { get; }
 
-	public string? Subheading => !this.Address.HasShieldedReceiver ? Strings.TransparentAddressSubheading : null;
+	public string? Subheading => !this.Address.HasShieldedReceiver ? ReceivingStrings.TransparentAddressSubheading : null;
 
 	public Bitmap? QRCode { get; }
 
@@ -57,7 +57,7 @@ public class ReceivingAddress : IDisposable
 
 	public string ShortText { get; }
 
-	public string CopyTextPrompt => "Copy the text below to share without a camera.";
+	public string CopyTextPrompt => ReceivingStrings.CopyTextPrompt;
 
 	public ReactiveCommand<Unit, Unit> CopyCommand { get; }
 

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="*.resx" EmitFormatMethods="true" />
+    <EmbeddedResource Update="**\*.resx" EmitFormatMethods="true" />
   </ItemGroup>
 
   <ItemGroup>

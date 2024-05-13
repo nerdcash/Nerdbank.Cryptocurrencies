@@ -28,7 +28,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 		this.lightServerUrlTestNet = this.viewModelServices.Settings.LightServerUrlTestNet.AbsoluteUri;
 	}
 
-	public string Title => "Settings";
+	public string Title => SettingsStrings.Title;
 
 	public Security AlternateCurrency
 	{
@@ -43,15 +43,15 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 		}
 	}
 
-	public string AlternateCurrencyCaption => "Preferred alternate currency";
+	public string AlternateCurrencyCaption => SettingsStrings.AlternateCurrencyCaption;
 
-	public string AlternateCurrencyExplanation => "The alternate currency is used to display the value of Zcash in a more familiar unit. The value of Zcash is volatile, so the value in your alternate currency may change rapidly.";
+	public string AlternateCurrencyExplanation => SettingsStrings.AlternateCurrencyExplanation;
 
 	public List<Security> AlternateCurrencies { get; } = Security.WellKnown.Values.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
 
-	public string AdvancedExpanderHeader => "Advanced";
+	public string AdvancedExpanderHeader => SettingsStrings.AdvancedExpanderHeader;
 
-	public string LightServerUrlMainNetCaption => "Light server URL (MainNet)";
+	public string LightServerUrlMainNetCaption => SettingsStrings.LightServerUrlMainNetCaption;
 
 	[Uri]
 	public string LightServerUrlMainNet
@@ -70,7 +70,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 		}
 	}
 
-	public string LightServerUrlTestNetCaption => "Light server URL (TestNet)";
+	public string LightServerUrlTestNetCaption => SettingsStrings.LightServerUrlTestNetCaption;
 
 	[Uri]
 	public string LightServerUrlTestNet
@@ -122,7 +122,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 			}
 			else
 			{
-				this.RecordValidationError(Strings.FormatServerNetworkMismatch(client.Network), propertyName);
+				this.RecordValidationError(SettingsStrings.FormatServerNetworkMismatch(client.Network), propertyName);
 			}
 		}
 		catch (LightWalletException ex)

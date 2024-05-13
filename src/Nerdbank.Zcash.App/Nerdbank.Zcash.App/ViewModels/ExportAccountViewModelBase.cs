@@ -21,15 +21,15 @@ public abstract class ExportAccountViewModelBase : ViewModelBase
 
 	public Account Account { get; }
 
-	public string BirthdayHeightCaption => "Birthday height";
+	public string BirthdayHeightCaption => ExportAccountStrings.BirthdayHeightCaption;
 
 	public ulong? BirthdayHeight { get; }
 
-	public string RebirthHeightCaption => "Rebirth height";
+	public string RebirthHeightCaption => ExportAccountStrings.RebirthHeightCaption;
 
 	public ulong? RebirthHeight => this.rebirthHeight.Value;
 
-	public string OptimizedBirthdayHeightCaption => "Birthday height (optimized)";
+	public string OptimizedBirthdayHeightCaption => ExportAccountStrings.OptimizedBirthdayHeightCaption;
 
 	public ulong? OptimizedBirthdayHeight => this.optimizedBirthdayHeight.Value;
 }

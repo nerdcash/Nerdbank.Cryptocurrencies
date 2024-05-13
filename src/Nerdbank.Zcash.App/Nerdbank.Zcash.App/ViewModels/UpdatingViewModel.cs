@@ -4,7 +4,7 @@
 using System.Reactive.Linq;
 using Velopack;
 
-namespace Nerdbank.Zcash.App;
+namespace Nerdbank.Zcash.App.ViewModels;
 
 public class UpdatingViewModel : ViewModelBase
 {

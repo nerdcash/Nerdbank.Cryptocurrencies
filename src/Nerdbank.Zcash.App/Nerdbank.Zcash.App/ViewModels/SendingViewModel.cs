@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reactive.Linq;
@@ -88,7 +87,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public bool IsSendingInProgress => this.isSendingInProgress.Value;
 
-	public string Title => "Send Zcash";
+	public string Title => SendingStrings.Title;
 
 	public SyncProgressData SyncProgress { get; }
 
@@ -98,13 +97,13 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		private set => this.RaiseAndSetIfChanged(ref this.areLineItemsValid, value);
 	}
 
-	public string FromAccountCaption => "From account:";
+	public string FromAccountCaption => SendingStrings.FromAccountCaption;
 
 	public string TestNetWarning => Strings.TestNetIsWorthlessWarning;
 
 	public bool IsTestNetWarningVisible => this.isTestNetWarningVisible.Value;
 
-	public string MutableMemoCaption => "Private memo";
+	public string MutableMemoCaption => SendingStrings.MutableMemoCaption;
 
 	public string MutableMemo
 	{
@@ -114,11 +113,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public ReadOnlyObservableCollection<LineItem> LineItems => this.lineItemsReadOnly;
 
-	public string AddLineItemCommandCaption => "➕ Add line item";
+	public string AddLineItemCommandCaption => SendingStrings.AddLineItemCommandCaption;
 
 	public ReactiveCommand<Unit, LineItem> AddLineItemCommand { get; }
 
-	public string FeeCaption => "Fee";
+	public string FeeCaption => SendingStrings.FeeCaption;
 
 	public SecurityAmount? Fee
 	{
@@ -128,7 +127,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public SecurityAmount? FeeAlternate => this.feeAlternate.Value;
 
-	public string SubtotalCaption => "Subtotal";
+	public string SubtotalCaption => SendingStrings.SubtotalCaption;
 
 	public SecurityAmount Subtotal
 	{
@@ -138,7 +137,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public SecurityAmount? SubtotalAlternate => this.subtotalAlternate.Value;
 
-	public string TotalCaption => "Total";
+	public string TotalCaption => SendingStrings.TotalCaption;
 
 	public SecurityAmount? Total
 	{
@@ -148,7 +147,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public SecurityAmount? TotalAlternate => this.totalAlternate.Value;
 
-	public string SendCommandCaption => "📤 Send";
+	public string SendCommandCaption => SendingStrings.SendCommandCaption;
 
 	public ReactiveCommand<Unit, Unit> SendCommand { get; }
 
@@ -523,9 +522,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public bool IsLineItemValid => this.isLineItemValid.Value;
 
-		public string RecipientAddressCaption => "Recipient:";
+		public string RecipientAddressCaption => SendingStrings.LineItem_RecipientAddressCaption;
 
-		public string RecipientBoxWatermark => "Zcash address or contact name";
+		public string RecipientBoxWatermark => SendingStrings.LineItem_RecipientBoxWatermark;
 
 		public bool IsRecipientLocked
 		{
@@ -556,7 +555,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			set => this.RaiseAndSetIfChanged(ref this.recipientLabel, value);
 		}
 
-		public string AmountCaption => "Amount:";
+		public string AmountCaption => SendingStrings.LineItem_AmountCaption;
 
 		public decimal? Amount
 		{
@@ -568,7 +567,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public bool IsMemoVisible => this.isMemoVisible.Value;
 
-		public string MemoCaption => "Memo (shared with recipient):";
+		public string MemoCaption => SendingStrings.LineItem_MemoCaption;
 
 		public string Memo
 		{
@@ -586,7 +585,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public bool IsScanCommandAvailable => this.ViewModelServices.IsScanCommandAvailable;
 
-		public string RemoveLineItemCommandCaption => "❌";
+		public string RemoveLineItemCommandCaption => SendingStrings.LineItem_RemoveLineItemCommandCaption;
 
 		public ReactiveCommand<Unit, Unit> RemoveLineItemCommand { get; }
 

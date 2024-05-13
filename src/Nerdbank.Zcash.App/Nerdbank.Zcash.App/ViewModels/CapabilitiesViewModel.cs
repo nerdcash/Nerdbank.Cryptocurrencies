@@ -5,17 +5,17 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class CapabilitiesViewModel : ViewModelBase
 {
-	public string CapabilitiesHeading => "Capabilities";
+	public string CapabilitiesHeading => CapabilitiesStrings.CapabilitiesHeading;
 
 	public ImmutableList<Capability> Capabilities { get; } = [
-		new(true, "Internal keys for shielding and change", "This protects the integrity of Incoming Viewing Keys (IVKs) so that they see no part of any spend transaction. After a wallet with this feature spends or shields funds, wallets that lack this feature will not see the full account balance."),
-		new(true, "ZIP-32 HD wallets", "A human-readable \"seed phrase\" unlocks your accounts."),
-		new(true, "Multiple accounts per seed phrase", "Use distinct accounts for spending and savings accounts while remembering or backing up just a single seed phrase."),
-		new(true, "Multi-recipient spends", "Reduces network fees and mandatory wait times between multiple spends."),
-		new(false, "Automatic shielded pool balancing", "This enhances privacy by reducing the likelihood that the value of a transaction (or a portion of it) will be publicly observable."),
+		new(true, CapabilitiesStrings.InternalKeys_Title, CapabilitiesStrings.InternalKeys_Description),
+		new(true, CapabilitiesStrings.Zip32_Title, CapabilitiesStrings.Zip32_Description),
+		new(true, CapabilitiesStrings.MultipleAccounts_Title, CapabilitiesStrings.MultipleAccounts_Description),
+		new(true, CapabilitiesStrings.Multispend_Title, CapabilitiesStrings.Multispend_Description),
+		new(false, CapabilitiesStrings.PoolBalancing_Title, CapabilitiesStrings.PoolBalancing_Description),
 		];
 
-	public string PoolsHeading => "Supported Pools";
+	public string PoolsHeading => CapabilitiesStrings.PoolsHeading;
 
 	public ImmutableList<PoolSupport> Pools { get; } = [
 		new(Pool.Transparent, true, true),
@@ -26,9 +26,9 @@ public class CapabilitiesViewModel : ViewModelBase
 
 	public string PoolColumnHeader => string.Empty;
 
-	public string CanSpendColumnHeader => "Can Spend";
+	public string CanSpendColumnHeader => CapabilitiesStrings.CanSpendColumnHeader;
 
-	public string CanReceiveColumnHeader => "Can Receive";
+	public string CanReceiveColumnHeader => CapabilitiesStrings.CanReceiveColumnHeader;
 
 	public record PoolSupport(Pool Pool, bool CanSpend, bool CanReceive);
 

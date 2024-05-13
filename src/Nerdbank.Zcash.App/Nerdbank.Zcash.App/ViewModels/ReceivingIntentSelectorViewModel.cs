@@ -27,15 +27,15 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 		this.proceedCaption = this.WhenAnyValue(
 			x => x.ReceiverIdentity,
 			x => x.PaymentRequestDetails.IsEmpty,
-			(receiverIdentity, emptyPaymentRequest) => emptyPaymentRequest ? (receiverIdentity.Length == 0 ? "I'm just looking" : "Show my address") : "Show the invoice")
+			(receiverIdentity, emptyPaymentRequest) => emptyPaymentRequest ? (receiverIdentity.Length == 0 ? ReceivingIntentSelectorStrings.JustLooking : ReceivingIntentSelectorStrings.ShowMyAddress) : ReceivingIntentSelectorStrings.ShowInvoice)
 			.ToProperty(this, nameof(this.ProceedCaption));
 	}
 
-	public string Title => "Receive Zcash";
+	public string Title => ReceivingIntentSelectorStrings.Title;
 
-	public string ReceivingAccountCaption => "Receiving account:";
+	public string ReceivingAccountCaption => ReceivingIntentSelectorStrings.ReceivingAccountCaption;
 
-	public string ReceiverIdentityLabel => "Who are you sharing your address with?";
+	public string ReceiverIdentityLabel => ReceivingIntentSelectorStrings.ReceiverIdentityLabel;
 
 	public string ReceiverIdentity
 	{
@@ -51,13 +51,13 @@ public class ReceivingIntentSelectorViewModel : ViewModelBaseWithAccountSelector
 
 	public ReadOnlyObservableCollection<Contact> SuggestedReceivers => this.ViewModelServices.ContactManager.Contacts;
 
-	public string ReceiverExplanation => "A unique address is generated every time you share your address with someone. This enhances your privacy and helps you identify where payments come from.";
+	public string ReceiverExplanation => ReceivingIntentSelectorStrings.ReceiverExplanation;
 
 	public string ProceedCaption => this.proceedCaption.Value;
 
 	public ReactiveCommand<Unit, Unit> ProceedCommand { get; }
 
-	public string PaymentRequestCaption => "Include payment request";
+	public string PaymentRequestCaption => ReceivingIntentSelectorStrings.PaymentRequestCaption;
 
 	public PaymentRequestDetailsViewModel PaymentRequestDetails { get; }
 

@@ -31,39 +31,37 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 		this.viewModelServices = viewModelServices;
 	}
 
-	public string Title => $"About {Strings.AppTitle}";
+	public string Title => AboutStrings.FormatAboutHeading(Strings.AppTitle);
 
-	public string Message => "This app is a Zcash wallet. It seeks to be the most intuitive wallet available, while being reliable, secure, and a champion of some of the best privacy features Zcash has to offer.";
+	public string Message => AboutStrings.Message;
 
 	public WalletStorageLocationViewModel WalletStorageLocation { get; }
 
-	public string LicenseCaption => "License";
+	public string LicenseCaption => AboutStrings.License;
 
-	public string License => """
-		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-		""";
+	public string License => AboutStrings.License;
 
-	public string SupportCommandCaption => "Get support";
+	public string SupportCommandCaption => AboutStrings.GetSupport;
 
 	public ReactiveCommand<Unit, Unit> SupportCommand { get; }
 
-	public string DonateCommandCaption => "Donate";
+	public string DonateCommandCaption => AboutStrings.Donate;
 
 	public ReactiveCommand<Unit, SendingViewModel> DonateCommand { get; }
 
-	public string ShowCapabilitiesCommandCaption => Strings.ShowCapabilitiesCommandCaption;
+	public string ShowCapabilitiesCommandCaption => AboutStrings.ShowCapabilitiesCommandCaption;
 
 	public ReactiveCommand<Unit, CapabilitiesViewModel> ShowCapabilitiesCommand { get; }
 
 	public string Version => ThisAssembly.AssemblyInformationalVersion;
 
-	public string VersionCaption => "You are using version";
+	public string VersionCaption => AboutStrings.Version;
 
 	public SendingViewModel Donate()
 	{
 		SendingViewModel viewModel = new(this.viewModelServices);
 		viewModel.LineItems[0].RecipientAddress = DonationReceiver;
-		viewModel.LineItems[0].Memo = Strings.FormatDonationMemo(Strings.AppTitle);
+		viewModel.LineItems[0].Memo = AboutStrings.FormatDonationMemo(Strings.AppTitle);
 
 		return this.viewModelServices.NavigateTo(viewModel);
 	}
