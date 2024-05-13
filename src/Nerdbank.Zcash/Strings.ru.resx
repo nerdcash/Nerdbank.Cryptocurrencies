@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
+    <value>Затвердевший ребенок не может быть получен из общественного расширенного ключа. Вместо этого используйте частный расширенный ключ.</value>
+  </data>
+  <data name="ErrorFromNativeSide" xml:space="preserve">
+    <value>Ошибка неизменности произошла по всему слою взаимодействия.</value>
+  </data>
+  <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
+    <value>Произошла ошибка при извлечении метаданных с сервера Lightwallet.</value>
+  </data>
+  <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
+    <value>Ключ унифицированного просмотра не включает тип ключа, необходимый для использования этого API.</value>
+  </data>
+  <data name="FullViewingKeyRequired" xml:space="preserve">
+    <value>Для имитации отправки требуется полный ключ для просмотра.</value>
+  </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>Для запрошенных расходов недостаточно средств: {Требуется} (включая сборы), но было доступно только {доступно}.</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>Этот адрес недействителен или непризнан.</value>
+  </data>
+  <data name="InvalidAddressChecksum" xml:space="preserve">
+    <value>Этот адрес имеет неверную контрольную сумму.</value>
+  </data>
+  <data name="InvalidAddressLength" xml:space="preserve">
+    <value>Этот адрес не соответствует требованиям длины.</value>
+  </data>
+  <data name="InvalidKey" xml:space="preserve">
+    <value>Неправильный ключ.</value>
+  </data>
+  <data name="InvalidNetworkHeader" xml:space="preserve">
+    <value>Этот адрес не указывает признанную сеть.</value>
+  </data>
+  <data name="InvalidPadding" xml:space="preserve">
+    <value>Контрольная сумма для этого адреса отсутствует или неверна.</value>
+  </data>
+  <data name="InvalidSaplingPreamble" xml:space="preserve">
+    <value>Саженец должен начинаться с «zs1» или «ztestsapling1».</value>
+  </data>
+  <data name="InvalidSproutPreamble" xml:space="preserve">
+    <value>Адрес раута должен начинаться с «zc» или «zt».</value>
+  </data>
+  <data name="InvalidXAddress" xml:space="preserve">
+    <value>Этот адрес {Addrestype} соответствует ожидаемым требованиям.</value>
+  </data>
+  <data name="LengthOutsideExpectedRange" xml:space="preserve">
+    <value>Ожидалось, что коллекция будет иметь длину внутри {minimum}-{maximum}, но было {фактическим}.</value>
+  </data>
+  <data name="LengthRangeNotMet" xml:space="preserve">
+    <value>Это значение должно иметь длину {минимум}-{максимум}.</value>
+  </data>
+  <data name="MemoDataTooLarge" xml:space="preserve">
+    <value>Предоставленные данные слишком велики, чтобы вписаться в поле «Памятник».</value>
+  </data>
+  <data name="MemoForTransparentReceiverNotSupported" xml:space="preserve">
+    <value>Никакая памятка не может быть предоставлена, когда приемник является прозрачным адресом.</value>
+  </data>
+  <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
+    <value>Все приемники должны поступать из одной и той же сети Zcash.</value>
+  </data>
+  <data name="MustUnderstandMetadataNotAllowedThisRevision" xml:space="preserve">
+    <value>Это кодирование содержит метаданные, которые не допускаются (тип кода {typecode}, revision {Revision}).</value>
+  </data>
+  <data name="NetworkMismatch" xml:space="preserve">
+    <value>Этот сервер настроен для использования в сети {ожидаемого}, но параметр ввода находится в сети {фактического}.</value>
+  </data>
+  <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
+    <value>Поддерживаются только закаленные ключи.</value>
+  </data>
+  <data name="OperationCanceled" xml:space="preserve">
+    <value>Операция была отменена.</value>
+  </data>
+  <data name="UnknownErrorAcrossInteropBoundary" xml:space="preserve">
+    <value>Произошла ошибка в двигателе Zcash.</value>
+  </data>
+  <data name="UnrecognizedAccount" xml:space="preserve">
+    <value>Эта учетная запись еще не была добавлена ​​в кошелек.</value>
+  </data>
+  <data name="UnrecognizedAddress" xml:space="preserve">
+    <value>Этот адрес не соответствует какому -либо известному формату.</value>
+  </data>
+  <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
+    <value>Это кодирование содержит метаданные, которые не поняты (тип кода: {typecode}).</value>
+  </data>
+  <data name="UnrecognizedNetwork" xml:space="preserve">
+    <value>Непознанная сеть '{сеть}'.</value>
+  </data>
+  <data name="UnrecognizedScheme" xml:space="preserve">
+    <value>Ожидаемое '{ожидаемое}' схема, но обнаружила «{фактическое}» вместо этого.</value>
+  </data>
+  <data name="UnsupportedTransactionVersion" xml:space="preserve">
+    <value>Неподдерживаемая версия транзакции {версия}.</value>
+  </data>
+</root>
