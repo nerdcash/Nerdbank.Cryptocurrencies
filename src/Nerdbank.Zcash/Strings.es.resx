@@ -162,10 +162,10 @@
   <data name="UnrecognizedAddress" xml:space="preserve">
     <value>Esta dirección no se ajusta a ningún formato conocido.</value>
   </data>
-  <data name="UnrecognizedNetwork" xml:space="preserve">
-    <value>Red no reconocida.</value>
+	<data name="UnrecognizedNetwork" xml:space="preserve">
+    <value>Red no reconocida '{network}'.</value>
   </data>
-  <data name="UnrecognizedScheme" xml:space="preserve">
+	<data name="UnrecognizedScheme" xml:space="preserve">
     <value>Se esperaba el esquema '{expected}' pero se encontró '{actual}' en su lugar.</value>
   </data>
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
@@ -184,13 +184,13 @@
     <value>Se produjo un error no asignado en la capa de interoperabilidad.</value>
   </data>
   <data name="NetworkMismatch" xml:space="preserve">
-    <value>Este servidor está configurado para su uso en la red {esperada}, pero el parámetro de entrada está en la red {actual}.</value>
+    <value>Este servidor está configurado para su uso en la red {expected}, pero el parámetro de entrada está en la red {actual}.</value>
   </data>
   <data name="UnrecognizedAccount" xml:space="preserve">
     <value>Esta cuenta aún no se ha agregado a la billetera.</value>
   </data>
   <data name="MustUnderstandMetadataNotAllowedThisRevision" xml:space="preserve">
-    <value>Esta codificación contiene metadatos que no están permitidos (tipo código {typecode}, revisión {revisión}).</value>
+    <value>Esta codificación contiene metadatos que no están permitidos (tipo código {typeCode}, revisión {revision}).</value>
   </data>
   <data name="OperationCanceled" xml:space="preserve">
     <value>La operación fue cancelada.</value>
@@ -199,7 +199,7 @@
     <value>Se produjo un error en el motor Zcash.</value>
   </data>
   <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
-    <value>Esta codificación contiene metadatos que no se entienden (tipo código: {typecode}).</value>
+    <value>Esta codificación contiene metadatos que no se entienden (tipo código: {typeCode}).</value>
   </data>
   <data name="MemoForTransparentReceiverNotSupported" xml:space="preserve">
     <value>No se puede proporcionar una nota cuando el receptor es una dirección transparente.</value>
@@ -208,6 +208,6 @@
     <value>Se requiere una clave de visualización completa para que una cuenta simule un envío.</value>
   </data>
   <data name="InsufficientFunds" xml:space="preserve">
-    <value>No hay fondos suficientes para el gasto solicitado: {requerido} se requeriría (incluidas las tarifas) pero solo {disponible} estaba disponible.</value>
+    <value>No hay fondos suficientes para el gasto solicitado: {required} se requeriría (incluidas las tarifas) pero solo {available} estaba disponible.</value>
   </data>
 </root>

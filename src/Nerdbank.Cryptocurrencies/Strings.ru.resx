@@ -121,7 +121,7 @@
     <value>Буфер тегов слишком маленький.</value>
   </data>
   <data name="CallResetFirst" xml:space="preserve">
-    <value>Этот объект не был поврежден с тех пор, как он был последним. Вызовите "{methodname}" Сначала.</value>
+    <value>Этот объект не был поврежден с тех пор, как он был последним. Вызовите "{methodName}" Сначала.</value>
   </data>
   <data name="DecodeInputTooShort" xml:space="preserve">
     <value>Длина ввода короче, чем минимум, необходимый для этого кодирования.</value>
@@ -142,7 +142,7 @@
     <value>Неверный путь получения ключа BIP-32.</value>
   </data>
   <data name="InvalidCharXFoundAtY" xml:space="preserve">
-    <value>Отклоненный символ '{символ}' найден в положении {position}.</value>
+    <value>Отклоненный символ '{character}' найден в положении {position}.</value>
   </data>
   <data name="InvalidChecksum" xml:space="preserve">
     <value>Неверная контрольная сумма.</value>

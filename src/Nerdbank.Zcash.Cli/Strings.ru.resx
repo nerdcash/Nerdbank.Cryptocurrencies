@@ -145,7 +145,7 @@
     <value>Создает новую учетную запись на основе ключа просмотра.</value>
   </data>
   <data name="InvalidAddress" xml:space="preserve">
-    <value>Адрес диаграмма ошибок: "{Adder}". {ошибка}</value>
+    <value>Адрес диаграмма ошибок: "{address}". {error}</value>
   </data>
   <data name="InvalidSeedPhrase" xml:space="preserve">
     <value>Неверная начальная фраза.</value>
@@ -181,7 +181,7 @@
     <value>Сумма для запроса на конкретный платеж.</value>
   </data>
   <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
-    <value>Переключатель {SwitchName} должен иметь такое же количество аргументов, что и количество Payees ({ожидаемо}), но имел {фактическое}.</value>
+    <value>Переключатель {switchName} должен иметь такое же количество аргументов, что и количество Payees ({expected}), но имел {actual}.</value>
   </data>
   <data name="RequestPaymentCommandDescription" xml:space="preserve">
     <value>Создайте URI запроса на оплату и, необязательно, QR -код.</value>
