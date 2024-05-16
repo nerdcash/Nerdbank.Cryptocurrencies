@@ -12,9 +12,14 @@ parameters:
 - name: desktopAppAgents
   type: object
   default:
-  - Windows
+  - Windows_velopack
   - Linux
-  - macOS
+  - macOS_velopack
+- name: publishPlatforms
+  type: object
+  default:
+  - x64
+  - ARM64
 
 jobs:
 - job: Windows
@@ -39,7 +44,19 @@ jobs:
     parameters:
       RunTests: ${{ parameters.RunTests }}
       osRID: win
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
+- job: Windows_velopack
+  displayName: Windows velopack
+  dependsOn: Windows
+  pool: ${{ parameters.windowsPool }}
+  steps:
+  - template: velopack.yml
+    parameters:
+      osRID: win
       BaseChannelName: ${{ parameters.BaseChannelName }}
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+      BuildJobName: Windows
 
 - job: Linux
   pool:
@@ -69,7 +86,14 @@ jobs:
     parameters:
       RunTests: ${{ parameters.RunTests }}
       osRID: linux
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
+  - template: velopack.yml
+    parameters:
+      osRID: linux
       BaseChannelName: ${{ parameters.BaseChannelName }}
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
   - script: dotnet format --verify-no-changes --no-restore
     displayName: 💅 Verify formatted code
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
@@ -106,9 +130,23 @@ jobs:
     parameters:
       RunTests: ${{ parameters.RunTests }}
       osRID: osx
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
+- job: macOS_velopack
+  displayName: macOS velopack
+  dependsOn: macOS
+  pool:
+    vmImage: macOS-12
+  steps:
+  - template: velopack.yml
+    parameters:
+      osRID: osx
       BaseChannelName: ${{ parameters.BaseChannelName }}
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+      BuildJobName: macOS
 
 - job: Pack
+  displayName: dotnet pack
   dependsOn:
   - Windows
   - Linux

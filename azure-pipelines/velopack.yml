@@ -1,0 +1,88 @@
+parameters:
+- name: BaseChannelName
+- name: osRID
+- name: publishPlatforms
+  type: object
+- name: BuildJobName
+  type: string
+  default: ''
+
+steps:
+- ${{ if ne(parameters.BuildJobName, '') }}:
+  - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+    submodules: false
+
+  - template: install-dependencies.yml
+
+  - task: NuGetAuthenticate@1
+    displayName: 🔏 Authenticate NuGet feeds
+
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      buildType: current
+      artifactName: velopack-inputs-${{ parameters.BuildJobName }}
+      targetPath : $(Build.SourcesDirectory)
+    displayName: 🔻 Download layout
+
+- ${{ each platform in parameters.publishPlatforms }}:
+  - pwsh: |
+      $platform = '${{ platform }}'.ToLower()
+      $rid = '${{ parameters.osRID }}-${{ platform }}'.ToLower()
+      if ('${{ parameters.osRID }}' -eq 'win') {
+        $tfm = 'net8.0-windows10.0.22621.0'
+      } else {
+        $tfm = 'net8.0'
+      }
+      $VelopackData = Get-Content -Path "obj/src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop/$platform/$(BuildConfiguration)/$tfm/$rid/velopack-data.json" | ConvertFrom-Json
+      $packageVersion = dotnet nbgv get-version -v SemVer2
+      $OutputDir = 'bin/Packages/$(BuildConfiguration)/velopack'
+      $BaseChannelName = '${{ parameters.BaseChannelName }}'
+      $WillPublish = !!$BaseChannelName
+      if (!$WillPublish) {
+        $BaseChannelName = 'unpublished' # We won't publish this, but we should build some reasonable channel name for logging.
+      }
+      $Channel = "$BaseChannelName-$rid"
+      Write-Host "##[section]Creating velopack for channel $Channel..."
+
+      if ($WillPublish) {
+        $vpkCommand = @(
+          'vpk','download','http',
+          '--url',$VelopackData.url,
+          '--outputDir',$OutputDir
+          '--channel',$Channel
+        )
+        Write-Host "##[command]$pwd $ dotnet $vpkCommand"
+        dotnet @vpkCommand
+        if ($LastExitCode -ne 0) {
+          Write-Host "##[warning]Failed to download most recent release for the channel. This is expected if this is the first release for the channel."
+        }
+      }
+
+      # Workaround broken win-arm64 installer (https://github.com/velopack/velopack/issues/85)
+      # by using a win-x64 installer, even though the app itself will be arm64.
+      $installerRID = $rid
+      if ('${{ parameters.osRID }}' -eq 'win') {
+        $installerRID = 'win-x64'
+      }
+
+      $vpkCommand = @(
+        'vpk','pack',
+        '--packVersion', $packageVersion,
+        '--channel', $Channel,
+        '--packId', 'Nerdbank.Zcash.App',
+        '--packTitle', 'eZcash',
+        '--packAuthors', 'Nerdbank',
+        '--mainExe', $VelopackData.exeName,
+        '--packDir', "bin/publish/$(BuildConfiguration)/$rid",
+        '--outputDir', $OutputDir
+        '--runtime', $installerRID
+      )
+      Write-Host "##[command]$pwd $ dotnet $vpkCommand"
+      dotnet @vpkCommand
+    displayName: 📦 Build ${{ platform }} app package
+
+- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(System.PhaseName)" -Verbose
+  failOnStderr: true
+  displayName: 📢 Publish artifacts
+  condition: succeededOrFailed()
