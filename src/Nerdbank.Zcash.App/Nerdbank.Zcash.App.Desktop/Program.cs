@@ -127,8 +127,12 @@ internal class Program
 		}
 
 		string appDataBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nerdbank.Zcash.App");
-		string confidentialDataPath = Path.Combine(appDataBaseDir, "wallets");
 		string nonConfidentialDataPath = Path.Combine(appDataBaseDir, "settings");
+
+		// Velopack installs the app under appDataBaseDir.
+		// We MUST NOT store wallets under that same directory or velopack's repair and uninstall steps
+		// will quietly and suddenly delete the wallets.
+		string confidentialDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nerdbank.Zcash.App.Wallets");
 
 		// Find the appropriate path for storing wallets.
 		// Create the directory and try setting it to encrypt its contents via NTFS attributes if available.
@@ -156,6 +160,9 @@ internal class Program
 			}
 		}
 
+		// Migrate from the old wallets location if it exists.
+		MigrateWalletsLocation(appDataBaseDir, confidentialDataPath);
+
 		// Create the directory for settings.
 		Directory.CreateDirectory(nonConfidentialDataPath);
 
@@ -165,5 +172,30 @@ internal class Program
 			ConfidentialDataPath = confidentialDataPath,
 			NonConfidentialDataPath = nonConfidentialDataPath,
 		};
+	}
+
+	private static void MigrateWalletsLocation(string appDataBaseDir, string confidentialDataPath)
+	{
+		string oldConfidentialDataPath = Path.Combine(appDataBaseDir, "wallets");
+		if (Directory.Exists(oldConfidentialDataPath))
+		{
+			try
+			{
+				foreach (string oldFile in Directory.EnumerateFiles(oldConfidentialDataPath))
+				{
+					string newFile = Path.Combine(confidentialDataPath, Path.GetFileName(oldFile));
+					if (!File.Exists(newFile))
+					{
+						File.Move(oldFile, newFile);
+					}
+				}
+
+				Directory.Delete(oldConfidentialDataPath);
+			}
+			catch
+			{
+				// It was best effort anyway.
+			}
+		}
 	}
 }
