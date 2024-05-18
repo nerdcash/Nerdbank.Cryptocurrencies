@@ -79,7 +79,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount!.Balance.Spendable,
 			vm => vm.Total,
 			vm => vm.AreLineItemsValid,
-			(sending, spendableBalance, total, valid) => valid && !sending && spendableBalance.Amount >= total?.Amount);
+			vm => vm.HasAnyErrors,
+			(sending, spendableBalance, total, valid, hasAnyErrors) => valid && !hasAnyErrors && !sending && spendableBalance.Amount >= total?.Amount);
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
@@ -278,8 +279,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	private async Task SendAsync(CancellationToken cancellationToken)
 	{
-		// TODO: Block sending if validation errors exist.
 		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
+		Verify.Operation(!this.HasAnyErrors, "Validation errors exist.");
 		ImmutableArray<Transaction.LineItem> lineItems = this.GetLineItems();
 
 		// Create a draft transaction in the account right away.
