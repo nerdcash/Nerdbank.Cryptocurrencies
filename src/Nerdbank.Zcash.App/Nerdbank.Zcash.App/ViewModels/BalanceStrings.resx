@@ -121,7 +121,7 @@
     <value>🪙 Anticipated fees</value>
   </data>
   <data name="AnticipatedFeesExplanation" xml:space="preserve">
-    <value>This is the estimated portion of your balance that will go to fees when you spend your Zcash.</value>
+    <value>This is the estimated minimum required for network fees when you spend your Zcash.</value>
   </data>
   <data name="BalanceCaption" xml:space="preserve">
     <value>💰 Balance</value>

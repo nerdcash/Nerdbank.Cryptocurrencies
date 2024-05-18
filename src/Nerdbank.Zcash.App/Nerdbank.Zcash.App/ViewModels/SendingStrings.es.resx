@@ -142,7 +142,7 @@
     <value>❌</value>
   </data>
   <data name="MutableMemoCaption" xml:space="preserve">
-    <value>Memo privado</value>
+    <value>Memo (no compartido con nadie):</value>
   </data>
   <data name="SendCommandCaption" xml:space="preserve">
     <value>📤 Enviar</value>
@@ -155,5 +155,11 @@
   </data>
   <data name="TotalCaption" xml:space="preserve">
     <value>Total</value>
+  </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>Fondos insuficientes para cubrir este gasto. Consulte la vista del saldo.</value>
+  </data>
+  <data name="InsufficientSpendableFunds" xml:space="preserve">
+    <value>Fondos gastables insuficientes. Se espera que suficientes fondos sean gastables para cubrir este gasto en unos minutos. Verifique la vista del saldo para más detalles.</value>
   </data>
 </root>

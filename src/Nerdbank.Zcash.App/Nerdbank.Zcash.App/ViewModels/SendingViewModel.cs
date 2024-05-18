@@ -436,11 +436,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 				// to the sender's balance.
 				if (this.Total?.Amount > this.SelectedAccount.Balance.MainBalance.Amount + this.SelectedAccount.Balance.Incoming.Amount)
 				{
-					this.ErrorMessage = "Insufficient funds to cover this expenditure. Please consult the Balance view.";
+					this.ErrorMessage = SendingStrings.InsufficientFunds;
 				}
 				else
 				{
-					this.ErrorMessage = "Insufficient spendable funds. Enough funds are expected to be spendable to cover this expenditure within a few minutes. Check the Balance view for details.";
+					this.ErrorMessage = SendingStrings.InsufficientSpendableFunds;
 				}
 			}
 			else
