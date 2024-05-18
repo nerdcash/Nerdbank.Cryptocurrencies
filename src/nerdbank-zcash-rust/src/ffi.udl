@@ -62,7 +62,7 @@ dictionary UserBalances {
 
 dictionary BirthdayHeights {
 	u32 original_birthday_height;
-	u32 birthday_height;
+	u32? birthday_height;
 	u32? rebirth_height;
 };
 

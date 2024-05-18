@@ -1209,7 +1209,7 @@ class FfiConverterTypeAccountInfo: FfiConverterRustBuffer<AccountInfo> {
 
 internal record BirthdayHeights (
     uint @originalBirthdayHeight, 
-    uint @birthdayHeight, 
+    uint? @birthdayHeight, 
     uint? @rebirthHeight
 ) {
 }
@@ -1220,7 +1220,7 @@ class FfiConverterTypeBirthdayHeights: FfiConverterRustBuffer<BirthdayHeights> {
     public override BirthdayHeights Read(BigEndianStream stream) {
         return new BirthdayHeights(
             @originalBirthdayHeight: FfiConverterUInt32.INSTANCE.Read(stream),
-            @birthdayHeight: FfiConverterUInt32.INSTANCE.Read(stream),
+            @birthdayHeight: FfiConverterOptionalUInt32.INSTANCE.Read(stream),
             @rebirthHeight: FfiConverterOptionalUInt32.INSTANCE.Read(stream)
         );
     }
@@ -1228,13 +1228,13 @@ class FfiConverterTypeBirthdayHeights: FfiConverterRustBuffer<BirthdayHeights> {
     public override int AllocationSize(BirthdayHeights value) {
         return
             FfiConverterUInt32.INSTANCE.AllocationSize(value.@originalBirthdayHeight) +
-            FfiConverterUInt32.INSTANCE.AllocationSize(value.@birthdayHeight) +
+            FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@birthdayHeight) +
             FfiConverterOptionalUInt32.INSTANCE.AllocationSize(value.@rebirthHeight);
     }
 
     public override void Write(BirthdayHeights value, BigEndianStream stream) {
             FfiConverterUInt32.INSTANCE.Write(value.@originalBirthdayHeight, stream);
-            FfiConverterUInt32.INSTANCE.Write(value.@birthdayHeight, stream);
+            FfiConverterOptionalUInt32.INSTANCE.Write(value.@birthdayHeight, stream);
             FfiConverterOptionalUInt32.INSTANCE.Write(value.@rebirthHeight, stream);
     }
 }
