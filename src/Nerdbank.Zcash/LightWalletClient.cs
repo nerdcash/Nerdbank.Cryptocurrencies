@@ -573,7 +573,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="OriginalBirthdayHeight">The birthday height the account was created with.</param>
 	/// <param name="BirthdayHeight">The height of the first block that contains a transaction.</param>
 	/// <param name="RebirthHeight">The height of the block containing the oldest unspent note.</param>
-	public record struct BirthdayHeights(ulong OriginalBirthdayHeight, ulong BirthdayHeight, ulong? RebirthHeight)
+	public record struct BirthdayHeights(ulong OriginalBirthdayHeight, ulong? BirthdayHeight, ulong? RebirthHeight)
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BirthdayHeights"/> struct.

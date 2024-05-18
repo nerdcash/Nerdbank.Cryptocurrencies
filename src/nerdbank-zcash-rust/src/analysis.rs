@@ -2,7 +2,6 @@ use std::num::NonZeroU32;
 
 use rusqlite::{named_params, Connection};
 use zcash_client_sqlite::AccountId;
-use zcash_primitives::consensus::{Network, NetworkUpgrade, Parameters};
 use zcash_primitives::transaction::fees::zip317::{FeeRule, MINIMUM_FEE};
 
 use zcash_client_backend::data_api::WalletRead;
@@ -19,9 +18,8 @@ pub struct BirthdayHeights {
     /// otherwise the block number of the first transaction if any,
     /// otherwise the sapling activation height.
     pub original_birthday_height: u32,
-    /// The block number of the first transaction if any,
-    /// otherwise the sapling activation height.
-    pub birthday_height: u32,
+    /// The block number of the first transaction if any.
+    pub birthday_height: Option<u32>,
     /// The block number of the oldest unspent note or UTXO, if any.
     pub rebirth_height: Option<u32>,
 }
@@ -30,7 +28,6 @@ pub fn get_birthday_heights(
     config: DbInit,
     account_id: AccountId,
 ) -> Result<BirthdayHeights, Error> {
-    let network: Network = config.network.into();
     let conn = Connection::open(config.data_file)?;
     let heights = conn.query_row(
         GET_BIRTHDAY_HEIGHTS,
@@ -42,9 +39,7 @@ pub fn get_birthday_heights(
 
     Ok(BirthdayHeights {
         original_birthday_height: heights.0,
-        birthday_height: heights.1.unwrap_or_else(|| {
-            u32::from(network.activation_height(NetworkUpgrade::Sapling).unwrap())
-        }),
+        birthday_height: heights.1,
         rebirth_height: heights.2,
     })
 }
@@ -205,7 +200,7 @@ mod tests {
         let mut setup = setup_test().await;
         let (_, _, account_id, _) = setup.create_account().await.unwrap();
         let heights = get_birthday_heights(setup.db_init, account_id).unwrap();
-        assert_ne!(heights.birthday_height, 0);
+        assert_matches!(heights.birthday_height, None);
         assert_ne!(heights.original_birthday_height, 0);
         assert_matches!(heights.rebirth_height, None);
     }
