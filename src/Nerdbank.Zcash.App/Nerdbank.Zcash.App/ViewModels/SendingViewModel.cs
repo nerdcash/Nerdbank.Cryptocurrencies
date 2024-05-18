@@ -283,6 +283,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		Verify.Operation(!this.HasAnyErrors, "Validation errors exist.");
 		ImmutableArray<Transaction.LineItem> lineItems = this.GetLineItems();
 
+		// Simulate the payment to get the fee.
+		LightWalletClient.SpendDetails sendDetails = this.SelectedAccount.LightWalletClient.SimulateSend(this.SelectedAccount.ZcashAccount, lineItems);
+
 		// Create a draft transaction in the account right away.
 		// This will store the mutable memo, exchange rate, and other metadata that
 		// isn't going to come back from the light wallet server.
@@ -295,6 +298,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			IsIncoming = false,
 			When = DateTimeOffset.UtcNow,
 			SendItems = [.. lineItems.Select(li => new ZcashTransaction.LineItem(li))],
+			Fee = sendDetails.Fee,
 		};
 
 		// Record the exchange rate that we showed the user, if applicable.
