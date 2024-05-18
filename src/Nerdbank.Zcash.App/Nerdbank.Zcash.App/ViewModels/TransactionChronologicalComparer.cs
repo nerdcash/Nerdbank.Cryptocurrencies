@@ -61,7 +61,14 @@ public class TransactionChronologicalComparer :
 				return 1;
 			}
 
-			return (x.When ?? DateTimeOffset.MaxValue).CompareTo(y.When ?? DateTimeOffset.MaxValue);
+			int compare = (x.When ?? DateTimeOffset.MaxValue).CompareTo(y.When ?? DateTimeOffset.MaxValue);
+			if (compare != 0)
+			{
+				return compare;
+			}
+
+			// If the timestamps are equal, we need to compare the transaction IDs to ensure a stable sort.
+			return Compare(x.TransactionId, y.TransactionId);
 		}
 	}
 
@@ -74,5 +81,25 @@ public class TransactionChronologicalComparer :
 		return x is TransactionViewModel || y is TransactionViewModel
 			? this.Compare((TransactionViewModel?)x, (TransactionViewModel?)y)
 			: this.Compare((ZcashTransaction?)x, (ZcashTransaction?)y);
+	}
+
+	private static int Compare(in TxId? x, in TxId? y)
+	{
+		if (x.HasValue && y.HasValue)
+		{
+			return x.Value[..].SequenceCompareTo(y.Value[..]);
+		}
+		else if (x.HasValue)
+		{
+			return -1;
+		}
+		else if (y.HasValue)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 }
