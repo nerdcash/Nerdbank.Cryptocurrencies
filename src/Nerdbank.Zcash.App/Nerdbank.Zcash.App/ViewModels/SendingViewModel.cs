@@ -409,7 +409,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			bool insufficientFunds;
 			try
 			{
-				LightWalletClient.SpendDetails? details = this.SelectedAccount?.LightWalletClient?.SimulateSend(this.SelectedAccount.ZcashAccount, this.GetLineItems());
+				ImmutableArray<Transaction.LineItem> nonEmptyLineItems = this.GetLineItems();
+				LightWalletClient.SpendDetails? details = nonEmptyLineItems.IsEmpty
+					? default
+					: this.SelectedAccount?.LightWalletClient?.SimulateSend(this.SelectedAccount.ZcashAccount, nonEmptyLineItems);
 				insufficientFunds = false;
 				if (details is not null)
 				{
