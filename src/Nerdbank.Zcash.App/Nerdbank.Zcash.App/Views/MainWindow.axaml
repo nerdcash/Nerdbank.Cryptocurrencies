@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Nerdbank.Zcash.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Nerdbank.Zcash.App.Views"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="500"
+        Width="500" Height="650"
+        Padding="10"
+        x:Class="Nerdbank.Zcash.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/applogo.ico"
+        Title="{Binding Title}">
+  <Design.DataContext>
+    <vm:MainWindowViewModel />
+  </Design.DataContext>
+  <DockPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="{Binding BackCommandCaption}" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
+      <MenuItem Header="{Binding AppMenuCaption}">
+        <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
+        <MenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
+        <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
+        <Separator />
+        <MenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
+        <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" />
+        <Separator />
+        <MenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
+      </MenuItem>
+      <MenuItem Header="{Binding TransactionsMenuCaption}">
+        <MenuItem Header="{Binding AccountBalanceCommandCaption}" Command="{Binding AccountBalanceCommand}" />
+        <MenuItem Header="{Binding TransactionHistoryCommandCaption}" Command="{Binding TransactionHistoryCommand}" />
+        <MenuItem Header="{Binding SendCommandCaption}" Command="{Binding SendCommand}" />
+        <MenuItem Header="{Binding ReceiveCommandCaption}" Command="{Binding ReceiveCommand}" />
+      </MenuItem>
+      <MenuItem Header="{Binding ToolsMenuCaption}">
+        <MenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
+      </MenuItem>
+    </Menu>
+    <views:SyncHeaderControl DataContext="{Binding SendProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />
+    <ContentControl Content="{Binding Content}" />
+  </DockPanel>
+</Window>

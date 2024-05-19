@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.AboutView"
+             x:DataType="vm:AboutViewModel">
+  <Design.DataContext>
+    <vm:AboutViewModel />
+  </Design.DataContext>
+
+  <ScrollViewer>
+    <StackPanel>
+      <TextBlock Text="{Binding Message}" />
+
+      <local:WalletStorageLocationDisplay DataContext="{Binding WalletStorageLocation}" />
+
+      <Grid ColumnDefinitions="*,auto,*,auto,*,auto,*" Margin="0 10">
+        <Button Grid.Column="1" Command="{Binding DonateCommand}" Content="{Binding DonateCommandCaption}" />
+        <Button Grid.Column="3" Command="{Binding ShowCapabilitiesCommand}" Content="{Binding ShowCapabilitiesCommandCaption}" />
+        <Button Grid.Column="5" Command="{Binding SupportCommand}" Content="{Binding SupportCommandCaption}" />
+      </Grid>
+
+      <WrapPanel>
+        <TextBlock Text="{Binding VersionCaption}" VerticalAlignment="Center" />
+        <TextBlock Text=" " />
+        <TextBox IsReadOnly="True" Text="{Binding Version}" />
+      </WrapPanel>
+
+      <TextBlock Text="{Binding LicenseCaption}" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 5"/>
+      <ScrollViewer>
+        <TextBlock Text="{Binding License}" />
+      </ScrollViewer>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

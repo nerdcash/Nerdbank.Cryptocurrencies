@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!--If you are willing to use Windows/MacOS native APIs you will need to create 3 projects.
+    One for Windows with net8.0-windows TFM, one for MacOS with net8.0-macos and one with net8.0 TFM for Linux.-->
+    <TargetFrameworks>net8.0-windows10.0.22621.0;net8.0</TargetFrameworks>
+    <SelfContained>false</SelfContained>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <Platforms>x64;ARM64</Platforms>
+    <UseWindowsForms Condition="'$(TargetFramework)'=='net8.0-windows10.0.22621.0'">true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\Nerdbank.Zcash.App\Assets\applogo.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nerdbank.Zcash.App\Nerdbank.Zcash.App.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
+  <Import Project="$(MSBuildProjectName).targets" />
+</Project>

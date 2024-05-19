@@ -25,6 +25,12 @@
       "commands": [
         "dotnet-csharpier"
       ]
+    },
+    "vpk": {
+      "version": "0.0.462-gf8acc97",
+      "commands": [
+        "vpk"
+      ]
     }
   }
 }

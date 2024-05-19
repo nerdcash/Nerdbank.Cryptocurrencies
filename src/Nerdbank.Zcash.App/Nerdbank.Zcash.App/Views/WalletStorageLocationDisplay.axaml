@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.WalletStorageLocationDisplay"
+             x:DataType="vm:WalletStorageLocationViewModel">
+  <StackPanel>
+    <TextBlock Text="{Binding WalletStorageLocation}" Margin="0 10" />
+    <Grid ColumnDefinitions="auto, *">
+      <TextBlock IsVisible="{Binding WalletIsEncrypted}" Text="🔒" />
+      <TextBlock IsVisible="{Binding !WalletIsEncrypted}" Text="🔓" />
+      <TextBlock Text="{Binding WalletEncryptionExplanation}" Grid.Column="1"/>
+    </Grid>
+  </StackPanel>
+</UserControl>

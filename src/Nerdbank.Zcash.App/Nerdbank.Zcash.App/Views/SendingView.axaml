@@ -1,0 +1,145 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:Nerdbank.Zcash.App.Models"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             xmlns:sys="using:System"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.SendingView"
+             x:DataType="vm:SendingViewModel">
+  <Design.DataContext>
+    <vm:SendingViewModel />
+  </Design.DataContext>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="{x:Type models:Contact}">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="🧑🏻‍🦱" Margin="0 0 5 0" />
+        <TextBlock Text="{Binding Name}" />
+      </StackPanel>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type models:Account}">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="🧾" Margin="0 0 5 0" />
+        <TextBlock Text="{Binding Name}" />
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+  <Grid>
+    <Grid.Styles>
+      <Style Selector="TextBlock.PaymentRequestText">
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontStyle" Value="Italic" />
+        <Setter Property="Foreground" Value="DarkBlue" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style>
+    </Grid.Styles>
+    <DockPanel>
+      <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" DockPanel.Dock="Bottom" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*, auto">
+        <Grid RowDefinitions="*,*,*" ColumnDefinitions="auto,10,auto,30,auto">
+          <TextBlock Text="{Binding SubtotalCaption}" Grid.Row="0" VerticalAlignment="Top" />
+          <local:SecurityAmountDisplay Value="{Binding Subtotal}" Grid.Column="2" Grid.Row="0" />
+          <local:SecurityAmountDisplay Value="{Binding SubtotalAlternate}" Grid.Column="4" Grid.Row="0" IsVisible="{Binding SubtotalAlternate, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Text="{Binding FeeCaption}" Grid.Row="1" />
+          <local:SecurityAmountDisplay Value="{Binding Fee}" Grid.Column="2" Grid.Row="1" />
+          <local:SecurityAmountDisplay Value="{Binding FeeAlternate}" Grid.Column="4" Grid.Row="1" IsVisible="{Binding FeeAlternate, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Text="{Binding TotalCaption}" Grid.Row="2" />
+          <local:SecurityAmountDisplay Value="{Binding Total}" Grid.Column="2" Grid.Row="2" />
+          <local:SecurityAmountDisplay Value="{Binding TotalAlternate}" Grid.Column="4" Grid.Row="2" IsVisible="{Binding TotalAlternate, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </Grid>
+        <Button Grid.Column="1" Content="{Binding SendCommandCaption}" Command="{Binding SendCommand}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
+      </Grid>
+      <ScrollViewer Grid.Row="1" IsEnabled="{Binding !IsSendingInProgress}">
+        <StackPanel Margin="10 0">
+          <Grid ColumnDefinitions="auto,*" IsVisible="{Binding AccountPickerIsVisible}">
+            <Label Content="{Binding FromAccountCaption}" Target="{Binding #FromAccountBox}" VerticalAlignment="Center" />
+            <local:AccountSelector Name="FromAccountBox" Grid.Column="1" />
+          </Grid>
+          <Grid ColumnDefinitions="auto,*" IsVisible="{Binding IsTestNetWarningVisible}">
+            <TextBlock Text="⚠️" Grid.Column="0" VerticalAlignment="Center" Foreground="DarkOrange" Margin="0 0 5 0" />
+            <TextBlock Text="{Binding TestNetWarning}" Grid.Column="1"/>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding LineItems}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Background="LightCyan" Margin="0 10">
+                  <TextBlock Text="{Binding Message}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                             Classes="PaymentRequestText" Margin="3" />
+                  <WrapPanel>
+                    <Label Content="{Binding RecipientAddressCaption}" Target="{Binding #RecipientBox}" />
+                    <TextBlock Text=" " />
+                    <TextBlock Text="{Binding RecipientLabel}" Classes="PaymentRequestText" IsVisible="{Binding RecipientLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </WrapPanel>
+                  <DockPanel>
+                    <Button Classes="Scan" Background="Transparent" Command="{Binding ScanCommand}" DockPanel.Dock="Right" IsVisible="{Binding IsScanCommandAvailable}">
+                      <Button.Content>
+                        <Image Source="/Assets/qr-code-scan.png" Height="16" />
+                      </Button.Content>
+                    </Button>
+                    <AutoCompleteBox Name="RecipientBox"
+                                     Text="{Binding RecipientAddress}"
+                                     IsVisible="{Binding !IsRecipientLocked}"
+                                     Watermark="{Binding RecipientBoxWatermark}"
+                                     FilterMode="Contains"
+                                     ItemsSource="{Binding PossibleRecipients}"
+                                     SelectedItem="{Binding SelectedRecipient}">
+                      <AutoCompleteBox.ItemTemplate>
+                        <DataTemplate>
+                          <ContentControl Content="{Binding}" x:DataType="sys:Object" />
+                        </DataTemplate>
+                      </AutoCompleteBox.ItemTemplate>
+                    </AutoCompleteBox>
+                    <TextBox Text="{Binding RecipientAddress}"
+                             IsVisible="{Binding IsRecipientLocked}"
+                             IsReadOnly="True" />
+                  </DockPanel>
+                  <Grid ColumnDefinitions="auto, *" Margin="0 5">
+                    <Label Content="{Binding AmountCaption}" VerticalAlignment="Center" Target="{Binding #AmountBox}" />
+                    <local:DualAmountEntryView DataContext="{Binding AmountEntry}" Grid.Column="1" Name="AmountBox" />
+                  </Grid>
+                  <StackPanel IsVisible="{Binding IsMemoVisible}">
+                    <Label Content="{Binding MemoCaption}" Target="{Binding #MemoTextBox}" />
+                    <TextBox Name="MemoTextBox"
+                             Text="{Binding Memo}"
+                             MaxLength="512"
+                             Height="70"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap" />
+                  </StackPanel>
+                  <Button Content="{Binding RemoveLineItemCommandCaption}"
+                          Command="{Binding RemoveLineItemCommand}"
+                          HorizontalAlignment="Right" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button
+            Command="{Binding AddLineItemCommand}"
+            Content="{Binding AddLineItemCommandCaption}"
+            HorizontalAlignment="Center" />
+          <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" />
+          <TextBox Name="MutableMemoBox"
+                   Text="{Binding MutableMemo}"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap" />
+        </StackPanel>
+      </ScrollViewer>
+    </DockPanel>
+    <Border Background="Aqua"
+            BoxShadow="5 5 10 0 DarkGray"
+            CornerRadius="8"
+            Opacity="0.9"
+            IsVisible="{Binding SendSuccessfulMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+      <TextBlock Text="{Binding SendSuccessfulMessage}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Padding="15"
+               />
+    </Border>
+  </Grid>
+</UserControl>

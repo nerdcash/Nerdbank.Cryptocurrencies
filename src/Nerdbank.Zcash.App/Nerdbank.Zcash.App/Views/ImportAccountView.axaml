@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.ImportAccountView"
+             x:DataType="vm:ImportAccountViewModel">
+  <Design.DataContext>
+    <vm:ImportAccountViewModel />
+  </Design.DataContext>
+
+  <DockPanel>
+    <StackPanel>
+      <Label Target="{Binding #NameBox}" Content="{Binding NameCaption}" />
+      <TextBox Name="NameBox" Text="{Binding Name}" />
+
+      <Label Target="{Binding #KeyBox}">
+        <TextBlock Text="{Binding KeyCaption}" />
+      </Label>
+      <TextBox Text="{Binding Key}" Height="100" TextWrapping="Wrap" Name="KeyBox" />
+
+      <StackPanel IsVisible="{Binding IsPasswordVisible}">
+        <Label Content="{Binding SeedPasswordCaption}" Target="{Binding #SeedPasswordBox}" />
+        <TextBox Text="{Binding SeedPassword}" Name="SeedPasswordBox" />
+        <TextBlock Text="{Binding SeedPasswordWhitespaceWarning}" IsVisible="{Binding SeedPasswordHasWhitespace}"
+                   Foreground="Red" />
+      </StackPanel>
+      <CheckBox IsChecked="{Binding IsTestNet}" Content="{Binding IsTestNetCaption}" IsVisible="{Binding IsTestNetVisible}" />
+
+      <Label Content="{Binding BirthdayHeightCaption}" Target="{Binding #BirthdayHeightBox}" />
+      <NumericUpDown Value="{Binding BirthdayHeight}" Name="BirthdayHeightBox" Minimum="{Binding MinimumBirthdayHeight}" Increment="1" />
+
+      <Button Command="{Binding ImportCommand}"
+              Content="{Binding ImportCommandCaption}"
+              HorizontalAlignment="Center"
+              Margin="10"/>
+    </StackPanel>
+  </DockPanel>
+</UserControl>
