@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccountIndexOptionDescription" xml:space="preserve">
+    <value>L'indice du compte à créer.</value>
+  </data>
+  <data name="AccountsCommandDescription" xml:space="preserve">
+    <value>Liste tous les comptes connus de la base de données.</value>
+  </data>
+  <data name="BadSeedPhraseLength" xml:space="preserve">
+    <value>La longueur de la phrase de graine doit être d'au moins 24 et un multiple de 3.</value>
+  </data>
+  <data name="BalanceCommandDescription" xml:space="preserve">
+    <value>Rapporte les soldes pour chaque pool.</value>
+  </data>
+  <data name="BirthdayHeightOptionDescription" xml:space="preserve">
+    <value>Force l'enregistrement d'une hauteur d'anniversaire particulière dans le nouveau compte. Par défaut, il s'agira de la longueur actuelle de la blockchain en mode en ligne.</value>
+  </data>
+  <data name="ContinuallyOptionDescription" xml:space="preserve">
+    <value>Télécharge continuellement la blockchain, en surveillant l'ajout de nouveaux blocs.</value>
+  </data>
+  <data name="HistoryCommandDescription" xml:space="preserve">
+    <value>Liste les transactions de la blockchain appartenant à ce portefeuille.</value>
+  </data>
+  <data name="HistoryStartingBlockOptionDescription" xml:space="preserve">
+    <value>Le premier bloc dont les transactions doivent être incluses dans la liste des transactions.</value>
+  </data>
+  <data name="ImportAccountCommandDescription" xml:space="preserve">
+    <value>Crée un nouveau compte basé sur une clé de visualisation.</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>Erreur d'analyse de l'adresse : "{address}". {error}</value>
+  </data>
+  <data name="InvalidSeedPhrase" xml:space="preserve">
+    <value>Phrase de graine invalide.</value>
+  </data>
+  <data name="KeyArgumentDescription" xml:space="preserve">
+    <value>La clé de visualisation sur laquelle baser le nouveau compte.</value>
+  </data>
+  <data name="LightServerUrlOptionDescription" xml:space="preserve">
+    <value>L'URL du serveur lightwallet pour interroger la longueur de la chaîne de blocs afin d'imprimer une hauteur d'anniversaire. La valeur par défaut varie en fonction de la génération pour mainnet ou testnet.</value>
+  </data>
+  <data name="NewAccountCommandDescription" xml:space="preserve">
+    <value>Crée un nouveau compte Zcash.</value>
+  </data>
+  <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
+    <value>Le chemin d'accès au fichier de portefeuille à créer.</value>
+  </data>
+  <data name="NoSyncOption" xml:space="preserve">
+    <value>Ne téléchargez pas d'abord les derniers blocs de la blockchain. Cela accélérera la commande mais peut entraîner un échec ou un rapport de données obsolètes.</value>
+  </data>
+  <data name="NotAUnifiedAddress" xml:space="preserve">
+    <value>Ceci n'est pas une adresse unifiée.</value>
+  </data>
+  <data name="NoUnshieldedFunds" xml:space="preserve">
+    <value>Il n'y a pas de fonds transparents à protéger.</value>
+  </data>
+  <data name="OfflineOptionDescription" xml:space="preserve">
+    <value>Supprime toute communication réseau. En particulier, cela supprimera l'affichage de la hauteur d'anniversaire pour le nouveau compte.</value>
+  </data>
+  <data name="PasswordOptionDescription" xml:space="preserve">
+    <value>Un mot de passe en plus de la phrase de graine qui déverrouille le compte. Bien que n'importe quelle phrase fasse l'affaire, certains portefeuilles n'acceptent qu'un seul mot.</value>
+  </data>
+  <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
+    <value>Le montant à demander pour un paiement particulier.</value>
+  </data>
+  <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
+    <value>L'option {switchName} doit avoir le même nombre d'arguments que le nombre de bénéficiaires ({expected}) mais en avait {actual}.</value>
+  </data>
+  <data name="RequestPaymentCommandDescription" xml:space="preserve">
+    <value>Crée une URI de demande de paiement et éventuellement un code QR.</value>
+  </data>
+  <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
+    <value>Un libellé lisible par l'homme qui identifie l'adresse de réception.</value>
+  </data>
+  <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
+    <value>Une note associée à un paiement particulier.</value>
+  </data>
+  <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
+    <value>Un message lisible par l'homme associé à un paiement particulier.</value>
+  </data>
+  <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
+    <value>Les adresses Zcash pour recevoir les paiements.</value>
+  </data>
+  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
+    <value>Le chemin d'accès à l'image à enregistrer avec le code QR.</value>
+  </data>
+  <data name="RootCommandDescription" xml:space="preserve">
+    <value>Effectue des opérations Zcash.</value>
+  </data>
+  <data name="SeedLengthAndSeedPhraseNotAllowed" xml:space="preserve">
+    <value>Ne spécifiez pas à la fois la phrase de graine et une longueur pour une phrase de graine générée.</value>
+  </data>
+  <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
+    <value>Le nombre de mots dans la phrase de graine générée. Doit être supérieur ou égal à 24 et un multiple de 3.</value>
+  </data>
+  <data name="SeedPhraseOptionDescription" xml:space="preserve">
+    <value>Utilisez une phrase de graine particulière. Spécifiez-en une en tant qu'argument ou une invite la collectera de manière interactive.</value>
+  </data>
+  <data name="SeedPhrasePrompt" xml:space="preserve">
+    <value>Entrez la phrase de graine :</value>
+  </data>
+  <data name="SelectedAccountArgumentDescription" xml:space="preserve">
+    <value>Identifie le compte sur lequel opérer, en utilisant son adresse par défaut.</value>
+  </data>
+  <data name="SendAmountArgumentDescription" xml:space="preserve">
+    <value>Le montant à envoyer (en ZEC).</value>
+  </data>
+  <data name="SendCommandDescription" xml:space="preserve">
+    <value>Envoie des Zcash à une adresse donnée.</value>
+  </data>
+  <data name="SendFeeOptionDescription" xml:space="preserve">
+    <value>Remplace le calcul des frais par défaut par une valeur spécifique (en ZEC).</value>
+  </data>
+  <data name="SendMemoOptionDescription" xml:space="preserve">
+    <value>La note à inclure dans la transaction.</value>
+  </data>
+  <data name="SendRecipientArgumentDescription" xml:space="preserve">
+    <value>L'adresse qui recevra les fonds.</value>
+  </data>
+  <data name="ShieldAllOptionDescription" xml:space="preserve">
+    <value>Protège les fonds transparents de toutes les adresses transparentes, plutôt que d'une seule. Le fait de protéger toutes les adresses transparentes en même temps peut permettre à d'autres de corréler vos adresses transparentes grâce à des informations publiques sur la blockchain. La confidentialité est améliorée en ajoutant des retards aléatoires entre la protection de chaque adresse transparente. Ces retards doivent être *au moins* suffisants pour garantir que chaque transaction se trouve dans son propre bloc.</value>
+  </data>
+  <data name="ShieldCommandDescription" xml:space="preserve">
+    <value>Protège les fonds transparents. Un code de sortie de 1 indique qu'il reste d'autres adresses transparentes avec des soldes non nuls à protéger.</value>
+  </data>
+  <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
+    <value>L'indice du compte dans la phrase de graine utilisée pour générer la clé de dépense.</value>
+  </data>
+  <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
+    <value>La phrase de graine utilisée pour générer la clé de dépense.</value>
+  </data>
+  <data name="SyncCommandDescription" xml:space="preserve">
+    <value>Télécharge les transactions de la blockchain.</value>
+  </data>
+  <data name="TestNetOptionDescription" xml:space="preserve">
+    <value>Indique que le compte sera utilisé sur un testnet au lieu de mainnet.</value>
+  </data>
+  <data name="UACommandDescription" xml:space="preserve">
+    <value>Encode ou décode les adresses UA.</value>
+  </data>
+  <data name="UAConstructCommandDescription" xml:space="preserve">
+    <value>Construit une adresse unifiée à partir d'un ensemble de destinataires.</value>
+  </data>
+  <data name="UAConstructReceiversArgumentDescription" xml:space="preserve">
+    <value>Destinataires à inclure dans l'adresse unifiée.</value>
+  </data>
+  <data name="UAParseArgumentDescription" xml:space="preserve">
+    <value>L'adresse unifiée à décoder.</value>
+  </data>
+  <data name="UAParseCommandDescription" xml:space="preserve">
+    <value>Découpe une adresse UA en ses adresses de destinataire composantes.</value>
+  </data>
+  <data name="UnrecognizedKeyFormat" xml:space="preserve">
+    <value>Ce format de clé n'est pas reconnu.</value>
+  </data>
+  <data name="WalletPathArgumentDescription" xml:space="preserve">
+    <value>Le chemin d'accès au fichier de portefeuille.</value>
+  </data>
+</root>
