@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
+    <value>Não é possível derivar uma chave filha endurecida de uma chave pública estendida. Use uma chave estendida privada em vez disso.</value>
+  </data>
+  <data name="ErrorFromNativeSide" xml:space="preserve">
+    <value>Ocorreu um erro não mapeado na camada de interoperabilidade.</value>
+  </data>
+  <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
+    <value>Ocorreu um erro ao buscar metadados do servidor lightwallet.</value>
+  </data>
+  <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
+    <value>A chave de visualização unificada não inclui o tipo de chave necessário para usar esta API.</value>
+  </data>
+  <data name="FullViewingKeyRequired" xml:space="preserve">
+    <value>É necessário uma chave de visualização completa para uma conta simular um envio.</value>
+  </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>Existem fundos insuficientes para a transação solicitada: {required} seriam necessários (incluindo taxas), mas apenas {available} estão disponíveis.</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>Este endereço é inválido ou não reconhecido.</value>
+  </data>
+  <data name="InvalidAddressChecksum" xml:space="preserve">
+    <value>Este endereço possui um checksum inválido.</value>
+  </data>
+  <data name="InvalidAddressLength" xml:space="preserve">
+    <value>Este endereço não atende aos requisitos de comprimento.</value>
+  </data>
+  <data name="InvalidKey" xml:space="preserve">
+    <value>Chave inválida.</value>
+  </data>
+  <data name="InvalidNetworkHeader" xml:space="preserve">
+    <value>Este endereço não especifica uma rede reconhecida.</value>
+  </data>
+  <data name="InvalidPadding" xml:space="preserve">
+    <value>O checksum para este endereço está faltando ou incorreto.</value>
+  </data>
+  <data name="InvalidSaplingPreamble" xml:space="preserve">
+    <value>Um endereço sapling deve começar com 'zs1' ou 'ztestsapling1'.</value>
+  </data>
+  <data name="InvalidSproutPreamble" xml:space="preserve">
+    <value>Um endereço sprout deve começar com 'zc' ou 'zt'.</value>
+  </data>
+  <data name="InvalidXAddress" xml:space="preserve">
+    <value>Este endereço {addressType} não está em conformidade com os requisitos esperados.</value>
+  </data>
+  <data name="LengthOutsideExpectedRange" xml:space="preserve">
+    <value>A coleção deveria ter um comprimento entre {minimum}-{maximum}, mas tinha {actual}.</value>
+  </data>
+  <data name="LengthRangeNotMet" xml:space="preserve">
+    <value>Este valor deve ter um comprimento de {minimum}-{maximum}.</value>
+  </data>
+  <data name="MemoDataTooLarge" xml:space="preserve">
+    <value>Os dados fornecidos são muito grandes para caber no campo de memo.</value>
+  </data>
+  <data name="MemoForTransparentReceiverNotSupported" xml:space="preserve">
+    <value>Nenhum memo pode ser fornecido quando o destinatário é um endereço transparente.</value>
+  </data>
+  <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
+    <value>Todos os destinatários devem ser da mesma rede Zcash.</value>
+  </data>
+  <data name="MustUnderstandMetadataNotAllowedThisRevision" xml:space="preserve">
+    <value>Esta codificação contém metadados que não são permitidos (código de tipo {typeCode}, revisão {revision}).</value>
+  </data>
+  <data name="NetworkMismatch" xml:space="preserve">
+    <value>Este servidor está configurado para uso na rede {expected}, mas o parâmetro de entrada está na rede {actual}.</value>
+  </data>
+  <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
+    <value>Apenas chaves endurecidas são suportadas.</value>
+  </data>
+  <data name="OperationCanceled" xml:space="preserve">
+    <value>A operação foi cancelada.</value>
+  </data>
+  <data name="UnknownErrorAcrossInteropBoundary" xml:space="preserve">
+    <value>Ocorreu um erro no mecanismo Zcash.</value>
+  </data>
+  <data name="UnrecognizedAccount" xml:space="preserve">
+    <value>Esta conta ainda não foi adicionada à carteira.</value>
+  </data>
+  <data name="UnrecognizedAddress" xml:space="preserve">
+    <value>Este endereço não está em conformidade com nenhum formato conhecido.</value>
+  </data>
+  <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
+    <value>Esta codificação contém metadados que não são compreendidos (código de tipo: {typeCode}).</value>
+  </data>
+  <data name="UnrecognizedNetwork" xml:space="preserve">
+    <value>Rede não reconhecida '{network}'.</value>
+  </data>
+  <data name="UnrecognizedScheme" xml:space="preserve">
+    <value>Esperado o esquema '{expected}', mas encontrado '{actual}' em vez disso.</value>
+  </data>
+  <data name="UnsupportedTransactionVersion" xml:space="preserve">
+    <value>Versão de transação não suportada {version}.</value>
+  </data>
+</root>

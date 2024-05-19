@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
+    <value>无法从公共扩展密钥派生硬化子密钥。请使用私有扩展密钥。</value>
+  </data>
+  <data name="ErrorFromNativeSide" xml:space="preserve">
+    <value>在互操作层发生了一个未映射的错误。</value>
+  </data>
+  <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
+    <value>从轻钱包服务器获取元数据时发生错误。</value>
+  </data>
+  <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
+    <value>统一查看密钥不包含使用此 API 所需的密钥类型。</value>
+  </data>
+  <data name="FullViewingKeyRequired" xml:space="preserve">
+    <value>账户需要完整的查看密钥才能模拟发送。</value>
+  </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>请求的支出资金不足：需要 {required}（包括费用），但只有 {available} 可用。</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>此地址无效或无法识别。</value>
+  </data>
+  <data name="InvalidAddressChecksum" xml:space="preserve">
+    <value>此地址具有无效的校验和。</value>
+  </data>
+  <data name="InvalidAddressLength" xml:space="preserve">
+    <value>此地址不符合长度要求。</value>
+  </data>
+  <data name="InvalidKey" xml:space="preserve">
+    <value>无效的密钥。</value>
+  </data>
+  <data name="InvalidNetworkHeader" xml:space="preserve">
+    <value>此地址未指定已知网络。</value>
+  </data>
+  <data name="InvalidPadding" xml:space="preserve">
+    <value>此地址的校验和缺失或不正确。</value>
+  </data>
+  <data name="InvalidSaplingPreamble" xml:space="preserve">
+    <value>Sapling 地址必须以 'zs1' 或 'ztestsapling1' 开头。</value>
+  </data>
+  <data name="InvalidSproutPreamble" xml:space="preserve">
+    <value>Sprout 地址必须以 'zc' 或 'zt' 开头。</value>
+  </data>
+  <data name="InvalidXAddress" xml:space="preserve">
+    <value>此 {addressType} 地址不符合预期要求。</value>
+  </data>
+  <data name="LengthOutsideExpectedRange" xml:space="preserve">
+    <value>集合的长度应在 {minimum}-{maximum} 范围内，但实际长度为 {actual}。</value>
+  </data>
+  <data name="LengthRangeNotMet" xml:space="preserve">
+    <value>此值的长度必须为 {minimum}-{maximum}。</value>
+  </data>
+  <data name="MemoDataTooLarge" xml:space="preserve">
+    <value>提供的数据太大，无法适应备忘录字段。</value>
+  </data>
+  <data name="MemoForTransparentReceiverNotSupported" xml:space="preserve">
+    <value>当接收方是透明地址时，无法提供备忘录。</value>
+  </data>
+  <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
+    <value>所有接收方必须来自同一 Zcash 网络。</value>
+  </data>
+  <data name="MustUnderstandMetadataNotAllowedThisRevision" xml:space="preserve">
+    <value>此编码包含不允许的元数据（类型代码 {typeCode}，修订版 {revision}）。</value>
+  </data>
+  <data name="NetworkMismatch" xml:space="preserve">
+    <value>此服务器配置为在 {expected} 网络上使用，但输入参数在 {actual} 网络上。</value>
+  </data>
+  <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
+    <value>仅支持硬化密钥。</value>
+  </data>
+  <data name="OperationCanceled" xml:space="preserve">
+    <value>操作已取消。</value>
+  </data>
+  <data name="UnknownErrorAcrossInteropBoundary" xml:space="preserve">
+    <value>在 Zcash 引擎中发生了一个错误。</value>
+  </data>
+  <data name="UnrecognizedAccount" xml:space="preserve">
+    <value>此账户尚未添加到钱包。</value>
+  </data>
+  <data name="UnrecognizedAddress" xml:space="preserve">
+    <value>此地址不符合任何已知格式。</value>
+  </data>
+  <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
+    <value>此编码包含无法理解的元数据（类型代码：{typeCode}）。</value>
+  </data>
+  <data name="UnrecognizedNetwork" xml:space="preserve">
+    <value>无法识别的网络 '{network}'。</value>
+  </data>
+  <data name="UnrecognizedScheme" xml:space="preserve">
+    <value>预期的 '{expected}' 方案，但实际上找到了 '{actual}'。</value>
+  </data>
+  <data name="UnsupportedTransactionVersion" xml:space="preserve">
+    <value>不支持的交易版本 {version}。</value>
+  </data>
+</root>
