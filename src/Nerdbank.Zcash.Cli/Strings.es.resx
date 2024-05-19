@@ -117,122 +117,23 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="BadSeedPhraseLength" xml:space="preserve">
-    <value>La longitud de la frase semilla debe ser de al menos 24 y un múltiplo de 3.</value>
-  </data>
-  <data name="SeedPhrasePrompt" xml:space="preserve">
-    <value>Introduzca la frase semilla:</value>
-  </data>
-  <data name="InvalidSeedPhrase" xml:space="preserve">
-    <value>Frase semilla no válida.</value>
-  </data>
-  <data name="SeedLengthAndSeedPhraseNotAllowed" xml:space="preserve">
-    <value>No especifique tanto la frase semilla como la longitud de una frase semilla generada.</value>
-  </data>
-  <data name="PasswordOptionDescription" xml:space="preserve">
-    <value>Una contraseña además de la frase semilla que desbloquea la cuenta. Si bien cualquier frase servirá, algunos monederos solo aceptan una palabra.</value>
-  </data>
-  <data name="SeedPhraseOptionDescription" xml:space="preserve">
-    <value>Usa una frase semilla en particular. Especifique uno como argumento o un mensaje lo recopilará de forma interactiva.</value>
-  </data>
   <data name="AccountIndexOptionDescription" xml:space="preserve">
     <value>El índice de la cuenta a crear.</value>
   </data>
-  <data name="LightServerUrlOptionDescription" xml:space="preserve">
-    <value>La URL al servidor lightwallet para consultar la longitud de la cadena de bloques con el fin de imprimir una altura de cumpleaños. El valor predeterminado varía según si se genera para mainnet o testnet.</value>
+  <data name="AccountsCommandDescription" xml:space="preserve">
+    <value>Enumere todas las cuentas conocidas en la base de datos.</value>
   </data>
-  <data name="NewAccountCommandDescription" xml:space="preserve">
-    <value>Crea una nueva cuenta Zcash.</value>
-  </data>
-  <data name="OfflineOptionDescription" xml:space="preserve">
-    <value>Suprime todas las comunicaciones de red. En particular, esto eliminará la visualización de la altura de cumpleaños para la nueva cuenta.</value>
-  </data>
-  <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
-    <value>El número de palabras en la frase semilla generada. Debe ser 24 o más, y un múltiplo de 3.</value>
-  </data>
-  <data name="TestNetOptionDescription" xml:space="preserve">
-    <value>Indica que la cuenta se utilizará en una red de prueba en lugar de en una red principal.</value>
-  </data>
-  <data name="RootCommandDescription" xml:space="preserve">
-    <value>Realiza operaciones con Zcash.</value>
-  </data>
-  <data name="UACommandDescription" xml:space="preserve">
-    <value>Codifica o decodifica direcciones UA.</value>
-  </data>
-  <data name="UAParseArgumentDescription" xml:space="preserve">
-    <value>La dirección unificada a decodificar.</value>
-  </data>
-  <data name="UAParseCommandDescription" xml:space="preserve">
-    <value>Analiza un UA en sus direcciones de receptor de componentes.</value>
-  </data>
-  <data name="NotAUnifiedAddress" xml:space="preserve">
-    <value>Esta no es una dirección unificada.</value>
-  </data>
-  <data name="UAConstructCommandDescription" xml:space="preserve">
-    <value>Construye una dirección unificada a partir de un conjunto de receptores.</value>
-  </data>
-  <data name="UAConstructReceiversArgumentDescription" xml:space="preserve">
-    <value>Receptores a incluir en la dirección unificada.</value>
-  </data>
-  <data name="InvalidAddress" xml:space="preserve">
-    <value>Error al analizar la dirección: "{address}". {error}</value>
-  </data>
-  <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
-    <value>La ruta al archivo del monedero para crear.</value>
-  </data>
-  <data name="SyncCommandDescription" xml:space="preserve">
-    <value>Descarga transacciones desde la cadena de bloques.</value>
-  </data>
-  <data name="WalletPathArgumentDescription" xml:space="preserve">
-    <value>La ruta al archivo del monedero.</value>
-  </data>
-  <data name="BirthdayHeightOptionDescription" xml:space="preserve">
-    <value>Obliga a que se registre una altura de cumpleaños en particular en la nueva cuenta. De forma predeterminada, esta será la longitud actual de la cadena de bloques si está en modo en línea.</value>
+  <data name="BadSeedPhraseLength" xml:space="preserve">
+    <value>La longitud de la frase semilla debe ser de al menos 24 y un múltiplo de 3.</value>
   </data>
   <data name="BalanceCommandDescription" xml:space="preserve">
     <value>Informes de saldos para cada pool.</value>
   </data>
-  <data name="SendAmountArgumentDescription" xml:space="preserve">
-    <value>La cantidad a enviar (en ZEC).</value>
+  <data name="BirthdayHeightOptionDescription" xml:space="preserve">
+    <value>Obliga a que se registre una altura de cumpleaños en particular en la nueva cuenta. De forma predeterminada, esta será la longitud actual de la cadena de bloques si está en modo en línea.</value>
   </data>
-  <data name="SendCommandDescription" xml:space="preserve">
-    <value>¡Envía Zcash a una dirección determinada.</value>
-  </data>
-  <data name="SendMemoOptionDescription" xml:space="preserve">
-    <value>El memo a incluir en la transacción.</value>
-  </data>
-  <data name="SendRecipientArgumentDescription" xml:space="preserve">
-    <value>La dirección para recibir fondos.</value>
-  </data>
-  <data name="NoSyncOption" xml:space="preserve">
-    <value>No descargues primero los últimos bloques de la cadena de bloques. Esto acelerará el comando, pero puede llevarlo a fallar o reportar datos obsoletos.</value>
-  </data>
-  <data name="SendFeeOptionDescription" xml:space="preserve">
-    <value>Anula el cálculo de la tarifa predeterminada con un valor específico (en ZEC).</value>
-  </data>
-  <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
-    <value>El switch {switchName} debe tener el mismo número de argumentos que el número de beneficiarios ({expected}) pero tenía {actual}.</value>
-  </data>
-  <data name="RequestPaymentCommandDescription" xml:space="preserve">
-    <value>Cree un URI de solicitud de pago y, opcionalmente, un código QR.</value>
-  </data>
-  <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
-    <value>La (s) dirección(es) de Zcash para recibir pagos.</value>
-  </data>
-  <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
-    <value>Una etiqueta legible por humanos que identifica la dirección de recepción.</value>
-  </data>
-  <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
-    <value>Un mensaje legible por humanos asociado con un pago en particular.</value>
-  </data>
-  <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
-    <value>La cantidad a solicitar para un pago en particular.</value>
-  </data>
-  <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
-    <value>Una nota asociada con un pago en particular.</value>
-  </data>
-  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
-    <value>La ruta a la imagen para guardar con el código QR.</value>
+  <data name="ContinuallyOptionDescription" xml:space="preserve">
+    <value>Descargue la cadena de bloques continuamente, observando nuevos bloques a medida que se agregan.</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>Enumera las transacciones de la cadena de bloques que pertenecen a este monedero.</value>
@@ -243,20 +144,95 @@
   <data name="ImportAccountCommandDescription" xml:space="preserve">
     <value>Crea una nueva cuenta basada en una clave de visualización.</value>
   </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>Error al analizar la dirección: "{address}". {error}</value>
+  </data>
+  <data name="InvalidSeedPhrase" xml:space="preserve">
+    <value>Frase semilla no válida.</value>
+  </data>
   <data name="KeyArgumentDescription" xml:space="preserve">
     <value>La clave de visualización en la que basar la nueva cuenta.</value>
   </data>
-  <data name="UnrecognizedKeyFormat" xml:space="preserve">
-    <value>Este formato de clave no se reconoce.</value>
+  <data name="LightServerUrlOptionDescription" xml:space="preserve">
+    <value>La URL al servidor lightwallet para consultar la longitud de la cadena de bloques con el fin de imprimir una altura de cumpleaños. El valor predeterminado varía según si se genera para mainnet o testnet.</value>
   </data>
-  <data name="AccountsCommandDescription" xml:space="preserve">
-    <value>Enumere todas las cuentas conocidas en la base de datos.</value>
+  <data name="NewAccountCommandDescription" xml:space="preserve">
+    <value>Crea una nueva cuenta Zcash.</value>
+  </data>
+  <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
+    <value>La ruta al archivo del monedero para crear.</value>
+  </data>
+  <data name="NoSyncOption" xml:space="preserve">
+    <value>No descargues primero los últimos bloques de la cadena de bloques. Esto acelerará el comando, pero puede llevarlo a fallar o reportar datos obsoletos.</value>
+  </data>
+  <data name="NotAUnifiedAddress" xml:space="preserve">
+    <value>Esta no es una dirección unificada.</value>
   </data>
   <data name="NoUnshieldedFunds" xml:space="preserve">
     <value>No hay fondos transparentes que proteger.</value>
   </data>
+  <data name="OfflineOptionDescription" xml:space="preserve">
+    <value>Suprime todas las comunicaciones de red. En particular, esto eliminará la visualización de la altura de cumpleaños para la nueva cuenta.</value>
+  </data>
+  <data name="PasswordOptionDescription" xml:space="preserve">
+    <value>Una contraseña además de la frase semilla que desbloquea la cuenta. Si bien cualquier frase servirá, algunos monederos solo aceptan una palabra.</value>
+  </data>
+  <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
+    <value>La cantidad a solicitar para un pago en particular.</value>
+  </data>
+  <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
+    <value>El switch {switchName} debe tener el mismo número de argumentos que el número de beneficiarios ({expected}) pero tenía {actual}.</value>
+  </data>
+  <data name="RequestPaymentCommandDescription" xml:space="preserve">
+    <value>Cree un URI de solicitud de pago y, opcionalmente, un código QR.</value>
+  </data>
+  <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
+    <value>Una etiqueta legible por humanos que identifica la dirección de recepción.</value>
+  </data>
+  <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
+    <value>Una nota asociada con un pago en particular.</value>
+  </data>
+  <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
+    <value>Un mensaje legible por humanos asociado con un pago en particular.</value>
+  </data>
+  <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
+    <value>La (s) dirección(es) de Zcash para recibir pagos.</value>
+  </data>
+  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
+    <value>La ruta a la imagen para guardar con el código QR.</value>
+  </data>
+  <data name="RootCommandDescription" xml:space="preserve">
+    <value>Realiza operaciones con Zcash.</value>
+  </data>
+  <data name="SeedLengthAndSeedPhraseNotAllowed" xml:space="preserve">
+    <value>No especifique tanto la frase semilla como la longitud de una frase semilla generada.</value>
+  </data>
+  <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
+    <value>El número de palabras en la frase semilla generada. Debe ser 24 o más, y un múltiplo de 3.</value>
+  </data>
+  <data name="SeedPhraseOptionDescription" xml:space="preserve">
+    <value>Usa una frase semilla en particular. Especifique uno como argumento o un mensaje lo recopilará de forma interactiva.</value>
+  </data>
+  <data name="SeedPhrasePrompt" xml:space="preserve">
+    <value>Introduzca la frase semilla:</value>
+  </data>
   <data name="SelectedAccountArgumentDescription" xml:space="preserve">
     <value>Identifica la cuenta a operar, dada su dirección predeterminada.</value>
+  </data>
+  <data name="SendAmountArgumentDescription" xml:space="preserve">
+    <value>La cantidad a enviar (en ZEC).</value>
+  </data>
+  <data name="SendCommandDescription" xml:space="preserve">
+    <value>¡Envía Zcash a una dirección determinada.</value>
+  </data>
+  <data name="SendFeeOptionDescription" xml:space="preserve">
+    <value>Anula el cálculo de la tarifa predeterminada con un valor específico (en ZEC).</value>
+  </data>
+  <data name="SendMemoOptionDescription" xml:space="preserve">
+    <value>El memo a incluir en la transacción.</value>
+  </data>
+  <data name="SendRecipientArgumentDescription" xml:space="preserve">
+    <value>La dirección para recibir fondos.</value>
   </data>
   <data name="ShieldAllOptionDescription" xml:space="preserve">
     <value>Proteja los fondos transparentes de todas las direcciones transparentes, en lugar de solo una.</value>
@@ -270,7 +246,31 @@
   <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
     <value>La frase inicial utilizada para generar la clave de gasto.</value>
   </data>
-  <data name="ContinuallyOptionDescription" xml:space="preserve">
-    <value>Descargue la cadena de bloques continuamente, observando nuevos bloques a medida que se agregan.</value>
+  <data name="SyncCommandDescription" xml:space="preserve">
+    <value>Descarga transacciones desde la cadena de bloques.</value>
+  </data>
+  <data name="TestNetOptionDescription" xml:space="preserve">
+    <value>Indica que la cuenta se utilizará en una red de prueba en lugar de en una red principal.</value>
+  </data>
+  <data name="UACommandDescription" xml:space="preserve">
+    <value>Codifica o decodifica direcciones UA.</value>
+  </data>
+  <data name="UAConstructCommandDescription" xml:space="preserve">
+    <value>Construye una dirección unificada a partir de un conjunto de receptores.</value>
+  </data>
+  <data name="UAConstructReceiversArgumentDescription" xml:space="preserve">
+    <value>Receptores a incluir en la dirección unificada.</value>
+  </data>
+  <data name="UAParseArgumentDescription" xml:space="preserve">
+    <value>La dirección unificada a decodificar.</value>
+  </data>
+  <data name="UAParseCommandDescription" xml:space="preserve">
+    <value>Analiza un UA en sus direcciones de receptor de componentes.</value>
+  </data>
+  <data name="UnrecognizedKeyFormat" xml:space="preserve">
+    <value>Este formato de clave no se reconoce.</value>
+  </data>
+  <data name="WalletPathArgumentDescription" xml:space="preserve">
+    <value>La ruta al archivo del monedero.</value>
   </data>
 </root>

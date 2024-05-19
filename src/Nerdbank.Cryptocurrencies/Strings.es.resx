@@ -126,6 +126,15 @@
   <data name="DecodeInputTooShort" xml:space="preserve">
     <value>La longitud de entrada es más corta que el mínimo requerido para esta codificación.</value>
   </data>
+  <data name="ExchangeRatesRequireOneCommonSecurity" xml:space="preserve">
+    <value>Los tipos de cambio no tienen ninguna seguridad en común.</value>
+  </data>
+  <data name="ExchangeRatesRequireUniqueSecurities" xml:space="preserve">
+    <value>Los tipos de cambio describen los mismos dos valores.</value>
+  </data>
+  <data name="HistoricalPriceNotAvailableForThisDate" xml:space="preserve">
+    <value>El precio histórico de este par de trading en ese momento no está disponible.</value>
+  </data>
   <data name="HumanReadablePartRequired" xml:space="preserve">
     <value>No se permite una parte vacía legible por humanos.</value>
   </data>
@@ -144,25 +153,16 @@
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>¡No se ha encontrado ningún carácter separador '1'.</value>
   </data>
-  <data name="TargetBufferTooSmall" xml:space="preserve">
-    <value>¡El búfer de destino no es lo suficientemente grande como para contener la carga útil decodificada.</value>
-  </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>Esta operación requiere que todas las entradas sean del mismo tipo de seguridad.</value>
+  </data>
+  <data name="TargetBufferTooSmall" xml:space="preserve">
+    <value>¡El búfer de destino no es lo suficientemente grande como para contener la carga útil decodificada.</value>
   </data>
   <data name="TradingPairNotSupported" xml:space="preserve">
     <value>Esta bolsa no ofrece este par de trading.</value>
   </data>
   <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
     <value>La base y el interés comercial deben ser diferentes.</value>
-  </data>
-  <data name="HistoricalPriceNotAvailableForThisDate" xml:space="preserve">
-    <value>El precio histórico de este par de trading en ese momento no está disponible.</value>
-  </data>
-  <data name="ExchangeRatesRequireOneCommonSecurity" xml:space="preserve">
-    <value>Los tipos de cambio no tienen ninguna seguridad en común.</value>
-  </data>
-  <data name="ExchangeRatesRequireUniqueSecurities" xml:space="preserve">
-    <value>Los tipos de cambio describen los mismos dos valores.</value>
   </data>
 </root>
