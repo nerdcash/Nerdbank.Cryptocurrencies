@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.33624.585
@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1CE9670B-D5FF-46A7-9D00-24E70E6ED48B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		CONTRIBUTING.md = CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		Directory.Packages.props = Directory.Packages.props
@@ -173,6 +174,7 @@ Global
 		{4BAE4E09-42A3-47FB-8371-2DD6C6C7FCE4} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}
 	EndGlobalSection
 EndGlobal

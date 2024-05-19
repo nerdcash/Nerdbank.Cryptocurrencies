@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -118,96 +118,96 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
-    <value>Un niño endurecido no puede derivarse de una clave extendida pública. Utiliza una clave extendida privada en su lugar.</value>
+    <value>Não é possível derivar uma chave filha endurecida de uma chave pública estendida. Use uma chave estendida privada em vez disso.</value>
   </data>
   <data name="ErrorFromNativeSide" xml:space="preserve">
-    <value>Se produjo un error no asignado en la capa de interoperabilidad.</value>
+    <value>Ocorreu um erro não mapeado na camada de interoperabilidade.</value>
   </data>
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
-    <value>Se ha producido un error al obtener metadatos del servidor lightwallet.</value>
+    <value>Ocorreu um erro ao buscar metadados do servidor lightwallet.</value>
   </data>
   <data name="ExpectedKeyNotContainedWithinUnifiedViewingKey" xml:space="preserve">
-    <value>La clave de visualización unificada no incluye el tipo de clave necesario para utilizar esta API.</value>
+    <value>A chave de visualização unificada não inclui o tipo de chave necessário para usar esta API.</value>
   </data>
   <data name="FullViewingKeyRequired" xml:space="preserve">
-    <value>Se requiere una clave de visualización completa para que una cuenta simule un envío.</value>
+    <value>É necessário uma chave de visualização completa para uma conta simular um envio.</value>
   </data>
   <data name="InsufficientFunds" xml:space="preserve">
-    <value>No hay fondos suficientes para el gasto solicitado: {required} se requeriría (incluidas las tarifas) pero solo {available} estaba disponible.</value>
+    <value>Existem fundos insuficientes para a transação solicitada: {required} seriam necessários (incluindo taxas), mas apenas {available} estão disponíveis.</value>
   </data>
   <data name="InvalidAddress" xml:space="preserve">
-    <value>¡Esta dirección no es válida o no se reconoce.</value>
+    <value>Este endereço é inválido ou não reconhecido.</value>
   </data>
   <data name="InvalidAddressChecksum" xml:space="preserve">
-    <value>Esta dirección tiene una suma de comprobación no válida.</value>
+    <value>Este endereço possui um checksum inválido.</value>
   </data>
   <data name="InvalidAddressLength" xml:space="preserve">
-    <value>Esta dirección no cumple con los requisitos de longitud.</value>
+    <value>Este endereço não atende aos requisitos de comprimento.</value>
   </data>
   <data name="InvalidKey" xml:space="preserve">
-    <value>¡No válido.</value>
+    <value>Chave inválida.</value>
   </data>
   <data name="InvalidNetworkHeader" xml:space="preserve">
-    <value>Esta dirección no especifica una red reconocida.</value>
+    <value>Este endereço não especifica uma rede reconhecida.</value>
   </data>
   <data name="InvalidPadding" xml:space="preserve">
-    <value>Falta la suma de comprobación de esta dirección o es incorrecta.</value>
+    <value>O checksum para este endereço está faltando ou incorreto.</value>
   </data>
   <data name="InvalidSaplingPreamble" xml:space="preserve">
-    <value>Una dirección de árbol joven debe comenzar con 'zs1' o 'ztestsapling1'.</value>
+    <value>Um endereço sapling deve começar com 'zs1' ou 'ztestsapling1'.</value>
   </data>
   <data name="InvalidSproutPreamble" xml:space="preserve">
-    <value>Una dirección de brote debe comenzar con 'zc' o 'zt'.</value>
+    <value>Um endereço sprout deve começar com 'zc' ou 'zt'.</value>
   </data>
   <data name="InvalidXAddress" xml:space="preserve">
-    <value>Esta dirección {addressType} cumple con los requisitos esperados.</value>
+    <value>Este endereço {addressType} não está em conformidade com os requisitos esperados.</value>
   </data>
   <data name="LengthOutsideExpectedRange" xml:space="preserve">
-    <value>Se esperaba que la colección tuviera una longitud dentro de {minimum}-{maximum}, pero era {actual}.</value>
+    <value>A coleção deveria ter um comprimento entre {minimum}-{maximum}, mas tinha {actual}.</value>
   </data>
   <data name="LengthRangeNotMet" xml:space="preserve">
-    <value>Este valor debe tener una longitud de {minimum}-{maximum}.</value>
+    <value>Este valor deve ter um comprimento de {minimum}-{maximum}.</value>
   </data>
   <data name="MemoDataTooLarge" xml:space="preserve">
-    <value>Los datos proporcionados son demasiado grandes para caber en el campo de nota.</value>
+    <value>Os dados fornecidos são muito grandes para caber no campo de memo.</value>
   </data>
   <data name="MemoForTransparentReceiverNotSupported" xml:space="preserve">
-    <value>No se puede proporcionar una nota cuando el receptor es una dirección transparente.</value>
+    <value>Nenhum memo pode ser fornecido quando o destinatário é um endereço transparente.</value>
   </data>
   <data name="MixingNetworksInUANotAllowed" xml:space="preserve">
-    <value>Todos los receptores deben provenir de la misma red Zcash.</value>
+    <value>Todos os destinatários devem ser da mesma rede Zcash.</value>
   </data>
   <data name="MustUnderstandMetadataNotAllowedThisRevision" xml:space="preserve">
-    <value>Esta codificación contiene metadatos que no están permitidos (tipo código {typeCode}, revisión {revision}).</value>
+    <value>Esta codificação contém metadados que não são permitidos (código de tipo {typeCode}, revisão {revision}).</value>
   </data>
   <data name="NetworkMismatch" xml:space="preserve">
-    <value>Este servidor está configurado para su uso en la red {expected}, pero el parámetro de entrada está en la red {actual}.</value>
+    <value>Este servidor está configurado para uso na rede {expected}, mas o parâmetro de entrada está na rede {actual}.</value>
   </data>
   <data name="OnlyHardenedChildKeysSupported" xml:space="preserve">
-    <value>¡Solo se admiten llaves endurecidas.</value>
+    <value>Apenas chaves endurecidas são suportadas.</value>
   </data>
   <data name="OperationCanceled" xml:space="preserve">
-    <value>La operación fue cancelada.</value>
+    <value>A operação foi cancelada.</value>
   </data>
   <data name="UnknownErrorAcrossInteropBoundary" xml:space="preserve">
-    <value>Se produjo un error en el motor Zcash.</value>
+    <value>Ocorreu um erro no mecanismo Zcash.</value>
   </data>
   <data name="UnrecognizedAccount" xml:space="preserve">
-    <value>Esta cuenta aún no se ha agregado a la billetera.</value>
+    <value>Esta conta ainda não foi adicionada à carteira.</value>
   </data>
   <data name="UnrecognizedAddress" xml:space="preserve">
-    <value>Esta dirección no se ajusta a ningún formato conocido.</value>
+    <value>Este endereço não está em conformidade com nenhum formato conhecido.</value>
   </data>
   <data name="UnrecognizedMustUnderstandMetadata" xml:space="preserve">
-    <value>Esta codificación contiene metadatos que no se entienden (tipo código: {typeCode}).</value>
+    <value>Esta codificação contém metadados que não são compreendidos (código de tipo: {typeCode}).</value>
   </data>
   <data name="UnrecognizedNetwork" xml:space="preserve">
-    <value>Red no reconocida '{network}'.</value>
+    <value>Rede não reconhecida '{network}'.</value>
   </data>
   <data name="UnrecognizedScheme" xml:space="preserve">
-    <value>Se esperaba el esquema '{expected}' pero se encontró '{actual}' en su lugar.</value>
+    <value>Esperado o esquema '{expected}', mas encontrado '{actual}' em vez disso.</value>
   </data>
   <data name="UnsupportedTransactionVersion" xml:space="preserve">
-    <value>Versión de transacción no compatible {version}.</value>
+    <value>Versão de transação não suportada {version}.</value>
   </data>
 </root>

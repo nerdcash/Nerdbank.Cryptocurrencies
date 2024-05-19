@@ -41,4 +41,20 @@ After running `init.ps1` as described above, run `src/nerdbank-zcash-rust/build_
 
 Building, testing, and packing the C# code can be done by using the standard dotnet CLI commands (e.g. `dotnet build`, `dotnet test`, `dotnet pack`, etc.).
 
+## Translations
+
+Human translations and corrections are welcome.
+AI translations should be used for any new or modified English string to keep the translations up to date.
+When using AI for translations, use the following prompt as a basis:
+
+> Translate the `value` xml elements from English to **\{TARGET LANGUAGE\}**.
+> Only translate the text in the `value` xml elements.
+> When the value element text includes macros in the form of `{somename}`, leave that macro untranslated and exactly the same as it was, including capitalization.
+> The text to translate comes from a software application specializing in cryptocurrencies.
+
+When using Copilot within Visual Studio, select all the `<data>` elements in the English file and use the prompt above.
+Then copy the translations into the language-specific file and revert the changes to the English file.
+
+Web-based AI could also work by pasting the prompt and the `<data>` elements into the AI tool.
+
 [pwsh]: https://docs.microsoft.com/powershell/scripting/install/installing-powershell?view=powershell-6
