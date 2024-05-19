@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
+             x:Class="Nerdbank.Zcash.App.Views.ReceivingView"
+             x:DataType="vm:ReceivingViewModel">
+  <Design.DataContext>
+    <vm:ReceivingViewModel />
+  </Design.DataContext>
+  <DockPanel>
+    <TextBlock Text="{Binding AccountName}" HorizontalAlignment="Center" DockPanel.Dock="Top" />
+    <Grid ColumnDefinitions="auto,*" IsVisible="{Binding IsTestNetWarningVisible}" DockPanel.Dock="Top">
+      <TextBlock Text="⚠️" Grid.Column="0" VerticalAlignment="Center" Foreground="DarkOrange" Margin="0 0 5 0" />
+      <TextBlock Text="{Binding TestNetWarning}" Grid.Column="1"/>
+    </Grid>
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />
+    <TextBlock Text="{Binding PaymentReceivedText}"
+               HorizontalAlignment="Center"
+               Margin="0,10"
+               DockPanel.Dock="Bottom" />
+    <md:MarkdownScrollViewer
+                 Markdown="{Binding AddressAssignedToContactExplanation}"
+                 IsVisible="{Binding AddressAssignedToContactIsVisible}"
+                 HorizontalAlignment="Center"
+                 DockPanel.Dock="Bottom"/>
+    <TabControl TabStripPlacement="Top"
+                ItemsSource="{Binding Addresses}"
+                SelectedItem="{Binding DisplayedAddress}">
+      <TabControl.Styles>
+        <Style Selector="WrapPanel">
+          <Setter Property="Margin" Value="0,5,0,0"/>
+        </Style>
+
+        <Style Selector="ItemsPresenter">
+          <!-- Center the tabstrip -->
+          <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="TabItem">
+          <Setter Property="MinHeight" Value="20" />
+        </Style>
+
+        <Style Selector="TabItem > TextBlock">
+          <Setter Property="FontSize" Value="14"/>
+          <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+      </TabControl.Styles>
+      <TabControl.ItemTemplate>
+        <DataTemplate x:DataType="{x:Type vm:ReceivingAddress}">
+          <TextBlock Text="{Binding Header}" />
+        </DataTemplate>
+      </TabControl.ItemTemplate>
+      <TabControl.ContentTemplate>
+        <DataTemplate x:DataType="{x:Type vm:ReceivingAddress}">
+          <Grid RowDefinitions="auto, *, auto, auto">
+            <TextBlock Text="{Binding Subheading}" HorizontalAlignment="Center" />
+            <Image Source="{Binding QRCode}" Margin="10" Grid.Row="1" />
+            <StackPanel Grid.Row="2">
+              <TextBlock HorizontalAlignment="Center" Text="{Binding CopyTextPrompt}" />
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding ShortText}" VerticalAlignment="Center" />
+                <Button Classes="Copy" Background="Transparent" Command="{Binding CopyCommand}">
+                  <Button.Content>
+                    <Image Source="/Assets/copy.png" Height="12" />
+                  </Button.Content>
+                </Button>
+              </StackPanel>
+            </StackPanel>
+          </Grid>
+        </DataTemplate>
+      </TabControl.ContentTemplate>
+    </TabControl>
+  </DockPanel>
+</UserControl>

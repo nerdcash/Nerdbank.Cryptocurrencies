@@ -1,0 +1,16 @@
+[*.cs]
+
+# Missing documentation on publicly visible types and members.
+dotnet_diagnostic.CS1591.severity = silent
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = silent
+
+# CA1062: Validate arguments of public methods
+dotnet_diagnostic.CA1062.severity = silent
+
+# VSTHRD101: Avoid unsupported async void methods
+dotnet_diagnostic.VSTHRD101.severity = suggestion
+
+# VSTHRD012: Provide an instance of JoinableTaskFactory when possible
+dotnet_diagnostic.VSTHRD012.severity = none

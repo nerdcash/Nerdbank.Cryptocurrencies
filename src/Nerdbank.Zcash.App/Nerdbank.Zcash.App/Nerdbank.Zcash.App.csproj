@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\**\*.png" />
+    <None Remove="MessagePackAnalyzer.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="MessagePackAnalyzer.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\**\*.png" LogicalName="$([System.String]::Copy('%(RelativeDir)').Replace('\','/'))%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.ReactiveUI" />
+    <PackageReference Include="Avalonia.Svg.Skia" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Markdown.Avalonia.SyntaxHigh" />
+    <PackageReference Include="Markdown.Avalonia.Tight" />
+    <PackageReference Include="MessagePack" />
+    <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" />
+    <PackageReference Include="Nerdbank.QRCodes" />
+    <PackageReference Include="Velopack" />
+    <PackageReference Include="ZXing.Net.Mobile" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
+
+  <PropertyGroup>
+    <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(RepoRootPath)/bin/publish/$(Configuration)/$(RuntimeIdentifier)</PublishDir>
+  </PropertyGroup>
+</Project>

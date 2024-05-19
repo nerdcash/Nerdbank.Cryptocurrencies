@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             xmlns:zcash="clr-namespace:Nerdbank.Zcash;assembly=Nerdbank.Zcash"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.AccountsView"
+             x:DataType="vm:AccountsViewModel">
+  <Design.DataContext>
+    <vm:AccountsViewModel />
+  </Design.DataContext>
+  <DockPanel>
+    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+      <SplitButton Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}">
+        <SplitButton.Flyout>
+          <MenuFlyout Placement="Top">
+            <MenuItem Header="{Binding ImportAccountCommandCaption}" Command="{Binding ImportAccountCommand}" />
+          </MenuFlyout>
+        </SplitButton.Flyout>
+      </SplitButton>
+    </StackPanel>
+    <DataGrid ItemsSource="{Binding Accounts}" Name="AccountsGrid">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="{Binding AccountNameColumnHeader}" Binding="{Binding Name}" />
+        <DataGridTemplateColumn Header="{Binding AccountBalanceColumnHeader}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <local:SecurityAmountDisplay Value="{Binding Balance}" Margin="4 4 4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="{Binding AccountIndexColumnHeader}" Binding="{Binding Index}" />
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <Design.DataContext>
+    <vm:SettingsViewModel />
+  </Design.DataContext>
+
+  <DockPanel>
+    <StackPanel>
+      <StackPanel.Styles>
+        <Style Selector="Label">
+          <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+      </StackPanel.Styles>
+      <Label Content="{Binding AlternateCurrencyCaption}" Target="{Binding #AlternateCurrencyBox}" />
+      <ComboBox Name="AlternateCurrencyBox" ItemsSource="{Binding AlternateCurrencies}" SelectedItem="{Binding AlternateCurrency}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Name}" />
+              <TextBlock Text=" (" />
+              <TextBlock Text="{Binding TickerSymbol}" />
+              <TextBlock Text=")" />
+            </StackPanel>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <TextBlock Text="{Binding AlternateCurrencyExplanation}" />
+
+      <Expander IsExpanded="False" Header="{Binding AdvancedExpanderHeader}" Margin="0,10,0,0" HorizontalAlignment="Stretch">
+        <StackPanel>
+          <Label Content="{Binding LightServerUrlMainNetCaption}" Target="{Binding #LightServerUrlMainNetBox}" />
+          <TextBox Text="{Binding LightServerUrlMainNet}" HorizontalAlignment="Stretch" Name="LightServerUrlMainNetBox" />
+          <Label Content="{Binding LightServerUrlTestNetCaption}" Target="{Binding #LightServerUrlTestNetBox}" />
+          <TextBox Text="{Binding LightServerUrlTestNet}" HorizontalAlignment="Stretch" Name="LightServerUrlTestNetBox" />
+        </StackPanel>
+      </Expander>
+    </StackPanel>
+  </DockPanel>
+</UserControl>

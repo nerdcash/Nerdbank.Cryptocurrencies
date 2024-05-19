@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Nerdbank.Zcash.App.Views.AddressBookView"
+             x:DataType="vm:AddressBookViewModel">
+  <Design.DataContext>
+    <vm:AddressBookViewModel />
+  </Design.DataContext>
+  <DockPanel>
+    <local:AccountSelector DockPanel.Dock="Top" HorizontalAlignment="Center" />
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+      <Button Command="{Binding NewContactCommand}" Content="{Binding NewContactCaption}" />
+      <Button Command="{Binding DeleteContactCommand}" Content="{Binding DeleteContactCaption}" />
+    </StackPanel>
+    <DataGrid ItemsSource="{Binding Contacts}" SelectedItem="{Binding SelectedContact}" AutoGenerateColumns="False">
+      <DataGrid.Columns>
+        <DataGridTemplateColumn Header="{Binding NameColumnHeader}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Name}" Margin="6"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+          <DataGridTemplateColumn.CellEditingTemplate>
+            <DataTemplate>
+              <!-- We use our own TextBox instead of a DataGridTextColumn 
+                   so that we get UpdateSourceTrigger=PropertyChanged behavior.
+                   This is important so that switching views without first losing
+                   focus on the editing cell doesn't erase the contact. -->
+              <TextBox Text="{Binding Name}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellEditingTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="{Binding SendCommandColumnHeader}" IsReadOnly="True" CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Button Command="{Binding SendCommand}" Content="{Binding SendCommandCaption}" IsVisible="{Binding HasAddress}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+      <DataGrid.RowDetailsTemplate>
+        <DataTemplate x:DataType="vm:ContactViewModel">
+          <StackPanel Margin="4">
+            <Label Content="{Binding AddressCaption}" Target="{Binding #AddressBox}" />
+            <TextBox Name="AddressBox" Text="{Binding Addresses}" />
+            <TextBlock Text="{Binding HasContactSeenMyDiversifiedAddressCaption}" Margin="0,10,0,0" />
+            <Button Content="{Binding ShowDiversifiedAddressCommandCaption}" IsVisible="{Binding IsShowDiversifiedAddressButtonVisible}"
+                    Command="{Binding ShowDiversifiedAddressCommand}"
+                    HorizontalAlignment="Center" />
+            <Grid ColumnDefinitions="auto, *">
+            </Grid>
+          </StackPanel>
+        </DataTemplate>
+      </DataGrid.RowDetailsTemplate>
+    </DataGrid>
+  </DockPanel>
+</UserControl>

@@ -19,5 +19,5 @@
     <ProjectReference Include="..\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
   </ItemGroup>
 
-  <Import Project="..\Nerdbank.Zcash\NativeBindings.targets" />
+  <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
 </Project>

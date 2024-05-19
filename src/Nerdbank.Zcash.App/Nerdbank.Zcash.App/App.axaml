@@ -1,0 +1,81 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Nerdbank.Zcash.App"
+             x:Class="Nerdbank.Zcash.App.App"
+             RequestedThemeVariant="Light">
+  <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+  <Application.DataTemplates>
+    <local:ViewLocator/>
+  </Application.DataTemplates>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+    <Style Selector="TextBlock">
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="SelectableTextBlock">
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.Title">
+      <Setter Property="FontSize" Value="18" />
+    </Style>
+    <Style Selector="TextBlock.Warning">
+      <Setter Property="Foreground" Value="Red" />
+    </Style>
+    <Style Selector="StackPanel.ButtonAndExplanation">
+      <Setter Property="Background" Value="LightCyan" />
+    </Style>
+    <Style Selector="StackPanel.ButtonAndExplanation Button">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="Margin" Value="8" />
+    </Style>
+    <Style Selector="StackPanel.ButtonAndExplanation SplitButton">
+      <Setter Property="Margin" Value="8" />
+    </Style>
+    <Style Selector="StackPanel.ButtonAndExplanation SplitButton Button">
+      <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style Selector="StackPanel.ButtonAndExplanation TextBlock">
+      <Setter Property="Margin" Value="5 0 5 5" />
+    </Style>
+    <Style Selector="Grid.SumTable TextBlock">
+      <Setter Property="Margin" Value="2" />
+    </Style>
+    <Style Selector="Grid.SumTable TextBlock.Amount">
+      <Setter Property="FontFamily" Value="Consolas" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+    <Style Selector="Grid SelectableTextBlock">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Grid Label">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.Hyperlink">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <TextBlock Text="{TemplateBinding Content}" Foreground="{StaticResource SystemAccentColor}" TextDecorations="Underline">
+            <TextBlock.Styles>
+              <Style Selector="TextBlock:pointerover">
+                <Setter Property="Foreground" Value="{StaticResource SystemAccentColorLight1}"/>
+              </Style>
+            </TextBlock.Styles>
+          </TextBlock>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style Selector="Button.Copy">
+      <!--<Setter Property="Content">
+        <Setter.Value>
+          <Image Source="/Assets/copy.png" />
+        </Setter.Value>
+      </Setter>-->
+    </Style>
+  </Application.Styles>
+</Application>
