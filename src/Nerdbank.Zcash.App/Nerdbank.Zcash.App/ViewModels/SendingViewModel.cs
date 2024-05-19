@@ -79,7 +79,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount!.Balance.Spendable,
 			vm => vm.Total,
 			vm => vm.AreLineItemsValid,
-			(sending, spendableBalance, total, valid) => valid && !sending && spendableBalance.Amount >= total?.Amount);
+			vm => vm.HasAnyErrors,
+			(sending, spendableBalance, total, valid, hasAnyErrors) => valid && !hasAnyErrors && !sending && spendableBalance.Amount >= total?.Amount);
 
 		this.SendCommand = ReactiveCommand.CreateFromTask(this.SendAsync, canSend);
 		this.AddLineItemCommand = ReactiveCommand.Create(this.AddLineItem);
@@ -278,9 +279,12 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	private async Task SendAsync(CancellationToken cancellationToken)
 	{
-		// TODO: Block sending if validation errors exist.
 		Verify.Operation(this.SelectedAccount?.LightWalletClient is not null, "No lightclient.");
+		Verify.Operation(!this.HasAnyErrors, "Validation errors exist.");
 		ImmutableArray<Transaction.LineItem> lineItems = this.GetLineItems();
+
+		// Simulate the payment to get the fee.
+		LightWalletClient.SpendDetails sendDetails = this.SelectedAccount.LightWalletClient.SimulateSend(this.SelectedAccount.ZcashAccount, lineItems);
 
 		// Create a draft transaction in the account right away.
 		// This will store the mutable memo, exchange rate, and other metadata that
@@ -294,6 +298,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			IsIncoming = false,
 			When = DateTimeOffset.UtcNow,
 			SendItems = [.. lineItems.Select(li => new ZcashTransaction.LineItem(li))],
+			Fee = sendDetails.Fee,
 		};
 
 		// Record the exchange rate that we showed the user, if applicable.
@@ -409,7 +414,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			bool insufficientFunds;
 			try
 			{
-				LightWalletClient.SpendDetails? details = this.SelectedAccount?.LightWalletClient?.SimulateSend(this.SelectedAccount.ZcashAccount, this.GetLineItems());
+				ImmutableArray<Transaction.LineItem> nonEmptyLineItems = this.GetLineItems();
+				LightWalletClient.SpendDetails? details = nonEmptyLineItems.IsEmpty
+					? default
+					: this.SelectedAccount?.LightWalletClient?.SimulateSend(this.SelectedAccount.ZcashAccount, nonEmptyLineItems);
 				insufficientFunds = false;
 				if (details is not null)
 				{
@@ -436,11 +444,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 				// to the sender's balance.
 				if (this.Total?.Amount > this.SelectedAccount.Balance.MainBalance.Amount + this.SelectedAccount.Balance.Incoming.Amount)
 				{
-					this.ErrorMessage = "Insufficient funds to cover this expenditure. Please consult the Balance view.";
+					this.ErrorMessage = SendingStrings.InsufficientFunds;
 				}
 				else
 				{
-					this.ErrorMessage = "Insufficient spendable funds. Enough funds are expected to be spendable to cover this expenditure within a few minutes. Check the Balance view for details.";
+					this.ErrorMessage = SendingStrings.InsufficientSpendableFunds;
 				}
 			}
 			else

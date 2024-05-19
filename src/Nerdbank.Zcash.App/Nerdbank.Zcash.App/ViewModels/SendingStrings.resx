@@ -126,6 +126,12 @@
   <data name="FromAccountCaption" xml:space="preserve">
     <value>From account:</value>
   </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>Insufficient funds to cover this expenditure. Please consult the Balance view.</value>
+  </data>
+  <data name="InsufficientSpendableFunds" xml:space="preserve">
+    <value>Insufficient spendable funds. Enough funds are expected to be spendable to cover this expenditure within a few minutes. Check the Balance view for details.</value>
+  </data>
   <data name="LineItem_AmountCaption" xml:space="preserve">
     <value>Amount:</value>
   </data>
@@ -142,7 +148,7 @@
     <value>❌</value>
   </data>
   <data name="MutableMemoCaption" xml:space="preserve">
-    <value>Private memo</value>
+    <value>Memo (not shared with anyone):</value>
   </data>
   <data name="SendCommandCaption" xml:space="preserve">
     <value>📤 Send</value>

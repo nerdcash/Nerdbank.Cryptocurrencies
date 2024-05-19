@@ -121,7 +121,7 @@
     <value>🪙 Tarifas anticipadas</value>
   </data>
   <data name="AnticipatedFeesExplanation" xml:space="preserve">
-    <value>Esta es la parte estimada de su saldo que se destinará a las tarifas cuando gastes tu ZCash.</value>
+    <value>Este es el mínimo estimado requerido para las tarifas de red cuando gastas tu ZCash.</value>
   </data>
   <data name="BalanceCaption" xml:space="preserve">
     <value>💰 Balance</value>

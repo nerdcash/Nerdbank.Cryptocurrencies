@@ -61,11 +61,11 @@ Nerdbank.Zcash.LightWalletClient.AddAccountAsync(Nerdbank.Zcash.ZcashAccount! ac
 Nerdbank.Zcash.LightWalletClient.AddDiversifier(Nerdbank.Zcash.ZcashAccount! account, Nerdbank.Zcash.DiversifierIndex diversifierIndex) -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.LightWalletClient.BirthdayHeight.get -> uint?
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeight.get -> ulong
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeight.get -> ulong?
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeight.set -> void
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeights() -> void
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeights(ulong OriginalBirthdayHeight, ulong BirthdayHeight, ulong? RebirthHeight) -> void
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.Deconstruct(out ulong OriginalBirthdayHeight, out ulong BirthdayHeight, out ulong? RebirthHeight) -> void
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeights(ulong OriginalBirthdayHeight, ulong? BirthdayHeight, ulong? RebirthHeight) -> void
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.Deconstruct(out ulong OriginalBirthdayHeight, out ulong? BirthdayHeight, out ulong? RebirthHeight) -> void
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.Equals(Nerdbank.Zcash.LightWalletClient.BirthdayHeights other) -> bool
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.OriginalBirthdayHeight.get -> ulong
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.OriginalBirthdayHeight.set -> void

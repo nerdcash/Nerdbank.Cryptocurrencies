@@ -96,7 +96,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	// When changing the sort order, be sure to update the UpdateBalances method (and maybe its callers)
 	// to walk the collection in the new order.
-	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionChronologicalComparer.OldestToNewest);
+	public SortedObservableCollection<TransactionViewModel> Transactions { get; } = new(TransactionChronologicalComparer.NewestToOldest);
 
 	public string ShowProtocolDetailsCaption => HistoryStrings.ShowProtocolDetailsCaption;
 
