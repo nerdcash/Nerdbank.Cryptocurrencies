@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -118,159 +118,159 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AccountIndexOptionDescription" xml:space="preserve">
-    <value>El índice de la cuenta a crear.</value>
+    <value>创建账户的索引。</value>
   </data>
   <data name="AccountsCommandDescription" xml:space="preserve">
-    <value>Enumere todas las cuentas conocidas en la base de datos.</value>
+    <value>列出数据库中已知的所有账户。</value>
   </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
-    <value>La longitud de la frase semilla debe ser de al menos 24 y un múltiplo de 3.</value>
+    <value>种子短语的长度必须至少为24，并且是3的倍数。</value>
   </data>
   <data name="BalanceCommandDescription" xml:space="preserve">
-    <value>Informes de saldos para cada pool.</value>
+    <value>报告每个池的余额。</value>
   </data>
   <data name="BirthdayHeightOptionDescription" xml:space="preserve">
-    <value>Obliga a que se registre una altura de cumpleaños en particular en la nueva cuenta. De forma predeterminada, esta será la longitud actual de la cadena de bloques si está en modo en línea.</value>
+    <value>在新账户中记录特定的生日高度。如果处于在线模式，默认情况下，这将是当前的区块链长度。</value>
   </data>
   <data name="ContinuallyOptionDescription" xml:space="preserve">
-    <value>Descargue la cadena de bloques continuamente, observando nuevos bloques a medida que se agregan.</value>
+    <value>持续下载区块链，随时监视添加的新区块。</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
-    <value>Enumera las transacciones de la cadena de bloques que pertenecen a este monedero.</value>
+    <value>列出属于此钱包的区块链上的交易。</value>
   </data>
   <data name="HistoryStartingBlockOptionDescription" xml:space="preserve">
-    <value>El primer bloque cuyas transacciones deben incluirse en la lista de transacciones.</value>
+    <value>应包含在交易列表中的第一个区块。</value>
   </data>
   <data name="ImportAccountCommandDescription" xml:space="preserve">
-    <value>Crea una nueva cuenta basada en una clave de visualización.</value>
+    <value>基于查看密钥创建新账户。</value>
   </data>
   <data name="InvalidAddress" xml:space="preserve">
-    <value>Error al analizar la dirección: "{address}". {error}</value>
+    <value>解析地址时出错："{address}"。{error}</value>
   </data>
   <data name="InvalidSeedPhrase" xml:space="preserve">
-    <value>Frase semilla no válida.</value>
+    <value>无效的种子短语。</value>
   </data>
   <data name="KeyArgumentDescription" xml:space="preserve">
-    <value>La clave de visualización en la que basar la nueva cuenta.</value>
+    <value>用于创建新账户的查看密钥。</value>
   </data>
   <data name="LightServerUrlOptionDescription" xml:space="preserve">
-    <value>La URL al servidor lightwallet para consultar la longitud de la cadena de bloques con el fin de imprimir una altura de cumpleaños. El valor predeterminado varía según si se genera para mainnet o testnet.</value>
+    <value>用于查询区块链长度以打印生日高度的轻钱包服务器的URL。默认值因生成的是主网还是测试网而异。</value>
   </data>
   <data name="NewAccountCommandDescription" xml:space="preserve">
-    <value>Crea una nueva cuenta Zcash.</value>
+    <value>创建新的 Zcash 账户。</value>
   </data>
   <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
-    <value>La ruta al archivo del monedero para crear.</value>
+    <value>要创建的钱包文件的路径。</value>
   </data>
   <data name="NoSyncOption" xml:space="preserve">
-    <value>No descargues primero los últimos bloques de la cadena de bloques. Esto acelerará el comando, pero puede llevarlo a fallar o reportar datos obsoletos.</value>
+    <value>不要先下载区块链中的最新区块。这将加快命令的速度，但可能导致失败或报告过时的数据。</value>
   </data>
   <data name="NotAUnifiedAddress" xml:space="preserve">
-    <value>Esta no es una dirección unificada.</value>
+    <value>这不是统一地址。</value>
   </data>
   <data name="NoUnshieldedFunds" xml:space="preserve">
-    <value>No hay fondos transparentes que proteger.</value>
+    <value>没有透明资金可保护。</value>
   </data>
   <data name="OfflineOptionDescription" xml:space="preserve">
-    <value>Suprime todas las comunicaciones de red. En particular, esto eliminará la visualización de la altura de cumpleaños para la nueva cuenta.</value>
+    <value>抑制所有网络通信。特别是，这将抑制显示新账户的生日高度。</value>
   </data>
   <data name="PasswordOptionDescription" xml:space="preserve">
-    <value>Una contraseña además de la frase semilla que desbloquea la cuenta. Si bien cualquier frase servirá, algunos monederos solo aceptan una palabra.</value>
+    <value>除了种子短语之外，解锁账户的密码。虽然任何短语都可以，但某些钱包只接受一个单词。</value>
   </data>
   <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
-    <value>La cantidad a solicitar para un pago en particular.</value>
+    <value>要请求的特定付款金额。</value>
   </data>
   <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
-    <value>El switch {switchName} debe tener el mismo número de argumentos que el número de beneficiarios ({expected}) pero tenía {actual}.</value>
+    <value>{switchName} 开关的参数数量必须与收款人数量（{expected}）相同，但实际上有 {actual}。</value>
   </data>
   <data name="RequestPaymentCommandDescription" xml:space="preserve">
-    <value>Cree un URI de solicitud de pago y, opcionalmente, un código QR.</value>
+    <value>创建付款请求 URI，并可选地创建二维码。</value>
   </data>
   <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
-    <value>Una etiqueta legible por humanos que identifica la dirección de recepción.</value>
+    <value>用于标识接收地址的可读标签。</value>
   </data>
   <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
-    <value>Una nota asociada con un pago en particular.</value>
+    <value>与特定付款相关联的备注。</value>
   </data>
   <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
-    <value>Un mensaje legible por humanos asociado con un pago en particular.</value>
+    <value>与特定付款相关联的可读消息。</value>
   </data>
   <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
-    <value>La (s) dirección(es) de Zcash para recibir pagos.</value>
+    <value>接收付款的 Zcash 地址。</value>
   </data>
   <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
-    <value>La ruta a la imagen para guardar con el código QR.</value>
+    <value>要保存 QR 码的图像的路径。</value>
   </data>
   <data name="RootCommandDescription" xml:space="preserve">
-    <value>Realiza operaciones con Zcash.</value>
+    <value>执行 Zcash 操作。</value>
   </data>
   <data name="SeedLengthAndSeedPhraseNotAllowed" xml:space="preserve">
-    <value>No especifique tanto la frase semilla como la longitud de una frase semilla generada.</value>
+    <value>不要同时指定种子短语和生成的种子短语的长度。</value>
   </data>
   <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
-    <value>El número de palabras en la frase semilla generada. Debe ser 24 o más, y un múltiplo de 3.</value>
+    <value>生成的种子短语中的单词数。必须大于等于24，并且是3的倍数。</value>
   </data>
   <data name="SeedPhraseOptionDescription" xml:space="preserve">
-    <value>Usa una frase semilla en particular. Especifique uno como argumento o un mensaje lo recopilará de forma interactiva.</value>
+    <value>使用特定的种子短语。将其作为参数指定，或者交互式地收集它。</value>
   </data>
   <data name="SeedPhrasePrompt" xml:space="preserve">
-    <value>Introduzca la frase semilla:</value>
+    <value>输入种子短语：</value>
   </data>
   <data name="SelectedAccountArgumentDescription" xml:space="preserve">
-    <value>Identifica la cuenta a operar, dada su dirección predeterminada.</value>
+    <value>根据其默认地址标识要操作的账户。</value>
   </data>
   <data name="SendAmountArgumentDescription" xml:space="preserve">
-    <value>La cantidad a enviar (en ZEC).</value>
+    <value>要发送的金额（以 ZEC 为单位）。</value>
   </data>
   <data name="SendCommandDescription" xml:space="preserve">
-    <value>¡Envía Zcash a una dirección determinada.</value>
+    <value>向给定地址发送 Zcash。</value>
   </data>
   <data name="SendFeeOptionDescription" xml:space="preserve">
-    <value>Anula el cálculo de la tarifa predeterminada con un valor específico (en ZEC).</value>
+    <value>使用特定值（以 ZEC 为单位）覆盖默认费用计算。</value>
   </data>
   <data name="SendMemoOptionDescription" xml:space="preserve">
-    <value>El memo a incluir en la transacción.</value>
+    <value>要包含在交易中的备注。</value>
   </data>
   <data name="SendRecipientArgumentDescription" xml:space="preserve">
-    <value>La dirección para recibir fondos.</value>
+    <value>接收资金的地址。</value>
   </data>
   <data name="ShieldAllOptionDescription" xml:space="preserve">
-    <value>Proteja los fondos transparentes de todas las direcciones transparentes, en lugar de solo una.</value>
+    <value>从所有透明地址保护透明资金，而不仅仅是一个地址。一次性保护所有透明地址可以使他人通过区块链上的公共信息将您的透明地址相关联。通过在每个透明地址的保护之间添加随机延迟来提高隐私。这些延迟应至少足够确保每个交易位于自己的区块中。</value>
   </data>
   <data name="ShieldCommandDescription" xml:space="preserve">
-    <value>Protege fondos transparentes.</value>
+    <value>保护透明资金。退出代码为1表示仍然存在具有非零余额的透明地址。</value>
   </data>
   <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
-    <value>El índice de cuenta bajo la frase inicial utilizada para generar la clave de gasto.</value>
+    <value>用于生成消费密钥的种子短语下的账户索引。</value>
   </data>
   <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
-    <value>La frase inicial utilizada para generar la clave de gasto.</value>
+    <value>用于生成消费密钥的种子短语。</value>
   </data>
   <data name="SyncCommandDescription" xml:space="preserve">
-    <value>Descarga transacciones desde la cadena de bloques.</value>
+    <value>从区块链下载交易。</value>
   </data>
   <data name="TestNetOptionDescription" xml:space="preserve">
-    <value>Indica que la cuenta se utilizará en una red de prueba en lugar de en una red principal.</value>
+    <value>指示该账户将在测试网而不是主网上使用。</value>
   </data>
   <data name="UACommandDescription" xml:space="preserve">
-    <value>Codifica o decodifica direcciones UA.</value>
+    <value>编码或解码 UA 地址。</value>
   </data>
   <data name="UAConstructCommandDescription" xml:space="preserve">
-    <value>Construye una dirección unificada a partir de un conjunto de receptores.</value>
+    <value>从一组接收者构造统一地址。</value>
   </data>
   <data name="UAConstructReceiversArgumentDescription" xml:space="preserve">
-    <value>Receptores a incluir en la dirección unificada.</value>
+    <value>要包含在统一地址中的接收者。</value>
   </data>
   <data name="UAParseArgumentDescription" xml:space="preserve">
-    <value>La dirección unificada a decodificar.</value>
+    <value>要解码的统一地址。</value>
   </data>
   <data name="UAParseCommandDescription" xml:space="preserve">
-    <value>Analiza un UA en sus direcciones de receptor de componentes.</value>
+    <value>解析 UA 为其组成的接收地址。</value>
   </data>
   <data name="UnrecognizedKeyFormat" xml:space="preserve">
-    <value>Este formato de clave no se reconoce.</value>
+    <value>此密钥格式无法识别。</value>
   </data>
   <data name="WalletPathArgumentDescription" xml:space="preserve">
-    <value>La ruta al archivo del monedero.</value>
+    <value>钱包文件的路径。</value>
   </data>
 </root>

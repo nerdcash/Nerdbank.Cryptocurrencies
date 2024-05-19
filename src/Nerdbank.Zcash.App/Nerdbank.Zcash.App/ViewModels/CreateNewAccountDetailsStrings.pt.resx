@@ -1,17 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,40 +26,43 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root"
+    xmlns=""
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -117,52 +120,37 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Bech32TagBufferTooSmall" xml:space="preserve">
-    <value>El búfer de etiquetas es demasiado pequeño.</value>
+  <data name="BirthdayHeightCaption" xml:space="preserve">
+    <value>Altura do aniversário</value>
   </data>
-  <data name="CallResetFirst" xml:space="preserve">
-    <value>Este objeto no se ha reinicializado desde la última vez que se finalizó. ¡Llama primero a "{methodName}".</value>
+  <data name="CreateAccountCommandCaption" xml:space="preserve">
+    <value>Criar</value>
   </data>
-  <data name="DecodeInputTooShort" xml:space="preserve">
-    <value>La longitud de entrada es más corta que el mínimo requerido para esta codificación.</value>
+  <data name="HDWalletCaption" xml:space="preserve">
+    <value>Carteira HD para criar a conta dentro</value>
   </data>
-  <data name="ExchangeRatesRequireOneCommonSecurity" xml:space="preserve">
-    <value>Los tipos de cambio no tienen ninguna seguridad en común.</value>
+  <data name="IndexCaption" xml:space="preserve">
+    <value>Índice da conta</value>
   </data>
-  <data name="ExchangeRatesRequireUniqueSecurities" xml:space="preserve">
-    <value>Los tipos de cambio describen los mismos dos valores.</value>
+  <data name="IndexExplanation" xml:space="preserve">
+    <value>Uma frase de semente, rede e índice da conta juntos podem recriar qualquer conta e descobrir o histórico de transações e gastar o saldo. A altura do aniversário original é importante para recuperar transações passadas e fundos disponíveis.</value>
   </data>
-  <data name="HistoricalPriceNotAvailableForThisDate" xml:space="preserve">
-    <value>El precio histórico de este par de trading en ese momento no está disponible.</value>
+  <data name="MainNetCaption" xml:space="preserve">
+    <value>Zcash real ({Ticker})</value>
   </data>
-  <data name="HumanReadablePartRequired" xml:space="preserve">
-    <value>No se permite una parte vacía legible por humanos.</value>
+  <data name="NameCaption" xml:space="preserve">
+    <value>Nome da conta</value>
   </data>
-  <data name="InvalidBip32KeyPath" xml:space="preserve">
-    <value>Ruta de derivación de clave BIP-32 no válida.</value>
+  <data name="NetworkCaption" xml:space="preserve">
+    <value>Rede</value>
   </data>
-  <data name="InvalidCharXFoundAtY" xml:space="preserve">
-    <value>¡Carácter '{character}' no permitido encontrado en la posición {position}.</value>
+  <data name="SetBirthdayHeightToTipCommandCaption" xml:space="preserve">
+    <value>Definir altura para nova conta</value>
   </data>
-  <data name="InvalidChecksum" xml:space="preserve">
-    <value>Suma de comprobación no válida.</value>
+  <data name="TestNetCaption" xml:space="preserve">
+    <value>Dinheiro de brincar ({Ticker})</value>
   </data>
-  <data name="InvalidOnKeyPathRoot" xml:space="preserve">
-    <value>Esta operación no es válida en el nodo KeyPath.Root de una ruta clave.</value>
-  </data>
-  <data name="MissingBech32Separator" xml:space="preserve">
-    <value>¡No se ha encontrado ningún carácter separador '1'.</value>
-  </data>
-  <data name="SecurityMismatch" xml:space="preserve">
-    <value>Esta operación requiere que todas las entradas sean del mismo tipo de seguridad.</value>
-  </data>
-  <data name="TargetBufferTooSmall" xml:space="preserve">
-    <value>¡El búfer de destino no es lo suficientemente grande como para contener la carga útil decodificada.</value>
-  </data>
-  <data name="TradingPairNotSupported" xml:space="preserve">
-    <value>Esta bolsa no ofrece este par de trading.</value>
-  </data>
-  <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
-    <value>La base y el interés comercial deben ser diferentes.</value>
+  <data name="TestNetExplanation" xml:space="preserve">
+    <value>TAZ não tem valor, mas pode ser útil ao aprender a usar Zcash. Você pode obter TAZ gratuitamente de uma torneira.</value>
   </data>
 </root>

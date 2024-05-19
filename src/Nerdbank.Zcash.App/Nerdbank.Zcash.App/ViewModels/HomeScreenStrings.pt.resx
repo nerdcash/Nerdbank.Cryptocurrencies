@@ -1,17 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -117,52 +117,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Bech32TagBufferTooSmall" xml:space="preserve">
-    <value>El búfer de etiquetas es demasiado pequeño.</value>
+  <data name="BackupCommandCaption" xml:space="preserve">
+    <value>🗻 Fazer backup da sua carteira</value>
   </data>
-  <data name="CallResetFirst" xml:space="preserve">
-    <value>Este objeto no se ha reinicializado desde la última vez que se finalizó. ¡Llama primero a "{methodName}".</value>
+  <data name="BackupExplanation" xml:space="preserve">
+    <value>Nenhum banco está respaldando sua Zcash para você. Se você perder este dispositivo, perderá sua Zcash. Faça backup da sua carteira para proteger sua Zcash ou usá-la em vários dispositivos.</value>
   </data>
-  <data name="DecodeInputTooShort" xml:space="preserve">
-    <value>La longitud de entrada es más corta que el mínimo requerido para esta codificación.</value>
+  <data name="BalanceCommandCaption" xml:space="preserve">
+    <value>⚖️ Saldo</value>
   </data>
-  <data name="ExchangeRatesRequireOneCommonSecurity" xml:space="preserve">
-    <value>Los tipos de cambio no tienen ninguna seguridad en común.</value>
+  <data name="BalanceExplanation" xml:space="preserve">
+    <value>Verifique seu saldo.</value>
   </data>
-  <data name="ExchangeRatesRequireUniqueSecurities" xml:space="preserve">
-    <value>Los tipos de cambio describen los mismos dos valores.</value>
+  <data name="HistoryCommandCaption" xml:space="preserve">
+    <value>📜 Histórico</value>
   </data>
-  <data name="HistoricalPriceNotAvailableForThisDate" xml:space="preserve">
-    <value>El precio histórico de este par de trading en ese momento no está disponible.</value>
+  <data name="HistoryExplanation" xml:space="preserve">
+    <value>Veja seu histórico de transações.</value>
   </data>
-  <data name="HumanReadablePartRequired" xml:space="preserve">
-    <value>No se permite una parte vacía legible por humanos.</value>
+  <data name="ReceiveCommandCaption" xml:space="preserve">
+    <value>📥 Receber</value>
   </data>
-  <data name="InvalidBip32KeyPath" xml:space="preserve">
-    <value>Ruta de derivación de clave BIP-32 no válida.</value>
+  <data name="ReceiveExplanation" xml:space="preserve">
+    <value>Compartilhe seu endereço Zcash ou uma solicitação de pagamento com outras pessoas para que elas possam enviar Zcash para você.</value>
   </data>
-  <data name="InvalidCharXFoundAtY" xml:space="preserve">
-    <value>¡Carácter '{character}' no permitido encontrado en la posición {position}.</value>
+  <data name="SendCommandCaption" xml:space="preserve">
+    <value>📤 Enviar</value>
   </data>
-  <data name="InvalidChecksum" xml:space="preserve">
-    <value>Suma de comprobación no válida.</value>
-  </data>
-  <data name="InvalidOnKeyPathRoot" xml:space="preserve">
-    <value>Esta operación no es válida en el nodo KeyPath.Root de una ruta clave.</value>
-  </data>
-  <data name="MissingBech32Separator" xml:space="preserve">
-    <value>¡No se ha encontrado ningún carácter separador '1'.</value>
-  </data>
-  <data name="SecurityMismatch" xml:space="preserve">
-    <value>Esta operación requiere que todas las entradas sean del mismo tipo de seguridad.</value>
-  </data>
-  <data name="TargetBufferTooSmall" xml:space="preserve">
-    <value>¡El búfer de destino no es lo suficientemente grande como para contener la carga útil decodificada.</value>
-  </data>
-  <data name="TradingPairNotSupported" xml:space="preserve">
-    <value>Esta bolsa no ofrece este par de trading.</value>
-  </data>
-  <data name="TradingPairRequiresUniqueSecurities" xml:space="preserve">
-    <value>La base y el interés comercial deben ser diferentes.</value>
+  <data name="SendExplanation" xml:space="preserve">
+    <value>Envie Zcash para alguém.</value>
   </data>
 </root>
