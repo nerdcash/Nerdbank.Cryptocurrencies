@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccountIndexOptionDescription" xml:space="preserve">
+    <value>계정을 생성할 인덱스입니다.</value>
+  </data>
+  <data name="AccountsCommandDescription" xml:space="preserve">
+    <value>데이터베이스에 알려진 모든 계정을 나열합니다.</value>
+  </data>
+  <data name="BadSeedPhraseLength" xml:space="preserve">
+    <value>시드 구문 길이는 최소 24이고 3의 배수여야 합니다.</value>
+  </data>
+  <data name="BalanceCommandDescription" xml:space="preserve">
+    <value>각 풀에 대한 잔액을 보고합니다.</value>
+  </data>
+  <data name="BirthdayHeightOptionDescription" xml:space="preserve">
+    <value>새 계정에 기록할 특정 생일 높이를 강제로 지정합니다. 온라인 모드인 경우 기본적으로 현재 블록체인 길이가 됩니다.</value>
+  </data>
+  <data name="ContinuallyOptionDescription" xml:space="preserve">
+    <value>블록체인을 계속해서 다운로드하며 새로운 블록이 추가될 때마다 확인합니다.</value>
+  </data>
+  <data name="HistoryCommandDescription" xml:space="preserve">
+    <value>이 지갑에 속한 블록체인의 거래를 나열합니다.</value>
+  </data>
+  <data name="HistoryStartingBlockOptionDescription" xml:space="preserve">
+    <value>거래 목록에 포함될 첫 번째 블록입니다.</value>
+  </data>
+  <data name="ImportAccountCommandDescription" xml:space="preserve">
+    <value>보는 키를 기반으로 새 계정을 생성합니다.</value>
+  </data>
+  <data name="InvalidAddress" xml:space="preserve">
+    <value>주소를 구문 분석하는 중 오류가 발생했습니다: "{address}". {error}</value>
+  </data>
+  <data name="InvalidSeedPhrase" xml:space="preserve">
+    <value>유효하지 않은 시드 구문입니다.</value>
+  </data>
+  <data name="KeyArgumentDescription" xml:space="preserve">
+    <value>새 계정을 생성하는 데 사용할 보는 키입니다.</value>
+  </data>
+  <data name="LightServerUrlOptionDescription" xml:space="preserve">
+    <value>생일 높이를 인쇄하기 위해 블록체인 길이를 쿼리할 라이트월렛 서버의 URL입니다. 기본값은 메인넷 또는 테스트넷에 따라 다릅니다.</value>
+  </data>
+  <data name="NewAccountCommandDescription" xml:space="preserve">
+    <value>새로운 Zcash 계정을 생성합니다.</value>
+  </data>
+  <data name="NewAccountWalletPathOptionDescription" xml:space="preserve">
+    <value>생성할 지갑 파일의 경로입니다.</value>
+  </data>
+  <data name="NoSyncOption" xml:space="preserve">
+    <value>블록체인의 최신 블록을 먼저 다운로드하지 않습니다. 이렇게 하면 명령이 빨라지지만 실패하거나 오래된 데이터를 보고할 수 있습니다.</value>
+  </data>
+  <data name="NotAUnifiedAddress" xml:space="preserve">
+    <value>이는 통합 주소가 아닙니다.</value>
+  </data>
+  <data name="NoUnshieldedFunds" xml:space="preserve">
+    <value>투명 자금이 없습니다.</value>
+  </data>
+  <data name="OfflineOptionDescription" xml:space="preserve">
+    <value>모든 네트워크 통신을 차단합니다. 특히, 새 계정의 생일 높이를 표시하지 않습니다.</value>
+  </data>
+  <data name="PasswordOptionDescription" xml:space="preserve">
+    <value>계정을 잠금 해제하는 데 사용되는 시드 구문 외의 비밀번호입니다. 어떤 구문이든 상관없지만 일부 지갑은 한 단어만 허용합니다.</value>
+  </data>
+  <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
+    <value>특정 결제를 요청할 금액입니다.</value>
+  </data>
+  <data name="RequestPaymentArgumentCountMismatch" xml:space="preserve">
+    <value>{switchName} 스위치는 결제 수신자({expected})의 수와 동일한 수의 인수를 가져야 합니다. 현재는 {actual}개의 인수가 있습니다.</value>
+  </data>
+  <data name="RequestPaymentCommandDescription" xml:space="preserve">
+    <value>결제 요청 URI와 선택적으로 QR 코드를 생성합니다.</value>
+  </data>
+  <data name="RequestPaymentLabelOptionDescription" xml:space="preserve">
+    <value>수신 주소를 식별하는 사람이 읽을 수 있는 레이블입니다.</value>
+  </data>
+  <data name="RequestPaymentMemoOptionDescription" xml:space="preserve">
+    <value>특정 결제와 관련된 메모입니다.</value>
+  </data>
+  <data name="RequestPaymentMessageOptionDescription" xml:space="preserve">
+    <value>특정 결제와 관련된 사람이 읽을 수 있는 메시지입니다.</value>
+  </data>
+  <data name="RequestPaymentPayeeArgumentDescription" xml:space="preserve">
+    <value>결제를 받을 Zcash 주소입니다.</value>
+  </data>
+  <data name="RequestPaymentSaveQRCodeOption" xml:space="preserve">
+    <value>QR 코드와 함께 저장할 이미지의 경로입니다.</value>
+  </data>
+  <data name="RootCommandDescription" xml:space="preserve">
+    <value>Zcash 작업을 수행합니다.</value>
+  </data>
+  <data name="SeedLengthAndSeedPhraseNotAllowed" xml:space="preserve">
+    <value>생성된 시드 구문의 시드 구문 길이와 시드 구문을 모두 지정하지 마십시오.</value>
+  </data>
+  <data name="SeedPhraseLengthOptionDescription" xml:space="preserve">
+    <value>생성된 시드 구문의 단어 수입니다. 24 이상이어야 하며 3의 배수여야 합니다.</value>
+  </data>
+  <data name="SeedPhraseOptionDescription" xml:space="preserve">
+    <value>특정 시드 구문을 사용합니다. 인수로 지정하거나 대화식으로 수집됩니다.</value>
+  </data>
+  <data name="SeedPhrasePrompt" xml:space="preserve">
+    <value>시드 구문을 입력하세요:</value>
+  </data>
+  <data name="SelectedAccountArgumentDescription" xml:space="preserve">
+    <value>기본 주소를 기반으로 작동할 계정을 식별합니다.</value>
+  </data>
+  <data name="SendAmountArgumentDescription" xml:space="preserve">
+    <value>전송할 금액(ZEC)입니다.</value>
+  </data>
+  <data name="SendCommandDescription" xml:space="preserve">
+    <value>지정된 주소로 Zcash를 전송합니다.</value>
+  </data>
+  <data name="SendFeeOptionDescription" xml:space="preserve">
+    <value>특정 값(ZEC)으로 기본 수수료 계산을 무시합니다.</value>
+  </data>
+  <data name="SendMemoOptionDescription" xml:space="preserve">
+    <value>거래에 포함할 메모입니다.</value>
+  </data>
+  <data name="SendRecipientArgumentDescription" xml:space="preserve">
+    <value>자금을 받을 주소입니다.</value>
+  </data>
+  <data name="ShieldAllOptionDescription" xml:space="preserve">
+    <value>하나가 아닌 모든 투명 주소에서 투명 자금을 보호합니다. 모든 투명 주소를 동시에 보호하면 다른 사람들이 블록체인의 공개 정보를 통해 투명 주소를 상호 연관시킬 수 있습니다. 개인 정보 보호를 위해 각 투명 주소의 보호 사이에 무작위 지연을 추가하는 것이 좋습니다. 이러한 지연은 각 거래가 자체 블록에 있도록 충분해야 합니다.</value>
+  </data>
+  <data name="ShieldCommandDescription" xml:space="preserve">
+    <value>투명 자금을 보호합니다. 종료 코드 1은 0이 아닌 잔액이 있는 추가 투명 주소가 남아 있는 것을 나타냅니다.</value>
+  </data>
+  <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
+    <value>지출 키를 생성하는 데 사용되는 시드 구문의 계정 인덱스입니다.</value>
+  </data>
+  <data name="SpendingKeySeedOptionDescription" xml:space="preserve">
+    <value>지출 키를 생성하는 데 사용되는 시드 구문입니다.</value>
+  </data>
+  <data name="SyncCommandDescription" xml:space="preserve">
+    <value>블록체인에서 거래를 다운로드합니다.</value>
+  </data>
+  <data name="TestNetOptionDescription" xml:space="preserve">
+    <value>메인넷 대신 테스트넷에서 계정을 사용할 것을 나타냅니다.</value>
+  </data>
+  <data name="UACommandDescription" xml:space="preserve">
+    <value>UA 주소를 인코딩하거나 디코딩합니다.</value>
+  </data>
+  <data name="UAConstructCommandDescription" xml:space="preserve">
+    <value>수신자 세트에서 통합 주소를 구성합니다.</value>
+  </data>
+  <data name="UAConstructReceiversArgumentDescription" xml:space="preserve">
+    <value>통합 주소에 포함할 수신자입니다.</value>
+  </data>
+  <data name="UAParseArgumentDescription" xml:space="preserve">
+    <value>디코딩할 UA입니다.</value>
+  </data>
+  <data name="UAParseCommandDescription" xml:space="preserve">
+    <value>UA를 구성 요소 수신자 주소로 분석합니다.</value>
+  </data>
+  <data name="UnrecognizedKeyFormat" xml:space="preserve">
+    <value>이 키 형식은 인식할 수 없습니다.</value>
+  </data>
+  <data name="WalletPathArgumentDescription" xml:space="preserve">
+    <value>지갑 파일의 경로입니다.</value>
+  </data>
+</root>
