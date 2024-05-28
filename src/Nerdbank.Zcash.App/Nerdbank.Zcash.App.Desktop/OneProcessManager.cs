@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.VisualStudio.Threading;
 using Windows.Win32;
@@ -190,8 +191,13 @@ public class OneProcessManager : IDisposable
 
 	private static (string MutexName, string PipeName) GetSyncNamesFromUniquenessKey(string key)
 	{
-		string mutexName = $"Local\\{Convert.ToBase64String(Encoding.UTF8.GetBytes(key))}";
-		string pipeName = Path.Combine(PipePrefix, Convert.ToBase64String(Encoding.UTF8.GetBytes(key)));
+		// Unix requires pipe names to not exceed 108 characters.
+		// The provided key may be much longer than that, so we'll hash it to a length
+		// that is not expected to exceed the limit when appended to the pipe prefix.
+		string hashedKey = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(key)));
+
+		string mutexName = $"Local\\{hashedKey}";
+		string pipeName = Path.Combine(PipePrefix, hashedKey);
 		return (mutexName, pipeName);
 	}
 
