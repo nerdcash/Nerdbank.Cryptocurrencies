@@ -26,11 +26,16 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 		this.lightServerUrlMainNet = this.viewModelServices.Settings.LightServerUrl.AbsoluteUri;
 		this.lightServerUrlTestNet = this.viewModelServices.Settings.LightServerUrlTestNet.AbsoluteUri;
+
+		this.AlternateCurrencies = new ReadOnlyCollection<Security>(
+			Security.WellKnown.Values
+			.Where(s => s != Security.ZEC)
+			.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToImmutableArray());
 	}
 
 	public string Title => SettingsStrings.Title;
 
-	public Security AlternateCurrency
+	public Security? AlternateCurrency
 	{
 		get => this.viewModelServices.Settings.AlternateCurrency;
 		set
@@ -47,7 +52,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 	public string AlternateCurrencyExplanation => SettingsStrings.AlternateCurrencyExplanation;
 
-	public List<Security> AlternateCurrencies { get; } = Security.WellKnown.Values.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+	public ReadOnlyCollection<Security> AlternateCurrencies { get; }
 
 	public string AdvancedExpanderHeader => SettingsStrings.AdvancedExpanderHeader;
 

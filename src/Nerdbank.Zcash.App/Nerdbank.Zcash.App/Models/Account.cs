@@ -187,7 +187,7 @@ public class Account : ReactiveObject, IPersistableData
 				tx.TransactionId = transaction.TransactionId;
 
 				// Take special care to migrate the exchange rate from the provisional transaction's timestamp to the confirmed one.
-				if (tx.When != transaction.When && transaction.When.HasValue)
+				if (tx.When != transaction.When && transaction.When.HasValue && appSettings.AlternateCurrency is not null)
 				{
 					TradingPair pair = new(appSettings.AlternateCurrency, this.ZcashAccount.Network.AsSecurity());
 					if (tx.When.HasValue && exchangeRateRecord.TryGetExchangeRate(tx.When.Value, pair, out ExchangeRate? rate))

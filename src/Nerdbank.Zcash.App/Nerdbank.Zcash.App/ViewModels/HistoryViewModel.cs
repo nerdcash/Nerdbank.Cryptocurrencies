@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 {
-	private Security alternateSecurity;
+	private Security? alternateSecurity;
 	private IDisposable? transactionsSubscription;
 	private ObservableAsPropertyHelper<bool> exchangeRateExplanationIsVisible;
 	private ObservableAsPropertyHelper<bool> isAlternateAmountColumnVisible;
@@ -37,7 +37,8 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				? [new ZcashTransaction.LineItem { Amount = amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1XkdzRXnCguCQtrigDUtgyz5SVtLYaAXBi") }]
 				: [];
 			return new TransactionViewModel(
-				new TradingPair(Security.USD, this.SelectedSecurity),
+				this.SelectedSecurity,
+				Security.USD,
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,
@@ -74,7 +75,8 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.isAlternateAmountColumnVisible = this.WhenAnyValue(
 			vm => vm.SelectedSecurity,
-			s => !s.IsTestNet).ToProperty(this, nameof(this.IsAlternateNetChangeColumnVisible));
+			vm => vm.ViewModelServices.Settings.AlternateCurrency,
+			(s, ac) => !s.IsTestNet && ac is not null).ToProperty(this, nameof(this.IsAlternateNetChangeColumnVisible));
 
 		this.LinkProperty(nameof(this.SelectedSecurity), nameof(this.AmountColumnHeader));
 		this.LinkProperty(nameof(this.SelectedTransaction), nameof(this.IsTransactionDetailsVisible));
@@ -114,7 +116,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string AmountColumnHeader => this.SelectedSecurity.TickerSymbol;
 
-	public string AlternateNetChangeColumnHeader => this.alternateSecurity.TickerSymbol;
+	public string? AlternateNetChangeColumnHeader => this.alternateSecurity?.TickerSymbol;
 
 	public bool IsAlternateNetChangeColumnVisible => this.isAlternateAmountColumnVisible.Value;
 
@@ -151,16 +153,20 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		this.transactionsSubscription = null;
 		if (this.SelectedAccount is not null)
 		{
-			TradingPair tradingPair = new(this.alternateSecurity, this.SelectedSecurity);
 			this.transactionsSubscription = WrapModels<ReadOnlyObservableCollection<ZcashTransaction>, ZcashTransaction, TransactionViewModel>(
 				this.SelectedAccount.Transactions,
 				this.Transactions,
-				model => new TransactionViewModel(tradingPair, model, this));
+				model => new TransactionViewModel(this.SelectedSecurity, this.alternateSecurity, model, this));
 		}
 	}
 
 	private async ValueTask FillInMissingAlternateCurrencyValuesAsync(IEnumerable<TransactionViewModel> transactions, CancellationToken cancellationToken)
 	{
+		if (this.alternateSecurity is null)
+		{
+			return;
+		}
+
 		TradingPair tradingPair = new(this.alternateSecurity, this.SelectedSecurity);
 		foreach (TransactionViewModel tx in transactions)
 		{
