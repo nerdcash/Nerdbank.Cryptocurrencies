@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Cryptocurrencies;
@@ -53,6 +54,21 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	public string AlternateCurrencyExplanation => SettingsStrings.AlternateCurrencyExplanation;
 
 	public ReadOnlyCollection<Security> AlternateCurrencies { get; }
+
+	public string DownloadExchangeRatesCaption => SettingsStrings.DownloadExchangeRatesCaption;
+
+	public bool DownloadExchangeRates
+	{
+		get => this.viewModelServices.Settings.DownloadExchangeRates;
+		set
+		{
+			if (this.DownloadExchangeRates != value)
+			{
+				this.viewModelServices.Settings.DownloadExchangeRates = value;
+				this.RaisePropertyChanged();
+			}
+		}
+	}
 
 	public string AdvancedExpanderHeader => SettingsStrings.AdvancedExpanderHeader;
 

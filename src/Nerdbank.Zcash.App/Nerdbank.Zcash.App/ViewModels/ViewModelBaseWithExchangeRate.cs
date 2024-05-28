@@ -37,7 +37,7 @@ public abstract class ViewModelBaseWithExchangeRate : ViewModelBaseWithAccountSe
 	protected async ValueTask UpdateExchangeRateAsync(CancellationToken cancellationToken)
 	{
 		this.exchangeRateTriggered = true;
-		if (this.SelectedAccount is not null && this.ViewModelServices.Settings.AlternateCurrency is Security alternateCurrency)
+		if (this.SelectedAccount is not null && this.ViewModelServices.Settings.AlternateCurrency is Security alternateCurrency && this.ViewModelServices.Settings.DownloadExchangeRates)
 		{
 			IReadOnlySet<Security> alternateSecurities = StableCoins.GetSecuritiesSharingPeg(alternateCurrency);
 			TradingPair? pair = await this.ViewModelServices.ExchangeRateProvider.FindFirstSupportedTradingPairAsync(

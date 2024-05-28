@@ -12,6 +12,7 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 {
 	private bool exchangeRatePerTransactionHasBeenDismissed;
 	private Security? alternateCurrency = Security.USD;
+	private bool downloadExchangeRates = true;
 	private Uri lightServerUrl = new("https://zcash.mysideoftheweb.com:9067/");
 	private Uri lightServerUrlTestNet = new("https://zcash.mysideoftheweb.com:19067/");
 	private bool isDirty;
@@ -61,6 +62,15 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	{
 		get => this.alternateCurrency?.TickerSymbol;
 		set => this.AlternateCurrency = value is not null ? Security.WellKnown[value] : null;
+	}
+
+	/// <summary>
+	/// Gets or sets a value indicating whether exchange rates will be automatically downloaded.
+	/// </summary>
+	public bool DownloadExchangeRates
+	{
+		get => this.downloadExchangeRates;
+		set => this.RaiseAndSetIfChanged(ref this.downloadExchangeRates, value);
 	}
 
 	public Uri LightServerUrl
