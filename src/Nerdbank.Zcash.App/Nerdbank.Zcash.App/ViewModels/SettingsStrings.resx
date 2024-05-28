@@ -135,6 +135,9 @@
   <data name="ServerNetworkMismatch" xml:space="preserve">
     <value>This URL serves the {0} network.</value>
   </data>
+  <data name="DownloadExchangeRatesCaption" xml:space="preserve">
+    <value>Automatically download exchange rates</value>
+  </data>
   <data name="Title" xml:space="preserve">
     <value>Settings</value>
   </data>

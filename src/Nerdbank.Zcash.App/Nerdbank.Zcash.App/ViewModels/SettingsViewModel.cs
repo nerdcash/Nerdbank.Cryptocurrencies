@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Cryptocurrencies;
@@ -26,11 +27,16 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 		this.lightServerUrlMainNet = this.viewModelServices.Settings.LightServerUrl.AbsoluteUri;
 		this.lightServerUrlTestNet = this.viewModelServices.Settings.LightServerUrlTestNet.AbsoluteUri;
+
+		this.AlternateCurrencies = new ReadOnlyCollection<Security>(
+			Security.WellKnown.Values
+			.Where(s => s != Security.ZEC)
+			.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToImmutableArray());
 	}
 
 	public string Title => SettingsStrings.Title;
 
-	public Security AlternateCurrency
+	public Security? AlternateCurrency
 	{
 		get => this.viewModelServices.Settings.AlternateCurrency;
 		set
@@ -47,7 +53,22 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 	public string AlternateCurrencyExplanation => SettingsStrings.AlternateCurrencyExplanation;
 
-	public List<Security> AlternateCurrencies { get; } = Security.WellKnown.Values.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+	public ReadOnlyCollection<Security> AlternateCurrencies { get; }
+
+	public string DownloadExchangeRatesCaption => SettingsStrings.DownloadExchangeRatesCaption;
+
+	public bool DownloadExchangeRates
+	{
+		get => this.viewModelServices.Settings.DownloadExchangeRates;
+		set
+		{
+			if (this.DownloadExchangeRates != value)
+			{
+				this.viewModelServices.Settings.DownloadExchangeRates = value;
+				this.RaisePropertyChanged();
+			}
+		}
+	}
 
 	public string AdvancedExpanderHeader => SettingsStrings.AdvancedExpanderHeader;
 

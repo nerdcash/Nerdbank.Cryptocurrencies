@@ -34,6 +34,7 @@
 
       <Expander IsExpanded="False" Header="{Binding AdvancedExpanderHeader}" Margin="0,10,0,0" HorizontalAlignment="Stretch">
         <StackPanel>
+          <CheckBox IsChecked="{Binding DownloadExchangeRates}" Content="{Binding DownloadExchangeRatesCaption}" />
           <Label Content="{Binding LightServerUrlMainNetCaption}" Target="{Binding #LightServerUrlMainNetBox}" />
           <TextBox Text="{Binding LightServerUrlMainNet}" HorizontalAlignment="Stretch" Name="LightServerUrlMainNetBox" />
           <Label Content="{Binding LightServerUrlTestNetCaption}" Target="{Binding #LightServerUrlTestNetBox}" />

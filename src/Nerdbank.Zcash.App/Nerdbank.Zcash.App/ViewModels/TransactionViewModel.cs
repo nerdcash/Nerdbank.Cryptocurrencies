@@ -11,14 +11,14 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
 	private readonly HistoryViewModel owner;
-	private readonly TradingPair tradingPair;
 	private readonly ObservableAsPropertyHelper<bool> isToAddressVisible;
 	private SecurityAmount runningBalance;
 	private SecurityAmount? alternateAmount;
 
-	public TransactionViewModel(TradingPair tradingPair, ZcashTransaction transaction, HistoryViewModel owner)
+	public TransactionViewModel(Security security, Security? alternateSecurity, ZcashTransaction transaction, HistoryViewModel owner)
 	{
-		this.tradingPair = tradingPair;
+		this.Security = security;
+		this.AlternateSecurity = alternateSecurity;
 		this.Model = transaction;
 		this.owner = owner;
 
@@ -42,7 +42,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 		this.LinkProperty(nameof(this.AlternateNetChange), nameof(this.AlternateNetChangeUserEdit));
 
-		if (transaction.When is not null && owner.ViewModelServices.ExchangeData.TryGetExchangeRate(transaction.When.Value, tradingPair, out ExchangeRate? exchangeRate))
+		if (transaction.When is not null && alternateSecurity is not null && owner.ViewModelServices.ExchangeData.TryGetExchangeRate(transaction.When.Value, new TradingPair(security, alternateSecurity), out ExchangeRate? exchangeRate))
 		{
 			this.AlternateNetChange = this.NetChange * exchangeRate;
 		}
@@ -127,6 +127,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		get => this.AlternateNetChange?.Amount;
 		set
 		{
+			Verify.Operation(this.AlternateSecurity is not null, "Cannot set alternate amount without an alternate security set.");
 			this.AlternateNetChange = value is null ? null : this.Security.Amount(value.Value);
 
 			// Record the exchange rate.
@@ -239,9 +240,9 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		internal set => this.RaiseAndSetIfChanged(ref this.runningBalance, value);
 	}
 
-	private Security Security => this.tradingPair.TradeInterest;
+	private Security Security { get; }
 
-	private Security AlternateSecurity => this.tradingPair.Basis;
+	private Security? AlternateSecurity { get; }
 
 	private ReadOnlyCollection<LineItem> InitializeLineItems()
 	{

@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 {
 	private readonly ObservableAsPropertyHelper<string> tickerSymbol;
-	private readonly ObservableAsPropertyHelper<string> alternateTickerSymbol;
+	private readonly ObservableAsPropertyHelper<string?> alternateTickerSymbol;
 	private readonly ObservableAsPropertyHelper<bool> isAlternateVisible;
 	private decimal? amount;
 	private decimal? amountInAlternateCurrency;
@@ -27,9 +27,9 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 		this.tickerSymbol = this.WhenAnyValue(
 		vm => vm.SelectedAccount,
 		a => a?.Network.GetTickerName() ?? UnknownSecurity.TickerSymbol).ToProperty(this, nameof(this.TickerSymbol));
-		this.alternateTickerSymbol = this.WhenAnyValue<DualAmountEntryViewModel, string, Security>(
+		this.alternateTickerSymbol = this.WhenAnyValue<DualAmountEntryViewModel, string?, Security?>(
 			vm => vm.ViewModelServices.Settings.AlternateCurrency,
-			c => c.TickerSymbol).ToProperty(this, nameof(this.AlternateTickerSymbol));
+			c => c?.TickerSymbol).ToProperty(this, nameof(this.AlternateTickerSymbol));
 
 		bool amountPropagationInProgress = false;
 		this.WhenAnyValue(

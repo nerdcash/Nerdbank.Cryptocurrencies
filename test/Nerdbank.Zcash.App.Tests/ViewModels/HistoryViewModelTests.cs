@@ -31,7 +31,8 @@ public class HistoryViewModelTests : ViewModelTestBase
 				? [new ZcashTransaction.LineItem { Amount = amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1XkdzRXnCguCQtrigDUtgyz5SVtLYaAXBi") }]
 				: [];
 			return new TransactionViewModel(
-				new TradingPair(Security.USD, this.viewModel.SelectedSecurity),
+				this.viewModel.SelectedSecurity,
+				Security.USD,
 				new ZcashTransaction
 				{
 					IsIncoming = amount > 0,
