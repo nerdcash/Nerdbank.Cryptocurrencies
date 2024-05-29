@@ -420,6 +420,9 @@ Nerdbank.Zcash.SproutReceiver.Pool.get -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.SproutReceiver.Span.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.SproutReceiver.SproutReceiver() -> void
 Nerdbank.Zcash.SproutReceiver.SproutReceiver(System.ReadOnlySpan<byte> apk, System.ReadOnlySpan<byte> pkEnc) -> void
+Nerdbank.Zcash.TexAddress
+Nerdbank.Zcash.TexAddress.TexAddress(in Nerdbank.Zcash.TransparentP2PKHReceiver receiver, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
+Nerdbank.Zcash.TexAddress.TexAddress(Nerdbank.Zcash.TransparentP2PKHAddress! transparentAddress) -> void
 Nerdbank.Zcash.Transaction
 Nerdbank.Zcash.Transaction.Change.get -> System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.LineItem>
 Nerdbank.Zcash.Transaction.ExpiredUnmined.get -> bool
@@ -775,6 +778,9 @@ override Nerdbank.Zcash.SaplingAddress.Network.get -> Nerdbank.Zcash.ZcashNetwor
 override Nerdbank.Zcash.SproutAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.SproutAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.SproutAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.TexAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
+override Nerdbank.Zcash.TexAddress.HasShieldedReceiver.get -> bool
+override Nerdbank.Zcash.TexAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.Transaction.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Transaction.LineItem.GetHashCode() -> int
 override Nerdbank.Zcash.Transaction.GetHashCode() -> int

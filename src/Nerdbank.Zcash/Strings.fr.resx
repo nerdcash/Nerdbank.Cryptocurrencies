@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddressDoesNotSupportUnifiedEncoding" xml:space="preserve">
+    <value>Ce type d'adresse ne prend pas en charge le codage unifié.</value>
+  </data>
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>Un enfant durci ne peut pas être dérivé à partir d'une clé publique étendue. Utilisez plutôt une clé privée étendue.</value>
   </data>

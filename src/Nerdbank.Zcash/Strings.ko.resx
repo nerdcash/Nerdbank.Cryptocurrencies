@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddressDoesNotSupportUnifiedEncoding" xml:space="preserve">
+    <value>이 주소 유형은 통합 인코딩을 지원하지 않습니다.</value>
+  </data>
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>하드닝된 자식은 공개 확장 키에서 파생될 수 없습니다. 대신 개인 확장 키를 사용하십시오.</value>
   </data>
