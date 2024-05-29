@@ -51,9 +51,10 @@ Nerdbank.Zcash.IPoolReceiver
 Nerdbank.Zcash.IPoolReceiver.Encode(System.Span<byte> buffer) -> int
 Nerdbank.Zcash.IPoolReceiver.EncodingLength.get -> int
 Nerdbank.Zcash.IPoolReceiver.Pool.get -> Nerdbank.Zcash.Pool
-Nerdbank.Zcash.IPoolReceiver.UnifiedReceiverTypeCode.get -> byte
 Nerdbank.Zcash.ISpendingKey
 Nerdbank.Zcash.ISpendingKey.FullViewingKey.get -> Nerdbank.Zcash.IFullViewingKey!
+Nerdbank.Zcash.IUnifiedPoolReceiver
+Nerdbank.Zcash.IUnifiedPoolReceiver.UnifiedReceiverTypeCode.get -> byte
 Nerdbank.Zcash.IZcashKey
 Nerdbank.Zcash.IZcashKey.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.LightWalletClient
@@ -884,7 +885,6 @@ static Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.TryDecode(string! 
 static Nerdbank.Zcash.Sapling.FullViewingKey.TryDecode(string! encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Sapling.FullViewingKey? key) -> bool
 static Nerdbank.Zcash.Sapling.IncomingViewingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Sapling.IncomingViewingKey? key) -> bool
 static Nerdbank.Zcash.SaplingReceiver.UnifiedReceiverTypeCode.get -> byte
-static Nerdbank.Zcash.SproutReceiver.UnifiedReceiverTypeCode.get -> byte
 static Nerdbank.Zcash.Transaction.operator !=(Nerdbank.Zcash.Transaction? left, Nerdbank.Zcash.Transaction? right) -> bool
 static Nerdbank.Zcash.Transaction.operator ==(Nerdbank.Zcash.Transaction? left, Nerdbank.Zcash.Transaction? right) -> bool
 static Nerdbank.Zcash.Transaction.LineItem.operator !=(Nerdbank.Zcash.Transaction.LineItem left, Nerdbank.Zcash.Transaction.LineItem right) -> bool

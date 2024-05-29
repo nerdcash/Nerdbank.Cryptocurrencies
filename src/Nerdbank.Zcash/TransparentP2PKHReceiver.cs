@@ -12,7 +12,7 @@ namespace Nerdbank.Zcash;
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Transparent"/> pool
 /// by way of a Pay to Public Key Hash method.
 /// </summary>
-public unsafe struct TransparentP2PKHReceiver : IPoolReceiver, IEquatable<TransparentP2PKHReceiver>
+public unsafe struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable<TransparentP2PKHReceiver>
 {
 	private const int Length = 160 / 8;
 
@@ -59,7 +59,7 @@ public unsafe struct TransparentP2PKHReceiver : IPoolReceiver, IEquatable<Transp
 		Assumes.True(Bitcoin.PublicKey.CreatePublicKeyHash(publicKey.KeyMaterial, this.ValidatingKeyHashWritable) == this.ValidatingKeyHashWritable.Length);
 	}
 
-	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
+	/// <inheritdoc cref="IUnifiedPoolReceiver.UnifiedReceiverTypeCode"/>
 	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>

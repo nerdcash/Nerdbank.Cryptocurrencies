@@ -43,10 +43,4 @@ public class SproutReceiverTests
 
 	[Fact]
 	public void Pool_Sprout() => Assert.Equal(Pool.Sprout, default(SproutReceiver).Pool);
-
-	[Fact]
-	public void UnifiedReceiverTypeCode_Throws()
-	{
-		Assert.Throws<NotSupportedException>(() => SproutReceiver.UnifiedReceiverTypeCode);
-	}
 }

@@ -10,7 +10,7 @@ namespace Nerdbank.Zcash;
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Transparent"/> pool
 /// by way of a Pay to Script Hash method.
 /// </summary>
-public unsafe struct TransparentP2SHReceiver : IPoolReceiver
+public unsafe struct TransparentP2SHReceiver : IUnifiedPoolReceiver
 {
 	private const int Length = 160 / 8;
 
@@ -34,7 +34,7 @@ public unsafe struct TransparentP2SHReceiver : IPoolReceiver
 	/// <summary>
 	/// Gets a span over the whole receiver.
 	/// </summary>
-	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
+	/// <inheritdoc cref="IUnifiedPoolReceiver.UnifiedReceiverTypeCode"/>
 	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.TransparentP2SH;
 
 	/// <inheritdoc/>
