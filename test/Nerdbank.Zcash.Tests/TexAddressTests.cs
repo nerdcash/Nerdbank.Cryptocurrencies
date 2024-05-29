@@ -15,6 +15,8 @@ public class TexAddressTests
 	{
 		var tex = (TexAddress)ZcashAddress.Decode("tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte");
 		var tAddr = (TransparentP2PKHAddress)ZcashAddress.Decode("t1VmmGiyjVNeCjxDZzg7vZmd99WyzVby9yC");
-		Assert.Equal(tAddr.GetPoolReceiver<TransparentP2PKHReceiver>(), tex.GetPoolReceiver<TransparentP2PKHReceiver>());
+		Assert.Equal(
+			tAddr.GetPoolReceiver<TransparentP2PKHReceiver>()!.Value.ValidatingKeyHash,
+			tex.GetPoolReceiver<TexReceiver>()!.Value.ValidatingKeyHash);
 	}
 }

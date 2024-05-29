@@ -6,12 +6,6 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A transparent Zcash address.
 /// </summary>
-/// <remarks>
-/// Not all transparent addresses carry the same semantics.
-/// For example, care should be taken when extracting a <see cref="TransparentP2PKHReceiver"/>
-/// to check whether the <see cref="TransparentAddress"/> is an instance of <see cref="TexAddress"/>,
-/// which should only receive funds from unshielded sources.
-/// </remarks>
 public abstract class TransparentAddress : ZcashAddress
 {
 	/// <summary>

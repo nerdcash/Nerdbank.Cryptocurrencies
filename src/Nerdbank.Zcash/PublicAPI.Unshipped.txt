@@ -421,8 +421,19 @@ Nerdbank.Zcash.SproutReceiver.Span.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.SproutReceiver.SproutReceiver() -> void
 Nerdbank.Zcash.SproutReceiver.SproutReceiver(System.ReadOnlySpan<byte> apk, System.ReadOnlySpan<byte> pkEnc) -> void
 Nerdbank.Zcash.TexAddress
-Nerdbank.Zcash.TexAddress.TexAddress(in Nerdbank.Zcash.TransparentP2PKHReceiver receiver, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
+Nerdbank.Zcash.TexAddress.TexAddress(in Nerdbank.Zcash.TexReceiver receiver, Nerdbank.Zcash.ZcashNetwork network = Nerdbank.Zcash.ZcashNetwork.MainNet) -> void
 Nerdbank.Zcash.TexAddress.TexAddress(Nerdbank.Zcash.TransparentP2PKHAddress! transparentAddress) -> void
+Nerdbank.Zcash.TexReceiver
+Nerdbank.Zcash.TexReceiver.Encode(System.Span<byte> buffer) -> int
+Nerdbank.Zcash.TexReceiver.EncodingLength.get -> int
+Nerdbank.Zcash.TexReceiver.Equals(Nerdbank.Zcash.TexReceiver other) -> bool
+Nerdbank.Zcash.TexReceiver.Pool.get -> Nerdbank.Zcash.Pool
+Nerdbank.Zcash.TexReceiver.Span.get -> System.ReadOnlySpan<byte>
+Nerdbank.Zcash.TexReceiver.TexReceiver() -> void
+Nerdbank.Zcash.TexReceiver.TexReceiver(Nerdbank.Zcash.Transparent.PublicKey! publicKey) -> void
+Nerdbank.Zcash.TexReceiver.TexReceiver(Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey! publicKey) -> void
+Nerdbank.Zcash.TexReceiver.TexReceiver(System.ReadOnlySpan<byte> p2pkh) -> void
+Nerdbank.Zcash.TexReceiver.ValidatingKeyHash.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.Transaction
 Nerdbank.Zcash.Transaction.Change.get -> System.Collections.Immutable.ImmutableArray<Nerdbank.Zcash.Transaction.LineItem>
 Nerdbank.Zcash.Transaction.ExpiredUnmined.get -> bool
@@ -891,6 +902,8 @@ static Nerdbank.Zcash.Sapling.DiversifiableIncomingViewingKey.TryDecode(string! 
 static Nerdbank.Zcash.Sapling.FullViewingKey.TryDecode(string! encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Sapling.FullViewingKey? key) -> bool
 static Nerdbank.Zcash.Sapling.IncomingViewingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Sapling.IncomingViewingKey? key) -> bool
 static Nerdbank.Zcash.SaplingReceiver.UnifiedReceiverTypeCode.get -> byte
+static Nerdbank.Zcash.TexReceiver.explicit operator Nerdbank.Zcash.TransparentP2PKHReceiver(in Nerdbank.Zcash.TexReceiver receiver) -> Nerdbank.Zcash.TransparentP2PKHReceiver
+static Nerdbank.Zcash.TexReceiver.implicit operator Nerdbank.Zcash.TexReceiver(in Nerdbank.Zcash.TransparentP2PKHReceiver receiver) -> Nerdbank.Zcash.TexReceiver
 static Nerdbank.Zcash.Transaction.operator !=(Nerdbank.Zcash.Transaction? left, Nerdbank.Zcash.Transaction? right) -> bool
 static Nerdbank.Zcash.Transaction.operator ==(Nerdbank.Zcash.Transaction? left, Nerdbank.Zcash.Transaction? right) -> bool
 static Nerdbank.Zcash.Transaction.LineItem.operator !=(Nerdbank.Zcash.Transaction.LineItem left, Nerdbank.Zcash.Transaction.LineItem right) -> bool

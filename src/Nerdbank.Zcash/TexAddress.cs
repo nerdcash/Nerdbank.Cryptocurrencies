@@ -11,18 +11,18 @@ namespace Nerdbank.Zcash;
 /// <remarks>
 /// <para>TEX addresses are designed for use by exchanges that require transparently funded accounts for compliance purposes
 /// and so that they have an address to return rejected funds.</para>
-/// <para>The matching receiver type for this address is <see cref="TransparentP2PKHReceiver"/>.</para>
+/// <para>The matching receiver type for this address is <see cref="TexReceiver"/>.</para>
 /// <para>This implements <see href="https://zips.z.cash/zip-0320">ZIP-320</see>.</para>
 /// </remarks>
 public class TexAddress : TransparentAddress
 {
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	private readonly TransparentP2PKHReceiver receiver;
+	private readonly TexReceiver receiver;
 	[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 	private readonly ZcashNetwork network;
 
-	/// <inheritdoc cref="TexAddress(string, in TransparentP2PKHReceiver, ZcashNetwork)"/>
-	public TexAddress(in TransparentP2PKHReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
+	/// <inheritdoc cref="TexAddress(string, in TexReceiver, ZcashNetwork)"/>
+	public TexAddress(in TexReceiver receiver, ZcashNetwork network = ZcashNetwork.MainNet)
 		: base(CreateAddress(receiver, network))
 	{
 		this.receiver = receiver;
@@ -45,7 +45,7 @@ public class TexAddress : TransparentAddress
 	/// <param name="address"><inheritdoc cref="ZcashAddress(string)" path="/param"/></param>
 	/// <param name="receiver">The encoded receiver.</param>
 	/// <param name="network">The network to which this address belongs.</param>
-	internal TexAddress(string address, in TransparentP2PKHReceiver receiver, ZcashNetwork network)
+	internal TexAddress(string address, in TexReceiver receiver, ZcashNetwork network)
 		: base(address)
 	{
 		this.receiver = receiver;
@@ -65,7 +65,7 @@ public class TexAddress : TransparentAddress
 	internal override int ReceiverEncodingLength => this.receiver.EncodingLength;
 
 	/// <inheritdoc/>
-	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2PKHReceiver, TPoolReceiver>(this.receiver);
+	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TexReceiver, TPoolReceiver>(this.receiver);
 
 	/// <summary>
 	/// Checks whether a given string looks like a Zcash TEX address.
@@ -107,7 +107,7 @@ public class TexAddress : TransparentAddress
 				return false;
 			}
 
-			result = new TexAddress(address, new TransparentP2PKHReceiver(data), network.Value);
+			result = new TexAddress(address, new TexReceiver(data), network.Value);
 			return true;
 		}
 
@@ -120,7 +120,7 @@ public class TexAddress : TransparentAddress
 	/// <inheritdoc/>
 	internal override int GetReceiverEncoding(Span<byte> output) => this.receiver.Encode(output);
 
-	private static string CreateAddress(in TransparentP2PKHReceiver receiver, ZcashNetwork network)
+	private static string CreateAddress(in TexReceiver receiver, ZcashNetwork network)
 	{
 		string hrp = network switch
 		{
