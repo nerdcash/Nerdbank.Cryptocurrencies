@@ -54,7 +54,7 @@ public sealed class Bech32
 	public static int GetEncodedLength(int tagLength, int dataLength) => tagLength + 1 + (int)Math.Ceiling((double)dataLength * 8 / 5) + 6;
 
 	/// <summary>
-	/// Gets the maximum number of bytes that can be decoded from a given number of characters.
+	/// Gets the maximum number of bytes that can be decoded from a given sequence of characters.
 	/// </summary>
 	/// <param name="encoded">The Bech32 characters to decode.</param>
 	/// <returns>

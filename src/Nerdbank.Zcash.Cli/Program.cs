@@ -13,6 +13,7 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	NewAccountCommand.BuildCommand(),
 	ImportAccountCommand.BuildCommand(),
 	UACommand.BuildCommand(),
+	TexCommand.BuildCommand(),
 	SyncCommand.BuildCommand(),
 	BalanceCommand.BuildCommand(),
 	HistoryCommand.BuildCommand(),

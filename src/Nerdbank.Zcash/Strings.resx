@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddressDoesNotSupportUnifiedEncoding" xml:space="preserve">
+    <value>This address type does not support unified encoding.</value>
+  </data>
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
   </data>
