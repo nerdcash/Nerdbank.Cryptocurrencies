@@ -126,16 +126,19 @@
   <data name="AlternateCurrencyExplanation" xml:space="preserve">
     <value>La moneda alternativa se utiliza para mostrar el valor de ZCash en una unidad más familiar. El valor de ZCash es volátil, por lo que el valor en su moneda alternativa puede cambiar rápidamente.</value>
   </data>
+  <data name="DownloadExchangeRatesCaption" xml:space="preserve">
+    <value>Descargar automáticamente los tipos de cambio</value>
+  </data>
   <data name="LightServerUrlMainNetCaption" xml:space="preserve">
     <value>URL del servidor de luz (Mainnet)</value>
   </data>
   <data name="LightServerUrlTestNetCaption" xml:space="preserve">
     <value>URL del servidor de luz (TestNet)</value>
   </data>
-  <data name="Title" xml:space="preserve">
-    <value>Ajustes</value>
-  </data>
   <data name="ServerNetworkMismatch" xml:space="preserve">
     <value>Esta URL sirve a la red {0}.</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Ajustes</value>
   </data>
 </root>

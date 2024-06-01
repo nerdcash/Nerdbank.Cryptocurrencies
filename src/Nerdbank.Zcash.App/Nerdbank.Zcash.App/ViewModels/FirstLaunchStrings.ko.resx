@@ -127,7 +127,7 @@
     <value>Main HD</value>
   </data>
   <data name="FirstLaunchWalletCapabilitiesCommandCaption" xml:space="preserve">
-    <value>호환성을 위한 지갑 기능 검토</value>
+    <value>호환성을 위한 지갑 기능 검토.</value>
   </data>
   <data name="ImportWalletButtonText" xml:space="preserve">
     <value>기존 지갑 가져오기</value>

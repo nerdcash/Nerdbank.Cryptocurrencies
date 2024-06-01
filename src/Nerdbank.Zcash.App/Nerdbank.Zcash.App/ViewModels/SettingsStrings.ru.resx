@@ -126,6 +126,9 @@
   <data name="AlternateCurrencyExplanation" xml:space="preserve">
     <value>Альтернативная валюта используется для отображения значения ZCASH в более знакомым блоке. Значение Zcash нестабильное, поэтому значение в вашей альтернативной валюте может быстро измениться.</value>
   </data>
+  <data name="DownloadExchangeRatesCaption" xml:space="preserve">
+    <value>Автоматически загружать обменные курсы</value>
+  </data>
   <data name="LightServerUrlMainNetCaption" xml:space="preserve">
     <value>Light Server URL (Mainnet)</value>
   </data>

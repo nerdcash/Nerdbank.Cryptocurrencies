@@ -124,7 +124,7 @@
     <value>새로운 지갑이 생성됩니다. 이는 나중에 다른 기기나 지갑 앱에서 지갑을 복원할 수 있는 비밀번호를 기반으로 합니다.</value>
   </data>
   <data name="IsTestNetCaption" xml:space="preserve">
-    <value>테스트넷(TAZ)에 생성하기 (실제 Zcash(ZEC)가 아님)</value>
+    <value>테스트넷(TAZ)에 생성하기 (실제 Zcash(ZEC)가 아님).</value>
   </data>
   <data name="PasswordCaption" xml:space="preserve">
     <value>비밀번호</value>
