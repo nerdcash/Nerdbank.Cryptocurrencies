@@ -34,7 +34,7 @@ internal class RequestPaymentCommand
 		Option<string[]> messagesOption = new("--message", Strings.RequestPaymentMessageOptionDescription) { Arity = ArgumentArity.OneOrMore };
 		Option<string> saveQRCodeOption = new Option<string>("--output", Strings.RequestPaymentSaveQRCodeOption).LegalFilePathsOnly();
 
-		Command command = new("RequestPayment", Strings.RequestPaymentCommandDescription)
+		Command command = new("invoice", Strings.RequestPaymentCommandDescription)
 		{
 			payeesArgument,
 			amountsOption,

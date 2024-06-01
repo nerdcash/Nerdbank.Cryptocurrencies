@@ -22,6 +22,10 @@ internal abstract class WalletUserCommandBase
 		this.LightWalletServerUrl = copyFrom.LightWalletServerUrl;
 	}
 
+	internal static Option<bool> TestNetOption { get; } = new("--testnet", Strings.TestNetOptionDescription);
+
+	internal static Option<Uri> LightServerUriOption { get; } = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
+
 	internal required IConsole Console { get; init; }
 
 	internal required string WalletPath { get; init; }
@@ -39,10 +43,6 @@ internal abstract class WalletUserCommandBase
 	internal uint SpendingKeyAccountIndex { get; init; }
 
 	protected static Argument<string> WalletPathArgument { get; } = new Argument<string>("wallet path", Strings.WalletPathArgumentDescription).LegalFilePathsOnly();
-
-	protected static Option<bool> TestNetOption { get; } = new("--testnet", Strings.TestNetOptionDescription);
-
-	protected static Option<Uri> LightServerUriOption { get; } = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
 
 	protected static Option<ZcashAddress> OptionalSelectedAccountOption { get; } = new("--account", parseArgument: arg => ZcashAddress.Decode(arg.Tokens[0].Value), description: Strings.SelectedAccountArgumentDescription);
 

@@ -313,7 +313,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 	/// <param name="destination">The buffer to write to.</param>
 	/// <returns>The number of bytes actually written.</returns>
 	private protected static unsafe int WriteUAContribution<TReceiver>(in TReceiver receiver, Span<byte> destination)
-		where TReceiver : unmanaged, IPoolReceiver
+		where TReceiver : unmanaged, IUnifiedPoolReceiver
 	{
 		int bytesWritten = 0;
 		destination[bytesWritten++] = TReceiver.UnifiedReceiverTypeCode;

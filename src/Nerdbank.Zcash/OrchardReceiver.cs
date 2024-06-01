@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Orchard"/> pool.
 /// </summary>
-public unsafe struct OrchardReceiver : IPoolReceiver
+public unsafe struct OrchardReceiver : IUnifiedPoolReceiver
 {
 	private const int DLength = 88 / 8;
 	private const int PkdLength = 256 / 8;
@@ -53,7 +53,7 @@ public unsafe struct OrchardReceiver : IPoolReceiver
 		receiver.CopyTo(this.SpanWritable);
 	}
 
-	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
+	/// <inheritdoc cref="IUnifiedPoolReceiver.UnifiedReceiverTypeCode"/>
 	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
