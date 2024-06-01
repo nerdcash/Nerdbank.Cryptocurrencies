@@ -66,7 +66,7 @@ internal class NewAccountCommand
 
 		Option<ulong> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
 
-		Command command = new("NewAccount", Strings.NewAccountCommandDescription)
+		Command command = new("new", Strings.NewAccountCommandDescription)
 		{
 			seedPhraseWordLengthOption,
 			seedPhraseOption,
