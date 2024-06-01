@@ -59,10 +59,7 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema id="root"
-    xmlns=""
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -123,9 +120,6 @@
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>하드닝된 자식은 공개 확장 키에서 파생될 수 없습니다. 대신 개인 확장 키를 사용하십시오.</value>
   </data>
-  <data name="ErrorFromNativeSide" xml:space="preserve">
-    <value>인터옵 계층을 통해 매핑되지 않은 오류가 발생했습니다.</value>
-  </data>
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
     <value>라이트월렛 서버에서 메타데이터를 가져오는 동안 오류가 발생했습니다.</value>
   </data>
@@ -161,6 +155,9 @@
   </data>
   <data name="InvalidSproutPreamble" xml:space="preserve">
     <value>스프라우트 주소는 'zc' 또는 'zt'로 시작해야 합니다.</value>
+  </data>
+  <data name="InvalidUri" xml:space="preserve">
+    <value>오류 파싱 URI.</value>
   </data>
   <data name="InvalidXAddress" xml:space="preserve">
     <value>이 {addressType} 주소는 예상 요구 사항을 충족하지 않습니다.</value>
