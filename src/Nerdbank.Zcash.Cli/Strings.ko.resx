@@ -252,6 +252,15 @@
   <data name="TestNetOptionDescription" xml:space="preserve">
     <value>메인넷 대신 테스트넷에서 계정을 사용할 것을 나타냅니다.</value>
   </data>
+  <data name="TexCommandDescription" xml:space="preserve">
+    <value>투명한 주소를 TEX 주소로 변환합니다.</value>
+  </data>
+  <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
+    <value>변환 할 투명한 주소.</value>
+  </data>
+  <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
+    <value>P2PKH 투명 주소가 필요합니다.</value>
+  </data>
   <data name="UACommandDescription" xml:space="preserve">
     <value>UA 주소를 인코딩하거나 디코딩합니다.</value>
   </data>

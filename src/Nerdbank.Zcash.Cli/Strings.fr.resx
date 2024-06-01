@@ -252,6 +252,15 @@
   <data name="TestNetOptionDescription" xml:space="preserve">
     <value>Indique que le compte sera utilisé sur un testnet au lieu de mainnet.</value>
   </data>
+  <data name="TexCommandDescription" xml:space="preserve">
+    <value>Convertit une adresse transparente en une adresse Tex.</value>
+  </data>
+  <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
+    <value>L'adresse transparente à convertir.</value>
+  </data>
+  <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
+    <value>Une adresse transparente P2PKH est requise.</value>
+  </data>
   <data name="UACommandDescription" xml:space="preserve">
     <value>Encode ou décode les adresses UA.</value>
   </data>
