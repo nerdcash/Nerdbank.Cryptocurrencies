@@ -531,8 +531,7 @@ mod tests {
     use super::*;
 
     lazy_static! {
-        static ref LIGHTSERVER_URI: Uri =
-            crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
+        static ref LIGHTSERVER_URI: Uri = crate::test_constants::TESTNET_LIGHTSERVER_URI.to_owned();
     }
 
     #[test]
