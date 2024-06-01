@@ -4,10 +4,11 @@
 using System.Globalization;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
+[Trait("RequiresNetwork", "true")]
 public class YahooFinanceTests : TestBase
 {
 	private static readonly TradingPair UsdZec = new(Security.USD, Security.ZEC);
-	private readonly YahooFinance exchange = new(new HttpClient());
+	private readonly YahooFinance exchange = new(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", "Nerdbank.Cryptocurrencies.Tests" } } });
 
 	public YahooFinanceTests(ITestOutputHelper logger)
 		: base(logger)
@@ -15,7 +16,6 @@ public class YahooFinanceTests : TestBase
 	}
 
 	[Theory, PairwiseData]
-	[Trait("RequiresNetwork", "true")]
 	public async Task GetExchangeRateAsync_RespectsPairOrdering(bool fiatSecond)
 	{
 		TradingPair pair = new(Security.USD, Security.ZEC);
@@ -54,7 +54,6 @@ public class YahooFinanceTests : TestBase
 	}
 
 	[Fact]
-	////[Trait("RequiresNetwork", "true")]
 	public async Task GetAvailableTradingPairsAsync()
 	{
 		IReadOnlyCollection<TradingPair> pairs = await this.exchange.GetAvailableTradingPairsAsync(this.TimeoutToken);
