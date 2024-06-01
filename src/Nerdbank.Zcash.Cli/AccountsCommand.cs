@@ -16,6 +16,7 @@ internal class AccountsCommand : WalletUserCommandBase
 		Command command = new("accounts", Strings.AccountsCommandDescription)
 		{
 			WalletPathArgument,
+			TestNetOption,
 		};
 
 		command.SetHandler(async ctxt =>
@@ -24,6 +25,7 @@ internal class AccountsCommand : WalletUserCommandBase
 			{
 				Console = ctxt.Console,
 				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
+				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
