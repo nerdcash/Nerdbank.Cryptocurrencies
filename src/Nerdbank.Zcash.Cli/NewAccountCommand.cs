@@ -53,11 +53,7 @@ internal class NewAccountCommand
 
 		Option<string> seedPhrasePasswordOption = new("--password", Strings.PasswordOptionDescription);
 
-		Option<bool> testNetOption = new("--testnet", Strings.TestNetOptionDescription);
-
 		Option<uint> accountIndexOption = new("--index", () => 0, Strings.AccountIndexOptionDescription);
-
-		Option<Uri> lightServerUriOption = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
 
 		Option<bool> offlineModeOption = new("--offline", Strings.OfflineOptionDescription);
 
@@ -71,9 +67,9 @@ internal class NewAccountCommand
 			seedPhraseWordLengthOption,
 			seedPhraseOption,
 			seedPhrasePasswordOption,
-			testNetOption,
+			WalletUserCommandBase.TestNetOption,
 			accountIndexOption,
-			lightServerUriOption,
+			WalletUserCommandBase.LightServerUriOption,
 			offlineModeOption,
 			walletPathOption,
 			birthdayHeightOption,
@@ -96,9 +92,9 @@ internal class NewAccountCommand
 				SeedPhrase = ctxt.ParseResult.GetValueForOption(seedPhraseOption),
 				PromptForSeedPhrase = ctxt.ParseResult.FindResultFor(seedPhraseOption) is { Token: not null, Tokens: { Count: 0 } },
 				Password = ctxt.ParseResult.GetValueForOption(seedPhrasePasswordOption),
-				TestNet = ctxt.ParseResult.GetValueForOption(testNetOption),
+				TestNet = ctxt.ParseResult.GetValueForOption(WalletUserCommandBase.TestNetOption),
 				AccountIndex = ctxt.ParseResult.GetValueForOption(accountIndexOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(lightServerUriOption),
+				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(WalletUserCommandBase.LightServerUriOption),
 				OfflineMode = ctxt.ParseResult.GetValueForOption(offlineModeOption),
 				WalletPath = ctxt.ParseResult.GetValueForOption(walletPathOption),
 				BirthdayHeight = ctxt.ParseResult.GetValueForOption(birthdayHeightOption),
