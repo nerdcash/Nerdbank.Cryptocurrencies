@@ -39,7 +39,7 @@ internal class Program
 
 		AppBuilder appBuilder = BuildAvaloniaApp(args);
 
-		OneProcessManager processManager = new();
+		using OneProcessManager processManager = new();
 		processManager.SecondaryProcessStarted += async (sender, e) =>
 		{
 			try
