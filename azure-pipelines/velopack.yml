@@ -78,6 +78,17 @@ steps:
         '--outputDir', $OutputDir
         '--runtime', $installerRID
       )
+
+      # Add signing parameters
+      if ($IsMacOS) {
+        $vpkCommand += @(
+          '--signAppIdentity','Developer ID Application: Andrew Arnott',
+          '--signInstallIdentity','Developer ID Installer: Andrew Arnott',
+          '--notaryProfile','velopack-profile',
+          '--keychain','$(Agent.TempDirectory)/app-signing.keychain-db'
+        )
+      }
+
       Write-Host "##[command]$pwd $ dotnet $vpkCommand"
       dotnet @vpkCommand
     displayName: 📦 Build ${{ platform }} app package
