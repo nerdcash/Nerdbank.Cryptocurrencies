@@ -1,4 +1,7 @@
 parameters:
+- name: signArtifacts
+  type: boolean
+  default: false
 - name: windowsPool
   type: object
   default:
@@ -53,6 +56,7 @@ jobs:
   steps:
   - template: velopack.yml
     parameters:
+      signArtifacts: ${{ parameters.signArtifacts }}
       osRID: win
       BaseChannelName: ${{ parameters.BaseChannelName }}
       publishPlatforms: ${{ parameters.publishPlatforms }}
@@ -90,6 +94,7 @@ jobs:
 
   - template: velopack.yml
     parameters:
+      signArtifacts: ${{ parameters.signArtifacts }}
       osRID: linux
       BaseChannelName: ${{ parameters.BaseChannelName }}
       publishPlatforms: ${{ parameters.publishPlatforms }}
@@ -171,9 +176,11 @@ jobs:
       APPLE_TEAM: $(APPLE-TEAM)
       KEYCHAIN_PASSWORD: $(KEYCHAIN-PASSWORD)
     displayName: 🛠️ Install Apple certs and notary profile
+    condition: and(succeeded(), eq('${{ parameters.signArtifacts }}', 'true'))
 
   - template: velopack.yml
     parameters:
+      signArtifacts: ${{ parameters.signArtifacts }}
       osRID: osx
       BaseChannelName: ${{ parameters.BaseChannelName }}
       publishPlatforms: ${{ parameters.publishPlatforms }}
@@ -181,7 +188,7 @@ jobs:
 
   - bash: security delete-keychain $AGENT_TEMPDIRECTORY/app-signing.keychain-db
     displayName: 🧹 Clean up keychain
-    condition: always()
+    condition: eq('${{ parameters.signArtifacts }}', 'true')
 
 - job: Pack
   displayName: dotnet pack
