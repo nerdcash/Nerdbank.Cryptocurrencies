@@ -288,9 +288,12 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The IDs of the transaction(s) that were broadcast to complete the transfer.</returns>
 	/// <remarks>
+	/// <para>
 	/// A single logical transfer may be divided into multiple transactions, or steps, when the receiver's address
-	/// does not allow shielded funds to be sent directly to it.
-	/// In such cases, the shielded funds are sent to a transparent address, and then from there to the receiver.
+	/// does not allow shielded funds to be sent directly to it (e.g. <see cref="TexAddress"/>).
+	/// In such cases, the shielded funds are first sent to a transparent address controlled by <em>this</em> account,
+	/// and then from there to the receiver.
+	/// </para>
 	/// </remarks>
 	/// <exception cref="LightWalletException">Thrown when the spend is invalid (e.g. insufficient funds).</exception>
 	public async Task<ReadOnlyMemory<TxId>> SendAsync(ZcashAccount account, IReadOnlyCollection<LineItem> payments, IProgress<SendProgress>? progress, CancellationToken cancellationToken)
@@ -482,28 +485,9 @@ public partial class LightWalletClient : IDisposable
 		{
 			return action(cancellation);
 		}
-		catch (uniffi.LightWallet.LightWalletException.Canceled ex) when (cancellationToken.IsCancellationRequested)
-		{
-			throw new OperationCanceledException(Strings.OperationCanceled, ex, cancellationToken);
-		}
-		catch (uniffi.LightWallet.LightWalletException.InvalidArgument ex)
-		{
-			// Promote the proprietary interop message in the exception to the proper exception Message property.
-			throw new LightWalletException(ex.message, ex);
-		}
-		catch (uniffi.LightWallet.LightWalletException.SqliteClientException ex)
-		{
-			// Promote the proprietary interop message in the exception to the proper exception Message property.
-			throw new LightWalletException(ex.message, ex);
-		}
-		catch (uniffi.LightWallet.LightWalletException.Other ex)
-		{
-			// Promote the proprietary interop message in the exception to the proper exception Message property.
-			throw new LightWalletException(ex.message, ex);
-		}
 		catch (uniffi.LightWallet.LightWalletException ex)
 		{
-			throw new LightWalletException(Strings.UnknownErrorAcrossInteropBoundary, ex);
+			throw LightWalletException.Wrap(ex, cancellationToken);
 		}
 	}
 
@@ -521,17 +505,23 @@ public partial class LightWalletClient : IDisposable
 	private void ReadAccountsFromDatabase()
 	{
 		var builder = this.accountIds.ToBuilder();
-
-		foreach (AccountInfo accountInfo in LightWalletMethods.GetAccounts(this.dbinit))
+		try
 		{
-			if (accountInfo.uvk is not null)
+			foreach (AccountInfo accountInfo in LightWalletMethods.GetAccounts(this.dbinit))
 			{
-				ZcashAccount account = new(UnifiedViewingKey.Decode(accountInfo.uvk))
+				if (accountInfo.uvk is not null)
 				{
-					BirthdayHeight = accountInfo.birthdayHeights.originalBirthdayHeight,
-				};
-				builder.Add(account, accountInfo.id);
+					ZcashAccount account = new(UnifiedViewingKey.Decode(accountInfo.uvk))
+					{
+						BirthdayHeight = accountInfo.birthdayHeights.originalBirthdayHeight,
+					};
+					builder.Add(account, accountInfo.id);
+				}
 			}
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw LightWalletException.Wrap(ex);
 		}
 
 		this.accountIds = builder.ToImmutable();

@@ -75,6 +75,7 @@ public class ZcashAddressTests : TestBase
 	[InlineData(ValidSproutAddress, typeof(SproutAddress))]
 	[InlineData(ValidTransparentP2PKHAddress, typeof(TransparentP2PKHAddress))]
 	[InlineData(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
+	[InlineData(ValidTexAddress, typeof(TexAddress))]
 	public void Decode_ReturnsAppropriateType(string address, Type expectedKind)
 	{
 		var addr = ZcashAddress.Decode(address);

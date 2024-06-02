@@ -9,11 +9,6 @@ namespace Nerdbank.Zcash;
 public interface IPoolReceiver
 {
 	/// <summary>
-	/// Gets the type code that identifies the type of receiver in a Unified Address.
-	/// </summary>
-	static abstract byte UnifiedReceiverTypeCode { get; }
-
-	/// <summary>
 	/// Gets the pool that this receiver can send funds into.
 	/// </summary>
 	Pool Pool { get; }

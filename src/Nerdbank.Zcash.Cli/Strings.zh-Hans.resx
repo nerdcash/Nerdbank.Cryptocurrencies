@@ -252,6 +252,15 @@
   <data name="TestNetOptionDescription" xml:space="preserve">
     <value>指示该账户将在测试网而不是主网上使用。</value>
   </data>
+  <data name="TexCommandDescription" xml:space="preserve">
+    <value>将透明的地址转换为TEX地址。</value>
+  </data>
+  <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
+    <value>转换的透明地址。</value>
+  </data>
+  <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
+    <value>需要P2PKH透明地址。</value>
+  </data>
   <data name="UACommandDescription" xml:space="preserve">
     <value>编码或解码 UA 地址。</value>
   </data>

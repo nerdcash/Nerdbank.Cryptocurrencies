@@ -20,10 +20,10 @@ use crate::sync::sync;
 use crate::{backing_store::Db, grpc::get_client, interop::DbInit, lightclient::parse_network};
 
 lazy_static! {
-    pub(crate) static ref TESTNET_LIGHTSERVER_ECC_URI: Uri =
-        Uri::from_static("https://lightwalletd.testnet.electriccoin.co:9067/");
-    pub(crate) static ref MAINNET_LIGHTSERVER_ECC_URI: Uri =
-        Uri::from_static("https://mainnet.lightwalletd.com:9067/");
+    pub(crate) static ref TESTNET_LIGHTSERVER_URI: Uri =
+        Uri::from_static("https://zcash.mysideoftheweb.com:19067/");
+    pub(crate) static ref MAINNET_LIGHTSERVER_URI: Uri =
+        Uri::from_static("https://zcash.mysideoftheweb.com:9067/");
 }
 
 pub(crate) const MIN_CONFIRMATIONS: u32 = 3;
@@ -32,7 +32,7 @@ pub(crate) const VALID_SAPLING_TESTNET: &str =
 
 lazy_static! {
     pub(crate) static ref LIGHTSERVER_URI: Uri =
-        crate::test_constants::TESTNET_LIGHTSERVER_ECC_URI.to_owned();
+        crate::test_constants::TESTNET_LIGHTSERVER_URI.to_owned();
 }
 
 pub(crate) struct TestSetup {

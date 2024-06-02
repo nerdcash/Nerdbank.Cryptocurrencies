@@ -252,6 +252,15 @@
   <data name="TestNetOptionDescription" xml:space="preserve">
     <value>Indica que la cuenta se utilizará en una red de prueba en lugar de en una red principal.</value>
   </data>
+  <data name="TexCommandDescription" xml:space="preserve">
+    <value>Convierte una dirección transparente en una dirección TEX.</value>
+  </data>
+  <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
+    <value>La dirección transparente para convertir.</value>
+  </data>
+  <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
+    <value>Se requiere una dirección transparente P2PKH.</value>
+  </data>
   <data name="UACommandDescription" xml:space="preserve">
     <value>Codifica o decodifica direcciones UA.</value>
   </data>

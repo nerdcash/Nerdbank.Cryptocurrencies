@@ -117,11 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddressDoesNotSupportUnifiedEncoding" xml:space="preserve">
+    <value>Este tipo de endereço não suporta codificação unificada.</value>
+  </data>
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>Não é possível derivar uma chave filha endurecida de uma chave pública estendida. Use uma chave estendida privada em vez disso.</value>
-  </data>
-  <data name="ErrorFromNativeSide" xml:space="preserve">
-    <value>Ocorreu um erro não mapeado na camada de interoperabilidade.</value>
   </data>
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
     <value>Ocorreu um erro ao buscar metadados do servidor lightwallet.</value>
@@ -158,6 +158,9 @@
   </data>
   <data name="InvalidSproutPreamble" xml:space="preserve">
     <value>Um endereço sprout deve começar com 'zc' ou 'zt'.</value>
+  </data>
+  <data name="InvalidUri" xml:space="preserve">
+    <value>Erro analisando URI.</value>
   </data>
   <data name="InvalidXAddress" xml:space="preserve">
     <value>Este endereço {addressType} não está em conformidade com os requisitos esperados.</value>

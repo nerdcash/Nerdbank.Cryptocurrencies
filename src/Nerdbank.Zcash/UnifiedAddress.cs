@@ -8,6 +8,12 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A <see href="https://zips.z.cash/zip-0316">unified Zcash address</see>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Per <see href="https://zips.z.cash/zip-0316#requirements-for-both-unified-addresses-and-unified-viewing-keys">ZIP-316</see>,
+/// any abbreviation of this address for UI purposes MUST include at least the first 20 characters.
+/// </para>
+/// </remarks>
 public abstract class UnifiedAddress : ZcashAddress
 {
 	/// <summary>

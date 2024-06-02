@@ -3033,6 +3033,7 @@ dependencies = [
  "hdwallet",
  "hex",
  "incrementalmerkletree",
+ "jubjub",
  "memuse",
  "nom",
  "nonempty",
@@ -3062,7 +3063,7 @@ dependencies = [
 
 [[package]]
 name = "zcash_client_sqlite"
-version = "0.10.2"
+version = "0.10.3"
 dependencies = [
  "bs58",
  "byteorder",

@@ -9,7 +9,7 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Sapling"/> pool.
 /// </summary>
-public unsafe struct SaplingReceiver : IPoolReceiver
+public unsafe struct SaplingReceiver : IUnifiedPoolReceiver
 {
 	/// <summary>
 	/// Gets the number of bytes in a sapling receiver.
@@ -56,7 +56,7 @@ public unsafe struct SaplingReceiver : IPoolReceiver
 		receiver.CopyTo(this.SpanWritable);
 	}
 
-	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
+	/// <inheritdoc cref="IUnifiedPoolReceiver.UnifiedReceiverTypeCode"/>
 	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Sapling;
 
 	/// <inheritdoc/>
