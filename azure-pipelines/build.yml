@@ -12,9 +12,14 @@ parameters:
 - name: desktopAppAgents
   type: object
   default:
-  - Windows
+  - Windows_velopack
   - Linux
-  - macOS
+  - macOS_velopack
+- name: publishPlatforms
+  type: object
+  default:
+  - x64
+  - ARM64
 
 jobs:
 - job: Windows
@@ -39,7 +44,19 @@ jobs:
     parameters:
       RunTests: ${{ parameters.RunTests }}
       osRID: win
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
+- job: Windows_velopack
+  displayName: Windows velopack
+  dependsOn: Windows
+  pool: ${{ parameters.windowsPool }}
+  steps:
+  - template: velopack.yml
+    parameters:
+      osRID: win
       BaseChannelName: ${{ parameters.BaseChannelName }}
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+      BuildJobName: Windows
 
 - job: Linux
   pool:
@@ -69,7 +86,14 @@ jobs:
     parameters:
       RunTests: ${{ parameters.RunTests }}
       osRID: linux
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
+  - template: velopack.yml
+    parameters:
+      osRID: linux
       BaseChannelName: ${{ parameters.BaseChannelName }}
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
   - script: dotnet format --verify-no-changes --no-restore
     displayName: 💅 Verify formatted code
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
@@ -106,9 +130,61 @@ jobs:
     parameters:
       RunTests: ${{ parameters.RunTests }}
       osRID: osx
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+
+- job: macOS_velopack
+  displayName: macOS velopack
+  dependsOn: macOS
+  pool:
+    vmImage: macOS-12
+  variables:
+  - group: Apple signing
+  steps:
+  - bash: |
+      # create variables for file paths
+      CERT_BUILD_PATH=$AGENT_TEMPDIRECTORY/build_certificate.p12
+      CERT_INSTALLER_PATH=$AGENT_TEMPDIRECTORY/installer_certificate.p12
+      KEYCHAIN_PATH=$AGENT_TEMPDIRECTORY/app-signing.keychain-db
+
+      # import certificates from secrets
+      echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERT_BUILD_PATH
+      echo -n "$INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $CERT_INSTALLER_PATH
+
+      # create temporary keychain
+      security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+      security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+      security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+      # import certificates to keychain
+      security import $CERT_BUILD_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      security import $CERT_INSTALLER_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      security list-keychain -d user -s $KEYCHAIN_PATH
+
+      # create notarytool profile
+      xcrun notarytool store-credentials --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM" --password "$APPLE_PASSWORD" --keychain $KEYCHAIN_PATH velopack-profile
+    env:
+      BUILD_CERTIFICATE_BASE64: $(BUILD-CERTIFICATE-BASE64)
+      INSTALLER_CERTIFICATE_BASE64: $(INSTALLER-CERTIFICATE-BASE64)
+      P12_PASSWORD: $(P12-PASSWORD)
+      APPLE_ID: $(APPLE-ID)
+      APPLE_PASSWORD: $(APPLE-PASSWORD)
+      APPLE_TEAM: $(APPLE-TEAM)
+      KEYCHAIN_PASSWORD: $(KEYCHAIN-PASSWORD)
+    displayName: 🛠️ Install Apple certs and notary profile
+
+  - template: velopack.yml
+    parameters:
+      osRID: osx
       BaseChannelName: ${{ parameters.BaseChannelName }}
+      publishPlatforms: ${{ parameters.publishPlatforms }}
+      BuildJobName: macOS
+
+  - bash: security delete-keychain $AGENT_TEMPDIRECTORY/app-signing.keychain-db
+    displayName: 🧹 Clean up keychain
+    condition: always()
 
 - job: Pack
+  displayName: dotnet pack
   dependsOn:
   - Windows
   - Linux
