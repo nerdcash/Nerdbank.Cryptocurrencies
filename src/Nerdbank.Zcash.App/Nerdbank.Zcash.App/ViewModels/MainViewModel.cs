@@ -10,7 +10,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class MainViewModel : ViewModelBase, IViewModelServices
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
-	private readonly HttpClient httpClient = new();
+	private readonly HttpClient httpClient = new() { DefaultRequestHeaders = { { "User-Agent", "Nerdbank.Zcash.App" } } };
 	private ObservableAsPropertyHelper<string?> contentTitle;
 
 	[Obsolete("Design-time only.", error: true)]
