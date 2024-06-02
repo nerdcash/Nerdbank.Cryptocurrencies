@@ -23,7 +23,7 @@ public class TransparentP2SHReceiverTests
 	}
 
 	[Fact]
-	public void Pool_Orchard() => Assert.Equal(Pool.Transparent, default(TransparentP2SHReceiver).Pool);
+	public void Pool_Transparent() => Assert.Equal(Pool.Transparent, default(TransparentP2SHReceiver).Pool);
 
 	[Fact]
 	public void UnifiedReceiverTypeCode() => Assert.Equal(0x01, TransparentP2SHReceiver.UnifiedReceiverTypeCode);

@@ -117,11 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddressDoesNotSupportUnifiedEncoding" xml:space="preserve">
+    <value>This address type does not support unified encoding.</value>
+  </data>
   <data name="CannotDeriveHardenedChildFromPublicKey" xml:space="preserve">
     <value>A hardened child cannot be derived from a public extended key. Use a private extended key instead.</value>
-  </data>
-  <data name="ErrorFromNativeSide" xml:space="preserve">
-    <value>An unmapped error occurred across the interop layer.</value>
   </data>
   <data name="ErrorInGetLightWalletServerInfo" xml:space="preserve">
     <value>An error occurred while fetching metadata from the lightwallet server.</value>
@@ -158,6 +158,9 @@
   </data>
   <data name="InvalidSproutPreamble" xml:space="preserve">
     <value>A sprout address must start with 'zc' or 'zt'.</value>
+  </data>
+  <data name="InvalidUri" xml:space="preserve">
+    <value>Error parsing URI.</value>
   </data>
   <data name="InvalidXAddress" xml:space="preserve">
     <value>This {addressType} address does to conform to expected requirements.</value>

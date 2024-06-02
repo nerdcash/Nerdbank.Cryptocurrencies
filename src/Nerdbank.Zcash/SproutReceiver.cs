@@ -52,10 +52,6 @@ public unsafe struct SproutReceiver : IPoolReceiver
 		receiver.CopyTo(this.SpanWritable);
 	}
 
-	/// <inheritdoc cref="IPoolReceiver.UnifiedReceiverTypeCode"/>
-	/// <exception cref="NotSupportedException">Always thrown because Unified Addresses do not support sprout receivers.</exception>
-	public static byte UnifiedReceiverTypeCode => throw new NotSupportedException();
-
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Sprout;
 

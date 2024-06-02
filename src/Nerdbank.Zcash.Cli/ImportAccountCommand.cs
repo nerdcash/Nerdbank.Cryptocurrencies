@@ -30,7 +30,7 @@ internal class ImportAccountCommand
 		Option<ulong> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
 		Option<Uri> lightServerUriOption = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
 
-		Command command = new("ImportAccount", Strings.ImportAccountCommandDescription)
+		Command command = new("import", Strings.ImportAccountCommandDescription)
 		{
 			keyArgument,
 			walletPathOption,

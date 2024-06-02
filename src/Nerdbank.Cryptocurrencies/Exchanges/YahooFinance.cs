@@ -23,7 +23,7 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 	/// A URL format string that can be used to download historical prices from Yahoo Finance.
 	/// </summary>
 	/// <remarks>
-	/// This was discovered by web search <see href="https://finance.yahoo.com/quote/ZEC-USD/history">this URL</see>.
+	/// <see href="https://finance.yahoo.com/quote/ZEC-USD/history">This URL</see> was discovered by web search.
 	/// </remarks>
 	private const string HistoricalPriceUrlFormatString = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=history&includeAdjustedClose=true";
 
@@ -47,7 +47,15 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 	/// <summary>
 	/// Initializes a new instance of the <see cref="YahooFinance"/> class.
 	/// </summary>
-	/// <param name="httpClient">The HTTP client to use for downloading prices.</param>
+	/// <param name="httpClient">
+	/// <para>The HTTP client to use for downloading prices.</para>
+	/// <para>This should be configured with <see cref="HttpClient.DefaultRequestHeaders"/> containing
+	/// at least the following headers to satisfy the web service:
+	/// <list type="bullet">
+	/// <item><c>User-Agent</c></item>
+	/// </list>
+	/// </para>
+	/// </param>
 	public YahooFinance(HttpClient httpClient)
 	{
 		this.httpClient = httpClient;

@@ -252,6 +252,15 @@
   <data name="TestNetOptionDescription" xml:space="preserve">
     <value>Указывает, что учетная запись будет использоваться в Testnet вместо Mainnet.</value>
   </data>
+  <data name="TexCommandDescription" xml:space="preserve">
+    <value>Преобразует прозрачный адрес в адрес TEX.</value>
+  </data>
+  <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
+    <value>Прозрачный адрес для конвертации.</value>
+  </data>
+  <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
+    <value>Требуется прозрачный адрес P2PKH.</value>
+  </data>
   <data name="UACommandDescription" xml:space="preserve">
     <value>Кодирует или декодирует адреса UA.</value>
   </data>

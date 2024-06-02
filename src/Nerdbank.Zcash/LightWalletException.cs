@@ -64,23 +64,16 @@ public class LightWalletException : Exception
 	/// Initializes a new instance of the <see cref="LightWalletException"/> class.
 	/// </summary>
 	/// <param name="ex">The interop exception to copy data from.</param>
+	/// <param name="cancellationToken">The cancellation token that was passed to the native side.</param>
 	/// <returns>A new instance of <see cref="LightWalletException"/>.</returns>
-	internal static LightWalletException Wrap(uniffi.LightWallet.LightWalletException ex)
+	internal static Exception Wrap(uniffi.LightWallet.LightWalletException ex, CancellationToken cancellationToken = default) => ex switch
 	{
-		switch (ex)
-		{
-			case uniffi.LightWallet.LightWalletException.InsufficientFunds funds:
-				return new InsufficientFundsException(funds);
-		}
-
-		ErrorCode code = ex switch
-		{
-			uniffi.LightWallet.LightWalletException.InvalidUri => ErrorCode.InvalidUri,
-			uniffi.LightWallet.LightWalletException.InvalidArgument => ErrorCode.InvalidArgument,
-			uniffi.LightWallet.LightWalletException.SqliteClientException => ErrorCode.Sqlite,
-			_ => ErrorCode.Other,
-		};
-
-		return new LightWalletException(Strings.ErrorFromNativeSide, ex) { Code = code };
-	}
+		uniffi.LightWallet.LightWalletException.InsufficientFunds x => new InsufficientFundsException(x),
+		uniffi.LightWallet.LightWalletException.InvalidUri x => new LightWalletException(Strings.InvalidUri) { Code = ErrorCode.InvalidUri },
+		uniffi.LightWallet.LightWalletException.InvalidArgument x => new LightWalletException(x.message) { Code = ErrorCode.InvalidArgument },
+		uniffi.LightWallet.LightWalletException.SqliteClientException x => new LightWalletException(x.message) { Code = ErrorCode.Sqlite },
+		uniffi.LightWallet.LightWalletException.Other x => new LightWalletException(x.message),
+		uniffi.LightWallet.LightWalletException.Canceled x => new OperationCanceledException(Strings.OperationCanceled, x, cancellationToken),
+		_ => new LightWalletException(Strings.UnknownErrorAcrossInteropBoundary),
+	};
 }

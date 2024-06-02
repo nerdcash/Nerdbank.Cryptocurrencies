@@ -61,7 +61,7 @@ internal class SendCommand : SyncFirstCommandBase
 		}
 
 		Transaction.LineItem item = new(this.Recipient, this.Amount, Zcash.Memo.FromMessage(this.Memo));
-		ReadOnlyMemory<TxId> txid = await client.SendAsync(
+		ReadOnlyMemory<TxId> txids = await client.SendAsync(
 			this.SelectedAccount!,
 			[item],
 			new Progress<LightWalletClient.SendProgress>(p =>
@@ -73,7 +73,10 @@ internal class SendCommand : SyncFirstCommandBase
 			}),
 			cancellationToken);
 
-		this.Console.WriteLine($"Transmitted transaction ID: {txid}");
+		for (int i = 0; i < txids.Length; i++)
+		{
+			this.Console.WriteLine($"Transmitted transaction ID: {txids.Span[i]}");
+		}
 
 		return 0;
 	}
