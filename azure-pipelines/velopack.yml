@@ -1,4 +1,6 @@
 parameters:
+- name: signArtifacts
+  type: boolean
 - name: BaseChannelName
 - name: osRID
 - name: publishPlatforms
@@ -79,14 +81,16 @@ steps:
         '--runtime', $installerRID
       )
 
-      # Add signing parameters
-      if ($IsMacOS) {
-        $vpkCommand += @(
-          '--signAppIdentity','Developer ID Application: Andrew Arnott',
-          '--signInstallIdentity','Developer ID Installer: Andrew Arnott',
-          '--notaryProfile','velopack-profile',
-          '--keychain','$(Agent.TempDirectory)/app-signing.keychain-db'
-        )
+      # Add signing parameters if we're not building a pull request.
+      if ('${{ parameters.signArtifacts }}' -eq 'true') {
+        if ($IsMacOS) {
+          $vpkCommand += @(
+            '--signAppIdentity','Developer ID Application: Andrew Arnott',
+            '--signInstallIdentity','Developer ID Installer: Andrew Arnott',
+            '--notaryProfile','velopack-profile',
+            '--keychain','$(Agent.TempDirectory)/app-signing.keychain-db'
+          )
+        }
       }
 
       Write-Host "##[command]$pwd $ dotnet $vpkCommand"

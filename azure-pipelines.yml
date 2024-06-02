@@ -31,3 +31,4 @@ jobs:
     RunTests: ${{ parameters.RunTests }}
     ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/app') }}:
       BaseChannelName: ci
+    signArtifacts: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
