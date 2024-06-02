@@ -196,6 +196,9 @@ public class OneProcessManager : IDisposable
 		// that is not expected to exceed the limit when appended to the pipe prefix.
 		string hashedKey = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(key)));
 
+		// Avoid characters that are not allowed in OS paths.
+		hashedKey = hashedKey.Replace('/', '_');
+
 		string mutexName = $"Local\\{hashedKey}";
 		string pipeName = Path.Combine(PipePrefix, hashedKey);
 		return (mutexName, pipeName);
