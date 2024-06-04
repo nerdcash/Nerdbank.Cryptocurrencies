@@ -54,6 +54,15 @@ public class YahooFinanceTests : TestBase
 	}
 
 	[Fact]
+	public async Task GetHistoricalPricing_Now()
+	{
+		DateTimeOffset when = DateTimeOffset.Now;
+		ExchangeRate? rate = await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken);
+		Assert.NotNull(rate);
+		this.Logger.WriteLine($"{rate}");
+	}
+
+	[Fact]
 	public async Task GetAvailableTradingPairsAsync()
 	{
 		IReadOnlyCollection<TradingPair> pairs = await this.exchange.GetAvailableTradingPairsAsync(this.TimeoutToken);
