@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ExchangeRateExplanation" xml:space="preserve">
-    <value>A valor em moeda fiduciária é baseada na taxa de câmbio no momento de cada transação.</value>
+    <value>O valor em moeda fiduciária é baseado na taxa de câmbio aproximadamente no momento de cada transação. Você pode editar o valor fiduciário de qualquer transação para corresponder às suas expectativas.</value>
   </data>
   <data name="HideExchangeRateExplanationCommandCaption" xml:space="preserve">
     <value>Entendi</value>

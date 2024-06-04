@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ExchangeRateExplanation" xml:space="preserve">
-    <value>El valor en la moneda fiduciaria se basa en el tipo de cambio en el momento de cada transacción.</value>
+    <value>El valor en moneda fiduciaria se basa en el tipo de cambio aproximadamente en el momento de cada transacción. Puedes editar el valor fiduciario de cualquier transacción para que coincida con tus expectativas.</value>
   </data>
   <data name="HideExchangeRateExplanationCommandCaption" xml:space="preserve">
     <value>Entiendo</value>
