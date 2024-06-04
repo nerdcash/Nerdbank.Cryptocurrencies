@@ -65,7 +65,14 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 			// Consume a fresh transparent address for this receiver.
 			// We'll bump the max index up by one if the owner indicates the address was actually 'consumed' by the receiver.
 			this.transparentAddressIndex = this.assignedAddresses?.TransparentAddressIndex ?? (this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex is uint idx ? idx + 1 : 1);
+
+			// When we ask for the transparent address, revert the change that it may record for the max address index
+			// because we haven't actually shown the user the address yet.
+			// We'll update the max index if the user ever observes the address.
+			uint? oldMaxIndex = this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex;
 			TransparentAddress transparentAddress = this.receivingAccount.ZcashAccount.GetTransparentAddress(this.transparentAddressIndex);
+			this.receivingAccount.ZcashAccount.MaxTransparentAddressIndex = oldMaxIndex;
+
 			this.Addresses.Add(new(viewModelServices, transparentAddress, paymentRequestDetailsViewModel, ReceivingStrings.TransparentReceivingAddressHeader));
 			rawReceiverAddresses.Add(transparentAddress);
 		}
