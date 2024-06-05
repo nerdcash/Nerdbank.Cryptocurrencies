@@ -262,7 +262,7 @@ public class ZcashAccount : INotifyPropertyChanged
 	/// Because there is no constant time path from transparent receiver to its address index,
 	/// <em>transparent receivers are ignored</em> by this method.
 	/// Callers that are interested in the address index of the <see cref="TransparentP2PKHReceiver"/>
-	/// component of an address should use <see cref="Zip32HDWallet.Transparent.ExtendedViewingKey.TryGetAddressIndex(TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/>
+	/// component of an address should use <see cref="TryGetTransparentIndex"/>
 	/// directly to search for a match.
 	/// </para>
 	/// </remarks>
@@ -297,6 +297,36 @@ public class ZcashAccount : INotifyPropertyChanged
 
 		index = orchardIndex.HasValue ? orchardIndex.Value : saplingIndex;
 		return index is not null;
+	}
+
+	/// <summary>
+	/// Gets the address index for a given <see cref="TransparentAddress"/>, if the address came from this account
+	/// and is within <see cref="Bip44MultiAccountHD.RecommendedAddressGapLimit"/> of <see cref="MaxTransparentAddressIndex"/>.
+	/// </summary>
+	/// <param name="address">The address whose index is sought.</param>
+	/// <param name="change">Receives a value indicating which derivation path was used for the matching address if one was found; otherwise <see langword="null" />.</param>
+	/// <param name="index">Receives the address index if a match was found; otherwise <see langword="null" />.</param>
+	/// <returns><see langword="true" /> if a match could be found; otherwise <see langword="false" />.</returns>
+	public bool TryGetTransparentIndex(TransparentAddress address, [NotNullWhen(true)] out Bip44MultiAccountHD.Change? change, [NotNullWhen(true)] out uint? index)
+	{
+		Requires.NotNull(address);
+
+		if (this.IncomingViewing.Transparent is not null && this.MaxTransparentAddressIndex.HasValue)
+		{
+			uint maxIndex = this.MaxTransparentAddressIndex.Value + Bip44MultiAccountHD.RecommendedAddressGapLimit;
+			if (address.GetPoolReceiver<TransparentP2PKHReceiver>() is { } p2pkh)
+			{
+				return this.IncomingViewing.Transparent.TryGetAddressIndex(p2pkh, maxIndex, out change, out index);
+			}
+			else if (address.GetPoolReceiver<TransparentP2SHReceiver>() is { } p2sh)
+			{
+				return this.IncomingViewing.Transparent.TryGetAddressIndex(p2sh, maxIndex, out change, out index);
+			}
+		}
+
+		change = null;
+		index = null;
+		return false;
 	}
 
 	/// <summary>
