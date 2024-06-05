@@ -26,7 +26,7 @@
     <PackageVersion Include="MessagePack.Annotations" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" />
-    <PackageVersion Include="Velopack" Version="0.0.517-gff55b51" />
+    <PackageVersion Include="Velopack" Version="0.0.523-g5727de1" />
     <PackageVersion Include="Xamarin.AndroidX.Annotation" Version="1.7.0.2" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1" />
     <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
