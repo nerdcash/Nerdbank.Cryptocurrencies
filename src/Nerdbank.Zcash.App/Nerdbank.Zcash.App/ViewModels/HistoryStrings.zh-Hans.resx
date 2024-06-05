@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ExchangeRateExplanation" xml:space="preserve">
-    <value>每次交易时的汇率决定了法定货币的价值。</value>
+    <value>法定货币的价值基于每笔交易时的大致汇率。您可以编辑任何交易的法定货币价值以符合您的期望。</value>
   </data>
   <data name="HideExchangeRateExplanationCommandCaption" xml:space="preserve">
     <value>明白了</value>

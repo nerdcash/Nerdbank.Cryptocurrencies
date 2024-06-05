@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ExchangeRateExplanation" xml:space="preserve">
-    <value>The value in fiat currency is based on the exchange rate at the time of each transaction.</value>
+    <value>The value in fiat currency is based on the exchange rate at roughly the time of each transaction. You can edit any transaction's fiat value to match your expectation.</value>
   </data>
   <data name="HideExchangeRateExplanationCommandCaption" xml:space="preserve">
     <value>Got it</value>

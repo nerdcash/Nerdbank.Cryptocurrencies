@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ExchangeRateExplanation" xml:space="preserve">
-    <value>Значение в фарта -валюте основано на обменном курсе во время каждой транзакции.</value>
+    <value>Значение в фиатной валюте основывается на обменном курсе примерно во время каждой транзакции. Вы можете отредактировать фиатное значение любой транзакции, чтобы оно соответствовало вашим ожиданиям.</value>
   </data>
   <data name="HideExchangeRateExplanationCommandCaption" xml:space="preserve">
     <value>Понятно</value>

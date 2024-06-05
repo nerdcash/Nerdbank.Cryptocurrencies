@@ -95,7 +95,14 @@ internal class Program
 #else
 			new FallbackPlatformServices();
 #endif
-		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), platformServices, startup, ThisAssembly.VelopackUpdateUrl))
+
+		string? updateSource = Environment.GetEnvironmentVariable("EZCASH_UPDATE_SOURCE");
+		if (string.IsNullOrWhiteSpace(updateSource))
+		{
+			updateSource = ThisAssembly.VelopackUpdateUrl;
+		}
+
+		AppBuilder builder = AppBuilder.Configure(() => new App(PrepareAppPlatformSettings(), platformServices, startup, updateSource))
 			.UsePlatformDetect()
 			.WithInterFont()
 			.LogToTrace()
