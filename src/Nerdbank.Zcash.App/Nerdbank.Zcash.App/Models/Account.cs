@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using MessagePack;
@@ -217,6 +216,8 @@ public class Account : ReactiveObject, IPersistableData
 
 			this.AssignOtherParty(tx, wallet, contactManager);
 
+			this.UpdateMaxTransparentAddressIndex(tx);
+
 			highestBlockNumber = Math.Max(highestBlockNumber, tx.BlockNumber ?? 0);
 		}
 
@@ -252,6 +253,26 @@ public class Account : ReactiveObject, IPersistableData
 		return left.Amount == right.Amount
 			&& left.Memo.Equals(right.Memo)
 			&& left.ToAddress.IsMatch(right.ToAddress).HasFlag(ZcashAddress.Match.MatchingReceiversFound);
+	}
+
+	/// <summary>
+	/// Updates the <see cref="ZcashAccount.MaxTransparentAddressIndex"/> property based on the addresses used in a transaction, if necessary.
+	/// </summary>
+	/// <param name="tx">The transaction to consider.</param>
+	private void UpdateMaxTransparentAddressIndex(ZcashTransaction tx)
+	{
+		foreach (ZcashTransaction.LineItem recv in tx.RecvItems)
+		{
+			if (recv.ToAddress is TransparentAddress tAddr &&
+				this.ZcashAccount.TryGetTransparentIndex(tAddr, out Bitcoin.Bip44MultiAccountHD.Change? change, out uint? index) &&
+				change == Bitcoin.Bip44MultiAccountHD.Change.ReceivingAddressChain)
+			{
+				if (index > this.ZcashAccount.MaxTransparentAddressIndex || this.ZcashAccount.MaxTransparentAddressIndex is null)
+				{
+					this.ZcashAccount.MaxTransparentAddressIndex = index;
+				}
+			}
+		}
 	}
 
 	/// <summary>

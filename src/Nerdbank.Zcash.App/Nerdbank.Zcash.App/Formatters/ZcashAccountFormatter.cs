@@ -22,7 +22,7 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 			return;
 		}
 
-		writer.WriteArrayHeader(4);
+		writer.WriteArrayHeader(5);
 		if (value.HDDerivation is { } derivation)
 		{
 			writer.WriteNil();
@@ -38,6 +38,7 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 		}
 
 		options.Resolver.GetFormatterWithVerify<ulong?>().Serialize(ref writer, value.BirthdayHeight, options);
+		options.Resolver.GetFormatterWithVerify<uint?>().Serialize(ref writer, value.MaxTransparentAddressIndex, options);
 	}
 
 	public ZcashAccount? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
@@ -51,6 +52,7 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 		Zip32HDWallet? zip32 = null;
 		uint? accountIndex = null;
 		ulong? birthdayHeight = null;
+		uint? maxTransparentIndex = null;
 
 		options.Security.DepthStep(ref reader);
 		int length = reader.ReadArrayHeader();
@@ -79,6 +81,9 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 				case 3:
 					birthdayHeight = options.Resolver.GetFormatterWithVerify<ulong?>().Deserialize(ref reader, options);
 					break;
+				case 4:
+					maxTransparentIndex = options.Resolver.GetFormatterWithVerify<uint?>().Deserialize(ref reader, options);
+					break;
 				default:
 					reader.Skip();
 					break;
@@ -91,6 +96,7 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 			? new ZcashAccount(zip32, accountIndex ?? throw new MessagePackSerializationException("Missing account index."))
 			: new ZcashAccount(UnifiedViewingKey.Decode(uvk ?? throw new MessagePackSerializationException("Missing UVK.")));
 		result.BirthdayHeight = birthdayHeight;
+		result.MaxTransparentAddressIndex = maxTransparentIndex;
 		return result;
 	}
 }
