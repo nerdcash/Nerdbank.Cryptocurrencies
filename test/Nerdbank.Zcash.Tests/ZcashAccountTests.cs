@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Nerdbank.Bitcoin;
+
 public class ZcashAccountTests : TestBase
 {
 	private static readonly Zip32HDWallet Zip32 = new(Mnemonic, ZcashNetwork.TestNet);
@@ -121,6 +123,51 @@ public class ZcashAccountTests : TestBase
 
 		Assert.False(account.TryGetDiversifierIndex(mixedUA, out DiversifierIndex? actualIndex));
 		Assert.Null(actualIndex);
+	}
+
+	[Fact]
+	public void TryGetTransparentIndex_NoMatch()
+	{
+		ZcashAccount account = new(Zip32);
+
+		Assert.False(account.TryGetTransparentIndex((TransparentAddress)ZcashAddress.Decode(ValidTransparentP2PKHAddress), out Bip44MultiAccountHD.Change? change, out uint? index));
+		Assert.Null(change);
+		Assert.Null(index);
+	}
+
+	[Fact]
+	public void TryGetTransparentIndex_MatchWithinMax()
+	{
+		ZcashAccount account = new(Zip32);
+		TransparentAddress tAddr = account.GetTransparentAddress(5);
+
+		Assert.True(account.TryGetTransparentIndex(tAddr, out Bip44MultiAccountHD.Change? change, out uint? index));
+		Assert.Equal(Bip44MultiAccountHD.Change.ReceivingAddressChain, change);
+		Assert.Equal(5u, index);
+	}
+
+	[Fact]
+	public void TryGetTransparentIndex_MatchBeyondMaxWithinGap()
+	{
+		ZcashAccount account = new(Zip32);
+		TransparentAddress tAddr = account.GetTransparentAddress(5);
+		account.MaxTransparentAddressIndex = 0;
+
+		Assert.True(account.TryGetTransparentIndex(tAddr, out Bip44MultiAccountHD.Change? change, out uint? index));
+		Assert.Equal(Bip44MultiAccountHD.Change.ReceivingAddressChain, change);
+		Assert.Equal(5u, index);
+	}
+
+	[Fact]
+	public void TryGetTransparentIndex_MatchBeyondMaxAndGap()
+	{
+		ZcashAccount account = new(Zip32);
+		TransparentAddress tAddr = account.GetTransparentAddress(Bip44MultiAccountHD.RecommendedAddressGapLimit + 100);
+		account.MaxTransparentAddressIndex = 0;
+
+		Assert.False(account.TryGetTransparentIndex(tAddr, out Bip44MultiAccountHD.Change? change, out uint? index));
+		Assert.Null(change);
+		Assert.Null(index);
 	}
 
 	/// <summary>
