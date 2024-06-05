@@ -218,22 +218,6 @@ public class UnifiedAddressTests : TestBase
 		Assert.Equal(ValidUnifiedAddressSaplingTestNet, addr.ToString());
 	}
 
-	/// <summary>
-	/// Asserts that a UA with only a transparent receiver and no metadata fails
-	/// to be created due to not satisfying the minimum length requirement for F4Jumble.
-	/// </summary>
-	[Fact]
-	public void TryCreate_TransparentOnly_NoMetadata()
-	{
-		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
-		DiversifierIndex index = default;
-
-		// Although this is a Try method, we expect an exception to be thrown because
-		// the Try only returns false when the index is too high to find a valid diversifier.
-		ArgumentException ex = Assert.Throws<ArgumentException>(() => UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Transparent!], out UnifiedAddress? _));
-		this.logger.WriteLine(ex.Message);
-	}
-
 	[Theory, PairwiseData]
 	public void TryCreate_TryDecode_TransparentOnly(ZcashNetwork network)
 	{
@@ -244,17 +228,10 @@ public class UnifiedAddressTests : TestBase
 			_ => throw new ArgumentOutOfRangeException(nameof(network)),
 		};
 
-		// We have to include expiration block metadata to push the length of the encoded data
-		// to the required 40 bytes.
-		UnifiedEncodingMetadata metadata = new()
-		{
-			ExpirationHeight = 100,
-		};
-
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, network));
 
 		DiversifierIndex index = default;
-		Assert.True(UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Transparent!], metadata, out UnifiedAddress? address));
+		Assert.True(UnifiedAddress.TryCreate(ref index, [account.IncomingViewing.Transparent!], out UnifiedAddress? address));
 		this.logger.WriteLine(address);
 		Assert.Equal(1, address.Revision);
 		Assert.NotNull(address.GetPoolReceiver<TransparentP2PKHReceiver>());
