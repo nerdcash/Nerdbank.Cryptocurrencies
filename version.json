@@ -4,7 +4,9 @@
   "publicReleaseRefSpec": [
     "^refs/heads/main$",
     "^refs/heads/v\\d+(?:\\.\\d+)?$",
-    "^refs/tags/v\\d+\\.\\d+\\.\\d+(?:-\\S+)?$"
+    "^refs/tags/v\\d+\\.\\d+\\.\\d+(?:-\\S+)?$",
+    "^refs/heads/app-prerelease$",
+    "^refs/heads/app-release$"
   ],
   "cloudBuild": {
     "setVersionVariables": false
