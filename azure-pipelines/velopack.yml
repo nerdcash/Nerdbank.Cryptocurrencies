@@ -89,6 +89,8 @@ steps:
       Write-Host "##[command]$pwd $ dotnet $vpkCommand"
       dotnet @vpkCommand
     displayName: 📦 Build ${{ platform }} app package
+    env:
+      VELOPACK_TEMP: $(Agent.TempDirectory)/velopack
 
 - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(System.PhaseName)" -Verbose
   failOnStderr: true
