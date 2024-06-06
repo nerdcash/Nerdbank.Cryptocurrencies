@@ -4,6 +4,8 @@ trigger:
     include:
     - main
     - app
+    - app-prerelease
+    - app-release
     - 'validate/*'
   paths:
     exclude:
@@ -30,5 +32,9 @@ jobs:
   parameters:
     RunTests: ${{ parameters.RunTests }}
     ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/app') }}:
-      BaseChannelName: ci
+      BaseChannelName: dogfood
+    ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/app-prerelease') }}:
+      BaseChannelName: prerelease
+    ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/app-release') }}:
+      BaseChannelName: release
     signArtifacts: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
