@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using Org.BouncyCastle.Crypto.Digests;
 
 namespace Nerdbank.Zcash;
 
@@ -90,5 +87,16 @@ public unsafe struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable
 	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
 
 	/// <inheritdoc/>
-	public bool Equals(TransparentP2PKHReceiver other) => this.ValidatingKeyHash.SequenceEqual(other.ValidatingKeyHash);
+	public bool Equals(TransparentP2PKHReceiver other) => this.Span.SequenceEqual(other.Span);
+
+	/// <inheritdoc/>
+	public override bool Equals([NotNullWhen(true)] object? obj) => obj is TransparentP2PKHReceiver other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode hashCode = default;
+		hashCode.AddBytes(this.Span);
+		return hashCode.ToHashCode();
+	}
 }
