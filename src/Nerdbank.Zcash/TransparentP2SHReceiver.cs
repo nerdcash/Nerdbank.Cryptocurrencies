@@ -1,19 +1,21 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.InteropServices;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Transparent"/> pool
 /// by way of a Pay to Script Hash method.
 /// </summary>
-public unsafe struct TransparentP2SHReceiver : IUnifiedPoolReceiver, IEquatable<TransparentP2SHReceiver>
+[InlineArray(Length)]
+public struct TransparentP2SHReceiver : IUnifiedPoolReceiver, IEquatable<TransparentP2SHReceiver>
 {
-	private const int Length = 160 / 8;
+	/// <summary>
+	/// Gets the length of the receiver, in bytes.
+	/// </summary>
+	public const int Length = 160 / 8;
 
-	private fixed byte scriptHash[Length];
+	private byte scriptHash;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="TransparentP2SHReceiver"/> struct.
@@ -27,7 +29,7 @@ public unsafe struct TransparentP2SHReceiver : IUnifiedPoolReceiver, IEquatable<
 			throw new ArgumentException($"Length must be exactly {Length}, but was {p2sh.Length}.", nameof(p2sh));
 		}
 
-		p2sh.CopyTo(this.ScriptHashWritable);
+		p2sh.CopyTo(this);
 	}
 
 	/// <summary>
@@ -39,41 +41,26 @@ public unsafe struct TransparentP2SHReceiver : IUnifiedPoolReceiver, IEquatable<
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;
 
-	/// <summary>
-	/// Gets the encoded representation of the entire receiver.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> Span => this.ScriptHash;
-
 	/// <inheritdoc />
-	public readonly int EncodingLength => this.Span.Length;
-
-	/// <summary>
-	/// Gets the script hash.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> ScriptHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.scriptHash[0]), Length);
-
-	/// <summary>
-	/// Gets the script hash.
-	/// </summary>
-	[UnscopedRef]
-	private Span<byte> ScriptHashWritable => MemoryMarshal.CreateSpan(ref this.scriptHash[0], Length);
+	readonly int IPoolReceiver.EncodingLength => Length;
 
 	/// <inheritdoc/>
-	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+	public readonly int Encode(Span<byte> buffer) => this[..].CopyToRetLength(buffer);
 
 	/// <inheritdoc/>
-	public bool Equals(TransparentP2SHReceiver other) => this.Span.SequenceEqual(other.Span);
+	readonly bool IEquatable<TransparentP2SHReceiver>.Equals(TransparentP2SHReceiver other) => this.Equals(other);
+
+	/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
+	public readonly bool Equals(in TransparentP2SHReceiver other) => this[..].SequenceEqual(other[..]);
 
 	/// <inheritdoc/>
-	public override bool Equals([NotNullWhen(true)] object? obj) => obj is TransparentP2SHReceiver other && this.Equals(other);
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is TransparentP2SHReceiver other && this.Equals(other);
 
 	/// <inheritdoc/>
-	public override int GetHashCode()
+	public override readonly int GetHashCode()
 	{
 		HashCode hashCode = default;
-		hashCode.AddBytes(this.Span);
+		hashCode.AddBytes(this);
 		return hashCode.ToHashCode();
 	}
 }

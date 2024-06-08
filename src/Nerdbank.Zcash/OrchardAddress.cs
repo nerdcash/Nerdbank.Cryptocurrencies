@@ -49,7 +49,7 @@ public class OrchardAddress : UnifiedAddress
 	internal override byte UnifiedTypeCode => UnifiedTypeCodes.Orchard;
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
+	internal override int ReceiverEncodingLength => OrchardReceiver.Length;
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);

@@ -1,22 +1,22 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.InteropServices;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Sapling"/> pool.
 /// </summary>
-public unsafe struct SaplingReceiver : IUnifiedPoolReceiver, IEquatable<SaplingReceiver>
+[InlineArray(Length)]
+public struct SaplingReceiver : IUnifiedPoolReceiver, IEquatable<SaplingReceiver>
 {
 	/// <summary>
-	/// Gets the number of bytes in a sapling receiver.
+	/// Gets the length of the receiver, in bytes.
 	/// </summary>
-	internal const int Length = 11 + 32;
+	public const int Length = 11 + 32;
+
 	private const int DLength = 11;
 	private const int PkdLength = 32;
-	private fixed byte backing[Length];
+	private byte backing;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SaplingReceiver"/> struct.
@@ -36,8 +36,8 @@ public unsafe struct SaplingReceiver : IUnifiedPoolReceiver, IEquatable<SaplingR
 			throw new ArgumentException($"Length must be exactly {PkdLength}, but was {pkd.Length}.", nameof(pkd));
 		}
 
-		d.CopyTo(this.DWritable);
-		pkd.CopyTo(this.PkdWritable);
+		d.CopyTo(this[..DLength]);
+		pkd.CopyTo(this[DLength..]);
 	}
 
 	/// <summary>
@@ -52,7 +52,7 @@ public unsafe struct SaplingReceiver : IUnifiedPoolReceiver, IEquatable<SaplingR
 			throw new ArgumentException($"Length must be exactly {Length}, but was {receiver.Length}.", nameof(receiver));
 		}
 
-		receiver.CopyTo(this.SpanWritable);
+		receiver.CopyTo(this);
 	}
 
 	/// <inheritdoc cref="IUnifiedPoolReceiver.UnifiedReceiverTypeCode"/>
@@ -65,53 +65,34 @@ public unsafe struct SaplingReceiver : IUnifiedPoolReceiver, IEquatable<SaplingR
 	/// Gets the LEBS2OSP(d) on the receiver.
 	/// </summary>
 	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> D => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), DLength);
+	public readonly ReadOnlySpan<byte> D => this[..DLength];
 
 	/// <summary>
 	/// Gets the LEBS2OSP(repr(pkd)) on the receiver.
 	/// </summary>
 	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> Pkd => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[DLength]), PkdLength);
+	public readonly ReadOnlySpan<byte> Pkd => this[DLength..];
 
 	/// <inheritdoc />
-	public readonly int EncodingLength => Length;
-
-	/// <summary>
-	/// Gets the encoded representation of the entire receiver.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> Span => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), Length);
-
-	/// <inheritdoc cref="Span" />
-	[UnscopedRef]
-	private Span<byte> SpanWritable => MemoryMarshal.CreateSpan(ref this.backing[0], Length);
-
-	/// <summary>
-	/// Gets the LEBS2OSP(d) on the receiver.
-	/// </summary>
-	[UnscopedRef]
-	private Span<byte> DWritable => MemoryMarshal.CreateSpan(ref this.backing[0], DLength);
-
-	/// <summary>
-	/// Gets the LEBS2OSP(repr(pkd)) on the receiver.
-	/// </summary>
-	[UnscopedRef]
-	private Span<byte> PkdWritable => MemoryMarshal.CreateSpan(ref this.backing[DLength], PkdLength);
+	readonly int IPoolReceiver.EncodingLength => Length;
 
 	/// <inheritdoc/>
-	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+	public readonly int Encode(Span<byte> buffer) => this[..].CopyToRetLength(buffer);
 
 	/// <inheritdoc/>
-	public bool Equals(SaplingReceiver other) => this.Span.SequenceEqual(other.Span);
+	readonly bool IEquatable<SaplingReceiver>.Equals(SaplingReceiver other) => this.Equals(other);
+
+	/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
+	public readonly bool Equals(in SaplingReceiver other) => this[..].SequenceEqual(other[..]);
 
 	/// <inheritdoc/>
-	public override bool Equals([NotNullWhen(true)] object? obj) => obj is SaplingReceiver other && this.Equals(other);
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is SaplingReceiver other && this.Equals(other);
 
 	/// <inheritdoc/>
-	public override int GetHashCode()
+	public override readonly int GetHashCode()
 	{
 		HashCode hashCode = default;
-		hashCode.AddBytes(this.Span);
+		hashCode.AddBytes(this);
 		return hashCode.ToHashCode();
 	}
 }

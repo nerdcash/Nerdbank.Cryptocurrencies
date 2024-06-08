@@ -1,19 +1,21 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.InteropServices;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Transparent"/> pool
 /// by way of a Pay to Public Key Hash method.
 /// </summary>
-public unsafe struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable<TransparentP2PKHReceiver>
+[InlineArray(Length)]
+public struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable<TransparentP2PKHReceiver>
 {
-	private const int Length = 160 / 8;
+	/// <summary>
+	/// Gets the length of the receiver, in bytes.
+	/// </summary>
+	public const int Length = 160 / 8;
 
-	private fixed byte validatingKeyHash[Length];
+	private byte validatingKeyHash;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="TransparentP2PKHReceiver"/> struct.
@@ -27,7 +29,7 @@ public unsafe struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable
 			throw new ArgumentException($"Length must be exactly {Length}, but was {p2pkh.Length}.", nameof(p2pkh));
 		}
 
-		p2pkh.CopyTo(this.ValidatingKeyHashWritable);
+		p2pkh.CopyTo(this);
 	}
 
 	/// <summary>
@@ -42,7 +44,7 @@ public unsafe struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable
 		publicKey.CryptographicKey.WriteToSpan(compressed: true, serializedPublicKey, out int length);
 		serializedPublicKey = serializedPublicKey[..length];
 
-		Assumes.True(Bitcoin.PublicKey.CreatePublicKeyHash(serializedPublicKey, this.ValidatingKeyHashWritable) == this.ValidatingKeyHashWritable.Length);
+		Assumes.True(Bitcoin.PublicKey.CreatePublicKeyHash(serializedPublicKey, this) == Length);
 	}
 
 	/// <summary>
@@ -53,7 +55,7 @@ public unsafe struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable
 	{
 		Requires.NotNull(publicKey);
 
-		Assumes.True(Bitcoin.PublicKey.CreatePublicKeyHash(publicKey.KeyMaterial, this.ValidatingKeyHashWritable) == this.ValidatingKeyHashWritable.Length);
+		Assumes.True(Bitcoin.PublicKey.CreatePublicKeyHash(publicKey.KeyMaterial, this) == Length);
 	}
 
 	/// <inheritdoc cref="IUnifiedPoolReceiver.UnifiedReceiverTypeCode"/>
@@ -62,41 +64,26 @@ public unsafe struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;
 
-	/// <summary>
-	/// Gets the encoded representation of the entire receiver.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
-
 	/// <inheritdoc />
-	public readonly int EncodingLength => this.Span.Length;
-
-	/// <summary>
-	/// Gets the validating key hash.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> ValidatingKeyHash => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.validatingKeyHash[0]), Length);
-
-	/// <summary>
-	/// Gets the validating key hash.
-	/// </summary>
-	[UnscopedRef]
-	private Span<byte> ValidatingKeyHashWritable => MemoryMarshal.CreateSpan(ref this.validatingKeyHash[0], Length);
+	readonly int IPoolReceiver.EncodingLength => Length;
 
 	/// <inheritdoc/>
-	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+	public readonly int Encode(Span<byte> buffer) => this[..].CopyToRetLength(buffer);
 
 	/// <inheritdoc/>
-	public bool Equals(TransparentP2PKHReceiver other) => this.Span.SequenceEqual(other.Span);
+	readonly bool IEquatable<TransparentP2PKHReceiver>.Equals(TransparentP2PKHReceiver other) => this.Equals(other);
+
+	/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
+	public readonly bool Equals(in TransparentP2PKHReceiver other) => this[..].SequenceEqual(other[..]);
 
 	/// <inheritdoc/>
-	public override bool Equals([NotNullWhen(true)] object? obj) => obj is TransparentP2PKHReceiver other && this.Equals(other);
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is TransparentP2PKHReceiver other && this.Equals(other);
 
 	/// <inheritdoc/>
-	public override int GetHashCode()
+	public override readonly int GetHashCode()
 	{
 		HashCode hashCode = default;
-		hashCode.AddBytes(this.Span);
+		hashCode.AddBytes(this[..]);
 		return hashCode.ToHashCode();
 	}
 }

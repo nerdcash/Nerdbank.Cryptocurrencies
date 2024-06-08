@@ -98,7 +98,7 @@ public class SproutAddress : ZcashAddress
 
 	private static string CreateAddress(in SproutReceiver receiver, ZcashNetwork network)
 	{
-		Span<byte> input = stackalloc byte[2 + receiver.EncodingLength];
+		Span<byte> input = stackalloc byte[2 + SproutReceiver.Length];
 		(input[0], input[1]) = network switch
 		{
 			ZcashNetwork.MainNet => ((byte)0x16, (byte)0x9a),
