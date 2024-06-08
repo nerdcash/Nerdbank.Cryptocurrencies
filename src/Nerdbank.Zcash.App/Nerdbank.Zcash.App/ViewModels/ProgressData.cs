@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using System.ComponentModel;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -71,7 +70,7 @@ public class ProgressData : ViewModelBase
 				if (this.VisiblyApparentStepSize is uint step && step > 0 && length > 0)
 				{
 					const uint ImplicitPrecision = 2; // % gives us 0-1 with 2 decimal places
-					precision = Math.Max(ImplicitPrecision, (uint)Math.Ceiling(Math.Log10(length / step))) - ImplicitPrecision;
+					precision = (uint)Math.Max(ImplicitPrecision, Math.Ceiling(Math.Log10(length / step))) - ImplicitPrecision;
 				}
 
 				return precision;
