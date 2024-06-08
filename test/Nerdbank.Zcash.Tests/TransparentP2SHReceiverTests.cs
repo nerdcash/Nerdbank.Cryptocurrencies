@@ -9,11 +9,11 @@ public class TransparentP2SHReceiverTests
 		byte[] hash = new byte[20];
 		hash[1] = 2;
 		TransparentP2SHReceiver receiver = new(hash);
-		Assert.Equal(hash, receiver.ScriptHash.ToArray());
+		Assert.Equal(hash, receiver[..].ToArray());
 
 		// Verify that a copy of the data has been made.
 		hash[0] = 3;
-		Assert.Equal(0, receiver.ScriptHash[0]);
+		Assert.Equal(0, receiver[0]);
 	}
 
 	[Fact]

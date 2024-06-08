@@ -83,7 +83,7 @@ public struct DiversifierIndex : IEquatable<DiversifierIndex>
 	public readonly BigInteger ToBigInteger() => new BigInteger(this, isUnsigned: true);
 
 	/// <inheritdoc/>
-	bool IEquatable<DiversifierIndex>.Equals(DiversifierIndex other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<DiversifierIndex>.Equals(DiversifierIndex other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in DiversifierIndex other) => this[..].SequenceEqual(other);

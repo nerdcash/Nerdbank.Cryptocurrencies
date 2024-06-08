@@ -69,9 +69,15 @@ public class PublicKey : IZcashKey, IFullViewingKey
 	public IIncomingViewingKey IncomingViewingKey => this;
 
 	[InlineArray(Length)]
-	private struct PublicKeyMaterial
+	private struct PublicKeyMaterial : IEquatable<PublicKeyMaterial>
 	{
 		public const int Length = 33;
 		private byte element;
+
+		/// <inheritdoc />
+		readonly bool IEquatable<PublicKeyMaterial>.Equals(PublicKeyMaterial other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
+		public readonly bool Equals(in PublicKeyMaterial other) => this[..].SequenceEqual(other);
 	}
 }

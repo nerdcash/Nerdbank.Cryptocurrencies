@@ -11,9 +11,15 @@ namespace Nerdbank.Zcash;
 /// This receiver is used for <see cref="TexAddress"/> to represent receivers that must only be sent transparent funds.
 /// It is otherwise equivalent to <see cref="TransparentP2PKHReceiver"/>.
 /// </remarks>
-public unsafe struct TexReceiver : IPoolReceiver, IEquatable<TexReceiver>
+[InlineArray(Length)]
+public struct TexReceiver : IPoolReceiver, IEquatable<TexReceiver>
 {
-	private readonly TransparentP2PKHReceiver p2pkhReceiver;
+	/// <summary>
+	/// Gets the length of the receiver, in bytes.
+	/// </summary>
+	public const int Length = 160 / 8;
+
+	private byte validatingKeyHash;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="TexReceiver"/> struct.
@@ -22,7 +28,12 @@ public unsafe struct TexReceiver : IPoolReceiver, IEquatable<TexReceiver>
 	/// <exception cref="ArgumentException">Thrown when the arguments have an unexpected length.</exception>
 	public TexReceiver(ReadOnlySpan<byte> p2pkh)
 	{
-		this.p2pkhReceiver = new(p2pkh);
+		if (p2pkh.Length != Length)
+		{
+			throw new ArgumentException($"Length must be exactly {Length}, but was {p2pkh.Length}.", nameof(p2pkh));
+		}
+
+		p2pkh.CopyTo(this);
 	}
 
 	/// <summary>
@@ -31,7 +42,13 @@ public unsafe struct TexReceiver : IPoolReceiver, IEquatable<TexReceiver>
 	/// <param name="publicKey">The EC public key to create a receiver for.</param>
 	public TexReceiver(Zip32HDWallet.Transparent.ExtendedViewingKey publicKey)
 	{
-		this.p2pkhReceiver = new(publicKey);
+		Requires.NotNull(publicKey);
+
+		Span<byte> serializedPublicKey = stackalloc byte[33];
+		publicKey.CryptographicKey.WriteToSpan(compressed: true, serializedPublicKey, out int length);
+		serializedPublicKey = serializedPublicKey[..length];
+
+		Assumes.True(Bitcoin.PublicKey.CreatePublicKeyHash(serializedPublicKey, this) == Length);
 	}
 
 	/// <summary>
@@ -40,53 +57,46 @@ public unsafe struct TexReceiver : IPoolReceiver, IEquatable<TexReceiver>
 	/// <param name="publicKey">The EC public key to create a receiver for.</param>
 	public TexReceiver(Transparent.PublicKey publicKey)
 	{
-		this.p2pkhReceiver = new(publicKey);
+		Requires.NotNull(publicKey);
+
+		Assumes.True(Bitcoin.PublicKey.CreatePublicKeyHash(publicKey.KeyMaterial, this) == Length);
 	}
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;
 
-	/// <summary>
-	/// Gets the encoded representation of the entire receiver.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> Span => this.ValidatingKeyHash;
-
 	/// <inheritdoc />
-	public readonly int EncodingLength => this.Span.Length;
-
-	/// <summary>
-	/// Gets the validating key hash.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> ValidatingKeyHash => this.p2pkhReceiver.ValidatingKeyHash;
+	readonly int IPoolReceiver.EncodingLength => Length;
 
 	/// <summary>
 	/// Converts a <see cref="TransparentP2PKHReceiver"/> into a <see cref="TexReceiver" />.
 	/// </summary>
 	/// <param name="receiver">The receiver to convert from.</param>
-	public static implicit operator TexReceiver(in TransparentP2PKHReceiver receiver) => new(receiver.ValidatingKeyHash);
+	public static implicit operator TexReceiver(in TransparentP2PKHReceiver receiver) => new(receiver);
 
 	/// <summary>
 	/// Converts a <see cref="TexReceiver"/> into a <see cref="TransparentP2PKHReceiver" />.
 	/// </summary>
 	/// <param name="receiver">The receiver to convert from.</param>
-	public static explicit operator TransparentP2PKHReceiver(in TexReceiver receiver) => new(receiver.ValidatingKeyHash);
+	public static explicit operator TransparentP2PKHReceiver(in TexReceiver receiver) => new(receiver);
 
 	/// <inheritdoc/>
-	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+	public readonly int Encode(Span<byte> buffer) => this[..].CopyToRetLength(buffer);
 
 	/// <inheritdoc/>
-	public bool Equals(TexReceiver other) => this.Span.SequenceEqual(other.Span);
+	readonly bool IEquatable<TexReceiver>.Equals(TexReceiver other) => this.Equals(other);
+
+	/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
+	public readonly bool Equals(in TexReceiver other) => this[..].SequenceEqual(other[..]);
 
 	/// <inheritdoc/>
-	public override bool Equals([NotNullWhen(true)] object? obj) => obj is TexReceiver other && this.Equals(other);
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is TexReceiver other && this.Equals(other);
 
 	/// <inheritdoc/>
-	public override int GetHashCode()
+	public override readonly int GetHashCode()
 	{
 		HashCode hashCode = default;
-		hashCode.AddBytes(this.Span);
+		hashCode.AddBytes(this[..]);
 		return hashCode.ToHashCode();
 	}
 }

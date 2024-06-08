@@ -9,11 +9,11 @@ public class TexReceiverTests
 		byte[] hash = new byte[20];
 		hash[1] = 2;
 		TexReceiver receiver = new(hash);
-		Assert.Equal(hash, receiver.ValidatingKeyHash.ToArray());
+		Assert.Equal(hash, receiver[..]);
 
 		// Verify that a copy of the data has been made.
 		hash[0] = 3;
-		Assert.Equal(0, receiver.ValidatingKeyHash[0]);
+		Assert.Equal(0, receiver[0]);
 	}
 
 	[Fact]
@@ -32,7 +32,7 @@ public class TexReceiverTests
 		Random.Shared.NextBytes(p2pkh);
 		TexReceiver texReceiver = new(p2pkh);
 		TransparentP2PKHReceiver transparentReceiver = (TransparentP2PKHReceiver)texReceiver;
-		Assert.Equal(texReceiver.ValidatingKeyHash, transparentReceiver.ValidatingKeyHash);
+		Assert.Equal(texReceiver[..], transparentReceiver[..]);
 	}
 
 	[Fact]
@@ -42,7 +42,7 @@ public class TexReceiverTests
 		Random.Shared.NextBytes(p2pkh);
 		TransparentP2PKHReceiver transparentReceiver = new(p2pkh);
 		TexReceiver texReceiver = transparentReceiver;
-		Assert.Equal(transparentReceiver.ValidatingKeyHash, texReceiver.ValidatingKeyHash);
+		Assert.Equal(transparentReceiver[..], texReceiver[..]);
 	}
 
 	[Fact]
