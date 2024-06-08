@@ -42,7 +42,7 @@ public class TransparentP2PKHAddress : TransparentAddress
 	public override bool HasShieldedReceiver => false;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => UnifiedTypeCodes.TransparentP2PKH;
+	internal override byte UnifiedTypeCode => TransparentP2PKHReceiver.UnifiedReceiverTypeCode;
 
 	/// <inheritdoc/>
 	internal override int ReceiverEncodingLength => TransparentP2PKHReceiver.Length;

@@ -42,7 +42,7 @@ public class SproutAddress : ZcashAddress
 	public override bool HasShieldedReceiver => true;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => throw new NotSupportedException();
+	internal override byte UnifiedTypeCode => throw new NotSupportedException(Strings.AddressDoesNotSupportUnifiedEncoding);
 
 	/// <inheritdoc/>
 	[ExcludeFromCodeCoverage]
