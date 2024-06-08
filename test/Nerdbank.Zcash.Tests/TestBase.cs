@@ -26,9 +26,9 @@ public abstract class TestBase
 	protected const string ValidTransparentP2SHAddress = "t3JZcvsuaXE6ygokL4XUiZSTrQBUoPYFnXJ";
 	protected const string ValidTexAddress = "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte";
 
-	protected static readonly Uri LightWalletServerMainNet = new("https://mainnet.lightwalletd.com:9067/");
+	protected static readonly Uri LightWalletServerMainNet = new("https://zcash.mysideoftheweb.com:9067/");
 
-	protected static readonly Uri LightWalletServerTestNet = new("https://lightwalletd.testnet.electriccoin.co:9067/");
+	protected static readonly Uri LightWalletServerTestNet = new("https://zcash.mysideoftheweb.com:19067/");
 
 	protected static readonly Bip39Mnemonic Mnemonic = Bip39Mnemonic.Parse("weapon solid program critic you long skill foot damp kingdom west history car crunch park increase excite hidden bless spot matter razor memory garbage");
 
