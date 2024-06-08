@@ -27,18 +27,39 @@ public class SproutReceiverTests
 	}
 
 	[Fact]
-	public void Equality()
+	public void EqualityOfT()
 	{
 		byte[] apk = new byte[32];
 		byte[] pkEnc = new byte[32];
 
-		SproutReceiver receiver1a = new(apk, pkEnc);
-		SproutReceiver receiver1b = new(apk, pkEnc);
+		SproutReceiver receiver1a = new(apk.ToArray(), pkEnc.ToArray());
+		SproutReceiver receiver1b = new(apk.ToArray(), pkEnc.ToArray());
 		Assert.Equal(receiver1a, receiver1b);
 
 		apk[0] = 1;
-		SproutReceiver receiver2 = new(apk, pkEnc);
+		SproutReceiver receiver2 = new(apk.ToArray(), pkEnc.ToArray());
+		pkEnc[3] = 8;
+		SproutReceiver receiver3 = new(apk.ToArray(), pkEnc.ToArray());
 		Assert.NotEqual(receiver1a, receiver2);
+		Assert.NotEqual(receiver3, receiver2);
+	}
+
+	[Fact]
+	public void EqualsObjectOverride()
+	{
+		byte[] apk = new byte[32];
+		byte[] pkEnc = new byte[32];
+
+		SproutReceiver receiver1a = new(apk.ToArray(), pkEnc.ToArray());
+		SproutReceiver receiver1b = new(apk.ToArray(), pkEnc.ToArray());
+		Assert.True(receiver1a.Equals((object)receiver1b));
+
+		apk[0] = 1;
+		SproutReceiver receiver2 = new(apk.ToArray(), pkEnc.ToArray());
+		pkEnc[3] = 8;
+		SproutReceiver receiver3 = new(apk.ToArray(), pkEnc.ToArray());
+		Assert.False(receiver1a.Equals((object)receiver2));
+		Assert.False(receiver3.Equals((object)receiver2));
 	}
 
 	[Fact]

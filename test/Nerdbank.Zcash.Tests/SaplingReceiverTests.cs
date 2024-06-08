@@ -34,4 +34,44 @@ public class SaplingReceiverTests
 	{
 		Assert.Equal(0x02, SaplingReceiver.UnifiedReceiverTypeCode);
 	}
+
+	[Fact]
+	public void EqualityOfT()
+	{
+		byte[] d = new byte[11];
+		byte[] pkd = new byte[32];
+
+		d[1] = 2;
+		pkd[2] = 4;
+		SaplingReceiver receiver = new(d.ToArray(), pkd.ToArray());
+		SaplingReceiver receiver_copy = new(d.ToArray(), pkd.ToArray());
+		d[3] = 3;
+		SaplingReceiver receiver_unique = new(d.ToArray(), pkd.ToArray());
+		pkd[5] = 8;
+		SaplingReceiver receiver_unique2 = new(d.ToArray(), pkd.ToArray());
+
+		Assert.Equal(receiver, receiver_copy);
+		Assert.NotEqual(receiver, receiver_unique);
+		Assert.NotEqual(receiver_unique2, receiver_unique);
+	}
+
+	[Fact]
+	public void EqualsObjectOverride()
+	{
+		byte[] d = new byte[11];
+		byte[] pkd = new byte[32];
+
+		d[1] = 2;
+		pkd[2] = 4;
+		SaplingReceiver receiver = new(d.ToArray(), pkd.ToArray());
+		SaplingReceiver receiver_copy = new(d.ToArray(), pkd.ToArray());
+		d[3] = 3;
+		SaplingReceiver receiver_unique = new(d.ToArray(), pkd.ToArray());
+		pkd[5] = 8;
+		SaplingReceiver receiver_unique2 = new(d.ToArray(), pkd.ToArray());
+
+		Assert.True(receiver.Equals((object)receiver_copy));
+		Assert.False(receiver.Equals((object)receiver_unique));
+		Assert.False(receiver_unique2.Equals((object)receiver_unique));
+	}
 }
