@@ -200,6 +200,7 @@ Nerdbank.Zcash.OrchardReceiver
 Nerdbank.Zcash.OrchardReceiver.D.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.OrchardReceiver.Encode(System.Span<byte> buffer) -> int
 Nerdbank.Zcash.OrchardReceiver.EncodingLength.get -> int
+Nerdbank.Zcash.OrchardReceiver.Equals(Nerdbank.Zcash.OrchardReceiver other) -> bool
 Nerdbank.Zcash.OrchardReceiver.OrchardReceiver() -> void
 Nerdbank.Zcash.OrchardReceiver.OrchardReceiver(System.ReadOnlySpan<byte> d, System.ReadOnlySpan<byte> pkd) -> void
 Nerdbank.Zcash.OrchardReceiver.Pkd.get -> System.ReadOnlySpan<byte>
@@ -404,6 +405,7 @@ Nerdbank.Zcash.SaplingReceiver
 Nerdbank.Zcash.SaplingReceiver.D.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.SaplingReceiver.Encode(System.Span<byte> buffer) -> int
 Nerdbank.Zcash.SaplingReceiver.EncodingLength.get -> int
+Nerdbank.Zcash.SaplingReceiver.Equals(Nerdbank.Zcash.SaplingReceiver other) -> bool
 Nerdbank.Zcash.SaplingReceiver.Pkd.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.SaplingReceiver.Pool.get -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.SaplingReceiver.SaplingReceiver() -> void
@@ -415,6 +417,7 @@ Nerdbank.Zcash.SproutReceiver
 Nerdbank.Zcash.SproutReceiver.Apk.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.SproutReceiver.Encode(System.Span<byte> buffer) -> int
 Nerdbank.Zcash.SproutReceiver.EncodingLength.get -> int
+Nerdbank.Zcash.SproutReceiver.Equals(Nerdbank.Zcash.SproutReceiver other) -> bool
 Nerdbank.Zcash.SproutReceiver.PkEnc.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.SproutReceiver.Pool.get -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.SproutReceiver.Span.get -> System.ReadOnlySpan<byte>
@@ -494,6 +497,7 @@ Nerdbank.Zcash.TransparentP2SHAddress.TransparentP2SHAddress(in Nerdbank.Zcash.T
 Nerdbank.Zcash.TransparentP2SHReceiver
 Nerdbank.Zcash.TransparentP2SHReceiver.Encode(System.Span<byte> buffer) -> int
 Nerdbank.Zcash.TransparentP2SHReceiver.EncodingLength.get -> int
+Nerdbank.Zcash.TransparentP2SHReceiver.Equals(Nerdbank.Zcash.TransparentP2SHReceiver other) -> bool
 Nerdbank.Zcash.TransparentP2SHReceiver.Pool.get -> Nerdbank.Zcash.Pool
 Nerdbank.Zcash.TransparentP2SHReceiver.ScriptHash.get -> System.ReadOnlySpan<byte>
 Nerdbank.Zcash.TransparentP2SHReceiver.Span.get -> System.ReadOnlySpan<byte>
@@ -768,6 +772,8 @@ override Nerdbank.Zcash.OrchardAddress.GetPoolReceiver<TPoolReceiver>() -> TPool
 override Nerdbank.Zcash.OrchardAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.OrchardAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 override Nerdbank.Zcash.OrchardAddress.Receivers.get -> System.Collections.Generic.IReadOnlyList<Nerdbank.Zcash.ZcashAddress!>!
+override Nerdbank.Zcash.OrchardReceiver.Equals(object? obj) -> bool
+override Nerdbank.Zcash.OrchardReceiver.GetHashCode() -> int
 override Nerdbank.Zcash.RawTransaction.GetHashCode() -> int
 override Nerdbank.Zcash.RawTransaction.JSDescriptionBCTV14.GetHashCode() -> int
 override Nerdbank.Zcash.RawTransaction.JSDescriptionGroth16.GetHashCode() -> int
@@ -787,12 +793,18 @@ override Nerdbank.Zcash.Sapling.IncomingViewingKey.GetHashCode() -> int
 override Nerdbank.Zcash.SaplingAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.SaplingAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.SaplingAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.SaplingReceiver.Equals(object? obj) -> bool
+override Nerdbank.Zcash.SaplingReceiver.GetHashCode() -> int
 override Nerdbank.Zcash.SproutAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.SproutAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.SproutAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.SproutReceiver.Equals(object? obj) -> bool
+override Nerdbank.Zcash.SproutReceiver.GetHashCode() -> int
 override Nerdbank.Zcash.TexAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.TexAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.TexAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.TexReceiver.Equals(object? obj) -> bool
+override Nerdbank.Zcash.TexReceiver.GetHashCode() -> int
 override Nerdbank.Zcash.Transaction.Equals(object? obj) -> bool
 override Nerdbank.Zcash.Transaction.LineItem.GetHashCode() -> int
 override Nerdbank.Zcash.Transaction.GetHashCode() -> int
@@ -800,9 +812,13 @@ override Nerdbank.Zcash.Transaction.ToString() -> string!
 override Nerdbank.Zcash.TransparentP2PKHAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.TransparentP2PKHAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.TransparentP2PKHAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.TransparentP2PKHReceiver.Equals(object? obj) -> bool
+override Nerdbank.Zcash.TransparentP2PKHReceiver.GetHashCode() -> int
 override Nerdbank.Zcash.TransparentP2SHAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolReceiver?
 override Nerdbank.Zcash.TransparentP2SHAddress.HasShieldedReceiver.get -> bool
 override Nerdbank.Zcash.TransparentP2SHAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
+override Nerdbank.Zcash.TransparentP2SHReceiver.Equals(object? obj) -> bool
+override Nerdbank.Zcash.TransparentP2SHReceiver.GetHashCode() -> int
 override Nerdbank.Zcash.TxId.Equals(object? obj) -> bool
 override Nerdbank.Zcash.TxId.GetHashCode() -> int
 override Nerdbank.Zcash.TxId.ToString() -> string!
