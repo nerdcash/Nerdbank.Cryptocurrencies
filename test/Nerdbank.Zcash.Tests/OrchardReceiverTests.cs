@@ -31,4 +31,44 @@ public class OrchardReceiverTests
 
 	[Fact]
 	public void UnifiedReceiverTypeCode() => Assert.Equal(0x03, OrchardReceiver.UnifiedReceiverTypeCode);
+
+	[Fact]
+	public void EqualityOfT()
+	{
+		byte[] d = new byte[11];
+		byte[] pkd = new byte[32];
+
+		d[1] = 2;
+		pkd[2] = 4;
+		OrchardReceiver receiver = new(d.ToArray(), pkd.ToArray());
+		OrchardReceiver receiver_copy = new(d.ToArray(), pkd.ToArray());
+		d[3] = 3;
+		OrchardReceiver receiver_unique = new(d.ToArray(), pkd.ToArray());
+		pkd[5] = 8;
+		OrchardReceiver receiver_unique2 = new(d.ToArray(), pkd.ToArray());
+
+		Assert.Equal(receiver, receiver_copy);
+		Assert.NotEqual(receiver, receiver_unique);
+		Assert.NotEqual(receiver_unique2, receiver_unique);
+	}
+
+	[Fact]
+	public void EqualsObjectOverride()
+	{
+		byte[] d = new byte[11];
+		byte[] pkd = new byte[32];
+
+		d[1] = 2;
+		pkd[2] = 4;
+		OrchardReceiver receiver = new(d.ToArray(), pkd.ToArray());
+		OrchardReceiver receiver_copy = new(d.ToArray(), pkd.ToArray());
+		d[3] = 3;
+		OrchardReceiver receiver_unique = new(d.ToArray(), pkd.ToArray());
+		pkd[5] = 8;
+		OrchardReceiver receiver_unique2 = new(d.ToArray(), pkd.ToArray());
+
+		Assert.True(receiver.Equals((object)receiver_copy));
+		Assert.False(receiver.Equals((object)receiver_unique));
+		Assert.False(receiver_unique2.Equals((object)receiver_unique));
+	}
 }

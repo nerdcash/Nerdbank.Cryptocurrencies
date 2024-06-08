@@ -44,4 +44,32 @@ public class TexReceiverTests
 		TexReceiver texReceiver = transparentReceiver;
 		Assert.Equal(transparentReceiver.ValidatingKeyHash, texReceiver.ValidatingKeyHash);
 	}
+
+	[Fact]
+	public void EqualityOfT()
+	{
+		byte[] hash = new byte[20];
+		hash[1] = 2;
+		TexReceiver receiver = new(hash.ToArray());
+		TexReceiver receiver_copy = new(hash.ToArray());
+		hash[3] = 3;
+		TexReceiver receiver_unique = new(hash.ToArray());
+
+		Assert.Equal(receiver, receiver_copy);
+		Assert.NotEqual(receiver, receiver_unique);
+	}
+
+	[Fact]
+	public void EqualsObjectOverride()
+	{
+		byte[] hash = new byte[20];
+		hash[1] = 2;
+		TexReceiver receiver = new(hash.ToArray());
+		TexReceiver receiver_copy = new(hash.ToArray());
+		hash[3] = 3;
+		TexReceiver receiver_unique = new(hash.ToArray());
+
+		Assert.True(receiver.Equals((object)receiver_copy));
+		Assert.False(receiver.Equals((object)receiver_unique));
+	}
 }

@@ -1,8 +1,6 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.CompilerServices;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -222,6 +220,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 		// This must be manually maintained as new receiver types are added.
 		TestReceiver<TransparentP2PKHReceiver>();
 		TestReceiver<TransparentP2SHReceiver>();
+		TestReceiver<TexReceiver>();
 		TestReceiver<SproutReceiver>();
 		TestReceiver<SaplingReceiver>();
 		TestReceiver<OrchardReceiver>();
@@ -229,7 +228,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 		return match;
 
 		void TestReceiver<T>()
-			where T : unmanaged, IPoolReceiver
+			where T : unmanaged, IPoolReceiver, IEquatable<T>
 		{
 			T? thisReceiver = this.GetPoolReceiver<T>();
 			T? candidateReceiver = candidate.GetPoolReceiver<T>();
@@ -244,7 +243,7 @@ public abstract class ZcashAddress : IEquatable<ZcashAddress>, IUnifiedEncodingE
 					match |= Match.UniqueReceiverTypesInReceivingAddress;
 					break;
 				case (not null, not null):
-					if (thisReceiver.Equals(candidateReceiver))
+					if (thisReceiver.Value.Equals(candidateReceiver.Value))
 					{
 						match |= Match.MatchingReceiversFound;
 					}

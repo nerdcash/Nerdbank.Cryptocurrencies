@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Zcash;
@@ -9,7 +8,7 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Sapling"/> pool.
 /// </summary>
-public unsafe struct SaplingReceiver : IUnifiedPoolReceiver
+public unsafe struct SaplingReceiver : IUnifiedPoolReceiver, IEquatable<SaplingReceiver>
 {
 	/// <summary>
 	/// Gets the number of bytes in a sapling receiver.
@@ -101,4 +100,18 @@ public unsafe struct SaplingReceiver : IUnifiedPoolReceiver
 
 	/// <inheritdoc/>
 	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+
+	/// <inheritdoc/>
+	public bool Equals(SaplingReceiver other) => this.Span.SequenceEqual(other.Span);
+
+	/// <inheritdoc/>
+	public override bool Equals([NotNullWhen(true)] object? obj) => obj is SaplingReceiver other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		HashCode hashCode = default;
+		hashCode.AddBytes(this.Span);
+		return hashCode.ToHashCode();
+	}
 }

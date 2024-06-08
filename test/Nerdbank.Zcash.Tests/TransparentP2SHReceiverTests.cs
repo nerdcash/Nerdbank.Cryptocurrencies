@@ -27,4 +27,32 @@ public class TransparentP2SHReceiverTests
 
 	[Fact]
 	public void UnifiedReceiverTypeCode() => Assert.Equal(0x01, TransparentP2SHReceiver.UnifiedReceiverTypeCode);
+
+	[Fact]
+	public void EqualityOfT()
+	{
+		byte[] hash = new byte[20];
+		hash[1] = 2;
+		TransparentP2SHReceiver receiver = new(hash.ToArray());
+		TransparentP2SHReceiver receiver_copy = new(hash.ToArray());
+		hash[3] = 3;
+		TransparentP2SHReceiver receiver_unique = new(hash.ToArray());
+
+		Assert.Equal(receiver, receiver_copy);
+		Assert.NotEqual(receiver, receiver_unique);
+	}
+
+	[Fact]
+	public void EqualsObjectOverride()
+	{
+		byte[] hash = new byte[20];
+		hash[1] = 2;
+		TransparentP2SHReceiver receiver = new(hash.ToArray());
+		TransparentP2SHReceiver receiver_copy = new(hash.ToArray());
+		hash[3] = 3;
+		TransparentP2SHReceiver receiver_unique = new(hash.ToArray());
+
+		Assert.True(receiver.Equals((object)receiver_copy));
+		Assert.False(receiver.Equals((object)receiver_unique));
+	}
 }
