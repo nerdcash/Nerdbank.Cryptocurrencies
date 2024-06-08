@@ -22,21 +22,22 @@ public class ProgressDataTests
 	}
 
 	[Theory]
-	[InlineData(0, 0)]
-	[InlineData(10, 0)]
-	[InlineData(100, 0)]
-	[InlineData(1_000, 0)]
-	[InlineData(10_000, 1)]
-	[InlineData(20_000, 2)]
-	[InlineData(99_999, 2)]
-	[InlineData(100_000, 2)]
-	[InlineData(100_001, 3)]
-	public void ProgressTextFormat_HasDecimalPointAppropriately(uint amount, uint precision)
+	[InlineData(10, 0, 0)]
+	[InlineData(10_000, 7, 0)]
+	[InlineData(10, 10, 0)]
+	[InlineData(10, 100, 0)]
+	[InlineData(10, 1_000, 0)]
+	[InlineData(10, 10_000, 1)]
+	[InlineData(10, 20_000, 2)]
+	[InlineData(10, 99_999, 2)]
+	[InlineData(10, 100_000, 2)]
+	[InlineData(10, 100_001, 3)]
+	public void ProgressTextFormat_HasDecimalPointAppropriately(uint stepSize, uint amount, uint precision)
 	{
 		const ulong startingPoint = 50_000;
 		PrecisionProgressData progress = new()
 		{
-			StepSize = 10,
+			StepSize = stepSize,
 			From = startingPoint,
 			To = startingPoint + amount,
 		};

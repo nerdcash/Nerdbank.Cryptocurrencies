@@ -5,7 +5,9 @@ parameters:
 - name: windowsPool
   type: object
   default:
-    vmImage: windows-2022
+    name: CustomAgents
+    demands:
+    - Agent.OS -equals Windows_NT
 - name: RunTests
   type: boolean
   default: true
@@ -64,7 +66,7 @@ jobs:
 
 - job: Linux
   pool:
-    vmImage: Ubuntu 20.04
+    vmImage: Ubuntu 20.04 # Keep on Hosted agent for now to avoid issues with cross compilation (which requires creating a docker container)
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -106,7 +108,9 @@ jobs:
 - job: android
   displayName: android
   pool:
-    vmImage: Ubuntu 20.04
+    name: CustomAgents
+    demands:
+    - Agent.OS -equals Linux
   steps:
   - checkout: self
     fetchDepth: 1
@@ -117,7 +121,9 @@ jobs:
 
 - job: macOS
   pool:
-    vmImage: macOS-12
+    name: CustomAgents
+    demands:
+    - Agent.OS -equals Darwin
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -141,7 +147,9 @@ jobs:
   displayName: macOS velopack
   dependsOn: macOS
   pool:
-    vmImage: macOS-12
+    name: CustomAgents
+    demands:
+    - Agent.OS -equals Darwin
   variables:
   - group: Apple signing
   steps:
@@ -198,7 +206,9 @@ jobs:
   - macOS
   - android
   pool:
-    vmImage: Ubuntu 20.04
+    name: CustomAgents
+    demands:
+    - Agent.OS -equals Linux
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -228,7 +238,8 @@ jobs:
   - Windows
   - Linux
   - macOS
-  pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
+  pool: # use Hosted here so it can run in parallel with the Windows velopack job
+    vmImage: windows-2022 # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
   steps:
   - checkout: self
     fetchDepth: 1

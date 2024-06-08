@@ -30,7 +30,7 @@ jobs:
     displayName: ⚙ Install .NET SDK
     inputs:
       packageType: sdk
-      version: 6.x
+      version: 8.x
   - download: CI
     artifact: deployables-Linux
     displayName: 🔻 Download deployables-Linux artifact

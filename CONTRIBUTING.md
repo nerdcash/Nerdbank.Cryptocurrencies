@@ -57,4 +57,12 @@ Then copy the translations into the language-specific file and revert the change
 
 Web-based AI could also work by pasting the prompt and the `<data>` elements into the AI tool.
 
+When adding or updating just one string in an existing file, the following AI prompt can be useful to provide the updated translations:
+
+> Translate the following message to es, fr, ko, pt, ru, zh-Hans. 
+> The message is a localizable string in a software application that focuses on cryptocurrency.
+> If the message includes macros in the form of `{somename}`, leave that macro untranslated and exactly the same as it was, including capitalization.
+
+>> (your message here)
+
 [pwsh]: https://docs.microsoft.com/powershell/scripting/install/installing-powershell?view=powershell-6

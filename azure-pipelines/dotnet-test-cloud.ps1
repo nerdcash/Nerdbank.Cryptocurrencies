@@ -45,7 +45,7 @@ if ($x86) {
 }
 
 $platform = 'x64'
-if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+if (($env:PROCESSOR_ARCHITECTURE -eq "ARM64") -or ((Get-Command uname -ErrorAction SilentlyContinue) -and (uname -m) -eq 'arm64')) {
     $platform = 'arm64'
 }
 

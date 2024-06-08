@@ -143,7 +143,12 @@ public class WalletSyncManager : IAsyncDisposable
 
 					foreach (Account account in this.Accounts)
 					{
-						account.SyncProgress = v;
+						// Avoid activating progress bars if we're only one block behind, which happens a lot.
+						if (v.LastFullyScannedBlock != v.TipHeight - 1 || account.SyncProgress is not { PercentComplete: 100 })
+						{
+							account.SyncProgress = v;
+						}
+
 						account.Balance = this.client.GetBalances(account.ZcashAccount);
 					}
 				});
