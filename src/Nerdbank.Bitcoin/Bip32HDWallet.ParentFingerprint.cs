@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Bitcoin;
@@ -38,7 +37,7 @@ public static partial class Bip32HDWallet
 		public static ref readonly ParentFingerprint From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, ParentFingerprint>(value));
 
 		/// <inheritdoc/>
-		bool IEquatable<ParentFingerprint>.Equals(ParentFingerprint other) => this[..].SequenceEqual(other);
+		readonly bool IEquatable<ParentFingerprint>.Equals(ParentFingerprint other) => this[..].SequenceEqual(other);
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in ParentFingerprint other) => this[..].SequenceEqual(other);

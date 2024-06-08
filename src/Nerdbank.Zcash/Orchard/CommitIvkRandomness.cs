@@ -35,7 +35,7 @@ internal struct CommitIvkRandomness : IEquatable<CommitIvkRandomness>
 	public static ref readonly CommitIvkRandomness From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, CommitIvkRandomness>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<CommitIvkRandomness>.Equals(CommitIvkRandomness other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<CommitIvkRandomness>.Equals(CommitIvkRandomness other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in CommitIvkRandomness other) => this[..].SequenceEqual(other);

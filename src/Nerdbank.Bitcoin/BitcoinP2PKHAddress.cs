@@ -145,7 +145,7 @@ public class BitcoinP2PKHAddress
 		public static ref readonly PublicKeyHashArray From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, PublicKeyHashArray>(value));
 
 		/// <inheritdoc/>
-		bool IEquatable<PublicKeyHashArray>.Equals(PublicKeyHashArray other) => this[..].SequenceEqual(other);
+		readonly bool IEquatable<PublicKeyHashArray>.Equals(PublicKeyHashArray other) => this[..].SequenceEqual(other);
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in PublicKeyHashArray other) => this[..].SequenceEqual(other);

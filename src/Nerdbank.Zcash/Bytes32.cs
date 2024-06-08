@@ -35,7 +35,7 @@ internal struct Bytes32 : IEquatable<Bytes32>
 	public static ref readonly Bytes32 From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, Bytes32>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<Bytes32>.Equals(Bytes32 other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<Bytes32>.Equals(Bytes32 other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in Bytes32 other) => this[..].SequenceEqual(other);

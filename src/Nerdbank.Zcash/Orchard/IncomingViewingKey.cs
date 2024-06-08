@@ -260,7 +260,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 		public static ref readonly RawEncodingBuffer From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, RawEncodingBuffer>(value));
 
 		/// <inheritdoc/>
-		bool IEquatable<RawEncodingBuffer>.Equals(RawEncodingBuffer other) => this[..].SequenceEqual(other);
+		readonly bool IEquatable<RawEncodingBuffer>.Equals(RawEncodingBuffer other) => this[..].SequenceEqual(other);
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in RawEncodingBuffer other) => this[..].SequenceEqual(other);

@@ -37,7 +37,7 @@ public static partial class Bip32HDWallet
 		public static ref readonly ChainCode From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, ChainCode>(value));
 
 		/// <inheritdoc/>
-		bool IEquatable<ChainCode>.Equals(ChainCode other) => this[..].SequenceEqual(other);
+		readonly bool IEquatable<ChainCode>.Equals(ChainCode other) => this[..].SequenceEqual(other);
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in ChainCode other) => this[..].SequenceEqual(other);

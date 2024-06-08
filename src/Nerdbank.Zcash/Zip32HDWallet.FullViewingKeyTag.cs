@@ -51,7 +51,7 @@ public partial class Zip32HDWallet
 		public static ref readonly FullViewingKeyTag From(in ParentFingerprint value) => ref From(value[..]);
 
 		/// <inheritdoc/>
-		bool IEquatable<FullViewingKeyTag>.Equals(FullViewingKeyTag other) => this[..].SequenceEqual(other);
+		readonly bool IEquatable<FullViewingKeyTag>.Equals(FullViewingKeyTag other) => this[..].SequenceEqual(other);
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in FullViewingKeyTag other) => this[..].SequenceEqual(other);

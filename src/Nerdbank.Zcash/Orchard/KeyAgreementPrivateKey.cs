@@ -35,7 +35,7 @@ internal struct KeyAgreementPrivateKey : IEquatable<KeyAgreementPrivateKey>
 	public static ref readonly KeyAgreementPrivateKey From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, KeyAgreementPrivateKey>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<KeyAgreementPrivateKey>.Equals(KeyAgreementPrivateKey other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<KeyAgreementPrivateKey>.Equals(KeyAgreementPrivateKey other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in KeyAgreementPrivateKey other) => this[..].SequenceEqual(other);
