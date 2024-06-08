@@ -59,7 +59,7 @@ public struct TransparentP2PKHReceiver : IUnifiedPoolReceiver, IEquatable<Transp
 	}
 
 	/// <inheritdoc cref="IUnifiedPoolReceiver.UnifiedReceiverTypeCode"/>
-	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.Sapling;
+	public static byte UnifiedReceiverTypeCode => UnifiedTypeCodes.TransparentP2PKH;
 
 	/// <inheritdoc/>
 	public readonly Pool Pool => Pool.Transparent;

@@ -26,7 +26,7 @@ public class TransparentP2PKHReceiverTests
 	public void Pool_Transparent() => Assert.Equal(Pool.Transparent, default(TransparentP2PKHReceiver).Pool);
 
 	[Fact]
-	public void UnifiedReceiverTypeCode() => Assert.Equal(0x02, TransparentP2PKHReceiver.UnifiedReceiverTypeCode);
+	public void UnifiedReceiverTypeCode() => Assert.Equal(0x00, TransparentP2PKHReceiver.UnifiedReceiverTypeCode);
 
 	[Fact]
 	public void EqualityOfT()
