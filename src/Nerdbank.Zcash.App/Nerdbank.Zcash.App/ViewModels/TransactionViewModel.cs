@@ -38,6 +38,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
 		this.LinkProperty(transaction, nameof(transaction.MutableMemo), nameof(this.MutableMemo));
+		this.LinkProperty(transaction, nameof(transaction.Fee), nameof(this.Fee));
 
 		this.LinkProperty(nameof(this.When), nameof(this.WhenColumnFormatted));
 		this.LinkProperty(nameof(this.When), nameof(this.WhenDetailedFormatted));
