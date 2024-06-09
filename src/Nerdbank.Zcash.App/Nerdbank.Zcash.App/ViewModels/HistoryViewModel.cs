@@ -183,21 +183,23 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	private void Transactions_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 	{
-		if (e.NewStartingIndex >= 0)
+		// We should only update transactions with invalidated balances.
+		// Remember that we sort newest to oldest, so the first transaction in the list is the most recent.
+		// So we first seek to know the index to the *oldest* impacted transaction,
+		// and we'll consider it and all newer transactions as invalidated.
+		int? indexOfOldestImpactedTransaction = null;
+		if (e.NewStartingIndex >= 0 && e.NewItems is not null && e.OldStartingIndex < 0)
 		{
-			if (e.OldStartingIndex >= 0)
-			{
-				this.UpdateBalances(Math.Min(e.NewStartingIndex, e.OldStartingIndex));
-			}
-			else
-			{
-				this.UpdateBalances(e.NewStartingIndex);
-			}
+			// The oldest impacted transaction is the last in the set that was just added.
+			indexOfOldestImpactedTransaction = e.NewStartingIndex + e.NewItems.Count - 1;
 		}
-		else if (e.OldStartingIndex >= 0)
+		else if (e.OldStartingIndex >= 0 && e.NewStartingIndex < 0)
 		{
-			this.UpdateBalances(e.OldStartingIndex);
+			// The oldest impacted transaction is the one just above the set that was removed.
+			indexOfOldestImpactedTransaction = e.OldStartingIndex - 1;
 		}
+
+		this.UpdateBalances(indexOfOldestImpactedTransaction >= 0 ? indexOfOldestImpactedTransaction : null);
 
 		// Fill in missing alternate currency values.
 		if (e.NewItems is not null)
@@ -206,10 +208,19 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 		}
 	}
 
-	private void UpdateBalances(int startIndex = 0)
+	private void UpdateBalances(int? indexToOldestInvalidatedTransaction = null)
 	{
-		SecurityAmount runningBalance = startIndex > 0 ? this.Transactions[startIndex - 1].RunningBalance : this.SelectedSecurity.Amount(0);
-		for (int i = startIndex; i < this.Transactions.Count; i++)
+		if (this.Transactions.Count == 0)
+		{
+			return;
+		}
+
+		indexToOldestInvalidatedTransaction ??= this.Transactions.Count - 1;
+		SecurityAmount runningBalance = indexToOldestInvalidatedTransaction.Value + 1 < this.Transactions.Count
+			? this.Transactions[indexToOldestInvalidatedTransaction.Value + 1].RunningBalance
+			: this.SelectedSecurity.Amount(0);
+
+		for (int i = indexToOldestInvalidatedTransaction.Value; i >= 0; i--)
 		{
 			this.Transactions[i].RunningBalance = runningBalance += this.Transactions[i].NetChange;
 		}
