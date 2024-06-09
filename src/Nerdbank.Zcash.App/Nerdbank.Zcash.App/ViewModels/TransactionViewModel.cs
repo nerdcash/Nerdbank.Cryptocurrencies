@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reactive.Linq;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
 	private readonly HistoryViewModel owner;
@@ -243,6 +245,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	private Security Security { get; }
 
 	private Security? AlternateSecurity { get; }
+
+	private string DebuggerDisplay => $"{this.WhenColumnFormatted} {this.NetChange}";
 
 	private ReadOnlyCollection<LineItem> InitializeLineItems()
 	{
