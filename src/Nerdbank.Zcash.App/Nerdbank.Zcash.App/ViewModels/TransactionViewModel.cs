@@ -4,6 +4,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive.Linq;
+using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -39,6 +40,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
 		this.LinkProperty(transaction, nameof(transaction.MutableMemo), nameof(this.MutableMemo));
 		this.LinkProperty(transaction, nameof(transaction.Fee), nameof(this.Fee));
+		this.LinkProperty(transaction, nameof(transaction.NetChange), nameof(this.NetChange));
+		this.WhenPropertyChanged(vm => vm.NetChange, notifyOnInitialValue: false).Subscribe(_ => this.Owner.OnTransactionNetChange(this));
 
 		this.LinkProperty(nameof(this.When), nameof(this.WhenColumnFormatted));
 		this.LinkProperty(nameof(this.When), nameof(this.WhenDetailedFormatted));

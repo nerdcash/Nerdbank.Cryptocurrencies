@@ -73,7 +73,12 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		set
 		{
 			Requires.Range(value is not < 0, nameof(value), "Non-negative values only.");
-			this.RaiseAndSetIfChanged(ref this.fee, value);
+			if (value != this.fee)
+			{
+				this.fee = value;
+				this.RaisePropertyChanged();
+				this.RaisePropertyChanged(nameof(this.NetChange));
+			}
 		}
 	}
 
