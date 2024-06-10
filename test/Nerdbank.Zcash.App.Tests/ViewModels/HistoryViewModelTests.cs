@@ -34,6 +34,27 @@ public class HistoryViewModelTests : ViewModelTestBase
 	}
 
 	[Fact]
+	public void ReorderTransactionsWithWhenChange()
+	{
+		// Move the transaction that is in the middle up to the top position by changing its When column.
+		TransactionViewModel targetTransaction = this.viewModel.Transactions[1];
+		TransactionViewModel topTransaction = this.viewModel.Transactions[0];
+		targetTransaction.Model.When = DateTimeOffset.UtcNow;
+		Assert.Same(targetTransaction, this.viewModel.Transactions[0]);
+		Assert.Same(topTransaction, this.viewModel.Transactions[1]);
+	}
+
+	[Fact]
+	public void FeeChangeUpdatesRunningBalance()
+	{
+		TransactionViewModel tx = this.viewModel.Transactions[1];
+		SecurityAmount runningBalance = tx.RunningBalance;
+		decimal feeChange = 0.0001m;
+		tx.Model.Fee += feeChange;
+		Assert.Equal(runningBalance.Amount - feeChange, tx.RunningBalance.Amount);
+	}
+
+	[Fact]
 	public void Balance_Initial()
 	{
 		this.AssertRunningBalances();

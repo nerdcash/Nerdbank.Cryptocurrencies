@@ -185,6 +185,8 @@ public class Account : ReactiveObject, IPersistableData
 				// even if some of the other details haven't been fleshed out by importing the transaction from the rust side.
 				tx.TransactionId = transaction.TransactionId;
 
+				tx.Fee = transaction.Outgoing.IsEmpty && transaction.Change.IsEmpty ? 0 : transaction.Fee;
+
 				// Take special care to migrate the exchange rate from the provisional transaction's timestamp to the confirmed one.
 				if (tx.When != transaction.When && transaction.When.HasValue && appSettings.AlternateCurrency is not null)
 				{

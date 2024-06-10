@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using MessagePack;
 
@@ -64,17 +63,22 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	public decimal NetChange => this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount) - (this.Fee ?? 0);
 
 	/// <summary>
-	/// Gets the fee paid for this transaction, if known.
+	/// Gets or sets the fee paid for this transaction, if known.
 	/// </summary>
 	/// <value>When specified, this is represented as a positive value.</value>
 	[Key(4)]
 	public decimal? Fee
 	{
 		get => this.fee;
-		init
+		set
 		{
 			Requires.Range(value is not < 0, nameof(value), "Non-negative values only.");
-			this.fee = value;
+			if (value != this.fee)
+			{
+				this.fee = value;
+				this.RaisePropertyChanged();
+				this.RaisePropertyChanged(nameof(this.NetChange));
+			}
 		}
 	}
 

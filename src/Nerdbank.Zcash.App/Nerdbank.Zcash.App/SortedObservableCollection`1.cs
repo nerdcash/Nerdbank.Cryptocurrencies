@@ -6,7 +6,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
-using Microsoft;
 
 namespace Nerdbank.Zcash.App;
 
@@ -31,6 +30,12 @@ public class SortedObservableCollection<T> : ICollection<T>, IEnumerable<T>, IEn
 
 	[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
 	private readonly List<T> list = new();
+
+	/// <summary>
+	/// A number that tracks the count of hints that the list is out of order.
+	/// </summary>
+	/// <value>0 if the list is in order, or a positive number if the list should be assumed to be in imperfect order.</value>
+	private int sortOrderInQuestion;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SortedObservableCollection{T}"/> class.
@@ -140,10 +145,21 @@ public class SortedObservableCollection<T> : ICollection<T>, IEnumerable<T>, IEn
 	/// <inheritdoc/>
 	int IList.Add(object? value) => this.Add((T)value!);
 
-	void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
+	void IList<T>.Insert(int index, T item)
+	{
+		Verify.Operation(AppUtilities.DoesItemBelongBetween(item, index > 0 ? this[index - 1] : default, index < this.Count ? this[index] : default, this.comparer), "Insert called with index that doesn't satisfy sort order requirement.");
+		this.InsertHelper(index, item);
+		this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+	}
 
 	/// <inheritdoc/>
-	void IList.Insert(int index, object? value) => throw new NotSupportedException();
+	void IList.Insert(int index, object? value)
+	{
+		Requires.NotNull(value!, nameof(value));
+
+		IList<T> thisAsList = this;
+		thisAsList.Insert(index, (T)value);
+	}
 
 	/// <summary>
 	/// Returns the index at which a given item was found in the collection.
@@ -152,6 +168,13 @@ public class SortedObservableCollection<T> : ICollection<T>, IEnumerable<T>, IEn
 	/// <returns>The non-negative index within the list if the item was found; a negative number if it was not found, which is the bitwise complement of the index where it would have been.</returns>
 	public int IndexOf(T item)
 	{
+		// This method can be called during a re-sort routine, in which case we may have items
+		// in the list that have changed and need to be moved, so a binary search won't be the right way to find them.
+		if (this.sortOrderInQuestion > 0)
+		{
+			return this.list.IndexOf(item);
+		}
+
 		int index = this.list.BinarySearch(item, this.comparer);
 
 		if (index >= 0)
@@ -311,13 +334,18 @@ public class SortedObservableCollection<T> : ICollection<T>, IEnumerable<T>, IEn
 			index = ~index;
 		}
 
+		this.InsertHelper(index, item);
+
+		return index;
+	}
+
+	private void InsertHelper(int index, T item)
+	{
 		this.list.Insert(index, item);
 		if (item is INotifyPropertyChanged observableItem)
 		{
 			observableItem.PropertyChanged += this.Item_PropertyChanged;
 		}
-
-		return index;
 	}
 
 	private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -328,18 +356,9 @@ public class SortedObservableCollection<T> : ICollection<T>, IEnumerable<T>, IEn
 		if (e.PropertyName is null || this.comparer is not IOptimizedComparer<T> optimized || optimized.IsPropertySignificant(e.PropertyName))
 		{
 			// Consider whether this item should be repositioned in the list.
-			(int OldIndex, int NewIndex) positions = this.list.UpdateSortPosition(item, this.comparer);
-			if (positions.OldIndex < 0)
-			{
-				// The item no longer belongs to this collection.
-				// Our event handler may be later in the chain than another that removed the item given its change.
-				return;
-			}
-
-			if (positions.OldIndex != positions.NewIndex && this.CollectionChanged is object)
-			{
-				this.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, positions.NewIndex, positions.OldIndex));
-			}
+			this.sortOrderInQuestion++;
+			this.UpdateSortPosition(item, this.comparer);
+			this.sortOrderInQuestion--;
 		}
 	}
 }

@@ -72,9 +72,9 @@ public class TransactionChronologicalComparer :
 		}
 	}
 
-	bool IOptimizedComparer<TransactionViewModel>.IsPropertySignificant(string propertyName) => propertyName is nameof(TransactionViewModel.When) or nameof(TransactionViewModel.BlockNumber);
+	bool IOptimizedComparer<TransactionViewModel>.IsPropertySignificant(string propertyName) => propertyName is nameof(TransactionViewModel.When) or nameof(TransactionViewModel.BlockNumber) or nameof(TransactionViewModel.TransactionId);
 
-	bool IOptimizedComparer<ZcashTransaction>.IsPropertySignificant(string propertyName) => propertyName is nameof(ZcashTransaction.When) or nameof(ZcashTransaction.BlockNumber);
+	bool IOptimizedComparer<ZcashTransaction>.IsPropertySignificant(string propertyName) => propertyName is nameof(ZcashTransaction.When) or nameof(ZcashTransaction.BlockNumber) or nameof(ZcashTransaction.TransactionId);
 
 	int System.Collections.IComparer.Compare(object? x, object? y)
 	{

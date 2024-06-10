@@ -142,6 +142,20 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 	public string HideExchangeRateExplanationCommandCaption => HistoryStrings.HideExchangeRateExplanationCommandCaption;
 
+	/// <summary>
+	/// Called by a <see cref="TransactionViewModel"/> when its <see cref="TransactionViewModel.NetChange"/> property changes
+	/// so the list view can be updated to reflect altered running balances.
+	/// </summary>
+	/// <param name="transaction">The changed transaction.</param>
+	internal void OnTransactionNetChange(TransactionViewModel transaction)
+	{
+		int index = this.Transactions.IndexOf(transaction);
+		if (index >= 0)
+		{
+			this.UpdateBalances(index);
+		}
+	}
+
 	protected override void OnSelectedAccountChanged()
 	{
 		base.OnSelectedAccountChanged();
