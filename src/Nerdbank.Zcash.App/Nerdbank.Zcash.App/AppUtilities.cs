@@ -83,6 +83,30 @@ public static class AppUtilities
 	}
 
 	/// <summary>
+	/// Checks whether a given item belongs between two other items is a given sort order.
+	/// </summary>
+	/// <typeparam name="T">The type of item being tested.</typeparam>
+	/// <param name="item">The candidate item.</param>
+	/// <param name="before">The item that will appear before <paramref name="item"/>. May be <see langword="null" /> if <paramref name="item"/> will appear first in the list.</param>
+	/// <param name="after">The item that will appear after <paramref name="item"/>. May be <see langword="null" /> if <paramref name="item"/> will appear last in the list.</param>
+	/// <param name="comparer">The comparer to use.</param>
+	/// <returns><see langword="true" /> if <paramref name="item"/> should appear between <paramref name="before"/> and <paramref name="after"/>; otherwise <see langword="false" />.</returns>
+	internal static bool DoesItemBelongBetween<T>(T item, T? before, T? after, IComparer<T> comparer)
+	{
+		if (before is not null && comparer.Compare(before, item) > 0)
+		{
+			return false;
+		}
+
+		if (after is not null && comparer.Compare(item, after) > 0)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
 	/// Adjusts the position of some item in a sorted list if it does not belong where it currently is.
 	/// </summary>
 	/// <typeparam name="T">The type of item being sorted.</typeparam>
