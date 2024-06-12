@@ -140,7 +140,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex"/> method,
 	/// which runs a similar test but also provides the decrypted diversifier index.</para>
 	/// </remarks>
-	public bool CheckReceiver(OrchardReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
+	public bool CheckReceiver(in OrchardReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
 
 	/// <summary>
 	/// Checks whether a given orchard receiver was derived from the same spending authority as this key
@@ -151,12 +151,12 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 	/// <param name="diversifierIndex">Receives the original diversifier index, if successful.</param>
 	/// <returns>A value indicating whether the receiver could be decrypted successfully (i.e. the receiver came from this key).</returns>
 	/// <remarks>
-	/// <para>Use <see cref="CheckReceiver(OrchardReceiver)"/> for a simpler API if the diversifier index is not required.</para>
+	/// <para>Use <see cref="CheckReceiver(in OrchardReceiver)"/> for a simpler API if the diversifier index is not required.</para>
 	/// </remarks>
-	public bool TryGetDiversifierIndex(OrchardReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
+	public bool TryGetDiversifierIndex(in OrchardReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
 	{
 		Span<byte> diversifierSpan = stackalloc byte[11];
-		switch (NativeMethods.DecryptOrchardDiversifier(this.RawEncoding, receiver.Span, diversifierSpan))
+		switch (NativeMethods.DecryptOrchardDiversifier(this.RawEncoding, receiver, diversifierSpan))
 		{
 			case 0:
 				diversifierIndex = new(diversifierSpan);
@@ -260,7 +260,7 @@ public class IncomingViewingKey : IUnifiedEncodingElement, IIncomingViewingKey, 
 		public static ref readonly RawEncodingBuffer From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, RawEncodingBuffer>(value));
 
 		/// <inheritdoc/>
-		bool IEquatable<RawEncodingBuffer>.Equals(RawEncodingBuffer other) => this[..].SequenceEqual(other);
+		readonly bool IEquatable<RawEncodingBuffer>.Equals(RawEncodingBuffer other) => this[..].SequenceEqual(other);
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in RawEncodingBuffer other) => this[..].SequenceEqual(other);

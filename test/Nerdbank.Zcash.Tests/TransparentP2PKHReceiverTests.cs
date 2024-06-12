@@ -9,11 +9,11 @@ public class TransparentP2PKHReceiverTests
 		byte[] hash = new byte[20];
 		hash[1] = 2;
 		TransparentP2PKHReceiver receiver = new(hash);
-		Assert.Equal(hash, receiver.ValidatingKeyHash.ToArray());
+		Assert.Equal(hash, receiver[..]);
 
 		// Verify that a copy of the data has been made.
 		hash[0] = 3;
-		Assert.Equal(0, receiver.ValidatingKeyHash[0]);
+		Assert.Equal(0, receiver[0]);
 	}
 
 	[Fact]
@@ -26,7 +26,7 @@ public class TransparentP2PKHReceiverTests
 	public void Pool_Transparent() => Assert.Equal(Pool.Transparent, default(TransparentP2PKHReceiver).Pool);
 
 	[Fact]
-	public void UnifiedReceiverTypeCode() => Assert.Equal(0x02, TransparentP2PKHReceiver.UnifiedReceiverTypeCode);
+	public void UnifiedReceiverTypeCode() => Assert.Equal(0x00, TransparentP2PKHReceiver.UnifiedReceiverTypeCode);
 
 	[Fact]
 	public void EqualityOfT()

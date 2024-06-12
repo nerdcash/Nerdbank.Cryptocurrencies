@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,10 +18,9 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 {
 	private static readonly Encoding BinarySeedEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-	/// <summary>
-	/// The inline arrays where we store data to avoid allocating another object.
-	/// </summary>
-	private readonly FixedArrays fixedArrays;
+	private readonly InlineSeed seed;
+
+	private readonly InlineEntropy entropy;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Bip39Mnemonic"/> class.
@@ -38,13 +36,12 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 	{
 		Requires.Argument(entropy.Length % 4 == 0 && entropy.Length > 0, nameof(entropy), Strings.LengthMustBeNonEmptyAndDivisibleBy4);
 
-		this.fixedArrays = new FixedArrays(entropy.Length);
-		entropy.CopyTo(this.fixedArrays.EntropyWritable);
+		this.entropy = new InlineEntropy(entropy);
 
 		this.SeedPhrase = CreateSeedPhrase(entropy, WordList.Default);
 		this.Password = password;
 
-		CreateBinarySeed(this.SeedPhrase, password.Span, this.fixedArrays.SeedWritable);
+		CreateBinarySeed(this.SeedPhrase, password.Span, this.seed);
 	}
 
 	/// <summary>
@@ -58,7 +55,7 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 	/// <summary>
 	/// Gets the entropy described by the mnemonic.
 	/// </summary>
-	public ReadOnlySpan<byte> Entropy => this.fixedArrays.Entropy;
+	public ReadOnlySpan<byte> Entropy => this.entropy[..];
 
 	/// <summary>
 	/// Gets the optional password that is added to the mnemonic when creating the binary seed.
@@ -71,7 +68,7 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 	/// <summary>
 	/// Gets the binary seed that may be used to generate deterministic wallets.
 	/// </summary>
-	public ReadOnlySpan<byte> Seed => this.fixedArrays.Seed;
+	public ReadOnlySpan<byte> Seed => this.seed;
 
 	/// <inheritdoc cref="Create(int, ReadOnlyMemory{char})"/>
 	public static Bip39Mnemonic Create(int entropyLengthInBits) => Create(entropyLengthInBits, default(ReadOnlyMemory<char>));
@@ -484,13 +481,23 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 		return seedPhrase[..phraseLength].ToString();
 	}
 
-	private unsafe struct FixedArrays
+	[InlineArray(Length)]
+	private struct InlineSeed : IEquatable<InlineSeed>
 	{
 		/// <summary>
 		/// This is the exact seed length as specified by BIP-39.
 		/// </summary>
-		internal const int SeedLengthInBytes = 512 / 8;
+		internal const int Length = 512 / 8;
 
+		private byte value;
+
+		readonly bool IEquatable<InlineSeed>.Equals(InlineSeed other) => this.Equals(other);
+
+		public readonly bool Equals(in InlineSeed other) => this[..].SequenceEqual(other);
+	}
+
+	private unsafe struct InlineEntropy : IEquatable<InlineEntropy>
+	{
 		// This value is somewhat arbitrary.
 		internal const int MaxEntropyLengthInBytes = 512 / 8;
 
@@ -498,24 +505,18 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 
 		private fixed byte entropy[MaxEntropyLengthInBytes];
 
-		private fixed byte seed[SeedLengthInBytes];
-
-		internal FixedArrays(int entropyLength)
+		internal InlineEntropy(ReadOnlySpan<byte> entropy)
 		{
-			Requires.Range(entropyLength <= MaxEntropyLengthInBytes, nameof(entropyLength));
-			this.entropyLength = (byte)entropyLength;
+			Requires.Range(entropy.Length <= MaxEntropyLengthInBytes, nameof(entropy));
+			this.entropyLength = checked((byte)entropy.Length);
+			entropy.CopyTo(MemoryMarshal.CreateSpan(ref this.entropy[0], entropy.Length));
 		}
 
 		[UnscopedRef]
-		internal readonly ReadOnlySpan<byte> Entropy => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.entropy[0]), this.entropyLength);
+		internal readonly ReadOnlySpan<byte> this[Range range] => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.entropy[0]), this.entropyLength)[range];
 
-		[UnscopedRef]
-		internal readonly ReadOnlySpan<byte> Seed => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.seed[0]), SeedLengthInBytes);
+		readonly bool IEquatable<InlineEntropy>.Equals(InlineEntropy other) => this.Equals(other);
 
-		[UnscopedRef]
-		internal Span<byte> EntropyWritable => MemoryMarshal.CreateSpan(ref this.entropy[0], this.entropyLength);
-
-		[UnscopedRef]
-		internal Span<byte> SeedWritable => MemoryMarshal.CreateSpan(ref this.seed[0], SeedLengthInBytes);
+		public readonly bool Equals(in InlineEntropy other) => this[..].SequenceEqual(other[..]);
 	}
 }

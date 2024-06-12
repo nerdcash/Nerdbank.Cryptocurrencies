@@ -8,6 +8,7 @@
  * It was later substantially modified by Andrew Arnott as part of the containing project and a new license and copyright applied.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Cryptocurrencies;
@@ -434,16 +435,22 @@ public class Blake2B
 
 		internal bool IsKeySet { get; set; }
 
+		[UnscopedRef]
 		internal Span<ulong> RawConfig => MemoryMarshal.CreateSpan(ref this.rawConfig[0], 8);
 
+		[UnscopedRef]
 		internal Span<ulong> M => MemoryMarshal.CreateSpan(ref this.m[0], 16);
 
+		[UnscopedRef]
 		internal Span<ulong> H => MemoryMarshal.CreateSpan(ref this.h[0], 8);
 
+		[UnscopedRef]
 		internal Span<ulong> V => MemoryMarshal.CreateSpan(ref this.v[0], 16);
 
+		[UnscopedRef]
 		internal Span<byte> Buf => MemoryMarshal.CreateSpan(ref this.buf[0], 128);
 
+		[UnscopedRef]
 		internal Span<byte> Key => this.IsKeySet ? MemoryMarshal.CreateSpan(ref this.key[0], 128) : default;
 	}
 }

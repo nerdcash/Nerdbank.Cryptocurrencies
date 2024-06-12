@@ -35,7 +35,7 @@ internal struct DiversifierKey : IEquatable<DiversifierKey>
 	public static ref readonly DiversifierKey From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, DiversifierKey>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<DiversifierKey>.Equals(DiversifierKey other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<DiversifierKey>.Equals(DiversifierKey other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in DiversifierKey other) => this[..].SequenceEqual(other);

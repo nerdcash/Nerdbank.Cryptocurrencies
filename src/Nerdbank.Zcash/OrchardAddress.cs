@@ -46,10 +46,10 @@ public class OrchardAddress : UnifiedAddress
 	public override IReadOnlyList<ZcashAddress> Receivers => this.receivers ??= new ReadOnlyCollection<ZcashAddress>(new[] { this });
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => UnifiedTypeCodes.Orchard;
+	internal override byte UnifiedTypeCode => OrchardReceiver.UnifiedReceiverTypeCode;
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.Span.Length;
+	internal override int ReceiverEncodingLength => OrchardReceiver.Length;
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<OrchardReceiver, TPoolReceiver>(this.receiver);

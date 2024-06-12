@@ -182,13 +182,13 @@ public partial class Zip32HDWallet
 			/// (in other words: would ZEC sent to this receiver arrive in this account?).
 			/// </summary>
 			/// <param name="receiver">The receiver to test.</param>
-			/// <param name="maxAddressIndex"><inheritdoc cref="TryGetAddressIndex(TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)" path="/param[@name='maxAddressIndex']"/></param>
+			/// <param name="maxAddressIndex"><inheritdoc cref="TryGetAddressIndex(in TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)" path="/param[@name='maxAddressIndex']"/></param>
 			/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
 			/// <remarks>
-			/// <para>This is a simpler front-end for the <see cref="TryGetAddressIndex(TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/> method,
+			/// <para>This is a simpler front-end for the <see cref="TryGetAddressIndex(in TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/> method,
 			/// which runs a similar test but also provides the change and address index derivations that match the given receiver.</para>
 			/// </remarks>
-			public bool CheckReceiver(TransparentP2PKHReceiver receiver, uint maxAddressIndex) => this.TryGetAddressIndex(receiver, maxAddressIndex, out _, out _);
+			public bool CheckReceiver(in TransparentP2PKHReceiver receiver, uint maxAddressIndex) => this.TryGetAddressIndex(receiver, maxAddressIndex, out _, out _);
 
 			/// <summary>
 			/// Checks whether a given transparent receiver was derived from this key
@@ -203,8 +203,9 @@ public partial class Zip32HDWallet
 			/// <param name="change">Receives the chain index (external or change) where a match was found.</param>
 			/// <param name="addressIndex">Receives the address index where a match was found.</param>
 			/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
-			public bool TryGetAddressIndex(TransparentP2PKHReceiver receiver, uint maxAddressIndex, [NotNullWhen(true)] out Bip44MultiAccountHD.Change? change, [NotNullWhen(true)] out uint? addressIndex)
+			public bool TryGetAddressIndex(in TransparentP2PKHReceiver receiver, uint maxAddressIndex, [NotNullWhen(true)] out Bip44MultiAccountHD.Change? change, [NotNullWhen(true)] out uint? addressIndex)
 			{
+				TransparentP2PKHReceiver receiverCopy = receiver;
 				if (this.Depth == 4)
 				{
 					return TestChain(this, out change, out addressIndex);
@@ -219,7 +220,7 @@ public partial class Zip32HDWallet
 					for (uint i = 0; i <= maxAddressIndex; i++)
 					{
 						ExtendedViewingKey candidate = chainKey.Derive(i);
-						if (receiver.Equals(new TransparentP2PKHReceiver(chainKey.Derive(i))))
+						if (receiverCopy.Equals(new TransparentP2PKHReceiver(chainKey.Derive(i))))
 						{
 							change = (Bip44MultiAccountHD.Change)chainKey.ChildIndex;
 							addressIndex = i;
@@ -238,16 +239,16 @@ public partial class Zip32HDWallet
 			/// (in other words: would ZEC sent to this receiver arrive in this account?).
 			/// </summary>
 			/// <param name="receiver">The receiver to test.</param>
-			/// <param name="maxAddressIndex"><inheritdoc cref="TryGetAddressIndex(TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)" path="/param[@name='maxAddressIndex']"/></param>
+			/// <param name="maxAddressIndex"><inheritdoc cref="TryGetAddressIndex(in TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)" path="/param[@name='maxAddressIndex']"/></param>
 			/// <returns><see langword="true"/> if this receiver would send ZEC to this account; otherwise <see langword="false"/>.</returns>
 			/// <remarks>
-			/// <para>This is a simpler front-end for the <see cref="TryGetAddressIndex(TransparentP2SHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/> method,
+			/// <para>This is a simpler front-end for the <see cref="TryGetAddressIndex(in TransparentP2SHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/> method,
 			/// which runs a similar test but also provides the change and address index derivations that match the given receiver.</para>
 			/// </remarks>
-			public bool CheckReceiver(TransparentP2SHReceiver receiver, uint maxAddressIndex) => this.TryGetAddressIndex(receiver, maxAddressIndex, out _, out _);
+			public bool CheckReceiver(in TransparentP2SHReceiver receiver, uint maxAddressIndex) => this.TryGetAddressIndex(receiver, maxAddressIndex, out _, out _);
 
-			/// <inheritdoc cref="TryGetAddressIndex(TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/>
-			public bool TryGetAddressIndex(TransparentP2SHReceiver receiver, uint maxAddressIndex, [NotNullWhen(true)] out Bip44MultiAccountHD.Change? change, [NotNullWhen(true)] out uint? addressIndex)
+			/// <inheritdoc cref="TryGetAddressIndex(in TransparentP2PKHReceiver, uint, out Bip44MultiAccountHD.Change?, out uint?)"/>
+			public bool TryGetAddressIndex(in TransparentP2SHReceiver receiver, uint maxAddressIndex, [NotNullWhen(true)] out Bip44MultiAccountHD.Change? change, [NotNullWhen(true)] out uint? addressIndex)
 			{
 				throw new NotImplementedException();
 			}

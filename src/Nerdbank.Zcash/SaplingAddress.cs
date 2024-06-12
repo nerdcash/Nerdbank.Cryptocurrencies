@@ -44,10 +44,10 @@ public class SaplingAddress : ZcashAddress
 	public override bool HasShieldedReceiver => true;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => UnifiedTypeCodes.Sapling;
+	internal override byte UnifiedTypeCode => SaplingReceiver.UnifiedReceiverTypeCode;
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.EncodingLength;
+	internal override int ReceiverEncodingLength => SaplingReceiver.Length;
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<SaplingReceiver, TPoolReceiver>(this.receiver);
@@ -100,9 +100,8 @@ public class SaplingAddress : ZcashAddress
 			ZcashNetwork.TestNet => TestNetHumanReadablePart,
 			_ => throw new NotSupportedException(Strings.FormatUnrecognizedNetwork(network)),
 		};
-		ReadOnlySpan<byte> receiverSpan = receiver.Span;
-		Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, receiverSpan.Length)];
-		int charsLength = Bech32.Original.Encode(humanReadablePart, receiverSpan, addressChars);
+		Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(humanReadablePart.Length, SaplingReceiver.Length)];
+		int charsLength = Bech32.Original.Encode(humanReadablePart, receiver, addressChars);
 		return addressChars[..charsLength].ToString();
 	}
 }

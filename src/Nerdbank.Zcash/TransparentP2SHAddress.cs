@@ -42,10 +42,10 @@ public class TransparentP2SHAddress : TransparentAddress
 	public override bool HasShieldedReceiver => false;
 
 	/// <inheritdoc/>
-	internal override byte UnifiedTypeCode => UnifiedTypeCodes.TransparentP2SH;
+	internal override byte UnifiedTypeCode => TransparentP2SHReceiver.UnifiedReceiverTypeCode;
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.EncodingLength;
+	internal override int ReceiverEncodingLength => TransparentP2SHReceiver.Length;
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TransparentP2SHReceiver, TPoolReceiver>(this.receiver);
@@ -55,14 +55,14 @@ public class TransparentP2SHAddress : TransparentAddress
 
 	private static string CreateAddress(in TransparentP2SHReceiver receiver, ZcashNetwork network)
 	{
-		Span<byte> input = stackalloc byte[2 + receiver.ScriptHash.Length];
+		Span<byte> input = stackalloc byte[2 + TransparentP2SHReceiver.Length];
 		(input[0], input[1]) = network switch
 		{
 			ZcashNetwork.MainNet => ((byte)0x1c, (byte)0xbd),
 			ZcashNetwork.TestNet => ((byte)0x1c, (byte)0xba),
 			_ => throw new NotSupportedException(Strings.FormatUnrecognizedNetwork(network)),
 		};
-		receiver.ScriptHash.CopyTo(input[2..]);
+		receiver[..].CopyTo(input[2..]);
 		Span<char> addressChars = stackalloc char[Base58Check.GetMaxEncodedLength(input.Length)];
 		int charsLength = Base58Check.Encode(input, addressChars);
 		return addressChars[..charsLength].ToString();

@@ -35,7 +35,7 @@ internal struct SubgroupPoint : IEquatable<SubgroupPoint>
 	public static ref readonly SubgroupPoint From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, SubgroupPoint>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<SubgroupPoint>.Equals(SubgroupPoint other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<SubgroupPoint>.Equals(SubgroupPoint other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in SubgroupPoint other) => this[..].SequenceEqual(other);

@@ -1029,9 +1029,12 @@ pub(crate) fn get_transactions(
                 },
             };
 
-            // We establish change by whether the memo does not contain user text,
-            // and that the recipient is to the same account.
+            // We establish change by all the following criteria holding true:
+            // * the recipient is to the same account
+            // * the recipient is shielded (since change will never be sent to the transparent pool).
+            // * the memo does not contain user text,
             let is_change = to_account_id == from_account_id
+                && output_pool > 1
                 && Memo::from_bytes(&memo).is_ok_and(|m| !matches!(m, Memo::Text(_)));
 
             if is_change {

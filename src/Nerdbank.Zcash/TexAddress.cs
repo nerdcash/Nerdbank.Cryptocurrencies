@@ -62,7 +62,7 @@ public class TexAddress : TransparentAddress
 	internal override byte UnifiedTypeCode => throw new NotSupportedException(Strings.AddressDoesNotSupportUnifiedEncoding);
 
 	/// <inheritdoc/>
-	internal override int ReceiverEncodingLength => this.receiver.EncodingLength;
+	internal override int ReceiverEncodingLength => TexReceiver.Length;
 
 	/// <inheritdoc/>
 	public override TPoolReceiver? GetPoolReceiver<TPoolReceiver>() => AsReceiver<TexReceiver, TPoolReceiver>(this.receiver);
@@ -128,8 +128,8 @@ public class TexAddress : TransparentAddress
 			ZcashNetwork.TestNet => HumanReadablePart.TestNet,
 			_ => throw new NotSupportedException(Strings.FormatUnrecognizedNetwork(network)),
 		};
-		Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(hrp.Length, receiver.ValidatingKeyHash.Length)];
-		int charsLength = Bech32.Bech32m.Encode(hrp, receiver.ValidatingKeyHash, addressChars);
+		Span<char> addressChars = stackalloc char[Bech32.GetEncodedLength(hrp.Length, TexReceiver.Length)];
+		int charsLength = Bech32.Bech32m.Encode(hrp, receiver, addressChars);
 		return addressChars[..charsLength].ToString();
 	}
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using static Nerdbank.Bitcoin.Bip32HDWallet;
-
 namespace Nerdbank.Zcash;
 
 public partial class Zip32HDWallet
@@ -36,7 +34,7 @@ public partial class Zip32HDWallet
 		public ref readonly FullViewingKeyTag Tag => ref FullViewingKeyTag.From(this[..4]);
 
 		/// <inheritdoc/>
-		bool IEquatable<FullViewingKeyFingerprint>.Equals(FullViewingKeyFingerprint other) => this[..].SequenceEqual(other);
+		readonly bool IEquatable<FullViewingKeyFingerprint>.Equals(FullViewingKeyFingerprint other) => this[..].SequenceEqual(other);
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in FullViewingKeyFingerprint other) => this[..].SequenceEqual(other);

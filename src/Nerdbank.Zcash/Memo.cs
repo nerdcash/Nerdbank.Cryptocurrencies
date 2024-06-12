@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.CompilerServices;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
@@ -107,8 +105,14 @@ public struct Memo : IEquatable<Memo>
 	}
 
 	[InlineArray(512)]
-	private struct Bytes512
+	private struct Bytes512 : IEquatable<Bytes512>
 	{
 		private byte element0;
+
+		/// <inheritdoc />
+		readonly bool IEquatable<Bytes512>.Equals(Bytes512 other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc cref="IEquatable{T}.Equals"/>
+		public readonly bool Equals(in Bytes512 other) => this[..].SequenceEqual(other);
 	}
 }
