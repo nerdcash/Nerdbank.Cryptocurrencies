@@ -63,7 +63,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	public decimal NetChange => this.RecvItems.Sum(i => i.Amount) - this.SendItems.Sum(i => i.Amount) - (this.Fee ?? 0);
 
 	/// <summary>
-	/// Gets or sets the fee paid for this transaction, if known.
+	/// Gets or sets the fee paid for this transaction, if known and paid by this account.
 	/// </summary>
 	/// <value>When specified, this is represented as a positive value.</value>
 	[Key(4)]
@@ -93,9 +93,10 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	public ImmutableArray<LineItem> SendItems
 	{
 		get => this.sendItems;
-		init
+		set
 		{
 			this.RaiseAndSetIfChanged(ref this.sendItems, value);
+			this.RaisePropertyChanged(nameof(this.NetChange));
 			this.StartWatchingForDirtyChildren(value);
 		}
 	}
@@ -104,9 +105,10 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	public ImmutableArray<LineItem> RecvItems
 	{
 		get => this.recvItems;
-		init
+		set
 		{
 			this.RaiseAndSetIfChanged(ref this.recvItems, value);
+			this.RaisePropertyChanged(nameof(this.NetChange));
 			this.StartWatchingForDirtyChildren(value);
 		}
 	}

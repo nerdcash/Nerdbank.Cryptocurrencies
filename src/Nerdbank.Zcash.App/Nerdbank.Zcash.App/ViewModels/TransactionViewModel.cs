@@ -15,6 +15,15 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 {
 	private readonly HistoryViewModel owner;
 	private readonly ObservableAsPropertyHelper<bool> isToAddressVisible;
+	private readonly ObservableAsPropertyHelper<ReadOnlyCollection<LineItem>> lineItems;
+	private readonly ObservableAsPropertyHelper<string?> memo;
+	private readonly ObservableAsPropertyHelper<bool> isMutableMemoVisible;
+	private readonly ObservableAsPropertyHelper<bool> isSubtotalVisible;
+	private readonly ObservableAsPropertyHelper<bool> isSingleLineItem;
+	private readonly ObservableAsPropertyHelper<bool> isMultiLineItem;
+	private readonly ObservableAsPropertyHelper<string?> toAddress;
+	private readonly ObservableAsPropertyHelper<SecurityAmount> subtotal;
+	private readonly ObservableAsPropertyHelper<bool> canOtherPartyBeChanged;
 	private SecurityAmount runningBalance;
 	private SecurityAmount? alternateAmount;
 
@@ -25,12 +34,20 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		this.Model = transaction;
 		this.owner = owner;
 
-		this.LineItems = this.InitializeLineItems();
-
-		if (this.LineItems.Count == 1)
-		{
-			this.Memo = this.LineItems[0].Memo;
-		}
+		IObservable<ReadOnlyCollection<LineItem>> lineItemsTransform = this.WhenAnyValue(
+			vm => vm.Model.SendItems,
+			vm => vm.Model.RecvItems,
+			(s, r) => this.InitializeLineItems(s, r));
+		this.lineItems = lineItemsTransform.ToProperty(this, nameof(this.LineItems));
+		this.memo = lineItemsTransform.Select(c => c.Count == 1 ? c[0].Memo : null).ToProperty(this, nameof(this.Memo));
+		this.isMutableMemoVisible = lineItemsTransform.Select(c => c.Count > 0).ToProperty(this, nameof(this.IsMutableMemoVisible));
+		this.isSingleLineItem = lineItemsTransform.Select(c => c.Count == 1).ToProperty(this, nameof(this.IsSingleLineItem));
+		this.isMultiLineItem = lineItemsTransform.Select(c => c.Count > 1).ToProperty(this, nameof(this.IsMultiLineItem));
+		this.toAddress = lineItemsTransform.Select(c => c.FirstOrDefault()?.ToAddress).ToProperty(this, nameof(this.ToAddress));
+		this.isSubtotalVisible = lineItemsTransform.Select(c => c.Count > 0).ToProperty(this, nameof(this.IsSubtotalVisible));
+		this.subtotal = lineItemsTransform.Select(c => this.Security.Amount(c.Sum(li => li.Amount.Amount))).ToProperty(this, nameof(this.Subtotal));
+		this.canOtherPartyBeChanged = lineItemsTransform.Select(c => c.Count == 1 && c[0].CanOtherPartyBeChanged).ToProperty(this, nameof(this.CanOtherPartyBeChanged));
+		lineItemsTransform.ToProperty(this, nameof(this.OtherPartyName));
 
 		this.isToAddressVisible = this.WhenAnyValue(vm => vm.OtherPartyName, vm => vm.IsSingleLineItem, vm => vm.Owner.ShowProtocolDetails)
 			.Select(((string? OtherPartyName, bool IsSingleLineItem, bool ShowProtocolDetails) x) => x.IsSingleLineItem && (string.IsNullOrEmpty(x.OtherPartyName) || x.ShowProtocolDetails))
@@ -109,12 +126,12 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	/// </summary>
 	public SecurityAmount NetChange => this.Security.Amount(this.Model.NetChange);
 
-	public bool IsSubtotalVisible => this.LineItems.Count > 0;
+	public bool IsSubtotalVisible => this.isSubtotalVisible.Value;
 
 	/// <summary>
 	/// Gets the sum of all line items in this transaction (the transaction's value, excluding fees).
 	/// </summary>
-	public SecurityAmount Subtotal => this.Security.Amount(this.LineItems.Sum(li => li.Amount.Amount));
+	public SecurityAmount Subtotal => this.subtotal.Value;
 
 	public string SubtotalCaption => this.IsIncoming ? TransactionStrings.SubtotalCaption_Received : TransactionStrings.SubtotalCaption_Sent;
 
@@ -151,8 +168,9 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string? OtherPartyName
 	{
-		get => this.LineItems.Count switch
+		get => this.LineItems?.Count switch
 		{
+			null => null,
 			0 => null,
 			1 => this.LineItems[0].OtherPartyName,
 			_ => "(split)",
@@ -179,8 +197,9 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public object? OtherParty
 	{
-		get => this.LineItems.Count switch
+		get => this.LineItems?.Count switch
 		{
+			null => null,
 			0 => null,
 			1 => this.LineItems[0].OtherParty,
 			_ => "(split)",
@@ -204,15 +223,15 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	}
 
 	/// <inheritdoc cref="LineItem.CanOtherPartyBeChanged"/>
-	public bool CanOtherPartyBeChanged => this.LineItems.Count == 1 && this.LineItems[0].CanOtherPartyBeChanged;
+	public bool CanOtherPartyBeChanged => this.canOtherPartyBeChanged.Value;
 
 	public ReadOnlyObservableCollection<Contact> OtherParties => this.owner.ViewModelServices.ContactManager.Contacts;
 
-	public string? Memo { get; }
+	public string? Memo => this.memo.Value;
 
-	public bool IsSingleLineItem => this.LineItems.Count == 1;
+	public bool IsSingleLineItem => this.isSingleLineItem.Value;
 
-	public bool IsMultiLineItem => this.LineItems.Count > 1;
+	public bool IsMultiLineItem => this.isMultiLineItem.Value;
 
 	public string MemoCaption => TransactionStrings.MemoCaption;
 
@@ -220,11 +239,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public bool IsToAddressVisible => this.isToAddressVisible.Value;
 
-	public string? ToAddress => this.LineItems.FirstOrDefault()?.ToAddress;
+	public string? ToAddress => this.toAddress.Value;
 
 	public string ToAddressCaption => TransactionStrings.ToAddressCaption;
 
-	public bool IsMutableMemoVisible => this.LineItems.Count > 0;
+	public bool IsMutableMemoVisible => this.isMutableMemoVisible.Value;
 
 	public string MutableMemo
 	{
@@ -234,7 +253,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string LineItemsCaption => TransactionStrings.LineItemsCaption;
 
-	public ReadOnlyCollection<LineItem> LineItems { get; }
+	public ReadOnlyCollection<LineItem> LineItems => this.lineItems.Value;
 
 	public string AmountColumnHeader => TransactionStrings.AmountColumnHeader;
 
@@ -252,17 +271,17 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	private string DebuggerDisplay => $"{this.WhenColumnFormatted} {this.NetChange}";
 
-	private ReadOnlyCollection<LineItem> InitializeLineItems()
+	private ReadOnlyCollection<LineItem> InitializeLineItems(ImmutableArray<ZcashTransaction.LineItem> sendItems, ImmutableArray<ZcashTransaction.LineItem> recvItems)
 	{
-		List<LineItem> lineItems = new(this.Model.SendItems.Length + this.Model.RecvItems.Length);
-		if (this.Model.SendItems.Length > 0)
+		List<LineItem> lineItems = new(sendItems.Length + recvItems.Length);
+		if (sendItems.Length > 0)
 		{
-			AddLineItems(this.Model.SendItems.ToImmutableArray(), negate: true);
+			AddLineItems(sendItems, negate: true);
 		}
 
-		if (this.Model.RecvItems.Length > 0)
+		if (recvItems.Length > 0)
 		{
-			AddLineItems(this.Model.RecvItems);
+			AddLineItems(recvItems);
 		}
 
 		void AddLineItems(ImmutableArray<ZcashTransaction.LineItem> items, bool negate = false)

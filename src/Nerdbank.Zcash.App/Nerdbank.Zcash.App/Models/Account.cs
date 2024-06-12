@@ -185,7 +185,17 @@ public class Account : ReactiveObject, IPersistableData
 				// even if some of the other details haven't been fleshed out by importing the transaction from the rust side.
 				tx.TransactionId = transaction.TransactionId;
 
+				// Fees and line items can change as details come in from scanning the transparent pool vs. shielded pools.
 				tx.Fee = transaction.Outgoing.IsEmpty && transaction.Change.IsEmpty ? 0 : transaction.Fee;
+				if (tx.RecvItems.Length != transaction.Incoming.Length)
+				{
+					tx.RecvItems = [.. transaction.Incoming.Select(i => new ZcashTransaction.LineItem(i))];
+				}
+
+				if (tx.SendItems.Length != transaction.Outgoing.Length)
+				{
+					tx.SendItems = [.. transaction.Outgoing.Select(i => new ZcashTransaction.LineItem(i))];
+				}
 
 				// Take special care to migrate the exchange rate from the provisional transaction's timestamp to the confirmed one.
 				if (tx.When != transaction.When && transaction.When.HasValue && appSettings.AlternateCurrency is not null)
