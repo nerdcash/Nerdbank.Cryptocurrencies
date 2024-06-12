@@ -11,7 +11,23 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 		t.block_time,
 		t.expired_unmined,
 		txo.output_pool,
-		txo.from_account_id,
+		coalesce(
+			txo.from_account_id,
+			(SELECT account_id
+			 FROM sapling_received_notes srn
+			 WHERE srn.id = (
+			 	SELECT sapling_received_note_id
+			 	FROM sapling_received_note_spends srns
+			 	WHERE transaction_id = tx.id_tx
+			 )),
+			(SELECT account_id 
+			 FROM orchard_received_notes srn 
+			 WHERE srn.id = (
+			 	SELECT orchard_received_note_id
+			 	FROM orchard_received_note_spends srns
+			 	WHERE transaction_id = tx.id_tx
+			 ))
+		) AS from_account_id,
 		txo.to_account_id,
 		txo.to_address,
 		coalesce(s.diversifier, o.diversifier) AS diversifier,
