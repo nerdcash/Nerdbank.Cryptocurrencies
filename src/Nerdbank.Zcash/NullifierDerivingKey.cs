@@ -35,7 +35,7 @@ internal struct NullifierDerivingKey : IEquatable<NullifierDerivingKey>
 	public static ref readonly NullifierDerivingKey From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, NullifierDerivingKey>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<NullifierDerivingKey>.Equals(NullifierDerivingKey other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<NullifierDerivingKey>.Equals(NullifierDerivingKey other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in NullifierDerivingKey other) => this[..].SequenceEqual(other);

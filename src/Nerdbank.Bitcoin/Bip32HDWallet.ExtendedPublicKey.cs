@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Digests;
 using ECPubKey = NBitcoin.Secp256k1.ECPubKey;
@@ -19,7 +17,7 @@ public static partial class Bip32HDWallet
 	public class ExtendedPublicKey : ExtendedKeyBase
 	{
 		private readonly PublicKey key;
-		private readonly FixedArrays fixedArrays;
+		private readonly InlineIdentifier identifier;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ExtendedPublicKey"/> class.
@@ -36,7 +34,7 @@ public static partial class Bip32HDWallet
 			Requires.NotNull(key);
 
 			this.key = new(key, testNet);
-			this.fixedArrays = CreateFixedArrays(key);
+			this.identifier = CreateIdentifier(key);
 		}
 
 		/// <summary>
@@ -47,11 +45,11 @@ public static partial class Bip32HDWallet
 			: base(copyFrom)
 		{
 			this.key = copyFrom.key;
-			this.fixedArrays = CreateFixedArrays(this.Key.CryptographicKey);
+			this.identifier = CreateIdentifier(this.Key.CryptographicKey);
 		}
 
 		/// <inheritdoc/>
-		public override ReadOnlySpan<byte> Identifier => this.fixedArrays.Identifier;
+		public override ReadOnlySpan<byte> Identifier => this.identifier;
 
 		/// <summary>
 		/// Gets the EC public key.
@@ -116,7 +114,7 @@ public static partial class Bip32HDWallet
 			return written;
 		}
 
-		private static FixedArrays CreateFixedArrays(ECPubKey key)
+		private static InlineIdentifier CreateIdentifier(ECPubKey key)
 		{
 			Span<byte> publicKey = stackalloc byte[33];
 			key.WriteToSpan(true, publicKey, out int publicKeyLength);
@@ -132,20 +130,23 @@ public static partial class Bip32HDWallet
 			return new(identifier[..finalHashLength]);
 		}
 
-		private unsafe struct FixedArrays
+		[InlineArray(IdentifierLength)]
+		private struct InlineIdentifier : IEquatable<InlineIdentifier>
 		{
 			internal const int IdentifierLength = 160 / 8;
-			private fixed byte identifier[IdentifierLength];
+			private byte identifier;
 
-			internal FixedArrays(ReadOnlySpan<byte> identifier)
+			internal InlineIdentifier(ReadOnlySpan<byte> identifier)
 			{
 				Requires.Argument(identifier.Length == IdentifierLength, nameof(identifier), "Unexpected length.");
-				identifier.CopyTo(this.IdentifierWritable);
+				identifier.CopyTo(this);
 			}
 
-			internal readonly ReadOnlySpan<byte> Identifier => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.identifier[0]), IdentifierLength);
+			/// <inheritdoc />
+			readonly bool IEquatable<InlineIdentifier>.Equals(InlineIdentifier other) => this.Equals(in other);
 
-			private Span<byte> IdentifierWritable => MemoryMarshal.CreateSpan(ref this.identifier[0], IdentifierLength);
+			/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
+			public readonly bool Equals(in InlineIdentifier other) => this[..].SequenceEqual(other);
 		}
 	}
 }

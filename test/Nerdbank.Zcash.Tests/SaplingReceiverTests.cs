@@ -30,10 +30,7 @@ public class SaplingReceiverTests
 	public void Pool_Sapling() => Assert.Equal(Pool.Sapling, default(SaplingReceiver).Pool);
 
 	[Fact]
-	public void UnifiedReceiverTypeCode()
-	{
-		Assert.Equal(0x02, SaplingReceiver.UnifiedReceiverTypeCode);
-	}
+	public void UnifiedReceiverTypeCode() => Assert.Equal(0x02, SaplingReceiver.UnifiedReceiverTypeCode);
 
 	[Fact]
 	public void EqualityOfT()

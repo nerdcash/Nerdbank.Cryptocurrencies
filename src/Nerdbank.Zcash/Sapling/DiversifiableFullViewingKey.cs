@@ -108,7 +108,7 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 	/// <para>This is a simpler front-end for the <see cref="TryGetDiversifierIndex"/> method,
 	/// which runs a similar test but also provides the decrypted diversifier index.</para>
 	/// </remarks>
-	public bool CheckReceiver(SaplingReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
+	public bool CheckReceiver(in SaplingReceiver receiver) => this.TryGetDiversifierIndex(receiver, out _);
 
 	/// <summary>
 	/// Checks whether a given sapling receiver was derived from the same spending authority as this key
@@ -119,13 +119,13 @@ public class DiversifiableFullViewingKey : FullViewingKey, IFullViewingKey, IUni
 	/// <param name="diversifierIndex">Receives the original diversifier index, if successful.</param>
 	/// <returns>A value indicating whether the receiver could be decrypted successfully (i.e. the receiver came from this key).</returns>
 	/// <remarks>
-	/// <para>Use <see cref="CheckReceiver(SaplingReceiver)"/> for a simpler API if the diversifier index is not required.</para>
+	/// <para>Use <see cref="CheckReceiver(in SaplingReceiver)"/> for a simpler API if the diversifier index is not required.</para>
 	/// </remarks>
-	public bool TryGetDiversifierIndex(SaplingReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
+	public bool TryGetDiversifierIndex(in SaplingReceiver receiver, [NotNullWhen(true)] out DiversifierIndex? diversifierIndex)
 	{
 		Bytes96 rawEncoding = this.ToBytes();
 		Span<byte> diversifierSpan = stackalloc byte[11];
-		switch (NativeMethods.DecryptSaplingDiversifier(rawEncoding, this.Dk, receiver.Span, diversifierSpan, out _))
+		switch (NativeMethods.DecryptSaplingDiversifier(rawEncoding, this.Dk, receiver, diversifierSpan, out _))
 		{
 			case 0:
 				diversifierIndex = DiversifierIndex.From(diversifierSpan);

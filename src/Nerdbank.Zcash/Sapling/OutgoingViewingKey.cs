@@ -35,7 +35,7 @@ internal struct OutgoingViewingKey : IEquatable<OutgoingViewingKey>
 	public static ref readonly OutgoingViewingKey From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, OutgoingViewingKey>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<OutgoingViewingKey>.Equals(OutgoingViewingKey other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<OutgoingViewingKey>.Equals(OutgoingViewingKey other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in OutgoingViewingKey other) => this[..].SequenceEqual(other);

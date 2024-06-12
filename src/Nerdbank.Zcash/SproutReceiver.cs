@@ -1,18 +1,22 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.InteropServices;
-
 namespace Nerdbank.Zcash;
 
 /// <summary>
 /// A receiver that contains the cryptography parameters required to send Zcash to the <see cref="Pool.Sprout"/> pool.
 /// </summary>
-public unsafe struct SproutReceiver : IPoolReceiver, IEquatable<SproutReceiver>
+[InlineArray(Length)]
+public struct SproutReceiver : IPoolReceiver, IEquatable<SproutReceiver>
 {
+	/// <summary>
+	/// Gets the length of the receiver, in bytes.
+	/// </summary>
+	public const int Length = FieldLength * 2;
+
 	private const int FieldLength = 256 / 8;
-	private const int Length = FieldLength * 2;
-	private fixed byte backing[FieldLength * 2];
+
+	private byte backing;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SproutReceiver"/> struct.
@@ -32,8 +36,8 @@ public unsafe struct SproutReceiver : IPoolReceiver, IEquatable<SproutReceiver>
 			throw new ArgumentException($"Length must be exactly {FieldLength}, but was {pkEnc.Length}.", nameof(pkEnc));
 		}
 
-		apk.CopyTo(this.ApkWritable);
-		pkEnc.CopyTo(this.PkEncWritable);
+		apk.CopyTo(this[..FieldLength]);
+		pkEnc.CopyTo(this[FieldLength..]);
 	}
 
 	/// <summary>
@@ -48,7 +52,7 @@ public unsafe struct SproutReceiver : IPoolReceiver, IEquatable<SproutReceiver>
 			throw new ArgumentException($"Length must be exactly {Length}, but was {receiver.Length}.", nameof(receiver));
 		}
 
-		receiver.CopyTo(this.SpanWritable);
+		receiver.CopyTo(this);
 	}
 
 	/// <inheritdoc/>
@@ -57,52 +61,35 @@ public unsafe struct SproutReceiver : IPoolReceiver, IEquatable<SproutReceiver>
 	/// <summary>
 	/// Gets the a{pk} on the receiver.
 	/// </summary>
-	public readonly ReadOnlySpan<byte> Apk => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), FieldLength);
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> Apk => this[..FieldLength];
 
 	/// <summary>
 	/// Gets the pk{enc} on the receiver.
 	/// </summary>
-	public readonly ReadOnlySpan<byte> PkEnc => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[FieldLength]), FieldLength);
+	[UnscopedRef]
+	public readonly ReadOnlySpan<byte> PkEnc => this[FieldLength..];
 
 	/// <inheritdoc />
-	public readonly int EncodingLength => Length;
-
-	/// <summary>
-	/// Gets the encoded representation of the entire receiver.
-	/// </summary>
-	[UnscopedRef]
-	public readonly ReadOnlySpan<byte> Span => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in this.backing[0]), Length);
-
-	/// <inheritdoc cref="Span" />
-	[UnscopedRef]
-	private Span<byte> SpanWritable => MemoryMarshal.CreateSpan(ref this.backing[0], Length);
-
-	/// <summary>
-	/// Gets the a{pk} on the receiver.
-	/// </summary>
-	[UnscopedRef]
-	private Span<byte> ApkWritable => MemoryMarshal.CreateSpan(ref this.backing[0], FieldLength);
-
-	/// <summary>
-	/// Gets the pk{enc} on the receiver.
-	/// </summary>
-	[UnscopedRef]
-	private Span<byte> PkEncWritable => MemoryMarshal.CreateSpan(ref this.backing[FieldLength], FieldLength);
+	readonly int IPoolReceiver.EncodingLength => Length;
 
 	/// <inheritdoc/>
-	public int Encode(Span<byte> buffer) => this.Span.CopyToRetLength(buffer);
+	public readonly int Encode(Span<byte> buffer) => this[..].CopyToRetLength(buffer);
 
 	/// <inheritdoc/>
-	public bool Equals(SproutReceiver other) => this.Span.SequenceEqual(other.Span);
+	readonly bool IEquatable<SproutReceiver>.Equals(SproutReceiver other) => this.Equals(other);
+
+	/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
+	public readonly bool Equals(in SproutReceiver other) => this[..].SequenceEqual(other[..]);
 
 	/// <inheritdoc/>
-	public override bool Equals([NotNullWhen(true)] object? obj) => obj is SproutReceiver other && this.Equals(other);
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is SproutReceiver other && this.Equals(other);
 
 	/// <inheritdoc/>
-	public override int GetHashCode()
+	public override readonly int GetHashCode()
 	{
 		HashCode hashCode = default;
-		hashCode.AddBytes(this.Span);
+		hashCode.AddBytes(this);
 		return hashCode.ToHashCode();
 	}
 }

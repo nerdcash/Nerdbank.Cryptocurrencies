@@ -35,7 +35,7 @@ internal struct SpendValidatingKey : IEquatable<SpendValidatingKey>
 	public static ref readonly SpendValidatingKey From(ReadOnlySpan<byte> value) => ref MemoryMarshal.GetReference(MemoryMarshal.Cast<byte, SpendValidatingKey>(value));
 
 	/// <inheritdoc/>
-	bool IEquatable<SpendValidatingKey>.Equals(SpendValidatingKey other) => this[..].SequenceEqual(other);
+	readonly bool IEquatable<SpendValidatingKey>.Equals(SpendValidatingKey other) => this[..].SequenceEqual(other);
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in SpendValidatingKey other) => this[..].SequenceEqual(other);
