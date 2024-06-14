@@ -728,7 +728,7 @@ Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.DefaultAddress.get -
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Equals(Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey? other) -> bool
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.ExtendedViewingKey(Nerdbank.Bitcoin.Bip32HDWallet.ExtendedPublicKey! copyFrom, Nerdbank.Zcash.ZcashNetwork network) -> void
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Fingerprint.get -> Nerdbank.Zcash.Zip32HDWallet.FullViewingKeyFingerprint
-Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.GetReceivingKey(uint index) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey!
+Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.GetReceivingKey(uint addressIndex) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.IncomingViewingKey.get -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey!
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.IsFullViewingKey.get -> bool
 Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.Key.get -> Nerdbank.Zcash.Transparent.PublicKey!

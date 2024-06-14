@@ -20,6 +20,7 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	ShieldCommand.BuildCommand(),
 	SendCommand.BuildCommand(),
 	RequestPaymentCommand.BuildCommand(),
+	DeriveCommand.BuildCommand(),
 };
 
 await new CommandLineBuilder(rootCommand)

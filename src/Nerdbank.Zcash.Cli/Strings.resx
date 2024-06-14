@@ -118,10 +118,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AccountIndexOptionDescription" xml:space="preserve">
-    <value>The index of the account to create.</value>
+    <value>The index for the account. Must be a non-negative number.</value>
   </data>
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>List all accounts known to the database.</value>
+  </data>
+  <data name="AddressIndexOptionDescription" xml:space="preserve">
+    <value>The address index. Must be a non-negative number.</value>
   </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>The seed phrase length must be at least 24, and a multiple of 3.</value>
@@ -134,6 +137,18 @@
   </data>
   <data name="ContinuallyOptionDescription" xml:space="preserve">
     <value>Download the blockchain continually, watching for new blocks as they are added.</value>
+  </data>
+  <data name="DeriveCommandDescription" xml:space="preserve">
+    <value>Derives various addresses from a seed phrase and other parameters.</value>
+  </data>
+  <data name="DeriveOrchardCommandDescription" xml:space="preserve">
+    <value>Derives a orchard address.</value>
+  </data>
+  <data name="DeriveSaplingCommandDescription" xml:space="preserve">
+    <value>Derives a sapling address.</value>
+  </data>
+  <data name="DeriveTransparentCommandDescription" xml:space="preserve">
+    <value>Derives one or more transparent addresses.</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>List transactions from the blockchain belonging to this wallet.</value>
@@ -257,6 +272,9 @@
   </data>
   <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
     <value>The transparent address to convert.</value>
+  </data>
+  <data name="TransparentAddressCountOptionDescription" xml:space="preserve">
+    <value>The number of addresses to derive. Must be a positive number.</value>
   </data>
   <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
     <value>A P2PKH transparent address is required.</value>
