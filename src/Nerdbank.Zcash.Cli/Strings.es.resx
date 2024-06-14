@@ -123,6 +123,9 @@
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>Enumere todas las cuentas conocidas en la base de datos.</value>
   </data>
+  <data name="AddressIndexOptionDescription" xml:space="preserve">
+    <value>El índice de dirección. Debe ser un número no negativo.</value>
+  </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>La longitud de la frase semilla debe ser de al menos 24 y un múltiplo de 3.</value>
   </data>
@@ -134,6 +137,18 @@
   </data>
   <data name="ContinuallyOptionDescription" xml:space="preserve">
     <value>Descargue la cadena de bloques continuamente, observando nuevos bloques a medida que se agregan.</value>
+  </data>
+  <data name="DeriveCommandDescription" xml:space="preserve">
+    <value>Deriva varias direcciones de una frase semilla y otros parámetros.</value>
+  </data>
+  <data name="DeriveOrchardCommandDescription" xml:space="preserve">
+    <value>Deriva una dirección de huerto.</value>
+  </data>
+  <data name="DeriveSaplingCommandDescription" xml:space="preserve">
+    <value>Deriva una dirección de retoño.</value>
+  </data>
+  <data name="DeriveTransparentCommandDescription" xml:space="preserve">
+    <value>Deriva una o más direcciones transparentes.</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>Enumera las transacciones de la cadena de bloques que pertenecen a este monedero.</value>
@@ -257,6 +272,9 @@
   </data>
   <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
     <value>La dirección transparente para convertir.</value>
+  </data>
+  <data name="TransparentAddressCountOptionDescription" xml:space="preserve">
+    <value>El número de direcciones para derivar. Debe ser un número positivo.</value>
   </data>
   <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
     <value>Se requiere una dirección transparente P2PKH.</value>

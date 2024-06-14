@@ -123,6 +123,9 @@
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>Список всех учетных записей, известных в базе данных.</value>
   </data>
+  <data name="AddressIndexOptionDescription" xml:space="preserve">
+    <value>Индекс адреса. Должен быть неотрицательный номер.</value>
+  </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>Длина семян длина должна быть не менее 24, а кратная 3.</value>
   </data>
@@ -134,6 +137,18 @@
   </data>
   <data name="ContinuallyOptionDescription" xml:space="preserve">
     <value>Скачайте блокчейн постоянно, наблюдая за новыми блоками по мере их добавления.</value>
+  </data>
+  <data name="DeriveCommandDescription" xml:space="preserve">
+    <value>Получает различные адреса из семенной фразы и других параметров.</value>
+  </data>
+  <data name="DeriveOrchardCommandDescription" xml:space="preserve">
+    <value>Получает адрес сада.</value>
+  </data>
+  <data name="DeriveSaplingCommandDescription" xml:space="preserve">
+    <value>Получает саженец.</value>
+  </data>
+  <data name="DeriveTransparentCommandDescription" xml:space="preserve">
+    <value>Получает один или несколько прозрачных адресов.</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>Перечислите транзакции из блокчейна, принадлежащего этому кошельку.</value>
@@ -257,6 +272,9 @@
   </data>
   <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
     <value>Прозрачный адрес для конвертации.</value>
+  </data>
+  <data name="TransparentAddressCountOptionDescription" xml:space="preserve">
+    <value>Количество адресов для получения. Должно быть положительное число.</value>
   </data>
   <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
     <value>Требуется прозрачный адрес P2PKH.</value>
