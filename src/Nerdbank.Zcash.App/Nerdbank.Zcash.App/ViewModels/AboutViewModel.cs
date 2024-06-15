@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -29,11 +30,17 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 		});
 		this.ShowCapabilitiesCommand = ReactiveCommand.Create(this.ShowCapabilities);
 		this.viewModelServices = viewModelServices;
+		this.SelfUpdating = new UpdatingViewModel(viewModelServices.App.SelfUpdating);
+
+		// Trigger an update check.
+		viewModelServices.App.SelfUpdating.DownloadUpdateAsync(CancellationToken.None).Forget();
 	}
 
 	public string Title => AboutStrings.FormatAboutHeading(Strings.AppTitle);
 
 	public string Message => AboutStrings.Message;
+
+	public UpdatingViewModel SelfUpdating { get; }
 
 	public WalletStorageLocationViewModel WalletStorageLocation { get; }
 
