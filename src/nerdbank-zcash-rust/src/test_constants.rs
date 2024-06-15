@@ -1,3 +1,4 @@
+use bip0039::{Count, English, Mnemonic};
 use http::Uri;
 use secrecy::{Secret, SecretVec};
 use testdir::testdir;
@@ -8,10 +9,7 @@ use zcash_client_backend::proto::service::{
     self, compact_tx_streamer_client::CompactTxStreamerClient, LightdInfo,
 };
 use zcash_client_sqlite::AccountId;
-use zcash_primitives::{
-    consensus::Network,
-    zip339::{Count, Mnemonic},
-};
+use zcash_primitives::consensus::Network;
 
 use crate::error::Error;
 use crate::interop::SyncUpdateData;
@@ -82,8 +80,11 @@ impl TestSetup {
     pub async fn create_account(
         &mut self,
     ) -> Result<(Secret<Vec<u8>>, u64, AccountId, UnifiedSpendingKey), Error> {
-        let seed: secrecy::Secret<Vec<u8>> =
-            SecretVec::new(Mnemonic::generate(Count::Words24).to_seed("").to_vec());
+        let seed: secrecy::Secret<Vec<u8>> = SecretVec::new(
+            Mnemonic::<English>::generate(Count::Words24)
+                .to_seed("")
+                .to_vec(),
+        );
 
         let birthday = self.server_info.block_height.saturating_sub(100);
         let account = self

@@ -123,6 +123,9 @@
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>列出数据库中已知的所有账户。</value>
   </data>
+  <data name="AddressIndexOptionDescription" xml:space="preserve">
+    <value>地址索引。必须是一个非负数。</value>
+  </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>种子短语的长度必须至少为24，并且是3的倍数。</value>
   </data>
@@ -134,6 +137,18 @@
   </data>
   <data name="ContinuallyOptionDescription" xml:space="preserve">
     <value>持续下载区块链，随时监视添加的新区块。</value>
+  </data>
+  <data name="DeriveCommandDescription" xml:space="preserve">
+    <value>从种子短语和其他参数中得出各种地址。</value>
+  </data>
+  <data name="DeriveOrchardCommandDescription" xml:space="preserve">
+    <value>推导果园地址。</value>
+  </data>
+  <data name="DeriveSaplingCommandDescription" xml:space="preserve">
+    <value>得出一个树苗地址。</value>
+  </data>
+  <data name="DeriveTransparentCommandDescription" xml:space="preserve">
+    <value>得出一个或多个透明地址。</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>列出属于此钱包的区块链上的交易。</value>
@@ -257,6 +272,9 @@
   </data>
   <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
     <value>转换的透明地址。</value>
+  </data>
+  <data name="TransparentAddressCountOptionDescription" xml:space="preserve">
+    <value>得出的地址数量。必须是一个正数。</value>
   </data>
   <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
     <value>需要P2PKH透明地址。</value>

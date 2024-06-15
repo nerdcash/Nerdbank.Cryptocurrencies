@@ -72,6 +72,9 @@ pub enum Error {
 
     InvalidMemo(memo::Error),
 
+    /// Memos cannot be received by the intended address.
+    MemoNotAllowed,
+
     Zip321(Zip321Error),
 
     /// The operation requires an outpoint whose value is not known.
@@ -129,6 +132,7 @@ impl std::fmt::Display for Error {
             ),
             Error::InvalidAddress => f.write_str("Invalid address"),
             Error::InvalidMemo(e) => e.fmt(f),
+            Error::MemoNotAllowed => f.write_str("Memo not allowed for the given address."),
             Error::Zip321(e) => e.fmt(f),
             Error::SyncFirst => f.write_str("Sync before performing this operation."),
             Error::InvalidArgument(e) => e.fmt(f),
@@ -298,6 +302,7 @@ where
             BackendError::NoSupportedReceivers(_) => {
                 Error::Internal("No supported receivers".to_string())
             }
+            BackendError::Address(_) => Error::InvalidAddress,
         }
     }
 }
