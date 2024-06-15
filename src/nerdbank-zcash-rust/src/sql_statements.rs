@@ -39,6 +39,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.tx = tx.id_tx AND s.output_index = txo.output_index
 	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.tx = tx.id_tx AND o.action_index = txo.output_index
 	WHERE (:account_id IS NULL OR t.account_id = :account_id) 
+		AND (from_account_id IS NOT NULL OR to_account_id IS NOT NULL) -- ignore transactions that probably aren't fully initialized
 		AND (t.mined_height IS NULL OR :starting_block IS NULL OR t.mined_height >= :starting_block)
 		AND (t.mined_height IS NULL OR :ending_block IS NULL OR t.mined_height <= :ending_block)
 	ORDER BY t.mined_height, t.tx_index
