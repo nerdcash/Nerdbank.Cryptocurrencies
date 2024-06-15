@@ -45,7 +45,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 	ORDER BY t.mined_height, t.tx_index
 "#;
 
-// TODO: update this to consider transparent (and eventually orchard) inputs.
+// TODO: update this to consider UTXOs in "Block with first unspent note" column.
 // Note that WalletDb::get_min_unspent_height provides the rebirth height at the wallet level (instead of the account level).
 pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
 	SELECT
