@@ -132,6 +132,12 @@
   <data name="InternalKeys_Title" xml:space="preserve">
     <value>보호 및 잔액 변경을 위한 내부 키</value>
   </data>
+  <data name="MultiAccountSourcedTransactions_Description" xml:space="preserve">
+    <value>여러 계정은 단일 거래에 자금을 제공 할 수 있습니다. 이것은 Zecwallet Lite가 Zcash 주소의 부적절한 프리젠 테이션의 일환으로 뒷받침되었으며 권장되지 않습니다. 이러한 트랜잭션과 관련된 Zcash 계정은이 기능을 지원하지 않는 지갑 앱 (예 :이 제품과 같은)에서 트랜잭션 기록을 올바르게 제시하지 않을 수 있습니다.</value>
+  </data>
+  <data name="MultiAccountSourcedTransactions_Title" xml:space="preserve">
+    <value>멀티 계정 소스 트랜잭션</value>
+  </data>
   <data name="MultipleAccounts_Description" xml:space="preserve">
     <value>단일 시드 구문을 기억하거나 백업하는 동안 지출 및 저축 계정을 구분하여 사용합니다.</value>
   </data>

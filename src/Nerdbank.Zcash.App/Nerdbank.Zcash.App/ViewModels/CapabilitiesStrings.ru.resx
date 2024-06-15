@@ -132,6 +132,12 @@
   <data name="InternalKeys_Title" xml:space="preserve">
     <value>Внутренние ключи для защиты и изменений</value>
   </data>
+  <data name="MultiAccountSourcedTransactions_Description" xml:space="preserve">
+    <value>Несколько учетных записей могут предоставить средства для одной транзакции. Это было поддержано Zecwallet Lite как часть ненадлежащего представления адресов Zcash и не рекомендуется. Учетные записи Zcash, участвующие в таких транзакциях, могут правильно представлять историю транзакций в приложениях кошелька (например, этот), которые не поддерживают эту функцию.</value>
+  </data>
+  <data name="MultiAccountSourcedTransactions_Title" xml:space="preserve">
+    <value>С транзакциями по производству многообеспеченных источников</value>
+  </data>
   <data name="MultipleAccounts_Description" xml:space="preserve">
     <value>Используйте различные учетные записи для расходов и сберегательных учетных записей, запомняя или резервнувшись на одну семенную фразу.</value>
   </data>

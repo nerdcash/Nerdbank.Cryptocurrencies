@@ -132,6 +132,12 @@
   <data name="InternalKeys_Title" xml:space="preserve">
     <value>用于保护和找零的内部密钥</value>
   </data>
+  <data name="MultiAccountSourcedTransactions_Description" xml:space="preserve">
+    <value>多个帐户可以为单个交易提供资金。这是Zecwallet Lite的支持，这是Zcash地址不当表现的一部分，不建议您进行。涉及此类交易的ZCASH帐户可能无法在不支持此功能的钱包应用程序（例如这个）中正确显示交易记录。</value>
+  </data>
+  <data name="MultiAccountSourcedTransactions_Title" xml:space="preserve">
+    <value>多学院来源交易</value>
+  </data>
   <data name="MultipleAccounts_Description" xml:space="preserve">
     <value>在记住或备份单个种子短语的同时，为支出和储蓄账户使用不同的账户。</value>
   </data>

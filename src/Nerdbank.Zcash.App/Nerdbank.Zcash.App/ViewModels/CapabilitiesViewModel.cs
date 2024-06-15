@@ -13,6 +13,7 @@ public class CapabilitiesViewModel : ViewModelBase
 		new(true, CapabilitiesStrings.MultipleAccounts_Title, CapabilitiesStrings.MultipleAccounts_Description),
 		new(true, CapabilitiesStrings.Multispend_Title, CapabilitiesStrings.Multispend_Description),
 		new(false, CapabilitiesStrings.PoolBalancing_Title, CapabilitiesStrings.PoolBalancing_Description),
+		new(false, CapabilitiesStrings.MultiAccountSourcedTransactions_Title, CapabilitiesStrings.MultiAccountSourcedTransactions_Description),
 		];
 
 	public string PoolsHeading => CapabilitiesStrings.PoolsHeading;

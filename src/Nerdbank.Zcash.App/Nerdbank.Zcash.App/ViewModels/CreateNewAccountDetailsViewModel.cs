@@ -20,7 +20,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 	private uint index;
 	private string name = string.Empty;
 	private ZcashNetwork network = ZcashNetwork.MainNet;
-	private ulong birthdayHeight = 0;
+	private ulong? birthdayHeight = 0;
 	private ulong? maximumBirthdayHeight;
 
 	[Obsolete("Design-time only", error: true)]
@@ -46,12 +46,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 			this.CreateBirthdayHeightRecommendation)
 			.ToProperty(this, nameof(this.MinimumBirthdayHeightForHDWalletAdvisory), initialValue: this.CreateBirthdayHeightRecommendation(this.HDWallet, this.Network));
 
-		// TODO: update this to disable the command if *any* validation errors exist -- not just our own hard-coded ones.
-		IObservable<bool> canCreateAccount = this.WhenAnyValue(
-			vm => vm.HasErrors,
-			hasErrors => !hasErrors);
-
-		this.CreateAccountCommand = ReactiveCommand.Create(this.CreateAccount, canCreateAccount);
+		this.CreateAccountCommand = ReactiveCommand.Create(this.CreateAccount, this.IsValid);
 		this.SetBirthdayHeightToTipCommand = ReactiveCommand.CreateFromTask(this.SetBirthdayHeightToTipAsync);
 
 		this.LinkProperty(nameof(this.Network), nameof(this.MinimumBirthdayHeight));
@@ -66,6 +61,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public string HDWalletCaption => CreateNewAccountDetailsStrings.HDWalletCaption;
 
+	[Required]
 	public HDWallet? HDWallet
 	{
 		get => this.hdwallet;
@@ -165,7 +161,8 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public string BirthdayHeightCaption => CreateNewAccountDetailsStrings.BirthdayHeightCaption;
 
-	public ulong BirthdayHeight
+	[Required]
+	public ulong? BirthdayHeight
 	{
 		get => this.birthdayHeight;
 		set => this.RaiseAndSetIfChanged(ref this.birthdayHeight, value);
@@ -200,7 +197,8 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public Account CreateAccount()
 	{
-		Verify.Operation(this.HDWallet is not null, "Select an HDWallet first.");
+		Verify.Operation(!this.HasAnyErrors, "Fix validation errors first.");
+		Assumes.NotNull(this.HDWallet);
 
 		Account account = new Account(new ZcashAccount(this.HDWallet.GetZip32HDWalletByNetwork(this.Network), this.Index))
 		{
@@ -228,7 +226,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	private async ValueTask UpdateBirthdayHeightAsync()
 	{
-		ulong originalBirthdayHeight = this.BirthdayHeight;
+		ulong? originalBirthdayHeight = this.BirthdayHeight;
 
 		ulong currentHeight = await this.LazyHeight.GetValueAsync();
 

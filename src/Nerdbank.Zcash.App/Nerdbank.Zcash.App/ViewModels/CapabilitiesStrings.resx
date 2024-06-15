@@ -132,6 +132,12 @@
   <data name="InternalKeys_Title" xml:space="preserve">
     <value>Internal keys for shielding and change</value>
   </data>
+  <data name="MultiAccountSourcedTransactions_Description" xml:space="preserve">
+    <value>Multiple accounts can provide funds to a single transaction. This was supported by ZECWallet Lite as part of an improper presentation of Zcash addresses and is not recommended. Zcash accounts involved in such transactions may not present transaction history correctly in wallet apps (such as this one) that do not support this feature.</value>
+  </data>
+  <data name="MultiAccountSourcedTransactions_Title" xml:space="preserve">
+    <value>Multi-account sourced transactions</value>
+  </data>
   <data name="MultipleAccounts_Description" xml:space="preserve">
     <value>Use distinct accounts for spending and savings accounts while remembering or backing up just a single seed phrase.</value>
   </data>

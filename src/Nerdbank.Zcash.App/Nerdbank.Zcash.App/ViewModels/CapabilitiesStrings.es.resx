@@ -132,6 +132,12 @@
   <data name="InternalKeys_Title" xml:space="preserve">
     <value>Claves internas para blindaje y cambio</value>
   </data>
+  <data name="MultiAccountSourcedTransactions_Description" xml:space="preserve">
+    <value>Múltiples cuentas pueden proporcionar fondos a una sola transacción. Esto fue respaldado por ZECWallet Lite como parte de una presentación inadecuada de las direcciones de ZCash y no se recomienda. Las cuentas de ZCash involucradas en tales transacciones pueden no presentar el historial de transacciones correctamente en las aplicaciones de billetera (como esta) que no admiten esta característica.</value>
+  </data>
+  <data name="MultiAccountSourcedTransactions_Title" xml:space="preserve">
+    <value>Transacciones de origen múltiple</value>
+  </data>
   <data name="MultipleAccounts_Description" xml:space="preserve">
     <value>Use cuentas distintas para las cuentas de gastos y ahorros mientras recuerda o respalda solo una sola frase de semillas.</value>
   </data>
