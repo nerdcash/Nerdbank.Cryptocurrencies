@@ -163,15 +163,15 @@ public partial class Zip32HDWallet
 			/// Gets the viewing key on the <see cref="Bip44MultiAccountHD.Change.ReceivingAddressChain"/>
 			/// for a given address index.
 			/// </summary>
-			/// <param name="index">The address index to generate the viewing key for.</param>
+			/// <param name="addressIndex">The address index to generate the viewing key for.</param>
 			/// <returns>The derived key.</returns>
 			/// <exception cref="InvalidOperationException">Thrown if this instance does not conform to either a full or viewing key.</exception>
-			public ExtendedViewingKey GetReceivingKey(uint index)
+			public ExtendedViewingKey GetReceivingKey(uint addressIndex)
 			{
 				Bip32KeyPath derivationPath = this.Depth switch
 				{
-					3 => new Bip32KeyPath(index, new Bip32KeyPath((uint)Bip44MultiAccountHD.Change.ReceivingAddressChain)),
-					4 when this.ChildIndex == (uint)Bip44MultiAccountHD.Change.ReceivingAddressChain => new Bip32KeyPath(index),
+					3 => new Bip32KeyPath(addressIndex, new Bip32KeyPath((uint)Bip44MultiAccountHD.Change.ReceivingAddressChain)),
+					4 when this.ChildIndex == (uint)Bip44MultiAccountHD.Change.ReceivingAddressChain => new Bip32KeyPath(addressIndex),
 					_ => throw new InvalidOperationException("This is not the full or incoming viewing key."),
 				};
 				return this.Derive(derivationPath);

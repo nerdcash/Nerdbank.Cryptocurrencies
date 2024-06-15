@@ -59,8 +59,8 @@ type ChainError =
 
 const TADDR_INDEX_GAP_LIMIT: u32 = 20;
 
-/// The number of sapling spends+outputs and orchard actions that should be in each downloaded chunk.
-const BLOCK_ACTIONS_MEMORY_LIMIT: usize = 100_000;
+/// The number of sapling spends+outputs and orchard actions that should be in memory at any time.
+const BLOCK_ACTIONS_MEMORY_LIMIT: usize = 500_000;
 
 /// The capacity of the channel that receives vectors of CompactBlock.
 ///
@@ -69,6 +69,9 @@ const BLOCK_ACTIONS_MEMORY_LIMIT: usize = 100_000;
 const CHUNK_CHANNEL_CAPACITY: usize = 10;
 
 /// The approximate number of actions for each chunk that we submit to the downloaded channel.
+/// We want this to contain at least (num_threads - 1) * 100 + 1 outputs in order to maximize throughput
+/// during trial decryption and other stages.
+/// https://discord.com/channels/809218587167293450/1250828701864693761/1250942856198230086
 const BLOCKS_CHUNK_THRESHOLD: usize = BLOCK_ACTIONS_MEMORY_LIMIT / CHUNK_CHANNEL_CAPACITY;
 
 pub async fn sync<P: AsRef<Path>>(

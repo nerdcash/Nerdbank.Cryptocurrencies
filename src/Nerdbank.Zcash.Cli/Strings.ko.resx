@@ -123,6 +123,9 @@
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>데이터베이스에 알려진 모든 계정을 나열합니다.</value>
   </data>
+  <data name="AddressIndexOptionDescription" xml:space="preserve">
+    <value>주소 지수. 음이 아닌 숫자 여야합니다.</value>
+  </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>시드 구문 길이는 최소 24이고 3의 배수여야 합니다.</value>
   </data>
@@ -134,6 +137,18 @@
   </data>
   <data name="ContinuallyOptionDescription" xml:space="preserve">
     <value>블록체인을 계속해서 다운로드하며 새로운 블록이 추가될 때마다 확인합니다.</value>
+  </data>
+  <data name="DeriveCommandDescription" xml:space="preserve">
+    <value>시드 문구 및 기타 매개 변수에서 다양한 주소를 도출합니다.</value>
+  </data>
+  <data name="DeriveOrchardCommandDescription" xml:space="preserve">
+    <value>과수원 주소를 도출합니다.</value>
+  </data>
+  <data name="DeriveSaplingCommandDescription" xml:space="preserve">
+    <value>묘목 주소를 도출합니다.</value>
+  </data>
+  <data name="DeriveTransparentCommandDescription" xml:space="preserve">
+    <value>하나 이상의 투명한 주소를 도출합니다.</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>이 지갑에 속한 블록체인의 거래를 나열합니다.</value>
@@ -257,6 +272,9 @@
   </data>
   <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
     <value>변환 할 투명한 주소.</value>
+  </data>
+  <data name="TransparentAddressCountOptionDescription" xml:space="preserve">
+    <value>도출 할 주소 수. 양수 여야합니다.</value>
   </data>
   <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
     <value>P2PKH 투명 주소가 필요합니다.</value>

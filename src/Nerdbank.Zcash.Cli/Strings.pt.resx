@@ -123,6 +123,9 @@
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>Listar todas as contas conhecidas do banco de dados.</value>
   </data>
+  <data name="AddressIndexOptionDescription" xml:space="preserve">
+    <value>O índice de endereço. Deve ser um número não negativo.</value>
+  </data>
   <data name="BadSeedPhraseLength" xml:space="preserve">
     <value>O comprimento da frase-semente deve ser pelo menos 24 e múltiplo de 3.</value>
   </data>
@@ -134,6 +137,18 @@
   </data>
   <data name="ContinuallyOptionDescription" xml:space="preserve">
     <value>Baixar o blockchain continuamente, observando novos blocos à medida que são adicionados.</value>
+  </data>
+  <data name="DeriveCommandDescription" xml:space="preserve">
+    <value>Deriva vários endereços de uma frase de semente e outros parâmetros.</value>
+  </data>
+  <data name="DeriveOrchardCommandDescription" xml:space="preserve">
+    <value>Deriva um endereço de pomar.</value>
+  </data>
+  <data name="DeriveSaplingCommandDescription" xml:space="preserve">
+    <value>Deriva um endereço de muda.</value>
+  </data>
+  <data name="DeriveTransparentCommandDescription" xml:space="preserve">
+    <value>Deriva um ou mais endereços transparentes.</value>
   </data>
   <data name="HistoryCommandDescription" xml:space="preserve">
     <value>Listar transações do blockchain pertencentes a esta carteira.</value>
@@ -257,6 +272,9 @@
   </data>
   <data name="TexTransparentAddressArgumentDescription" xml:space="preserve">
     <value>O endereço transparente para converter.</value>
+  </data>
+  <data name="TransparentAddressCountOptionDescription" xml:space="preserve">
+    <value>O número de endereços a ser derivado. Deve ser um número positivo.</value>
   </data>
   <data name="TransparentP2PKHAddressRequired" xml:space="preserve">
     <value>É necessário um endereço transparente P2PKH.</value>
