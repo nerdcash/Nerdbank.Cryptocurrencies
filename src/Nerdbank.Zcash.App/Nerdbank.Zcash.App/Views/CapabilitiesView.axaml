@@ -15,35 +15,37 @@
       <Setter Property="FontWeight" Value="Bold" />
     </Style>
   </UserControl.Styles>
-  <ScrollViewer>
-    <StackPanel Spacing="15">
-      <StackPanel>
-        <TextBlock Classes="Heading" Text="{Binding CapabilitiesHeading}" />
-        <ItemsControl ItemsSource="{Binding Capabilities}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Grid ColumnDefinitions="20,*" Margin="0 0 10 0">
-                <TextBlock Text="✅" IsVisible="{Binding IsEnabled}" />
-                <TextBlock Text="❌" IsVisible="{Binding !IsEnabled}" />
-                <StackPanel Grid.Column="1">
-                  <TextBlock Text="{Binding Name}" />
-                  <TextBlock Text="{Binding Description}" Foreground="DarkGray" IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                </StackPanel>
-              </Grid>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </StackPanel>
-      <StackPanel>
-        <TextBlock Classes="Heading" Text="{Binding PoolsHeading}" />
-        <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Pools}" IsReadOnly="True" CanUserSortColumns="False">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="{Binding PoolColumnHeader}" Binding="{Binding Pool}" />
-            <DataGridCheckBoxColumn Header="{Binding CanSpendColumnHeader}" Binding="{Binding CanSpend}" />
-            <DataGridCheckBoxColumn Header="{Binding CanReceiveColumnHeader}" Binding="{Binding CanReceive}" />
-          </DataGrid.Columns>
-        </DataGrid>
-      </StackPanel>
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Bottom">
+      <TextBlock Classes="Heading" Text="{Binding PoolsHeading}" />
+      <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Pools}" IsReadOnly="True" CanUserSortColumns="False">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="{Binding PoolColumnHeader}" Binding="{Binding Pool}" />
+          <DataGridCheckBoxColumn Header="{Binding CanSpendColumnHeader}" Binding="{Binding CanSpend}" />
+          <DataGridCheckBoxColumn Header="{Binding CanReceiveColumnHeader}" Binding="{Binding CanReceive}" />
+        </DataGrid.Columns>
+      </DataGrid>
     </StackPanel>
-  </ScrollViewer>
+    <ScrollViewer>
+      <StackPanel Spacing="15">
+        <StackPanel>
+          <TextBlock Classes="Heading" Text="{Binding CapabilitiesHeading}" />
+          <ItemsControl ItemsSource="{Binding Capabilities}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="20,*" Margin="0 0 10 0">
+                  <TextBlock Text="✅" IsVisible="{Binding IsEnabled}" />
+                  <TextBlock Text="❌" IsVisible="{Binding !IsEnabled}" />
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Name}" />
+                    <TextBlock Text="{Binding Description}" Foreground="DarkGray" IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>
