@@ -3,8 +3,8 @@ use std::{num::NonZeroU32, path::Path};
 use http::Uri;
 use nonempty::NonEmpty;
 use rusqlite::Connection;
+use zcash_address::ZcashAddress;
 use zcash_client_backend::{
-    address::Address,
     data_api::{
         wallet::{
             create_proposed_transactions,
@@ -61,15 +61,18 @@ pub fn create_send_proposal(
             Some(m) => Some(MemoBytes::from_bytes(&m[..])?),
             None => None,
         };
-        payments.push(Payment {
-            recipient_address: Address::decode(&network, detail.recipient.as_str())
-                .ok_or(Error::InvalidAddress)?,
-            amount: NonNegativeAmount::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
-            memo,
-            label: None,
-            message: None,
-            other_params: Vec::new(),
-        });
+        payments.push(
+            Payment::new(
+                ZcashAddress::try_from_encoded(detail.recipient.as_str())
+                    .map_err(|_| Error::InvalidAddress)?,
+                NonNegativeAmount::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
+                memo,
+                None,
+                None,
+                Vec::new(),
+            )
+            .ok_or(Error::MemoNotAllowed)?,
+        );
     }
 
     let request = TransactionRequest::new(payments)?;
