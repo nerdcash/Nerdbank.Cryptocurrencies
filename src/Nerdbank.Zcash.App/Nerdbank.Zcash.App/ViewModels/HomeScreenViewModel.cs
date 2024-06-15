@@ -20,6 +20,7 @@ public class HomeScreenViewModel : ViewModelBase
 	public HomeScreenViewModel(IViewModelServices viewModelServices)
 	{
 		this.viewModelServices = viewModelServices;
+		this.SelfUpdating = new UpdatingViewModel(this.viewModelServices.App.SelfUpdating);
 
 		this.isBackupCommandPromoted = this.WhenAnyValue(x => x.viewModelServices.Wallet.HDWalletsRequireBackup).ToProperty(this, nameof(this.IsBackupCommandPromoted));
 
@@ -32,7 +33,7 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public Bitmap Logo => Resources.AppLogo;
 
-	public UpdatingViewModel SelfUpdating => this.viewModelServices.App.SelfUpdating;
+	public UpdatingViewModel SelfUpdating { get; }
 
 	public string ReceiveCommandCaption => HomeScreenStrings.ReceiveCommandCaption;
 

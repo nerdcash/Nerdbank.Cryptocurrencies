@@ -55,7 +55,7 @@ public partial class App : Application, IAsyncDisposable
 
 	public AppSettings Settings => this.settings ?? throw new InvalidOperationException();
 
-	public UpdatingViewModel SelfUpdating { get; }
+	public AppUpdateManager SelfUpdating { get; }
 
 	public DataRoot Data => this.data ?? throw new InvalidOperationException();
 
@@ -89,7 +89,7 @@ public partial class App : Application, IAsyncDisposable
 
 			if (this.SelfUpdating is not null)
 			{
-				_ = this.shutdownBlockingTaskFactory!.RunAsync(() => this.SelfUpdating.UpdateMyAppAsync(this.shutdownTokenSource.Token));
+				_ = this.shutdownBlockingTaskFactory!.RunAsync(() => this.SelfUpdating.PeriodicallyCheckForUpdatesAsync(this.shutdownTokenSource.Token));
 			}
 
 			this.ViewModel.TopLevel = TopLevel.GetTopLevel(desktop.MainWindow);
