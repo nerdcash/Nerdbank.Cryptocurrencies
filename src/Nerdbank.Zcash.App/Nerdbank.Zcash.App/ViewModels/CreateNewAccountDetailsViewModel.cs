@@ -36,7 +36,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 		this.mainNetChainLength = new(async () => await AppUtilities.GetChainLengthAsync(viewModelServices, ZcashNetwork.MainNet, CancellationToken.None));
 		this.testNetChainLength = new(async () => await AppUtilities.GetChainLengthAsync(viewModelServices, ZcashNetwork.TestNet, CancellationToken.None));
 
-		this.hdwallet = viewModelServices.Wallet.HDWallets.FirstOrDefault();
+		this.HDWallet = viewModelServices.Wallet.HDWallets.FirstOrDefault();
 		this.isHDWalletSelectionVisible = viewModelServices.Wallet.HDWallets.AsObservableChangeSet()
 			.Select(_ => viewModelServices.Wallet.HDWallets.Count > 1)
 			.ToProperty(this, nameof(this.IsHDWalletSelectionVisible));
