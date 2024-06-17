@@ -28,6 +28,11 @@
       </StackPanel>
       <CheckBox IsChecked="{Binding IsTestNet}" Content="{Binding IsTestNetCaption}" IsVisible="{Binding IsTestNetVisible}" />
 
+      <StackPanel IsVisible="{Binding IsSeed}">
+        <Label Content="{Binding AccountIndexCaption}" Target="{Binding #AccountIndexBox}" />
+        <NumericUpDown Value="{Binding AccountIndex}" Name="AccountIndexBox" Minimum="0" Maximum="{Binding AccountIndexMaxValue}" Increment="1" />
+      </StackPanel>
+
       <Label Content="{Binding BirthdayHeightCaption}" Target="{Binding #BirthdayHeightBox}" />
       <NumericUpDown Value="{Binding BirthdayHeight}" Name="BirthdayHeightBox" Minimum="{Binding MinimumBirthdayHeight}" Increment="1" />
 

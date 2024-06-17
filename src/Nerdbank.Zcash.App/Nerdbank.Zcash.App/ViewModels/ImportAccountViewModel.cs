@@ -11,6 +11,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	private readonly IViewModelServices viewModelServices;
 	private string key = string.Empty;
 	private string seedPassword = string.Empty;
+	private uint? accountIndex = 0;
 	private bool isTestNet;
 	private ulong? birthdayHeight;
 	private Bip39Mnemonic? mnemonic;
@@ -90,10 +91,31 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public string SeedPasswordWhitespaceWarning => ImportAccountStrings.SeedPasswordWhitespaceWarning;
 
+	public string AccountIndexCaption => ImportAccountStrings.AccountIndexCaption;
+
+	/// <summary>
+	/// Gets or sets the account index to use. Only applicable when <see cref="IsSeed"/> is <see langword="true"/>.
+	/// </summary>
+	public uint? AccountIndex
+	{
+		get => this.accountIndex;
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.accountIndex, value);
+			this.ValidateAccountIndex();
+		}
+	}
+
+	public uint AccountIndexMaxValue => 2 ^ 31 - 1;
+
 	public bool IsSeed
 	{
 		get => this.isSeed;
-		private set => this.RaiseAndSetIfChanged(ref this.isSeed, value);
+		private set
+		{
+			this.RaiseAndSetIfChanged(ref this.isSeed, value);
+			this.ValidateAccountIndex();
+		}
 	}
 
 	public bool IsPasswordVisible
@@ -189,8 +211,15 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 		if (this.mnemonic is not null)
 		{
-			Zip32HDWallet zip32 = new(this.mnemonic, this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
-			account = new ZcashAccount(zip32, 0);
+			if (this.AccountIndex.HasValue)
+			{
+				Zip32HDWallet zip32 = new(this.mnemonic, this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
+				account = new ZcashAccount(zip32, this.AccountIndex.Value);
+			}
+			else
+			{
+				account = null;
+			}
 		}
 		else
 		{
@@ -204,4 +233,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 		return account is not null;
 	}
+
+	private void ValidateAccountIndex() =>
+		this.RecordValidationError(this.AccountIndex is null && this.IsSeed ? ImportAccountStrings.AccountIndexRequired : null, nameof(this.AccountIndex));
 }

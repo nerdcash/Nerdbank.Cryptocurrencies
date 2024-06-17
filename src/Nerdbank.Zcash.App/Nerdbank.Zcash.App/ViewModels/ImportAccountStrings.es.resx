@@ -117,8 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AccountIndexCaption" xml:space="preserve">
+    <value>Índice de cuenta (típicamente 0)</value>
+  </data>
+  <data name="AccountIndexRequired" xml:space="preserve">
+    <value>Requerido para frases de semillas.</value>
+  </data>
+  <data name="BadOrUnsupportedImportKey" xml:space="preserve">
+    <value>Esto no parece una frase de llave o semilla válida, compatible.</value>
+  </data>
   <data name="BirthdayHeightCaption" xml:space="preserve">
     <value>Altura de cumpleaños</value>
+  </data>
+  <data name="DefaultNameForFirstImportedAccount" xml:space="preserve">
+    <value>Principal</value>
   </data>
   <data name="ImportCommandCaption" xml:space="preserve">
     <value>Importar</value>
@@ -127,7 +139,7 @@
     <value>Esta es una cuenta de Testnet</value>
   </data>
   <data name="KeyCaption" xml:space="preserve">
-    <value>Ingrese la clave de visualización de semilla, privada, completa o entrante para la cuenta que desea importar.</value>
+    <value>Clave de visualización completa de semillas o unificados</value>
   </data>
   <data name="NameCaption" xml:space="preserve">
     <value>Nombre de la cuenta</value>
@@ -140,11 +152,5 @@
   </data>
   <data name="Title" xml:space="preserve">
     <value>Cuenta de importación</value>
-  </data>
-  <data name="BadOrUnsupportedImportKey" xml:space="preserve">
-    <value>Esto no parece una frase de llave o semilla válida, compatible.</value>
-  </data>
-  <data name="DefaultNameForFirstImportedAccount" xml:space="preserve">
-    <value>Principal</value>
   </data>
 </root>

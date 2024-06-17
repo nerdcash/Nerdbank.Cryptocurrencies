@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AccountIndexCaption" xml:space="preserve">
+    <value>Índice de conta (normalmente 0)</value>
+  </data>
+  <data name="AccountIndexRequired" xml:space="preserve">
+    <value>Necessário para frases de sementes.</value>
+  </data>
   <data name="BadOrUnsupportedImportKey" xml:space="preserve">
     <value>Isso não parece ser uma chave ou frase de semente válida ou suportada.</value>
   </data>
@@ -133,7 +139,7 @@
     <value>Esta é uma conta de testnet</value>
   </data>
   <data name="KeyCaption" xml:space="preserve">
-    <value>Insira a semente, chave privada, chave de visualização completa ou de entrada para a conta que deseja importar.</value>
+    <value>Chave de visualização completa de semente ou unificado</value>
   </data>
   <data name="NameCaption" xml:space="preserve">
     <value>Nome da conta</value>
