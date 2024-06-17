@@ -8,8 +8,11 @@ use zcash_client_backend::{
     keys::UnifiedSpendingKey,
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
-use zcash_client_sqlite::{wallet::init::init_wallet_db, AccountId, WalletDb};
-use zcash_keys::address::UnifiedAddress;
+use zcash_client_sqlite::{
+    wallet::{init::init_wallet_db, Account},
+    AccountId, WalletDb,
+};
+use zcash_keys::{address::UnifiedAddress, keys::UnifiedFullViewingKey};
 use zcash_primitives::{consensus::Network, zip32::DiversifierIndex};
 
 use crate::{block_source::BlockCache, error::Error};
@@ -35,9 +38,10 @@ impl Db {
     pub(crate) async fn add_account(
         &mut self,
         seed: &SecretVec<u8>,
+        account_index: zip32::AccountId,
         birthday: u64,
         client: &mut CompactTxStreamerClient<Channel>,
-    ) -> Result<(AccountId, UnifiedSpendingKey), Error> {
+    ) -> Result<(Account, UnifiedSpendingKey), Error> {
         // Construct an `AccountBirthday` for the account's birthday.
         let birthday = {
             // Fetch the tree state corresponding to the last block prior to the wallet's
@@ -50,7 +54,33 @@ impl Db {
             AccountBirthday::from_treestate(treestate, None)?
         };
 
-        Ok(self.data.create_account(seed, &birthday)?)
+        Ok(self
+            .data
+            .import_account_hd(seed, account_index, &birthday)?)
+    }
+
+    pub(crate) async fn import_account_ufvk(
+        &mut self,
+        ufvk: &UnifiedFullViewingKey,
+        spending_key_available: bool,
+        birthday: u64,
+        client: &mut CompactTxStreamerClient<Channel>,
+    ) -> Result<Account, Error> {
+        // Construct an `AccountBirthday` for the account's birthday.
+        let birthday = {
+            // Fetch the tree state corresponding to the last block prior to the wallet's
+            // birthday height. NOTE: THIS APPROACH LEAKS THE BIRTHDAY TO THE SERVER!
+            let request = service::BlockId {
+                height: birthday - 1,
+                ..Default::default()
+            };
+            let treestate = client.get_tree_state(request).await?.into_inner();
+            AccountBirthday::from_treestate(treestate, None)?
+        };
+
+        Ok(self
+            .data
+            .import_account_ufvk(ufvk, &birthday, spending_key_available)?)
     }
 
     pub(crate) fn add_diversifier(
