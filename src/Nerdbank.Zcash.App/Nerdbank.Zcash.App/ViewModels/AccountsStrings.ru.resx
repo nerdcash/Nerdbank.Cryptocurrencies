@@ -129,6 +129,12 @@
   <data name="ImportAccountCommandCaption" xml:space="preserve">
     <value>Импорт счета</value>
   </data>
+  <data name="IsWatchOnlyCellContent" xml:space="preserve">
+    <value>👁</value>
+  </data>
+  <data name="IsWatchOnlyCellToolTip" xml:space="preserve">
+    <value>Транзакции могут наблюдаться только на этом счете. Средства не могут быть потрачены.</value>
+  </data>
   <data name="NewAccountCommandCaption" xml:space="preserve">
     <value>Новый аккаунт</value>
   </data>

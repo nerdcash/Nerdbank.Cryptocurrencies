@@ -60,6 +60,12 @@ public class AccountViewModel : ViewModelBase, IViewModel<Account>
 
 	public SecurityAmount Balance => this.balance.Value;
 
+	public bool IsWatchOnly => this.Account.ZcashAccount.Spending is null;
+
+	public string IsWatchOnlyCellContent => AccountsStrings.IsWatchOnlyCellContent;
+
+	public string IsWatchOnlyCellToolTip => AccountsStrings.IsWatchOnlyCellToolTip;
+
 	public bool AreKeysRevealed
 	{
 		get => this.areKeysRevealed;

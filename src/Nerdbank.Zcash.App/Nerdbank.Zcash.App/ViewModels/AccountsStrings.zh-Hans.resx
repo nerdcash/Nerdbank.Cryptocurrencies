@@ -129,6 +129,12 @@
   <data name="ImportAccountCommandCaption" xml:space="preserve">
     <value>导入账户</value>
   </data>
+  <data name="IsWatchOnlyCellContent" xml:space="preserve">
+    <value>👁️</value>
+  </data>
+  <data name="IsWatchOnlyCellToolTip" xml:space="preserve">
+    <value>交易只能在此帐户上观察到。资金无法花费。</value>
+  </data>
   <data name="NewAccountCommandCaption" xml:space="preserve">
     <value>新建账户</value>
   </data>

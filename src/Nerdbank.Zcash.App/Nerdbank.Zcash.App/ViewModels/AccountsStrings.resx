@@ -129,6 +129,16 @@
   <data name="ImportAccountCommandCaption" xml:space="preserve">
     <value>Import account</value>
   </data>
+  <data name="IsWatchOnlyCellContent" xml:space="preserve">
+    <value>👁️</value>
+  </data>
+  <data name="IsWatchOnlyCellToolTip" xml:space="preserve">
+    <value>Transactions may only be observed on this account. Funds cannot be spent.</value>
+  </data>
+  <data name="IsWatchOnlyColumnHeader" xml:space="preserve">
+    <value />
+    <comment>This field intentionally left blank.</comment>
+  </data>
   <data name="NewAccountCommandCaption" xml:space="preserve">
     <value>New account</value>
   </data>

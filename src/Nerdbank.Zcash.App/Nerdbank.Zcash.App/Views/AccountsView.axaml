@@ -23,6 +23,15 @@
     </StackPanel>
     <DataGrid ItemsSource="{Binding Accounts}" Name="AccountsGrid">
       <DataGrid.Columns>
+        <DataGridTemplateColumn Header="{Binding IsWatchOnlyColumnHeader}" IsVisible="{Binding IsWatchOnlyColumnVisible}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding IsWatchOnlyCellContent}" IsVisible="{Binding IsWatchOnly}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         ToolTip.Tip="{Binding IsWatchOnlyCellToolTip}"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="{Binding AccountNameColumnHeader}" Binding="{Binding Name}" />
         <DataGridTemplateColumn Header="{Binding AccountBalanceColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
