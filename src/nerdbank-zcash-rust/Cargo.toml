@@ -59,6 +59,8 @@ zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite"
 	"unstable",
 ] }
 zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
+	"transparent-inputs",
+	"sapling",
 	"orchard",
 	"unstable",
 	"test-dependencies",
