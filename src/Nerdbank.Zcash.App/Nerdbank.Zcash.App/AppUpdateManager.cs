@@ -56,13 +56,6 @@ public class AppUpdateManager
 		{
 			this.isUpdateReady.Value = this.updateManager.IsUpdatePendingRestart;
 
-			// Don't check for updates and download the update again,
-			// because velopack has a propensity for re-downloading the same update.
-			if (this.isUpdateReady.Value)
-			{
-				return true;
-			}
-
 			UpdateInfo? updateInfo = await this.updateManager.CheckForUpdatesAsync();
 			this.updateInfo.Value = updateInfo;
 
