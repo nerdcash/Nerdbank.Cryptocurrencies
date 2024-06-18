@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AboutCommandCaption" xml:space="preserve">
-    <value>Ab_out</value>
+    <value>Abo_ut</value>
   </data>
   <data name="AccountBalanceCommandCaption" xml:space="preserve">
     <value>_Balance</value>
@@ -130,7 +130,7 @@
     <value>_Address book</value>
   </data>
   <data name="AddressCheckCommandCaption" xml:space="preserve">
-    <value>_Address check</value>
+    <value>A_ddress check</value>
   </data>
   <data name="AppMenuCaption" xml:space="preserve">
     <value>_App</value>
