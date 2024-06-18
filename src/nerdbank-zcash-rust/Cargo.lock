@@ -310,7 +310,7 @@ dependencies = [
  "hmac",
  "rand_core",
  "ripemd",
- "secp256k1 0.27.0",
+ "secp256k1",
  "sha2",
  "subtle",
  "zeroize",
@@ -956,17 +956,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hdwallet"
-version = "0.4.2"
-dependencies = [
- "lazy_static",
- "rand_core",
- "ring",
- "secp256k1 0.26.0",
- "thiserror",
-]
-
-[[package]]
 name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1315,7 +1304,6 @@ dependencies = [
  "ff",
  "futures-util",
  "group",
- "hdwallet",
  "http",
  "jubjub",
  "lazy_static",
@@ -2080,15 +2068,6 @@ checksum = "da046153aa2352493d6cb7da4b6e5c0c057d8a1d0a9aa8560baffdd945acd414"
 dependencies = [
  "ring",
  "untrusted",
-]
-
-[[package]]
-name = "secp256k1"
-version = "0.26.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4124a35fe33ae14259c490fd70fa199a32b9ce9502f2ee6bc4f81ec06fa65894"
-dependencies = [
- "secp256k1-sys",
 ]
 
 [[package]]
@@ -3246,7 +3225,7 @@ dependencies = [
  "redjubjub",
  "ripemd",
  "sapling-crypto",
- "secp256k1 0.27.0",
+ "secp256k1",
  "sha2",
  "subtle",
  "tracing",

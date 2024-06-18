@@ -17,7 +17,6 @@ uniffi = { version = "0.25.0", features = ["build"] }
 ff = "0.13"
 futures-util = "0.3"
 group = "0.13"
-hdwallet = { path = "../../external/hdwallet" }
 http = "0.2"
 jubjub = "0.10"
 lazy_static = "1.4"
