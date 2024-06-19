@@ -161,9 +161,8 @@ Nerdbank.Zcash.LightWalletException.ErrorCode.Sqlite = 3 -> Nerdbank.Zcash.Light
 Nerdbank.Zcash.LightWalletException.LightWalletException(string? message) -> void
 Nerdbank.Zcash.LightWalletException.LightWalletException(string? message, System.Exception? innerException) -> void
 Nerdbank.Zcash.LightWalletServers
-Nerdbank.Zcash.LightWalletServers.ElectricCoinCo
 Nerdbank.Zcash.LightWalletServers.Hanh
-Nerdbank.Zcash.LightWalletServers.Nighthawk
+Nerdbank.Zcash.LightWalletServers.Nerdbank
 Nerdbank.Zcash.ManagedLightWalletClient
 Nerdbank.Zcash.ManagedLightWalletClient.Dispose() -> void
 Nerdbank.Zcash.ManagedLightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
@@ -989,8 +988,8 @@ static Nerdbank.Zcash.Zip32HDWallet.Transparent.Create(Nerdbank.Bitcoin.Bip39Mne
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.Create(System.ReadOnlySpan<byte> seed, Nerdbank.Zcash.ZcashNetwork network) -> Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey!
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeError, out string? errorMessage, out Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedSpendingKey? key) -> bool
 static Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey.TryDecode(System.ReadOnlySpan<char> encoding, out Nerdbank.Cryptocurrencies.DecodeError? decodeResult, out string? errorMessage, out Nerdbank.Zcash.Zip32HDWallet.Transparent.ExtendedViewingKey? key) -> bool
-static readonly Nerdbank.Zcash.LightWalletServers.ElectricCoinCo.TestNet -> System.Uri!
-static readonly Nerdbank.Zcash.LightWalletServers.Nighthawk.MainNet -> System.Uri!
+static readonly Nerdbank.Zcash.LightWalletServers.Nerdbank.MainNet -> System.Uri!
+static readonly Nerdbank.Zcash.LightWalletServers.Nerdbank.TestNet -> System.Uri!
 static readonly Nerdbank.Zcash.UnifiedEncodingMetadata.Default -> Nerdbank.Zcash.UnifiedEncodingMetadata!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.ByFullViewingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!
 static readonly Nerdbank.Zcash.ZcashAccount.Equality.ByIncomingViewingKey -> System.Collections.Generic.IEqualityComparer<Nerdbank.Zcash.ZcashAccount!>!
