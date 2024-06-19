@@ -27,6 +27,8 @@ pub enum Error {
     /// An error occurred over a transport.
     Transport(tonic::transport::Error),
 
+    HDWallet(hdwallet::error::Error),
+
     /// An error that was produced by wallet operations in the course of scanning the chain.
     Wallet(SqliteClientError),
 
@@ -105,6 +107,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::Transport(e) => e.fmt(f),
+            Error::HDWallet(e) => e.fmt(f),
             Error::Wallet(e) => e.fmt(f),
             Error::BlockSource(e) => e.fmt(f),
             Error::Scan(e) => e.fmt(f),
@@ -161,6 +164,12 @@ impl From<JoinError> for Error {
 impl From<tonic::transport::Error> for Error {
     fn from(e: tonic::transport::Error) -> Self {
         Error::Transport(e)
+    }
+}
+
+impl From<hdwallet::error::Error> for Error {
+    fn from(e: hdwallet::error::Error) -> Self {
+        Error::HDWallet(e)
     }
 }
 
