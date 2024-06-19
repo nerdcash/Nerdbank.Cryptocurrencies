@@ -17,8 +17,6 @@ public partial class Zip32HDWallet
 		[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 		public class ExtendedSpendingKey : Bip32HDWallet.ExtendedPrivateKey, IExtendedKey, ISpendingKey, IUnifiedEncodingElement, IEquatable<ExtendedSpendingKey>, IKeyWithTextEncoding
 		{
-			private const int ExpectedUnifiedDataLength = 74;
-
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExtendedSpendingKey"/> class
 			/// that represents a derived key.
@@ -78,7 +76,7 @@ public partial class Zip32HDWallet
 			byte IUnifiedEncodingElement.UnifiedTypeCode => UnifiedTypeCodes.TransparentP2PKH;
 
 			/// <inheritdoc/>
-			int IUnifiedEncodingElement.UnifiedDataLength => ExpectedUnifiedDataLength;
+			int IUnifiedEncodingElement.UnifiedDataLength => 64;
 
 			private new string DebuggerDisplay => $"{this.DefaultAddress} ({this.DerivationPath})";
 
@@ -149,33 +147,32 @@ public partial class Zip32HDWallet
 			/// <inheritdoc/>
 			int IUnifiedEncodingElement.WriteUnifiedData(Span<byte> destination)
 			{
-				Span<byte> scratch = stackalloc byte[78];
+				int written = 0;
+				this.CryptographicKey.WriteToSpan(destination);
+				written += 32;
 
-				// This is standard BIP32 serialization, except without the Version header.
-				int written = this.WriteBytes(destination);
-				destination[4..].CopyTo(destination);
-				written -= 4;
-
+				written += this.ChainCode[..].CopyToRetLength(destination[written..]);
+				Assumes.True(written == 64);
 				return written;
 			}
 
 			/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
 			internal static IUnifiedEncodingElement DecodeUnifiedKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
 			{
-				Requires.Argument(keyContribution.Length == ExpectedUnifiedDataLength, nameof(keyContribution), $"Length expected to be {ExpectedUnifiedDataLength}.");
+				Requires.Argument(keyContribution.Length == 64, nameof(keyContribution), "Length expected to be 64.");
+				ReadOnlySpan<byte> publicKeyData = keyContribution[..32];
+				ReadOnlySpan<byte> chainCode = keyContribution[32..64];
 
-				const int PublicKeyLength = 33;
-
-				byte depth = keyContribution[0];
-				ref readonly ParentFingerprint parentFingerprint = ref ParentFingerprint.From(keyContribution[1..5]);
-				uint childIndex = BitUtilities.ReadUInt32BE(keyContribution[5..9]);
-				ref readonly ChainCode chainCode = ref ChainCode.From(keyContribution.Slice(9, ChainCode.Length));
-				ReadOnlySpan<byte> keyMaterial = keyContribution[^PublicKeyLength..];
+				// We have to assume or bluff on some of these values, since they aren't preserved by the encoding.
+				// The values don't actually matter as they don't impact the generated cryptographic key.
+				FullViewingKeyTag parentFingerprintTag = default; // we don't know it, but that's OK.
+				byte depth = 3; // A full viewing key always has a depth of 3.
+				uint childIndex = 0; // We don't know it, but that's OK.
 
 				return new ExtendedSpendingKey(
-					ECPrivKey.Create(keyMaterial),
+					ECPrivKey.Create(publicKeyData),
 					new ChainCode(chainCode),
-					FullViewingKeyTag.From(parentFingerprint),
+					parentFingerprintTag,
 					depth,
 					childIndex,
 					network);
