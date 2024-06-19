@@ -26,9 +26,7 @@ use zcash_keys::keys::UnifiedFullViewingKey;
 use zcash_primitives::{
     consensus::Network,
     memo::MemoBytes,
-    transaction::{
-        components::amount::NonNegativeAmount, fees::zip317::FeeRule, Transaction, TxId,
-    },
+    transaction::{components::amount::NonNegativeAmount, fees::zip317::FeeRule, TxId},
 };
 
 use crate::{
@@ -39,7 +37,6 @@ use crate::{
 #[derive(Debug)]
 pub struct SendTransactionResult {
     pub txid: TxId,
-    pub transaction: Transaction,
 }
 
 pub fn create_send_proposal(
@@ -142,13 +139,13 @@ pub(crate) async fn transmit_transaction(
     db: &mut WalletDb<Connection, Network>,
 ) -> Result<SendTransactionResult, Error> {
     let mut client = get_client(server_uri).await?;
-    let (tx, raw_tx) = db
+    let raw_tx = db
         .get_transaction(txid)?
         .ok_or(Error::Internal("Transaction not found".to_string()))
         .map(|tx| {
             let mut raw_tx = service::RawTransaction::default();
             tx.write(&mut raw_tx.data).unwrap();
-            (tx, raw_tx)
+            raw_tx
         })?;
     let response = client.send_transaction(raw_tx).await?.into_inner();
     if response.error_code != 0 {
@@ -157,10 +154,7 @@ pub(crate) async fn transmit_transaction(
             reason: response.error_message,
         })
     } else {
-        Ok(SendTransactionResult {
-            txid,
-            transaction: tx,
-        })
+        Ok(SendTransactionResult { txid })
     }
 }
 
