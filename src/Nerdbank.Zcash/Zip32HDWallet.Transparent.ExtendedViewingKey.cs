@@ -307,7 +307,7 @@ public partial class Zip32HDWallet
 				return written;
 			}
 
-			/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
+			/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
 			internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network, bool isFullViewingKey)
 			{
 				ReadOnlySpan<byte> chainCode = keyContribution[..32];
