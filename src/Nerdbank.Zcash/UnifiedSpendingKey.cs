@@ -139,9 +139,9 @@ internal class UnifiedSpendingKey : IEnumerable<ISpendingKey>, ISpendingKey
 
 			IUnifiedEncodingElement? element = typeCode switch
 			{
-				UnifiedTypeCodes.Orchard => Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
+				UnifiedTypeCodes.Orchard => Orchard.SpendingKey.DecodeUnifiedKeyContribution(elementContent, network),
 				UnifiedTypeCodes.Sapling => Zip32HDWallet.Sapling.ExtendedSpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
-				UnifiedTypeCodes.TransparentP2PKH => Zip32HDWallet.Transparent.ExtendedSpendingKey.DecodeUnifiedViewingKeyContribution(elementContent, network),
+				UnifiedTypeCodes.TransparentP2PKH => Zip32HDWallet.Transparent.ExtendedSpendingKey.DecodeUnifiedKeyContribution(elementContent, network),
 				_ => null,
 			};
 

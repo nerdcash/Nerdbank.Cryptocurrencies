@@ -156,8 +156,8 @@ public partial class Zip32HDWallet
 				return written;
 			}
 
-			/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedViewingKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
-			internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
+			/// <inheritdoc cref="Zcash.Orchard.SpendingKey.DecodeUnifiedKeyContribution(ReadOnlySpan{byte}, ZcashNetwork)"/>
+			internal static IUnifiedEncodingElement DecodeUnifiedKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network)
 			{
 				Requires.Argument(keyContribution.Length == 64, nameof(keyContribution), "Length expected to be 64.");
 				ReadOnlySpan<byte> publicKeyData = keyContribution[..32];
