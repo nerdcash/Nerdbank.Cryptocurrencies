@@ -28,31 +28,25 @@ public static class LightWalletServers
 	public static Uri GetDefaultServer(ZcashNetwork network) =>
 		network switch
 		{
-			ZcashNetwork.MainNet => Nighthawk.MainNet,
-			ZcashNetwork.TestNet => ElectricCoinCo.TestNet,
+			ZcashNetwork.MainNet => Nerdbank.MainNet,
+			ZcashNetwork.TestNet => Nerdbank.TestNet,
 			_ => throw new ArgumentOutOfRangeException(nameof(network)),
 		};
 
 	/// <summary>
-	/// Servers hosted by the Nighthawk Wallet team.
+	/// Servers hosted by the same authors as this library.
 	/// </summary>
-	public static class Nighthawk
+	public static class Nerdbank
 	{
 		/// <summary>
-		/// Gets the URI to the Nighthawk MainNet server.
+		/// Gets the URI to the MainNet server.
 		/// </summary>
-		public static readonly Uri MainNet = new("https://mainnet.lightwalletd.com:9067/");
-	}
+		public static readonly Uri MainNet = new("https://zcash.mysideoftheweb.com:9067/");
 
-	/// <summary>
-	/// Servers hosted by the Electric Coin Company.
-	/// </summary>
-	public static class ElectricCoinCo
-	{
 		/// <summary>
-		/// Gets the URI to the Electric Coin Company TestNet server.
+		/// Gets the URI to the TestNet server.
 		/// </summary>
-		public static readonly Uri TestNet = new("https://lightwalletd.testnet.electriccoin.co:9067/");
+		public static readonly Uri TestNet = new("https://zcash.mysideoftheweb.com:19067/");
 	}
 
 	/// <summary>

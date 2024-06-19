@@ -91,7 +91,7 @@ public class SpendingKey : ISpendingKey, IUnifiedEncodingElement
 	/// <param name="keyContribution">The data that would have been written by <see cref="IUnifiedEncodingElement.WriteUnifiedData(Span{byte})"/>.</param>
 	/// <param name="network">The network the key should be used with.</param>
 	/// <returns>The deserialized key.</returns>
-	internal static IUnifiedEncodingElement DecodeUnifiedViewingKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network) => new SpendingKey(keyContribution, network);
+	internal static IUnifiedEncodingElement DecodeUnifiedKeyContribution(ReadOnlySpan<byte> keyContribution, ZcashNetwork network) => new SpendingKey(keyContribution, network);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="FullViewingKey"/> class.
