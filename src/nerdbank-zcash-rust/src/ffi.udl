@@ -105,7 +105,10 @@ namespace LightWallet {
 	void init(DbInit config);
 
 	[Throws=LightWalletError]
-	u32 add_account(DbInit config, string uri, bytes seed, u32? birthday_height, CancellationSource? cancellation);
+	u32 add_account(DbInit config, string uri, bytes seed, u32 account_index, u32? birthday_height, CancellationSource? cancellation);
+
+	[Throws=LightWalletError]
+	u32 import_account_ufvk(DbInit config, string uri, string ufvk, boolean spending_key_available, u32? birthday_height, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
 	sequence<AccountInfo> get_accounts(DbInit config);

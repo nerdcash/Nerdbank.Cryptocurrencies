@@ -104,10 +104,6 @@ public partial class LightWalletClient : IDisposable
 	public async Task AddAccountAsync(ZcashAccount account, CancellationToken cancellationToken)
 	{
 		Requires.NotNull(account);
-		if (account.HDDerivation is null)
-		{
-			throw new NotSupportedException("Only HD derived accounts are supported at present.");
-		}
 
 		if (account.Network != this.Network)
 		{
@@ -124,7 +120,26 @@ public partial class LightWalletClient : IDisposable
 		}
 
 		await TaskScheduler.Default.SwitchTo(alwaysYield: true);
-		id = InvokeInterop(cancellation => LightWalletMethods.AddAccount(this.dbinit, this.serverUrl.AbsoluteUri, account.HDDerivation.Value.Wallet.Seed.ToArray(), (uint?)account.BirthdayHeight, cancellation), cancellationToken);
+		id = InvokeInterop(
+			cancellation => account switch
+			{
+				{ HDDerivation: { } hd } => LightWalletMethods.AddAccount(
+					this.dbinit,
+					this.serverUrl.AbsoluteUri,
+					hd.Wallet.Seed.ToArray(),
+					hd.AccountIndex,
+					(uint?)account.BirthdayHeight,
+					cancellation),
+				{ FullViewing.UnifiedKey: { } ufvk } => LightWalletMethods.ImportAccountUfvk(
+					this.dbinit,
+					this.serverUrl.AbsoluteUri,
+					ufvk.ToString(),
+					spendingKeyAvailable: true,
+					(uint?)account.BirthdayHeight,
+					cancellation),
+				_ => throw new NotSupportedException("This account doesn't contain any of the supported key types."),
+			},
+			cancellationToken);
 		this.accountIds = this.accountIds.Add(account, id);
 		this.accountsById = this.accountsById.SetItem(id, account);
 	}

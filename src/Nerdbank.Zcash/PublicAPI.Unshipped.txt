@@ -546,13 +546,12 @@ Nerdbank.Zcash.ZcashAccount.HasDiversifiableKeys.get -> bool
 Nerdbank.Zcash.ZcashAccount.HDDerivation.get -> Nerdbank.Zcash.ZcashAccount.HDDerivationSource?
 Nerdbank.Zcash.ZcashAccount.HDDerivationSource
 Nerdbank.Zcash.ZcashAccount.HDDerivationSource.AccountIndex.get -> uint
-Nerdbank.Zcash.ZcashAccount.HDDerivationSource.AccountIndex.set -> void
-Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Deconstruct(out Nerdbank.Zcash.Zip32HDWallet! Wallet, out uint AccountIndex) -> void
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.AccountIndex.init -> void
 Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Equals(Nerdbank.Zcash.ZcashAccount.HDDerivationSource other) -> bool
 Nerdbank.Zcash.ZcashAccount.HDDerivationSource.HDDerivationSource() -> void
-Nerdbank.Zcash.ZcashAccount.HDDerivationSource.HDDerivationSource(Nerdbank.Zcash.Zip32HDWallet! Wallet, uint AccountIndex) -> void
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.HDDerivationSource(Nerdbank.Zcash.Zip32HDWallet! wallet, uint accountIndex) -> void
 Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Wallet.get -> Nerdbank.Zcash.Zip32HDWallet!
-Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Wallet.set -> void
+Nerdbank.Zcash.ZcashAccount.HDDerivationSource.Wallet.init -> void
 Nerdbank.Zcash.ZcashAccount.IncomingViewing.get -> Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys!
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys
 Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys.IncomingViewingKeys(Nerdbank.Zcash.ZcashAccount.IncomingViewingKeys! original) -> void

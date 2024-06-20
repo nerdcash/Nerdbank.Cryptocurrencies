@@ -451,9 +451,31 @@ public class ZcashAccount : INotifyPropertyChanged
 	/// <summary>
 	/// Describes the parameters that were used to create this account.
 	/// </summary>
-	/// <param name="Wallet">The ZIP-32 HD wallet used.</param>
-	/// <param name="AccountIndex">The account index used to derive this account.</param>
-	public record struct HDDerivationSource(Zip32HDWallet Wallet, uint AccountIndex);
+	public record struct HDDerivationSource
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="HDDerivationSource"/> struct.
+		/// </summary>
+		/// <param name="wallet">A ZIP-32 wallet.</param>
+		/// <param name="accountIndex">An account index. Must be less than 2^31.</param>
+		public HDDerivationSource(Zip32HDWallet wallet, uint accountIndex)
+		{
+			Requires.Range(accountIndex < (2 ^ 31), nameof(accountIndex));
+
+			this.Wallet = wallet;
+			this.AccountIndex = accountIndex;
+		}
+
+		/// <summary>
+		/// Gets the ZIP-32 derivation source.
+		/// </summary>
+		public Zip32HDWallet Wallet { get; init; }
+
+		/// <summary>
+		/// Gets the account index.
+		/// </summary>
+		public uint AccountIndex { get; init; }
+	}
 
 	/// <summary>
 	/// Spending keys for each pool.

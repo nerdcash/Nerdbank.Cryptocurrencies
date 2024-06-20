@@ -71,6 +71,7 @@ zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
 	"multicore",
 ], default-features = false }
 zeroize = "1.7.0"
+zip32 = "0.1.1"
 
 [dev-dependencies]
 testdir = "0.9.1"
