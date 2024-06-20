@@ -129,6 +129,12 @@
   <data name="ImportAccountCommandCaption" xml:space="preserve">
     <value>계정 가져오기</value>
   </data>
+  <data name="IsWatchOnlyCellContent" xml:space="preserve">
+    <value>👁️</value>
+  </data>
+  <data name="IsWatchOnlyCellToolTip" xml:space="preserve">
+    <value>거래는이 계정에서만 관찰 될 수 있습니다. 자금은 소비 될 수 없습니다.</value>
+  </data>
   <data name="NewAccountCommandCaption" xml:space="preserve">
     <value>새 계정</value>
   </data>

@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AccountIndexCaption" xml:space="preserve">
+    <value>Index du compte (généralement 0)</value>
+  </data>
+  <data name="AccountIndexRequired" xml:space="preserve">
+    <value>Requis pour les phrases de graines.</value>
+  </data>
   <data name="BadOrUnsupportedImportKey" xml:space="preserve">
     <value>Ceci ne ressemble pas à une clé ou une phrase de récupération valide et prise en charge.</value>
   </data>
@@ -133,7 +139,7 @@
     <value>Ceci est un compte de testnet</value>
   </data>
   <data name="KeyCaption" xml:space="preserve">
-    <value>Entrez la phrase de récupération, la clé privée, la clé de visualisation complète ou entrante pour le compte que vous souhaitez importer.</value>
+    <value>Clé de visualisation complète des semences ou unifiées</value>
   </data>
   <data name="NameCaption" xml:space="preserve">
     <value>Nom du compte</value>

@@ -571,6 +571,7 @@ static class _UniFFILib
 		RustBuffer @config,
 		RustBuffer @uri,
 		RustBuffer @seed,
+		uint @accountIndex,
 		RustBuffer @birthdayHeight,
 		RustBuffer @cancellation,
 		ref RustCallStatus _uniffi_out_err
@@ -647,6 +648,17 @@ static class _UniFFILib
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_user_balances(
 		RustBuffer @config,
 		uint @accountId,
+		ref RustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust")]
+	public static extern uint uniffi_nerdbank_zcash_rust_fn_func_import_account_ufvk(
+		RustBuffer @config,
+		RustBuffer @uri,
+		RustBuffer @ufvk,
+		sbyte @spendingKeyAvailable,
+		RustBuffer @birthdayHeight,
+		RustBuffer @cancellation,
 		ref RustCallStatus _uniffi_out_err
 	);
 
@@ -995,6 +1007,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_get_user_balances();
 
 	[DllImport("nerdbank_zcash_rust")]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_import_account_ufvk();
+
+	[DllImport("nerdbank_zcash_rust")]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_init();
 
 	[DllImport("nerdbank_zcash_rust")]
@@ -1037,10 +1052,10 @@ static class _UniFFILib
 	{
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_add_account();
-			if (checksum != 61817)
+			if (checksum != 60212)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_add_account` checksum `61817`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_add_account` checksum `60212`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -1143,6 +1158,16 @@ static class _UniFFILib
 			{
 				throw new UniffiContractChecksumException(
 					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_user_balances` checksum `20744`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum =
+				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_import_account_ufvk();
+			if (checksum != 64807)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_import_account_ufvk` checksum `64807`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -2983,6 +3008,7 @@ internal static class LightWalletMethods
 		DbInit @config,
 		String @uri,
 		byte[] @seed,
+		uint @accountIndex,
 		uint? @birthdayHeight,
 		CancellationSource? @cancellation
 	)
@@ -2995,6 +3021,7 @@ internal static class LightWalletMethods
 						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterByteArray.INSTANCE.Lower(@seed),
+						FfiConverterUInt32.INSTANCE.Lower(@accountIndex),
 						FfiConverterOptionalUInt32.INSTANCE.Lower(@birthdayHeight),
 						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
@@ -3175,6 +3202,33 @@ internal static class LightWalletMethods
 					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_user_balances(
 						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
 						FfiConverterUInt32.INSTANCE.Lower(@accountId),
+						ref _status
+					)
+			)
+		);
+	}
+
+	/// <exception cref="LightWalletException"></exception>
+	public static uint ImportAccountUfvk(
+		DbInit @config,
+		String @uri,
+		String @ufvk,
+		bool @spendingKeyAvailable,
+		uint? @birthdayHeight,
+		CancellationSource? @cancellation
+	)
+	{
+		return FfiConverterUInt32.INSTANCE.Lift(
+			_UniffiHelpers.RustCallWithError(
+				FfiConverterTypeLightWalletException.INSTANCE,
+				(ref RustCallStatus _status) =>
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_import_account_ufvk(
+						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
+						FfiConverterString.INSTANCE.Lower(@uri),
+						FfiConverterString.INSTANCE.Lower(@ufvk),
+						FfiConverterBoolean.INSTANCE.Lower(@spendingKeyAvailable),
+						FfiConverterOptionalUInt32.INSTANCE.Lower(@birthdayHeight),
+						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
 					)
 			)

@@ -11,6 +11,7 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 {
 	private readonly IViewModelServices viewModelServices;
 	private readonly ObservableAsPropertyHelper<bool> groupAccountsByHDWallets;
+	private bool isWatchOnlyColumnVisible;
 
 	[Obsolete("Design-time only", error: true)]
 	public AccountsViewModel()
@@ -31,6 +32,12 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 		this.groupAccountsByHDWallets = this.Accounts.ObserveCollectionChanges().Select(
 			_ => ShouldGroupAccounts())
 			.ToProperty(this, nameof(this.GroupAccountsByHDWallets), initialValue: ShouldGroupAccounts());
+
+		bool UpdateIsWatchOnlyColumnVisibility() => this.IsWatchOnlyColumnVisible = this.Accounts.Any(a => a.IsWatchOnly);
+		this.Accounts.NotifyOnCollectionElementMemberChanged<ObservableCollection<AccountViewModel>, AccountViewModel>(
+			nameof(AccountViewModel.IsWatchOnly),
+			_ => UpdateIsWatchOnlyColumnVisibility());
+		UpdateIsWatchOnlyColumnVisibility();
 	}
 
 	public string Title => AccountsStrings.Title;
@@ -44,6 +51,14 @@ public class AccountsViewModel : ViewModelBase, IHasTitle
 	public string AccountBalanceColumnHeader => AccountsStrings.AccountBalanceColumnHeader;
 
 	public string AccountIndexColumnHeader => AccountsStrings.AccountIndexColumnHeader;
+
+	public string IsWatchOnlyColumnHeader => AccountsStrings.IsWatchOnlyColumnHeader;
+
+	public bool IsWatchOnlyColumnVisible
+	{
+		get => this.isWatchOnlyColumnVisible;
+		set => this.RaiseAndSetIfChanged(ref this.isWatchOnlyColumnVisible, value);
+	}
 
 	public ReactiveCommand<Unit, Unit> NewAccountCommand { get; }
 

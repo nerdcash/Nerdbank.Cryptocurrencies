@@ -14,7 +14,7 @@ use secrecy::SecretVec;
 use tokio::runtime::Runtime;
 use tokio_util::sync::CancellationToken;
 use zcash_client_backend::{
-    data_api::WalletRead,
+    data_api::{Account, WalletRead},
     encoding::AddressCodec,
     keys::{Era, UnifiedSpendingKey},
 };
@@ -271,11 +271,17 @@ pub fn add_account(
     config: DbInit,
     uri: String,
     seed: Vec<u8>,
+    account_index: u32,
     birthday_height: Option<u32>,
     cancellation: Option<Box<dyn CancellationSource>>,
 ) -> Result<u32, LightWalletError> {
     use crate::lightclient::get_block_height;
     let cancellation_token = get_cancellation_token(cancellation)?;
+    let account_index = zip32::AccountId::try_from(account_index).map_err(|_| {
+        LightWalletError::InvalidArgument {
+            message: "Invalid account index".to_string(),
+        }
+    })?;
 
     RT.block_on(async move {
         let mut db = Db::load(config.data_file, config.network.into())?;
@@ -286,9 +292,44 @@ pub fn add_account(
         };
         let secret = SecretVec::new(seed);
         let account = db
-            .add_account(&secret, birthday_height as u64, &mut client)
+            .add_account(&secret, account_index, birthday_height as u64, &mut client)
             .await?;
-        Ok(account.0.into())
+        Ok(account.0.id().into())
+    })
+}
+
+pub fn import_account_ufvk(
+    config: DbInit,
+    uri: String,
+    ufvk: String,
+    spending_key_available: bool,
+    birthday_height: Option<u32>,
+    cancellation: Option<Box<dyn CancellationSource>>,
+) -> Result<u32, LightWalletError> {
+    use crate::lightclient::get_block_height;
+    let cancellation_token = get_cancellation_token(cancellation)?;
+    let network: Network = config.network.into();
+    RT.block_on(async move {
+        let mut db = Db::load(config.data_file, config.network.into())?;
+        let mut client = get_client(uri.parse()?).await.map_err(Error::from)?;
+        let birthday_height = match birthday_height {
+            Some(v) => v,
+            None => get_block_height(uri.parse()?, cancellation_token.0.clone()).await?,
+        };
+        let ufvk = UnifiedFullViewingKey::decode(&network, ufvk.as_str()).map_err(|e| {
+            LightWalletError::InvalidArgument {
+                message: format!("Invalid UFVK: {e}"),
+            }
+        })?;
+        let account = db
+            .import_account_ufvk(
+                &ufvk,
+                spending_key_available,
+                birthday_height as u64,
+                &mut client,
+            )
+            .await?;
+        Ok(account.id().into())
     })
 }
 

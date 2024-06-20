@@ -57,6 +57,8 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 
 	public bool HDWalletsRequireBackup => this.hdWallets.Any(w => !w.IsBackedUp);
 
+	public bool AnyAccountCanSpend => this.Accounts.Any(a => a.ZcashAccount.Spending is not null);
+
 	/// <summary>
 	/// Gets a value indicating whether the wallet has no lone accounts and no HD wallets (whether or not they are empty).
 	/// </summary>
@@ -138,6 +140,8 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 
 		this.accounts.Add(account);
 		this.StartWatchingForDirtyChild(account);
+
+		this.OnPropertyChanged(nameof(this.AnyAccountCanSpend));
 	}
 
 	public bool Remove(Account account, IContactManager? contactManager)
@@ -149,6 +153,7 @@ public class ZcashWallet : INotifyPropertyChanged, IPersistableDataHelper
 				this.ScrubAccountReferenceFromContacts(account, contactManager);
 			}
 
+			this.OnPropertyChanged(nameof(this.AnyAccountCanSpend));
 			return true;
 		}
 
