@@ -4,6 +4,7 @@ use secrecy::{Secret, SecretVec};
 use testdir::testdir;
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Channel;
+use zcash_client_backend::data_api::Account;
 use zcash_client_backend::keys::UnifiedSpendingKey;
 use zcash_client_backend::proto::service::{
     self, compact_tx_streamer_client::CompactTxStreamerClient, LightdInfo,
@@ -89,9 +90,9 @@ impl TestSetup {
         let birthday = self.server_info.block_height.saturating_sub(100);
         let account = self
             .db
-            .add_account(&seed, birthday, &mut self.client)
+            .add_account(&seed, zip32::AccountId::ZERO, birthday, &mut self.client)
             .await?;
-        Ok((seed, birthday, account.0, account.1))
+        Ok((seed, birthday, account.0.id(), account.1))
     }
 
     pub async fn sync(&mut self) -> SyncUpdateData {

@@ -1081,6 +1081,7 @@ pub(crate) fn get_transactions(
 
 #[cfg(test)]
 mod tests {
+    use zcash_client_backend::data_api::Account;
     use zcash_primitives::transaction::components::Amount;
 
     use crate::test_constants::setup_test;
@@ -1097,10 +1098,11 @@ mod tests {
             account_id,
             setup
                 .db
-                .add_account(&seed, birthday, &mut setup.client)
+                .add_account(&seed, zip32::AccountId::ZERO, birthday, &mut setup.client)
                 .await
                 .unwrap()
-                .0,
+                .0
+                .id(),
         ]
         .map(|a| a);
 
