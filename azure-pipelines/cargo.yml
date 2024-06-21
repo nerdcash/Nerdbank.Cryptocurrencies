@@ -20,7 +20,7 @@ steps:
 - pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
 
-- pwsh: cargo test -r --target ${{ parameters.test_target }}
+- pwsh: cargo test -r --target=${{ parameters.test_target }}
   displayName: 🧪 cargo test
   workingDirectory: src/nerdbank-zcash-rust
   env:
@@ -29,7 +29,7 @@ steps:
   continueOnError: true # too many tests fail with network errors
 
 - ${{ if parameters.checks }}:
-  - pwsh: cargo clippy -r --target ${{ parameters.test_target }} -- -D warnings
+  - pwsh: cargo clippy -r --target=${{ parameters.test_target }} -- -D warnings
     displayName: 🧼 cargo clippy
     workingDirectory: src/nerdbank-zcash-rust
 
