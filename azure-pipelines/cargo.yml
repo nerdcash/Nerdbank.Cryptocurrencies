@@ -27,7 +27,7 @@ steps:
   condition: and(succeeded(), ne('${{ parameters.test_target }}', ''))
 
 - ${{ if parameters.checks }}:
-  - pwsh: cargo clippy -- -D warnings
+  - pwsh: cargo clippy -r --target=${{ parameters.test_target }} -- -D warnings
     displayName: 🧼 cargo clippy
     workingDirectory: src/nerdbank-zcash-rust
 
