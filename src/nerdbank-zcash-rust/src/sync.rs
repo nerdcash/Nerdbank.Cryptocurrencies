@@ -1098,7 +1098,12 @@ mod tests {
             account_id,
             setup
                 .db
-                .add_account(&seed, zip32::AccountId::ZERO, birthday, &mut setup.client)
+                .add_account(
+                    &seed,
+                    zip32::AccountId::ZERO.next().unwrap(),
+                    birthday,
+                    &mut setup.client,
+                )
                 .await
                 .unwrap()
                 .0
