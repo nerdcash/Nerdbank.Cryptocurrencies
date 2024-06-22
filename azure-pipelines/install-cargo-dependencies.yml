@@ -5,7 +5,7 @@ steps:
     } else {
       curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
     }
-  displayName: 📦 Install cargo-binstall
+  displayName: ⚙️ Install cargo-binstall
 
 - pwsh: cargo binstall cargo-nextest --secure -y
-  displayName: 📦 Install cargo-nextest
+  displayName: ⚙️ Install cargo-nextest
