@@ -17,10 +17,12 @@ steps:
 #     path: $(HOME)/.cargo/registry
 #   displayName: cache cargo registry
 
+- template: install-cargo-dependencies.yml
+
 - pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
   displayName: 🛠️ cargo build
 
-- pwsh: cargo test -r --target=${{ parameters.test_target }}
+- pwsh: cargo nextest run -r --target ${{ parameters.test_target }}
   displayName: 🧪 cargo test
   workingDirectory: src/nerdbank-zcash-rust
   env:
