@@ -25,10 +25,9 @@ steps:
   env:
     RUST_BACKTRACE: 1
   condition: and(succeeded(), ne('${{ parameters.test_target }}', ''))
-  continueOnError: true # too many tests fail with network errors
 
 - ${{ if parameters.checks }}:
-  - pwsh: cargo clippy -- -D warnings
+  - pwsh: cargo clippy -r --target=${{ parameters.test_target }} -- -D warnings
     displayName: 🧼 cargo clippy
     workingDirectory: src/nerdbank-zcash-rust
 
