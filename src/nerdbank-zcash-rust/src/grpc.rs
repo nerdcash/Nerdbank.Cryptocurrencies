@@ -1,20 +1,19 @@
 use http::Uri;
-use std::{cell::RefCell, collections::HashMap, sync::Mutex};
+use std::{collections::HashMap, sync::Mutex};
 use tonic::transport::{Channel, ClientTlsConfig};
 use zcash_client_backend::proto::service::compact_tx_streamer_client::CompactTxStreamerClient;
 
 // We'll use a MUTEX to store the shareable gRPC channels, indexed by server URI.
 // gRPC channels are expensive to create, cannot be used concurrently, but cheap to clone for each user.
 lazy_static! {
-    static ref CHANNELS: Mutex<HashMap<Uri, RefCell<Channel>>> = Mutex::new(HashMap::new());
+    static ref CHANNELS: Mutex<HashMap<Uri, Channel>> = Mutex::new(HashMap::new());
 }
 
 /// Return a gRPC channel for the given URI, creating one if necessary.
 pub(crate) async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transport::Error> {
     {
         let clients = CHANNELS.lock().unwrap();
-        if let Some(client) = clients.get(&uri) {
-            let channel = &*client.borrow();
+        if let Some(channel) = clients.get(&uri) {
             return Ok(channel.clone());
         }
     }
@@ -26,7 +25,7 @@ pub(crate) async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transpo
         .await?;
 
     let mut clients = CHANNELS.lock().unwrap();
-    clients.insert(uri, RefCell::new(channel.clone()));
+    clients.insert(uri, channel.clone());
     Ok(channel)
 }
 
