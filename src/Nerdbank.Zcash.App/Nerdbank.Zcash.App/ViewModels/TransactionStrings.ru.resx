@@ -126,6 +126,9 @@
   <data name="FeeCaption" xml:space="preserve">
     <value>Платеж</value>
   </data>
+  <data name="InvalidValue" xml:space="preserve">
+    <value>Неверный</value>
+  </data>
   <data name="LineItemsCaption" xml:space="preserve">
     <value>Позиции</value>
   </data>

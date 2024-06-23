@@ -75,7 +75,8 @@
           </DataGridTemplateColumn.CellTemplate>
           <DataGridTemplateColumn.CellEditingTemplate>
             <DataTemplate>
-              <TextBox Text="{Binding AlternateNetChangeUserEdit}" />
+              <TextBox Text="{Binding AlternateNetChangeUserEdit}"
+                       TextAlignment="Right" />
             </DataTemplate>
           </DataGridTemplateColumn.CellEditingTemplate>
         </DataGridTemplateColumn>

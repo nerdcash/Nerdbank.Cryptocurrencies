@@ -3,6 +3,7 @@
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reactive.Linq;
 using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies;
@@ -26,6 +27,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	private readonly ObservableAsPropertyHelper<bool> canOtherPartyBeChanged;
 	private SecurityAmount runningBalance;
 	private SecurityAmount? alternateAmount;
+	private string? alternateNetChangeUserEditInProgress;
 
 	public TransactionViewModel(Security security, Security? alternateSecurity, ZcashTransaction transaction, HistoryViewModel owner)
 	{
@@ -142,22 +144,46 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	public SecurityAmount? AlternateNetChange
 	{
 		get => this.alternateAmount;
-		internal set => this.RaiseAndSetIfChanged(ref this.alternateAmount, value);
+		internal set
+		{
+			this.RaiseAndSetIfChanged(ref this.alternateAmount, value);
+			this.alternateNetChangeUserEditInProgress = null;
+			this.RecordValidationError(null, nameof(this.AlternateNetChangeUserEdit));
+		}
 	}
 
-	public decimal? AlternateNetChangeUserEdit
+	public string AlternateNetChangeUserEdit
 	{
-		get => this.AlternateNetChange?.Amount;
+		get
+		{
+			if (this.alternateNetChangeUserEditInProgress is null)
+			{
+				this.alternateNetChangeUserEditInProgress = this.AlternateNetChange?.Amount.ToString("F" + this.AlternateNetChange.Value.Security.Precision) ?? string.Empty;
+				this.RecordValidationError(null, nameof(this.AlternateNetChangeUserEdit));
+			}
+
+			return this.alternateNetChangeUserEditInProgress;
+		}
+
 		set
 		{
 			Verify.Operation(this.AlternateSecurity is not null, "Cannot set alternate amount without an alternate security set.");
-			this.AlternateNetChange = value is null ? null : this.AlternateSecurity.Amount(value.Value);
-
-			// Record the exchange rate.
-			if (value is not null && this.When is not null)
+			this.alternateNetChangeUserEditInProgress = value;
+			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed))
 			{
-				ExchangeRate rate = new(this.AlternateSecurity.Amount(value.Value), this.NetChange);
-				this.owner.ViewModelServices.ExchangeData.SetExchangeRate(this.When.Value, rate);
+				this.RecordValidationError(null, nameof(this.AlternateNetChangeUserEdit));
+				this.RaiseAndSetIfChanged(ref this.alternateAmount, this.AlternateSecurity.Amount(parsed), nameof(this.AlternateNetChange));
+
+				// Record the exchange rate.
+				if (this.When is not null)
+				{
+					ExchangeRate rate = new(this.AlternateSecurity.Amount(parsed), this.NetChange);
+					this.owner.ViewModelServices.ExchangeData.SetExchangeRate(this.When.Value, rate);
+				}
+			}
+			else
+			{
+				this.RecordValidationError(TransactionStrings.InvalidValue, nameof(this.AlternateNetChangeUserEdit));
 			}
 
 			this.RaisePropertyChanged();
