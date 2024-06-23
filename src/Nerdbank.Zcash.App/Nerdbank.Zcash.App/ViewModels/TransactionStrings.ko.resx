@@ -126,6 +126,9 @@
   <data name="FeeCaption" xml:space="preserve">
     <value>수수료</value>
   </data>
+  <data name="InvalidValue" xml:space="preserve">
+    <value>유효하지 않은</value>
+  </data>
   <data name="LineItemsCaption" xml:space="preserve">
     <value>라인 항목</value>
   </data>
