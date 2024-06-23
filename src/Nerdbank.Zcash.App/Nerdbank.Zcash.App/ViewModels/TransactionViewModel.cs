@@ -151,7 +151,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		set
 		{
 			Verify.Operation(this.AlternateSecurity is not null, "Cannot set alternate amount without an alternate security set.");
-			this.AlternateNetChange = value is null ? null : this.Security.Amount(value.Value);
+			this.AlternateNetChange = value is null ? null : this.AlternateSecurity.Amount(value.Value);
 
 			// Record the exchange rate.
 			if (value is not null && this.When is not null)
