@@ -170,7 +170,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test]
+    #[tokio_shared_rt::test]
     async fn test_send_insufficient_funds() {
         let mut setup = setup_test().await;
         let account = setup.create_account().await.unwrap();

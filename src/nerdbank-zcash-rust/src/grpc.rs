@@ -1,18 +1,32 @@
 use http::Uri;
+use std::{cell::RefCell, collections::HashMap, sync::Mutex};
 use tonic::transport::{Channel, ClientTlsConfig};
 use zcash_client_backend::proto::service::compact_tx_streamer_client::CompactTxStreamerClient;
 
-// This was meant to share and reuse gRPC channels, but it was buggy and caused test instability.
-// Check https://users.rust-lang.org/t/is-my-concurrent-use-of-grpc-safe/113328 in case a fix is found.
+// We'll use a MUTEX to store the shareable gRPC channels, indexed by server URI.
+// gRPC channels are expensive to create, cannot be used concurrently, but cheap to clone for each user.
+lazy_static! {
+    static ref CHANNELS: Mutex<HashMap<Uri, RefCell<Channel>>> = Mutex::new(HashMap::new());
+}
 
 /// Return a gRPC channel for the given URI, creating one if necessary.
 pub(crate) async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transport::Error> {
+    {
+        let clients = CHANNELS.lock().unwrap();
+        if let Some(client) = clients.get(&uri) {
+            let channel = &*client.borrow();
+            return Ok(channel.clone());
+        }
+    }
+
     let tls = ClientTlsConfig::new().domain_name(uri.host().unwrap());
     let channel = Channel::builder(uri.clone())
         .tls_config(tls)?
         .connect()
         .await?;
 
+    let mut clients = CHANNELS.lock().unwrap();
+    clients.insert(uri, RefCell::new(channel.clone()));
     Ok(channel)
 }
 
@@ -21,8 +35,9 @@ pub(crate) async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transpo
 /// user disconnects.
 ///
 /// The function returns true if the channel was found and removed, false otherwise.
-pub(crate) fn destroy_channel(_uri: Uri) -> bool {
-    false
+pub(crate) fn destroy_channel(uri: Uri) -> bool {
+    let mut clients = CHANNELS.lock().unwrap();
+    clients.remove(&uri).is_some()
 }
 
 /// Gets the CompactTxStreamerClient for the given URI for use with communicating with the lightwalletd server.
@@ -39,10 +54,10 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test]
+    #[tokio_shared_rt::test]
     async fn get_client_twice_then_destroy() {
         get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
         get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
-        assert!(!destroy_channel(LIGHTSERVER_URI.to_owned()));
+        assert!(destroy_channel(LIGHTSERVER_URI.to_owned()));
     }
 }
