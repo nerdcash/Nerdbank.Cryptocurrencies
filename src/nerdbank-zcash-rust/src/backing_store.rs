@@ -122,7 +122,7 @@ mod tests {
     use super::*;
     use testdir::testdir;
 
-    #[tokio::test]
+    #[tokio_shared_rt::test]
     async fn test_init() {
         let wallet_dir = testdir!();
         let data_file = wallet_dir.join("wallet.sqlite");

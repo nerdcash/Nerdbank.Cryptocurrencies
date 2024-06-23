@@ -42,7 +42,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test]
+    #[tokio_shared_rt::test]
     async fn test_get_block_height() {
         let block_height = get_block_height(LIGHTSERVER_URI.to_owned(), CancellationToken::new())
             .await
