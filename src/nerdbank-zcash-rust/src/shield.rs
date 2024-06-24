@@ -113,7 +113,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test(flavor = "multi_thread")]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn test_get_unshielded_utxos() {
         let mut setup = setup_test().await;
         let (_, _, account_id, _) = setup.create_account().await.unwrap();
