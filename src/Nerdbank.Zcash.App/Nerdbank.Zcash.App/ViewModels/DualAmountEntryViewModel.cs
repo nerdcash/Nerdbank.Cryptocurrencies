@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Globalization;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -12,7 +13,9 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 	private readonly ObservableAsPropertyHelper<string?> alternateTickerSymbol;
 	private readonly ObservableAsPropertyHelper<bool> isAlternateVisible;
 	private decimal? amount;
+	private string? amountText;
 	private decimal? amountInAlternateCurrency;
+	private string? amountInAlternateCurrencyText;
 
 	[Obsolete("For design-time use only", error: true)]
 	public DualAmountEntryViewModel()
@@ -57,10 +60,46 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 			.ToProperty(this, nameof(this.IsAlternateVisible));
 	}
 
+	public bool AllowNegativeValues { get; init; }
+
 	public decimal? Amount
 	{
 		get => this.amount;
-		set => this.RaiseAndSetIfChanged(ref this.amount, value);
+		set
+		{
+			Requires.Range(value is null or >= 0 || this.AllowNegativeValues, nameof(value));
+			this.RaiseAndSetIfChanged(ref this.amount, value);
+			this.RaiseAndSetIfChanged(ref this.amountText, null, nameof(this.AmountText));
+			this.RecordValidationError(null, nameof(this.AmountText));
+		}
+	}
+
+	public string AmountText
+	{
+		get
+		{
+			if (this.amountText is null)
+			{
+				this.amountText = this.Amount?.ToString($"F{this.Security.Precision}") ?? string.Empty;
+				this.RecordValidationError(null, nameof(this.AmountText));
+			}
+
+			return this.amountText;
+		}
+
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.amountText, value);
+			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed) && (parsed >= 0 || this.AllowNegativeValues))
+			{
+				this.RecordValidationError(null, nameof(this.AmountText));
+				this.RaiseAndSetIfChanged(ref this.amount, parsed, nameof(this.Amount));
+			}
+			else
+			{
+				this.RecordValidationError(TransactionStrings.InvalidValue, nameof(this.AmountText));
+			}
+		}
 	}
 
 	public string TickerSymbol => this.tickerSymbol.Value;
@@ -68,12 +107,48 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 	public decimal? AmountInAlternateCurrency
 	{
 		get => this.amountInAlternateCurrency;
-		set => this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrency, value);
+		set
+		{
+			Requires.Range(value is null or >= 0 || this.AllowNegativeValues, nameof(value));
+			this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrency, value);
+			this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrencyText, null, nameof(this.AmountInAlternateCurrencyText));
+			this.RecordValidationError(null, nameof(this.AmountInAlternateCurrencyText));
+		}
+	}
+
+	public string AmountInAlternateCurrencyText
+	{
+		get
+		{
+			if (this.amountInAlternateCurrencyText is null)
+			{
+				this.amountInAlternateCurrencyText = this.AmountInAlternateCurrency?.ToString($"F{this.ExchangeRate?.Basis.Security.Precision}") ?? string.Empty;
+				this.RecordValidationError(null, nameof(this.AmountInAlternateCurrencyText));
+			}
+
+			return this.amountInAlternateCurrencyText;
+		}
+
+		set
+		{
+			this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrencyText, value);
+			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed) && (parsed >= 0 || this.AllowNegativeValues))
+			{
+				this.RecordValidationError(null, nameof(this.AmountInAlternateCurrencyText));
+				this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrency, parsed, nameof(this.AmountInAlternateCurrency));
+			}
+			else
+			{
+				this.RecordValidationError(TransactionStrings.InvalidValue, nameof(this.AmountInAlternateCurrencyText));
+			}
+		}
 	}
 
 	public string? AlternateTickerSymbol => this.alternateTickerSymbol.Value;
 
 	public bool IsAlternateVisible => this.isAlternateVisible.Value;
+
+	private Security Security => this.SelectedAccount?.Network.AsSecurity() ?? UnknownSecurity;
 
 	private static SecurityAmount? ComputeAmountInAlternateCurrency(decimal? amountInSelectedCurrency, Account? selectedAccount, ExchangeRate? exchangeRate)
 		=> ConvertOrNull(exchangeRate, amountInSelectedCurrency is null ? null : selectedAccount?.Network.AsSecurity().Amount(amountInSelectedCurrency.Value));
