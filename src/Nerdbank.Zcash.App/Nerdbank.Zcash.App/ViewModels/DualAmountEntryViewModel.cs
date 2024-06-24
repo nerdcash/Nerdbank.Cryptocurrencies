@@ -60,11 +60,14 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 			.ToProperty(this, nameof(this.IsAlternateVisible));
 	}
 
+	public bool AllowNegativeValues { get; init; }
+
 	public decimal? Amount
 	{
 		get => this.amount;
 		set
 		{
+			Requires.Range(value is null or >= 0 || this.AllowNegativeValues, nameof(value));
 			this.RaiseAndSetIfChanged(ref this.amount, value);
 			this.RaiseAndSetIfChanged(ref this.amountText, null, nameof(this.AmountText));
 			this.RecordValidationError(null, nameof(this.AmountText));
@@ -87,7 +90,7 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 		set
 		{
 			this.RaiseAndSetIfChanged(ref this.amountText, value);
-			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed))
+			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed) && (parsed >= 0 || this.AllowNegativeValues))
 			{
 				this.RecordValidationError(null, nameof(this.AmountText));
 				this.RaiseAndSetIfChanged(ref this.amount, parsed, nameof(this.Amount));
@@ -106,6 +109,7 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 		get => this.amountInAlternateCurrency;
 		set
 		{
+			Requires.Range(value is null or >= 0 || this.AllowNegativeValues, nameof(value));
 			this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrency, value);
 			this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrencyText, null, nameof(this.AmountInAlternateCurrencyText));
 			this.RecordValidationError(null, nameof(this.AmountInAlternateCurrencyText));
@@ -128,7 +132,7 @@ public class DualAmountEntryViewModel : ViewModelBaseWithExchangeRate
 		set
 		{
 			this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrencyText, value);
-			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed))
+			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed) && (parsed >= 0 || this.AllowNegativeValues))
 			{
 				this.RecordValidationError(null, nameof(this.AmountInAlternateCurrencyText));
 				this.RaiseAndSetIfChanged(ref this.amountInAlternateCurrency, parsed, nameof(this.AmountInAlternateCurrency));
