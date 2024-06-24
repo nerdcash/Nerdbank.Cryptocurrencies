@@ -366,6 +366,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	private void Clear(bool leaveOneEmptyLineItem)
 	{
+		this.MutableMemo = string.Empty;
 		this.lineItems.Clear();
 		if (leaveOneEmptyLineItem)
 		{
