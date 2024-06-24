@@ -147,7 +147,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		internal set
 		{
 			this.RaiseAndSetIfChanged(ref this.alternateAmount, value);
-			this.alternateNetChangeUserEditInProgress = null;
+			this.RaiseAndSetIfChanged(ref this.alternateNetChangeUserEditInProgress, null, nameof(this.AlternateNetChangeUserEdit));
 			this.RecordValidationError(null, nameof(this.AlternateNetChangeUserEdit));
 		}
 	}
@@ -168,7 +168,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		set
 		{
 			Verify.Operation(this.AlternateSecurity is not null, "Cannot set alternate amount without an alternate security set.");
-			this.alternateNetChangeUserEditInProgress = value;
+			this.RaiseAndSetIfChanged(ref this.alternateNetChangeUserEditInProgress, value);
 			if (decimal.TryParse(value, CultureInfo.CurrentCulture, out decimal parsed))
 			{
 				this.RecordValidationError(null, nameof(this.AlternateNetChangeUserEdit));
