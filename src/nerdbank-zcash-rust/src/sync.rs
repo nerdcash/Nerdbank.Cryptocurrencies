@@ -1088,7 +1088,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test(flavor = "multi_thread")]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn test_sync() {
         let mut setup = setup_test().await;
         let (seed, birthday, account_id, _) = setup.create_account().await.unwrap();

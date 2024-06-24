@@ -201,7 +201,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test(flavor = "multi_thread")]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn test_get_birthday_heights() {
         let mut setup = setup_test().await;
         let (_, _, account_id, _) = setup.create_account().await.unwrap();
@@ -211,7 +211,7 @@ mod tests {
         assert_matches!(heights.rebirth_height, None);
     }
 
-    #[tokio::test(flavor = "multi_thread")]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn test_get_user_balances() {
         let mut setup = setup_test().await;
         let (_, _, account_id, _) = setup.create_account().await.unwrap();
