@@ -206,7 +206,7 @@ pub async fn sync<P: AsRef<Path>>(
                     &mut db,
                     &state.network,
                     &addr_info.address,
-                    addr_info.height,
+                    Some(addr_info.height),
                     status.tip_height.into(),
                     state.cancellation_token.clone(),
                 )
@@ -423,6 +423,7 @@ fn fill_in_taddrs_to_gap_limit(
     for (account, taddrs_in_account) in taddrs_by_account.iter() {
         let mut index = 0;
         let mut consecutive_unused_addresses = 0;
+        let birthday_height = db.get_account_birthday(account.to_owned())?;
         while consecutive_unused_addresses < TADDR_INDEX_GAP_LIMIT {
             match taddrs_in_account.get(&index) {
                 None => {
@@ -432,7 +433,7 @@ fn fill_in_taddrs_to_gap_limit(
                             account_id: *account,
                             index,
                             address: *taddr,
-                            height: None,
+                            height: birthday_height,
                             used: false,
                         };
                         added.push(sync_info.clone());
