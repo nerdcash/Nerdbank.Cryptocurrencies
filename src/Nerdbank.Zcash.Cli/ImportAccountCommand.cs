@@ -18,7 +18,7 @@ internal class ImportAccountCommand
 
 	internal Uri? LightWalletServerUrl { get; set; }
 
-	internal ulong? BirthdayHeight { get; set; }
+	internal uint? BirthdayHeight { get; set; }
 
 	internal string? WalletPath { get; set; }
 
@@ -27,7 +27,7 @@ internal class ImportAccountCommand
 		Argument<string> keyArgument = new("key", Strings.KeyArgumentDescription) { Arity = ArgumentArity.ExactlyOne };
 		Option<string> walletPathOption = new Option<string>("--wallet", Strings.NewAccountWalletPathOptionDescription)
 			.LegalFilePathsOnly();
-		Option<ulong> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
+		Option<uint> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
 		Option<Uri> lightServerUriOption = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
 
 		Command command = new("import", Strings.ImportAccountCommandDescription)
