@@ -20,10 +20,10 @@ public static class AppUtilities
 		_ => throw new NotSupportedException(),
 	};
 
-	internal static async ValueTask<ulong> GetChainLengthAsync(IViewModelServices viewModelServices, ZcashNetwork network, CancellationToken cancellationToken)
+	internal static async ValueTask<uint> GetChainLengthAsync(IViewModelServices viewModelServices, ZcashNetwork network, CancellationToken cancellationToken)
 	{
 		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-		ulong birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
+		uint birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
 		return birthdayHeight;
 	}
 

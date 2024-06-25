@@ -51,7 +51,7 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 		string? uvk = null;
 		Zip32HDWallet? zip32 = null;
 		uint? accountIndex = null;
-		ulong? birthdayHeight = null;
+		uint? birthdayHeight = null;
 		uint? maxTransparentIndex = null;
 
 		options.Security.DepthStep(ref reader);
@@ -79,7 +79,7 @@ internal class ZcashAccountFormatter : IMessagePackFormatter<ZcashAccount?>
 
 					break;
 				case 3:
-					birthdayHeight = options.Resolver.GetFormatterWithVerify<ulong?>().Deserialize(ref reader, options);
+					birthdayHeight = options.Resolver.GetFormatterWithVerify<uint?>().Deserialize(ref reader, options);
 					break;
 				case 4:
 					maxTransparentIndex = options.Resolver.GetFormatterWithVerify<uint?>().Deserialize(ref reader, options);
