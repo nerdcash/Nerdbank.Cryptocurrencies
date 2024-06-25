@@ -23,6 +23,7 @@ public class Account : ReactiveObject, IPersistableData
 	public Account(ZcashAccount account)
 	{
 		this.ZcashAccount = account;
+		this.lastBlockHeight = account.BirthdayHeight.GetValueOrDefault();
 		this.balance = new AccountBalances { };
 
 		this.transactionsMutable = new ObservableCollection<ZcashTransaction>();
@@ -236,13 +237,6 @@ public class Account : ReactiveObject, IPersistableData
 		if (upToBlockNumber > this.LastBlockHeight)
 		{
 			this.LastBlockHeight = upToBlockNumber.Value;
-		}
-
-		// It's possible that our caller doesn't know the highest block number,
-		// so we'll just use the highest one we saw if it exceeds what they told us.
-		if (highestBlockNumber > this.LastBlockHeight)
-		{
-			this.LastBlockHeight = highestBlockNumber;
 		}
 	}
 

@@ -138,6 +138,11 @@ public class WalletSyncManager : IAsyncDisposable
 						sleepDeferral?.Dispose();
 						sleepDeferral = null;
 
+						foreach (Account account in this.Accounts)
+						{
+							account.LastBlockHeight = v.TipHeight;
+						}
+
 						this.unblockAutoShielding.Set();
 					}
 
