@@ -159,7 +159,10 @@ public class WalletSyncManager : IAsyncDisposable
 					{
 						if (v.TryGetValue(account.ZcashAccount, out IReadOnlyCollection<Transaction>? transactions))
 						{
-							account.AddTransactions(transactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
+							// Filter transactions to those above the account's birthday height
+							// to workaround https://github.com/zcash/librustzcash/issues/1436.
+							IEnumerable<Transaction> filteredTransactions = transactions.Where(t => t.MinedHeight is null || t.MinedHeight >= account.ZcashAccount.BirthdayHeight);
+							account.AddTransactions(filteredTransactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
 						}
 
 						account.Balance = this.client.GetBalances(account.ZcashAccount);
