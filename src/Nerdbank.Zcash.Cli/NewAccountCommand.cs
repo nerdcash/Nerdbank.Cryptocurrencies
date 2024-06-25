@@ -31,7 +31,7 @@ internal class NewAccountCommand
 
 	internal Uri? LightWalletServerUrl { get; set; }
 
-	internal ulong? BirthdayHeight { get; set; }
+	internal uint? BirthdayHeight { get; set; }
 
 	internal bool OfflineMode { get; set; }
 
@@ -60,7 +60,7 @@ internal class NewAccountCommand
 		Option<string> walletPathOption = new Option<string>("--wallet", Strings.NewAccountWalletPathOptionDescription)
 			.LegalFilePathsOnly();
 
-		Option<ulong> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
+		Option<uint> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
 
 		Command command = new("new", Strings.NewAccountCommandDescription)
 		{
@@ -188,12 +188,12 @@ internal class NewAccountCommand
 		return true;
 	}
 
-	private async Task<ulong?> ComputeBirthdayHeightAsync(ZcashNetwork network, CancellationToken cancellationToken)
+	private async Task<uint?> ComputeBirthdayHeightAsync(ZcashNetwork network, CancellationToken cancellationToken)
 	{
 		if (!this.OfflineMode)
 		{
 			Uri serverUrl = this.LightWalletServerUrl ?? Utilities.GetDefaultLightWalletUrl(this.TestNet);
-			ulong height = await LightWalletClient.GetLatestBlockHeightAsync(serverUrl, cancellationToken);
+			uint height = await LightWalletClient.GetLatestBlockHeightAsync(serverUrl, cancellationToken);
 			return height;
 		}
 

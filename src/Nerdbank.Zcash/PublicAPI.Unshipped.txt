@@ -68,15 +68,15 @@ Nerdbank.Zcash.LightWalletClient.AddAccountAsync(Nerdbank.Zcash.ZcashAccount! ac
 Nerdbank.Zcash.LightWalletClient.AddDiversifier(Nerdbank.Zcash.ZcashAccount! account, Nerdbank.Zcash.DiversifierIndex diversifierIndex) -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.LightWalletClient.BirthdayHeight.get -> uint?
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeight.get -> ulong?
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeight.get -> uint?
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeight.set -> void
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeights() -> void
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeights(ulong OriginalBirthdayHeight, ulong? BirthdayHeight, ulong? RebirthHeight) -> void
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.Deconstruct(out ulong OriginalBirthdayHeight, out ulong? BirthdayHeight, out ulong? RebirthHeight) -> void
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.BirthdayHeights(uint OriginalBirthdayHeight, uint? BirthdayHeight, uint? RebirthHeight) -> void
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.Deconstruct(out uint OriginalBirthdayHeight, out uint? BirthdayHeight, out uint? RebirthHeight) -> void
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.Equals(Nerdbank.Zcash.LightWalletClient.BirthdayHeights other) -> bool
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.OriginalBirthdayHeight.get -> ulong
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.OriginalBirthdayHeight.get -> uint
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.OriginalBirthdayHeight.set -> void
-Nerdbank.Zcash.LightWalletClient.BirthdayHeights.RebirthHeight.get -> ulong?
+Nerdbank.Zcash.LightWalletClient.BirthdayHeights.RebirthHeight.get -> uint?
 Nerdbank.Zcash.LightWalletClient.BirthdayHeights.RebirthHeight.set -> void
 Nerdbank.Zcash.LightWalletClient.Dispose() -> void
 Nerdbank.Zcash.LightWalletClient.DownloadTransactionsAsync(System.IProgress<Nerdbank.Zcash.LightWalletClient.SyncProgress!>? statusUpdates, System.IProgress<System.Collections.Generic.IReadOnlyDictionary<Nerdbank.Zcash.ZcashAccount!, System.Collections.Generic.IReadOnlyCollection<Nerdbank.Zcash.Transaction!>!>!>? discoveredTransactions, bool continually, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.LightWalletClient.SyncProgress!>!
@@ -165,7 +165,7 @@ Nerdbank.Zcash.LightWalletServers.Hanh
 Nerdbank.Zcash.LightWalletServers.Nerdbank
 Nerdbank.Zcash.ManagedLightWalletClient
 Nerdbank.Zcash.ManagedLightWalletClient.Dispose() -> void
-Nerdbank.Zcash.ManagedLightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<ulong>
+Nerdbank.Zcash.ManagedLightWalletClient.GetLatestBlockHeightAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<uint>
 Nerdbank.Zcash.ManagedLightWalletClient.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.Memo
 Nerdbank.Zcash.Memo.Clear() -> void
@@ -527,7 +527,7 @@ Nerdbank.Zcash.UnifiedViewingKey.Revision.get -> int
 Nerdbank.Zcash.UnifiedViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.ZcashAccount
 Nerdbank.Zcash.ZcashAccount.AddressSendsToThisAccount(Nerdbank.Zcash.ZcashAddress! address) -> bool
-Nerdbank.Zcash.ZcashAccount.BirthdayHeight.get -> ulong?
+Nerdbank.Zcash.ZcashAccount.BirthdayHeight.get -> uint?
 Nerdbank.Zcash.ZcashAccount.BirthdayHeight.set -> void
 Nerdbank.Zcash.ZcashAccount.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
 Nerdbank.Zcash.ZcashAccount.Equality
@@ -597,9 +597,9 @@ Nerdbank.Zcash.ZcashNetwork.MainNet = 0 -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetwork.TestNet = 1 -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashNetworkParameters
 Nerdbank.Zcash.ZcashNetworkParameters.Network.get -> Nerdbank.Zcash.ZcashNetwork
-Nerdbank.Zcash.ZcashNetworkParameters.OrchardActivationHeight.get -> ulong
+Nerdbank.Zcash.ZcashNetworkParameters.OrchardActivationHeight.get -> uint
 Nerdbank.Zcash.ZcashNetworkParameters.OrchardActivationHeight.init -> void
-Nerdbank.Zcash.ZcashNetworkParameters.SaplingActivationHeight.get -> ulong
+Nerdbank.Zcash.ZcashNetworkParameters.SaplingActivationHeight.get -> uint
 Nerdbank.Zcash.ZcashNetworkParameters.SaplingActivationHeight.init -> void
 Nerdbank.Zcash.ZcashUtilities
 Nerdbank.Zcash.Zip302MemoFormat
