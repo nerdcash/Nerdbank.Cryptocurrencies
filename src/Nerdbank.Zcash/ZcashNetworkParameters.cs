@@ -46,12 +46,12 @@ public class ZcashNetworkParameters
 	/// <summary>
 	/// Gets the sapling activation height on this network.
 	/// </summary>
-	public required ulong SaplingActivationHeight { get; init; }
+	public required uint SaplingActivationHeight { get; init; }
 
 	/// <summary>
 	/// Gets the orchard activation height on this network.
 	/// </summary>
-	public required ulong OrchardActivationHeight { get; init; }
+	public required uint OrchardActivationHeight { get; init; }
 
 	/// <summary>
 	/// Gets the network parameters for the given network.

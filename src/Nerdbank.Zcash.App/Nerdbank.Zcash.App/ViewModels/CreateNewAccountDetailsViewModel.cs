@@ -11,8 +11,8 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class CreateNewAccountDetailsViewModel : ViewModelBase
 {
-	private readonly AsyncLazy<ulong> mainNetChainLength;
-	private readonly AsyncLazy<ulong> testNetChainLength;
+	private readonly AsyncLazy<uint> mainNetChainLength;
+	private readonly AsyncLazy<uint> testNetChainLength;
 	private readonly IViewModelServices viewModelServices;
 	private readonly ObservableAsPropertyHelper<bool> isHDWalletSelectionVisible;
 	private readonly ObservableAsPropertyHelper<string?> minimumBirthdayHeightForHDWalletAdvisory;
@@ -20,8 +20,8 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 	private uint index;
 	private string name = string.Empty;
 	private ZcashNetwork network = ZcashNetwork.MainNet;
-	private ulong? birthdayHeight = 0;
-	private ulong? maximumBirthdayHeight;
+	private uint? birthdayHeight = 0;
+	private uint? maximumBirthdayHeight;
 
 	[Obsolete("Design-time only", error: true)]
 	public CreateNewAccountDetailsViewModel()
@@ -162,7 +162,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 	public string BirthdayHeightCaption => CreateNewAccountDetailsStrings.BirthdayHeightCaption;
 
 	[Required]
-	public ulong? BirthdayHeight
+	public uint? BirthdayHeight
 	{
 		get => this.birthdayHeight;
 		set => this.RaiseAndSetIfChanged(ref this.birthdayHeight, value);
@@ -170,7 +170,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	public ulong MinimumBirthdayHeight => this.NetworkParameters.SaplingActivationHeight;
 
-	public ulong? MaximumBirthdayHeight
+	public uint? MaximumBirthdayHeight
 	{
 		get => this.maximumBirthdayHeight;
 		set => this.RaiseAndSetIfChanged(ref this.maximumBirthdayHeight, value);
@@ -188,7 +188,7 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	private ZcashNetworkParameters NetworkParameters => ZcashNetworkParameters.GetParameters(this.Network);
 
-	private AsyncLazy<ulong> LazyHeight => this.Network switch
+	private AsyncLazy<uint> LazyHeight => this.Network switch
 	{
 		ZcashNetwork.MainNet => this.mainNetChainLength,
 		ZcashNetwork.TestNet => this.testNetChainLength,
@@ -226,9 +226,9 @@ public class CreateNewAccountDetailsViewModel : ViewModelBase
 
 	private async ValueTask UpdateBirthdayHeightAsync()
 	{
-		ulong? originalBirthdayHeight = this.BirthdayHeight;
+		uint? originalBirthdayHeight = this.BirthdayHeight;
 
-		ulong currentHeight = await this.LazyHeight.GetValueAsync();
+		uint currentHeight = await this.LazyHeight.GetValueAsync();
 
 		// Don't set the property if someone set it while we were asynchronously yielding.
 		if (this.BirthdayHeight == originalBirthdayHeight)

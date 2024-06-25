@@ -19,7 +19,7 @@ public class ZcashAccount : INotifyPropertyChanged
 	/// TODO: This number should be generated from a call to <see cref="Bip44MultiAccountHD.DiscoverUsedAccountsAsync(uint, Func{Bip32KeyPath, ValueTask{bool}}, uint)"/>.
 	/// </remarks>
 	private uint transparentAddressesToScanAsync = Bip44MultiAccountHD.RecommendedAddressGapLimit;
-	private ulong? birthdayHeight;
+	private uint? birthdayHeight;
 	private uint? maxTransparentAddressIndex;
 
 	/// <summary>
@@ -132,7 +132,7 @@ public class ZcashAccount : INotifyPropertyChanged
 	/// <summary>
 	/// Gets or sets the birthday height on this account.
 	/// </summary>
-	public ulong? BirthdayHeight
+	public uint? BirthdayHeight
 	{
 		get => this.birthdayHeight;
 		set => this.SetPropertyIfChanged(ref this.birthdayHeight, value);

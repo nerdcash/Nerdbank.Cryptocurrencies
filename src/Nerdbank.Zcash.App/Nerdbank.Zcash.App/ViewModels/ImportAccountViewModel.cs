@@ -13,7 +13,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	private string seedPassword = string.Empty;
 	private uint? accountIndex = 0;
 	private bool isTestNet;
-	private ulong? birthdayHeight;
+	private uint? birthdayHeight;
 	private Bip39Mnemonic? mnemonic;
 	private bool inputIsValidKey;
 	private bool isSeed;
@@ -145,7 +145,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	public bool IsTestNetVisible => this.IsSeed;
 
 	[Required]
-	public ulong? BirthdayHeight
+	public uint? BirthdayHeight
 	{
 		get => this.birthdayHeight;
 		set => this.RaiseAndSetIfChanged(ref this.birthdayHeight, value);
