@@ -80,12 +80,12 @@ public class ManagedLightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The blockchain length.</returns>
 	/// <exception cref="LightWalletException">Thrown if an error occurs in communicating with the server.</exception>
-	public async ValueTask<ulong> GetLatestBlockHeightAsync(CancellationToken cancellationToken)
+	public async ValueTask<uint> GetLatestBlockHeightAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
 			LightdInfo info = await this.client.GetLightdInfoAsync(new Empty(), cancellationToken: cancellationToken);
-			return info.BlockHeight;
+			return checked((uint)info.BlockHeight);
 		}
 		catch (RpcException ex)
 		{
