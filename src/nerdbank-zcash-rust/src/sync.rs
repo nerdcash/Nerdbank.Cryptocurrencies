@@ -184,7 +184,7 @@ pub async fn sync<P: AsRef<Path>>(
                     network,
                     None,
                     Some(range.start.into()),
-                    Some(range.end.into()),
+                    Some((range.end - 1).into()),
                 )?
                 .to_vec();
                 if !new_transactions.is_empty() {
@@ -929,6 +929,9 @@ async fn watch_mempool(client: &mut CompactTxStreamerClient<Channel>) -> Result<
     Ok(())
 }
 
+/// Returns the transactions that match the given filters.
+///
+/// `starting_block_filter` and `ending_block_filter` are inclusive.
 pub(crate) fn get_transactions(
     db: &mut Db,
     conn: &mut rusqlite::Connection,
