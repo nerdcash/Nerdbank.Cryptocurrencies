@@ -1066,7 +1066,7 @@ pub(crate) fn get_transactions(
         let mut row = row_result?;
 
         let last = result.last();
-        let add = last.is_some() && last.unwrap().txid.eq(&row.txid);
+        let add = last.is_some_and(|l| l.account_id == row.account_id && l.txid.eq(&row.txid));
         if add {
             // This row adds line items to the last transaction.
             // Pop it off the list to change it, then we'll add it back.
