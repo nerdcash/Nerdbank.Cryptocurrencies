@@ -220,7 +220,7 @@ public class WalletSyncManager : IAsyncDisposable
 					this.client.AddDiversifier(account.ZcashAccount, addressIndex);
 				}
 
-				List<Transaction> txs = this.client.GetDownloadedTransactions(account.ZcashAccount, account.LastBlockHeight);
+				List<Transaction> txs = this.client.GetDownloadedTransactions(account.ZcashAccount, account.LastBlockHeight + 1);
 
 				account.AddTransactions(txs, this.client.LastDownloadHeight, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
 

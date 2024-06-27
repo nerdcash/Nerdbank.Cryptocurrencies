@@ -23,8 +23,10 @@ public class Account : ReactiveObject, IPersistableData
 	public Account(ZcashAccount account)
 	{
 		this.ZcashAccount = account;
-		this.lastBlockHeight = account.BirthdayHeight.GetValueOrDefault();
 		this.balance = new AccountBalances { };
+
+		// Set the last block height to the block before the birthday height, so that we can scan for transactions starting at the birthday height.
+		this.lastBlockHeight = account.BirthdayHeight.GetValueOrDefault(1) - 1;
 
 		this.transactionsMutable = new ObservableCollection<ZcashTransaction>();
 		this.Transactions = new ReadOnlyObservableCollection<ZcashTransaction>(this.transactionsMutable);
@@ -163,7 +165,6 @@ public class Account : ReactiveObject, IPersistableData
 
 	public void AddTransactions(IEnumerable<Transaction> transactions, uint? upToBlockNumber, ExchangeRateRecord exchangeRateRecord, AppSettings appSettings, ZcashWallet wallet, IContactManager contactManager)
 	{
-		uint highestBlockNumber = 0;
 		foreach (Transaction transaction in transactions)
 		{
 			ZcashTransaction? tx = this.TransactionsMutable.FirstOrDefault(t => t.TransactionId == transaction.TransactionId);
@@ -230,8 +231,6 @@ public class Account : ReactiveObject, IPersistableData
 			this.AssignOtherParty(tx, wallet, contactManager);
 
 			this.UpdateMaxTransparentAddressIndex(tx);
-
-			highestBlockNumber = Math.Max(highestBlockNumber, tx.BlockNumber ?? 0);
 		}
 
 		if (upToBlockNumber > this.LastBlockHeight)
