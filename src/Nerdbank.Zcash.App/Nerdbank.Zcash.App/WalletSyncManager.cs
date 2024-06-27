@@ -140,7 +140,13 @@ public class WalletSyncManager : IAsyncDisposable
 
 						foreach (Account account in this.Accounts)
 						{
-							account.LastBlockHeight = v.TipHeight;
+							// Only update the last block height if we actually found transactions.
+							// Otherwise this could be a recently imported account whose scan hasn't even started.
+							// This property is only meant to optimize not re-retrieving transactions from across the interop anyway.
+							if (account.Transactions.Count > 0)
+							{
+								account.LastBlockHeight = v.TipHeight;
+							}
 						}
 
 						this.unblockAutoShielding.Set();
