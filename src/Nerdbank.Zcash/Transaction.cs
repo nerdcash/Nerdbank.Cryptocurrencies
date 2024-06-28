@@ -8,6 +8,7 @@ namespace Nerdbank.Zcash;
 /// <summary>
 /// Describes a Zcash transaction.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 public partial record Transaction
 {
 	/// <summary>
@@ -96,4 +97,6 @@ public partial record Transaction
 	/// Gets a value indicating whether this transaction did not originate from this account.
 	/// </summary>
 	public bool IsIncoming => this.Outgoing.IsEmpty;
+
+	private string DebuggerDisplay => $"{this.NetChange:+0.########;-0.########} {this.TransactionId.ToString()[..6]}..{this.TransactionId.ToString()[^6..]} ({this.MinedHeight})";
 }
