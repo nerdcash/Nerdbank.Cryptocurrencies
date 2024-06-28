@@ -463,7 +463,24 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="d">The uniffi data to copy from.</param>
 	private static LineItem CreateLineItem(TransactionNote d)
-		=> new(ZcashAddress.Decode(d.recipient), ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
+	{
+		var recipient = ZcashAddress.Decode(d.recipient);
+
+		// Rip out excess receivers that librustzcash manufactures and injects, and use standard encodings for each pool.
+		if (recipient is CompoundUnifiedAddress ua && ua.Receivers.Count > 1)
+		{
+			recipient = d.pool switch
+			{
+				uniffi.LightWallet.Pool.Transparent when ua.GetPoolReceiver<TransparentP2PKHReceiver>() is { } p2pkh => new TransparentP2PKHAddress(p2pkh, recipient.Network),
+				uniffi.LightWallet.Pool.Transparent when ua.GetPoolReceiver<TransparentP2SHReceiver>() is { } p2sh => new TransparentP2SHAddress(p2sh, recipient.Network),
+				uniffi.LightWallet.Pool.Sapling => new SaplingAddress(recipient.GetPoolReceiver<SaplingReceiver>() ?? throw new ArgumentException(), recipient.Network),
+				uniffi.LightWallet.Pool.Orchard => new OrchardAddress(recipient.GetPoolReceiver<OrchardReceiver>() ?? throw new ArgumentException(), recipient.Network),
+				_ => throw new NotSupportedException(),
+			};
+		}
+
+		return new(recipient, ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
+	}
 
 	private static List<TransactionSendDetail> LineItemsToSendDetails(IReadOnlyCollection<LineItem> payments)
 	{
