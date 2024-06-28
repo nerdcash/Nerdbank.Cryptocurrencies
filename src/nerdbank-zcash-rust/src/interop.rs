@@ -67,6 +67,13 @@ pub enum ChainType {
     Testnet,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum Pool {
+    Transparent,
+    Sapling,
+    Orchard,
+}
+
 impl From<ChainType> for Network {
     fn from(chain_type: ChainType) -> Self {
         match chain_type {
@@ -117,6 +124,7 @@ pub struct TransparentNote {
 #[derive(Debug, Clone)]
 pub struct TransactionNote {
     pub recipient: String,
+    pub pool: Pool,
     pub value: u64,
     pub memo: Option<Vec<u8>>,
 }

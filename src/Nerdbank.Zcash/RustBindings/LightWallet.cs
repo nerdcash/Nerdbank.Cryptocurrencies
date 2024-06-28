@@ -1751,7 +1751,7 @@ class FfiConverterTypeTransaction : FfiConverterRustBuffer<Transaction>
 	}
 }
 
-internal record TransactionNote(ulong @value, byte[]? @memo, String @recipient) { }
+internal record TransactionNote(ulong @value, byte[]? @memo, String @recipient, Pool @pool) { }
 
 class FfiConverterTypeTransactionNote : FfiConverterRustBuffer<TransactionNote>
 {
@@ -1762,7 +1762,8 @@ class FfiConverterTypeTransactionNote : FfiConverterRustBuffer<TransactionNote>
 		return new TransactionNote(
 			@value: FfiConverterUInt64.INSTANCE.Read(stream),
 			@memo: FfiConverterOptionalByteArray.INSTANCE.Read(stream),
-			@recipient: FfiConverterString.INSTANCE.Read(stream)
+			@recipient: FfiConverterString.INSTANCE.Read(stream),
+			@pool: FfiConverterTypePool.INSTANCE.Read(stream)
 		);
 	}
 
@@ -1770,7 +1771,8 @@ class FfiConverterTypeTransactionNote : FfiConverterRustBuffer<TransactionNote>
 	{
 		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@value)
 			+ FfiConverterOptionalByteArray.INSTANCE.AllocationSize(value.@memo)
-			+ FfiConverterString.INSTANCE.AllocationSize(value.@recipient);
+			+ FfiConverterString.INSTANCE.AllocationSize(value.@recipient)
+			+ FfiConverterTypePool.INSTANCE.AllocationSize(value.@pool);
 	}
 
 	public override void Write(TransactionNote value, BigEndianStream stream)
@@ -1778,6 +1780,7 @@ class FfiConverterTypeTransactionNote : FfiConverterRustBuffer<TransactionNote>
 		FfiConverterUInt64.INSTANCE.Write(value.@value, stream);
 		FfiConverterOptionalByteArray.INSTANCE.Write(value.@memo, stream);
 		FfiConverterString.INSTANCE.Write(value.@recipient, stream);
+		FfiConverterTypePool.INSTANCE.Write(value.@pool, stream);
 	}
 }
 
@@ -2098,6 +2101,43 @@ class FfiConverterTypeLightWalletException
 					)
 				);
 		}
+	}
+}
+
+internal enum Pool : int
+{
+	Transparent,
+	Sapling,
+	Orchard
+}
+
+class FfiConverterTypePool : FfiConverterRustBuffer<Pool>
+{
+	public static FfiConverterTypePool INSTANCE = new FfiConverterTypePool();
+
+	public override Pool Read(BigEndianStream stream)
+	{
+		var value = stream.ReadInt() - 1;
+		if (Enum.IsDefined(typeof(Pool), value))
+		{
+			return (Pool)value;
+		}
+		else
+		{
+			throw new InternalException(
+				String.Format("invalid enum value '{0}' in FfiConverterTypePool.Read()", value)
+			);
+		}
+	}
+
+	public override int AllocationSize(Pool value)
+	{
+		return 4;
+	}
+
+	public override void Write(Pool value, BigEndianStream stream)
+	{
+		stream.WriteInt((int)value + 1);
 	}
 }
 

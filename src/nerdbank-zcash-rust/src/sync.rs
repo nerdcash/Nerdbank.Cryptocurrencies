@@ -41,6 +41,7 @@ use zcash_client_backend::{
         },
     },
     wallet::WalletTransparentOutput,
+    PoolType,
 };
 
 use crate::{
@@ -48,7 +49,7 @@ use crate::{
     block_source::BlockCacheError,
     error::Error,
     grpc::get_client,
-    interop::{SyncUpdate, SyncUpdateData, TransactionNote},
+    interop::{Pool, SyncUpdate, SyncUpdateData, TransactionNote},
     lightclient::parse_network,
     resilience::webrequest_with_retry,
     sql_statements::GET_TRANSACTIONS_SQL,
@@ -184,7 +185,7 @@ pub async fn sync<P: AsRef<Path>>(
                     network,
                     None,
                     Some(range.start.into()),
-                    Some(range.end.into()),
+                    Some((range.end - 1).into()),
                 )?
                 .to_vec();
                 if !new_transactions.is_empty() {
@@ -929,6 +930,9 @@ async fn watch_mempool(client: &mut CompactTxStreamerClient<Channel>) -> Result<
     Ok(())
 }
 
+/// Returns the transactions that match the given filters.
+///
+/// `starting_block_filter` and `ending_block_filter` are inclusive.
 pub(crate) fn get_transactions(
     db: &mut Db,
     conn: &mut rusqlite::Connection,
@@ -959,6 +963,17 @@ pub(crate) fn get_transactions(
             let memo: Option<Vec<u8>> = row.get("memo")?;
             let memo = memo.unwrap_or_default();
 
+            let output_pool = match output_pool {
+                0 => PoolType::Transparent,
+                2 => PoolType::SAPLING,
+                3 => PoolType::ORCHARD,
+                _ => {
+                    return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
+                        format!("Unknown output pool type: {}", output_pool),
+                    )))
+                }
+            };
+
             let ufvk = ufvkeys.get(&AccountId::from(account_id));
 
             // Work out the receiving address when the sqlite db doesn't record it
@@ -967,7 +982,7 @@ pub(crate) fn get_transactions(
                 let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
                 if let Some(diversifier) = diversifier {
                     recipient = match output_pool {
-                        2 => ufvk.and_then(|k| {
+                        PoolType::SAPLING => ufvk.and_then(|k| {
                             k.sapling().and_then(|s| {
                                 s.diversified_address(sapling::keys::Diversifier(
                                     diversifier.try_into().unwrap(),
@@ -975,7 +990,7 @@ pub(crate) fn get_transactions(
                                 .map(|a| a.encode(network))
                             })
                         }),
-                        3 => ufvk.and_then(|k| {
+                        PoolType::ORCHARD => ufvk.and_then(|k| {
                             k.orchard().map(|o| {
                                 UnifiedAddress::from_receivers(
                                     Some(o.address(
@@ -1026,6 +1041,11 @@ pub(crate) fn get_transactions(
             let note = TransactionNote {
                 value,
                 recipient: recipient.clone().unwrap(),
+                pool: match output_pool {
+                    PoolType::Transparent => Pool::Transparent,
+                    PoolType::SAPLING => Pool::Sapling,
+                    PoolType::ORCHARD => Pool::Orchard,
+                },
                 memo: if memo.is_empty() {
                     None
                 } else {
@@ -1038,7 +1058,7 @@ pub(crate) fn get_transactions(
             // * the recipient is shielded (since change will never be sent to the transparent pool).
             // * the memo does not contain user text,
             let is_change = to_account_id == from_account_id
-                && output_pool > 1
+                && matches!(output_pool, PoolType::Shielded(_))
                 && Memo::from_bytes(&memo).is_ok_and(|m| !matches!(m, Memo::Text(_)));
 
             if is_change {
@@ -1063,7 +1083,7 @@ pub(crate) fn get_transactions(
         let mut row = row_result?;
 
         let last = result.last();
-        let add = last.is_some() && last.unwrap().txid.eq(&row.txid);
+        let add = last.is_some_and(|l| l.account_id == row.account_id && l.txid.eq(&row.txid));
         if add {
             // This row adds line items to the last transaction.
             // Pop it off the list to change it, then we'll add it back.
