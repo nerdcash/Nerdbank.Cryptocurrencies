@@ -344,6 +344,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			this.owner = owner;
 			this.model = model;
 			this.additionalModel = additionalModel;
+			this.ToAddress = additionalModel is not null ? UnifiedAddress.Create(model.ToAddress, additionalModel.ToAddress) : model.ToAddress;
 
 			this.model.WhenAnyValue(x => x.OtherPartyName).Subscribe(_ =>
 			{
@@ -364,7 +365,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 		public string? Memo => this.model.Memo.Message;
 
-		public string ToAddress => this.model.ToAddress;
+		public string ToAddress { get; }
 
 		public object? OtherParty
 		{

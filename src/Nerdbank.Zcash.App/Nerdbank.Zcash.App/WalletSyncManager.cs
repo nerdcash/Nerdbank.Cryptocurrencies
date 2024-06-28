@@ -138,6 +138,17 @@ public class WalletSyncManager : IAsyncDisposable
 						sleepDeferral?.Dispose();
 						sleepDeferral = null;
 
+						foreach (Account account in this.Accounts)
+						{
+							// Only update the last block height if we actually found transactions.
+							// Otherwise this could be a recently imported account whose scan hasn't even started.
+							// This property is only meant to optimize not re-retrieving transactions from across the interop anyway.
+							if (account.Transactions.Count > 0)
+							{
+								account.LastBlockHeight = v.TipHeight;
+							}
+						}
+
 						this.unblockAutoShielding.Set();
 					}
 
@@ -215,7 +226,7 @@ public class WalletSyncManager : IAsyncDisposable
 					this.client.AddDiversifier(account.ZcashAccount, addressIndex);
 				}
 
-				List<Transaction> txs = this.client.GetDownloadedTransactions(account.ZcashAccount, account.LastBlockHeight);
+				List<Transaction> txs = this.client.GetDownloadedTransactions(account.ZcashAccount, account.LastBlockHeight + 1);
 
 				account.AddTransactions(txs, this.client.LastDownloadHeight, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
 

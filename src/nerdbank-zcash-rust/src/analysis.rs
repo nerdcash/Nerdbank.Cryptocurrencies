@@ -34,19 +34,13 @@ pub fn get_birthday_heights(
         named_params! {
             ":account_id": u32::from(account_id),
         },
-        |row| {
-            Ok((
-                row.get(0)?,
-                row.get::<_, Option<u32>>(1)?,
-                row.get::<_, Option<u32>>(2)?,
-            ))
-        },
+        |row| Ok((row.get(0)?, row.get::<_, Option<u32>>(1)?, row.get(2)?)),
     )?;
 
     Ok(BirthdayHeights {
         original_birthday_height: heights.0,
-        birthday_height: heights.1.map(|h| h - 1),
-        rebirth_height: heights.2.map(|h| h - 1),
+        birthday_height: heights.1,
+        rebirth_height: heights.2,
     })
 }
 

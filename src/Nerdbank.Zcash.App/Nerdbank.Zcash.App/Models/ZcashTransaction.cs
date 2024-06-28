@@ -120,7 +120,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 		set => this.RaiseAndSetIfChanged(ref this.isDirty, value);
 	}
 
-	private string DebuggerDisplay => $"{this.TransactionId} ({this.NetChange})";
+	private string DebuggerDisplay => $"{this.NetChange:+0.########;-0.########} {this.TransactionId?.ToString()[..6]}..{this.TransactionId?.ToString()[^6..]} ({this.BlockNumber})";
 
 	/// <summary>
 	/// Gets the incoming amount in this transaction that was received with one of the receivers in a particular address.

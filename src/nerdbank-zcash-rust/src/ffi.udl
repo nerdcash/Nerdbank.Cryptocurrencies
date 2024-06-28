@@ -14,6 +14,12 @@ enum ChainType {
 	"Mainnet",
 };
 
+enum Pool {
+	"Transparent",
+	"Sapling",
+	"Orchard",
+};
+
 dictionary AccountInfo {
 	u32 id;
 	string? uvk;
@@ -42,6 +48,7 @@ dictionary TransactionNote {
 	u64 value;
 	bytes? memo;
 	string recipient;
+	Pool pool;
 };
 
 dictionary TransactionSendDetail {
