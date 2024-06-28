@@ -29,7 +29,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 			 ))
 		) AS from_account_id,
 		txo.to_account_id,
-		txo.to_address,
+		(SELECT to_address FROM v_tx_outputs vtxo WHERE vtxo.txid = t.txid AND vtxo.output_pool = txo.output_pool AND vtxo.output_index = txo.output_index AND to_address IS NOT NULL) AS to_address,
 		coalesce(s.diversifier, o.diversifier) AS diversifier,
 		txo.value,
 		txo.memo
@@ -38,11 +38,12 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 	LEFT OUTER JOIN transactions tx ON tx.txid = t.txid
 	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.tx = tx.id_tx AND s.output_index = txo.output_index
 	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.tx = tx.id_tx AND o.action_index = txo.output_index
-	WHERE (:account_id IS NULL OR t.account_id = :account_id) 
+	WHERE (:account_id IS NULL OR (t.account_id = :account_id AND (txo.from_account_id = :account_id OR txo.to_account_id = :account_id)))
 		AND (from_account_id IS NOT NULL OR to_account_id IS NOT NULL) -- ignore transactions that probably aren't fully initialized
 		AND (t.mined_height IS NULL OR :starting_block IS NULL OR t.mined_height >= :starting_block)
 		AND (t.mined_height IS NULL OR :ending_block IS NULL OR t.mined_height <= :ending_block)
-	ORDER BY t.mined_height, t.tx_index
+	GROUP BY tx.id_tx, t.account_id, txo.output_pool, txo.output_index
+	ORDER BY t.mined_height, t.tx_index, txo.output_pool, txo.output_index -- ensure rows that get squashed together are next to each other
 "#;
 
 // TODO: update this to consider UTXOs in "Block with first unspent note" column.
