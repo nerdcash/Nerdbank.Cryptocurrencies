@@ -15,6 +15,8 @@ internal class MockPlatformServices : ReactiveObject, IPlatformServices
 		set => this.RaiseAndSetIfChanged(ref this.isOnACPower, value);
 	}
 
+	public bool HasHardwareBackButton => false;
+
 	public bool IsNetworkMetered => false;
 
 	public IDisposable? RequestSleepDeferral()

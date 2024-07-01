@@ -2,18 +2,21 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-android</TargetFramework>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
-    <ApplicationId>com.CompanyName.Nerdbank.Zcash.App</ApplicationId>
+    <Nullable>enable</Nullable>
+    <ApplicationId>com.Nerdbank.eZcash.App</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidPackageFormat>aab</AndroidPackageFormat>
     <AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
+    <SelfContained>false</SelfContained>
     <Platforms>x64;ARM64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-    <AndroidResource Include="Icon.png">
-      <Link>Resources\drawable\Icon.png</Link>
+    <AndroidResource Include="icon.png">
+      <Link>Resources\drawable\icon.png</Link>
     </AndroidResource>
   </ItemGroup>
 
@@ -26,4 +29,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Zcash.App\Nerdbank.Zcash.App.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Include="$(RustOutputAndroidArm64)" Abi="arm64-v8a" />
+    <AndroidNativeLibrary Include="$(RustOutputAndroidX64)" Abi="x86_64" />
+  </ItemGroup>
+
+  <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
 </Project>

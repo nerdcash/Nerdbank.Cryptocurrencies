@@ -212,6 +212,8 @@ public partial class App : Application, IAsyncDisposable
 	{
 		public event PropertyChangedEventHandler? PropertyChanged;
 
+		public bool HasHardwareBackButton => false;
+
 		public bool IsOnACPower => false;
 
 		public bool IsNetworkMetered => false;

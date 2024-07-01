@@ -37,7 +37,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Nerdbank.QRCodes" />
     <PackageReference Include="Velopack" />
-    <PackageReference Include="ZXing.Net.Mobile" />
   </ItemGroup>
 
   <ItemGroup>

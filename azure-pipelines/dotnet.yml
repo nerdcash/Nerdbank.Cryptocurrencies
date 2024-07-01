@@ -14,6 +14,8 @@ steps:
     }
     dotnet build --no-restore -c $(BuildConfiguration) @addlArgs -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: 🛠️ dotnet build
+  env:
+    DisableAndroidCsproj: true # We only want to build the android project in the Pack job
 
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test
