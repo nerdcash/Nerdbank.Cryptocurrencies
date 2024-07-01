@@ -22,8 +22,7 @@ public static class AppUtilities
 
 	internal static async ValueTask<uint> GetChainLengthAsync(IViewModelServices viewModelServices, ZcashNetwork network, CancellationToken cancellationToken)
 	{
-		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-		uint birthdayHeight = await client.GetLatestBlockHeightAsync(cancellationToken);
+		uint birthdayHeight = await LightWalletClient.GetLatestBlockHeightAsync(viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
 		return birthdayHeight;
 	}
 
