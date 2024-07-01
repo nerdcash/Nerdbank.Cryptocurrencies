@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Threading;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -44,7 +45,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public WalletStorageLocationViewModel WalletStorageLocation { get; }
 
-	public string LicenseCaption => AboutStrings.License;
+	public string LicenseCaption => AboutStrings.LicenseHeading;
 
 	public string License => AboutStrings.License;
 
@@ -60,7 +61,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public ReactiveCommand<Unit, CapabilitiesViewModel> ShowCapabilitiesCommand { get; }
 
-	public string Version => ThisAssembly.AssemblyInformationalVersion;
+	public string Version => $"{ThisAssembly.AssemblyInformationalVersion} ({RuntimeInformation.ProcessArchitecture})";
 
 	public string VersionCaption => AboutStrings.Version;
 
