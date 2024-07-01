@@ -16,7 +16,7 @@
   </Design.DataContext>
   <DockPanel>
     <Menu DockPanel.Dock="Top">
-      <MenuItem Header="{Binding BackCommandCaption}" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding CanNavigateBack}" />
+      <MenuItem Header="{Binding BackCommandCaption}" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
       <MenuItem Header="{Binding AppMenuCaption}">
         <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
         <MenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />

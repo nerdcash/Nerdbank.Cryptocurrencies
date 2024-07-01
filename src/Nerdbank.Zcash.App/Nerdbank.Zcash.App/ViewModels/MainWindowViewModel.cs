@@ -23,43 +23,9 @@ public class MainWindowViewModel : MainViewModel
 			vm => vm.Content,
 			content => content is IHasTitle titledViewModel ? $"{titledViewModel.Title} - {AppTitle}" : AppTitle)
 			.ToProperty(this, nameof(this.Title));
-
-		this.WatchSendProgressInAllAccounts();
 	}
 
 	public string Title => this.title.Value;
-
-	public string BackCommandCaption => MainWindowStrings.BackCommandCaption;
-
-	public string AppMenuCaption => MainWindowStrings.AppMenuCaption;
-
-	public string HomeCommandCaption => MainWindowStrings.HomeCommandCaption;
-
-	public string AddressBookCommandCaption => MainWindowStrings.AddressBookCommandCaption;
-
-	public string AccountsListCommandCaption => MainWindowStrings.AccountsListCommandCaption;
-
-	public string SettingsCommandCaption => MainWindowStrings.SettingsCommandCaption;
-
-	public string BackupCommandCaption => MainWindowStrings.BackupCommandCaption;
-
-	public string AboutCommandCaption => MainWindowStrings.AboutCommandCaption;
-
-	public string TransactionsMenuCaption => MainWindowStrings.TransactionsMenuCaption;
-
-	public string AccountBalanceCommandCaption => MainWindowStrings.AccountBalanceCommandCaption;
-
-	public string TransactionHistoryCommandCaption => MainWindowStrings.TransactionHistoryCommandCaption;
-
-	public string SendCommandCaption => MainWindowStrings.SendCommandCaption;
-
-	public string ReceiveCommandCaption => MainWindowStrings.ReceiveCommandCaption;
-
-	public string ToolsMenuCaption => MainWindowStrings.ToolsMenuCaption;
-
-	public string AddressCheckCommandCaption => MainWindowStrings.AddressCheckCommandCaption;
-
-	public SendProgressData SendProgress { get; } = new();
 
 	private void WatchSendProgressInAllAccounts()
 	{

@@ -58,12 +58,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nerdbank.Zcash.App", "Nerdb
 		src\Nerdbank.Zcash.App\.editorconfig = src\Nerdbank.Zcash.App\.editorconfig
 		src\Nerdbank.Zcash.App\applogo.png = src\Nerdbank.Zcash.App\applogo.png
 		src\Nerdbank.Zcash.App\Directory.Build.props = src\Nerdbank.Zcash.App\Directory.Build.props
+		src\Nerdbank.Zcash.App\Directory.Build.targets = src\Nerdbank.Zcash.App\Directory.Build.targets
+		src\Nerdbank.Zcash.App\DisableBuild.targets = src\Nerdbank.Zcash.App\DisableBuild.targets
 		src\Nerdbank.Zcash.App\README.md = src\Nerdbank.Zcash.App\README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.App.Desktop", "src\Nerdbank.Zcash.App\Nerdbank.Zcash.App.Desktop\Nerdbank.Zcash.App.Desktop.csproj", "{1AF0F605-D573-4312-B27B-6602486D1E26}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.App.Tests", "test\Nerdbank.Zcash.App.Tests\Nerdbank.Zcash.App.Tests.csproj", "{050642D7-A247-4906-80F3-39BB70FEABDE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Zcash.App.Android", "src\Nerdbank.Zcash.App\Nerdbank.Zcash.App.Android\Nerdbank.Zcash.App.Android.csproj", "{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -207,6 +211,24 @@ Global
 		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|ARM64.Build.0 = Release|ARM64
 		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|x64.ActiveCfg = Release|x64
 		{050642D7-A247-4906-80F3-39BB70FEABDE}.Release|x64.Build.0 = Release|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|Any CPU.Build.0 = Debug|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|Any CPU.Deploy.0 = Debug|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|ARM64.Build.0 = Debug|ARM64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|x64.ActiveCfg = Debug|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|x64.Build.0 = Debug|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Debug|x64.Deploy.0 = Debug|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|Any CPU.ActiveCfg = Release|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|Any CPU.Build.0 = Release|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|Any CPU.Deploy.0 = Release|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|ARM64.ActiveCfg = Release|ARM64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|ARM64.Build.0 = Release|ARM64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|ARM64.Deploy.0 = Release|ARM64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|x64.ActiveCfg = Release|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|x64.Build.0 = Release|x64
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B}.Release|x64.Deploy.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -226,6 +248,7 @@ Global
 		{60403FE5-ED42-481F-A229-C96D398F7680} = {6BCDD489-47B6-441A-A547-2BE7CF68B8F3}
 		{1AF0F605-D573-4312-B27B-6602486D1E26} = {60403FE5-ED42-481F-A229-C96D398F7680}
 		{050642D7-A247-4906-80F3-39BB70FEABDE} = {2C99DF2C-0284-4C94-AD6B-692D93D9E3FA}
+		{989CF379-5E09-44D3-A4C5-A6EF2B5E667B} = {60403FE5-ED42-481F-A229-C96D398F7680}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_SortFileContentOnSave = True

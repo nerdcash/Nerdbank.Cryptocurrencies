@@ -70,8 +70,7 @@ public class CreateNewWalletViewModel : ViewModelBase, IHasTitle
 		Zip32HDWallet zip32 = new(mnemonic, this.IsTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet);
 		ZcashAccount account = new(zip32, 0);
 
-		using ManagedLightWalletClient client = await ManagedLightWalletClient.CreateAsync(this.viewModelServices.Settings.GetLightServerUrl(zip32.Network), CancellationToken.None);
-		account.BirthdayHeight = await client.GetLatestBlockHeightAsync(CancellationToken.None);
+		account.BirthdayHeight = await AppUtilities.GetChainLengthAsync(this.viewModelServices, zip32.Network, CancellationToken.None);
 
 		return this.viewModelServices.Wallet.Add(account);
 	}

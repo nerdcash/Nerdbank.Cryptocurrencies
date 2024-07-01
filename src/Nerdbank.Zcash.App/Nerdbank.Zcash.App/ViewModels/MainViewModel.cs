@@ -3,6 +3,7 @@
 
 using System.Windows.Input;
 using Avalonia.Controls;
+using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -48,10 +49,42 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
 
+		this.WatchSendProgressInAllAccounts();
+
 		this.NavigateTo(this.GetHomeViewModel());
 
 		this.App.StartSync();
 	}
+
+	public string BackCommandCaption => MainStrings.BackCommandCaption;
+
+	public string AppMenuCaption => MainStrings.AppMenuCaption;
+
+	public string HomeCommandCaption => MainStrings.HomeCommandCaption;
+
+	public string AddressBookCommandCaption => MainStrings.AddressBookCommandCaption;
+
+	public string AccountsListCommandCaption => MainStrings.AccountsListCommandCaption;
+
+	public string SettingsCommandCaption => MainStrings.SettingsCommandCaption;
+
+	public string BackupCommandCaption => MainStrings.BackupCommandCaption;
+
+	public string AboutCommandCaption => MainStrings.AboutCommandCaption;
+
+	public string TransactionsMenuCaption => MainStrings.TransactionsMenuCaption;
+
+	public string AccountBalanceCommandCaption => MainStrings.AccountBalanceCommandCaption;
+
+	public string TransactionHistoryCommandCaption => MainStrings.TransactionHistoryCommandCaption;
+
+	public string SendCommandCaption => MainStrings.SendCommandCaption;
+
+	public string ReceiveCommandCaption => MainStrings.ReceiveCommandCaption;
+
+	public string ToolsMenuCaption => MainStrings.ToolsMenuCaption;
+
+	public string AddressCheckCommandCaption => MainStrings.AddressCheckCommandCaption;
 
 	public App App { get; }
 
@@ -75,6 +108,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public IHistoricalExchangeRateProvider HistoricalExchangeRateProvider { get; set; }
 
+	public SendProgressData SendProgress { get; } = new();
+
 	public ViewModelBase? Content
 	{
 		get => this.viewStack.TryPeek(out ViewModelBase? current) ? current : null;
@@ -88,6 +123,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public ICommand NavigateBackCommand { get; }
 
 	public bool CanNavigateBack => this.viewStack.Count > 1;
+
+	public bool IsNavigateBackVisible => !this.App.PlatformServices.HasHardwareBackButton && this.CanNavigateBack;
 
 	public ReactiveCommand<Unit, AboutViewModel> AboutCommand { get; }
 
@@ -156,5 +193,13 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	protected ViewModelBase GetHomeViewModel()
 	{
 		return this.Wallet.IsEmpty ? new FirstLaunchViewModel(this) : new HomeScreenViewModel(this);
+	}
+
+	private void WatchSendProgressInAllAccounts()
+	{
+		// Always present all the sends across all accounts in the app-wide progress indicator.
+		this.SendProgress.SubscribeAndMerge(this.Wallet.Accounts.Select(a => a.SendProgress));
+		this.Wallet.Accounts.ObserveCollectionChanges().Subscribe(
+			_ => this.SendProgress.SubscribeAndMerge(this.Wallet.Accounts.Select(a => a.SendProgress)));
 	}
 }

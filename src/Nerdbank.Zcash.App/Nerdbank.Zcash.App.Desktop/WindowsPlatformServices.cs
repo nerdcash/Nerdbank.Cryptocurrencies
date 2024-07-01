@@ -36,6 +36,8 @@ internal class WindowsPlatformServices : ReactiveObject, IPlatformServices
 		this.powerManagementThread.Start(this);
 	}
 
+	public bool HasHardwareBackButton => false;
+
 	public bool IsOnACPower
 	{
 		get => this.isOnACPower;

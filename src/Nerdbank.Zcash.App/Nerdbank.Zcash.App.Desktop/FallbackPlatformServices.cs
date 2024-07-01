@@ -7,6 +7,8 @@ namespace Nerdbank.Zcash.App.Desktop;
 
 internal class FallbackPlatformServices : ReactiveObject, IPlatformServices
 {
+	public bool HasHardwareBackButton => false;
+
 	public bool IsOnACPower => true;
 
 	public bool IsNetworkMetered => false;

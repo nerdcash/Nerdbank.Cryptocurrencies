@@ -8,7 +8,6 @@ using DynamicData;
 using DynamicData.Binding;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
-using ZXing.Mobile;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -598,21 +597,19 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public ReactiveCommand<Unit, Unit> RemoveLineItemCommand { get; }
 
-		private async Task ScanAsync()
+		private Task ScanAsync()
 		{
 			try
 			{
-				MobileBarcodeScanner scanner = new();
-				MobileBarcodeScanningOptions options = new()
-				{
-				};
-				ZXing.Result result = await scanner.Scan(options);
+				throw new NotSupportedException();
 			}
 			catch (NotSupportedException)
 			{
 				// fallback to file picker
 				// TODO
 			}
+
+			return Task.CompletedTask;
 		}
 	}
 }

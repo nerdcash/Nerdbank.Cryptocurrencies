@@ -84,7 +84,7 @@ jobs:
       RunTests: ${{ parameters.RunTests }}
       checks: true
 
-  - pwsh: cargo binstall cross@0.2.5
+  - pwsh: cargo binstall -y cross@0.2.5
     displayName: ⚙️ install cross
 
   - pwsh: |
@@ -214,6 +214,8 @@ jobs:
     name: CustomAgents
     demands:
     - Agent.OS -equals Linux
+  variables:
+  - group: Android signing
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -221,6 +223,8 @@ jobs:
     submodules: true
   - template: install-dependencies.yml
   - template: pack.yml
+    parameters:
+      signArtifacts: ${{ parameters.signArtifacts }}
 
 - ${{ if ne(parameters.BaseChannelName, '') }}:
   - job: Publish

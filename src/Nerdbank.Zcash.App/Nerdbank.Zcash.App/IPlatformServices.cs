@@ -8,6 +8,12 @@ namespace Nerdbank.Zcash.App;
 public interface IPlatformServices : INotifyPropertyChanged
 {
 	/// <summary>
+	/// Gets a value indicating whether the platform provides a UI "back" button,
+	/// such that the app's own UI need not display one.
+	/// </summary>
+	bool HasHardwareBackButton { get; }
+
+	/// <summary>
 	/// Gets a value indicating whether the system is running on AC power.
 	/// </summary>
 	bool IsOnACPower { get; }
