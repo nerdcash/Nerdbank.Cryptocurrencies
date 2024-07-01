@@ -44,7 +44,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public WalletStorageLocationViewModel WalletStorageLocation { get; }
 
-	public string LicenseCaption => AboutStrings.License;
+	public string LicenseCaption => AboutStrings.LicenseHeading;
 
 	public string License => AboutStrings.License;
 
