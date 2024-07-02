@@ -120,4 +120,7 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Baixando v{0}</value>
   </data>
+  <data name="VersionIsCurrent" xml:space="preserve">
+    <value>✅ Você está executando a versão mais recente.</value>
+  </data>
 </root>

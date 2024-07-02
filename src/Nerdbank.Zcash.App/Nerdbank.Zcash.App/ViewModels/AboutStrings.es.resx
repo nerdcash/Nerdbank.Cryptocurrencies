@@ -123,6 +123,9 @@
   <data name="Donate" xml:space="preserve">
     <value>Donar</value>
   </data>
+  <data name="DonationMemo" xml:space="preserve">
+    <value>Gracias por {AppTitle}.</value>
+  </data>
   <data name="GetSupport" xml:space="preserve">
     <value>Obtener apoyo</value>
   </data>
@@ -135,13 +138,16 @@
   <data name="Message" xml:space="preserve">
     <value>Esta aplicación es una billetera Zcash. Busca ser la billetera más intuitiva disponible, mientras que es confiable, seguro y un defensor de algunas de las mejores características de privacidad que ZCash tiene para ofrecer.</value>
   </data>
-  <data name="Version" xml:space="preserve">
-    <value>Estás usando la versión</value>
-  </data>
-  <data name="DonationMemo" xml:space="preserve">
-    <value>Gracias por {AppTitle}.</value>
+  <data name="NoChannel" xml:space="preserve">
+    <value>Esta aplicación no está instalada y no se auto-actualiza.</value>
   </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Capacidades de billetera</value>
+  </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>Esta aplicación se actualiza en el canal '{ChannelName}'.</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Estás usando la versión</value>
   </data>
 </root>

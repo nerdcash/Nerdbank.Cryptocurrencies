@@ -138,8 +138,14 @@
   <data name="Message" xml:space="preserve">
     <value>This app is a Zcash wallet. It seeks to be the most intuitive wallet available, while being reliable, secure, and a champion of some of the best privacy features Zcash has to offer.</value>
   </data>
+  <data name="NoChannel" xml:space="preserve">
+    <value>This app is not installed and does not self-update.</value>
+  </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Wallet capabilities</value>
+  </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>This app self-updates on the '{channelName}' channel.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>You are using version</value>

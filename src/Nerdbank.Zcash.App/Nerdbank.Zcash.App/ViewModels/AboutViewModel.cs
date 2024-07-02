@@ -3,7 +3,7 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Threading;
+using Velopack.Locators;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -32,9 +32,7 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 		this.ShowCapabilitiesCommand = ReactiveCommand.Create(this.ShowCapabilities);
 		this.viewModelServices = viewModelServices;
 		this.SelfUpdating = new UpdatingViewModel(viewModelServices.App.SelfUpdating);
-
-		// Trigger an update check.
-		viewModelServices.App.SelfUpdating.DownloadUpdateAsync(CancellationToken.None).Forget();
+		this.SelfUpdating.TriggerUpdateCheck();
 	}
 
 	public string Title => AboutStrings.FormatAboutHeading(Strings.AppTitle);
@@ -64,6 +62,8 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 	public string Version => $"{ThisAssembly.AssemblyInformationalVersion} ({RuntimeInformation.ProcessArchitecture})";
 
 	public string VersionCaption => AboutStrings.Version;
+
+	public string Channel => VelopackLocator.GetDefault(null).Channel is string channel ? AboutStrings.FormatUpdateChannel(channel) : AboutStrings.NoChannel;
 
 	public SendingViewModel Donate()
 	{

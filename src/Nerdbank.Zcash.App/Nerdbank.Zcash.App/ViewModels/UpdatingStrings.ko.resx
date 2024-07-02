@@ -120,4 +120,7 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>다운로드 중 v{0}</value>
   </data>
+  <data name="VersionIsCurrent" xml:space="preserve">
+    <value>✅ 최신 버전을 실행하고 있습니다.</value>
+  </data>
 </root>

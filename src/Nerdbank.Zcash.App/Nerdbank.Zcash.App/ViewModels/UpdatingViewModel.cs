@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Reactive.Linq;
-using Velopack;
+using Microsoft.VisualStudio.Threading;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -11,6 +11,7 @@ public class UpdatingViewModel : ViewModelBase
 	private readonly ObservableAsPropertyHelper<string?> newerVersion;
 	private readonly ObservableAsPropertyHelper<string> updateAndRestartCommandCaption;
 	private readonly ObservableAsPropertyHelper<bool> isUpdateAndRestartCommandVisible;
+	private bool isVersionCurrent;
 
 	public UpdatingViewModel(AppUpdateManager updateManager)
 	{
@@ -36,4 +37,25 @@ public class UpdatingViewModel : ViewModelBase
 	public bool IsUpdateAndRestartCommandVisible => this.isUpdateAndRestartCommandVisible.Value;
 
 	public string? NewerVersion => this.newerVersion.Value;
+
+	public string CurrentVersionMessage => UpdatingStrings.VersionIsCurrent;
+
+	/// <summary>
+	/// Gets a value indicating whether the app has recently confirmed that it is running at the latest version available.
+	/// </summary>
+	public bool IsVersionCurrent
+	{
+		get => this.isVersionCurrent;
+		private set => this.RaiseAndSetIfChanged(ref this.isVersionCurrent, value);
+	}
+
+	public void TriggerUpdateCheck()
+	{
+		HelperAsync().Forget();
+
+		async Task HelperAsync()
+		{
+			this.IsVersionCurrent = await this.Model.DownloadUpdateAsync(CancellationToken.None) is false;
+		}
+	}
 }

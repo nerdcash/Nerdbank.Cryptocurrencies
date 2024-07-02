@@ -138,8 +138,14 @@
   <data name="Message" xml:space="preserve">
     <value>此应用程序是一个 Zcash 钱包。它旨在成为最直观的钱包，同时可靠、安全，并且是 Zcash 提供的一些最佳隐私功能的冠军。</value>
   </data>
+  <data name="NoChannel" xml:space="preserve">
+    <value>该应用程序未安装，也不是自我更新。</value>
+  </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>钱包功能</value>
+  </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>最不发达国家工作方案的最新信息；</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>您正在使用版本</value>

@@ -120,4 +120,7 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>下载中 v{0}</value>
   </data>
+  <data name="VersionIsCurrent" xml:space="preserve">
+    <value>✅您正在运行最新版本。</value>
+  </data>
 </root>

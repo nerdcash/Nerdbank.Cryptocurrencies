@@ -120,4 +120,7 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Downloading v{0}</value>
   </data>
+  <data name="VersionIsCurrent" xml:space="preserve">
+    <value>✅ You are running the latest version.</value>
+  </data>
 </root>
