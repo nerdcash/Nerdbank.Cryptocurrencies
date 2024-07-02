@@ -145,7 +145,7 @@
     <value>钱包功能</value>
   </data>
   <data name="UpdateChannel" xml:space="preserve">
-    <value>最不发达国家工作方案的最新信息；</value>
+    <value>此应用程序自我更新在“ {channelName}”频道上。</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>您正在使用版本</value>
