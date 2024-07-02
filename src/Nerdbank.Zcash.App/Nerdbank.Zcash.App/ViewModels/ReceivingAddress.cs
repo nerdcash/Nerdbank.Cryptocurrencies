@@ -41,7 +41,10 @@ public class ReceivingAddress : IDisposable
 		}
 
 #pragma warning disable VSTHRD110 // Observe result of async calls - VSTHRD110 bug that is fixed but not yet released.
-		this.CopyCommand = ReactiveCommand.CreateFromTask(() => viewModelServices.TopLevel?.Clipboard?.SetTextAsync(this.FullText) ?? Task.CompletedTask);
+		bool canCopy = viewModelServices.TopLevel?.Clipboard is not null;
+		this.CopyCommand = ReactiveCommand.CreateFromTask(
+			() => viewModelServices.TopLevel?.Clipboard?.SetTextAsync(this.FullText) ?? Task.CompletedTask,
+			new ObservableBox<bool>(canCopy));
 #pragma warning restore VSTHRD110 // Observe result of async calls
 	}
 

@@ -96,11 +96,13 @@ public partial class App : Application, IAsyncDisposable
 		}
 		else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
 		{
+			DeferredTopLevel viewModel = new(this);
+			this.ViewModel = viewModel;
 			singleViewPlatform.MainView = new MainView
 			{
-				DataContext = this.ViewModel = new MainViewModel(this),
+				DataContext = viewModel,
 			};
-			this.ViewModel.TopLevel = TopLevel.GetTopLevel(singleViewPlatform.MainView);
+			viewModel.TopVisual = singleViewPlatform.MainView;
 		}
 
 		base.OnFrameworkInitializationCompleted();
@@ -206,6 +208,19 @@ public partial class App : Application, IAsyncDisposable
 				this.ViewModel.NavigateTo(viewModel);
 			}
 		}
+	}
+
+	private class DeferredTopLevel(App app) : MainViewModel(app)
+	{
+		private TopLevel? topLevel;
+
+		public override TopLevel? TopLevel
+		{
+			get => this.topLevel ??= TopLevel.GetTopLevel(this.TopVisual);
+			set => throw new NotSupportedException();
+		}
+
+		internal Control? TopVisual { get; set; }
 	}
 
 	private class DesignTimePlatformServices : IPlatformServices
