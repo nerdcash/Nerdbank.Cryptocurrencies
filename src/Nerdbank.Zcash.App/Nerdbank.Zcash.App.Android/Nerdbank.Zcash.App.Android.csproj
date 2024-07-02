@@ -9,6 +9,7 @@
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <AndroidPackageFormat>aab</AndroidPackageFormat>
+    <AndroidPackageFormat Condition=" '$(CI)' != 'true' and '$(TF_BUILD)' != 'true' ">apk</AndroidPackageFormat>
     <AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
     <SelfContained>false</SelfContained>
     <Platforms>x64;ARM64</Platforms>
