@@ -40,16 +40,17 @@ public class AppUpdateManager
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>
 	/// <see langword="true" /> if an update is downloaded and ready to apply;
-	/// <see langword="false" /> if no update is available or the app is not running in a self-updatable (installed) configuration.
+	/// <see langword="false" /> if no update is available;
+	/// <see langword="null" /> if the app is not running in a self-updatable (installed) configuration.
 	/// </returns>
 	/// <remarks>
 	/// This method is safe to call multiple times concurrently, but only one download will be in progress at a time.
 	/// </remarks>
-	public async Task<bool> DownloadUpdateAsync(CancellationToken cancellationToken)
+	public async Task<bool?> DownloadUpdateAsync(CancellationToken cancellationToken)
 	{
 		if (!this.IsInstalled || this.updateManager is null)
 		{
-			return false;
+			return null;
 		}
 
 		using (await this.downloadSemaphore.EnterAsync(cancellationToken))

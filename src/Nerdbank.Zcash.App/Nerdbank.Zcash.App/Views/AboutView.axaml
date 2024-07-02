@@ -29,7 +29,10 @@
           <TextBlock Text=" " />
           <TextBox IsReadOnly="True" Text="{Binding Version}" />
         </WrapPanel>
+        <TextBlock Text="{Binding Channel}" />
         <StackPanel DataContext="{Binding SelfUpdating}">
+          <TextBlock IsVisible="{Binding IsVersionCurrent}"
+                     Text="{Binding CurrentVersionMessage}" />
           <StackPanel DataContext="{Binding UpdateDownloading}"
                       IsVisible="{Binding IsInProgress}">
             <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" />

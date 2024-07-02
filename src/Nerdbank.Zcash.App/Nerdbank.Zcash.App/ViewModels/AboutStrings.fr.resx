@@ -138,8 +138,14 @@
   <data name="Message" xml:space="preserve">
     <value>Cette application est un portefeuille Zcash. Elle vise à être le portefeuille le plus intuitif disponible, tout en étant fiable, sécurisé et en mettant en avant certaines des meilleures fonctionnalités de confidentialité que Zcash a à offrir.</value>
   </data>
+  <data name="NoChannel" xml:space="preserve">
+    <value>Cette application n'est pas installée et ne s'auto-dynamique pas.</value>
+  </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Fonctionnalités du portefeuille</value>
+  </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>Cette application s'auto-annonce sur le canal '{ChannelName}'.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Vous utilisez la version</value>

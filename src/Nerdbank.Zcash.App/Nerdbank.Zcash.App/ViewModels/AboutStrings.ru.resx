@@ -138,8 +138,14 @@
   <data name="Message" xml:space="preserve">
     <value>Это приложение - кошелек Zcash. Он стремится стать самым интуитивным доступным кошельком, будучи надежным, безопасным и чемпионом из лучших функций конфиденциальности, который может предложить Zcash.</value>
   </data>
+  <data name="NoChannel" xml:space="preserve">
+    <value>Это приложение не установлено и не является самостоятельным.</value>
+  </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Возможности кошелька</value>
+  </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>Это приложение самостоятельно обновляется на канале '{ChannelName}'.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Вы используете версию</value>

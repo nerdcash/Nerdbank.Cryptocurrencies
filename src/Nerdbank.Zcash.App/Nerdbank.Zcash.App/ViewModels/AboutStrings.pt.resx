@@ -59,10 +59,7 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema id="root"
-    xmlns=""
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -141,8 +138,14 @@
   <data name="Message" xml:space="preserve">
     <value>Este aplicativo é uma carteira Zcash. Ele busca ser a carteira mais intuitiva disponível, ao mesmo tempo em que é confiável, seguro e um defensor de algumas das melhores características de privacidade que o Zcash tem a oferecer.</value>
   </data>
+  <data name="NoChannel" xml:space="preserve">
+    <value>Este aplicativo não está instalado e não atualiza a auto-atualização.</value>
+  </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Recursos da carteira</value>
+  </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>Este aplicativo se auto-atualiza no canal '{ChannelName}'.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Você está usando a versão</value>

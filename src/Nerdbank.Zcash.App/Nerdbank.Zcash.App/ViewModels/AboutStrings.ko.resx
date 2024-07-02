@@ -138,8 +138,14 @@
   <data name="Message" xml:space="preserve">
     <value>이 앱은 Zcash 지갑입니다. 가장 직관적인 지갑이 되기 위해 노력하며, 신뢰성 있고 안전하며 Zcash가 제공하는 최고의 개인 정보 보호 기능을 강조합니다.</value>
   </data>
+  <data name="NoChannel" xml:space="preserve">
+    <value>이 앱은 설치되지 않았으며 자체 업데이트되지 않습니다.</value>
+  </data>
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>지갑 기능</value>
+  </data>
+  <data name="UpdateChannel" xml:space="preserve">
+    <value>이 앱은 '{ChannelName}'채널에서 자체 업데이트됩니다.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>버전을 사용 중입니다</value>
