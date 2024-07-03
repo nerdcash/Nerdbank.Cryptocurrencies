@@ -48,6 +48,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.BackupCommand = ReactiveCommand.Create(() => this.NavigateTo(new BackupViewModel(this)), nonEmptyWallet);
 
 		this.LinkProperty(nameof(this.Content), nameof(this.CanNavigateBack));
+		this.LinkProperty(nameof(this.Content), nameof(this.IsNavigateBackVisible));
 
 		this.WatchSendProgressInAllAccounts();
 
