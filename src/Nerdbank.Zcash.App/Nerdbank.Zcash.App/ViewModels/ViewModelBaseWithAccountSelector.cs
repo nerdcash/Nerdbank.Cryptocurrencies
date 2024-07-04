@@ -14,6 +14,7 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 	protected static readonly Security UnknownSecurity = new(string.Empty);
 	private readonly ReadOnlyObservableCollection<Account> accounts;
 	private ObservableAsPropertyHelper<bool> accountPickerIsVisible;
+	private ObservableAsPropertyHelper<SyncProgressData?> syncProgress;
 	private Account? selectedAccount;
 
 	public ViewModelBaseWithAccountSelector(IViewModelServices viewModelServices, bool showOnlyAccountsWithSpendKeys = false)
@@ -32,6 +33,11 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 		this.accountPickerIsVisible = sl.Connect().Select(_ => sl.Count > 1).ToProperty(this, nameof(this.AccountPickerIsVisible));
 
 		this.selectedAccount = viewModelServices.MostRecentlyUsedAccount ?? viewModelServices.Wallet.Accounts.FirstOrDefault();
+
+		this.syncProgress = this.WhenAnyValue(
+			x => x.SelectedAccount,
+			account => account is not null ? viewModelServices.App.WalletSyncManager?.GetSyncProgress(account.Network) : null)
+			.ToProperty(this, nameof(this.SyncProgress));
 
 		this.LinkProperty(nameof(this.SelectedAccount), nameof(this.SelectedSecurity));
 	}
@@ -54,6 +60,8 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 			}
 		}
 	}
+
+	public SyncProgressData? SyncProgress => this.syncProgress.Value;
 
 	public bool AccountPickerIsVisible => this.accountPickerIsVisible.Value;
 

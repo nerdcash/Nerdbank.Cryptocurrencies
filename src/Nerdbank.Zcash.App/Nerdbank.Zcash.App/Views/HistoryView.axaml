@@ -11,7 +11,8 @@
     <vm:HistoryViewModel />
   </Design.DataContext>
   <DockPanel>
-    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10"
+                             IsVisible="{Binding ProgressBarVisibleOnOtherScreens}"/>
     <local:AccountSelector DockPanel.Dock="Top" HorizontalAlignment="Center" />
     <CheckBox Content="{Binding ShowProtocolDetailsCaption}" IsChecked="{Binding ShowProtocolDetails}" DockPanel.Dock="Bottom" Margin="5 0" />
     <Grid Background="LightYellow" IsVisible="{Binding ExchangeRateExplanationIsVisible}" DockPanel.Dock="Bottom" ColumnDefinitions="*,auto">

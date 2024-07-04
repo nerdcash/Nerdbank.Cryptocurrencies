@@ -14,30 +14,35 @@
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
-  <DockPanel>
-    <Menu DockPanel.Dock="Top">
-      <MenuItem Header="{Binding BackCommandCaption}" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
-      <MenuItem Header="{Binding AppMenuCaption}">
-        <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
-        <MenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
-        <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
-        <Separator />
-        <MenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
-        <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" />
-        <Separator />
-        <MenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
-      </MenuItem>
-      <MenuItem Header="{Binding TransactionsMenuCaption}">
-        <MenuItem Header="{Binding AccountBalanceCommandCaption}" Command="{Binding AccountBalanceCommand}" />
-        <MenuItem Header="{Binding TransactionHistoryCommandCaption}" Command="{Binding TransactionHistoryCommand}" />
-        <MenuItem Header="{Binding SendCommandCaption}" Command="{Binding SendCommand}" />
-        <MenuItem Header="{Binding ReceiveCommandCaption}" Command="{Binding ReceiveCommand}" />
-      </MenuItem>
-      <MenuItem Header="{Binding ToolsMenuCaption}">
-        <MenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
-      </MenuItem>
-    </Menu>
-    <views:SyncHeaderControl DataContext="{Binding SendProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />
-    <ContentControl Content="{Binding Content}" />
-  </DockPanel>
+  <Grid>
+    <DockPanel>
+      <Menu DockPanel.Dock="Top">
+        <MenuItem Header="{Binding BackCommandCaption}" Background="LightCyan" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
+        <MenuItem Header="{Binding AppMenuCaption}">
+          <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
+          <MenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
+          <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
+          <Separator />
+          <MenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
+          <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" />
+          <Separator />
+          <MenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
+        </MenuItem>
+        <MenuItem Header="{Binding TransactionsMenuCaption}">
+          <MenuItem Header="{Binding AccountBalanceCommandCaption}" Command="{Binding AccountBalanceCommand}" />
+          <MenuItem Header="{Binding TransactionHistoryCommandCaption}" Command="{Binding TransactionHistoryCommand}" />
+          <MenuItem Header="{Binding SendCommandCaption}" Command="{Binding SendCommand}" />
+          <MenuItem Header="{Binding ReceiveCommandCaption}" Command="{Binding ReceiveCommand}" />
+        </MenuItem>
+        <MenuItem Header="{Binding ToolsMenuCaption}">
+          <MenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
+        </MenuItem>
+      </Menu>
+      <views:SyncHeaderControl DataContext="{Binding SendProgress}" DockPanel.Dock="Bottom" Margin="0 10 0 0" />
+      <ContentControl Content="{Binding Content}" />
+    </DockPanel>
+    <views:SyncStatusControl
+      DataContext="{Binding SyncProgress}"
+      HorizontalAlignment="Right" VerticalAlignment="Top" />
+  </Grid>
 </Window>

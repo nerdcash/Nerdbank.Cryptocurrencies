@@ -12,7 +12,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 {
 	private readonly Stack<ViewModelBase> viewStack = new();
 	private readonly HttpClient httpClient = new() { DefaultRequestHeaders = { { "User-Agent", "Nerdbank.Zcash.App" } } };
-	private ObservableAsPropertyHelper<string?> contentTitle;
+	private readonly ObservableAsPropertyHelper<string?> contentTitle;
+	private readonly ObservableAsPropertyHelper<SyncProgressData?> syncProgress;
 
 	[Obsolete("Design-time only.", error: true)]
 	public MainViewModel()
@@ -51,10 +52,14 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.LinkProperty(nameof(this.Content), nameof(this.IsNavigateBackVisible));
 
 		this.WatchSendProgressInAllAccounts();
+		this.syncProgress = this.WhenAnyValue<MainViewModel, SyncProgressData?, SyncProgressData?>(
+			x => x.App.WalletSyncManager!.BlendedSyncProgress,
+			p => p)
+			.ToProperty(this, nameof(this.SyncProgress));
 
 		this.NavigateTo(this.GetHomeViewModel());
 
-		this.App.StartSync();
+		this.App.WalletSyncManager?.StartSyncing(this, this.App.Data.Wallet);
 	}
 
 	public string BackCommandCaption => MainStrings.BackCommandCaption;
@@ -88,6 +93,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public string AddressCheckCommandCaption => MainStrings.AddressCheckCommandCaption;
 
 	public App App { get; }
+
+	public SyncProgressData? SyncProgress => this.syncProgress.Value;
 
 	public bool IsScanCommandAvailable => false;
 

@@ -64,8 +64,6 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		this.HideExchangeRateExplanationCommand = ReactiveCommand.Create(() => { this.ViewModelServices.Settings.ExchangeRatePerTransactionHasBeenDismissed = true; });
 
-		this.SyncProgress = new SyncProgressData(this);
-
 		this.exchangeRateExplanationIsVisible = this.WhenAnyValue(
 			vm => vm.ViewModelServices.Settings.ExchangeRatePerTransactionHasBeenDismissed,
 			vm => vm.SelectedSecurity.IsTestNet,
@@ -93,8 +91,6 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	}
 
 	public string Title => HistoryStrings.Title;
-
-	public SyncProgressData SyncProgress { get; }
 
 	// When changing the sort order, be sure to update the UpdateBalances method (and maybe its callers)
 	// to walk the collection in the new order.

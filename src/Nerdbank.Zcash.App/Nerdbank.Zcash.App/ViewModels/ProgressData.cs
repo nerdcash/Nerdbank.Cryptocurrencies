@@ -19,7 +19,7 @@ public class ProgressData : ViewModelBase
 		this.LinkProperty(nameof(this.To), nameof(this.ProgressTextFormat));
 	}
 
-	public virtual string Caption => "In progress";
+	public virtual string Caption => ProgressDataStrings.Caption;
 
 	public bool IsInProgress
 	{

@@ -29,7 +29,6 @@ public partial class App : Application, IAsyncDisposable
 	private AppSettings? settings;
 	private DataRoot? data;
 	private AutoSaveManager<DataRoot>? dataRootManager;
-	private WalletSyncManager? walletSyncManager;
 
 	[Obsolete("Design-time only", error: true)]
 	public App()
@@ -50,6 +49,8 @@ public partial class App : Application, IAsyncDisposable
 	public static new App? Current => (App?)Application.Current;
 
 	public JoinableTaskContext JoinableTaskContext => this.joinableTaskContext ?? throw new InvalidOperationException();
+
+	public WalletSyncManager? WalletSyncManager { get; private set; }
 
 	public bool IsDesignTime => this.PlatformServices is DesignTimePlatformServices;
 
@@ -134,7 +135,7 @@ public partial class App : Application, IAsyncDisposable
 
 		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
 		{
-			this.walletSyncManager = new WalletSyncManager(this.joinableTaskContext, this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager, this.Data.ExchangeRates, this.PlatformServices);
+			this.WalletSyncManager = new WalletSyncManager(this.joinableTaskContext, this.AppPlatformSettings.ConfidentialDataPath, this.Data.Wallet, this.Settings, this.Data.ContactManager, this.Data.ExchangeRates, this.PlatformServices);
 		}
 	}
 
@@ -144,9 +145,9 @@ public partial class App : Application, IAsyncDisposable
 
 		await this.WaitForSendsAsync();
 
-		if (this.walletSyncManager is not null)
+		if (this.WalletSyncManager is not null)
 		{
-			await this.walletSyncManager.DisposeAsync();
+			await this.WalletSyncManager.DisposeAsync();
 		}
 
 		if (this.appSettingsManager is not null)
@@ -168,11 +169,6 @@ public partial class App : Application, IAsyncDisposable
 		{
 			desktop.Shutdown();
 		}
-	}
-
-	public void StartSync()
-	{
-		this.walletSyncManager?.StartSyncing(this.Data.Wallet);
 	}
 
 	public void RegisterSendTransactionTask(Task sendTask)

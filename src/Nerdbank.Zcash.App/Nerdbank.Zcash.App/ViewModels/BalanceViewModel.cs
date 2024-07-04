@@ -53,8 +53,6 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public BalanceViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
-		this.SyncProgress = new SyncProgressData(this);
-
 		this.balance = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
@@ -128,8 +126,6 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		static SecurityAmount? X(ExchangeRate? exchangeRate, bool showAlternateCurrency, SecurityAmount nativeAmount) => showAlternateCurrency && exchangeRate.HasValue && nativeAmount.Security is not null ? nativeAmount * exchangeRate : nativeAmount;
 	}
-
-	public SyncProgressData SyncProgress { get; }
 
 	public string Title => BalanceStrings.Title;
 

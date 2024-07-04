@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="50" d:DesignHeight="50"
+             Margin="3"
+             x:Class="Nerdbank.Zcash.App.Views.SyncStatusControl"
+             x:DataType="vm:SyncProgressData">
+  <Design.DataContext>
+    <vm:SyncProgressData Current="485" From="0" To="1000" IsInProgress="True">
+      <vm:SyncProgressData.CurrentStatus>
+        <!-- 
+        Disconnected
+        InProgress
+        DisconnectedWithError
+        CaughtUp
+        -->
+      </vm:SyncProgressData.CurrentStatus>
+    </vm:SyncProgressData>
+  </Design.DataContext>
+  <UserControl.Styles>
+    <Style Selector="Ellipse.CaughtUp#Outer">
+      <Setter Property="Fill" Value="Green" />
+    </Style>
+    <Style Selector="Ellipse.CaughtUp#Inner">
+      <Setter Property="Fill" Value="LightGreen" />
+    </Style>
+    <Style Selector="Ellipse.InProgress#Outer">
+      <Setter Property="Fill" Value="Yellow" />
+    </Style>
+    <Style Selector="Ellipse.InProgress#Inner">
+      <Setter Property="Fill" Value="YellowGreen" />
+      <Style.Animations>
+        <Animation Duration="0:0:1" IterationCount="INFINITE" PlaybackDirection="Alternate">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0.5" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1.0" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="Ellipse.DisconnectedWithError#Outer">
+      <Setter Property="Fill" Value="Red" />
+    </Style>
+    <Style Selector="Ellipse.DisconnectedWithError#Inner">
+      <Setter Property="Fill" Value="Pink" />
+    </Style>
+    <Style Selector="Ellipse.Disconnected#Outer">
+      <Setter Property="Fill" Value="White" />
+      <Setter Property="Stroke" Value="Black" />
+      <Setter Property="StrokeThickness" Value="2" />
+    </Style>
+    <Style Selector="Ellipse.Disconnected#Inner">
+      <Setter Property="Fill" Value="Yellow" />
+      <Style.Animations>
+        <Animation Duration="0:0:1" IterationCount="INFINITE" PlaybackDirection="Alternate">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1.0" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+  <Button Padding="0" Margin="0" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"
+          Command="{Binding ShowDetailsCommand}">
+    <Button.Content>
+      <Grid>
+        <Ellipse Name="Outer" Width="17" Height="17"
+                 Classes.CaughtUp="{Binding IsStatusCaughtUp}"
+                 Classes.InProgress="{Binding IsStatusInProgress}"
+                 Classes.Disconnected="{Binding IsStatusDisconnected}"
+                 Classes.DisconnectedWithError="{Binding IsStatusDisconnectedWithError}"
+                 ToolTip.Tip="{Binding ToolTip}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Ellipse Name="Inner" Width="12" Height="12"
+                 Classes.CaughtUp="{Binding IsStatusCaughtUp}"
+                 Classes.InProgress="{Binding IsStatusInProgress}"
+                 Classes.Disconnected="{Binding IsStatusDisconnected}"
+                 Classes.DisconnectedWithError="{Binding IsStatusDisconnectedWithError}"
+                 ToolTip.Tip="{Binding ToolTip}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Grid>
+    </Button.Content>
+  </Button>
+</UserControl>

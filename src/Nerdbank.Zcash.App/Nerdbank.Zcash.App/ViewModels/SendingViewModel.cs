@@ -46,8 +46,6 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.lineItemsReadOnly = new(this.lineItems);
 		this.AddLineItem();
 
-		this.SyncProgress = new SyncProgressData(this);
-
 		this.OnSelectedAccountChanged();
 
 		this.subtotalAlternate = this.WhenAnyValue(
@@ -88,8 +86,6 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public bool IsSendingInProgress => this.isSendingInProgress.Value;
 
 	public string Title => SendingStrings.Title;
-
-	public SyncProgressData SyncProgress { get; }
 
 	public bool AreLineItemsValid
 	{
