@@ -4,10 +4,10 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <AvaloniaVersion>11.0.10</AvaloniaVersion>
+    <AvaloniaVersion>11.0.11</AvaloniaVersion>
     <AvaloniaMarkdownVersion>11.0.2</AvaloniaMarkdownVersion>
     <RoslynVersion>3.11.0-beta1.24104.1</RoslynVersion>
-    <MessagePackVersion>2.5.140</MessagePackVersion>
+    <MessagePackVersion>2.5.168</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -25,10 +25,10 @@
     <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePack.Annotations" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
-    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta" />
-    <PackageVersion Include="Velopack" Version="0.0.523-g5727de1" />
-    <PackageVersion Include="Xamarin.AndroidX.Annotation" Version="1.7.0.2" />
-    <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.106" />
+    <PackageVersion Include="Velopack" Version="0.0.556" />
+    <PackageVersion Include="Xamarin.AndroidX.Annotation" Version="1.8.0" />
+    <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.9" />
     <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="BouncyCastle.Cryptography" Version="2.4.0" />
