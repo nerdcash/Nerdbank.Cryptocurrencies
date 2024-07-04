@@ -89,7 +89,7 @@ internal class Program
 			PaymentRequestUri = zcashPaymentRequest,
 		};
 
-		IPlatformServices platformServices =
+		PlatformServices platformServices =
 #if WINDOWS
 			new WindowsPlatformServices();
 #else

@@ -132,12 +132,13 @@
             BoxShadow="5 5 10 0 DarkGray"
             CornerRadius="8"
             Opacity="0.9"
-            IsVisible="{Binding SendSuccessfulMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+            IsVisible="{Binding EphemeralMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
-      <TextBlock Text="{Binding SendSuccessfulMessage}"
+      <TextBlock Text="{Binding EphemeralMessage}"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
+                 TextAlignment="Center"
                  Padding="15"
                />
     </Border>

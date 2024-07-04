@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -13,6 +14,9 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 {
+	private static readonly TimeSpan DefaultEphemeralMessageDelay = TimeSpan.FromSeconds(3);
+	private static readonly TimeSpan PaymentRequestScanEphemeralMessageDelay = TimeSpan.FromSeconds(5);
+
 	private readonly ObservableCollection<LineItem> lineItems = new();
 	private readonly ReadOnlyObservableCollection<LineItem> lineItemsReadOnly;
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> subtotalAlternate;
@@ -153,7 +157,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		set => this.RaiseAndSetIfChanged(ref this.errorMessage, value);
 	}
 
-	public string? SendSuccessfulMessage
+	public string? EphemeralMessage
 	{
 		get => this.sendSuccessfulMessage;
 		set => this.RaiseAndSetIfChanged(ref this.sendSuccessfulMessage, value);
@@ -315,9 +319,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			this.Clear(leaveOneEmptyLineItem: true);
 
 			// Display a successful message momentarily.
-			this.SendSuccessfulMessage = $"{subtotal} sent successfully.";
-			await Task.Delay(3000);
-			this.SendSuccessfulMessage = null;
+			this.ShowEphemeralMessage(SendingStrings.FormatSendSuccessfulMessage(subtotal));
 		}
 		catch (Exception ex)
 		{
@@ -347,6 +349,19 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			{
 				this.SelectedAccount.SendProgress.Complete();
 			}
+		}
+	}
+
+	private void ShowEphemeralMessage(string message, TimeSpan? delay = null)
+	{
+		HelperAsync().Forget();
+
+		async Task HelperAsync()
+		{
+			// Display a successful message momentarily.
+			this.EphemeralMessage = message;
+			await Task.Delay(delay ?? DefaultEphemeralMessageDelay);
+			this.EphemeralMessage = null;
 		}
 	}
 
@@ -496,7 +511,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			this.AmountEntry = new DualAmountEntryViewModel(owner.ViewModelServices);
 			this.AmountEntry.WhenPropertyChanged(e => e.Amount).Subscribe(_ => this.RaisePropertyChanged(nameof(this.Amount)));
 
-			this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync);
+			ObservableBox<bool> canScan = new(owner.ViewModelServices.App.PlatformServices.CanSearchForQRCodes);
+			this.ScanCommand = ReactiveCommand.CreateFromTask(this.ScanAsync, canScan);
 			this.RemoveLineItemCommand = ReactiveCommand.Create(() => this.owner.Remove(this));
 
 			this.recipientAddressParsed = this.WhenAnyValue(
@@ -587,25 +603,53 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		public ReactiveCommand<Unit, Unit> ScanCommand { get; }
 
-		public bool IsScanCommandAvailable => this.ViewModelServices.IsScanCommandAvailable;
+		public bool IsScanCommandAvailable => this.ViewModelServices.App.PlatformServices.CanSearchForQRCodes;
 
 		public string RemoveLineItemCommandCaption => SendingStrings.LineItem_RemoveLineItemCommandCaption;
 
 		public ReactiveCommand<Unit, Unit> RemoveLineItemCommand { get; }
 
-		private Task ScanAsync()
+		private async Task ScanAsync(CancellationToken cancellationToken)
 		{
 			try
 			{
-				throw new NotSupportedException();
-			}
-			catch (NotSupportedException)
-			{
-				// fallback to file picker
-				// TODO
-			}
+				CameraViewModel? cameraViewModel = this.ViewModelServices.App.PlatformServices.CreateCameraViewModel() ?? throw new NotSupportedException("Camera operation is not supported.");
+				string? text = await cameraViewModel.GetTextFromQRCodeAsync(cancellationToken);
+				switch (text)
+				{
+					case null:
+						break;
+					case "":
+						this.owner.ShowEphemeralMessage(SendingStrings.NoQRCodeFound);
+						break;
+					default:
+						if (ZcashAddress.TryDecode(text, out _, out _, out ZcashAddress? address))
+						{
+							this.RecipientAddress = address.ToString();
+							this.owner.ShowEphemeralMessage(SendingStrings.QRCodeZcashAddressScanned);
+						}
+						else if (Zip321PaymentRequestUris.PaymentRequest.TryParse(text, out Zip321PaymentRequestUris.PaymentRequest? paymentRequest))
+						{
+							if (this.owner.TryApplyPaymentRequest(paymentRequest))
+							{
+								this.owner.ShowEphemeralMessage(SendingStrings.FormatQRCodePaymentRequestScanned(paymentRequest.Payments.Length), PaymentRequestScanEphemeralMessageDelay);
+							}
+							else
+							{
+								this.owner.ShowEphemeralMessage(SendingStrings.QRCodePaymentRequestApplicationFailed, PaymentRequestScanEphemeralMessageDelay);
+							}
+						}
+						else
+						{
+							this.owner.ShowEphemeralMessage(SendingStrings.InvalidQRCode);
+						}
 
-			return Task.CompletedTask;
+						break;
+				}
+			}
+			catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or OperationCanceledException)
+			{
+			}
 		}
 	}
 }

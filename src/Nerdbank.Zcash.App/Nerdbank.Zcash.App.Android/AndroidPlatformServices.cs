@@ -5,11 +5,10 @@ using Android.Content;
 using Android.Net;
 using Android.OS;
 using Microsoft;
-using ReactiveUI;
 
 namespace Nerdbank.Zcash.App.Android;
 
-internal class AndroidPlatformServices : ReactiveObject, IPlatformServices
+internal class AndroidPlatformServices : PlatformServices
 {
 	private readonly Context context;
 	private readonly PowerManager? powerManager;
@@ -39,21 +38,13 @@ internal class AndroidPlatformServices : ReactiveObject, IPlatformServices
 		connectivityManager.RegisterNetworkCallback(networkRequest, new NetworkSink(this));
 	}
 
-	public bool HasHardwareBackButton => true;
+	public override bool HasHardwareBackButton => true;
 
-	public bool IsOnACPower
-	{
-		get => this.isOnACPower;
-		private set => this.RaiseAndSetIfChanged(ref this.isOnACPower, value);
-	}
+	public override bool IsOnACPower => this.isOnACPower;
 
-	public bool IsNetworkMetered
-	{
-		get => this.isNetworkMetered;
-		private set => this.RaiseAndSetIfChanged(ref this.isNetworkMetered, value);
-	}
+	public override bool IsNetworkMetered => this.isNetworkMetered;
 
-	public IDisposable? RequestSleepDeferral()
+	public override IDisposable? RequestSleepDeferral()
 	{
 		if (this.powerManager is null)
 		{
@@ -86,6 +77,10 @@ internal class AndroidPlatformServices : ReactiveObject, IPlatformServices
 		return plugged == (int)BatteryPlugged.Ac || plugged == (int)BatteryPlugged.Usb;
 	}
 
+	private void SetIsOnACPower(bool value) => this.RaiseAndSetIfChanged(ref this.isOnACPower, value, nameof(this.IsOnACPower));
+
+	private void SetIsNetworkMetered(bool value) => this.RaiseAndSetIfChanged(ref this.isNetworkMetered, value, nameof(this.IsNetworkMetered));
+
 	private class Receiver(AndroidPlatformServices platformServices) : BroadcastReceiver
 	{
 		public override void OnReceive(Context? context, Intent? intent)
@@ -93,10 +88,10 @@ internal class AndroidPlatformServices : ReactiveObject, IPlatformServices
 			switch (intent?.Action)
 			{
 				case Intent.ActionPowerConnected:
-					platformServices.IsOnACPower = true;
+					platformServices.SetIsOnACPower(true);
 					break;
 				case Intent.ActionPowerDisconnected:
-					platformServices.IsOnACPower = false;
+					platformServices.SetIsOnACPower(false);
 					break;
 				default:
 					break;
@@ -120,7 +115,7 @@ internal class AndroidPlatformServices : ReactiveObject, IPlatformServices
 
 		public override void OnCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities)
 		{
-			platformServices.IsNetworkMetered = !networkCapabilities.HasCapability(NetCapability.NotMetered);
+			platformServices.SetIsNetworkMetered(!networkCapabilities.HasCapability(NetCapability.NotMetered));
 		}
 	}
 }

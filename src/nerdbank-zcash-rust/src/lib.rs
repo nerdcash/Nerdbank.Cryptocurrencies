@@ -12,6 +12,7 @@ mod interop;
 mod lightclient;
 mod orchard;
 mod prover;
+mod qr_codes;
 mod resilience;
 mod sapling;
 mod send;

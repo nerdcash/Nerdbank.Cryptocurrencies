@@ -4,15 +4,16 @@
 #if WINDOWS
 
 using System.Reactive.Disposables;
+using System.Windows.Forms;
 using Microsoft.Win32;
-using ReactiveUI;
+using Nerdbank.Zcash.App.ViewModels;
 using Windows.Networking.Connectivity;
 using Windows.Win32;
 using Windows.Win32.System.Power;
 
 namespace Nerdbank.Zcash.App.Desktop;
 
-internal class WindowsPlatformServices : ReactiveObject, IPlatformServices
+internal class WindowsPlatformServices : PlatformServices
 {
 	private readonly Thread powerManagementThread;
 	private readonly object powerManagementThreadLock = new();
@@ -36,21 +37,11 @@ internal class WindowsPlatformServices : ReactiveObject, IPlatformServices
 		this.powerManagementThread.Start(this);
 	}
 
-	public bool HasHardwareBackButton => false;
+	public override bool IsOnACPower => this.isOnACPower;
 
-	public bool IsOnACPower
-	{
-		get => this.isOnACPower;
-		private set => this.RaiseAndSetIfChanged(ref this.isOnACPower, value);
-	}
+	public override bool IsNetworkMetered => this.isNetworkMetered;
 
-	public bool IsNetworkMetered
-	{
-		get => this.isNetworkMetered;
-		private set => this.RaiseAndSetIfChanged(ref this.isNetworkMetered, value);
-	}
-
-	public IDisposable? RequestSleepDeferral()
+	public override IDisposable? RequestSleepDeferral()
 	{
 		// It's important that we do NOT insist that the device stay running on battery power,
 		// both because we don't want to drain the battery, but because the user may have a laptop
@@ -93,15 +84,13 @@ internal class WindowsPlatformServices : ReactiveObject, IPlatformServices
 		this.UpdateIsNetworkMetered();
 	}
 
-	private void UpdateIsOnACPower()
-	{
-		this.IsOnACPower = SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Online;
-	}
+	private void SetIsOnACPower(bool value) => this.RaiseAndSetIfChanged(ref this.isOnACPower, value, nameof(this.IsOnACPower));
 
-	private void UpdateIsNetworkMetered()
-	{
-		this.IsNetworkMetered = NetworkInformation.GetInternetConnectionProfile().GetConnectionCost().NetworkCostType == NetworkCostType.Variable;
-	}
+	private void SetIsNetworkMetered(bool value) => this.RaiseAndSetIfChanged(ref this.isNetworkMetered, value, nameof(this.IsNetworkMetered));
+
+	private void UpdateIsOnACPower() => this.SetIsOnACPower(SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Online);
+
+	private void UpdateIsNetworkMetered() => this.SetIsNetworkMetered(NetworkInformation.GetInternetConnectionProfile().GetConnectionCost().NetworkCostType == NetworkCostType.Variable);
 
 	private void PowerManagementThreadProc()
 	{

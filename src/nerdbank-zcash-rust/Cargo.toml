@@ -14,11 +14,13 @@ crate-type = ["cdylib"]
 uniffi = { version = "0.25.0", features = ["build"] }
 
 [dependencies]
+encoding = "0.2.33"
 ff = "0.13"
 futures-util = "0.3"
 group = "0.13"
 hdwallet = { path = "../../external/hdwallet" }
 http = "0.2"
+image = "0.25.1"
 jubjub = "0.10"
 lazy_static = "1.4"
 minreq = "2.11.0"
@@ -26,6 +28,7 @@ nonempty = "0.7"
 orchard = "0.8.0"
 pasta_curves = "0.5"
 prost = "0.12"
+rqrr = "0.7.0"
 rusqlite = "0.29"
 sapling = { package = "sapling-crypto", version = "0.1.2" }
 schemer = "0.2"

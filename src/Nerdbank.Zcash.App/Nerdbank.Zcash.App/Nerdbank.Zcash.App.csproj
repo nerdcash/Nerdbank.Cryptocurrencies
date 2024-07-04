@@ -44,6 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\CameraView.axaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
     <Compile Update="Views\SyncDetailsControl.axaml.cs">
       <DependentUpon>SyncDetailsControl.axaml</DependentUpon>
     </Compile>
