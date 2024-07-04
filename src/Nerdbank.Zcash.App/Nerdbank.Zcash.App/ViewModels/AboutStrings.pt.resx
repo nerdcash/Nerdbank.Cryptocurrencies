@@ -145,7 +145,7 @@
     <value>Recursos da carteira</value>
   </data>
   <data name="UpdateChannel" xml:space="preserve">
-    <value>Este aplicativo se auto-atualiza no canal '{ChannelName}'.</value>
+    <value>Este aplicativo se auto-atualiza no canal '{channelName}'.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Você está usando a versão</value>

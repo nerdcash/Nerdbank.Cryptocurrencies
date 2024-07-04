@@ -145,7 +145,7 @@
     <value>Fonctionnalités du portefeuille</value>
   </data>
   <data name="UpdateChannel" xml:space="preserve">
-    <value>Cette application s'auto-annonce sur le canal '{ChannelName}'.</value>
+    <value>Cette application s'auto-annonce sur le canal '{channelName}'.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Vous utilisez la version</value>
