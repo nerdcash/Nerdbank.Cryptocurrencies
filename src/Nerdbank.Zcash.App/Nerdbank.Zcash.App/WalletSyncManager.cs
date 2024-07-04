@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using Microsoft.VisualStudio.Threading;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Nerdbank.Zcash.App;
 
-public class WalletSyncManager : IAsyncDisposable
+public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 {
 	private readonly string confidentialDataPath;
 	private readonly IPlatformServices platformServices;
@@ -18,8 +19,10 @@ public class WalletSyncManager : IAsyncDisposable
 	private readonly JoinableTaskCollection backgroundTasks;
 	private readonly JoinableTaskFactory joinableTaskFactory;
 	private readonly CancellationTokenSource shutdownTokenSource = new();
-	private Dictionary<ZcashNetwork, Tracker> trackers = new();
-	private bool syncStarted;
+	private readonly Dictionary<ZcashNetwork, Tracker> trackers = new();
+	private readonly ObservableCollection<SyncProgressData> syncProgressDatas = new();
+	private IViewModelServices? viewModelServices;
+	private SyncProgressData? blendedSyncProgress;
 
 	public WalletSyncManager(
 		JoinableTaskContext joinableTaskContext,
@@ -39,7 +42,24 @@ public class WalletSyncManager : IAsyncDisposable
 		this.contactManager = contactManager;
 		this.exchangeRateRecord = exchangeRateRecord;
 		this.platformServices = platformServices;
+
+		this.ProgressDetails = new(this.syncProgressDatas);
 	}
+
+	public interface ITracker
+	{
+		ZcashNetwork Network { get; }
+
+		void Retry();
+	}
+
+	public SyncProgressData? BlendedSyncProgress
+	{
+		get => this.blendedSyncProgress;
+		private set => this.RaiseAndSetIfChanged(ref this.blendedSyncProgress, value);
+	}
+
+	public ReadOnlyObservableCollection<SyncProgressData> ProgressDetails { get; }
 
 	public async ValueTask DisposeAsync()
 	{
@@ -52,18 +72,27 @@ public class WalletSyncManager : IAsyncDisposable
 		await Task.WhenAll(this.trackers.Values.Select(t => t.DisposeAsync().AsTask()));
 	}
 
-	public void StartSyncing(ZcashWallet wallet)
+	public void StartSyncing(IViewModelServices viewModelServices, ZcashWallet wallet)
 	{
-		Verify.Operation(!this.syncStarted, "Syncing has already started.");
-		this.syncStarted = true;
+		Verify.Operation(this.viewModelServices is null, "Syncing has already started.");
+		this.viewModelServices = viewModelServices;
 
 		INotifyCollectionChanged accounts = wallet.Accounts;
 		accounts.CollectionChanged += this.Wallet_CollectionChanged;
+		ImmutableArray<SyncProgressData>.Builder datas = ImmutableArray.CreateBuilder<SyncProgressData>(2);
 		foreach (ZcashNetwork network in wallet.Accounts.Select(a => a.Network).Distinct())
 		{
-			this.trackers.Add(network, new Tracker(this, network));
+			Tracker tracker = new(this, network);
+			this.trackers.Add(network, tracker);
+			this.syncProgressDatas.Add(tracker.SyncProgress);
+			datas.Add(tracker.SyncProgress);
 		}
+
+		this.BlendedSyncProgress = SyncProgressData.Blend(viewModelServices, datas.ToImmutable());
 	}
+
+	public SyncProgressData? GetSyncProgress(ZcashNetwork network)
+		=> this.trackers.TryGetValue(network, out Tracker? tracker) ? tracker.SyncProgress : null;
 
 	private void Wallet_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
 	{
@@ -77,18 +106,26 @@ public class WalletSyncManager : IAsyncDisposable
 				}
 				else
 				{
-					this.trackers.Add(account.Network, new Tracker(this, account.Network));
+					tracker = new(this, account.Network);
+					this.trackers.Add(account.Network, tracker);
+					this.syncProgressDatas.Add(tracker.SyncProgress);
+					(this.BlendedSyncProgress as IDisposable)?.Dispose();
+					this.BlendedSyncProgress = SyncProgressData.Blend(
+						this.viewModelServices ?? throw new InvalidOperationException(),
+						this.trackers.Values.Select(t => t.SyncProgress).ToImmutableArray());
 				}
 			}
 		}
 	}
 
-	private class Tracker : IAsyncDisposable
+	private class Tracker : ITracker, IAsyncDisposable
 	{
+		private static readonly TimeSpan MinimumAutoRetryDelay = TimeSpan.FromSeconds(5);
 		private readonly WalletSyncManager owner;
 		private readonly LightWalletClient client;
 		private readonly JoinableTask completion;
 		private readonly AsyncAutoResetEvent unblockAutoShielding = new();
+		private readonly AsyncAutoResetEvent retryOnFailure = new(allowInliningAwaiters: false);
 
 		public Tracker(WalletSyncManager owner, ZcashNetwork network)
 		{
@@ -108,13 +145,19 @@ public class WalletSyncManager : IAsyncDisposable
 					this.DownloadAsync(this.owner.shutdownTokenSource.Token),
 					this.AutoShieldAsync(this.owner.shutdownTokenSource.Token));
 			});
+
+			this.SyncProgress = new SyncProgressData(owner.viewModelServices ?? throw new InvalidOperationException(), this);
 		}
+
+		public ZcashNetwork Network { get; }
+
+		internal SyncProgressData SyncProgress { get; }
 
 		internal Uri ServerUrl => this.owner.settings.GetLightServerUrl(this.Network);
 
-		internal ZcashNetwork Network { get; }
-
 		private ImmutableArray<Account> Accounts => this.owner.wallet.Accounts.Where(a => a.Network == this.Network).ToImmutableArray();
+
+		public void Retry() => this.retryOnFailure.Set();
 
 		public async ValueTask DisposeAsync()
 		{
@@ -128,63 +171,84 @@ public class WalletSyncManager : IAsyncDisposable
 
 		private async Task DownloadAsync(CancellationToken cancellationToken)
 		{
-			IDisposable? sleepDeferral = this.owner.platformServices.RequestSleepDeferral();
-			try
+			TimeSpan autoRetryTimeout = MinimumAutoRetryDelay;
+			while (true)
 			{
-				Progress<LightWalletClient.SyncProgress> syncProgress = new(v =>
+				IDisposable? sleepDeferral = this.owner.platformServices.RequestSleepDeferral();
+				try
 				{
-					if (v.LastFullyScannedBlock == v.TipHeight)
+					Progress<LightWalletClient.SyncProgress> syncProgress = new(v =>
 					{
-						sleepDeferral?.Dispose();
-						sleepDeferral = null;
+						if (string.IsNullOrEmpty(v.LastError))
+						{
+							// Now that there's an indication of a successful connection,
+							// reset our exponential back-off, which may have been increased earlier.
+							autoRetryTimeout = MinimumAutoRetryDelay;
+						}
+
+						if (v.LastFullyScannedBlock == v.TipHeight)
+						{
+							// Now that we've caught up, we no longer need to keep the system awake.
+							sleepDeferral?.Dispose();
+							sleepDeferral = null;
+
+							foreach (Account account in this.Accounts)
+							{
+								// Only update the last block height if we actually found transactions.
+								// Otherwise this could be a recently imported account whose scan hasn't even started.
+								// This property is only meant to optimize not re-retrieving transactions from across the interop anyway.
+								if (account.Transactions.Count > 0)
+								{
+									account.LastBlockHeight = v.TipHeight;
+								}
+							}
+
+							this.unblockAutoShielding.Set();
+						}
+
+						this.SyncProgress.Apply(v);
 
 						foreach (Account account in this.Accounts)
 						{
-							// Only update the last block height if we actually found transactions.
-							// Otherwise this could be a recently imported account whose scan hasn't even started.
-							// This property is only meant to optimize not re-retrieving transactions from across the interop anyway.
-							if (account.Transactions.Count > 0)
+							account.Balance = this.client.GetBalances(account.ZcashAccount);
+						}
+					});
+
+					Progress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>> discoveredTransactions = new(v =>
+					{
+						foreach (Account account in this.Accounts)
+						{
+							if (v.TryGetValue(account.ZcashAccount, out IReadOnlyCollection<Transaction>? transactions))
 							{
-								account.LastBlockHeight = v.TipHeight;
+								// Filter transactions to those above the account's birthday height
+								// to workaround https://github.com/zcash/librustzcash/issues/1436.
+								IEnumerable<Transaction> filteredTransactions = transactions.Where(t => t.MinedHeight is null || t.MinedHeight >= account.ZcashAccount.BirthdayHeight);
+								account.AddTransactions(filteredTransactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
 							}
+
+							account.Balance = this.client.GetBalances(account.ZcashAccount);
 						}
+					});
 
-						this.unblockAutoShielding.Set();
-					}
-
-					foreach (Account account in this.Accounts)
-					{
-						// Avoid activating progress bars if we're only one block behind, which happens a lot.
-						if (v.LastFullyScannedBlock != v.TipHeight - 1 || account.SyncProgress is not { PercentComplete: 100 })
-						{
-							account.SyncProgress = v;
-						}
-
-						account.Balance = this.client.GetBalances(account.ZcashAccount);
-					}
-				});
-
-				Progress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>> discoveredTransactions = new(v =>
+					await this.client.DownloadTransactionsAsync(syncProgress, discoveredTransactions, continually: true, cancellationToken);
+				}
+				catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
 				{
-					foreach (Account account in this.Accounts)
-					{
-						if (v.TryGetValue(account.ZcashAccount, out IReadOnlyCollection<Transaction>? transactions))
-						{
-							// Filter transactions to those above the account's birthday height
-							// to workaround https://github.com/zcash/librustzcash/issues/1436.
-							IEnumerable<Transaction> filteredTransactions = transactions.Where(t => t.MinedHeight is null || t.MinedHeight >= account.ZcashAccount.BirthdayHeight);
-							account.AddTransactions(filteredTransactions, null, this.owner.exchangeRateRecord, this.owner.settings, this.owner.wallet, this.owner.contactManager);
-						}
+					this.SyncProgress.ReportDisconnect(ex.Message);
 
-						account.Balance = this.client.GetBalances(account.ZcashAccount);
-					}
-				});
+					// Don't keep the device awake while we wait for the next sync attempt.
+					sleepDeferral?.Dispose();
 
-				await this.client.DownloadTransactionsAsync(syncProgress, discoveredTransactions, continually: true, cancellationToken);
-			}
-			finally
-			{
-				sleepDeferral?.Dispose();
+					// Wait for the user to retry, or according to a exponential backoff policy.
+					using CancellationTokenSource userRetryWaiterCancellation = new();
+					await Task.WhenAny(this.retryOnFailure.WaitAsync(userRetryWaiterCancellation.Token), Task.Delay(autoRetryTimeout, cancellationToken));
+					await userRetryWaiterCancellation.CancelAsync(); // Don't consume the next signal from the user. We're not waiting any more.
+					autoRetryTimeout *= 2; // Wait twice as long next time (but a successful connection will reset this to the minimum).
+				}
+				finally
+				{
+					sleepDeferral?.Dispose();
+				}
 			}
 		}
 

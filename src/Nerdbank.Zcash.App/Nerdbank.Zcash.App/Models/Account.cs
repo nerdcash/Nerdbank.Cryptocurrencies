@@ -16,7 +16,6 @@ public class Account : ReactiveObject, IPersistableData
 	private ulong? rebirthHeight;
 	private ulong? optimizedBirthdayHeight;
 	private bool isDirty = true;
-	private LightWalletClient.SyncProgress? syncProgress;
 	private uint lastBlockHeight;
 	private ObservableCollection<ZcashTransaction> transactionsMutable = new();
 
@@ -128,13 +127,6 @@ public class Account : ReactiveObject, IPersistableData
 
 	[IgnoreMember]
 	public LightWalletClient? LightWalletClient { get; internal set; }
-
-	[IgnoreMember]
-	public LightWalletClient.SyncProgress? SyncProgress
-	{
-		get => this.syncProgress;
-		set => this.RaiseAndSetIfChanged(ref this.syncProgress, value);
-	}
 
 	[IgnoreMember]
 	public SendProgressData SendProgress { get; } = new();

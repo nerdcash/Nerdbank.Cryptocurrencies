@@ -11,7 +11,8 @@
     <vm:BalanceViewModel />
   </Design.DataContext>
   <DockPanel>
-    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
+    <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10"
+                             IsVisible="{Binding ProgressBarVisibleOnOtherScreens}"/>
     <Button Command="{Binding SwitchCurrencyCommand}" Content="{Binding SwitchCurrencyCaption}"
             HorizontalAlignment="Center" Margin="0 0 0 5" IsVisible="{Binding IsSwitchCurrencyVisible}"
             DockPanel.Dock="Bottom" />

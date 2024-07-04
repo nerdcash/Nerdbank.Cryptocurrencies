@@ -1,61 +1,210 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using DynamicData.Binding;
+using System.Windows.Input;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
 public class SyncProgressData : ProgressData
 {
-	private readonly IViewModelServices viewModelServices;
-	private Account? account;
-	private IDisposable? accountSyncSubscription;
+	private readonly ObservableAsPropertyHelper<bool> progressBarVisibleOnOtherScreens;
+	private readonly ObservableAsPropertyHelper<bool> isStatusCaughtUp;
+	private readonly ObservableAsPropertyHelper<bool> isStatusInProgress;
+	private readonly ObservableAsPropertyHelper<bool> isStatusDisconnected;
+	private readonly ObservableAsPropertyHelper<bool> isStatusDisconnectedWithError;
+	private readonly ObservableAsPropertyHelper<string> toolTip;
+	private uint? lastFullyScannedBlock;
+	private uint? tipHeight;
+	private string? lastError;
+	private Status currentStatus;
 
 	[Obsolete("For design-time use only.", error: true)]
 	public SyncProgressData()
-		: this(new DesignTimeViewModelServices())
+		: this(new DesignTimeViewModelServices(), null)
 	{
 		this.IsInProgress = true;
 		this.From = 2_100_803;
 		this.To = 2_200_350;
 		this.Current = 2_180_100;
+		this.LastFullyScannedBlock = 800_000;
+		this.TipHeight = 2_200_350;
+		this.Network = ZcashNetwork.TestNet;
 	}
 
-	public SyncProgressData(IViewModelServices viewModelServices)
+	public SyncProgressData(IViewModelServices viewModelServices, WalletSyncManager.ITracker? syncTracker)
 	{
-		this.viewModelServices = viewModelServices;
+		this.Network = syncTracker?.Network;
+
+		// Avoid activating progress bars if we're only one block behind, which happens a lot.
+		this.progressBarVisibleOnOtherScreens = this.WhenAnyValue(
+			x => x.LastFullyScannedBlock,
+			x => x.TipHeight,
+			x => x.Current,
+			x => x.To,
+			(lastFullyScannedBlock, tipHeight, current, to) => lastFullyScannedBlock < tipHeight - 1 || to == 0 || current < to)
+			.ToProperty(this, nameof(this.ProgressBarVisibleOnOtherScreens));
+
+		this.isStatusCaughtUp = CurrentStatusBoolCheck(Status.CaughtUp, nameof(this.IsStatusCaughtUp));
+		this.isStatusInProgress = CurrentStatusBoolCheck(Status.InProgress, nameof(this.IsStatusInProgress));
+		this.isStatusDisconnected = CurrentStatusBoolCheck(Status.Disconnected, nameof(this.IsStatusDisconnected));
+		this.isStatusDisconnectedWithError = CurrentStatusBoolCheck(Status.DisconnectedWithError, nameof(this.IsStatusDisconnectedWithError));
+		ObservableAsPropertyHelper<bool> CurrentStatusBoolCheck(Status desiredState, string propertyName)
+			=> this.WhenAnyValue(x => x.CurrentStatus, status => status == desiredState).ToProperty(this, propertyName);
+
+		IObservable<bool> canRetry = this.WhenAnyValue(x => x.CurrentStatus, status => syncTracker is not null && status == Status.Disconnected);
+		this.RetryCommand = ReactiveCommand.Create(() => syncTracker?.Retry(), canRetry);
+
+		this.ShowDetailsCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SyncDetailsViewModel(viewModelServices)));
+
+		this.toolTip = this.WhenAnyValue(
+			x => x.CurrentStatus,
+			x => x.LastError,
+			(status, error) => status switch
+			{
+				Status.DisconnectedWithError => SyncStrings.DisconnectedWithError,
+				Status.Disconnected => SyncStrings.Disconnected,
+				Status.InProgress => SyncStrings.InProgress,
+				Status.CaughtUp => SyncStrings.CaughtUp,
+				_ => throw new NotImplementedException(),
+			})
+			.ToProperty(this, nameof(this.ToolTip));
 	}
 
-	public SyncProgressData(ViewModelBaseWithAccountSelector owner)
+	/// <summary>
+	/// Describes the current status of the sync operation.
+	/// </summary>
+	public enum Status
 	{
-		this.viewModelServices = owner.ViewModelServices;
-		owner.WhenPropertyChanged(vm => vm.SelectedAccount).Subscribe(i => this.Account = i.Value);
+		/// <summary>
+		/// Sync is not occurring because the wallet is not connected to the server.
+		/// </summary>
+		Disconnected,
+
+		/// <summary>
+		/// Sync is in progress.
+		/// </summary>
+		InProgress,
+
+		/// <summary>
+		/// The client is connected to the server but not actively scanning because we're caught up,
+		/// waiting for another block to be mined.
+		/// </summary>
+		CaughtUp,
+
+		/// <summary>
+		/// Sync is not occurring because of an error.
+		/// </summary>
+		DisconnectedWithError,
 	}
 
-	public Account? Account
+	public ZcashNetwork? Network { get; }
+
+	public string RetryCommandCaption => SyncStrings.Retry;
+
+	public ICommand RetryCommand { get; }
+
+	public ICommand ShowDetailsCommand { get; }
+
+	public Status CurrentStatus
 	{
-		get => this.account;
-		set
-		{
-			this.RaiseAndSetIfChanged(ref this.account, value);
-			this.SubscribeToSyncUpdates(value);
-		}
+		get => this.currentStatus;
+		set => this.RaiseAndSetIfChanged(ref this.currentStatus, value);
 	}
 
-	public override string Caption => "Sync in progress";
+	public bool IsStatusCaughtUp => this.isStatusCaughtUp.Value;
+
+	public bool IsStatusInProgress => this.isStatusInProgress.Value;
+
+	public bool IsStatusDisconnected => this.isStatusDisconnected.Value;
+
+	public bool IsStatusDisconnectedWithError => this.isStatusDisconnectedWithError.Value;
+
+	public string LastFullyScannedBlockCaption => SyncStrings.LastFullyScannedBlockCaption;
+
+	public uint? LastFullyScannedBlock
+	{
+		get => this.lastFullyScannedBlock;
+		set => this.RaiseAndSetIfChanged(ref this.lastFullyScannedBlock, value);
+	}
+
+	public string TipHeightCaption => SyncStrings.TipHeightCaption;
+
+	public uint? TipHeight
+	{
+		get => this.tipHeight;
+		set => this.RaiseAndSetIfChanged(ref this.tipHeight, value);
+	}
+
+	public string? LastError
+	{
+		get => this.lastError;
+		set => this.RaiseAndSetIfChanged(ref this.lastError, value);
+	}
+
+	public string ToolTip => this.toolTip.Value;
+
+	public bool ProgressBarVisibleOnOtherScreens => this.progressBarVisibleOnOtherScreens.Value;
+
+	public override string Caption => SyncStrings.InProgress;
 
 	public override uint? VisiblyApparentStepSize => 10_000; // A step size that will likely be crossed within a couple minutes on any device.
 
-	internal void Apply(LightWalletClient.SyncProgress? progress)
+	internal static SyncProgressData Blend(IViewModelServices viewModelServices, ImmutableArray<SyncProgressData> progressObjects) => new BlendedSyncProgressData(viewModelServices, progressObjects);
+
+	internal void Apply(LightWalletClient.SyncProgress v)
 	{
-		this.IsInProgress = progress is not null && progress.LastFullyScannedBlock != progress.TipHeight;
-		this.To = progress?.TotalSteps ?? 0;
-		this.Current = progress?.CurrentStep ?? 0;
+		this.IsInProgress = v.LastFullyScannedBlock != v.TipHeight;
+		this.To = v.TotalSteps;
+		this.Current = v.CurrentStep;
+		this.TipHeight = v.TipHeight;
+		this.LastFullyScannedBlock = v.LastFullyScannedBlock;
+		this.LastError = v.LastError;
+
+		if (v.LastFullyScannedBlock == v.TipHeight)
+		{
+			this.CurrentStatus = Status.CaughtUp;
+		}
+		else
+		{
+			this.CurrentStatus = Status.InProgress;
+		}
 	}
 
-	private void SubscribeToSyncUpdates(Account? newAccount)
+	internal void ReportDisconnect(string? errorMessage)
 	{
-		this.accountSyncSubscription?.Dispose();
-		this.accountSyncSubscription = newAccount?.WhenAnyValue(vm => vm.SyncProgress).Subscribe(this.Apply);
+		this.CurrentStatus = Status.DisconnectedWithError;
+		this.LastError = errorMessage;
+	}
+
+	private class BlendedSyncProgressData : SyncProgressData, IDisposable
+	{
+		private readonly ImmutableArray<SyncProgressData> progressObjects;
+
+		internal BlendedSyncProgressData(IViewModelServices viewModelServices, ImmutableArray<SyncProgressData> progressObjects)
+			: base(viewModelServices, null)
+		{
+			this.progressObjects = progressObjects;
+			foreach (SyncProgressData progress in progressObjects)
+			{
+				progress.PropertyChanged += this.Progress_PropertyChanged;
+			}
+		}
+
+		public void Dispose()
+		{
+			foreach (SyncProgressData progress in this.progressObjects)
+			{
+				progress.PropertyChanged -= this.Progress_PropertyChanged;
+			}
+		}
+
+		private void Progress_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			this.To = (ulong)this.progressObjects.Sum(x => (long)(x.To - x.From));
+			this.Current = (ulong)this.progressObjects.Sum(x => (long)(x.Current - x.From));
+			this.CurrentStatus = this.progressObjects.Min(x => x.CurrentStatus);
+			this.LastError = this.progressObjects.FirstOrDefault(o => o.LastError is not null)?.LastError;
+			this.IsInProgress = this.progressObjects.Any(x => x.IsInProgress);
+		}
 	}
 }

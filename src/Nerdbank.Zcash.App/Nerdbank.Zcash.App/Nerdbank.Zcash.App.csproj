@@ -42,4 +42,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\SyncDetailsControl.axaml.cs">
+      <DependentUpon>SyncDetailsControl.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

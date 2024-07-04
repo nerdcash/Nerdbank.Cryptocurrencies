@@ -41,8 +41,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 		this.observingContact = observingContact;
 
 		this.receivingAccount = receivingAccount ?? viewModelServices.Wallet.Accounts.First();
-
-		this.SyncProgress = new SyncProgressData(this.viewModelServices) { Account = this.receivingAccount };
+		this.SyncProgress = viewModelServices.App.WalletSyncManager?.GetSyncProgress(this.receivingAccount.Network);
 
 		this.assignedAddresses = observingContact?.GetOrCreateSendingAddressAssignment(this.receivingAccount);
 		List<ZcashAddress> rawReceiverAddresses = new();
@@ -93,7 +92,7 @@ public class ReceivingViewModel : ViewModelBase, IDisposable, IHasTitle
 
 	public string Title => ReceivingStrings.Title;
 
-	public SyncProgressData SyncProgress { get; }
+	public SyncProgressData? SyncProgress { get; }
 
 	public string AccountName => this.receivingAccount.Name;
 

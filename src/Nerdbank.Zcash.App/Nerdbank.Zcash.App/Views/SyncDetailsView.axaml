@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:Nerdbank.Zcash.App.Views"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="350"
+             x:Class="Nerdbank.Zcash.App.Views.SyncDetailsView"
+             x:DataType="vm:SyncDetailsViewModel">
+  <Design.DataContext>
+    <vm:SyncDetailsViewModel />
+  </Design.DataContext>
+  <ItemsControl ItemsSource="{Binding SyncDetails}">
+    <ItemsControl.ItemTemplate>
+      <DataTemplate>
+        <StackPanel>
+          <TextBlock Text="{Binding Network}"
+                     FontSize="16" FontWeight="Bold"
+                     HorizontalAlignment="Center" />
+          <local:SyncDetailsControl DataContext="{Binding}" Margin="0 0 0 20" />
+        </StackPanel>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
+</UserControl>
