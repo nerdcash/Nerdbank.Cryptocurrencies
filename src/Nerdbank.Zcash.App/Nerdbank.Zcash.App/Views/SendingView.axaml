@@ -73,8 +73,8 @@
                     <TextBlock Text=" " />
                     <TextBlock Text="{Binding RecipientLabel}" Classes="PaymentRequestText" IsVisible="{Binding RecipientLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                   </WrapPanel>
-                  <DockPanel>
-                    <Button Classes="Scan" Background="Transparent" Command="{Binding ScanCommand}" DockPanel.Dock="Right" IsVisible="{Binding IsScanCommandAvailable}">
+                  <Grid ColumnDefinitions="*,auto">
+                    <Button Classes="Scan" Background="Transparent" Command="{Binding ScanCommand}" Grid.Column="1" IsVisible="{Binding IsScanCommandAvailable}">
                       <Button.Content>
                         <Image Source="/Assets/qr-code-scan.png" Height="16" />
                       </Button.Content>
@@ -95,7 +95,7 @@
                     <TextBox Text="{Binding RecipientAddress}"
                              IsVisible="{Binding IsRecipientLocked}"
                              IsReadOnly="True" />
-                  </DockPanel>
+                  </Grid>
                   <Grid ColumnDefinitions="auto, *" Margin="0 5">
                     <Label Content="{Binding AmountCaption}" VerticalAlignment="Center" Target="{Binding #AmountBox}" />
                     <local:DualAmountEntryView DataContext="{Binding AmountEntry}" Grid.Column="1" Name="AmountBox" />
