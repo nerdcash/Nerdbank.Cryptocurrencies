@@ -145,7 +145,7 @@ public class SyncProgressData : ProgressData
 
 	public bool ProgressBarVisibleOnOtherScreens => this.progressBarVisibleOnOtherScreens.Value;
 
-	public override string Caption => SyncStrings.InProgress;
+	public override string Caption => SyncStrings.ProgressBarCaption;
 
 	public override uint? VisiblyApparentStepSize => 10_000; // A step size that will likely be crossed within a couple minutes on any device.
 
