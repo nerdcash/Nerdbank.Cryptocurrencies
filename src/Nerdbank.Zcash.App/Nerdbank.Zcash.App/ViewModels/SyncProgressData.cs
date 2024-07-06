@@ -42,7 +42,7 @@ public class SyncProgressData : ProgressData
 			x => x.TipHeight,
 			x => x.Current,
 			x => x.To,
-			(lastFullyScannedBlock, tipHeight, current, to) => lastFullyScannedBlock < tipHeight - 1 || to == 0 || current < to)
+			(lastFullyScannedBlock, tipHeight, current, to) => lastFullyScannedBlock is null || lastFullyScannedBlock < tipHeight - 1 || to == 0)
 			.ToProperty(this, nameof(this.ProgressBarVisibleOnOtherScreens));
 
 		this.isStatusCaughtUp = CurrentStatusBoolCheck(Status.CaughtUp, nameof(this.IsStatusCaughtUp));
