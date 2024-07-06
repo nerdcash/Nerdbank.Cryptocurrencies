@@ -34,6 +34,7 @@ public class SyncProgressData : ProgressData
 	public SyncProgressData(IViewModelServices viewModelServices, WalletSyncManager.ITracker? syncTracker)
 	{
 		this.Network = syncTracker?.Network;
+		this.Tracker = syncTracker;
 
 		// Avoid activating progress bars if we're only one block behind, which happens a lot.
 		this.progressBarVisibleOnOtherScreens = this.WhenAnyValue(
@@ -96,6 +97,8 @@ public class SyncProgressData : ProgressData
 		/// </summary>
 		DisconnectedWithError,
 	}
+
+	public WalletSyncManager.ITracker? Tracker { get; }
 
 	public ZcashNetwork? Network { get; }
 
@@ -172,7 +175,7 @@ public class SyncProgressData : ProgressData
 
 	internal void ReportDisconnect(string? errorMessage)
 	{
-		this.CurrentStatus = Status.DisconnectedWithError;
+		this.CurrentStatus = errorMessage is null ? Status.Disconnected : Status.DisconnectedWithError;
 		this.LastError = errorMessage;
 	}
 

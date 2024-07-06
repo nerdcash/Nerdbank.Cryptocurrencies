@@ -132,6 +132,9 @@
   <data name="InsufficientSpendableFunds" xml:space="preserve">
     <value>Fundos disponíveis insuficientes. Espera-se que haja fundos suficientes disponíveis para cobrir esta despesa dentro de alguns minutos. Verifique a visualização de Saldo para obter detalhes.</value>
   </data>
+  <data name="InvalidQRCode" xml:space="preserve">
+    <value>O código QR não era um endereço de recebimento do ZCash ou solicitação de pagamento.</value>
+  </data>
   <data name="LineItem_AmountCaption" xml:space="preserve">
     <value>Valor:</value>
   </data>
@@ -150,8 +153,23 @@
   <data name="MutableMemoCaption" xml:space="preserve">
     <value>Memo (não compartilhado com ninguém):</value>
   </data>
+  <data name="NoQRCodeFound" xml:space="preserve">
+    <value>Nenhum código QR encontrado.</value>
+  </data>
+  <data name="QRCodePaymentRequestApplicationFailed" xml:space="preserve">
+    <value>Ocorreram erros ao aplicar a solicitação de pagamento. Por favor, revise com cuidado.</value>
+  </data>
+  <data name="QRCodePaymentRequestScanned" xml:space="preserve">
+    <value>Código QR Digitalizar bem -sucedido. {count} pagamento (s) inicializado. Por favor, revise com cuidado.</value>
+  </data>
+  <data name="QRCodeZcashAddressScanned" xml:space="preserve">
+    <value>Endereço Zcash encontrado.</value>
+  </data>
   <data name="SendCommandCaption" xml:space="preserve">
     <value>📤 Enviar</value>
+  </data>
+  <data name="SendSuccessfulMessage" xml:space="preserve">
+    <value>{Amount} enviado com sucesso.</value>
   </data>
   <data name="SubtotalCaption" xml:space="preserve">
     <value>Subtotal</value>

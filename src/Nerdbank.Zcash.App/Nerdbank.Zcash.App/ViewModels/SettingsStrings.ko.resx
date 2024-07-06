@@ -126,6 +126,9 @@
   <data name="AlternateCurrencyExplanation" xml:space="preserve">
     <value>대체 통화는 Zcash의 가치를 더 익숙한 단위로 표시하는 데 사용됩니다. Zcash의 가치는 변동적이므로 대체 통화의 가치는 빠르게 변할 수 있습니다.</value>
   </data>
+  <data name="ChangesRequireRestart" xml:space="preserve">
+    <value>변경하려면 앱을 다시 시작해야합니다.</value>
+  </data>
   <data name="DownloadExchangeRatesCaption" xml:space="preserve">
     <value>환율을 자동으로 다운로드합니다</value>
   </data>

@@ -132,6 +132,9 @@
   <data name="LastFullyScannedBlockCaption" xml:space="preserve">
     <value>最后一次完全扫描的块</value>
   </data>
+  <data name="ProgressBarCaption" xml:space="preserve">
+    <value>搜索您的交易</value>
+  </data>
   <data name="Retry" xml:space="preserve">
     <value>重试</value>
   </data>

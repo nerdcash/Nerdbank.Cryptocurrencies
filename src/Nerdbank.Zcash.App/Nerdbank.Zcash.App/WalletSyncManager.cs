@@ -50,6 +50,8 @@ public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 	{
 		ZcashNetwork Network { get; }
 
+		Uri ServerUrl { get; }
+
 		void Retry();
 	}
 
@@ -133,6 +135,7 @@ public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 			this.Network = network;
 
 			// Initialize the native wallet that will be responsible for syncing this account.
+			this.ServerUrl = this.owner.settings.GetLightServerUrl(this.Network);
 			this.client = this.CreateClient();
 
 			this.completion = owner.joinableTaskFactory.RunAsync(async delegate
@@ -151,9 +154,9 @@ public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 
 		public ZcashNetwork Network { get; }
 
-		internal SyncProgressData SyncProgress { get; }
+		public Uri ServerUrl { get; }
 
-		internal Uri ServerUrl => this.owner.settings.GetLightServerUrl(this.Network);
+		internal SyncProgressData SyncProgress { get; }
 
 		private ImmutableArray<Account> Accounts => this.owner.wallet.Accounts.Where(a => a.Network == this.Network).ToImmutableArray();
 
@@ -232,18 +235,26 @@ public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 
 					await this.client.DownloadTransactionsAsync(syncProgress, discoveredTransactions, continually: true, cancellationToken);
 				}
-				catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+				catch (Exception ex)
 				{
-					this.SyncProgress.ReportDisconnect(ex.Message);
+					if (cancellationToken.IsCancellationRequested)
+					{
+						this.SyncProgress.ReportDisconnect(errorMessage: null);
+						throw;
+					}
+					else
+					{
+						this.SyncProgress.ReportDisconnect(ex.Message);
 
-					// Don't keep the device awake while we wait for the next sync attempt.
-					sleepDeferral?.Dispose();
+						// Don't keep the device awake while we wait for the next sync attempt.
+						sleepDeferral?.Dispose();
 
-					// Wait for the user to retry, or according to a exponential backoff policy.
-					using CancellationTokenSource userRetryWaiterCancellation = new();
-					await Task.WhenAny(this.retryOnFailure.WaitAsync(userRetryWaiterCancellation.Token), Task.Delay(autoRetryTimeout, cancellationToken));
-					await userRetryWaiterCancellation.CancelAsync(); // Don't consume the next signal from the user. We're not waiting any more.
-					autoRetryTimeout *= 2; // Wait twice as long next time (but a successful connection will reset this to the minimum).
+						// Wait for the user to retry, or according to a exponential backoff policy.
+						using CancellationTokenSource userRetryWaiterCancellation = new();
+						await Task.WhenAny(this.retryOnFailure.WaitAsync(userRetryWaiterCancellation.Token), Task.Delay(autoRetryTimeout, cancellationToken));
+						await userRetryWaiterCancellation.CancelAsync(); // Don't consume the next signal from the user. We're not waiting any more.
+						autoRetryTimeout *= 2; // Wait twice as long next time (but a successful connection will reset this to the minimum).
+					}
 				}
 				finally
 				{

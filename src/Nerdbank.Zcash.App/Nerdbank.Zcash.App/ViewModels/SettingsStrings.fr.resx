@@ -126,6 +126,9 @@
   <data name="AlternateCurrencyExplanation" xml:space="preserve">
     <value>La devise alternative est utilisée pour afficher la valeur de Zcash dans une unité plus familière. La valeur de Zcash est volatile, donc la valeur dans votre devise alternative peut changer rapidement.</value>
   </data>
+  <data name="ChangesRequireRestart" xml:space="preserve">
+    <value>Les modifications nécessitent le redémarrage de l'application.</value>
+  </data>
   <data name="DownloadExchangeRatesCaption" xml:space="preserve">
     <value>Télécharger automatiquement les taux de change</value>
   </data>

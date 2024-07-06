@@ -126,6 +126,9 @@
   <data name="AlternateCurrencyExplanation" xml:space="preserve">
     <value>A moeda alternativa é usada para exibir o valor do Zcash em uma unidade mais familiar. O valor do Zcash é volátil, portanto, o valor em sua moeda alternativa pode mudar rapidamente.</value>
   </data>
+  <data name="ChangesRequireRestart" xml:space="preserve">
+    <value>Alterações requerem reiniciar o aplicativo.</value>
+  </data>
   <data name="DownloadExchangeRatesCaption" xml:space="preserve">
     <value>Faça o download automaticamente de taxas de câmbio</value>
   </data>

@@ -132,6 +132,9 @@
   <data name="LastFullyScannedBlockCaption" xml:space="preserve">
     <value>Последний полностью отсканированный блок</value>
   </data>
+  <data name="ProgressBarCaption" xml:space="preserve">
+    <value>Поиск ваших транзакций</value>
+  </data>
   <data name="Retry" xml:space="preserve">
     <value>Повторно</value>
   </data>
