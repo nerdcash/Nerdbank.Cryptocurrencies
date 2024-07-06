@@ -14,6 +14,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	private string lightServerUrlMainNet;
 	private string lightServerUrlTestNet;
 	private IViewModelServices viewModelServices;
+	private bool isChangesRequireRestartVisible;
 
 	[Obsolete("For design-time use only", true)]
 	public SettingsViewModel()
@@ -32,6 +33,8 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 			Security.WellKnown.Values
 			.Where(s => s != Security.ZEC)
 			.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase).ToImmutableArray());
+
+		this.UpdateIsRestartRequired();
 	}
 
 	public string Title => SettingsStrings.Title;
@@ -110,6 +113,14 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 		}
 	}
 
+	public bool IsChangesRequireRestartVisible
+	{
+		get => this.isChangesRequireRestartVisible;
+		set => this.RaiseAndSetIfChanged(ref this.isChangesRequireRestartVisible, value);
+	}
+
+	public string ChangesRequireRestart => SettingsStrings.ChangesRequireRestart;
+
 	private void BeginConfirmServerNetwork(Uri? serverUrl, ZcashNetwork expectedNetwork, [CallerMemberName] string? propertyName = null)
 	{
 		Requires.NotNull(propertyName!, nameof(propertyName));
@@ -130,6 +141,7 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 
 		this.serverConfirmTokens[expectedNetwork] = cts = new();
 		this.ConfirmServerNetworkAsync(serverUrl, propertyName, expectedNetwork, cts.Token).Forget();
+		this.UpdateIsRestartRequired();
 	}
 
 	private async ValueTask ConfirmServerNetworkAsync(Uri serverUrl, string propertyName, ZcashNetwork expectedNetwork, CancellationToken cancellationToken)
@@ -150,5 +162,11 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 		{
 			this.RecordValidationError(ex.Message, propertyName);
 		}
+	}
+
+	private void UpdateIsRestartRequired()
+	{
+		this.IsChangesRequireRestartVisible =
+			this.viewModelServices.App.WalletSyncManager?.ProgressDetails.Any(d => d.Network.HasValue && AppUtilities.GetLightServerUrl(this.viewModelServices.App.Settings, d.Network.Value) != d.Tracker?.ServerUrl) is true;
 	}
 }

@@ -41,6 +41,11 @@
           <TextBox Text="{Binding LightServerUrlTestNet}" HorizontalAlignment="Stretch" Name="LightServerUrlTestNetBox" />
         </StackPanel>
       </Expander>
+      <TextBlock Text="{Binding ChangesRequireRestart}"
+                 TextWrapping="Wrap"
+                 IsVisible="{Binding IsChangesRequireRestartVisible}"
+                 Foreground="Red"
+                 />
     </StackPanel>
   </DockPanel>
 </UserControl>
