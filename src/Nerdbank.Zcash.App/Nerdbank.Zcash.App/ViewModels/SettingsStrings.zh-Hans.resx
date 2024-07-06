@@ -126,6 +126,9 @@
   <data name="AlternateCurrencyExplanation" xml:space="preserve">
     <value>备用货币用于以更熟悉的单位显示Zcash的价值。Zcash的价值波动很大，因此您的备用货币的价值可能会迅速变化。</value>
   </data>
+  <data name="ChangesRequireRestart" xml:space="preserve">
+    <value>更改需要重新启动应用程序。</value>
+  </data>
   <data name="DownloadExchangeRatesCaption" xml:space="preserve">
     <value>自动下载汇率</value>
   </data>

@@ -132,6 +132,9 @@
   <data name="LastFullyScannedBlockCaption" xml:space="preserve">
     <value>마지막으로 스캔 한 블록</value>
   </data>
+  <data name="ProgressBarCaption" xml:space="preserve">
+    <value>거래 검색</value>
+  </data>
   <data name="Retry" xml:space="preserve">
     <value>다시 해 보다</value>
   </data>

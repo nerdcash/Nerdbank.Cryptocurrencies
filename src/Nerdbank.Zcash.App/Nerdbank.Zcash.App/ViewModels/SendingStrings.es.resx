@@ -126,6 +126,15 @@
   <data name="FromAccountCaption" xml:space="preserve">
     <value>De la cuenta:</value>
   </data>
+  <data name="InsufficientFunds" xml:space="preserve">
+    <value>Fondos insuficientes para cubrir este gasto. Consulte la vista del saldo.</value>
+  </data>
+  <data name="InsufficientSpendableFunds" xml:space="preserve">
+    <value>Fondos gastables insuficientes. Se espera que suficientes fondos sean gastables para cubrir este gasto en unos minutos. Verifique la vista del saldo para más detalles.</value>
+  </data>
+  <data name="InvalidQRCode" xml:space="preserve">
+    <value>El código QR no era una dirección de recibir ZCASH o solicitud de pago.</value>
+  </data>
   <data name="LineItem_AmountCaption" xml:space="preserve">
     <value>Cantidad:</value>
   </data>
@@ -144,8 +153,23 @@
   <data name="MutableMemoCaption" xml:space="preserve">
     <value>Memo (no compartido con nadie):</value>
   </data>
+  <data name="NoQRCodeFound" xml:space="preserve">
+    <value>No se encuentra el código QR.</value>
+  </data>
+  <data name="QRCodePaymentRequestApplicationFailed" xml:space="preserve">
+    <value>Se produjeron errores al aplicar la solicitud de pago. Por favor revise cuidadosamente.</value>
+  </data>
+  <data name="QRCodePaymentRequestScanned" xml:space="preserve">
+    <value>Código QR Escaneo exitoso. {count} Pago (s) inicializado. Por favor revise cuidadosamente.</value>
+  </data>
+  <data name="QRCodeZcashAddressScanned" xml:space="preserve">
+    <value>Dirección de ZCash encontrada.</value>
+  </data>
   <data name="SendCommandCaption" xml:space="preserve">
     <value>📤 Enviar</value>
+  </data>
+  <data name="SendSuccessfulMessage" xml:space="preserve">
+    <value>{Amount} enviado correctamente.</value>
   </data>
   <data name="SubtotalCaption" xml:space="preserve">
     <value>Total parcial</value>
@@ -155,11 +179,5 @@
   </data>
   <data name="TotalCaption" xml:space="preserve">
     <value>Total</value>
-  </data>
-  <data name="InsufficientFunds" xml:space="preserve">
-    <value>Fondos insuficientes para cubrir este gasto. Consulte la vista del saldo.</value>
-  </data>
-  <data name="InsufficientSpendableFunds" xml:space="preserve">
-    <value>Fondos gastables insuficientes. Se espera que suficientes fondos sean gastables para cubrir este gasto en unos minutos. Verifique la vista del saldo para más detalles.</value>
   </data>
 </root>
