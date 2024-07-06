@@ -51,7 +51,7 @@ public class SyncProgressData : ProgressData
 		ObservableAsPropertyHelper<bool> CurrentStatusBoolCheck(Status desiredState, string propertyName)
 			=> this.WhenAnyValue(x => x.CurrentStatus, status => status == desiredState).ToProperty(this, propertyName);
 
-		IObservable<bool> canRetry = this.WhenAnyValue(x => x.CurrentStatus, status => syncTracker is not null && status == Status.Disconnected);
+		IObservable<bool> canRetry = this.WhenAnyValue(x => x.CurrentStatus, status => syncTracker is not null && status == Status.DisconnectedWithError);
 		this.RetryCommand = ReactiveCommand.Create(() => syncTracker?.Retry(), canRetry);
 
 		this.ShowDetailsCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SyncDetailsViewModel(viewModelServices)));
