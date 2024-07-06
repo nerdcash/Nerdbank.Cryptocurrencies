@@ -3,7 +3,6 @@
 
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Nerdbank.Zcash.App.ViewModels;
 
 namespace Nerdbank.Zcash.App;
 
@@ -20,7 +19,7 @@ public class ViewLocator : IDataTemplate
 			return null;
 		}
 
-		var name = data.GetType().FullName!.Replace("ViewModel", "View");
+		var name = data.GetType().AssemblyQualifiedName!.Replace("ViewModel", "View");
 		var type = Type.GetType(name);
 
 		if (type != null)

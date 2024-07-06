@@ -1,7 +1,6 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -38,7 +37,7 @@ public partial class App : Application, IAsyncDisposable
 		this.InitializeFields();
 	}
 
-	public App(AppPlatformSettings platformSettings, IPlatformServices platformServices, StartupInstructions? startupInstructions, string? velopackUpdateUrl)
+	public App(AppPlatformSettings platformSettings, PlatformServices platformServices, StartupInstructions? startupInstructions, string? velopackUpdateUrl)
 	{
 		this.AppPlatformSettings = platformSettings;
 		this.PlatformServices = platformServices;
@@ -62,7 +61,7 @@ public partial class App : Application, IAsyncDisposable
 
 	public AppPlatformSettings AppPlatformSettings { get; }
 
-	public IPlatformServices PlatformServices { get; }
+	public PlatformServices PlatformServices { get; }
 
 	public MainViewModel? ViewModel { get; private set; }
 
@@ -219,18 +218,12 @@ public partial class App : Application, IAsyncDisposable
 		internal Control? TopVisual { get; set; }
 	}
 
-	private class DesignTimePlatformServices : IPlatformServices
+	private class DesignTimePlatformServices : PlatformServices
 	{
-		public event PropertyChangedEventHandler? PropertyChanged;
+		public override bool IsOnACPower => false;
 
-		public bool HasHardwareBackButton => false;
+		public override bool IsNetworkMetered => false;
 
-		public bool IsOnACPower => false;
-
-		public bool IsNetworkMetered => false;
-
-		public IDisposable? RequestSleepDeferral() => null;
-
-		protected virtual void OnPropertyChanged(PropertyChangedEventArgs e) => this.PropertyChanged?.Invoke(this, e);
+		public override IDisposable? RequestSleepDeferral() => null;
 	}
 }

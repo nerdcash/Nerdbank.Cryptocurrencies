@@ -1,26 +1,19 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using ReactiveUI;
-
 namespace Mocks;
 
-internal class MockPlatformServices : ReactiveObject, IPlatformServices
+internal class MockPlatformServices : PlatformServices
 {
 	private bool isOnACPower;
 
-	public bool IsOnACPower
-	{
-		get => this.isOnACPower;
-		set => this.RaiseAndSetIfChanged(ref this.isOnACPower, value);
-	}
+	public override bool IsOnACPower => this.isOnACPower;
 
-	public bool HasHardwareBackButton => false;
+	public override bool HasHardwareBackButton => false;
 
-	public bool IsNetworkMetered => false;
+	public override bool IsNetworkMetered => false;
 
-	public IDisposable? RequestSleepDeferral()
-	{
-		return null;
-	}
+	public override IDisposable? RequestSleepDeferral() => null;
+
+	internal void SetIsOnACPower(bool value) => this.RaiseAndSetIfChanged(ref this.isOnACPower, value, nameof(this.IsOnACPower));
 }

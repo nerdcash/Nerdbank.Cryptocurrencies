@@ -59,6 +59,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 		this.NavigateTo(this.GetHomeViewModel());
 
+		this.App.PlatformServices.ViewModelServices = this;
 		this.App.WalletSyncManager?.StartSyncing(this, this.App.Data.Wallet);
 	}
 
@@ -95,8 +96,6 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public App App { get; }
 
 	public SyncProgressData? SyncProgress => this.syncProgress.Value;
-
-	public bool IsScanCommandAvailable => false;
 
 	public virtual TopLevel? TopLevel { get; set; }
 

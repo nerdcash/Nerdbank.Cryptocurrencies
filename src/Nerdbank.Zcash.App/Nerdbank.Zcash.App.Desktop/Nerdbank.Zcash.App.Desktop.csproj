@@ -17,8 +17,18 @@
     <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
+    <AvaloniaXaml Remove="Views\CameraView.axaml" />
+    <Compile Remove="Views\CameraView.axaml.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Zcash.App\Nerdbank.Zcash.App.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ViewModels\" />
+    <Folder Include="Views\" />
   </ItemGroup>
 
   <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />

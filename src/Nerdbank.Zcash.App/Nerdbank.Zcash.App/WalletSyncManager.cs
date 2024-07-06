@@ -11,7 +11,7 @@ namespace Nerdbank.Zcash.App;
 public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 {
 	private readonly string confidentialDataPath;
-	private readonly IPlatformServices platformServices;
+	private readonly PlatformServices platformServices;
 	private readonly ZcashWallet wallet;
 	private readonly AppSettings settings;
 	private readonly IContactManager contactManager;
@@ -31,7 +31,7 @@ public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 		AppSettings settings,
 		IContactManager contactManager,
 		ExchangeRateRecord exchangeRateRecord,
-		IPlatformServices platformServices)
+		PlatformServices platformServices)
 	{
 		this.backgroundTasks = joinableTaskContext.CreateCollection();
 		this.joinableTaskFactory = joinableTaskContext.CreateFactory(this.backgroundTasks);
