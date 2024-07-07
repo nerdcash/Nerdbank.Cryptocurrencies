@@ -23,7 +23,8 @@ public class BackupFileViewModel : ViewModelBase
 		this.viewModelServices = viewModelServices;
 
 		this.GenerateSecurePasswordCommand = ReactiveCommand.Create(this.GenerateSecurePassword);
-		this.BackupCommand = ReactiveCommand.Create(() => { });
+		ObservableBox<bool> canBackup = new(false);
+		this.BackupCommand = ReactiveCommand.Create(() => { }, canBackup);
 
 		this.LinkProperty(nameof(this.EnableHidingPassword), nameof(this.ConcealPasswordChar));
 	}
