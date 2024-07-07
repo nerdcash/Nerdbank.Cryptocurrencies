@@ -25,6 +25,7 @@
               Content="{Binding BackupCommandCaption}"
               HorizontalAlignment="Center"
               Margin="0 10" />
+      <TextBlock TextWrapping="Wrap" Text="🚧 This feature is not yet implemented. Use the Export tab instead." Foreground="Red" />
     </StackPanel>
   </ScrollViewer>
 </UserControl>
