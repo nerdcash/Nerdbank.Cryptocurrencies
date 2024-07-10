@@ -4,6 +4,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Avalonia.Platform.Storage;
+using Nerdbank.QRCodes;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
@@ -140,14 +141,7 @@ public class CameraViewModel : ViewModelBase, IDisposable
 		{
 			Span<char> decoded = stackalloc char[1024];
 			Span<byte> image = s.GetBuffer().AsSpan(0, (int)s.Length);
-			uint decodedLength = NativeMethods.DecodeQrCodeFromImage(image, decoded);
-			if (decodedLength > decoded.Length)
-			{
-				decoded = new char[decodedLength];
-				decodedLength = NativeMethods.DecodeQrCodeFromImage(image, decoded);
-			}
-
-			return decodedLength > 0 ? new string(decoded[..checked((int)decodedLength)]) : string.Empty;
+			return QRDecoder.TryDecode(image, out string? text) ? text : string.Empty;
 		}
 	}
 
