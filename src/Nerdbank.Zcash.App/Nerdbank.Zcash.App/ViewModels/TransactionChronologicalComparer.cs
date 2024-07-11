@@ -52,14 +52,6 @@ public class TransactionChronologicalComparer :
 					return blockNumberComparison;
 				}
 			}
-			else if (x.BlockNumber.HasValue)
-			{
-				return -1;
-			}
-			else if (y.BlockNumber.HasValue)
-			{
-				return 1;
-			}
 
 			int compare = (x.When ?? DateTimeOffset.MaxValue).CompareTo(y.When ?? DateTimeOffset.MaxValue);
 			if (compare != 0)

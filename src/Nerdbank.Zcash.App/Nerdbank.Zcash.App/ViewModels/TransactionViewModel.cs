@@ -98,28 +98,32 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 				return string.Empty;
 			}
 
+			string prefix = this.BlockNumber is null ? "*" : string.Empty;
+
 			// If this happened today, just display the time.
 			if (this.When.Value.Date == DateTimeOffset.Now.Date)
 			{
-				return $"{this.When:h:mm tt}";
+				return $"{prefix}{this.When:h:mm tt}";
 			}
 
 			int daysAgo = (DateTimeOffset.UtcNow - this.When.Value).Days;
 			if (daysAgo < 7)
 			{
-				return $"{this.When:ddd}";
+				return $"{prefix}{this.When:ddd}";
 			}
 
 			if (daysAgo < 6 * 30 || this.When.Value.Year == DateTimeOffset.UtcNow.Year)
 			{
-				return $"{this.When:d MMM}";
+				return $"{prefix}{this.When:d MMM}";
 			}
 
-			return $"{this.When:d}";
+			return $"{prefix}{this.When:d}";
 		}
 	}
 
 	public string WhenDetailedFormatted => this.When?.ToString("g") ?? string.Empty;
+
+	public string WhenToolTip => this.BlockNumber is null ? $"{this.WhenDetailedFormatted} ({TransactionStrings.NotYetMined})" : this.WhenDetailedFormatted;
 
 	public string WhenCaption => TransactionStrings.WhenCaption;
 

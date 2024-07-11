@@ -23,12 +23,13 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 	{
 		this.Transactions.AddRange(new TransactionViewModel[]
 		{
-			MockTx(-0.5m, "Hot Chocolate", TimeSpan.FromDays(35), "e5e259b8ef7f0cca708031ab0f10e2a3aa48e069a0817d3a54f71c7f56e0110d", "Red Rock Cafe"),
-			MockTx(1.2345m, "For the pizza", TimeSpan.FromDays(200), "9c1952fbaf5389fa8c36c45f17b2e303c33a9074dee8d90c694ee14112e0f46d", "Andrew Arnott"),
-			MockTx(2m, "Paycheck", TimeSpan.FromDays(2), "4e5f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "Employer"),
+			MockTx(-0.5m, "Hot Chocolate", TimeSpan.FromDays(35), 100, "e5e259b8ef7f0cca708031ab0f10e2a3aa48e069a0817d3a54f71c7f56e0110d", "Red Rock Cafe"),
+			MockTx(1.2345m, "For the pizza", TimeSpan.FromDays(200), 50, "9c1952fbaf5389fa8c36c45f17b2e303c33a9074dee8d90c694ee14112e0f46d", "Andrew Arnott"),
+			MockTx(2m, "Paycheck", TimeSpan.FromDays(2), 200, "4e5f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "Employer"),
+			MockTx(13m, "Paycheck", TimeSpan.FromDays(75), blockNumber: null, "4e5f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "Employer"),
 		});
 
-		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, string txid, string otherPartyName)
+		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, uint? blockNumber, string txid, string otherPartyName)
 		{
 			ImmutableArray<ZcashTransaction.LineItem> sends = amount < 0
 				? [new ZcashTransaction.LineItem { Amount = -amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1N7bGKWqoWVrv4XGSzrfUsoKkCxNFAutQZ") }]
@@ -41,6 +42,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				Security.USD,
 				new ZcashTransaction
 				{
+					BlockNumber = blockNumber,
 					IsIncoming = amount > 0,
 					Fee = amount > 0 ? null : 0.0001m,
 					TransactionId = TxId.Parse(txid),

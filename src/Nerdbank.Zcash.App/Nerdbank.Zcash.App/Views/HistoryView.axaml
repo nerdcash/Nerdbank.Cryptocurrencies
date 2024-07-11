@@ -32,6 +32,9 @@
         <Style Selector="TextBlock.ColumnValue">
           <Setter Property="Margin" Value="16,4,16,4" />
         </Style>
+        <Style Selector="TextBlock.Unconfirmed">
+          <Setter Property="Foreground" Value="Gray" />
+        </Style>
       </DataGrid.Styles>
       <DataGrid.Columns>
         <DataGridTemplateColumn Header="{Binding WhenColumnHeader}"
@@ -40,8 +43,9 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding WhenColumnFormatted}"
-                         ToolTip.Tip="{Binding WhenDetailedFormatted}"
-                         Classes="ColumnValue" />
+                         ToolTip.Tip="{Binding WhenToolTip}"
+                         Classes="ColumnValue"
+                         Classes.Unconfirmed="{Binding BlockNumber, Converter={x:Static ObjectConverters.IsNull}}"/>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

@@ -138,6 +138,9 @@
   <data name="MutableMemoCaption" xml:space="preserve">
     <value>Частная записка</value>
   </data>
+  <data name="NotYetMined" xml:space="preserve">
+    <value>Еще не подтвержден.</value>
+  </data>
   <data name="OtherPartyNameCaption" xml:space="preserve">
     <value>Имя</value>
   </data>

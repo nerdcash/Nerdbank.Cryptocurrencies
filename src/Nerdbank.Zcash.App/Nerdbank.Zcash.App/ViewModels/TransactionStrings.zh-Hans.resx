@@ -138,6 +138,9 @@
   <data name="MutableMemoCaption" xml:space="preserve">
     <value>私密备注</value>
   </data>
+  <data name="NotYetMined" xml:space="preserve">
+    <value>尚未确认。</value>
+  </data>
   <data name="OtherPartyNameCaption" xml:space="preserve">
     <value>名称</value>
   </data>
