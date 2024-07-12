@@ -36,6 +36,7 @@
     <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Nerdbank.QRCodes" />
+    <PackageReference Include="Sentry" />
     <PackageReference Include="Velopack" />
   </ItemGroup>
 
