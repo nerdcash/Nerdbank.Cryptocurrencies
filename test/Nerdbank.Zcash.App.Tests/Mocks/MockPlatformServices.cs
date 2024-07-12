@@ -13,6 +13,8 @@ internal class MockPlatformServices : PlatformServices
 
 	public override bool IsNetworkMetered => false;
 
+	public override bool IsRunningUnderTest => true;
+
 	public override IDisposable? RequestSleepDeferral() => null;
 
 	internal void SetIsOnACPower(bool value) => this.RaiseAndSetIfChanged(ref this.isOnACPower, value, nameof(this.IsOnACPower));

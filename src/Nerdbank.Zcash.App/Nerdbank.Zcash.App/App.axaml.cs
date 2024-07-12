@@ -7,12 +7,14 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Zcash.App.Views;
+using Sentry;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Nerdbank.Zcash.App;
 
 public partial class App : Application, IAsyncDisposable
 {
+	private const string SentryDsn = "https://b7355ed0f54921502d35449d93e1dfe3@sentry.ironpigeon.net/2";
 	private const string DataFileName = "wallet.dat";
 	private const string SettingsJsonFileName = "settings.json";
 
@@ -39,6 +41,27 @@ public partial class App : Application, IAsyncDisposable
 
 	public App(AppPlatformSettings platformSettings, PlatformServices platformServices, StartupInstructions? startupInstructions, string? velopackUpdateUrl)
 	{
+		if (!platformServices.IsRunningUnderTest)
+		{
+			SentrySdk.Init(options =>
+			{
+				// Tells which project in Sentry to send events to:
+				// A Sentry Data Source Name (DSN) is required.
+				// See https://docs.sentry.io/concepts/key-terms/dsn-explainer/
+				// You can set it in the SENTRY_DSN environment variable, or you can set it in code here.
+				options.Dsn = SentryDsn;
+
+				// When configuring for the first time, to see what the SDK is doing:
+				options.Debug = false;
+
+				// This option is recommended. It enables Sentry's "Release Health" feature.
+				options.AutoSessionTracking = true;
+
+				// Enabling this option is recommended for client applications only. It ensures all threads use the same global scope.
+				options.IsGlobalModeEnabled = false;
+			});
+		}
+
 		this.AppPlatformSettings = platformSettings;
 		this.PlatformServices = platformServices;
 		this.startupInstructions = startupInstructions;
@@ -223,6 +246,8 @@ public partial class App : Application, IAsyncDisposable
 		public override bool IsOnACPower => false;
 
 		public override bool IsNetworkMetered => false;
+
+		public override bool IsRunningUnderTest => true;
 
 		public override IDisposable? RequestSleepDeferral() => null;
 	}

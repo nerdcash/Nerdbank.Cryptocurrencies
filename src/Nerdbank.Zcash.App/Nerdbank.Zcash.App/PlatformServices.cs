@@ -33,6 +33,11 @@ public abstract class PlatformServices : INotifyPropertyChanged
 	public abstract bool IsNetworkMetered { get; }
 
 	/// <summary>
+	/// Gets a value indicating whether the app is running under an automated test.
+	/// </summary>
+	public virtual bool IsRunningUnderTest => false;
+
+	/// <summary>
 	/// Gets a value indicating whether the app should offer to scan QR codes.
 	/// </summary>
 	public virtual bool CanSearchForQRCodes => this.ViewModelServices?.TopLevel?.StorageProvider.CanOpen is true;
