@@ -138,6 +138,9 @@
   <data name="MutableMemoCaption" xml:space="preserve">
     <value>Memo privado</value>
   </data>
+  <data name="NotYetMined" xml:space="preserve">
+    <value>Todavia no esta confirmado.</value>
+  </data>
   <data name="OtherPartyNameCaption" xml:space="preserve">
     <value>Nombre</value>
   </data>

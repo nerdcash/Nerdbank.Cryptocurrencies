@@ -138,6 +138,9 @@
   <data name="MutableMemoCaption" xml:space="preserve">
     <value>개인 메모</value>
   </data>
+  <data name="NotYetMined" xml:space="preserve">
+    <value>아직 확인되지 않았습니다.</value>
+  </data>
   <data name="OtherPartyNameCaption" xml:space="preserve">
     <value>이름</value>
   </data>
