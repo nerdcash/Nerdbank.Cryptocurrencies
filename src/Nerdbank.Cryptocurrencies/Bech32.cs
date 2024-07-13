@@ -43,6 +43,15 @@ public sealed class Bech32
 		this.powerConstant = powerConstant;
 	}
 
+	[Flags]
+	private enum Casing
+	{
+		None = 0,
+		Upper = 0x1,
+		Lower = 0x2,
+		Both = Upper | Lower,
+	}
+
 	private static ReadOnlySpan<char> Alphabet => "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 
 	/// <summary>
@@ -162,14 +171,32 @@ public sealed class Bech32
 			return false;
 		}
 
+		Casing casing = Casing.None;
 		for (int i = 0; i < separatorIdx; i++)
 		{
+			if (char.IsUpper(encoded[i]))
+			{
+				casing |= Casing.Upper;
+			}
+			else if (char.IsLower(encoded[i]))
+			{
+				casing |= Casing.Lower;
+			}
+
 			tag[i] = char.ToLowerInvariant(encoded[i]);
+		}
+
+		if (casing == Casing.Both)
+		{
+			decodeResult = DecodeError.InvalidCharacter;
+			errorMessage = Strings.MixedCaseBech32;
+			length = default;
+			return false;
 		}
 
 		// Do the simple character to 5 bit byte conversion of the data.
 		Span<byte> dataAndChecksum5bitBytes = stackalloc byte[encoded.Length - separatorIdx - 1];
-		if (!TryMapFromAlphabet(encoded[(separatorIdx + 1)..], dataAndChecksum5bitBytes, out decodeResult, out errorMessage, out _))
+		if (!TryMapFromAlphabet(casing, encoded[(separatorIdx + 1)..], dataAndChecksum5bitBytes, out decodeResult, out errorMessage, out _))
 		{
 			length = default;
 			return false;
@@ -440,16 +467,26 @@ public sealed class Bech32
 	/// <summary>
 	/// Decodes Bech32 <see cref="Alphabet"/> characters to 5-bit bytes.
 	/// </summary>
+	/// <param name="casing">The capitalization that has already been observed from the tag/HRP region of this bech32 encoding.</param>
 	/// <param name="data">The encoded characters to decode.</param>
 	/// <param name="output">Receives the decoded bytes.</param>
 	/// <param name="decodeError">Receives the error code on failures.</param>
 	/// <param name="errorMessage">Receives the error message on failures.</param>
 	/// <param name="bytesWritten">The number of bytes written to <paramref name="output"/>.</param>
 	/// <returns>A value indicating whether decoding was successful.</returns>
-	private static bool TryMapFromAlphabet(ReadOnlySpan<char> data, Span<byte> output, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, out int bytesWritten)
+	private static bool TryMapFromAlphabet(Casing casing, ReadOnlySpan<char> data, Span<byte> output, [NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage, out int bytesWritten)
 	{
 		for (int i = 0; i < data.Length; i++)
 		{
+			if (char.IsUpper(data[i]))
+			{
+				casing |= Casing.Upper;
+			}
+			else if (char.IsLower(data[i]))
+			{
+				casing |= Casing.Lower;
+			}
+
 			char c = data[i];
 
 			// Perf opportunity: create a reverse mapping array that directly translates the ordinal value of the character to the 5-bit value to use.
@@ -463,6 +500,14 @@ public sealed class Bech32
 			}
 
 			output[i] = (byte)index;
+		}
+
+		if (casing == Casing.Both)
+		{
+			errorMessage = Strings.MixedCaseBech32;
+			decodeError = DecodeError.InvalidCharacter;
+			bytesWritten = 0;
+			return false;
 		}
 
 		decodeError = null;
