@@ -28,6 +28,7 @@ public class Bech32Tests
 		new object?[] { ("sometag", "abcdef0110ffeedd"), "sometag140x77qgsllhd6qcua60" },
 		new object?[] { ("sometag", "abcdef0110ffeeddc0ffee"), "sometag140x77qgsllhdms8lacykfwm3" },
 		new object?[] { ("somet1ag", "abcdef0110ffeedd"), "somet1ag140x77qgsllhd6sjr0yn" },
+		new object?[] { ("123", "abcdef0110ffeedd"), "123140x77qgsllhd60q22cl" },
 	};
 
 	/// <summary>
@@ -152,6 +153,75 @@ public class Bech32Tests
 		Assert.False(Bech32.Original.TryDecode("my14vf0uubr", tag, data, out DecodeError? error, out string? msg, out (int Tag, int Data) length));
 		Assert.Equal(DecodeError.InvalidCharacter, error);
 		this.logger.WriteLine(msg);
+	}
+
+	/// <summary>
+	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
+	/// This is a "MUST" condition in the Bech32 spec.
+	/// </summary>
+	[Fact]
+	public void TryDecode_MixedCaseInData()
+	{
+		Span<char> tag = stackalloc char[10];
+		Span<byte> data = stackalloc byte[10];
+		Assert.False(Bech32.Original.TryDecode("my140xshf6D6q", tag, data, out DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length));
+		this.logger.WriteLine(errorMessage);
+		Assert.Equal(DecodeError.InvalidCharacter, decodeResult);
+	}
+
+	/// <summary>
+	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
+	/// This is a "MUST" condition in the Bech32 spec.
+	/// </summary>
+	[Fact]
+	public void TryDecode_MixedCaseInDataWithNoCaseInTag()
+	{
+		Span<char> tag = stackalloc char[10];
+		Span<byte> data = stackalloc byte[10];
+		Assert.False(Bech32.Original.TryDecode("123140x77qgsllhd60q22Cl", tag, data, out DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length));
+		this.logger.WriteLine(errorMessage);
+		Assert.Equal(DecodeError.InvalidCharacter, decodeResult);
+	}
+
+	/// <summary>
+	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
+	/// This is a "MUST" condition in the Bech32 spec.
+	/// </summary>
+	[Fact]
+	public void TryDecode_MixedCaseInTag()
+	{
+		Span<char> tag = stackalloc char[10];
+		Span<byte> data = stackalloc byte[10];
+		Assert.False(Bech32.Original.TryDecode("My140xshf6d6q", tag, data, out DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length));
+		this.logger.WriteLine(errorMessage);
+		Assert.Equal(DecodeError.InvalidCharacter, decodeResult);
+	}
+
+	/// <summary>
+	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
+	/// This is a "MUST" condition in the Bech32 spec.
+	/// </summary>
+	[Fact]
+	public void TryDecode_MixedCaseBetweenTagAndData()
+	{
+		Span<char> tag = stackalloc char[10];
+		Span<byte> data = stackalloc byte[10];
+		Assert.False(Bech32.Original.TryDecode("MY140xshf6d6q", tag, data, out DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length));
+		this.logger.WriteLine(errorMessage);
+		Assert.Equal(DecodeError.InvalidCharacter, decodeResult);
+	}
+
+	[Fact]
+	public void TryDecode_Uppercase()
+	{
+		Span<char> tag = stackalloc char[10];
+		Span<byte> data = stackalloc byte[10];
+		Assert.True(Bech32.Original.TryDecode("MY140XSHF6D6Q", tag, data, out DecodeError? decodeResult, out string? errorMessage, out (int Tag, int Data) length));
+		this.logger.WriteLine($"Tag: {tag[..length.Tag].ToString()} Data: {Convert.ToHexString(data[..length.Data])}");
+		Assert.Equal("my", tag[..length.Tag].ToString());
+		Assert.Equal("ABCD", Convert.ToHexString(data[..length.Data]));
+		Assert.Null(errorMessage);
+		Assert.Null(decodeResult);
 	}
 
 	[Theory, MemberData(nameof(Bech32Pairings))]
