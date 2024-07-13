@@ -153,6 +153,9 @@
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>未找到 '1' 分隔符字符。</value>
   </data>
+  <data name="MixedCaseBech32" xml:space="preserve">
+    <value>编码必须全部是小写或所有大写，但包含一个混合的情况。</value>
+  </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>此操作要求所有输入都是相同的安全类型。</value>
   </data>

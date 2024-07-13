@@ -153,6 +153,9 @@
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>'1' 구분 기호 문자가 없습니다.</value>
   </data>
+  <data name="MixedCaseBech32" xml:space="preserve">
+    <value>인코딩은 모두 소문자 또는 모든 대문자이어야하지만 혼합 케이스가 포함되어 있어야합니다.</value>
+  </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>이 작업은 모든 입력이 동일한 보안 유형이어야 합니다.</value>
   </data>

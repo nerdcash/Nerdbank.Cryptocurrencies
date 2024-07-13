@@ -153,6 +153,9 @@
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>Нет «1» персонажа сепаратора.</value>
   </data>
+  <data name="MixedCaseBech32" xml:space="preserve">
+    <value>Кодирование должно быть все строчное или все прописное, но содержит смешанный корпус.</value>
+  </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>Эта операция требует, чтобы все входы были одинаковыми типом безопасности.</value>
   </data>
