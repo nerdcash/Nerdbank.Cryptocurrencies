@@ -14,6 +14,9 @@ parameters:
 - name: BaseChannelName
   type: string
   default: ''
+- name: GooglePlayTrack
+  type: string
+  default: ''
 - name: desktopAppAgents
   type: object
   default:
@@ -228,6 +231,7 @@ jobs:
 
 - ${{ if ne(parameters.BaseChannelName, '') }}:
   - job: Publish
+    displayName: Publish desktop apps
     dependsOn: ${{ parameters.desktopAppAgents }}
     variables:
     - group: eZcash App Updates storage
@@ -241,6 +245,17 @@ jobs:
     - template: publish_desktopApps.yml
       parameters:
         agents: ${{ parameters.desktopAppAgents }}
+
+- ${{ if ne(parameters.GooglePlayTrack, '') }}:
+  - job: PublishAndroid
+    displayName: Publish Google Play Store
+    dependsOn: Pack
+    pool:
+      vmImage: Ubuntu 20.04
+    steps:
+    - template: publish_android.yml
+      parameters:
+        GooglePlayTrack: ${{ parameters.GooglePlayTrack }}
 
 - job: WrapUp
   dependsOn:

@@ -1,0 +1,25 @@
+parameters:
+- name: GooglePlayTrack
+  type: string
+  values:
+  - internal
+  - alpha
+  - beta
+  - production
+
+steps:
+- checkout: none
+- download: current
+  artifact: apps-android-dotnet pack
+  displayName: 🔻 Download app bundle
+  patterns: '**/*-Signed.aab'
+- task: GooglePlayRelease@4
+  displayName: Publish to Google Play
+  inputs:
+    serviceConnection: eZcash automated publisher
+    applicationId: com.Nerdbank.eZcash.App
+    action: SingleBundle
+    track: ${{ parameters.GooglePlayTrack }}
+    bundleFile: $(Pipeline.Workspace)/apps-android-dotnet pack/*-Signed.aab
+    #changeLogFile: 'release\notes\file.txt'
+    releaseName: $(Build.BuildNumber)
