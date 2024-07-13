@@ -238,7 +238,7 @@ jobs:
       fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
       clean: true
     - template: install-dependencies.yml
-    - template: publish.yml
+    - template: publish_desktopApps.yml
       parameters:
         agents: ${{ parameters.desktopAppAgents }}
 
