@@ -153,6 +153,9 @@
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>Aucun caractère de séparation '1' trouvé.</value>
   </data>
+  <data name="MixedCaseBech32" xml:space="preserve">
+    <value>L'encodage doit être en minuscules ou toutes les majuscules, mais contient un boîtier mixte.</value>
+  </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>Cette opération nécessite que toutes les entrées soient du même type de sécurité.</value>
   </data>

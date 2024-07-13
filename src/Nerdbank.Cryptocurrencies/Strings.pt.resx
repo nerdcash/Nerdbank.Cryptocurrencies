@@ -153,6 +153,9 @@
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>Nenhum caractere separador '1' encontrado.</value>
   </data>
+  <data name="MixedCaseBech32" xml:space="preserve">
+    <value>A codificação deve ser toda minúscula ou toda a maçaneta, mas contém um estojo misto.</value>
+  </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>Esta operação requer que todas as entradas sejam do mesmo tipo de segurança.</value>
   </data>

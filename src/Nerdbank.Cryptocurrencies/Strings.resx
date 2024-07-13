@@ -153,6 +153,9 @@
   <data name="MissingBech32Separator" xml:space="preserve">
     <value>No '1' separator character found.</value>
   </data>
+  <data name="MixedCaseBech32" xml:space="preserve">
+    <value>The encoding must be all lowercase or all uppercase, but contains a mixed case.</value>
+  </data>
   <data name="SecurityMismatch" xml:space="preserve">
     <value>This operation requires all inputs to be of the same security type.</value>
   </data>
