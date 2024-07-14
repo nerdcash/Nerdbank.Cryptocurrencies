@@ -31,10 +31,14 @@ jobs:
 - template: azure-pipelines/build.yml
   parameters:
     RunTests: ${{ parameters.RunTests }}
+    # Allowed values for GooglePlayTrack: internal, alpha, beta, production
     ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/app') }}:
       BaseChannelName: dogfood
+      GooglePlayTrack: internal
     ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/app-prerelease') }}:
       BaseChannelName: prerelease
+      GooglePlayTrack: alpha
     ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/app-release') }}:
       BaseChannelName: release
+      GooglePlayTrack: production
     signArtifacts: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
