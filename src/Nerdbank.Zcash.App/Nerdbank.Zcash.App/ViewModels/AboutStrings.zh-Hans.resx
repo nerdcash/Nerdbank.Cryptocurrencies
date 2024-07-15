@@ -144,6 +144,9 @@
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>钱包功能</value>
   </data>
+  <data name="ShowPrivacyPolicyCommandCaption" xml:space="preserve">
+    <value>隐私政策</value>
+  </data>
   <data name="UpdateChannel" xml:space="preserve">
     <value>此应用程序自我更新在“ {channelName}”频道上。</value>
   </data>

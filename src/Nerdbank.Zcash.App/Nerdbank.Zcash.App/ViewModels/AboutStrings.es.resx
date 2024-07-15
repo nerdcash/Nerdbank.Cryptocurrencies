@@ -144,6 +144,9 @@
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Capacidades de billetera</value>
   </data>
+  <data name="ShowPrivacyPolicyCommandCaption" xml:space="preserve">
+    <value>Política de privacidad</value>
+  </data>
   <data name="UpdateChannel" xml:space="preserve">
     <value>Esta aplicación se actualiza en el canal '{channelName}'.</value>
   </data>

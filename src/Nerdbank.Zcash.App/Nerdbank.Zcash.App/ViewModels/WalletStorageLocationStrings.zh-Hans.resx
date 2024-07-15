@@ -118,7 +118,8 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="WalletEncryptedExplanation" xml:space="preserve">
-    <value>加密已激活，因此只有您的本地设备帐户可以访问您的钱包。这可以防止此设备上的其他帐户窃取您的钱包。\n可能在您的同一帐户下运行的病毒和恶意软件仍然可以访问您的钱包。</value>
+    <value>加密是有效的，因此只有您的本地设备帐户才能访问您的钱包。这将抵御此设备上的其他帐户，以窃取您的钱包。
+可能在同一帐户下运行的病毒和恶意软件仍然可以访问您的钱包。</value>
   </data>
   <data name="WalletNotEncryptedExplanation" xml:space="preserve">
     <value>此设备上不支持加密以保护您的钱包。</value>

@@ -118,7 +118,8 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="WalletEncryptedExplanation" xml:space="preserve">
-    <value>El cifrado está activo, por lo que solo su cuenta de dispositivo local puede acceder a su billetera. Esto protege contra otras cuentas en este dispositivo que roban su billetera.</value>
+    <value>El cifrado está activo, por lo que solo su cuenta de dispositivo local puede acceder a su billetera. Esto protege contra otras cuentas en este dispositivo robando su billetera.
+Los virus y el malware que pueden estar ejecutándose bajo su misma cuenta aún pueden acceder a su billetera.</value>
   </data>
   <data name="WalletNotEncryptedExplanation" xml:space="preserve">
     <value>El cifrado no está disponible en este dispositivo para proteger su billetera.</value>
