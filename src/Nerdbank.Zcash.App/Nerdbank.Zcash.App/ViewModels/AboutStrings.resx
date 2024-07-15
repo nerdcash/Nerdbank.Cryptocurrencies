@@ -144,6 +144,9 @@
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Wallet capabilities</value>
   </data>
+  <data name="ShowPrivacyPolicyCommandCaption" xml:space="preserve">
+    <value>Privacy policy</value>
+  </data>
   <data name="UpdateChannel" xml:space="preserve">
     <value>This app self-updates on the '{channelName}' channel.</value>
   </data>

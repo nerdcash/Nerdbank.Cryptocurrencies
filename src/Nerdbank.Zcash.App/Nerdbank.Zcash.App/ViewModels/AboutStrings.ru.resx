@@ -144,6 +144,9 @@
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Возможности кошелька</value>
   </data>
+  <data name="ShowPrivacyPolicyCommandCaption" xml:space="preserve">
+    <value>Политика конфиденциальности</value>
+  </data>
   <data name="UpdateChannel" xml:space="preserve">
     <value>Это приложение самостоятельно обновляется на канале '{channelName}'.</value>
   </data>

@@ -144,6 +144,9 @@
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Fonctionnalités du portefeuille</value>
   </data>
+  <data name="ShowPrivacyPolicyCommandCaption" xml:space="preserve">
+    <value>Politique de confidentialité</value>
+  </data>
   <data name="UpdateChannel" xml:space="preserve">
     <value>Cette application s'auto-annonce sur le canal '{channelName}'.</value>
   </data>

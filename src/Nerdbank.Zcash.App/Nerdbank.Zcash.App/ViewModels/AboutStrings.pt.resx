@@ -144,6 +144,9 @@
   <data name="ShowCapabilitiesCommandCaption" xml:space="preserve">
     <value>Recursos da carteira</value>
   </data>
+  <data name="ShowPrivacyPolicyCommandCaption" xml:space="preserve">
+    <value>Política de Privacidade</value>
+  </data>
   <data name="UpdateChannel" xml:space="preserve">
     <value>Este aplicativo se auto-atualiza no canal '{channelName}'.</value>
   </data>

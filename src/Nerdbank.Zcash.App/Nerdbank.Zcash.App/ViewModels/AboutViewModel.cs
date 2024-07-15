@@ -65,6 +65,10 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 
 	public string Channel => VelopackLocator.GetDefault(null).Channel is string channel ? AboutStrings.FormatUpdateChannel(channel) : AboutStrings.NoChannel;
 
+	public string ShowPrivacyPolicyCommandCaption => AboutStrings.ShowPrivacyPolicyCommandCaption;
+
+	public ReactiveCommand<Unit, Unit> ShowPrivacyPolicyCommand => ReactiveCommand.Create(this.ShowPrivacyPolicy);
+
 	public SendingViewModel Donate()
 	{
 		SendingViewModel viewModel = new(this.viewModelServices);
@@ -77,4 +81,6 @@ public class AboutViewModel : ViewModelBase, IHasTitle
 	public CapabilitiesViewModel ShowCapabilities() => this.viewModelServices.NavigateTo(new CapabilitiesViewModel());
 
 	public void ShowSupport() => Process.Start(new ProcessStartInfo("https://discord.gg/dR9v9SWMYF") { UseShellExecute = true });
+
+	public void ShowPrivacyPolicy() => Process.Start(new ProcessStartInfo("https://blog.nerdbank.net/ezcash-app#privacy-policy") { UseShellExecute = true });
 }
