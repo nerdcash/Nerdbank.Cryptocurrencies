@@ -164,7 +164,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 	public Account? Import()
 	{
 		Account? account = null;
-		if (this.TryImportAccount(out ZcashAccount? zcashAccount))
+		if (this.TryImportAccount(out ZcashAccount? zcashAccount, out string? errorMessage))
 		{
 			account = new Account(zcashAccount)
 			{
@@ -172,6 +172,10 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 			};
 
 			this.viewModelServices.Wallet.Add(account);
+		}
+		else if (errorMessage.Length > 0)
+		{
+			this.RecordValidationError(errorMessage, nameof(this.Key));
 		}
 
 		return account;
@@ -184,10 +188,17 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		this.IsSeed = this.mnemonic is not null;
 		this.IsPasswordVisible = this.mnemonic?.Password.Length == 0 || this.SeedPassword.Length > 0;
 
-		this.inputIsValidKey = this.mnemonic is null && ZcashAccount.TryImportAccount(this.Key, out _);
+		Cryptocurrencies.IKeyWithTextEncoding? key = null;
+		bool isValidKey = this.mnemonic is null && ZcashUtilities.TryParseKey(this.Key, out key);
+		bool isSupportedKey = key is not null && ZcashAccount.TryImportAccount(key, out _);
+		this.inputIsValidKey = isSupportedKey;
 		bool isValidInput = this.mnemonic is not null || this.inputIsValidKey;
 
-		this.RecordValidationError(this.Key.Length == 0 || isValidInput ? null : ImportAccountStrings.BadOrUnsupportedImportKey, nameof(this.Key));
+		string? message =
+			this.Key.Length == 0 || isValidInput ? null :
+			isValidKey ? ImportAccountStrings.UnsupportedAccount :
+			ImportAccountStrings.BadOrUnsupportedImportKey;
+		this.RecordValidationError(message, nameof(this.Key));
 	}
 
 	private bool TryInitializeMnemonic()
@@ -205,7 +216,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		}
 	}
 
-	private bool TryImportAccount([NotNullWhen(true)] out ZcashAccount? account)
+	private bool TryImportAccount([NotNullWhen(true)] out ZcashAccount? account, [NotNullWhen(false)] out string? errorMessage)
 	{
 		this.TryInitializeMnemonic();
 
@@ -223,7 +234,16 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		}
 		else
 		{
-			ZcashAccount.TryImportAccount(this.Key, out account);
+			if (ZcashAccount.TryImportAccount(this.Key, out account))
+			{
+				if (account.HDDerivation is null && account.FullViewing is null)
+				{
+					// librustzcash is limited to HD derived and UFVKs only.
+					account = null;
+					errorMessage = ImportAccountStrings.UnsupportedAccount;
+					return false;
+				}
+			}
 		}
 
 		if (account is not null)
@@ -231,6 +251,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 			account.BirthdayHeight = this.BirthdayHeight;
 		}
 
+		errorMessage = null;
 		return account is not null;
 	}
 
