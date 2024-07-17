@@ -67,6 +67,8 @@ public static class ZcashUtilities
 	/// </remarks>
 	public static bool TryParseKey(string encodedKey, [NotNullWhen(true)] out IKeyWithTextEncoding? key)
 	{
+		Requires.NotNull(encodedKey);
+
 		if (UnifiedViewingKey.TryDecode(encodedKey, out _, out _, out UnifiedViewingKey? unifiedViewingKey))
 		{
 			key = unifiedViewingKey;
