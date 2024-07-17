@@ -168,28 +168,50 @@ public class ZcashAccount : INotifyPropertyChanged
 	/// </summary>
 	/// <param name="encodedKey">The standard encoding of some key.</param>
 	/// <param name="account">Receives the initialized account, if parsing is successful.</param>
-	/// <returns><see langword="true" /> if <paramref name="encodedKey"/> was recognized as an encoding of some Zcash-related key; <see langword="false" /> otherwise.</returns>
+	/// <returns><see langword="true" /> if <paramref name="encodedKey"/> was recognized as an encoding of some Zcash-related key that we support importing from; <see langword="false" /> otherwise.</returns>
 	public static bool TryImportAccount(string encodedKey, [NotNullWhen(true)] out ZcashAccount? account)
 	{
-		account = null;
-		if (ZcashUtilities.TryParseKey(encodedKey, out IKeyWithTextEncoding? result))
+		Requires.NotNull(encodedKey);
+
+		if (ZcashUtilities.TryParseKey(encodedKey, out IKeyWithTextEncoding? key))
 		{
-			if (result is UnifiedViewingKey unifiedViewingKey)
-			{
-				account = new ZcashAccount(unifiedViewingKey);
-			}
-			else if (result is ISpendingKey && result is Zip32HDWallet.IExtendedKey extendedSK)
-			{
-				account = new ZcashAccount(SpendingKeys.FromKeys(extendedSK));
-			}
-			else if (result is IFullViewingKey fvk)
-			{
-				account = new ZcashAccount(FullViewingKeys.FromKeys(fvk));
-			}
-			else if (result is IIncomingViewingKey ivk)
-			{
-				account = new ZcashAccount(IncomingViewingKeys.FromKeys(ivk));
-			}
+			return TryImportAccount(key, out account);
+		}
+
+		account = null;
+		return false;
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ZcashAccount"/> class
+	/// from some key.
+	/// </summary>
+	/// <param name="key">The key from which to create an account.</param>
+	/// <param name="account">Receives the initialized account, if parsing is successful.</param>
+	/// <returns><see langword="true" /> if <paramref name="key"/> was recognized as a key from which we can create an account; <see langword="false" /> otherwise.</returns>
+	public static bool TryImportAccount(IKey key, [NotNullWhen(true)] out ZcashAccount? account)
+	{
+		Requires.NotNull(key);
+
+		if (key is UnifiedViewingKey unifiedViewingKey)
+		{
+			account = new(unifiedViewingKey);
+		}
+		else if (key is ISpendingKey && key is Zip32HDWallet.IExtendedKey extendedSK)
+		{
+			account = new(SpendingKeys.FromKeys(extendedSK));
+		}
+		else if (key is IFullViewingKey fvk && FullViewingKeys.TryFromKeys([fvk], out FullViewingKeys? combinedFvk, out _))
+		{
+			account = new(combinedFvk);
+		}
+		else if (key is IIncomingViewingKey ivk && IncomingViewingKeys.TryFromKeys([ivk], out IncomingViewingKeys? combinedIvk, out _))
+		{
+			account = new(combinedIvk);
+		}
+		else
+		{
+			account = null;
 		}
 
 		return account is not null;
@@ -669,16 +691,18 @@ public class ZcashAccount : INotifyPropertyChanged
 		/// Initializes a new instance of the <see cref="FullViewingKeys"/> class.
 		/// </summary>
 		/// <param name="fullViewingKeys">An array of keys that may be included in this instance.</param>
-		/// <returns>The newly created object.</returns>
-		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="fullViewingKeys"/> is not supported.</exception>
-		internal static FullViewingKeys FromKeys(params IFullViewingKey[] fullViewingKeys)
+		/// <param name="result">Contains the resulting full viewing key object if successful.</param>
+		/// <param name="unsupportedKeyIndex">The index into <paramref name="fullViewingKeys"/> of the first unsupported key, if unsuccessful.</param>
+		/// <returns>A value indicating whether all the keys given in <paramref name="fullViewingKeys"/> are supported.</returns>
+		internal static bool TryFromKeys(ReadOnlySpan<IFullViewingKey> fullViewingKeys, [NotNullWhen(true)] out FullViewingKeys? result, [NotNullWhen(false)] out int? unsupportedKeyIndex)
 		{
 			Zip32HDWallet.Transparent.ExtendedViewingKey? transparent = null;
 			Sapling.DiversifiableFullViewingKey? sapling = null;
 			Orchard.FullViewingKey? orchard = null;
 
-			foreach (IFullViewingKey key in fullViewingKeys)
+			for (int i = 0; i < fullViewingKeys.Length; i++)
 			{
+				IFullViewingKey key = fullViewingKeys[i];
 				if (key is Zip32HDWallet.Transparent.ExtendedViewingKey t)
 				{
 					transparent = t;
@@ -697,11 +721,15 @@ public class ZcashAccount : INotifyPropertyChanged
 				}
 				else
 				{
-					throw new NotSupportedException($"Unsupported key type: {key.GetType()}");
+					result = null;
+					unsupportedKeyIndex = i;
+					return false;
 				}
 			}
 
-			return new(transparent, sapling, orchard);
+			result = new(transparent, sapling, orchard);
+			unsupportedKeyIndex = null;
+			return true;
 		}
 	}
 
@@ -783,16 +811,18 @@ public class ZcashAccount : INotifyPropertyChanged
 		/// Initializes a new instance of the <see cref="IncomingViewingKeys"/> class.
 		/// </summary>
 		/// <param name="incomingViewingKeys">An array of spending keys that may be included in this instance.</param>
-		/// <returns>The newly created object.</returns>
-		/// <exception cref="NotSupportedException">Thrown if any of the elements of <paramref name="incomingViewingKeys"/> is not supported.</exception>
-		internal static IncomingViewingKeys FromKeys(params IIncomingViewingKey[] incomingViewingKeys)
+		/// <param name="result">Contains the resulting viewing key object if successful.</param>
+		/// <param name="unsupportedKeyIndex">The index into <paramref name="incomingViewingKeys"/> of the first unsupported key, if unsuccessful.</param>
+		/// <returns>A value indicating whether all the keys given in <paramref name="incomingViewingKeys"/> are supported.</returns>
+		internal static bool TryFromKeys(ReadOnlySpan<IIncomingViewingKey> incomingViewingKeys, [NotNullWhen(true)] out IncomingViewingKeys? result, [NotNullWhen(false)] out int? unsupportedKeyIndex)
 		{
 			Zip32HDWallet.Transparent.ExtendedViewingKey? transparent = null;
 			Sapling.DiversifiableIncomingViewingKey? sapling = null;
 			Orchard.IncomingViewingKey? orchard = null;
 
-			foreach (IIncomingViewingKey key in incomingViewingKeys)
+			for (int i = 0; i < incomingViewingKeys.Length; i++)
 			{
+				IIncomingViewingKey key = incomingViewingKeys[i];
 				if (key is Zip32HDWallet.Transparent.ExtendedViewingKey t)
 				{
 					transparent = t;
@@ -807,11 +837,15 @@ public class ZcashAccount : INotifyPropertyChanged
 				}
 				else
 				{
-					throw new NotSupportedException($"Unsupported key type: {key.GetType()}");
+					result = null;
+					unsupportedKeyIndex = i;
+					return false;
 				}
 			}
 
-			return new(transparent, sapling, orchard);
+			result = new(transparent, sapling, orchard);
+			unsupportedKeyIndex = null;
+			return true;
 		}
 	}
 
