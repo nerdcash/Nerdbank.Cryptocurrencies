@@ -153,4 +153,7 @@
   <data name="Title" xml:space="preserve">
     <value>Импорт счета</value>
   </data>
+  <data name="UnsupportedAccount" xml:space="preserve">
+    <value>Этот ключ Zcash еще не поддерживается для импорта.</value>
+  </data>
 </root>
