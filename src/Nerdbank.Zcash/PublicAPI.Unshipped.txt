@@ -950,6 +950,7 @@ static Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.operator !=(Nerdbank.Zca
 static Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? left, Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys? right) -> bool
 static Nerdbank.Zcash.ZcashAccount.SpendingKeys.operator !=(Nerdbank.Zcash.ZcashAccount.SpendingKeys? left, Nerdbank.Zcash.ZcashAccount.SpendingKeys? right) -> bool
 static Nerdbank.Zcash.ZcashAccount.SpendingKeys.operator ==(Nerdbank.Zcash.ZcashAccount.SpendingKeys? left, Nerdbank.Zcash.ZcashAccount.SpendingKeys? right) -> bool
+static Nerdbank.Zcash.ZcashAccount.TryImportAccount(Nerdbank.Cryptocurrencies.IKey! key, out Nerdbank.Zcash.ZcashAccount? account) -> bool
 static Nerdbank.Zcash.ZcashAccount.TryImportAccount(string! encodedKey, out Nerdbank.Zcash.ZcashAccount? account) -> bool
 static Nerdbank.Zcash.ZcashAddress.Decode(string! address) -> Nerdbank.Zcash.ZcashAddress!
 static Nerdbank.Zcash.ZcashAddress.implicit operator string?(Nerdbank.Zcash.ZcashAddress? address) -> string?
