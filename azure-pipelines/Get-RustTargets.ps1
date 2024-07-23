@@ -5,6 +5,7 @@ elseif ($IsMacOS) {
     ,'aarch64-apple-darwin'
     ,'x86_64-apple-darwin'
     ,'aarch64-apple-ios'
+    ,'x86_64-apple-ios'
 }
 else { # Windows
     ,'aarch64-pc-windows-msvc'
