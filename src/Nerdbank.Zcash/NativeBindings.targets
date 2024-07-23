@@ -6,6 +6,9 @@
 
     <RustOutputAndroidArm64>$(RustOutputDirBase)aarch64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidArm64>
     <RustOutputAndroidX64>$(RustOutputDirBase)x86_64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidX64>
+
+    <RustOutputiOSArm64>$(RustOutputDirBase)aarch64-apple-ios/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputiOSArm64>
+    <RustOutputiOSX64>$(RustOutputDirBase)x86_64-apple-ios/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputiOSX64>
   </PropertyGroup>
   <!-- This file is imported both by the packaging project and by the test project.
        In the case of the packaging project, which targets AnyCPU, we want all native files included.
@@ -48,8 +51,11 @@
     <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)x86_64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">
       <PackagePath>runtimes/osx-x64/native/</PackagePath>
     </RustBinary>
-    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)aarch64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputiOSArm64)">
       <PackagePath>runtimes/ios-arm64/native/</PackagePath>
+    </RustBinary>
+    <RustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputiOSX64)">
+      <PackagePath>runtimes/ios-x64/native/</PackagePath>
     </RustBinary>
   </ItemGroup>
   <ItemGroup>
