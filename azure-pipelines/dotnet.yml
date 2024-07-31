@@ -1,10 +1,12 @@
 parameters:
-  RunTests:
+- name: RunTests
+  type: boolean
 
 steps:
 
-- script: dotnet build --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
-  displayName: 🛠 dotnet build
+- pwsh: dotnet build -t:build,publish --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+  displayName: 🛠️ dotnet build
+  workingDirectory: azure-pipelines
 
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test

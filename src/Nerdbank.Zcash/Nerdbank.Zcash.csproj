@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOsPlatform('Linux'))">$(TargetFrameworks);net8.0-ios</TargetFrameworks>
     <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
