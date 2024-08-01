@@ -137,7 +137,7 @@ jobs:
     demands:
     - Agent.OS -equals Darwin
   variables:
-  - group: Apple iOS signing # NOT "Apple signing" because Azure Key Vault secret download happens AFTER the InstallAppleCertificate pre-step.
+  - group: Apple signing
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -147,15 +147,11 @@ jobs:
   - template: install-dependencies.yml
 
   - ${{ if parameters.signArtifacts }}:
-    - task: InstallAppleCertificate@2
-      name: appleCertInstaller
-      displayName: 🔐 Install 🍎 App Store certificate
+    - task: DownloadSecureFile@1
+      name: dsfAppleCert
+      displayName: 🔐 Download 🍎 App Store certificate
       inputs:
-        certSecureFile: Apple_App_Store_distribution.p12
-        certPwd: $(P12-PASSWORD)
-        keychain: temp
-        signingIdentity: Andrew Arnott
-        opensslPkcsArgs: -legacy
+        secureFile: Apple_App_Store_distribution.p12
 
     - task: DownloadSecureFile@1
       name: dsfProvisioningProfile
@@ -164,15 +160,11 @@ jobs:
         secureFile: eZcash_App_Store_distribution.mobileprovision
 
   - ${{ else }}:
-    - task: InstallAppleCertificate@2
-      name: appleCertInstaller
-      displayName: 🔐 Install 🍎 dev certificate
+    - task: DownloadSecureFile@1
+      name: dsfAppleCert
+      displayName: 🔐 Download 🍎 dev certificate
       inputs:
-        certSecureFile: Apple_Development.p12
-        certPwd: $(P12-PASSWORD)
-        keychain: temp
-        signingIdentity: Andrew Arnott
-        opensslPkcsArgs: -legacy
+        secureFile: Apple_Development.p12
 
     - task: DownloadSecureFile@1
       name: dsfProvisioningProfile
@@ -180,22 +172,44 @@ jobs:
       inputs:
         secureFile: Nonshipping_PR_builds.mobileprovision
 
-  - pwsh: |
-      Write-Host "Copying $(dsfProvisioningProfile.secureFilePath) to ~/Library/MobileDevice/Provisioning Profiles"
-      New-Item -Type Directory -Path "~/Library/MobileDevice/Provisioning Profiles" -Force | Out-Null
-      Copy-Item -Path $(dsfProvisioningProfile.secureFilePath) -Destination "~/Library/MobileDevice/Provisioning Profiles"
+  - bash: |
+      # Log the public certificate details
+      /opt/homebrew/bin/openssl pkcs12 -in $(dsfAppleCert.secureFilePath) -nokeys -passin pass:$P12_PASSWORD -legacy | /opt/homebrew/bin/openssl x509 -sha1 -noout -fingerprint -subject -dates -nameopt utf8,sep_semi_plus_space
 
-      Write-Host "Setting CodesignKeychain env var to '$(appleCertInstaller.keychainPath)'"
-      Write-Host "##vso[task.setvariable variable=CodesignKeychain]$(appleCertInstaller.keychainPath)"
+      KEYCHAIN_PATH=$AGENT_TEMPDIRECTORY/app-signing.keychain-db
+      if [ "${{ parameters.signArtifacts }}" = "True" ]; then
+        CodesignProvision="eZcash App Store distribution"
+        CodesignKey="Apple Distribution: Andrew Arnott (6B9NEABBFE)"
+      else
+        CodesignProvision="Non-shipping PR builds"
+        CodesignKey="Apple Development: Andrew Arnott (WFT82492ZR)"
+      fi
 
-      if ('${{ parameters.signArtifacts }}' -eq 'true') {
-        $CodesignProvision = 'eZcash App Store distribution'
-      } else {
-        $CodesignProvision = 'Non-shipping PR builds'
-      }
-      Write-Host "Setting CodesignProvision env var to '$CodesignProvision'"
-      Write-Host "##vso[task.setvariable variable=CodesignProvision]$CodesignProvision"
-    displayName: 🔐 Install provisioning profile
+      # create temporary keychain
+      security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+      security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+      security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+      # import certificates to keychain
+      security import $(dsfAppleCert.secureFilePath) -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      security list-keychain -d user -s $KEYCHAIN_PATH
+
+      echo "Setting CodesignKeychain env var to '$KEYCHAIN_PATH'"
+      echo "##vso[task.setvariable variable=CodesignKeychain]$KEYCHAIN_PATH"
+
+      echo "Setting CodesignKey env var to '$CodesignKey'"
+      echo "##vso[task.setvariable variable=CodesignKey]$CodesignKey"
+
+      echo "Copying $(dsfProvisioningProfile.secureFilePath) to '~/Library/MobileDevice/Provisioning Profiles'"
+      mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+      cp "$(dsfProvisioningProfile.secureFilePath)" ~/Library/MobileDevice/Provisioning\ Profiles
+
+      echo "Setting CodesignProvision env var to '$CodesignProvision'"
+      echo "##vso[task.setvariable variable=CodesignProvision]$CodesignProvision"
+    displayName: 🔐 Install 🍎 certs & profiles
+    env:
+      P12_PASSWORD: $(P12-PASSWORD)
+      KEYCHAIN_PASSWORD: $(KEYCHAIN-PASSWORD)
 
   - template: cargo.yml
     parameters:
