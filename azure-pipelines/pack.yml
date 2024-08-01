@@ -64,6 +64,6 @@ steps:
   displayName: 📢 Publish artifacts
   condition: succeededOrFailed()
 
-- powershell: dotnet nuget push 'bin/Packages/$(BuildConfiguration)/NuGet/*.nupkg' -s $(ci_feed) -k azdo --skip-duplicate
+- powershell: dotnet nuget push 'bin\Packages\$(BuildConfiguration)\NuGet\*.nupkg' -s $(ci_feed) -k azdo --skip-duplicate
   displayName: 📦 Push packages to CI feed
   condition: and(succeeded(), ne(variables['ci_feed'], ''), ne(variables['Build.Reason'], 'PullRequest'))
