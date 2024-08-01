@@ -1,0 +1,11 @@
+<Project InitialTargets="PrePublishBeforeBuildHack">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
+
+  <Target Name="PrePublishBeforeBuildHack" Condition=" '$(CI)' == 'true' ">
+    <PropertyGroup>
+      <!-- Hack workaround to ensure the _PrePublish target runs before the _CoreCreateIpa target runs (and skips). -->
+      <!-- https://github.com/xamarin/xamarin-macios/issues/20958 -->
+      <CreateIpaDependsOn>_PrePublish;$(CreateIpaDependsOn)</CreateIpaDependsOn>
+    </PropertyGroup>
+  </Target>
+</Project>

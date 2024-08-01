@@ -138,7 +138,7 @@ public partial class App : Application, IAsyncDisposable
 	/// </summary>
 	public void InitializeFields()
 	{
-		if (this.appSettingsManager is not null)
+		if (this.joinableTaskContext is not null)
 		{
 			return;
 		}

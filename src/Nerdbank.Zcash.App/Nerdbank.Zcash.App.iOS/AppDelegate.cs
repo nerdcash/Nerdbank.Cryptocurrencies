@@ -4,10 +4,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.iOS;
-using Avalonia.Media;
 using Avalonia.ReactiveUI;
-using Foundation;
-using UIKit;
 
 namespace Nerdbank.Zcash.App.iOS;
 
@@ -17,10 +14,37 @@ namespace Nerdbank.Zcash.App.iOS;
 [Register("AppDelegate")]
 public partial class AppDelegate : AvaloniaAppDelegate<App>
 {
-	protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
+	protected override AppBuilder CreateAppBuilder()
 	{
-		return base.CustomizeAppBuilder(builder)
+		return AppBuilder.Configure(
+			() => new App(PrepareAppPlatformSettings(), new IosPlatformServices(this), null, null))
 			.WithInterFont()
-			.UseReactiveUI();
+			.UseReactiveUI()
+			.With(new iOSPlatformOptions { RenderingMode = [iOSRenderingMode.Metal] })
+			.UseiOS();
+	}
+
+	private static AppPlatformSettings PrepareAppPlatformSettings()
+	{
+		if (Design.IsDesignMode)
+		{
+			// When running in the designer, we shouldn't try to access the files on the user's installation.
+			return new()
+			{
+				ConfidentialDataPath = null,
+				NonConfidentialDataPath = null,
+			};
+		}
+
+		string appDataBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nerdbank.Zcash.App");
+		string confidentialDataPath = Path.Combine(appDataBaseDir, "wallets");
+		string nonConfidentialDataPath = Path.Combine(appDataBaseDir, "settings");
+
+		return new AppPlatformSettings
+		{
+			ConfidentialDataPathIsEncrypted = true, // iOS always encrypts user data.
+			ConfidentialDataPath = confidentialDataPath,
+			NonConfidentialDataPath = nonConfidentialDataPath,
+		};
 	}
 }

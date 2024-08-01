@@ -36,7 +36,7 @@ steps:
       } else {
         $tfm = 'net8.0'
       }
-      $VelopackData = Get-Content -Path "obj/src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop/$platform/$(BuildConfiguration)/$tfm/$rid/velopack-data.json" | ConvertFrom-Json
+      $VelopackData = Get-Content -Path "obj/src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.Desktop/$(BuildConfiguration)/$tfm/$rid/velopack-data.json" | ConvertFrom-Json
       $packageVersion = dotnet nbgv get-version -v SemVer2
       $OutputDir = 'bin/Packages/$(BuildConfiguration)/velopack'
       $BaseChannelName = '${{ parameters.BaseChannelName }}'

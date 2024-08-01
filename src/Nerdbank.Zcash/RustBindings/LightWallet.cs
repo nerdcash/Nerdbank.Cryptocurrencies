@@ -2270,18 +2270,18 @@ internal interface CancellationSource
 // The ForeignCallback that is passed to Rust.
 class ForeignCallbackTypeCancellationSource
 {
-	// This cannot be a static method. Although C# supports implicitly using a static method as a
-	// delegate, the behaviour is incorrect for this use case. Using static method as a delegate
-	// argument creates an implicit delegate object, that is later going to be collected by GC. Any
-	// attempt to invoke a garbage collected delegate results in an error:
-	//   > A callback was made on a garbage collected delegate of type 'ForeignCallback::..'
-	public static ForeignCallback INSTANCE = (
+	public static readonly ForeignCallback INSTANCE = INSTANCE_FUNC;
+
+#if IOS
+	[ObjCRuntime.MonoPInvokeCallback(typeof(ForeignCallback))]
+#endif
+	private static int INSTANCE_FUNC(
 		ulong handle,
 		uint method,
 		IntPtr argsData,
 		int argsLength,
 		ref RustBuffer outBuf
-	) =>
+	)
 	{
 		var cb = FfiConverterTypeCancellationSource.INSTANCE.Lift(handle);
 		switch (method)
@@ -2330,7 +2330,7 @@ class ForeignCallbackTypeCancellationSource
 				return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
 			}
 		}
-	};
+	}
 
 	static RustBuffer InvokeSetCancellationId(CancellationSource callback, BigEndianStream stream)
 	{
@@ -2368,18 +2368,18 @@ internal interface SyncUpdate
 // The ForeignCallback that is passed to Rust.
 class ForeignCallbackTypeSyncUpdate
 {
-	// This cannot be a static method. Although C# supports implicitly using a static method as a
-	// delegate, the behaviour is incorrect for this use case. Using static method as a delegate
-	// argument creates an implicit delegate object, that is later going to be collected by GC. Any
-	// attempt to invoke a garbage collected delegate results in an error:
-	//   > A callback was made on a garbage collected delegate of type 'ForeignCallback::..'
-	public static ForeignCallback INSTANCE = (
+	public static readonly ForeignCallback INSTANCE = INSTANCE_FUNC;
+
+#if IOS
+	[ObjCRuntime.MonoPInvokeCallback(typeof(ForeignCallback))]
+#endif
+	private static int INSTANCE_FUNC(
 		ulong handle,
 		uint method,
 		IntPtr argsData,
 		int argsLength,
 		ref RustBuffer outBuf
-	) =>
+	)
 	{
 		var cb = FfiConverterTypeSyncUpdate.INSTANCE.Lift(handle);
 		switch (method)
@@ -2451,7 +2451,7 @@ class ForeignCallbackTypeSyncUpdate
 				return UniffiCallbackResponseCode.UNEXPECTED_ERROR;
 			}
 		}
-	};
+	}
 
 	static RustBuffer InvokeUpdateStatus(SyncUpdate callback, BigEndianStream stream)
 	{

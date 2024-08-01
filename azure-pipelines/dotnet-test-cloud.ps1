@@ -44,15 +44,9 @@ if ($x86) {
   }
 }
 
-$platform = 'x64'
-if (($env:PROCESSOR_ARCHITECTURE -eq "ARM64") -or ((Get-Command uname -ErrorAction SilentlyContinue) -and (uname -m) -eq 'arm64')) {
-    $platform = 'arm64'
-}
-
-& $dotnet test $RepoRoot `
+& $dotnet test $RepoRoot/azure-pipelines/dirs.proj `
     --no-build `
     -c $Configuration `
-    -p:Platform=$platform `
     --filter "TestCategory!=FailsInCloudTest & RequiresNetwork!=true" `
     --collect "Code Coverage;Format=cobertura" `
     --settings "$PSScriptRoot/test.runsettings" `

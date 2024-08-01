@@ -3,6 +3,10 @@
 
 namespace Nerdbank.Zcash;
 
+#pragma warning disable SA1200 // Using directives should be placed correctly -- required for iOS
+using Security = Nerdbank.Cryptocurrencies.Security;
+#pragma warning restore SA1200 // Using directives should be placed correctly
+
 /// <summary>
 /// Internal utilities for this library.
 /// </summary>
