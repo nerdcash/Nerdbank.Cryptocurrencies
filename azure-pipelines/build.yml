@@ -149,26 +149,26 @@ jobs:
   - ${{ if parameters.signArtifacts }}:
     - task: DownloadSecureFile@1
       name: dsfAppleCert
-      displayName: 🔐 Download 🍎 App Store certificate
+      displayName: 🍎 Download App Store certificate
       inputs:
         secureFile: Apple_App_Store_distribution.p12
 
     - task: DownloadSecureFile@1
       name: dsfProvisioningProfile
-      displayName: 🔐 Download 🍎 App Store profile
+      displayName: 🍎 Download App Store profile
       inputs:
         secureFile: eZcash_App_Store_distribution.mobileprovision
 
   - ${{ else }}:
     - task: DownloadSecureFile@1
       name: dsfAppleCert
-      displayName: 🔐 Download 🍎 dev certificate
+      displayName: 🍎 Download dev certificate
       inputs:
         secureFile: Apple_Development.p12
 
     - task: DownloadSecureFile@1
       name: dsfProvisioningProfile
-      displayName: 🔐 Download 🍎 dev profile
+      displayName: 🍎 Download dev profile
       inputs:
         secureFile: Nonshipping_PR_builds.mobileprovision
 
@@ -206,7 +206,7 @@ jobs:
 
       echo "Setting CodesignProvision env var to '$CodesignProvision'"
       echo "##vso[task.setvariable variable=CodesignProvision]$CodesignProvision"
-    displayName: 🔐 Install 🍎 certs & profiles
+    displayName: 🍎 Install certs & profiles
     env:
       P12_PASSWORD: $(P12-PASSWORD)
       KEYCHAIN_PASSWORD: $(KEYCHAIN-PASSWORD)
@@ -247,13 +247,13 @@ jobs:
   - ${{ if parameters.signArtifacts }}:
     - task: DownloadSecureFile@1
       name: dsfBuildCert
-      displayName: 🔐 Download Apple build certificate
+      displayName: 🍎 Download build certificate
       inputs:
         secureFile: apple_build_certificate.p12
 
     - task: DownloadSecureFile@1
       name: dsfInstallerCert
-      displayName: 🔐 Download Apple installer certificate
+      displayName: 🍎 Download installer certificate
       inputs:
         secureFile: apple_installer_certificate.p12
 
@@ -278,7 +278,7 @@ jobs:
       APPLE_PASSWORD: $(APPLE-PASSWORD)
       APPLE_TEAM: $(APPLE-TEAM)
       KEYCHAIN_PASSWORD: $(KEYCHAIN-PASSWORD)
-    displayName: 🛠️ Install Apple certs and notary profile
+    displayName: 🍎 Install certs and notary profile
     condition: and(succeeded(), eq('${{ parameters.signArtifacts }}', 'true'))
 
   - template: velopack.yml
