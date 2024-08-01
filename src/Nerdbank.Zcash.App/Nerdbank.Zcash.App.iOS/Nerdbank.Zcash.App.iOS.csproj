@@ -13,7 +13,6 @@
   <!-- Always build the iOS app when in CI. -->
   <PropertyGroup Condition=" '$(CI)' == 'true' ">
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
-    <CodesignKey>$(APPLE_CERTIFICATE_SIGNING_IDENTITY)</CodesignKey>
   </PropertyGroup>
 
   <ItemGroup>
