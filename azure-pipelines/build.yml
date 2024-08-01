@@ -230,7 +230,7 @@ jobs:
   variables:
   - group: Apple signing
   steps:
-  - ${{ if eq('${{ parameters.signArtifacts }}', 'true') }}:
+  - ${{ if parameters.signArtifacts }}:
     - task: DownloadSecureFile@1
       name: dsfBuildCert
       displayName: 🔐 Download Apple build certificate
