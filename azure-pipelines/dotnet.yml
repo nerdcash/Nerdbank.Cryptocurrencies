@@ -10,6 +10,7 @@ steps:
 
 - pwsh: dotnet build -t:build,publish --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: 🛠️ dotnet build
+  workingDirectory: azure-pipelines
   env:
     DisableAndroidCsproj: true # We only want to build the android project in the Pack job
 
