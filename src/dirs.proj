@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.Build.Traversal">
+  <ItemGroup>
+    <ProjectReference Include="Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj" />
+    <ProjectReference Include="Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" />
+    <ProjectReference Include="Nerdbank.Zcash\Nerdbank.Zcash.csproj" Publish="false" />
+    <ProjectReference Include="Nerdbank.Zcash.Web\Nerdbank.Zcash.Web.csproj" />
+
+    <MultiRIDProjectReference Include="Nerdbank.Zcash.Cli\Nerdbank.Zcash.Cli.csproj" Publish="false" />
+  </ItemGroup>
+</Project>

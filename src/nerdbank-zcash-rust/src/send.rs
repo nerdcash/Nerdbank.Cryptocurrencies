@@ -39,7 +39,7 @@ pub struct SendTransactionResult {
     pub txid: TxId,
 }
 
-pub fn create_send_proposal(
+pub(crate) fn create_send_proposal(
     db: &mut Db,
     network: Network,
     account_ufvk: &UnifiedFullViewingKey,

@@ -1,5 +1,6 @@
 parameters:
 - name: RunTests
+  type: boolean
 - name: osRID
   type: string
 - name: publishPlatforms
@@ -7,15 +8,9 @@ parameters:
 
 steps:
 
-- pwsh: |
-    $addlArgs = @()
-    if (($env:PROCESSOR_ARCHITECTURE -eq "ARM64") -or ((Get-Command uname -ErrorAction SilentlyContinue) -and (uname -m) -eq 'arm64')) {
-      $addlArgs += '-p:Platform=arm64'
-    }
-    dotnet build --no-restore -c $(BuildConfiguration) @addlArgs -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+- pwsh: dotnet build -t:build,publish --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: 🛠️ dotnet build
-  env:
-    DisableAndroidCsproj: true # We only want to build the android project in the Pack job
+  workingDirectory: azure-pipelines
 
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test

@@ -7,6 +7,7 @@
     <AvaloniaVersion>11.0.11</AvaloniaVersion>
     <AvaloniaMarkdownVersion>11.0.2</AvaloniaMarkdownVersion>
     <RoslynVersion>3.11.0-beta1.24104.1</RoslynVersion>
+    <AspNetWebAssemblyVersion>8.0.7</AspNetWebAssemblyVersion>
     <MessagePackVersion>2.5.168</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -39,14 +40,14 @@
     <PackageVersion Include="Humanizer" Version="2.14.1" />
     <PackageVersion Include="IsExternalInit" Version="1.0.3" />
     <PackageVersion Include="Isopoh.Cryptography.Blake2b" Version="2.0.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="$(AspNetWebAssemblyVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="$(AspNetWebAssemblyVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(RoslynVersion)" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.48" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
     <PackageVersion Include="NBitcoin.Secp256k1" Version="3.1.5" />
-    <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.45-beta" />
+    <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.50-beta" />
     <PackageVersion Include="QRCoder" Version="1.6.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />

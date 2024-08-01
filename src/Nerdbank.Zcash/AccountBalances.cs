@@ -5,6 +5,10 @@ using static Nerdbank.Zcash.ZcashUtilities;
 
 namespace Nerdbank.Zcash;
 
+#pragma warning disable SA1200 // Using directives should be placed correctly -- required for iOS
+using Security = Nerdbank.Cryptocurrencies.Security;
+#pragma warning restore SA1200 // Using directives should be placed correctly
+
 /// <summary>
 /// Describes account balances in a user-friendly way.
 /// </summary>
