@@ -29,6 +29,7 @@ steps:
 
 - script: dotnet pack --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
   displayName: 🛠 pack
+  workingDirectory: azure-pipelines
 
 - pwsh: >
     dotnet tool install --tool-path obj SignClient
@@ -49,6 +50,6 @@ steps:
   artifact: deployables
   displayName: 📢 Publish deployables
 
-- powershell: dotnet nuget push 'bin/Packages/$(BuildConfiguration)/*.nupkg' -s $(ci_feed) -k azdo --skip-duplicate
+- powershell: dotnet nuget push 'bin/Packages/$(BuildConfiguration)/NuGet/*.nupkg' -s $(ci_feed) -k azdo --skip-duplicate
   displayName: 📦 Push packages to CI feed
   condition: and(succeeded(), ne(variables['ci_feed'], ''), ne(variables['Build.Reason'], 'PullRequest'))

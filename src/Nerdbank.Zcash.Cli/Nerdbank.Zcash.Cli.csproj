@@ -4,7 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(TargetFrameworks);net8.0-windows</TargetFrameworks>
-    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>$(AvailableRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(DefaultRuntimeIdentifier)</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -19,5 +20,5 @@
     <ProjectReference Include="..\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
   </ItemGroup>
 
-  <Import Project="..\Nerdbank.Zcash\NativeBindings.targets" />
+  <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
 </Project>

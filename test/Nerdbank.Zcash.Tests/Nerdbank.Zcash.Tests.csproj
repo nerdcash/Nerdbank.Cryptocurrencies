@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace />
-    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>$(AvailableRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier>$(DefaultRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,5 @@
     <PackageReference Include="xunit.combinatorial" />
   </ItemGroup>
 
-  <Import Project="..\..\src\Nerdbank.Zcash\NativeBindings.targets" />
-
+  <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
 </Project>

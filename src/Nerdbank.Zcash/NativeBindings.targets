@@ -4,98 +4,118 @@
     <RustOutputDirBase>$(RepoRootPath)src/nerdbank-zcash-rust/target/</RustOutputDirBase>
     <RustConfiguration>$(Configuration.ToLower())</RustConfiguration>
 
+    <IsMobileAppProject Condition="'$(IncludeAndroidBinaries)'=='true' or '$(IncludeiOSBinaries)'=='true'">true</IsMobileAppProject>
+
+    <RustOutputWindowsArm64>$(RustOutputDirBase)aarch64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.dll</RustOutputWindowsArm64>
+    <RustOutputWindowsArm64Pdb>$(RustOutputDirBase)aarch64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.pdb</RustOutputWindowsArm64Pdb>
+    <RustOutputWindowsX64>$(RustOutputDirBase)x86_64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.dll</RustOutputWindowsX64>
+    <RustOutputWindowsX64Pdb>$(RustOutputDirBase)x86_64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.pdb</RustOutputWindowsX64Pdb>
+
+    <RustOutputLinuxArm64>$(RustOutputDirBase)aarch64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputLinuxArm64>
+    <RustOutputLinuxX64>$(RustOutputDirBase)x86_64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputLinuxX64>
+
+    <RustOutputOsxArm64>$(RustOutputDirBase)aarch64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputOsxArm64>
+    <RustOutputOsxX64>$(RustOutputDirBase)x86_64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputOsxX64>
+
     <RustOutputAndroidArm64>$(RustOutputDirBase)aarch64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidArm64>
     <RustOutputAndroidX64>$(RustOutputDirBase)x86_64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidX64>
 
     <RustOutputiOSArm64>$(RustOutputDirBase)aarch64-apple-ios/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputiOSArm64>
     <RustOutputiOSX64>$(RustOutputDirBase)x86_64-apple-ios/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputiOSX64>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(IsMobileAppProject)'!='true'">
+    <IncludeWindowsBinaries Condition="$([MSBuild]::IsOsPlatform('Windows'))">true</IncludeWindowsBinaries>
+    <IncludeLinuxBinaries Condition="$([MSBuild]::IsOsPlatform('Linux'))">true</IncludeLinuxBinaries>
+    <IncludeOsxBinaries Condition="$([MSBuild]::IsOsPlatform('OSX'))">true</IncludeOsxBinaries>
+  </PropertyGroup>
   <ItemDefinitionGroup>
-    <MobileRustBinary>
+    <RustBinary>
       <IsMobileTarget>true</IsMobileTarget>
-    </MobileRustBinary>
+    </RustBinary>
   </ItemDefinitionGroup>
-  <!-- This file is imported both by the packaging project and by the test project.
-       In the case of the packaging project, which targets AnyCPU, we want all native files included.
-       But in the case of the test project, we only want the one that matches the platform. -->
+  <!-- This file is imported by the the packaging project, app projects, and by the test project.
+       In the case of the packaging project we want all native files included.
+       But in the case of the app or test project, we only want the one that matches the platform. -->
   <ItemGroup>
     <!-- Windows -->
-    <DesktopRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)aarch64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.dll">
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeWindowsBinaries)'=='true')" Include="$(RustOutputWindowsArm64)">
       <PackagePath>runtimes/win-arm64/native/</PackagePath>
-      <TargetOS>windows</TargetOS>
-    </DesktopRustBinary>
-    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)aarch64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.pdb">
+    </RustBinary>
+    <RustSymbol Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeWindowsBinaries)'=='true')" Include="$(RustOutputWindowsArm64Pdb)">
       <PackagePath>runtimes/win-arm64/native/</PackagePath>
-      <TargetOS>windows</TargetOS>
     </RustSymbol>
-    <DesktopRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)x86_64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.dll">
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='x64' and '$(IncludeWindowsBinaries)'=='true')" Include="$(RustOutputWindowsX64)">
       <PackagePath>runtimes/win-x64/native/</PackagePath>
-      <TargetOS>windows</TargetOS>
-    </DesktopRustBinary>
-    <RustSymbol Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Windows')))" Include="$(RustOutputDirBase)x86_64-pc-windows-msvc/$(RustConfiguration)/nerdbank_zcash_rust.pdb">
+    </RustBinary>
+    <RustSymbol Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='x64' and '$(IncludeWindowsBinaries)'=='true')" Include="$(RustOutputWindowsX64Pdb)">
       <PackagePath>runtimes/win-x64/native/</PackagePath>
-      <TargetOS>windows</TargetOS>
     </RustSymbol>
 
     <!-- Linux -->
-    <DesktopRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)aarch64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeLinuxBinaries)'=='true')" Include="$(RustOutputLinuxArm64)">
       <PackagePath>runtimes/linux-arm64/native/</PackagePath>
-      <TargetOS>linux</TargetOS>
-    </DesktopRustBinary>
-    <DesktopRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('Linux')))" Include="$(RustOutputDirBase)x86_64-unknown-linux-gnu/$(RustConfiguration)/libnerdbank_zcash_rust.so">
+    </RustBinary>
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='x64' and '$(IncludeLinuxBinaries)'=='true')" Include="$(RustOutputLinuxX64)">
       <PackagePath>runtimes/linux-x64/native/</PackagePath>
-      <TargetOS>linux</TargetOS>
-    </DesktopRustBinary>
+    </RustBinary>
 
     <!-- Android -->
-    <MobileRustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputAndroidArm64)">
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeAndroidBinaries)'=='true')" Include="$(RustOutputAndroidArm64)">
       <PackagePath>runtimes/android-arm64/native/</PackagePath>
-      <TargetOS>android</TargetOS>
-    </MobileRustBinary>
-    <MobileRustBinary Condition="'$(Platform)'=='AnyCPU'" Include="$(RustOutputAndroidX64)">
+    </RustBinary>
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeAndroidBinaries)'=='true')" Include="$(RustOutputAndroidX64)">
       <PackagePath>runtimes/android-x64/native/</PackagePath>
-      <TargetOS>android</TargetOS>
-    </MobileRustBinary>
+    </RustBinary>
 
     <!-- Mac -->
-    <DesktopRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)aarch64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeOsxBinaries)'=='true')" Include="$(RustOutputOsxArm64)">
       <PackagePath>runtimes/osx-arm64/native/</PackagePath>
-      <TargetOS>osx</TargetOS>
-    </DesktopRustBinary>
-    <DesktopRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputDirBase)x86_64-apple-darwin/$(RustConfiguration)/libnerdbank_zcash_rust.dylib">
+    </RustBinary>
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='x64' and '$(IncludeOsxBinaries)'=='true')" Include="$(RustOutputOsxX64)">
       <PackagePath>runtimes/osx-x64/native/</PackagePath>
-      <TargetOS>osx</TargetOS>
-    </DesktopRustBinary>
+    </RustBinary>
 
     <!-- iOS -->
-    <MobileRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='arm64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputiOSArm64)">
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeiOSBinaries)'=='true')" Include="$(RustOutputiOSArm64)">
       <PackagePath>runtimes/ios-arm64/native/</PackagePath>
-      <TargetOS>iOS</TargetOS>
-    </MobileRustBinary>
-    <MobileRustBinary Condition="'$(Platform)'=='AnyCPU' or ('$(Platform)'=='x64' and $([MSBuild]::IsOsPlatform('OSX')))" Include="$(RustOutputiOSX64)">
+    </RustBinary>
+    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='x64' and '$(IncludeiOSBinaries)'=='true')" Include="$(RustOutputiOSX64)">
       <PackagePath>runtimes/ios-x64/native/</PackagePath>
-      <TargetOS>iOS</TargetOS>
-    </MobileRustBinary>
+    </RustBinary>
   </ItemGroup>
   <ItemGroup>
-    <RustBinary Include="@(DesktopRustBinary);@(MobileRustBinary)" />
-
     <!-- Do not include rust symbols in the snupkg because nuget.org will reject the whole package as it only supports portable pdbs. -->
     <!-- <TfmSpecificDebugSymbolsFile Include="@(RustSymbol)" Condition="'$(TargetFramework)'=='net8.0'">
       <TargetPath>/%(PackagePath)%(FileName)%(Extension)</TargetPath>
       <TargetFramework>native</TargetFramework>
     </TfmSpecificDebugSymbolsFile> -->
-    <None Include="@(MobileRustBinary)" Condition="'$(AndroidPackageFormat)'==''">
-      <Link Condition="'$(Platform)'=='AnyCPU'">%(PackagePath)</Link>
-      <Link Condition="'$(Platform)'!='AnyCPU'">%(FileName)%(Extension)</Link>
+    <None Include="@(RustBinary)">
+      <!-- Copy to output directory except for the nuget package project and mobile apps. -->
+      <CopyToOutputDirectory Condition="'$(IsPackable)'=='false' and '$(IsMobileAppProject)'!='true'">PreserveNewest</CopyToOutputDirectory>
+      <!-- When building a packing project, we may have many duplicate filenames, so represent them in Solution Explorer in their tree. -->
+      <Link Condition="'$(IsPackable)'=='true'">%(PackagePath)</Link>
+      <!-- When building a test or app project, we want to copy the file directly to the output directory. -->
+      <Link Condition="'$(IsPackable)'!='true'">%(FileName)%(Extension)</Link>
       <Pack>true</Pack>
     </None>
-    <None Include="@(DesktopRustBinary)" Condition="'$(AndroidPackageFormat)'==''">
-      <CopyToOutputDirectory Condition="'$(Platform)'!='AnyCPU'">PreserveNewest</CopyToOutputDirectory>
-      <Link Condition="'$(Platform)'=='AnyCPU'">%(PackagePath)</Link>
-      <Link Condition="'$(Platform)'!='AnyCPU'">%(FileName)%(Extension)</Link>
-      <Pack>true</Pack>
+  </ItemGroup>
+  <ItemGroup Condition="'$(IncludeiOSBinaries)'=='true'">
+    <NativeCopyLocalItems Include="@(RustBinary)">
+      <AssetType>native</AssetType>
+    </NativeCopyLocalItems>
+  </ItemGroup>
+  <!-- We only expect the iOS native library to be present if we're on a Mac or we're in a local dev environment where they were copied locally. -->
+  <ItemGroup Condition="'$(IncludeiOSBinaries)'=='true' and ('$(CI)'!='true' or $([MSBuild]::IsOsPlatform('OSX')))">
+    <None Include="$(RustOutputiOSArm64)" Condition="'$(Platform)'=='ARM64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="$(RustOutputiOSX64)" Condition="'$(Platform)'=='x64'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup Condition="'$(IncludeAndroidBinaries)'=='true'">
+    <AndroidNativeLibrary Include="$(RustOutputAndroidArm64)" Abi="arm64-v8a" />
+    <AndroidNativeLibrary Include="$(RustOutputAndroidX64)" Abi="x86_64" />
   </ItemGroup>
   <ItemGroup>
     <Rust3rdPartyNotices Include="
@@ -105,8 +125,10 @@
       <PackagePath></PackagePath>
     </Rust3rdPartyNotices>
     <None Include="@(Rust3rdPartyNotices)">
-      <Link Condition="'$(Platform)'=='AnyCPU'">%(PackagePath)</Link>
-      <Link Condition="'$(Platform)'!='AnyCPU'">%(FileName)%(Extension)</Link>
+      <!-- When building a packing project, we may have many duplicate filenames, so represent them in Solution Explorer in their tree. -->
+      <Link Condition="'$(IsPackable)'=='true'">%(PackagePath)</Link>
+      <!-- When building a test or app project, we want to copy the file directly to the output directory. -->
+      <Link Condition="'$(IsPackable)'!='true'">%(FileName)%(Extension)</Link>
       <Pack>true</Pack>
       <Visible>false</Visible>
     </None>

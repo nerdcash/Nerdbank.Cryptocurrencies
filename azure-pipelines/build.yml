@@ -18,6 +18,10 @@ jobs:
 
   - template: install-dependencies.yml
 
+    # For optimizing Blazor WebAssembly builds
+  - script: dotnet workload install wasm-tools
+    displayName: ⚙ Install wasm-tools
+
   - script: dotnet nbgv cloud -c
     displayName: ⚙ Set build number
 
@@ -96,8 +100,7 @@ jobs:
   - Linux
   - macOS
   - android
-  pool:
-    vmImage: Ubuntu 20.04
+  pool: ${{ parameters.windowsPool }} # Must not be linux because linux cannot build net8.0-ios targets.
   variables:
   - ${{ if eq(variables['System.TeamFoundationCollectionUri'], 'https://dev.azure.com/andrewarnott/') }}:
     - group: dotnetfoundation code signing

@@ -96,13 +96,27 @@ if ($NDK) {
 $env:NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS = 20
 $env:NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS = 20
 
-Push-Location $PSScriptRoot
+if (($env:CI -eq 'true') -or ($env:TF_BUILD -eq 'true')) {
+    $RestorePath = Join-Path $PSScriptRoot 'azure-pipelines'
+} else {
+    $RestorePath = $PSScriptRoot
+}
+
+Push-Location $RestorePath
 try {
     $HeaderColor = 'Green'
 
     $RestoreArguments = @()
     if ($Interactive) {
         $RestoreArguments += '--interactive'
+    }
+
+    if (!$NoRestore -and $PSCmdlet.ShouldProcess(".NET workloads", "Restore")) {
+        Write-Host "Restoring applicable .NET workloads" -ForegroundColor $HeaderColor
+        dotnet workload restore
+        if ($lastexitcode -ne 0) {
+            throw "Failure while restoring workloads."
+        }
     }
 
     if (!$NoRestore -and $PSCmdlet.ShouldProcess("NuGet packages", "Restore")) {

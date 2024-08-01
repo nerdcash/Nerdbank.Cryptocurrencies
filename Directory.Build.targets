@@ -5,11 +5,13 @@
     <LangVersion Condition="'$(Language)'=='VB'">16.9</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Update="*.resx" EmitFormatMethods="true" />
+    <EmbeddedResource Update="**\*.resx" EmitFormatMethods="true" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Avoid compile error about missing namespace when combining ImplicitUsings with .NET Framework target frameworks. -->
     <Using Remove="System.Net.Http" Condition="'$(TargetFrameworkIdentifier)'=='.NETFramework'" />
   </ItemGroup>
+
+  <Import Project="Directory.Traversal.targets" Condition="'$(IsTraversal)'=='true'" />
 </Project>
