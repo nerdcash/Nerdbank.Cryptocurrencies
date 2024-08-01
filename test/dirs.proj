@@ -4,5 +4,6 @@
     <ProjectReference Include="Nerdbank.Bitcoin.Tests\Nerdbank.Bitcoin.Tests.csproj" />
 
     <MultiRIDProjectReference Include="Nerdbank.Zcash.Tests\Nerdbank.Zcash.Tests.csproj" />
+    <MultiRIDProjectReference Include="Nerdbank.Zcash.App.Tests\Nerdbank.Zcash.App.Tests.csproj" />
   </ItemGroup>
 </Project>

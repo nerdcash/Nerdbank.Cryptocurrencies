@@ -3,6 +3,17 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-ios</TargetFramework>
     <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
+    <!--<RuntimeIdentifier>ios-arm64</RuntimeIdentifier>-->
+    <!--<RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>-->
+    <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+    <!--<ForceSimulatorX64ArchitectureInIDE>true</ForceSimulatorX64ArchitectureInIDE>-->
+    <IncludeiOSBinaries>true</IncludeiOSBinaries>
+  </PropertyGroup>
+
+  <!-- Always build the iOS app when in CI. -->
+  <PropertyGroup Condition=" '$(CI)' == 'true' ">
+    <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
+    <CodesignKey>$(APPLE_CERTIFICATE_SIGNING_IDENTITY)</CodesignKey>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,4 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Zcash.App\Nerdbank.Zcash.App.csproj" />
   </ItemGroup>
+
+  <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />
 </Project>

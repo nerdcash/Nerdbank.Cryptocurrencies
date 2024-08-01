@@ -36,6 +36,7 @@ public class MainActivity : AvaloniaMainActivity<App>
 		return base.CustomizeAppBuilder(AppBuilder.Configure(
 			() => new App(PrepareAppPlatformSettings(), new AndroidPlatformServices(this), null, null)))
 			.WithInterFont()
+			.UseAndroid()
 			.UseReactiveUI();
 	}
 

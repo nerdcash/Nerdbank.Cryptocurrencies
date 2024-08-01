@@ -9,10 +9,10 @@
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <AndroidPackageFormat>aab</AndroidPackageFormat>
-    <AndroidPackageFormat Condition=" '$(CI)' != 'true' and '$(TF_BUILD)' != 'true' ">apk</AndroidPackageFormat>
+    <AndroidPackageFormat Condition=" '$(CI)' != 'true' ">apk</AndroidPackageFormat>
     <AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
     <SelfContained>false</SelfContained>
-    <Platforms>x64;ARM64</Platforms>
+    <IncludeAndroidBinaries>true</IncludeAndroidBinaries>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,11 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nerdbank.Zcash.App\Nerdbank.Zcash.App.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AndroidNativeLibrary Include="$(RustOutputAndroidArm64)" Abi="arm64-v8a" />
-    <AndroidNativeLibrary Include="$(RustOutputAndroidX64)" Abi="x86_64" />
   </ItemGroup>
 
   <Import Project="$(RepoRootPath)src\Nerdbank.Zcash\NativeBindings.targets" />

@@ -136,6 +136,8 @@ jobs:
     name: CustomAgents
     demands:
     - Agent.OS -equals Darwin
+  variables:
+  - group: Apple iOS signing # NOT "Apple signing" because Azure Key Vault secret download happens AFTER the InstallAppleCertificate pre-step.
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -143,6 +145,57 @@ jobs:
     submodules: true
 
   - template: install-dependencies.yml
+
+  - ${{ if parameters.signArtifacts }}:
+    - task: InstallAppleCertificate@2
+      name: appleCertInstaller
+      displayName: 🔐 Install 🍎 App Store certificate
+      inputs:
+        certSecureFile: Apple_App_Store_distribution.p12
+        certPwd: $(P12-PASSWORD)
+        keychain: temp
+        signingIdentity: Andrew Arnott
+        opensslPkcsArgs: -legacy
+
+    - task: DownloadSecureFile@1
+      name: dsfProvisioningProfile
+      displayName: 🔐 Download 🍎 App Store profile
+      inputs:
+        secureFile: eZcash_App_Store_distribution.mobileprovision
+
+  - ${{ else }}:
+    - task: InstallAppleCertificate@2
+      name: appleCertInstaller
+      displayName: 🔐 Install 🍎 dev certificate
+      inputs:
+        certSecureFile: Apple_Development.p12
+        certPwd: $(P12-PASSWORD)
+        keychain: temp
+        signingIdentity: Andrew Arnott
+        opensslPkcsArgs: -legacy
+
+    - task: DownloadSecureFile@1
+      name: dsfProvisioningProfile
+      displayName: 🔐 Download 🍎 dev profile
+      inputs:
+        secureFile: Nonshipping_PR_builds.mobileprovision
+
+  - pwsh: |
+      Write-Host "Copying $(dsfProvisioningProfile.secureFilePath) to ~/Library/MobileDevice/Provisioning Profiles"
+      New-Item -Type Directory -Path "~/Library/MobileDevice/Provisioning Profiles" -Force | Out-Null
+      Copy-Item -Path $(dsfProvisioningProfile.secureFilePath) -Destination "~/Library/MobileDevice/Provisioning Profiles"
+
+      Write-Host "Setting CodesignKeychain env var to '$(appleCertInstaller.keychainPath)'"
+      Write-Host "##vso[task.setvariable variable=CodesignKeychain]$(appleCertInstaller.keychainPath)"
+
+      if ('${{ parameters.signArtifacts }}' -eq 'true') {
+        $CodesignProvision = 'eZcash App Store distribution'
+      } else {
+        $CodesignProvision = 'Non-shipping PR builds'
+      }
+      Write-Host "Setting CodesignProvision env var to '$CodesignProvision'"
+      Write-Host "##vso[task.setvariable variable=CodesignProvision]$CodesignProvision"
+    displayName: 🔐 Install provisioning profile
 
   - template: cargo.yml
     parameters:
@@ -155,6 +208,18 @@ jobs:
       osRID: osx
       publishPlatforms: ${{ parameters.publishPlatforms }}
 
+  - pwsh: |
+      $provisioningProfileFileName = Split-Path '$(dsfProvisioningProfile.secureFilePath)' -Leaf
+      $provisioningProfileFilePath = Join-Path "~/Library/MobileDevice/Provisioning Profiles" $provisioningProfileFileName
+      if (Test-Path $provisioningProfileFilePath) {
+        Write-Host "Removing $provisioningProfileFilePath"
+        Remove-Item $provisioningProfileFilePath
+      } else {
+        Write-Host "$provisioningProfileFilePath not found."
+      }
+    displayName: 🧹 Clean up provisioning profile
+    condition: always()
+
 - job: macOS_velopack
   displayName: macOS velopack
   dependsOn: macOS
@@ -165,15 +230,21 @@ jobs:
   variables:
   - group: Apple signing
   steps:
-  - bash: |
-      # create variables for file paths
-      CERT_BUILD_PATH=$AGENT_TEMPDIRECTORY/build_certificate.p12
-      CERT_INSTALLER_PATH=$AGENT_TEMPDIRECTORY/installer_certificate.p12
-      KEYCHAIN_PATH=$AGENT_TEMPDIRECTORY/app-signing.keychain-db
+  - ${{ if eq('${{ parameters.signArtifacts }}', 'true') }}:
+    - task: DownloadSecureFile@1
+      name: dsfBuildCert
+      displayName: 🔐 Download Apple build certificate
+      inputs:
+        secureFile: apple_build_certificate.p12
 
-      # import certificates from secrets
-      echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERT_BUILD_PATH
-      echo -n "$INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $CERT_INSTALLER_PATH
+    - task: DownloadSecureFile@1
+      name: dsfInstallerCert
+      displayName: 🔐 Download Apple installer certificate
+      inputs:
+        secureFile: apple_installer_certificate.p12
+
+  - bash: |
+      KEYCHAIN_PATH=$AGENT_TEMPDIRECTORY/app-signing.keychain-db
 
       # create temporary keychain
       security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -181,15 +252,13 @@ jobs:
       security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
       # import certificates to keychain
-      security import $CERT_BUILD_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-      security import $CERT_INSTALLER_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      security import $(dsfBuildCert.secureFilePath) -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      security import $(dsfInstallerCert.secureFilePath) -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
       security list-keychain -d user -s $KEYCHAIN_PATH
 
       # create notarytool profile
       xcrun notarytool store-credentials --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM" --password "$APPLE_PASSWORD" --keychain $KEYCHAIN_PATH velopack-profile
     env:
-      BUILD_CERTIFICATE_BASE64: $(BUILD-CERTIFICATE-BASE64)
-      INSTALLER_CERTIFICATE_BASE64: $(INSTALLER-CERTIFICATE-BASE64)
       P12_PASSWORD: $(P12-PASSWORD)
       APPLE_ID: $(APPLE-ID)
       APPLE_PASSWORD: $(APPLE-PASSWORD)

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.Build.Traversal">
+  <ItemGroup>
+    <MultiRIDProjectReference Include="Nerdbank.Zcash.App.Desktop\Nerdbank.Zcash.App.Desktop.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOsPlatform('Linux')) and '$(DisableAndroidCsproj)'!='true'">
+    <MultiRIDProjectReference Include="Nerdbank.Zcash.App.Android\Nerdbank.Zcash.App.Android.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOsPlatform('OSX'))">
+    <ProjectReference Include="Nerdbank.Zcash.App.iOS\Nerdbank.Zcash.App.iOS.csproj" />
+  </ItemGroup>
+</Project>

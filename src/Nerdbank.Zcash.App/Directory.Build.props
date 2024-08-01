@@ -7,6 +7,6 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
 
   <PropertyGroup>
-    <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(RepoRootPath)/bin/publish/$(Configuration)/$(RuntimeIdentifier)</PublishDir>
+    <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(RepoRootPath)bin\publish\$(Configuration)\$(RuntimeIdentifier)</PublishDir>
   </PropertyGroup>
 </Project>

@@ -4,6 +4,4 @@
   <ItemGroup>
     <Using Remove="System.Windows.Forms" />
   </ItemGroup>
-  
-  <Import Project="DisableBuild.targets" Condition="$(MSBuildProjectName.Contains('Android')) and '$(DisableAndroidCsproj)'=='true'" />
 </Project>
