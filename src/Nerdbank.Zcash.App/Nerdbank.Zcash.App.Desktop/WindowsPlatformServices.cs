@@ -6,7 +6,6 @@
 using System.Reactive.Disposables;
 using System.Windows.Forms;
 using Microsoft.Win32;
-using Nerdbank.Zcash.App.ViewModels;
 using Windows.Networking.Connectivity;
 using Windows.Win32;
 using Windows.Win32.System.Power;
