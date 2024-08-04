@@ -17,14 +17,14 @@
         <MenuItem Header="{Binding AppMenuCaption}">
           <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
           <MenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
-          <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
+          <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" IsVisible="{Binding IsNonEmptyWallet}" />
           <Separator />
           <MenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
-          <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" />
+          <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" IsVisible="{Binding IsNonEmptyWallet}" />
           <Separator />
           <MenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
         </MenuItem>
-        <MenuItem Header="{Binding TransactionsMenuCaption}">
+        <MenuItem Header="{Binding TransactionsMenuCaption}" IsVisible="{Binding IsNonEmptyWallet}">
           <MenuItem Header="{Binding AccountBalanceCommandCaption}" Command="{Binding AccountBalanceCommand}" />
           <MenuItem Header="{Binding TransactionHistoryCommandCaption}" Command="{Binding TransactionHistoryCommand}" />
           <MenuItem Header="{Binding SendCommandCaption}" Command="{Binding SendCommand}" />

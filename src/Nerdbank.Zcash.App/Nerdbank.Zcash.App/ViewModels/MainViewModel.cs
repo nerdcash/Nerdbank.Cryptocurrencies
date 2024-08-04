@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia.Controls;
 using DynamicData.Binding;
@@ -14,6 +15,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	private readonly HttpClient httpClient = new() { DefaultRequestHeaders = { { "User-Agent", "Nerdbank.Zcash.App" } } };
 	private readonly ObservableAsPropertyHelper<string?> contentTitle;
 	private readonly ObservableAsPropertyHelper<SyncProgressData?> syncProgress;
+	private readonly ObservableAsPropertyHelper<bool> isNonEmptyWallet;
 
 	[Obsolete("Design-time only.", error: true)]
 	public MainViewModel()
@@ -33,6 +35,9 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 			this.WhenAnyValue(x => x.Content, new Func<ViewModelBase?, bool>(x => this.CanNavigateBack)));
 
 		this.contentTitle = this.WhenAnyValue<MainViewModel, string?, ViewModelBase?>(vm => vm.Content, content => (content as IHasTitle)?.Title).ToProperty(this, nameof(this.ContentTitle));
+
+		this.isNonEmptyWallet = this.WhenAnyValue(vm => vm.Wallet.IsEmpty).Select(b => !b)
+			.ToProperty(this, nameof(this.IsNonEmptyWallet));
 
 		IObservable<bool> nonEmptyWallet = this.WhenAnyValue(vm => vm.Wallet.IsEmpty, empty => !empty);
 
@@ -80,6 +85,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public string AboutCommandCaption => MainStrings.AboutCommandCaption;
 
 	public string TransactionsMenuCaption => MainStrings.TransactionsMenuCaption;
+
+	public bool IsNonEmptyWallet => this.isNonEmptyWallet.Value;
 
 	public string AccountBalanceCommandCaption => MainStrings.AccountBalanceCommandCaption;
 
