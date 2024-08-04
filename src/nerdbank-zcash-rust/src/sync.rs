@@ -168,34 +168,6 @@ pub async fn sync<P: AsRef<Path>>(
             Ok(())
         }
 
-        fn report_transactions_in_range<P: AsRef<Path>>(
-            range: &Range<BlockHeight>,
-            progress: &Option<Box<dyn SyncUpdate>>,
-            data_file: &P,
-            db: &mut Db,
-            conn: &Connection,
-            network: &Network,
-        ) -> Result<(), Error> {
-            initialize_transaction_fees(db, conn)?;
-            if let Some(sink) = progress.as_ref() {
-                let mut conn = Connection::open(data_file)?;
-                let new_transactions = get_transactions(
-                    db,
-                    &mut conn,
-                    network,
-                    None,
-                    Some(range.start.into()),
-                    Some((range.end - 1).into()),
-                )?
-                .to_vec();
-                if !new_transactions.is_empty() {
-                    sink.report_transactions(new_transactions);
-                }
-            }
-
-            Ok(())
-        }
-
         // Download all the transparent ops related to the wallet first.
         // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
         let mut taddrs = db.data.get_transparent_addresses_and_sync_heights()?;
@@ -318,10 +290,11 @@ pub async fn sync<P: AsRef<Path>>(
             // so reporting them (again) at this point is good for the client.
             report_transactions_in_range(
                 scan_range.block_range(),
+                None,
                 &state.progress,
                 &data_file,
                 &mut db,
-                &conn,
+                Some(&conn),
                 &state.network,
             )?;
 
@@ -350,10 +323,52 @@ pub async fn sync<P: AsRef<Path>>(
             // but not noticed above, we'll end up waiting for yet *another* block to be mined.
             select! {
                 _ = state.cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
-                _ = watch_mempool(&mut client) => Ok(()),
+                _ = watch_mempool(&state.network, &mut client, &data_file, &mut db, &state.progress) => Ok(()),
             }?;
         }
     }
+}
+
+fn report_transactions_in_range<P: AsRef<Path>>(
+    range: &Range<BlockHeight>,
+    only_txid: Option<TxId>,
+    progress: &Option<Box<dyn SyncUpdate>>,
+    data_file: &P,
+    db: &mut Db,
+    conn: Option<&Connection>,
+    network: &Network,
+) -> Result<(), Error> {
+    if let Some(conn) = conn {
+        initialize_transaction_fees(db, conn)?;
+    }
+    if let Some(sink) = progress.as_ref() {
+        let mut conn = Connection::open(data_file)?;
+        let transactions = get_transactions(
+            db,
+            &mut conn,
+            network,
+            None,
+            Some(range.start.into()),
+            Some((range.end - 1).into()),
+        )?;
+        let transactions_to_report = {
+            if let Some(txid) = only_txid {
+                let txid = txid.as_ref().to_vec();
+                transactions
+                    .iter()
+                    .filter(|r| txid == r.txid)
+                    .cloned()
+                    .collect::<Vec<_>>()
+            } else {
+                transactions
+            }
+        };
+        if !transactions_to_report.is_empty() {
+            sink.report_transactions(transactions_to_report);
+        }
+    }
+
+    Ok(())
 }
 
 fn update_status<'a>(
@@ -922,10 +937,38 @@ fn scan_blocks(
     }
 }
 
-async fn watch_mempool(client: &mut CompactTxStreamerClient<Channel>) -> Result<(), Error> {
+async fn watch_mempool<P: AsRef<Path>>(
+    network: &Network,
+    client: &mut CompactTxStreamerClient<Channel>,
+    data_file: &P,
+    db: &mut Db,
+    progress: &Option<Box<dyn SyncUpdate>>,
+) -> Result<(), Error> {
     let mut response = client.get_mempool_stream(Empty {}).await?.into_inner();
 
-    while let Some(_tx) = response.message().await? {}
+    let mempool_range = db.data.chain_height()?.map(|h| (h + 1)..(h + 1));
+
+    // The primary purpose of this function is to pause until the next block is mined,
+    // which will trigger the next iteration of the main loop to download the next block.
+    // But while we wait, we'll download transactions from the mempool and report them to the client.
+    while let Some(raw_tx) = response.message().await? {
+        if progress.is_some() {
+            if let Some(range) = mempool_range.as_ref() {
+                let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
+                decrypt_and_store_transaction(network, &mut db.data, &tx)?;
+
+                report_transactions_in_range(
+                    range,
+                    Some(tx.txid()),
+                    progress,
+                    data_file,
+                    db,
+                    None,
+                    network,
+                )?;
+            }
+        }
+    }
 
     Ok(())
 }
