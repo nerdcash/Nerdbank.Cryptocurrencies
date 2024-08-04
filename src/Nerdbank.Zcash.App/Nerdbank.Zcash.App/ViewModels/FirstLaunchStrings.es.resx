@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AppGreeting" xml:space="preserve">
-    <value>¡Bienvenido a Ezcash!</value>
-  </data>
   <data name="ImportWalletButtonText" xml:space="preserve">
     <value>Importar una billetera existente</value>
   </data>
@@ -134,9 +131,6 @@
   </data>
   <data name="StartNewWalletExplanation" xml:space="preserve">
     <value>Elija esto si nunca ha usado una billetera ZCash antes.</value>
-  </data>
-  <data name="Title" xml:space="preserve">
-    <value>Bienvenido</value>
   </data>
   <data name="ViewLicenseCommandCaption" xml:space="preserve">
     <value>Ver licencia</value>
