@@ -5,7 +5,7 @@ using Avalonia.Media.Imaging;
 
 namespace Nerdbank.Zcash.App.ViewModels;
 
-public class FirstLaunchViewModel : ViewModelBase, IHasTitle
+public class FirstLaunchViewModel : ViewModelBase
 {
 	private readonly IViewModelServices viewModelServices;
 
@@ -25,11 +25,9 @@ public class FirstLaunchViewModel : ViewModelBase, IHasTitle
 		this.viewModelServices = viewModelServices;
 	}
 
-	public string Title => FirstLaunchStrings.Title;
-
-	public string Greeting => FirstLaunchStrings.AppGreeting;
-
 	public Bitmap Logo => Resources.AppLogo;
+
+	public string AppTitle => Strings.AppTitle;
 
 	public string WalletForHeading => FirstLaunchStrings.WalletForHeading;
 

@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AppGreeting" xml:space="preserve">
-    <value>欢迎来到eZcash！</value>
-  </data>
   <data name="DefaultNameForFirstAccountWithTicker" xml:space="preserve">
     <value>主 {Ticker}</value>
   </data>
@@ -146,9 +143,6 @@
   </data>
   <data name="StartNewWalletExplanation" xml:space="preserve">
     <value>如果您以前从未使用过Zcash钱包，请选择此选项。</value>
-  </data>
-  <data name="Title" xml:space="preserve">
-    <value>欢迎</value>
   </data>
   <data name="ViewLicenseCommandCaption" xml:space="preserve">
     <value>查看许可证</value>

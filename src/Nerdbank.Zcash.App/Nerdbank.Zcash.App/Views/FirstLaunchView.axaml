@@ -13,8 +13,8 @@
 
   <ScrollViewer>
     <StackPanel Spacing="15" VerticalAlignment="Center" MaxWidth="400">
-      <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" />
       <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
+      <TextBlock Text="{Binding AppTitle}" HorizontalAlignment="Center" FontSize="18" Foreground="DarkOrange" />
       <StackPanel Classes="ButtonAndExplanation" HorizontalAlignment="Stretch">
         <SplitButton Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" HorizontalAlignment="Stretch">
           <SplitButton.Flyout>
