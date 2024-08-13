@@ -380,12 +380,34 @@ public class ZcashAccount : INotifyPropertyChanged
 	/// <param name="address">The address to test.</param>
 	/// <returns><see langword="true" /> if all receivers in <paramref name="address"/> are confirmed to direct ZEC to this account; <see langword="false" /> otherwise.</returns>
 	/// <remarks>
+	/// <para>
+	/// There is a risk that a unified address containing multiple receivers may have been
+	/// contrived to include receivers from this account and other receivers <em>not</em> belonging to this account.
+	/// To avoid being tricked into reusing such a contrived address and unwittingly diverting ZEC to someone else's wallet,
+	/// <see langword="false"/> is returned if any receiver does not belong to this account.
+	/// </para>
+	/// <para>
+	/// This method will match on public and internal addresses for the account.
+	/// Use the <see cref="AddressSendsToThisAccount(ZcashAddress, out bool?)"/> overload to determine whether the address is internal.
+	/// </para>
+	/// </remarks>
+	public bool AddressSendsToThisAccount(ZcashAddress address) => this.AddressSendsToThisAccount(address, out _);
+
+	/// <summary>
+	/// Checks whether a given address sends ZEC to this account.
+	/// </summary>
+	/// <param name="address">The address to test.</param>
+	/// <param name="isInternalAddress">
+	/// Receives a value indicating whether the given <paramref name="address"/> is an <em>internal</em> address for this account.
+	/// </param>
+	/// <returns><see langword="true" /> if all receivers in <paramref name="address"/> are confirmed to direct ZEC to this account; <see langword="false" /> otherwise.</returns>
+	/// <remarks>
 	/// There is a risk that a unified address containing multiple receivers may have been
 	/// contrived to include receivers from this account and other receivers <em>not</em> belonging to this account.
 	/// To avoid being tricked into reusing such a contrived address and unwittingly diverting ZEC to someone else's wallet,
 	/// <see langword="false"/> is returned if any receiver does not belong to this account.
 	/// </remarks>
-	public bool AddressSendsToThisAccount(ZcashAddress address)
+	public bool AddressSendsToThisAccount(ZcashAddress address, [NotNullWhen(true)] out bool? isInternalAddress)
 	{
 		Requires.NotNull(address);
 
@@ -393,34 +415,62 @@ public class ZcashAccount : INotifyPropertyChanged
 		{
 			if (ua.Receivers.Count == 0)
 			{
+				isInternalAddress = null;
 				return false;
 			}
 
+			isInternalAddress = null;
 			foreach (ZcashAddress individualAddress in ua.Receivers)
 			{
-				if (!TestAddress(individualAddress))
+				if (!TestAddress(individualAddress, out isInternalAddress))
 				{
+					isInternalAddress = null;
 					return false;
 				}
 			}
+
+			// We don't expect an internal address to ever have multiple receivers,
+			// since it is only used internally so a multi-receiver address has no purpose.
+			// We also expect a matching address to have at least one receiver.
+			// So isInternalAddress should be set exactly once at this point.
+			// A contrived UA could theoretically have an internal receiver *and* an external receiver, but we'll ignore that edge case.
+			Assumes.NotNull(isInternalAddress);
 
 			return true;
 		}
 		else
 		{
-			return TestAddress(address);
+			return TestAddress(address, out isInternalAddress);
 		}
 
-		bool TestAddress(ZcashAddress individualAddress)
+		bool TestAddress(ZcashAddress individualAddress, [NotNullWhen(true)] out bool? isInternalAddress)
 		{
-			if (this.IncomingViewing.Orchard is not null && individualAddress.GetPoolReceiver<OrchardReceiver>() is { } orchardReceiver && this.IncomingViewing.Orchard.CheckReceiver(orchardReceiver))
+			if (this.IncomingViewing.Orchard is not null && individualAddress.GetPoolReceiver<OrchardReceiver>() is { } orchardReceiver)
 			{
-				return true;
+				if (this.IncomingViewing.Orchard.CheckReceiver(orchardReceiver))
+				{
+					isInternalAddress = false;
+					return true;
+				}
+				else if (this.FullViewing?.Internal.Orchard?.IncomingViewingKey.CheckReceiver(orchardReceiver) is true)
+				{
+					isInternalAddress = true;
+					return true;
+				}
 			}
 
-			if (this.IncomingViewing.Sapling is not null && individualAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver && this.IncomingViewing.Sapling.CheckReceiver(saplingReceiver))
+			if (this.IncomingViewing.Sapling is not null && individualAddress.GetPoolReceiver<SaplingReceiver>() is { } saplingReceiver)
 			{
-				return true;
+				if (this.IncomingViewing.Sapling.CheckReceiver(saplingReceiver))
+				{
+					isInternalAddress = false;
+					return true;
+				}
+				else if (this.FullViewing?.Internal.Sapling?.IncomingViewingKey.CheckReceiver(saplingReceiver) is true)
+				{
+					isInternalAddress = true;
+					return true;
+				}
 			}
 
 			Zip32HDWallet.Transparent.ExtendedViewingKey? transparentViewing = this.FullViewing?.Transparent ?? this.IncomingViewing.Transparent;
@@ -428,15 +478,18 @@ public class ZcashAccount : INotifyPropertyChanged
 			{
 				if (individualAddress.GetPoolReceiver<TransparentP2PKHReceiver>() is { } p2pkhReceiver && transparentViewing.CheckReceiver(p2pkhReceiver, this.transparentAddressesToScanAsync))
 				{
+					isInternalAddress = false;
 					return true;
 				}
 
 				if (individualAddress.GetPoolReceiver<TransparentP2SHReceiver>() is { } p2shReceiver && transparentViewing.CheckReceiver(p2shReceiver, this.transparentAddressesToScanAsync))
 				{
+					isInternalAddress = false;
 					return true;
 				}
 			}
 
+			isInternalAddress = null;
 			return false;
 		}
 	}
