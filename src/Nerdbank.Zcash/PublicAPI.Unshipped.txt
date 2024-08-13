@@ -527,6 +527,7 @@ Nerdbank.Zcash.UnifiedViewingKey.Revision.get -> int
 Nerdbank.Zcash.UnifiedViewingKey.TextEncoding.get -> string!
 Nerdbank.Zcash.ZcashAccount
 Nerdbank.Zcash.ZcashAccount.AddressSendsToThisAccount(Nerdbank.Zcash.ZcashAddress! address) -> bool
+Nerdbank.Zcash.ZcashAccount.AddressSendsToThisAccount(Nerdbank.Zcash.ZcashAddress! address, out bool? isInternalAddress) -> bool
 Nerdbank.Zcash.ZcashAccount.BirthdayHeight.get -> uint?
 Nerdbank.Zcash.ZcashAccount.BirthdayHeight.set -> void
 Nerdbank.Zcash.ZcashAccount.DefaultAddress.get -> Nerdbank.Zcash.UnifiedAddress!
