@@ -246,6 +246,19 @@ public class ZcashAccountTests : TestBase
 	}
 
 	[Fact]
+	public void AddressSendsToThisAccount_Internal()
+	{
+		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.FullViewing!.Internal.Orchard!.IncomingViewingKey.DefaultAddress, out bool? isInternalAddress));
+		Assert.True(isInternalAddress);
+
+		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.FullViewing!.Internal.Sapling!.IncomingViewingKey.DefaultAddress, out isInternalAddress));
+		Assert.True(isInternalAddress);
+
+		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.IncomingViewing.Orchard!.DefaultAddress, out isInternalAddress));
+		Assert.False(isInternalAddress);
+	}
+
+	[Fact]
 	public void FullViewingAccount()
 	{
 		ZcashAccount fullViewAccount = new(this.DefaultAccount.FullViewing!.UnifiedKey);
