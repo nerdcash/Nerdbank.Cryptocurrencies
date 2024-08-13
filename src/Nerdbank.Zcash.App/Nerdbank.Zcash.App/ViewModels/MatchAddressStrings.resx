@@ -126,6 +126,9 @@
   <data name="Explanation" xml:space="preserve">
     <value>Use this tool to find who owns a particular Zcash address. It can match on any of your own addresses, or on any of your contacts' addresses.</value>
   </data>
+  <data name="InternalAddressWarningCaption" xml:space="preserve">
+    <value>This is an internal address for this account and should *not* be shared with anyone.</value>
+  </data>
   <data name="MatchedAccountTitle" xml:space="preserve">
     <value>Matched account</value>
   </data>

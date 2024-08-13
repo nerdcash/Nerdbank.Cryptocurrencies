@@ -52,14 +52,19 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 
 	public string DiversifiedAddressShownToContactCaption => MatchAddressStrings.DiversifiedAddressShownToContactCaption;
 
+	public string InternalAddressWarningCaption => MatchAddressStrings.InternalAddressWarningCaption;
+
 	private void DoMatch()
 	{
 		if (ZcashAddress.TryDecode(this.Address, out _, out _, out ZcashAddress? address))
 		{
-			if (this.TryMatchOnAccount(address, out Account? account))
+			if (this.TryMatchOnAccount(address, out Account? account, out bool? isInternalAddress))
 			{
 				this.TryMatchOnObservingContact(account, address, out Contact? receivingContact);
-				this.Match = new MatchResults(account, receivingContact);
+				this.Match = new MatchResults(account, receivingContact)
+				{
+					IsInternalAddress = isInternalAddress.Value,
+				};
 			}
 			else if (this.TryMatchOnContact(address, out Contact? contact, out string? caveats))
 			{
@@ -76,11 +81,11 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 		}
 	}
 
-	private bool TryMatchOnAccount(ZcashAddress address, [NotNullWhen(true)] out Account? account)
+	private bool TryMatchOnAccount(ZcashAddress address, [NotNullWhen(true)] out Account? account, [NotNullWhen(true)] out bool? isInternalAddress)
 	{
 		foreach (Account candidate in this.viewModelServices.Wallet.Accounts)
 		{
-			if (candidate.ZcashAccount.AddressSendsToThisAccount(address))
+			if (candidate.ZcashAccount.AddressSendsToThisAccount(address, out isInternalAddress))
 			{
 				account = candidate;
 				return true;
@@ -88,6 +93,7 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 		}
 
 		account = null;
+		isInternalAddress = null;
 		return false;
 	}
 
@@ -181,6 +187,8 @@ public class MatchAddressViewModel : ViewModelBase, IHasTitle
 		public string? ContactMatchCaveats { get; }
 
 		public Contact? DiversifiedAddressShownToContact { get; }
+
+		public bool IsInternalAddress { get; init; }
 
 		public bool IsNoMatch => this.Account is null && this.Contact is null;
 	}

@@ -27,6 +27,7 @@
           <TextBlock Text="{Binding Match.Contact.Name}" />
           <TextBlock Text="{Binding Match.ContactMatchCaveats}" Foreground="Orange" />
         </StackPanel>
+        <TextBlock Text="{Binding InternalAddressWarningCaption}" Foreground="Orange" IsVisible="{Binding Match.IsInternalAddress}" />
         <StackPanel IsVisible="{Binding Match.IsNoMatch}">
           <TextBlock Text="{Binding NoMatchTitle}" />
         </StackPanel>
