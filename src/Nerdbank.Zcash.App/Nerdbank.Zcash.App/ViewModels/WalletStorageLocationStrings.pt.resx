@@ -124,7 +124,7 @@ Vírus e malware que podem estar em execução sob sua mesma conta ainda podem a
   <data name="WalletNotEncryptedExplanation" xml:space="preserve">
     <value>A encriptação não está disponível neste dispositivo para proteger sua carteira.</value>
   </data>
-  <data name="WalletStorageLocation" xml:space="preserve">
-    <value>Local de armazenamento da carteira: "{Path}".</value>
+  <data name="WalletStorageLocationCaption" xml:space="preserve">
+    <value>Local de armazenamento da carteira:</value>
   </data>
 </root>

@@ -124,7 +124,7 @@ Viruses and malware that may be running under your same account may still be abl
   <data name="WalletNotEncryptedExplanation" xml:space="preserve">
     <value>Encryption is not available on this device to protect your wallet.</value>
   </data>
-  <data name="WalletStorageLocation" xml:space="preserve">
-    <value>Wallet storage location: "{Path}".</value>
+  <data name="WalletStorageLocationCaption" xml:space="preserve">
+    <value>Wallet storage location:</value>
   </data>
 </root>

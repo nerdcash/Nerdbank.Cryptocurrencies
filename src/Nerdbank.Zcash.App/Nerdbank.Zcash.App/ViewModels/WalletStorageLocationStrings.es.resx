@@ -124,7 +124,7 @@ Los virus y el malware que pueden estar ejecutándose bajo su misma cuenta aún 
   <data name="WalletNotEncryptedExplanation" xml:space="preserve">
     <value>El cifrado no está disponible en este dispositivo para proteger su billetera.</value>
   </data>
-  <data name="WalletStorageLocation" xml:space="preserve">
-    <value>Ubicación de almacenamiento de billetera: "{Path}".</value>
+  <data name="WalletStorageLocationCaption" xml:space="preserve">
+    <value>Ubicación de almacenamiento de billetera:</value>
   </data>
 </root>
