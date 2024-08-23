@@ -18,7 +18,9 @@ public class WalletStorageLocationViewModel : ViewModelBase
 		this.viewModelServices = viewModelServices;
 	}
 
-	public string WalletStorageLocation => WalletStorageLocationStrings.FormatWalletStorageLocation(this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPath);
+	public string WalletStorageLocationCaption => WalletStorageLocationStrings.WalletStorageLocationCaption;
+
+	public string? WalletStorageLocation => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPath;
 
 	public bool WalletIsEncrypted => this.viewModelServices.App.AppPlatformSettings.ConfidentialDataPathIsEncrypted;
 

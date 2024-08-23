@@ -124,7 +124,7 @@ Les virus et les logiciels malveillants qui peuvent être exécutés sous votre 
   <data name="WalletNotEncryptedExplanation" xml:space="preserve">
     <value>Le chiffrement n'est pas disponible sur cet appareil pour protéger votre portefeuille.</value>
   </data>
-  <data name="WalletStorageLocation" xml:space="preserve">
-    <value>Emplacement de stockage du portefeuille : "{Path}".</value>
+  <data name="WalletStorageLocationCaption" xml:space="preserve">
+    <value>Emplacement de stockage du portefeuille :</value>
   </data>
 </root>

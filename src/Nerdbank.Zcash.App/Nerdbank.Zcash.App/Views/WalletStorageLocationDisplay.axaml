@@ -6,8 +6,14 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Nerdbank.Zcash.App.Views.WalletStorageLocationDisplay"
              x:DataType="vm:WalletStorageLocationViewModel">
+  <Design.DataContext>
+    <vm:WalletStorageLocationViewModel />
+  </Design.DataContext>
   <StackPanel>
-    <TextBlock Text="{Binding WalletStorageLocation}" />
+    <WrapPanel>
+      <TextBlock Text="{Binding WalletStorageLocationCaption}" VerticalAlignment="Center" Margin="0 0 10 0" />
+      <SelectableTextBlock Text="{Binding WalletStorageLocation}" />
+    </WrapPanel>
     <Grid ColumnDefinitions="auto, *">
       <TextBlock IsVisible="{Binding WalletIsEncrypted}" Text="🔒" />
       <TextBlock IsVisible="{Binding !WalletIsEncrypted}" Text="🔓" />

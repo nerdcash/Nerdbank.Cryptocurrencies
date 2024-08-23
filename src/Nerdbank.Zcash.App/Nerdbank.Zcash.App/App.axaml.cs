@@ -7,7 +7,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Zcash.App.Views;
-using Sentry;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Nerdbank.Zcash.App;
@@ -203,8 +202,8 @@ public partial class App : Application, IAsyncDisposable
 	{
 		return new()
 		{
-			ConfidentialDataPath = null,
-			NonConfidentialDataPath = null,
+			ConfidentialDataPath = @"C:\some\path\to\wallet.dat",
+			NonConfidentialDataPath = @"C:\some\path\to\settings",
 		};
 	}
 
