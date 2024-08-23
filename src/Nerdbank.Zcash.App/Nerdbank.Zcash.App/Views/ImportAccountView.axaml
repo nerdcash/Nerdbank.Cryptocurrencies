@@ -10,7 +10,7 @@
     <vm:ImportAccountViewModel />
   </Design.DataContext>
 
-  <DockPanel>
+  <DockPanel Classes="ScreenMargin">
     <StackPanel>
       <Label Target="{Binding #NameBox}" Content="{Binding NameCaption}" />
       <TextBox Name="NameBox" Text="{Binding Name}" />

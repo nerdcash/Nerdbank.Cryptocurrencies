@@ -10,7 +10,7 @@
     <vm:BackupFileViewModel />
   </Design.DataContext>
   <ScrollViewer>
-    <StackPanel>
+    <StackPanel Classes="ScreenMargin">
       <TextBlock Text="{Binding BackupToFileExplanation}"/>
       <Label Content="{Binding BackupFilePasswordCaption}" Target="{Binding #BackupFilePasswordBox}" />
       <TextBox Name="BackupFilePasswordBox"

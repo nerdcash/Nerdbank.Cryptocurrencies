@@ -10,7 +10,7 @@
     <vm:SettingsViewModel />
   </Design.DataContext>
 
-  <DockPanel>
+  <DockPanel Classes="ScreenMargin">
     <StackPanel>
       <StackPanel.Styles>
         <Style Selector="Label">

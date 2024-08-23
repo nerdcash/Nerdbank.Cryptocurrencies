@@ -10,9 +10,9 @@
   <Design.DataContext>
     <vm:AddressBookViewModel />
   </Design.DataContext>
-  <DockPanel>
+  <DockPanel Classes="ScreenMarginTB">
     <local:AccountSelector DockPanel.Dock="Top" HorizontalAlignment="Center" />
-    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
       <Button Command="{Binding NewContactCommand}" Content="{Binding NewContactCaption}" />
       <Button Command="{Binding DeleteContactCommand}" Content="{Binding DeleteContactCaption}" />
     </StackPanel>

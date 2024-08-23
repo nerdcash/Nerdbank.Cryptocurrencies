@@ -12,6 +12,18 @@
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+    <Style Selector="DockPanel.ScreenMargin">
+      <Setter Property="Margin" Value="10" />
+    </Style>
+    <Style Selector="DockPanel.ScreenMarginTB">
+      <Setter Property="Margin" Value="0 10" />
+    </Style>
+    <Style Selector="Grid.ScreenMargin">
+      <Setter Property="Margin" Value="10" />
+    </Style>
+    <Style Selector="StackPanel.ScreenMargin">
+      <Setter Property="Margin" Value="10" />
+    </Style>
     <Style Selector="TextBlock">
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
@@ -21,8 +33,29 @@
     <Style Selector="TextBlock.Title">
       <Setter Property="FontSize" Value="18" />
     </Style>
+    <Style Selector="TextBlock.Caption">
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
     <Style Selector="TextBlock.Warning">
       <Setter Property="Foreground" Value="Red" />
+    </Style>
+    <Style Selector="Border.RepeatedRegion">
+      <Setter Property="Background" Value="LightCyan" />
+      <Setter Property="Padding" Value="5" />
+    </Style>
+    <Style Selector="Border.EphemeralMessage">
+      <Setter Property="Background" Value="Aqua" />
+      <Setter Property="BoxShadow" Value="5 5 10 0 DarkGray" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Opacity" Value="0.9" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.EphemeralMessage TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="Padding" Value="15" />
     </Style>
     <Style Selector="StackPanel.ButtonAndExplanation">
       <Setter Property="Background" Value="LightCyan" />

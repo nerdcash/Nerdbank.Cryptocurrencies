@@ -10,7 +10,7 @@
   <Design.DataContext>
     <vm:CreateNewAccountDetailsViewModel />
   </Design.DataContext>
-  <DockPanel>
+  <DockPanel Classes="ScreenMargin">
     <Button Command="{Binding CreateAccountCommand}" Content="{Binding CreateAccountCommandCaption}" DockPanel.Dock="Bottom" HorizontalAlignment="Right" />
     <ScrollViewer>
       <StackPanel>
