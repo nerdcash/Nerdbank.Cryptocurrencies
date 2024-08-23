@@ -27,7 +27,7 @@
         <WrapPanel>
           <TextBlock Text="{Binding VersionCaption}" VerticalAlignment="Center" />
           <TextBlock Text=" " />
-          <TextBox IsReadOnly="True" Text="{Binding Version}" />
+          <SelectableTextBlock Text="{Binding Version}" />
         </WrapPanel>
         <TextBlock Text="{Binding Channel}" />
         <StackPanel DataContext="{Binding SelfUpdating}">
