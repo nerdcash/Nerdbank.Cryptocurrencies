@@ -96,6 +96,7 @@
     <Style Selector="Border.RepeatedRegion">
       <Setter Property="Background" Value="{DynamicResource RepeatedRegionBackgroundBrush}" />
       <Setter Property="Padding" Value="5" />
+      <Setter Property="CornerRadius" Value="3" />
     </Style>
     <Style Selector="Border.EphemeralMessage">
       <Setter Property="Background" Value="{DynamicResource EphemeralMessageBackgroundBrush}" />
