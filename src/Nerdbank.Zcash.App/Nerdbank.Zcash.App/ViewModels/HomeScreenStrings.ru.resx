@@ -118,33 +118,21 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="BackupCommandCaption" xml:space="preserve">
-    <value>🗻 Резервную копию своего кошелька</value>
+    <value>Резервное копирование</value>
   </data>
   <data name="BackupExplanation" xml:space="preserve">
     <value>Ни один банк не поддерживает ваш Zcash для вас. Если вы потеряете это устройство, вы потеряете Zcash. Результат вашего кошелька, чтобы защитить Zcash или использовать его с нескольких устройств.</value>
   </data>
   <data name="BalanceCommandCaption" xml:space="preserve">
-    <value>⚖ баланс</value>
-  </data>
-  <data name="BalanceExplanation" xml:space="preserve">
-    <value>Проверьте свой баланс.</value>
+    <value>баланс</value>
   </data>
   <data name="HistoryCommandCaption" xml:space="preserve">
-    <value>📜 История</value>
-  </data>
-  <data name="HistoryExplanation" xml:space="preserve">
-    <value>Смотрите историю транзакций.</value>
+    <value>История</value>
   </data>
   <data name="ReceiveCommandCaption" xml:space="preserve">
-    <value>📥 Получите</value>
-  </data>
-  <data name="ReceiveExplanation" xml:space="preserve">
-    <value>Поделитесь своим адресом Zcash или запросом на оплату с другими, чтобы они могли отправить вам Zcash.</value>
+    <value>Получите</value>
   </data>
   <data name="SendCommandCaption" xml:space="preserve">
-    <value>📤 Отправить</value>
-  </data>
-  <data name="SendExplanation" xml:space="preserve">
-    <value>Отправьте кого -нибудь Zcash.</value>
+    <value>Отправить</value>
   </data>
 </root>

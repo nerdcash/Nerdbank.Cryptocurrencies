@@ -118,33 +118,21 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="BackupCommandCaption" xml:space="preserve">
-    <value>🗻 Suponga su billetera</value>
+    <value>Respaldo</value>
   </data>
   <data name="BackupExplanation" xml:space="preserve">
     <value>Ningún banco está respaldando su ZCash para usted. Si pierde este dispositivo, pierde su ZCash. Realice una copia de seguridad de su billetera para proteger su ZCash o usarla de múltiples dispositivos.</value>
   </data>
   <data name="BalanceCommandCaption" xml:space="preserve">
-    <value>⚖️ Balance</value>
-  </data>
-  <data name="BalanceExplanation" xml:space="preserve">
-    <value>Verifique su saldo.</value>
+    <value>Balance</value>
   </data>
   <data name="HistoryCommandCaption" xml:space="preserve">
-    <value>📜 Historia</value>
-  </data>
-  <data name="HistoryExplanation" xml:space="preserve">
-    <value>Vea su historial de transacciones.</value>
+    <value>Historia</value>
   </data>
   <data name="ReceiveCommandCaption" xml:space="preserve">
-    <value>📥 Recibir</value>
-  </data>
-  <data name="ReceiveExplanation" xml:space="preserve">
-    <value>Comparta su dirección de ZCash o una solicitud de pago con otros para que puedan enviarle ZCash.</value>
+    <value>Recibir</value>
   </data>
   <data name="SendCommandCaption" xml:space="preserve">
-    <value>📤 Enviar</value>
-  </data>
-  <data name="SendExplanation" xml:space="preserve">
-    <value>Envía a alguien zcash.</value>
+    <value>Enviar</value>
   </data>
 </root>

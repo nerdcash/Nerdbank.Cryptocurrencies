@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:Nerdbank.Zcash.App.Views"
-        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
         Width="500" Height="650"
         x:Class="Nerdbank.Zcash.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
