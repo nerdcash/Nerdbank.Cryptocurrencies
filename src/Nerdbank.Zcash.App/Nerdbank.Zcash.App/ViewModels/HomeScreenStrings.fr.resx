@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -118,33 +118,21 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="BackupCommandCaption" xml:space="preserve">
-    <value>🗻 Sauvegarder votre portefeuille</value>
+    <value>Sauvegarde</value>
   </data>
   <data name="BackupExplanation" xml:space="preserve">
     <value>Aucune banque ne sauvegarde votre Zcash pour vous. Si vous perdez cet appareil, vous perdez votre Zcash. Sauvegardez votre portefeuille pour protéger votre Zcash ou l'utiliser depuis plusieurs appareils.</value>
   </data>
   <data name="BalanceCommandCaption" xml:space="preserve">
-    <value>⚖️ Solde</value>
-  </data>
-  <data name="BalanceExplanation" xml:space="preserve">
-    <value>Vérifiez votre solde.</value>
+    <value>Solde</value>
   </data>
   <data name="HistoryCommandCaption" xml:space="preserve">
-    <value>📜 Historique</value>
-  </data>
-  <data name="HistoryExplanation" xml:space="preserve">
-    <value>Consultez votre historique de transactions.</value>
+    <value>Historique</value>
   </data>
   <data name="ReceiveCommandCaption" xml:space="preserve">
-    <value>📥 Recevoir</value>
-  </data>
-  <data name="ReceiveExplanation" xml:space="preserve">
-    <value>Partagez votre adresse Zcash ou une demande de paiement avec d'autres personnes afin qu'elles puissent vous envoyer du Zcash.</value>
+    <value>Recevoir</value>
   </data>
   <data name="SendCommandCaption" xml:space="preserve">
-    <value>📤 Envoyer</value>
-  </data>
-  <data name="SendExplanation" xml:space="preserve">
-    <value>Envoyez du Zcash à quelqu'un.</value>
+    <value>Envoyer</value>
   </data>
 </root>

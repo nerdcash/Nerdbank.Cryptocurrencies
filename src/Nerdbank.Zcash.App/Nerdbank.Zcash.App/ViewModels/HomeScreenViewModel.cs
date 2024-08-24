@@ -41,25 +41,17 @@ public class HomeScreenViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, ReceivingIntentSelectorViewModel> ReceiveCommand { get; }
 
-	public string ReceiveExplanation => HomeScreenStrings.ReceiveExplanation;
-
 	public string SendCommandCaption => HomeScreenStrings.SendCommandCaption;
 
 	public ReactiveCommand<Unit, SendingViewModel> SendCommand { get; }
-
-	public string SendExplanation => HomeScreenStrings.SendExplanation;
 
 	public string BalanceCommandCaption => HomeScreenStrings.BalanceCommandCaption;
 
 	public ReactiveCommand<Unit, BalanceViewModel> BalanceCommand { get; }
 
-	public string BalanceExplanation => HomeScreenStrings.BalanceExplanation;
-
 	public string HistoryCommandCaption => HomeScreenStrings.HistoryCommandCaption;
 
 	public ReactiveCommand<Unit, HistoryViewModel> HistoryCommand { get; }
-
-	public string HistoryExplanation => HomeScreenStrings.HistoryExplanation;
 
 	public bool IsBackupCommandPromoted => this.isBackupCommandPromoted.Value;
 
