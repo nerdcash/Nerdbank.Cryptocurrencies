@@ -22,8 +22,7 @@
     <DataGrid ItemsSource="{Binding Transactions}"
               SelectedItem="{Binding SelectedTransaction}"
               Name="HistoryGrid"
-              Grid.Row="1"
-              Background="AliceBlue">
+              Grid.Row="1">
       <DataGrid.Styles>
         <Style Selector="TextBlock">
           <Setter Property="Margin" Value="4" />

@@ -141,6 +141,18 @@
   <data name="ServerNetworkMismatch" xml:space="preserve">
     <value>이 URL은 {0} 네트워크를 제공합니다.</value>
   </data>
+  <data name="ThemeCaption" xml:space="preserve">
+    <value>주제</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>어두운</value>
+  </data>
+  <data name="ThemeDefault" xml:space="preserve">
+    <value>시스템 기본값</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>빛</value>
+  </data>
   <data name="Title" xml:space="preserve">
     <value>설정</value>
   </data>

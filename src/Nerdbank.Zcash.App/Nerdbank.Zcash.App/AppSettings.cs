@@ -17,6 +17,7 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	private Uri lightServerUrlTestNet = new("https://zcash.mysideoftheweb.com:19067/");
 	private bool isDirty;
 	private bool showProtocolDetails;
+	private string themeName = "Default";
 
 	public AppSettings()
 	{
@@ -62,6 +63,12 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	{
 		get => this.alternateCurrency?.TickerSymbol;
 		set => this.AlternateCurrency = value is not null ? Security.WellKnown[value] : null;
+	}
+
+	public string ThemeName
+	{
+		get => this.themeName;
+		set => this.RaiseAndSetIfChanged(ref this.themeName, value);
 	}
 
 	/// <summary>

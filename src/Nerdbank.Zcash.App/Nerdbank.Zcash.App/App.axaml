@@ -2,12 +2,52 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Nerdbank.Zcash.App"
              x:Class="Nerdbank.Zcash.App.App"
-             RequestedThemeVariant="Light">
-  <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Default">
 
   <Application.DataTemplates>
     <local:ViewLocator/>
   </Application.DataTemplates>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <Color x:Key="ColorPalette0">#D90B91</Color>
+          <Color x:Key="ColorPalette1">#073673</Color>
+          <Color x:Key="ColorPalette2">#0C9AF2</Color>
+          <Color x:Key="ColorPalette3">#F2B705</Color>
+          <Color x:Key="ColorPalette4">#F28705</Color>
+
+          <SolidColorBrush x:Key="SignificantTextBrush">Black</SolidColorBrush>
+          <SolidColorBrush x:Key="InsignificantTextBrush">LightGray</SolidColorBrush>
+          <SolidColorBrush x:Key="DataGridBackgroundBrush">AliceBlue</SolidColorBrush>
+          <SolidColorBrush x:Key="IncomingFundsBackgroundBrush">AntiqueWhite</SolidColorBrush>
+          <SolidColorBrush x:Key="RepeatedRegionBackgroundBrush" Color="{DynamicResource ColorPalette2}" />
+          <SolidColorBrush x:Key="EphemeralMessageBackgroundBrush" Color="{DynamicResource ColorPalette3}" />
+          <SolidColorBrush x:Key="WarningForegroundBrush" Color="{DynamicResource ColorPalette4}" />
+          <SolidColorBrush x:Key="SyncHeaderBackgroundBrush" Color="{DynamicResource ColorPalette3}" />
+          <SolidColorBrush x:Key="BackMenuBackgroundBrush" Color="{DynamicResource ColorPalette0}" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <Color x:Key="ColorPalette0">#040240</Color>
+          <Color x:Key="ColorPalette1">#064073</Color>
+          <Color x:Key="ColorPalette2">#024059</Color>
+          <Color x:Key="ColorPalette3">#025949</Color>
+          <Color x:Key="ColorPalette4">#F2B705</Color>
+
+          <SolidColorBrush x:Key="SignificantTextBrush">White</SolidColorBrush>
+          <SolidColorBrush x:Key="InsignificantTextBrush">Gray</SolidColorBrush>
+          <SolidColorBrush x:Key="DataGridBackgroundBrush">Transparent</SolidColorBrush>
+          <SolidColorBrush x:Key="IncomingFundsBackgroundBrush" Color="{DynamicResource ColorPalette3}" />
+          <SolidColorBrush x:Key="RepeatedRegionBackgroundBrush" Color="{DynamicResource ColorPalette2}" />
+          <SolidColorBrush x:Key="EphemeralMessageBackgroundBrush" Color="{DynamicResource ColorPalette3}" />
+          <SolidColorBrush x:Key="WarningForegroundBrush" Color="{DynamicResource ColorPalette4}" />
+          <SolidColorBrush x:Key="SyncHeaderBackgroundBrush" Color="{DynamicResource ColorPalette1}" />
+          <SolidColorBrush x:Key="BackMenuBackgroundBrush" Color="{DynamicResource ColorPalette0}" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
 
   <Application.Styles>
     <FluentTheme />
@@ -37,14 +77,20 @@
       <Setter Property="FontWeight" Value="Bold" />
     </Style>
     <Style Selector="TextBlock.Warning">
-      <Setter Property="Foreground" Value="Red" />
+      <Setter Property="Foreground" Value="{DynamicResource WarningForegroundBrush}" />
+    </Style>
+    <Style Selector="TextBlock.Significant">
+      <Setter Property="Foreground" Value="{DynamicResource SignificantTextBrush}" />
+    </Style>
+    <Style Selector="TextBlock.Insignificant">
+      <Setter Property="Foreground" Value="{DynamicResource InsignificantTextBrush}" />
     </Style>
     <Style Selector="Border.RepeatedRegion">
-      <Setter Property="Background" Value="LightCyan" />
+      <Setter Property="Background" Value="{DynamicResource RepeatedRegionBackgroundBrush}" />
       <Setter Property="Padding" Value="5" />
     </Style>
     <Style Selector="Border.EphemeralMessage">
-      <Setter Property="Background" Value="Aqua" />
+      <Setter Property="Background" Value="{DynamicResource EphemeralMessageBackgroundBrush}" />
       <Setter Property="BoxShadow" Value="5 5 10 0 DarkGray" />
       <Setter Property="CornerRadius" Value="8" />
       <Setter Property="Opacity" Value="0.9" />
@@ -58,7 +104,7 @@
       <Setter Property="Padding" Value="15" />
     </Style>
     <Style Selector="StackPanel.ButtonAndExplanation">
-      <Setter Property="Background" Value="LightCyan" />
+      <Setter Property="Background" Value="{DynamicResource RepeatedRegionBackgroundBrush}" />
     </Style>
     <Style Selector="StackPanel.ButtonAndExplanation Button">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -74,6 +120,12 @@
     <Style Selector="StackPanel.ButtonAndExplanation TextBlock">
       <Setter Property="Margin" Value="5 0 5 5" />
     </Style>
+    <Style Selector="StackPanel.IncomingFunds">
+      <Setter Property="Background" Value="{DynamicResource IncomingFundsBackgroundBrush}" />
+    </Style>
+    <Style Selector="Rectangle.SyncHeader">
+      <Setter Property="Fill" Value="{DynamicResource SyncHeaderBackgroundBrush}" />
+    </Style>
     <Style Selector="Grid.SumTable TextBlock">
       <Setter Property="Margin" Value="2" />
     </Style>
@@ -86,6 +138,9 @@
     </Style>
     <Style Selector="Grid Label">
       <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="DataGrid">
+      <Setter Property="Background" Value="{DynamicResource DataGridBackgroundBrush}" />
     </Style>
     <Style Selector="Button.Hyperlink">
       <Setter Property="Template">

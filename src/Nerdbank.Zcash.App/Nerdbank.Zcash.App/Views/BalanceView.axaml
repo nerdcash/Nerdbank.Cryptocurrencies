@@ -55,7 +55,7 @@
           </StackPanel>
 
           <local:SecurityAmountDisplay Value="{Binding ImmatureIncome}" Grid.Row="3" IsVisible="{Binding IsImmatureIncomeVisible}" />
-          <StackPanel IsVisible="{Binding IsImmatureIncomeVisible}" Background="LightYellow" Grid.Row="3" Grid.Column="2">
+          <StackPanel IsVisible="{Binding IsImmatureIncomeVisible}" Grid.Row="3" Grid.Column="2">
             <TextBlock Text="{Binding ImmatureIncomeCaption}" Classes="SubsetName" />
             <TextBlock Text="{Binding ImmatureIncomeExplanation}" />
           </StackPanel>
@@ -64,7 +64,7 @@
           <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="LightGray" Height="1" VerticalAlignment="Top" />
           <Rectangle Grid.Row="3" Grid.ColumnSpan="3" Fill="LightGray" Height="1" VerticalAlignment="Top" />
         </Grid>
-        <StackPanel IsVisible="{Binding IsUnconfirmedIncomeVisible}" Background="AntiqueWhite" Margin="0,20,0,0">
+        <StackPanel IsVisible="{Binding IsUnconfirmedIncomeVisible}" Classes="IncomingFunds" Margin="0,20,0,0">
           <StackPanel Margin="5 5">
             <StackPanel Classes="HeadlineBalance">
               <TextBlock Text="{Binding UnconfirmedIncomeCaption}" />

@@ -1,10 +1,12 @@
 // Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Zcash.App.Views;
 using IAsyncDisposable = System.IAsyncDisposable;
@@ -152,6 +154,10 @@ public partial class App : Application, IAsyncDisposable
 		this.appSettingsManager = this.AppPlatformSettings.NonConfidentialDataPath is not null ? AutoSaveManager<AppSettings>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.NonConfidentialDataPath, SettingsJsonFileName), enableAutoSave: true) : null;
 		this.dataRootManager = this.AppPlatformSettings.ConfidentialDataPath is not null ? AutoSaveManager<DataRoot>.LoadOrCreate(Path.Combine(this.AppPlatformSettings.ConfidentialDataPath, DataFileName), enableAutoSave: true) : null;
 		this.settings = this.appSettingsManager?.Data ?? new AppSettings();
+
+		this.settings.PropertyChanged += this.Settings_PropertyChanged;
+		this.SetThemeBasedOnSetting();
+
 		this.data = this.dataRootManager?.Data ?? new DataRoot();
 
 		if (this.AppPlatformSettings.ConfidentialDataPath is not null)
@@ -205,6 +211,33 @@ public partial class App : Application, IAsyncDisposable
 			ConfidentialDataPath = @"C:\some\path\to\wallet.dat",
 			NonConfidentialDataPath = @"C:\some\path\to\settings",
 		};
+	}
+
+	private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+	{
+		switch (e.PropertyName)
+		{
+			case nameof(AppSettings.ThemeName):
+				this.SetThemeBasedOnSetting();
+
+				break;
+		}
+	}
+
+	private void SetThemeBasedOnSetting()
+	{
+		ThemeVariant? theme = this.Settings.ThemeName switch
+		{
+			"Light" => ThemeVariant.Light,
+			"Dark" => ThemeVariant.Dark,
+			"Default" => ThemeVariant.Default,
+			_ => null,
+		};
+
+		if (theme is not null)
+		{
+			this.RequestedThemeVariant = theme;
+		}
 	}
 
 	private async Task WaitForSendsAsync()

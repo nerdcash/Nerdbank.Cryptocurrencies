@@ -10,7 +10,7 @@
     <vm:ProgressData Current="485" From="0" To="1000" IsInProgress="True" />
   </Design.DataContext>
   <Grid IsVisible="{Binding IsInProgress}">
-    <Rectangle Fill="Cyan" />
+    <Rectangle Classes="SyncHeader" />
     <StackPanel>
       <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" />
       <ProgressBar Value="{Binding Current}"
