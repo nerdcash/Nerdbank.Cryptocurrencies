@@ -54,6 +54,7 @@ public abstract class ViewModelBaseWithAccountSelector : ViewModelBase
 			if (this.selectedAccount != value)
 			{
 				this.ViewModelServices.MostRecentlyUsedAccount = value;
+				this.ViewModelServices.App.Settings.LastUsedAccountName = value?.Name;
 				this.selectedAccount = value;
 				this.RaisePropertyChanged();
 				this.OnSelectedAccountChanged();
