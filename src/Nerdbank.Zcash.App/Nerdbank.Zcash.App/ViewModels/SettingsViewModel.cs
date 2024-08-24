@@ -26,6 +26,13 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	{
 		this.viewModelServices = viewModelServices;
 
+		this.Themes = new ReadOnlyCollection<Theme>(
+		[
+			new Theme("Default", SettingsStrings.ThemeDefault),
+			new Theme("Light", SettingsStrings.ThemeLight),
+			new Theme("Dark", SettingsStrings.ThemeDark),
+		]);
+
 		this.lightServerUrlMainNet = this.viewModelServices.Settings.LightServerUrl.AbsoluteUri;
 		this.lightServerUrlTestNet = this.viewModelServices.Settings.LightServerUrlTestNet.AbsoluteUri;
 
@@ -57,6 +64,23 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	public string AlternateCurrencyExplanation => SettingsStrings.AlternateCurrencyExplanation;
 
 	public ReadOnlyCollection<Security> AlternateCurrencies { get; }
+
+	public string ThemeCaption => SettingsStrings.ThemeCaption;
+
+	public ReadOnlyCollection<Theme> Themes { get; }
+
+	public Theme SelectedTheme
+	{
+		get => this.Themes.Single(t => t.Name == this.viewModelServices.Settings.ThemeName);
+		set
+		{
+			if (this.SelectedTheme != value)
+			{
+				this.viewModelServices.Settings.ThemeName = value.Name;
+				this.RaisePropertyChanged();
+			}
+		}
+	}
 
 	public string DownloadExchangeRatesCaption => SettingsStrings.DownloadExchangeRatesCaption;
 
@@ -168,5 +192,10 @@ public class SettingsViewModel : ViewModelBase, IHasTitle
 	{
 		this.IsChangesRequireRestartVisible =
 			this.viewModelServices.App.WalletSyncManager?.ProgressDetails.Any(d => d.Network.HasValue && AppUtilities.GetLightServerUrl(this.viewModelServices.App.Settings, d.Network.Value) != d.Tracker?.ServerUrl) is true;
+	}
+
+	public record Theme(string Name, string DisplayName)
+	{
+		public override string ToString() => this.DisplayName;
 	}
 }

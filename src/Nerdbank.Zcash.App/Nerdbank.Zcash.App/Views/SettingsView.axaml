@@ -11,28 +11,39 @@
   </Design.DataContext>
 
   <DockPanel Classes="ScreenMargin">
-    <StackPanel>
+    <StackPanel Spacing="10">
       <StackPanel.Styles>
         <Style Selector="Label">
           <Setter Property="FontWeight" Value="Bold" />
         </Style>
       </StackPanel.Styles>
-      <Label Content="{Binding AlternateCurrencyCaption}" Target="{Binding #AlternateCurrencyBox}" />
-      <ComboBox Name="AlternateCurrencyBox" ItemsSource="{Binding AlternateCurrencies}" SelectedItem="{Binding AlternateCurrency}">
-        <ComboBox.ItemTemplate>
-          <DataTemplate>
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{Binding Name}" />
-              <TextBlock Text=" (" />
-              <TextBlock Text="{Binding TickerSymbol}" />
-              <TextBlock Text=")" />
-            </StackPanel>
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-      <TextBlock Text="{Binding AlternateCurrencyExplanation}" />
+      <Border Classes="RepeatedRegion">
+        <StackPanel>
+          <Label Content="{Binding AlternateCurrencyCaption}" Target="{Binding #AlternateCurrencyBox}" />
+          <ComboBox Name="AlternateCurrencyBox" ItemsSource="{Binding AlternateCurrencies}" SelectedItem="{Binding AlternateCurrency}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="{Binding Name}" />
+                  <TextBlock Text=" (" />
+                  <TextBlock Text="{Binding TickerSymbol}" />
+                  <TextBlock Text=")" />
+                </StackPanel>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Text="{Binding AlternateCurrencyExplanation}" />
+        </StackPanel>
+      </Border>
 
-      <Expander IsExpanded="False" Header="{Binding AdvancedExpanderHeader}" Margin="0,10,0,0" HorizontalAlignment="Stretch">
+      <Border Classes="RepeatedRegion">
+        <WrapPanel>
+          <Label Content="{Binding ThemeCaption}" VerticalAlignment="Center" />
+          <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" />
+        </WrapPanel>
+      </Border>
+
+      <Expander IsExpanded="False" Header="{Binding AdvancedExpanderHeader}" HorizontalAlignment="Stretch">
         <StackPanel>
           <CheckBox IsChecked="{Binding DownloadExchangeRates}" Content="{Binding DownloadExchangeRatesCaption}" />
           <Label Content="{Binding LightServerUrlMainNetCaption}" Target="{Binding #LightServerUrlMainNetBox}" />
