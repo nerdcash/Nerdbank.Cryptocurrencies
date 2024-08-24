@@ -38,12 +38,14 @@
     <StackPanel DockPanel.Dock="Bottom"
                 DataContext="{Binding SelfUpdating}">
       <StackPanel DataContext="{Binding UpdateDownloading}"
+                  Margin="5"
                   IsVisible="{Binding IsInProgress}">
         <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" />
         <ProgressBar Value="{Binding Current}" Minimum="{Binding From}" Maximum="{Binding To}" />
       </StackPanel>
       <Button Command="{Binding UpdateAndRestartCommand}"
               Content="{Binding UpdateAndRestartCommandCaption}"
+              Margin="5"
               IsVisible="{Binding IsUpdateAndRestartCommandVisible}"
               HorizontalAlignment="Center" />
     </StackPanel>
