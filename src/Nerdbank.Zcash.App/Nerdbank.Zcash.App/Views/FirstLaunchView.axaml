@@ -38,8 +38,7 @@
       <StackPanel>
         <TextBlock Text="{Binding WalletForHeading}" HorizontalAlignment="Center" />
         <WrapPanel HorizontalAlignment="Center">
-          <Image Source="{SvgImage /Assets/Zcash Media Kit/Primary-Logo-Black-Yellow.svg}"
-                 Height="64" />
+          <Image Source="{DynamicResource ZcashLogo}" Height="64" />
         </WrapPanel>
       </StackPanel>
     </StackPanel>

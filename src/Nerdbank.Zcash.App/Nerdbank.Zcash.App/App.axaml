@@ -27,6 +27,10 @@
           <SolidColorBrush x:Key="WarningForegroundBrush" Color="{DynamicResource ColorPalette4}" />
           <SolidColorBrush x:Key="SyncHeaderBackgroundBrush" Color="{DynamicResource ColorPalette3}" />
           <SolidColorBrush x:Key="BackMenuBackgroundBrush" Color="{DynamicResource ColorPalette0}" />
+          <SolidColorBrush x:Key="HyperlinkBrush" Color="{DynamicResource ColorPalette3}" />
+          <SolidColorBrush x:Key="HyperlinkHoverBrush" Color="{DynamicResource ColorPalette1}" />
+          
+          <SvgImage x:Key="ZcashLogo" Source="/Assets/Zcash Media Kit/Primary-Logo-Black-Yellow.svg" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <Color x:Key="ColorPalette0">#040240</Color>
@@ -44,6 +48,10 @@
           <SolidColorBrush x:Key="WarningForegroundBrush" Color="{DynamicResource ColorPalette4}" />
           <SolidColorBrush x:Key="SyncHeaderBackgroundBrush" Color="{DynamicResource ColorPalette1}" />
           <SolidColorBrush x:Key="BackMenuBackgroundBrush" Color="{DynamicResource ColorPalette0}" />
+          <SolidColorBrush x:Key="HyperlinkBrush" Color="{DynamicResource ColorPalette4}" />
+          <SolidColorBrush x:Key="HyperlinkHoverBrush" Color="{DynamicResource ColorPalette4}" />
+
+          <SvgImage x:Key="ZcashLogo" Source="/Assets/Zcash Media Kit/Primary-Logo-White-Yellow.svg" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
@@ -145,10 +153,12 @@
     <Style Selector="Button.Hyperlink">
       <Setter Property="Template">
         <ControlTemplate>
-          <TextBlock Text="{TemplateBinding Content}" Foreground="{StaticResource SystemAccentColor}" TextDecorations="Underline">
+          <TextBlock Text="{TemplateBinding Content}"
+                     Foreground="{DynamicResource HyperlinkBrush}"
+                     TextDecorations="Underline">
             <TextBlock.Styles>
               <Style Selector="TextBlock:pointerover">
-                <Setter Property="Foreground" Value="{StaticResource SystemAccentColorLight1}"/>
+                <Setter Property="Foreground" Value="{DynamicResource HyperlinkHoverBrush}"/>
               </Style>
             </TextBlock.Styles>
           </TextBlock>
