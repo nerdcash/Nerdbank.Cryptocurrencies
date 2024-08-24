@@ -137,11 +137,11 @@
             <Label Content="{Binding FeeCaption}" Target="{Binding #FeeBox}" Grid.Row="5" IsVisible="{Binding !IsIncoming}" />
             <local:SecurityAmountDisplay Value="{Binding Fee}" IsUnitsVisible="False" Name="FeeBox" Grid.Row="5" Grid.Column="2" IsVisible="{Binding !IsIncoming}" HorizontalAlignment="Left" />
             <Label Content="{Binding ToAddressCaption}" Target="{Binding #ToAddressBox}" Grid.Row="6" IsVisible="{Binding IsToAddressVisible}" />
-            <TextBox IsReadOnly="True" Text="{Binding ToAddress}" Name="ToAddressBox" Grid.Row="6" Grid.Column="2" IsVisible="{Binding IsToAddressVisible}" />
+            <SelectableTextBlock Text="{Binding ToAddress}" Name="ToAddressBox" Grid.Row="6" Grid.Column="2" IsVisible="{Binding IsToAddressVisible}" />
             <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="7" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
             <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="7" Grid.Column="2" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
             <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="8" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
-            <TextBox IsReadOnly="True" Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="8" Grid.Column="2" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
+            <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="8" Grid.Column="2" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
           </Grid>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
