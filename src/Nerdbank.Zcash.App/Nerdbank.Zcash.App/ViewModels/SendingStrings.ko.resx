@@ -168,6 +168,9 @@
   <data name="SendCommandCaption" xml:space="preserve">
     <value>📤 보내기</value>
   </data>
+  <data name="SendCommandCaption_Sending" xml:space="preserve">
+    <value>⚒️ 보내기</value>
+  </data>
   <data name="SendSuccessfulMessage" xml:space="preserve">
     <value>{Amount}가 성공적으로 보냈습니다.</value>
   </data>

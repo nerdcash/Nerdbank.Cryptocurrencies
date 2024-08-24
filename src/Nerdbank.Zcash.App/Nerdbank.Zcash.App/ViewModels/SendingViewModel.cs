@@ -24,9 +24,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	private readonly ObservableAsPropertyHelper<SecurityAmount?> totalAlternate;
 	private readonly ObservableAsPropertyHelper<bool> isTestNetWarningVisible;
 	private readonly ObservableAsPropertyHelper<bool> isSendingInProgress;
+	private string sendCommandCaption = SendingStrings.SendCommandCaption;
 	private bool areLineItemsValid;
 	private string? errorMessage;
-	private string? sendSuccessfulMessage;
+	private string? ephemeralMessage;
 	private string mutableMemo = string.Empty;
 	private SecurityAmount subtotal;
 	private SecurityAmount? total;
@@ -147,7 +148,11 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public SecurityAmount? TotalAlternate => this.totalAlternate.Value;
 
-	public string SendCommandCaption => SendingStrings.SendCommandCaption;
+	public string SendCommandCaption
+	{
+		get => this.sendCommandCaption;
+		set => this.RaiseAndSetIfChanged(ref this.sendCommandCaption, value);
+	}
 
 	public ReactiveCommand<Unit, Unit> SendCommand { get; }
 
@@ -159,8 +164,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 	public string? EphemeralMessage
 	{
-		get => this.sendSuccessfulMessage;
-		set => this.RaiseAndSetIfChanged(ref this.sendSuccessfulMessage, value);
+		get => this.ephemeralMessage;
+		set => this.RaiseAndSetIfChanged(ref this.ephemeralMessage, value);
 	}
 
 	public bool TryApplyPaymentRequest(Uri paymentRequestUri)
@@ -282,73 +287,81 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		Verify.Operation(!this.HasAnyErrors, "Validation errors exist.");
 		ImmutableArray<Transaction.LineItem> lineItems = this.GetLineItems();
 
-		// Simulate the payment to get the fee.
-		LightWalletClient.SpendDetails sendDetails = this.SelectedAccount.LightWalletClient.SimulateSend(this.SelectedAccount.ZcashAccount, lineItems);
-
-		// Create a draft transaction in the account right away.
-		// This will store the mutable memo, exchange rate, and other metadata that
-		// isn't going to come back from the light wallet server.
-		// In the event of an aborted send, or an expired transaction,
-		// the user can use this draft transaction to try sending again later.
-		ZcashTransaction tx = new()
-		{
-			TransactionId = ZcashTransaction.ProvisionalTransactionId,
-			MutableMemo = this.MutableMemo,
-			IsIncoming = false,
-			When = DateTimeOffset.UtcNow,
-			SendItems = [.. lineItems.Select(li => new ZcashTransaction.LineItem(li))],
-			Fee = sendDetails.Fee,
-		};
-
-		// Record the exchange rate that we showed the user, if applicable.
-		if (this.ExchangeRate.HasValue)
-		{
-			this.ViewModelServices.ExchangeData.SetExchangeRate(tx.When.Value, this.ExchangeRate.Value);
-		}
-
-		this.SelectedAccount.AddProvisionalTransaction(tx);
-
-		Task sendTask = SendCriticalHelperAsync();
-		this.ViewModelServices.RegisterSendTransactionTask(sendTask);
+		this.SendCommandCaption = SendingStrings.SendCommandCaption_Sending;
 		try
 		{
-			await sendTask;
-			SecurityAmount subtotal = this.Subtotal;
+			// Simulate the payment to get the fee.
+			LightWalletClient.SpendDetails sendDetails = this.SelectedAccount.LightWalletClient.SimulateSend(this.SelectedAccount.ZcashAccount, lineItems);
 
-			// Clear the form for the next send.
-			this.Clear(leaveOneEmptyLineItem: true);
+			// Create a draft transaction in the account right away.
+			// This will store the mutable memo, exchange rate, and other metadata that
+			// isn't going to come back from the light wallet server.
+			// In the event of an aborted send, or an expired transaction,
+			// the user can use this draft transaction to try sending again later.
+			ZcashTransaction tx = new()
+			{
+				TransactionId = ZcashTransaction.ProvisionalTransactionId,
+				MutableMemo = this.MutableMemo,
+				IsIncoming = false,
+				When = DateTimeOffset.UtcNow,
+				SendItems = [.. lineItems.Select(li => new ZcashTransaction.LineItem(li))],
+				Fee = sendDetails.Fee,
+			};
 
-			// Display a successful message momentarily.
-			this.ShowEphemeralMessage(SendingStrings.FormatSendSuccessfulMessage(subtotal));
-		}
-		catch (Exception ex)
-		{
-			this.ErrorMessage = ex.Message;
-			this.SelectedAccount.RemoveTransaction(tx);
-		}
+			// Record the exchange rate that we showed the user, if applicable.
+			if (this.ExchangeRate.HasValue)
+			{
+				this.ViewModelServices.ExchangeData.SetExchangeRate(tx.When.Value, this.ExchangeRate.Value);
+			}
 
-		// If the user closes the main window, the window will hide but the process will run
-		// until this method completes.
-		async Task SendCriticalHelperAsync()
-		{
-			// This assignment helps ensure that we promote the right provisional transaction
-			// at the conclusion of the send operation.
+			this.SelectedAccount.AddProvisionalTransaction(tx);
+
+			Task sendTask = SendCriticalHelperAsync();
+			this.ViewModelServices.RegisterSendTransactionTask(sendTask);
 			try
 			{
-				this.ErrorMessage = null;
-				ReadOnlyMemory<TxId> transactions = await this.SelectedAccount.LightWalletClient.SendAsync(
-					this.SelectedAccount.ZcashAccount,
-					lineItems,
-					new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
-					cancellationToken);
+				await sendTask;
+				SecurityAmount subtotal = this.Subtotal;
 
-				// Semantically, the most similar transaction to what the user intended will be the last one.
-				tx.TransactionId = transactions.Span[^1];
+				// Clear the form for the next send.
+				this.Clear(leaveOneEmptyLineItem: true);
+
+				// Display a successful message momentarily.
+				this.ShowEphemeralMessage(SendingStrings.FormatSendSuccessfulMessage(subtotal));
 			}
-			finally
+			catch (Exception ex)
 			{
-				this.SelectedAccount.SendProgress.Complete();
+				this.ErrorMessage = ex.Message;
+				this.SelectedAccount.RemoveTransaction(tx);
 			}
+
+			// If the user closes the main window, the window will hide but the process will run
+			// until this method completes.
+			async Task SendCriticalHelperAsync()
+			{
+				// This assignment helps ensure that we promote the right provisional transaction
+				// at the conclusion of the send operation.
+				try
+				{
+					this.ErrorMessage = null;
+					ReadOnlyMemory<TxId> transactions = await this.SelectedAccount.LightWalletClient.SendAsync(
+						this.SelectedAccount.ZcashAccount,
+						lineItems,
+						new Progress<LightWalletClient.SendProgress>(this.SelectedAccount.SendProgress.Apply),
+						cancellationToken);
+
+					// Semantically, the most similar transaction to what the user intended will be the last one.
+					tx.TransactionId = transactions.Span[^1];
+				}
+				finally
+				{
+					this.SelectedAccount.SendProgress.Complete();
+				}
+			}
+		}
+		finally
+		{
+			this.SendCommandCaption = SendingStrings.SendCommandCaption;
 		}
 	}
 

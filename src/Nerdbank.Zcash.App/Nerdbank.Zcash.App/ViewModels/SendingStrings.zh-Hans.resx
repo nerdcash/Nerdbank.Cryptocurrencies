@@ -168,6 +168,9 @@
   <data name="SendCommandCaption" xml:space="preserve">
     <value>📤 发送</value>
   </data>
+  <data name="SendCommandCaption_Sending" xml:space="preserve">
+    <value>⚒️发送</value>
+  </data>
   <data name="SendSuccessfulMessage" xml:space="preserve">
     <value>{Amount}成功发送。</value>
   </data>
