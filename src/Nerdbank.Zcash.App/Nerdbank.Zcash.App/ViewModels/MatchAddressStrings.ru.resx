@@ -126,6 +126,9 @@
   <data name="Explanation" xml:space="preserve">
     <value>Используйте этот инструмент, чтобы найти, кто владеет конкретным адресом Zcash. Это может соответствовать любому из ваших собственных адресов или по любому из адресов ваших контактов.</value>
   </data>
+  <data name="InternalAddressWarningCaption" xml:space="preserve">
+    <value>Это внутренний адрес для этой учетной записи, и он не должен * быть совместно с кем -либо.</value>
+  </data>
   <data name="MatchedAccountTitle" xml:space="preserve">
     <value>Соответствующий аккаунт</value>
   </data>

@@ -126,6 +126,9 @@
   <data name="Explanation" xml:space="preserve">
     <value>Use esta herramienta para encontrar quién posee una dirección ZCash en particular. Puede igualar en cualquiera de sus propias direcciones, o en cualquiera de las direcciones de sus contactos.</value>
   </data>
+  <data name="InternalAddressWarningCaption" xml:space="preserve">
+    <value>Esta es una dirección interna para esta cuenta y debe * no * ser compartido con nadie.</value>
+  </data>
   <data name="MatchedAccountTitle" xml:space="preserve">
     <value>Cuenta emparejada</value>
   </data>

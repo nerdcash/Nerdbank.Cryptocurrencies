@@ -126,6 +126,9 @@
   <data name="Explanation" xml:space="preserve">
     <value>使用此工具查找特定的Zcash地址的所有者。它可以匹配您自己的任何地址，或者您联系人的任何地址。</value>
   </data>
+  <data name="InternalAddressWarningCaption" xml:space="preserve">
+    <value>这是该帐户的内部地址，不应与任何人共享 * *。</value>
+  </data>
   <data name="MatchedAccountTitle" xml:space="preserve">
     <value>匹配的账户</value>
   </data>
