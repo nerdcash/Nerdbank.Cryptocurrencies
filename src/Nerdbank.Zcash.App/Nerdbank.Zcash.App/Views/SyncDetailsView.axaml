@@ -10,16 +10,18 @@
   <Design.DataContext>
     <vm:SyncDetailsViewModel />
   </Design.DataContext>
-  <ItemsControl ItemsSource="{Binding SyncDetails}">
-    <ItemsControl.ItemTemplate>
-      <DataTemplate>
-        <StackPanel>
-          <TextBlock Text="{Binding Network}"
-                     FontSize="16" FontWeight="Bold"
-                     HorizontalAlignment="Center" />
-          <local:SyncDetailsControl DataContext="{Binding}" Margin="0 0 0 20" />
-        </StackPanel>
-      </DataTemplate>
-    </ItemsControl.ItemTemplate>
-  </ItemsControl>
+  <StackPanel Classes="ScreenMargin">
+    <ItemsControl ItemsSource="{Binding SyncDetails}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <StackPanel>
+            <TextBlock Text="{Binding Network}"
+                       FontSize="16" FontWeight="Bold"
+                       HorizontalAlignment="Center" />
+            <local:SyncDetailsControl DataContext="{Binding}" Margin="0 0 0 20" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
 </UserControl>

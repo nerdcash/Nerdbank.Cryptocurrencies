@@ -12,7 +12,7 @@
     <vm:AccountsViewModel />
   </Design.DataContext>
   <DockPanel>
-    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="10">
       <SplitButton Command="{Binding NewAccountCommand}" Content="{Binding NewAccountCommandCaption}">
         <SplitButton.Flyout>
           <MenuFlyout Placement="Top">

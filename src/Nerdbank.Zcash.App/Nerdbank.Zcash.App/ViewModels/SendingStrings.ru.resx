@@ -168,6 +168,9 @@
   <data name="SendCommandCaption" xml:space="preserve">
     <value>📤 Отправить</value>
   </data>
+  <data name="SendCommandCaption_Sending" xml:space="preserve">
+    <value>⚒ Отправка</value>
+  </data>
   <data name="SendSuccessfulMessage" xml:space="preserve">
     <value>{Amount} отправлена ​​успешно.</value>
   </data>

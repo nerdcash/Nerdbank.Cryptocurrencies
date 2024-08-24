@@ -9,34 +9,36 @@
   <Design.DataContext>
     <vm:ExportSeedBasedAccountViewModel />
   </Design.DataContext>
-  <StackPanel>
-    <TextBlock Text="{Binding BackupSeedPhraseExplanation}" />
-    <Label Content="{Binding SeedPhraseCaption}" Target="{Binding #SeedPhraseGrid}" />
-    <DataGrid ItemsSource="{Binding SeedPhraseRows}" HeadersVisibility="None" Name="SeedPhraseGrid">
-      <DataGrid.Columns>
-        <DataGridTextColumn Binding="{Binding Word1}" />
-        <DataGridTextColumn Binding="{Binding Word2}" />
-        <DataGridTextColumn Binding="{Binding Word3}" />
-      </DataGrid.Columns>
-    </DataGrid>
-    <Grid Margin="10" RowDefinitions="auto, auto, auto, auto, auto" ColumnDefinitions="auto, 10, auto">
-      <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
-      <SelectableTextBlock Text="{Binding Password}" Grid.Column="2" />
+  <ScrollViewer>
+    <StackPanel Classes="ScreenMargin">
+      <TextBlock Text="{Binding BackupSeedPhraseExplanation}" />
+      <Label Content="{Binding SeedPhraseCaption}" Target="{Binding #SeedPhraseGrid}" />
+      <DataGrid ItemsSource="{Binding SeedPhraseRows}" HeadersVisibility="None" Name="SeedPhraseGrid">
+        <DataGrid.Columns>
+          <DataGridTextColumn Binding="{Binding Word1}" />
+          <DataGridTextColumn Binding="{Binding Word2}" />
+          <DataGridTextColumn Binding="{Binding Word3}" />
+        </DataGrid.Columns>
+      </DataGrid>
+      <Grid Margin="10" RowDefinitions="auto, auto, auto, auto, auto" ColumnDefinitions="auto, 10, auto">
+        <TextBlock Text="{Binding PasswordCaption}" Grid.Column="0" />
+        <SelectableTextBlock Text="{Binding Password}" Grid.Column="2" />
 
-      <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
-      <SelectableTextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
+        <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" />
+        <SelectableTextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" />
 
-      <TextBlock Text="{Binding OptimizedBirthdayHeightCaption}" Grid.Row="2" Grid.Column="0" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <SelectableTextBlock Text="{Binding OptimizedBirthdayHeight,StringFormat=N0}" Grid.Row="2" Grid.Column="2" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Text="{Binding OptimizedBirthdayHeightCaption}" Grid.Row="2" Grid.Column="0" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <SelectableTextBlock Text="{Binding OptimizedBirthdayHeight,StringFormat=N0}" Grid.Row="2" Grid.Column="2" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-      <TextBlock Text="{Binding RebirthHeightCaption}" Grid.Row="3" Grid.Column="0" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <SelectableTextBlock Text="{Binding RebirthHeight,StringFormat=N0}" Grid.Row="3" Grid.Column="2" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Text="{Binding RebirthHeightCaption}" Grid.Row="3" Grid.Column="0" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <SelectableTextBlock Text="{Binding RebirthHeight,StringFormat=N0}" Grid.Row="3" Grid.Column="2" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-      <TextBlock Text="{Binding AccountIndexCaption}" Grid.Row="4" Grid.Column="0" />
-      <SelectableTextBlock Text="{Binding AccountIndex,StringFormat=N0}" Grid.Row="4" Grid.Column="2" />
-    </Grid>
-    <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
-    <TextBlock Text="{Binding ShowViewingKeysExplanation}" />
-    <Button Command="{Binding ShowViewingKeysCommand}" Content="{Binding ShowViewingKeysCommandCaption}" />
-  </StackPanel>
+        <TextBlock Text="{Binding AccountIndexCaption}" Grid.Row="4" Grid.Column="0" />
+        <SelectableTextBlock Text="{Binding AccountIndex,StringFormat=N0}" Grid.Row="4" Grid.Column="2" />
+      </Grid>
+      <ToggleButton IsChecked="{Binding IsSeedPhraseBackedUp}" Content="{Binding IsSeedPhraseBackedUpCaption}" />
+      <TextBlock Text="{Binding ShowViewingKeysExplanation}" />
+      <Button Command="{Binding ShowViewingKeysCommand}" Content="{Binding ShowViewingKeysCommandCaption}" />
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>

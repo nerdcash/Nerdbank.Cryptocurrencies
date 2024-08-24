@@ -39,7 +39,7 @@
                  DockPanel.Dock="Top"
                  HorizontalAlignment="Center"
                  FontSize="18" />
-      <ContentControl Content="{Binding Content}" Margin="5 0" />
+      <ContentControl Content="{Binding Content}" />
     </DockPanel>
     <views:SyncStatusControl
       DataContext="{Binding SyncProgress}"

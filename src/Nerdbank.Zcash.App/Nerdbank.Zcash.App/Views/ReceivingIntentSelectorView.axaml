@@ -10,7 +10,7 @@
   <Design.DataContext>
     <vm:ReceivingIntentSelectorViewModel />
   </Design.DataContext>
-  <DockPanel>
+  <DockPanel Classes="ScreenMargin">
     <StackPanel>
       <Grid ColumnDefinitions="auto, *" IsVisible="{Binding AccountPickerIsVisible}">
         <Label Content="{Binding ReceivingAccountCaption}" Target="{Binding #ReceivingAccountBox}" VerticalAlignment="Center" />

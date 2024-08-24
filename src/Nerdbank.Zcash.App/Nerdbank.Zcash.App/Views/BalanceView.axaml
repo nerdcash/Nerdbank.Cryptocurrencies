@@ -35,7 +35,7 @@
           <TextBlock Text="{Binding BalanceCaption}" />
           <local:SecurityAmountDisplay Value="{Binding Balance}" FontWeight="Bold" HorizontalAlignment="Center" />
         </StackPanel>
-        <Grid IsVisible="{Binding IsBalanceBreakdownVisible}" ColumnDefinitions="auto, 10, *" RowDefinitions="auto, auto, auto, auto">
+        <Grid IsVisible="{Binding IsBalanceBreakdownVisible}" ColumnDefinitions="auto, 10, *" RowDefinitions="auto, auto, auto, auto" Margin="5 0">
           <local:SecurityAmountDisplay Value="{Binding SpendableBalance}" />
           <StackPanel Grid.Column="2">
             <TextBlock Text="{Binding SpendableBalanceCaption}" Classes="SubsetName" />
@@ -65,11 +65,13 @@
           <Rectangle Grid.Row="3" Grid.ColumnSpan="3" Fill="LightGray" Height="1" VerticalAlignment="Top" />
         </Grid>
         <StackPanel IsVisible="{Binding IsUnconfirmedIncomeVisible}" Background="AntiqueWhite" Margin="0,20,0,0">
-          <StackPanel Classes="HeadlineBalance">
-            <TextBlock Text="{Binding UnconfirmedIncomeCaption}" />
-            <local:SecurityAmountDisplay Value="{Binding UnconfirmedIncome}" FontWeight="Bold" HorizontalAlignment="Center" />
+          <StackPanel Margin="5 5">
+            <StackPanel Classes="HeadlineBalance">
+              <TextBlock Text="{Binding UnconfirmedIncomeCaption}" />
+              <local:SecurityAmountDisplay Value="{Binding UnconfirmedIncome}" FontWeight="Bold" HorizontalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="{Binding UnconfirmedIncomeExplanation}" />
           </StackPanel>
-          <TextBlock Text="{Binding UnconfirmedIncomeExplanation}" />
         </StackPanel>
       </StackPanel>
     </ScrollViewer>

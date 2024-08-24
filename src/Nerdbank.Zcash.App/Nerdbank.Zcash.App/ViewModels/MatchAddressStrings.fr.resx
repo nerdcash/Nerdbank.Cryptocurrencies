@@ -126,6 +126,9 @@
   <data name="Explanation" xml:space="preserve">
     <value>Utilisez cet outil pour trouver qui possède une adresse Zcash particulière. Il peut correspondre à l'une de vos propres adresses ou à l'une des adresses de vos contacts.</value>
   </data>
+  <data name="InternalAddressWarningCaption" xml:space="preserve">
+    <value>Il s'agit d'une adresse interne pour ce compte et ne devrait * pas * être partagé avec qui que ce soit.</value>
+  </data>
   <data name="MatchedAccountTitle" xml:space="preserve">
     <value>Compte correspondant</value>
   </data>

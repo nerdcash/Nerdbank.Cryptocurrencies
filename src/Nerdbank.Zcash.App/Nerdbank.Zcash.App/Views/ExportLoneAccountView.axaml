@@ -10,24 +10,28 @@
     <vm:ExportLoneAccountViewModel />
   </Design.DataContext>
   <ScrollViewer>
-    <StackPanel>
+    <StackPanel Spacing="10" Classes="ScreenMargin">
       <StackPanel IsVisible="{Binding FullViewingKey, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <Label Content="{Binding FullViewingKeyCaption}" Target="{Binding #FullViewingKeyBox}" />
-        <TextBox Text="{Binding FullViewingKey}" Name="FullViewingKeyBox" IsReadOnly="True" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding FullViewingKeyCaption}" Classes="Caption" />
+        <SelectableTextBlock Text="{Binding FullViewingKey}" />
       </StackPanel>
-      <StackPanel IsVisible="{Binding IncomingViewingKey, Converter={x:Static ObjectConverters.IsNotNull}}" Margin="0 10 0 0">
-        <Label Content="{Binding IncomingViewingKeyCaption}" Target="{Binding #IncomingViewingKeyBox}" />
-        <TextBox Text="{Binding IncomingViewingKey}" Name="IncomingViewingKeyBox" IsReadOnly="True" TextWrapping="Wrap" />
+      <StackPanel IsVisible="{Binding IncomingViewingKey, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBlock Text="{Binding IncomingViewingKeyCaption}" Classes="Caption" />
+        <SelectableTextBlock Text="{Binding IncomingViewingKey}" />
       </StackPanel>
-      <Grid Margin="10" RowDefinitions="auto, auto, auto" ColumnDefinitions="auto, 10, auto">
-        <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="0" Grid.Column="0" />
+      <Grid RowDefinitions="auto, auto, auto" ColumnDefinitions="auto, 10, auto">
+        <TextBlock Text="{Binding BirthdayHeightCaption}" Grid.Row="0" Grid.Column="0" Classes="Caption" />
         <SelectableTextBlock Text="{Binding BirthdayHeight,StringFormat=N0}" Grid.Row="0" Grid.Column="2" />
 
-        <TextBlock Text="{Binding OptimizedBirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <SelectableTextBlock Text="{Binding OptimizedBirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2" IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Text="{Binding OptimizedBirthdayHeightCaption}" Grid.Row="1" Grid.Column="0" Classes="Caption"
+                   IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <SelectableTextBlock Text="{Binding OptimizedBirthdayHeight,StringFormat=N0}" Grid.Row="1" Grid.Column="2"
+                             IsVisible="{Binding OptimizedBirthdayHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-        <TextBlock Text="{Binding RebirthHeightCaption}" Grid.Row="2" Grid.Column="0" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <SelectableTextBlock Text="{Binding RebirthHeight,StringFormat=N0}" Grid.Row="2" Grid.Column="2" IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Text="{Binding RebirthHeightCaption}" Grid.Row="2" Grid.Column="0" Classes="Caption"
+                   IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <SelectableTextBlock Text="{Binding RebirthHeight,StringFormat=N0}" Grid.Row="2" Grid.Column="2"
+                             IsVisible="{Binding RebirthHeight, Converter={x:Static ObjectConverters.IsNotNull}}" />
       </Grid>
     </StackPanel>
   </ScrollViewer>

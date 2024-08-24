@@ -9,7 +9,7 @@
   <Design.DataContext>
     <vm:MatchAddressViewModel />
   </Design.DataContext>
-  <DockPanel>
+  <DockPanel Classes="ScreenMargin">
     <StackPanel>
       <TextBlock Text="{Binding Explanation}" Margin="0,0,0,10" />
       <TextBox Name="AddressBox" Text="{Binding Address}" Watermark="{Binding AddressWatermark}" />

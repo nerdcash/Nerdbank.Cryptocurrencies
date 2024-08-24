@@ -15,7 +15,7 @@
       <Setter Property="FontWeight" Value="Bold" />
     </Style>
   </UserControl.Styles>
-  <DockPanel>
+  <DockPanel Classes="ScreenMargin">
     <StackPanel DockPanel.Dock="Bottom">
       <TextBlock Classes="Heading" Text="{Binding PoolsHeading}" />
       <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Pools}" IsReadOnly="True" CanUserSortColumns="False">
