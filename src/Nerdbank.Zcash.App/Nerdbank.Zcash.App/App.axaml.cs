@@ -129,6 +129,12 @@ public partial class App : Application, IAsyncDisposable
 			viewModel.TopVisual = singleViewPlatform.MainView;
 		}
 
+		// Remember the last account the user used.
+		if (this.settings?.LastUsedAccountName is string lastAccountName && this.ViewModel is not null)
+		{
+			this.ViewModel.MostRecentlyUsedAccount = this.Data.Wallet.Accounts.FirstOrDefault(a => a.Name == lastAccountName);
+		}
+
 		base.OnFrameworkInitializationCompleted();
 
 		this.HandleStartupInstructions();

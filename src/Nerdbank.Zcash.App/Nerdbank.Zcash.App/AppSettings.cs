@@ -18,6 +18,7 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	private bool isDirty;
 	private bool showProtocolDetails;
 	private string themeName = "Default";
+	private string? lastUsedAccountName;
 
 	public AppSettings()
 	{
@@ -69,6 +70,18 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 	{
 		get => this.themeName;
 		set => this.RaiseAndSetIfChanged(ref this.themeName, value);
+	}
+
+	/// <summary>
+	/// Gets or sets the name of the last used account.
+	/// </summary>
+	/// <remarks>
+	/// This is useful for remembering the last account used when the app is restarted.
+	/// </remarks>
+	public string? LastUsedAccountName
+	{
+		get => this.lastUsedAccountName;
+		set => this.RaiseAndSetIfChanged(ref this.lastUsedAccountName, value);
 	}
 
 	/// <summary>
