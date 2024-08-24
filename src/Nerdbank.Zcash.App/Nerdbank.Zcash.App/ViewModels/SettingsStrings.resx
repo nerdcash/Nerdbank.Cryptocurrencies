@@ -141,19 +141,19 @@
   <data name="ServerNetworkMismatch" xml:space="preserve">
     <value>This URL serves the {0} network.</value>
   </data>
-  <data name="Title" xml:space="preserve">
-    <value>Settings</value>
-  </data>
   <data name="ThemeCaption" xml:space="preserve">
     <value>Theme</value>
-  </data>
-  <data name="ThemeLight" xml:space="preserve">
-    <value>Light</value>
   </data>
   <data name="ThemeDark" xml:space="preserve">
     <value>Dark</value>
   </data>
   <data name="ThemeDefault" xml:space="preserve">
     <value>System Default</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Settings</value>
   </data>
 </root>

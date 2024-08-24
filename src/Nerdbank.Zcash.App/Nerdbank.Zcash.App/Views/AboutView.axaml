@@ -12,7 +12,7 @@
   </Design.DataContext>
 
   <ScrollViewer>
-    <StackPanel Spacing="10">
+    <StackPanel Spacing="10" Classes="ScreenMargin">
       <TextBlock Text="{Binding Message}" />
 
       <local:WalletStorageLocationDisplay DataContext="{Binding WalletStorageLocation}" />
