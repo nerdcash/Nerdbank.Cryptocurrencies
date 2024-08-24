@@ -17,9 +17,9 @@
         <Setter Property="Margin" Value="0" />
       </Style>
     </StackPanel.Styles>
-    <TextBlock Text="{Binding DarkText}" Foreground="Black" />
-    <TextBlock Text="{Binding LightText}" Foreground="LightGray" />
-    <TextBlock Text=" " Foreground="Gray" />
-    <TextBlock Text="{Binding Units}" Foreground="Black" IsVisible="{Binding Path=IsUnitsVisible, RelativeSource={RelativeSource AncestorType={x:Type local:SecurityAmountDisplay}}}" />
+    <TextBlock Text="{Binding DarkText}" Classes="Significant" />
+    <TextBlock Text="{Binding LightText}" Classes="Insignificant" />
+    <TextBlock Text=" " />
+    <TextBlock Text="{Binding Units}" Classes="Significant" IsVisible="{Binding Path=IsUnitsVisible, RelativeSource={RelativeSource AncestorType={x:Type local:SecurityAmountDisplay}}}" />
   </StackPanel>
 </UserControl>
