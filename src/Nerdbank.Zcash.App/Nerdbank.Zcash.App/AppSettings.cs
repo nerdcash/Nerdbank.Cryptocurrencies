@@ -4,6 +4,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Avalonia;
 using Nerdbank.Cryptocurrencies;
 
 namespace Nerdbank.Zcash.App;
@@ -84,6 +85,18 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 		set => this.RaiseAndSetIfChanged(ref this.lastUsedAccountName, value);
 	}
 
+	[JsonIgnore]
+	public Size? WindowSize
+	{
+		get => this.WindowWidth is double w && this.WindowHeight is double h ? new(w, h) : null;
+		set
+		{
+			this.WindowWidth = value?.Width;
+			this.WindowHeight = value?.Height;
+			this.RaisePropertyChanged();
+		}
+	}
+
 	/// <summary>
 	/// Gets or sets a value indicating whether exchange rates will be automatically downloaded.
 	/// </summary>
@@ -111,6 +124,12 @@ public class AppSettings : IReactiveObject, ITopLevelPersistableData<AppSettings
 		get => this.isDirty;
 		set => this.RaiseAndSetIfChanged(ref this.isDirty, value);
 	}
+
+	[JsonInclude]
+	internal double? WindowWidth { get; set; }
+
+	[JsonInclude]
+	internal double? WindowHeight { get; set; }
 
 	public static AppSettings Load(Stream stream) => JsonSerializer.Deserialize(stream, JsonSourceGenerationContext.Default.AppSettings)!;
 
