@@ -117,6 +117,24 @@ public partial class App : Application, IAsyncDisposable
 			}
 
 			this.ViewModel.TopLevel = TopLevel.GetTopLevel(desktop.MainWindow);
+
+			// Remember the size of the window.
+			if (desktop.MainWindow.CanResize && this.settings is not null)
+			{
+				if (this.settings?.WindowSize is Size size)
+				{
+					desktop.MainWindow.Width = size.Width;
+					desktop.MainWindow.Height = size.Height;
+				}
+
+				desktop.MainWindow.Resized += (s, e) =>
+				{
+					if (this.settings is not null)
+					{
+						this.settings.WindowSize = new(desktop.MainWindow.Width, desktop.MainWindow.Height);
+					}
+				};
+			}
 		}
 		else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
 		{
