@@ -14,7 +14,7 @@ use secrecy::SecretVec;
 use tokio::runtime::Runtime;
 use tokio_util::sync::CancellationToken;
 use zcash_client_backend::{
-    data_api::{Account, WalletRead},
+    data_api::{Account, AccountPurpose, WalletRead},
     encoding::AddressCodec,
     keys::{Era, UnifiedSpendingKey},
 };
@@ -332,7 +332,11 @@ pub fn import_account_ufvk(
         let account = db
             .import_account_ufvk(
                 &ufvk,
-                spending_key_available,
+                if spending_key_available {
+                    AccountPurpose::Spending
+                } else {
+                    AccountPurpose::ViewOnly
+                },
                 birthday_height as u64,
                 &mut client,
             )

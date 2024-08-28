@@ -17,30 +17,29 @@ uniffi = { version = "0.25.0", features = ["build"] }
 ff = "0.13"
 futures-util = "0.3"
 group = "0.13"
-hdwallet = { path = "../../external/hdwallet" }
-http = "0.2"
+http = "1"
 jubjub = "0.10"
 lazy_static = "1.4"
 minreq = "2.11.0"
 nonempty = "0.7"
-orchard = "0.8.0"
+orchard = "0.9.0"
 pasta_curves = "0.5"
 prost = "0.12"
 rusqlite = "0.29"
-sapling = { package = "sapling-crypto", version = "0.1.2" }
+sapling = { package = "sapling-crypto", version = "0.2" }
 schemer = "0.2"
 secrecy = "0.8.0"
 thiserror = "1.0"
 time = "0.3.31"
 tracing = "0.1"
-tokio = { version = "1.32", features = [
+tokio = { version = "1", features = [
 	"rt",
 	"fs",
 	"macros",
 	"rt-multi-thread",
 ] }
 tokio-util = "0.7.10"
-tonic = { version = "0.11", features = ["gzip", "tls-webpki-roots"] }
+tonic = { version = "0.12", features = ["gzip", "tls-native-roots"] }
 uniffi = "0.25"
 zcash_address = { path = "../../external/librustzcash/components/zcash_address" }
 zcash_primitives = { path = "../../external/librustzcash/zcash_primitives", features = [
@@ -80,5 +79,4 @@ matches = "0.1"
 bip0039 = { version = "0.12.0", features = ["std"] }
 
 [patch.crates-io]
-hdwallet = { path = "../../external/hdwallet" }
 sapling = { package = "sapling-crypto", path = "../../external/sapling-crypto" }

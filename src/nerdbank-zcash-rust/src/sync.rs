@@ -52,7 +52,7 @@ use crate::{
     interop::{Pool, SyncUpdate, SyncUpdateData, TransactionNote},
     lightclient::parse_network,
     resilience::webrequest_with_retry,
-    sql_statements::GET_TRANSACTIONS_SQL,
+    sql_statements::{GET_OUTPOINT_VALUE, GET_TRANSACTIONS_SQL},
 };
 
 type ChainError =
@@ -482,7 +482,7 @@ fn calculate_transaction_fee(transaction: Transaction, conn: &Connection) -> Res
     fn get_prevout_value(outpoint: &OutPoint, conn: &Connection) -> Result<Amount, Error> {
         Ok(Amount::try_from(
             conn.query_row(
-                "SELECT value_zat FROM utxos WHERE prevout_txid = :txid AND prevout_idx = :idx",
+                GET_OUTPOINT_VALUE,
                 named_params! {
                     ":txid": outpoint.hash(),
                     ":idx": outpoint.n(),
@@ -591,7 +591,12 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
         // - v5 and above transactions ignore the argument, and parse the correct value
         //   from their encoding.
         let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
-        decrypt_and_store_transaction(network, &mut db.data, &tx)?;
+        decrypt_and_store_transaction(
+            network,
+            &mut db.data,
+            &tx,
+            Some((raw_tx.height as u32).into()),
+        )?;
     }
 
     Ok(txids)
@@ -687,14 +692,14 @@ async fn download_transparent_transactions(
         txids_for_new_transparent_transactions.push(tx.txid());
 
         // Record spends.
-        decrypt_and_store_transaction(network, &mut db.data, &tx)?;
+        decrypt_and_store_transaction(network, &mut db.data, &tx, Some(height))?;
 
         // Record receives.
         if let Some(t) = tx.transparent_bundle() {
             for (txout_index, txout) in t.vout.iter().enumerate() {
                 let outpoint = OutPoint::new(tx.txid().as_ref().to_owned(), txout_index as u32);
                 if let Some(output) =
-                    WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), height)
+                    WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), Some(height))
                 {
                     match db.data.put_received_transparent_utxo(&output) {
                         Ok(_) => (),
@@ -955,7 +960,12 @@ async fn watch_mempool<P: AsRef<Path>>(
         if progress.is_some() {
             if let Some(range) = mempool_range.as_ref() {
                 let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
-                decrypt_and_store_transaction(network, &mut db.data, &tx)?;
+                decrypt_and_store_transaction(
+                    network,
+                    &mut db.data,
+                    &tx,
+                    Some((raw_tx.height as u32).into()),
+                )?;
 
                 report_transactions_in_range(
                     range,

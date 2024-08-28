@@ -81,22 +81,31 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	UNION
 	
 	SELECT
-		height,
+		t.block,
 		value_zat,
 		0, -- output_pool
 		0  -- is_change
-	FROM utxos
-	LEFT OUTER JOIN transparent_received_output_spends j ON utxos.id = j.transparent_received_output_id
-	WHERE received_by_account_id = :account_id AND j.transaction_id IS NULL
+	FROM transparent_received_outputs txo
+	INNER JOIN transactions t ON t.id_tx = txo.transaction_id
+	LEFT OUTER JOIN transparent_received_output_spends j ON txo.id = j.transparent_received_output_id
+	WHERE account_id = :account_id AND j.transaction_id IS NULL
 "#;
 
 pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
 	SELECT
-		height,
+		t.block AS height,
 		value_zat,
 		address
-	FROM utxos
-	LEFT OUTER JOIN transparent_received_output_spends j ON utxos.id = j.transparent_received_output_id
-	WHERE received_by_account_id = :account_id AND j.transaction_id IS NULL
-	ORDER BY height
+	FROM transparent_received_outputs txo
+	INNER JOIN transactions t ON t.id_tx = txo.transaction_id
+	LEFT OUTER JOIN transparent_received_output_spends j ON j.transparent_received_output_id = txo.id
+	WHERE account_id = :account_id AND j.transaction_id IS NULL
+	ORDER BY t.block
+"#;
+
+pub(crate) const GET_OUTPOINT_VALUE: &str = r#"
+	SELECT value_zat
+	FROM transparent_received_outputs txo
+	INNER JOIN transactions t ON txo.transaction_id = t.id_tx
+	WHERE t.txid = :txid AND output_index = :idx
 "#;
