@@ -35,7 +35,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		this.LinkProperty(nameof(this.SeedPassword), nameof(this.SeedPasswordHasWhitespace));
 		this.LinkProperty(nameof(this.IsTestNet), nameof(this.MinimumBirthdayHeight));
 
-		this.BirthdayHeight = this.NetworkParameters.SaplingActivationHeight;
+		this.BirthdayHeight = this.MinimumBirthdayHeight;
 
 		if (viewModelServices.Wallet.IsEmpty)
 		{
@@ -153,7 +153,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public string BirthdayHeightCaption => ImportAccountStrings.BirthdayHeightCaption;
 
-	public ulong MinimumBirthdayHeight => this.NetworkParameters.SaplingActivationHeight;
+	public uint MinimumBirthdayHeight => (uint)(this.NetworkParameters.SaplingActivationHeight + (this.IsTestNet ? 0 : 2)); // workaround https://github.com/zcash/librustzcash/issues/1467
 
 	public string ImportCommandCaption => ImportAccountStrings.ImportCommandCaption;
 
