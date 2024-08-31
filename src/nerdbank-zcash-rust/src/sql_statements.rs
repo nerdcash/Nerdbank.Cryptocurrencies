@@ -29,7 +29,10 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 			 ))
 		) AS from_account_id,
 		txo.to_account_id,
-		(SELECT to_address FROM v_tx_outputs vtxo WHERE vtxo.txid = t.txid AND vtxo.output_pool = txo.output_pool AND vtxo.output_index = txo.output_index AND to_address IS NOT NULL) AS to_address,
+		coalesce(
+			(SELECT to_address FROM v_tx_outputs vtxo WHERE vtxo.txid = t.txid AND vtxo.output_pool = txo.output_pool AND vtxo.output_index = txo.output_index AND to_address IS NOT NULL),
+			(SELECT address FROM transparent_received_outputs txo WHERE txo.transaction_id = tx.id_tx AND txo.output_index = txo.output_index AND address IS NOT NULL)
+		) AS to_address,
 		coalesce(s.diversifier, o.diversifier) AS diversifier,
 		txo.value,
 		txo.memo
