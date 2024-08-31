@@ -1,9 +1,15 @@
-use futures_util::TryStreamExt;
+use futures_util::{StreamExt, TryStreamExt};
 use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
 use rusqlite::{named_params, Connection};
-use std::{borrow::Borrow, collections::HashMap, ops::Range, path::Path, sync::Arc};
+use std::{
+    borrow::Borrow,
+    collections::{BTreeSet, HashMap},
+    ops::Range,
+    path::Path,
+    sync::Arc,
+};
 use tokio::{
     select,
     sync::{mpsc, Mutex},
@@ -30,14 +36,15 @@ use zcash_client_backend::{
         chain::{scan_cached_blocks, ChainState, CommitmentTreeRoot},
         scanning::{ScanPriority, ScanRange},
         wallet::decrypt_and_store_transaction,
-        TransparentAddressSyncInfo, WalletCommitmentTrees, WalletRead, WalletWrite,
+        TransactionDataRequest, TransactionStatus, TransparentAddressSyncInfo,
+        WalletCommitmentTrees, WalletRead, WalletWrite,
     },
     encoding::AddressCodec,
     proto::{
         compact_formats::CompactBlock,
         service::{
             self, compact_tx_streamer_client::CompactTxStreamerClient, BlockId, BlockRange, Empty,
-            TransparentAddressBlockFilter, TxFilter,
+            RawTransaction, TransparentAddressBlockFilter, TxFilter,
         },
     },
     wallet::WalletTransparentOutput,
@@ -304,6 +311,119 @@ pub async fn sync<P: AsRef<Path>>(
                 // The suggested scan ranges have been updated (either due to a continuity
                 // error or because a higher priority range has been added).
                 caught_up = false;
+                break;
+            }
+        }
+
+        let mut satisfied_requests = BTreeSet::new();
+        loop {
+            let mut new_request_encountered = false;
+            for data_request in db.data.transaction_data_requests()? {
+                if satisfied_requests.contains(&data_request) {
+                    continue;
+                } else {
+                    new_request_encountered = true;
+                }
+
+                info!("Fetching data for request {:?}", data_request);
+                match data_request {
+                    TransactionDataRequest::GetStatus(txid) => {
+                        let status = fetch_transaction(
+                            &mut client,
+                            &state.network,
+                            status.tip_height.into(),
+                            txid,
+                        )
+                        .await?
+                        .map_or(
+                            TransactionStatus::TxidNotRecognized,
+                            |(_, mined_height)| {
+                                mined_height.map_or(
+                                    TransactionStatus::NotInMainChain,
+                                    TransactionStatus::Mined,
+                                )
+                            },
+                        );
+                        info!("Got status {:?}", status);
+                        db.data.set_transaction_status(txid, status)?;
+                    }
+                    TransactionDataRequest::Enhancement(txid) => {
+                        match fetch_transaction(
+                            &mut client,
+                            &state.network,
+                            status.tip_height.into(),
+                            txid,
+                        )
+                        .await?
+                        {
+                            None => {
+                                info!("Txid not recognized {:?}", txid);
+                                db.data.set_transaction_status(
+                                    txid,
+                                    TransactionStatus::TxidNotRecognized,
+                                )?;
+                            }
+                            Some((tx, mined_height)) => {
+                                info!(
+                                    "Enhancing tx {:?} with mined height {:?}",
+                                    txid, mined_height
+                                );
+                                decrypt_and_store_transaction(
+                                    &state.network,
+                                    &mut db.data,
+                                    &tx,
+                                    mined_height,
+                                )?;
+                            }
+                        }
+                    }
+                    TransactionDataRequest::SpendsFromAddress {
+                        address,
+                        block_range_start,
+                        block_range_end,
+                    } => {
+                        let address = address.encode(&state.network);
+                        let request = service::TransparentAddressBlockFilter {
+                            address: address.clone(),
+                            range: Some(BlockRange {
+                                start: Some(service::BlockId {
+                                    height: u64::from(block_range_start),
+                                    ..Default::default()
+                                }),
+                                end: block_range_end.map(|h| service::BlockId {
+                                    height: u64::from(h - 1), // `BlockRange` end is inclusive.
+                                    ..Default::default()
+                                }),
+                            }),
+                        };
+
+                        let mut stream = client.get_taddress_txids(request).await?.into_inner();
+                        while let Some(raw_tx) = stream.next().await {
+                            let (tx, mined_height) = parse_raw_transaction(
+                                &state.network,
+                                status.tip_height.into(),
+                                raw_tx?,
+                            )?;
+                            info!(
+                                "Found tx {:?} for address {} with mined height {:?}",
+                                tx.txid(),
+                                address,
+                                mined_height
+                            );
+                            decrypt_and_store_transaction(
+                                &state.network,
+                                &mut db.data,
+                                &tx,
+                                mined_height,
+                            )?
+                        }
+                    }
+                }
+
+                satisfied_requests.insert(data_request);
+            }
+
+            if !new_request_encountered {
                 break;
             }
         }
@@ -981,6 +1101,45 @@ async fn watch_mempool<P: AsRef<Path>>(
     }
 
     Ok(())
+}
+
+async fn fetch_transaction(
+    client: &mut CompactTxStreamerClient<Channel>,
+    params: &Network,
+    chain_tip: BlockHeight,
+    txid: TxId,
+) -> Result<Option<(Transaction, Option<BlockHeight>)>, Error> {
+    let request = service::TxFilter {
+        hash: txid.as_ref().to_vec(),
+        ..Default::default()
+    };
+
+    let raw_tx = match client.get_transaction(request).await {
+        Ok(response) => Ok(Some(response.into_inner())),
+        Err(status) if status.code() == tonic::Code::NotFound => Ok(None),
+        Err(status) => Err(status),
+    }?;
+
+    raw_tx
+        .map(|raw_tx| parse_raw_transaction(params, chain_tip, raw_tx))
+        .transpose()
+}
+
+fn parse_raw_transaction(
+    params: &Network,
+    chain_tip: BlockHeight,
+    tx: RawTransaction,
+) -> Result<(Transaction, Option<BlockHeight>), Error> {
+    let mined_height = (tx.height > 0 && tx.height <= u64::from(u32::MAX))
+        .then(|| BlockHeight::from_u32(u32::try_from(tx.height).unwrap()));
+
+    let tx = Transaction::read(
+        &tx.data[..],
+        // We assume unmined transactions are created with the current consensus branch ID.
+        BranchId::for_height(params, mined_height.unwrap_or(chain_tip)),
+    )?;
+
+    Ok((tx, mined_height))
 }
 
 /// Returns the transactions that match the given filters.
