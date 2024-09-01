@@ -1117,6 +1117,8 @@ async fn fetch_transaction(
     let raw_tx = match client.get_transaction(request).await {
         Ok(response) => Ok(Some(response.into_inner())),
         Err(status) if status.code() == tonic::Code::NotFound => Ok(None),
+        // Workaround for https://github.com/ZcashFoundation/zebra/issues/8786 and https://github.com/zcash/lightwalletd/issues/497
+        Err(status) if status.code() == tonic::Code::Unknown && (status.message() == "-5: No such mempool or blockchain transaction. Use gettransaction for wallet transactions." || status.message() == "0: Transaction not found") => Ok(None),
         Err(status) => Err(status),
     }?;
 
