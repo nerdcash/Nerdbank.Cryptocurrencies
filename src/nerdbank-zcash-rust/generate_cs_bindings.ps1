@@ -16,7 +16,7 @@ if ($InstallPrerequisites) {
     if ($env:TF_BUILD) {
         Write-Host "##[group]Install uniffi-bindgen-cs"
     }
-    cargo install uniffi-bindgen-cs --git https://github.com/nerdcash/uniffi-bindgen-cs --rev 17de10a1f121b12b7534eafefd4696319e9d2418 # --tag v0.8.0+v0.25.0
+    cargo install uniffi-bindgen-cs --git https://github.com/nerdcash/uniffi-bindgen-cs --rev f1196841bd28467 # just beyond v0.8.2+v0.25.0
     if ($env:TF_BUILD) {
         Write-Host "##[endgroup]"
     }
