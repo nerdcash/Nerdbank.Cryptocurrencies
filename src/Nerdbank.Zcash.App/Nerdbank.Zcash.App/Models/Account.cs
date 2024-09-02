@@ -174,6 +174,8 @@ public class Account : ReactiveObject, IPersistableData
 				// Copy over elements that can change as a transaction gets confirmed or transitions from being provisional.
 				tx.BlockNumber = transaction.MinedHeight;
 
+				tx.ExpiredUnmined = transaction.ExpiredUnmined;
+
 				// If we're finalizing a provisional transaction, fill in extra details.
 				// The transaction ID itself may have been filled in by the send view model,
 				// even if some of the other details haven't been fleshed out by importing the transaction from the rust side.
@@ -215,6 +217,7 @@ public class Account : ReactiveObject, IPersistableData
 					RecvItems = transaction.Incoming.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
 					SendItems = transaction.Outgoing.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
 					Fee = transaction.Outgoing.IsEmpty && transaction.Change.IsEmpty ? 0 : transaction.Fee,
+					ExpiredUnmined = transaction.ExpiredUnmined,
 				};
 
 				this.TransactionsMutable.Add(tx);

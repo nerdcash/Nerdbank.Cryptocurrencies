@@ -34,6 +34,9 @@
         <Style Selector="TextBlock.Unconfirmed">
           <Setter Property="Foreground" Value="Gray" />
         </Style>
+        <Style Selector="TextBlock.ExpiredUnmined, local|SecurityAmountDisplay.ExpiredUnmined TextBlock">
+          <Setter Property="TextDecorations" Value="Strikethrough" />
+        </Style>
       </DataGrid.Styles>
       <DataGrid.Columns>
         <DataGridTemplateColumn Header="{Binding WhenColumnHeader}"
@@ -44,7 +47,8 @@
               <TextBlock Text="{Binding WhenColumnFormatted}"
                          ToolTip.Tip="{Binding WhenToolTip}"
                          Classes="ColumnValue"
-                         Classes.Unconfirmed="{Binding BlockNumber, Converter={x:Static ObjectConverters.IsNull}}"/>
+                         Classes.Unconfirmed="{Binding BlockNumber, Converter={x:Static ObjectConverters.IsNull}}"
+                         Classes.ExpiredUnmined="{Binding ExpiredUnmined}" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -67,14 +71,22 @@
         <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding NetChange}" IsUnitsVisible="False" VerticalAlignment="Bottom" Margin="8,4,8,4" />
+              <local:SecurityAmountDisplay Value="{Binding NetChange}"
+                                           Classes.ExpiredUnmined="{Binding ExpiredUnmined}"
+                                           IsUnitsVisible="False"
+                                           VerticalAlignment="Bottom"
+                                           Margin="8,4,8,4" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <DataGridTemplateColumn Header="{Binding AlternateNetChangeColumnHeader}" IsVisible="{Binding IsAlternateNetChangeColumnVisible}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding AlternateNetChange}" IsUnitsVisible="False" VerticalAlignment="Bottom" Margin="8,4,8,4" />
+              <local:SecurityAmountDisplay Value="{Binding AlternateNetChange}"
+                                           Classes.ExpiredUnmined="{Binding ExpiredUnmined}"
+                                           IsUnitsVisible="False"
+                                           VerticalAlignment="Bottom"
+                                           Margin="8,4,8,4" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
           <DataGridTemplateColumn.CellEditingTemplate>
@@ -88,60 +100,76 @@
         <DataGridTemplateColumn Header="{Binding RunningBalanceColumnHeader}" CanUserSort="False">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <local:SecurityAmountDisplay Value="{Binding RunningBalance}" IsUnitsVisible="False" Padding="10 0" VerticalAlignment="Bottom" Margin="8,4,8,4" />
+              <local:SecurityAmountDisplay Value="{Binding RunningBalance}"
+                                           Classes.ExpiredUnmined="{Binding ExpiredUnmined}"
+                                           IsVisible="{Binding !ExpiredUnmined}"
+                                           IsUnitsVisible="False"
+                                           Padding="10 0"
+                                           VerticalAlignment="Bottom"
+                                           Margin="8,4,8,4" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
       </DataGrid.Columns>
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:TransactionViewModel">
-          <Grid RowDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto" ColumnDefinitions="auto,10,*" Margin="20,0,20,0">
-            <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" Grid.Row="0" />
-            <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="0" Grid.Column="2" />
-            <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="1" IsVisible="{Binding IsMutableMemoVisible}" />
-            <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="2" Grid.Row="1" IsVisible="{Binding IsMutableMemoVisible}" Margin="0" />
-            <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" Grid.Row="2" VerticalAlignment="Top" IsVisible="{Binding IsSingleLineItem}" />
-            <SelectableTextBlock Text="{Binding Memo}" Name="MemoBox" Grid.Row="2" Grid.Column="2" IsVisible="{Binding IsSingleLineItem}" />
-            <Label Content="{Binding LineItemsCaption}" Target="{Binding #LineItemsBox}" Grid.Row="3" VerticalAlignment="Top" IsVisible="{Binding IsMultiLineItem}" />
-            <DataGrid Name="LineItemsBox" ItemsSource="{Binding LineItems}" Grid.Row="3" Grid.Column="2" IsVisible="{Binding IsMultiLineItem}" IsReadOnly="True">
-              <DataGrid.Columns>
-                <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <local:SecurityAmountDisplay Value="{Binding Amount}" IsUnitsVisible="False" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="{Binding OtherPartyNameColumnHeader}">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding OtherPartyName}" />
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                  <DataGridTemplateColumn.CellEditingTemplate>
-                    <DataTemplate>
-                      <AutoCompleteBox Text="{Binding OtherPartyName}"
-                                       SelectedItem="{Binding OtherParty}"
-                                       ItemsSource="{Binding OtherParties}"
-                                       IsEnabled="{Binding CanOtherPartyBeChanged}"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellEditingTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="{Binding MemoCaption}" Binding="{Binding Memo}" IsReadOnly="True" />
-                <DataGridTextColumn Header="{Binding ToAddressCaption}" Binding="{Binding ToAddress}" IsReadOnly="True" />
-              </DataGrid.Columns>
-            </DataGrid>
-            <Label Content="{Binding SubtotalCaption}" Target="{Binding #AmountBox}" Grid.Row="4" IsVisible="{Binding IsSubtotalVisible}" />
-            <local:SecurityAmountDisplay Value="{Binding Subtotal}" IsUnitsVisible="False" Name="AmountBox" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Left" IsVisible="{Binding IsSubtotalVisible}" />
-            <Label Content="{Binding FeeCaption}" Target="{Binding #FeeBox}" Grid.Row="5" IsVisible="{Binding !IsIncoming}" />
-            <local:SecurityAmountDisplay Value="{Binding Fee}" IsUnitsVisible="False" Name="FeeBox" Grid.Row="5" Grid.Column="2" IsVisible="{Binding !IsIncoming}" HorizontalAlignment="Left" />
-            <Label Content="{Binding ToAddressCaption}" Target="{Binding #ToAddressBox}" Grid.Row="6" IsVisible="{Binding IsToAddressVisible}" />
-            <SelectableTextBlock Text="{Binding ToAddress}" Name="ToAddressBox" Grid.Row="6" Grid.Column="2" IsVisible="{Binding IsToAddressVisible}" />
-            <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="7" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
-            <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="7" Grid.Column="2" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
-            <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="8" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
-            <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="8" Grid.Column="2" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
-          </Grid>
+          <StackPanel>
+            <Grid ColumnDefinitions="auto,*" RowDefinitions="auto" Margin="5 0">
+              <TextBlock Text="ℹ️"
+                         VerticalAlignment="Top"
+                         IsVisible="{Binding ExpiredUnmined}" />
+              <TextBlock Text="{Binding ExpiredUnminedExplanation}"
+                         IsVisible="{Binding ExpiredUnmined}"
+                         Grid.Column="1" />
+            </Grid>
+            <Grid RowDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto" ColumnDefinitions="auto,10,*" Margin="20,0,20,0">
+              <Label Content="{Binding WhenCaption}" Target="{Binding #WhenBox}" Grid.Row="0" />
+              <TextBlock Text="{Binding WhenDetailedFormatted}" Name="WhenBox" Grid.Row="0" Grid.Column="2" />
+              <Label Content="{Binding MutableMemoCaption}" Target="{Binding #MutableMemoBox}" Grid.Row="1" IsVisible="{Binding IsMutableMemoVisible}" />
+              <TextBox Text="{Binding MutableMemo}" Name="MutableMemoBox" Grid.Column="2" Grid.Row="1" IsVisible="{Binding IsMutableMemoVisible}" Margin="0" />
+              <Label Content="{Binding MemoCaption}" Target="{Binding #MemoBox}" Grid.Row="2" VerticalAlignment="Top" IsVisible="{Binding IsSingleLineItem}" />
+              <SelectableTextBlock Text="{Binding Memo}" Name="MemoBox" Grid.Row="2" Grid.Column="2" IsVisible="{Binding IsSingleLineItem}" />
+              <Label Content="{Binding LineItemsCaption}" Target="{Binding #LineItemsBox}" Grid.Row="3" VerticalAlignment="Top" IsVisible="{Binding IsMultiLineItem}" />
+              <DataGrid Name="LineItemsBox" ItemsSource="{Binding LineItems}" Grid.Row="3" Grid.Column="2" IsVisible="{Binding IsMultiLineItem}" IsReadOnly="True">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="{Binding AmountColumnHeader}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <local:SecurityAmountDisplay Value="{Binding Amount}" IsUnitsVisible="False" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="{Binding OtherPartyNameColumnHeader}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding OtherPartyName}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                      <DataTemplate>
+                        <AutoCompleteBox Text="{Binding OtherPartyName}"
+                                         SelectedItem="{Binding OtherParty}"
+                                         ItemsSource="{Binding OtherParties}"
+                                         IsEnabled="{Binding CanOtherPartyBeChanged}"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{Binding MemoCaption}" Binding="{Binding Memo}" IsReadOnly="True" />
+                  <DataGridTextColumn Header="{Binding ToAddressCaption}" Binding="{Binding ToAddress}" IsReadOnly="True" />
+                </DataGrid.Columns>
+              </DataGrid>
+              <Label Content="{Binding SubtotalCaption}" Target="{Binding #AmountBox}" Grid.Row="4" IsVisible="{Binding IsSubtotalVisible}" />
+              <local:SecurityAmountDisplay Value="{Binding Subtotal}" IsUnitsVisible="False" Name="AmountBox" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Left" IsVisible="{Binding IsSubtotalVisible}" />
+              <Label Content="{Binding FeeCaption}" Target="{Binding #FeeBox}" Grid.Row="5" IsVisible="{Binding !IsIncoming}" />
+              <local:SecurityAmountDisplay Value="{Binding Fee}" IsUnitsVisible="False" Name="FeeBox" Grid.Row="5" Grid.Column="2" IsVisible="{Binding !IsIncoming}" HorizontalAlignment="Left" />
+              <Label Content="{Binding ToAddressCaption}" Target="{Binding #ToAddressBox}" Grid.Row="6" IsVisible="{Binding IsToAddressVisible}" />
+              <SelectableTextBlock Text="{Binding ToAddress}" Name="ToAddressBox" Grid.Row="6" Grid.Column="2" IsVisible="{Binding IsToAddressVisible}" />
+              <Label Content="{Binding BlockNumberCaption}" Target="{Binding #BlockNumberBox}" Grid.Row="7" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
+              <SelectableTextBlock Text="{Binding BlockNumber}" Name="BlockNumberBox" Grid.Row="7" Grid.Column="2" IsVisible="{Binding Owner.IsBlockNumberVisible}" />
+              <Label Content="{Binding TransactionIdCaption}" Target="{Binding #TransactionIdBox}" Grid.Row="8" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
+              <SelectableTextBlock Text="{Binding TransactionId}" Name="TransactionIdBox" Grid.Row="8" Grid.Column="2" IsVisible="{Binding Owner.IsTransactionIdVisible}" />
+            </Grid>
+          </StackPanel>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
     </DataGrid>

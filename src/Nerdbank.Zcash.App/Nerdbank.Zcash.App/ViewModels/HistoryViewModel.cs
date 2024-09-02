@@ -27,9 +27,10 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 			MockTx(1.2345m, "For the pizza", TimeSpan.FromDays(200), 50, "9c1952fbaf5389fa8c36c45f17b2e303c33a9074dee8d90c694ee14112e0f46d", "Andrew Arnott"),
 			MockTx(2m, "Paycheck", TimeSpan.FromDays(2), 200, "4e5f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "Employer"),
 			MockTx(13m, "Paycheck", TimeSpan.FromDays(75), blockNumber: null, "4e5f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "Employer"),
+			MockTx(-8m, "Unmined", TimeSpan.FromDays(5), blockNumber: null, "4e5f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "Employer - Unmined", expiredUnmined: true),
 		});
 
-		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, uint? blockNumber, string txid, string otherPartyName)
+		TransactionViewModel MockTx(decimal amount, string memo, TimeSpan age, uint? blockNumber, string txid, string otherPartyName, bool expiredUnmined = false)
 		{
 			ImmutableArray<ZcashTransaction.LineItem> sends = amount < 0
 				? [new ZcashTransaction.LineItem { Amount = -amount, Memo = Memo.FromMessage(memo), ToAddress = ZcashAddress.Decode("t1N7bGKWqoWVrv4XGSzrfUsoKkCxNFAutQZ") }]
@@ -43,6 +44,7 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 				new ZcashTransaction
 				{
 					BlockNumber = blockNumber,
+					ExpiredUnmined = expiredUnmined,
 					IsIncoming = amount > 0,
 					Fee = amount > 0 ? null : 0.0001m,
 					TransactionId = TxId.Parse(txid),
@@ -234,7 +236,12 @@ public class HistoryViewModel : ViewModelBaseWithAccountSelector, IHasTitle
 
 		for (int i = indexToOldestInvalidatedTransaction.Value; i >= 0; i--)
 		{
-			this.Transactions[i].RunningBalance = runningBalance += this.Transactions[i].NetChange;
+			if (!this.Transactions[i].ExpiredUnmined)
+			{
+				runningBalance += this.Transactions[i].NetChange;
+			}
+
+			this.Transactions[i].RunningBalance = runningBalance;
 		}
 	}
 }

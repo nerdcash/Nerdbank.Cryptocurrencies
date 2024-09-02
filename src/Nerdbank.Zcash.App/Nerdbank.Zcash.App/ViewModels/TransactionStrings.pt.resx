@@ -123,6 +123,12 @@
   <data name="BlockNumberCaption" xml:space="preserve">
     <value>Bloco #</value>
   </data>
+  <data name="ExpiredUnmined" xml:space="preserve">
+    <value>Expirado</value>
+  </data>
+  <data name="ExpiredUnminedExplanation" xml:space="preserve">
+    <value>Essa transação expirou antes que a rede a aceitasse. Isso não afeta seu equilíbrio.</value>
+  </data>
   <data name="FeeCaption" xml:space="preserve">
     <value>Taxa</value>
   </data>

@@ -13,6 +13,7 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 	internal static readonly TxId? ProvisionalTransactionId = null;
 	private TxId? txid;
 	private uint? blockNumber;
+	private bool expiredUnmined;
 	private DateTimeOffset? when;
 	private bool isDirty;
 	private string mutableMemo = string.Empty;
@@ -111,6 +112,13 @@ public class ZcashTransaction : ReactiveObject, IPersistableDataHelper
 			this.RaisePropertyChanged(nameof(this.NetChange));
 			this.StartWatchingForDirtyChildren(value);
 		}
+	}
+
+	[Key(10)]
+	public bool ExpiredUnmined
+	{
+		get => this.expiredUnmined;
+		set => this.RaiseAndSetIfChanged(ref this.expiredUnmined, value);
 	}
 
 	[IgnoreMember]

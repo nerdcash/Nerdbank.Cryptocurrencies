@@ -123,6 +123,12 @@
   <data name="BlockNumberCaption" xml:space="preserve">
     <value>Блокировать #</value>
   </data>
+  <data name="ExpiredUnmined" xml:space="preserve">
+    <value>Истекший</value>
+  </data>
+  <data name="ExpiredUnminedExplanation" xml:space="preserve">
+    <value>Эта транзакция истек до того, как сеть приняла ее. Это не влияет на ваш баланс.</value>
+  </data>
   <data name="FeeCaption" xml:space="preserve">
     <value>Платеж</value>
   </data>
