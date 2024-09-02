@@ -162,6 +162,12 @@ public class Account : ReactiveObject, IPersistableData
 			ZcashTransaction? tx = this.TransactionsMutable.FirstOrDefault(t => t.TransactionId == transaction.TransactionId);
 			if (tx is null)
 			{
+				// Don't import expired transactions.
+				if (transaction.ExpiredUnmined)
+				{
+					continue;
+				}
+
 				// Although no transaction had a matching txid, this may match a
 				// provisional transaction, in which case, we should fill in the details.
 				tx = this.TransactionsMutable.FirstOrDefault(t => t.IsProvisionalTransaction && t.SendItems.FirstOrDefault() is { } si1 &&

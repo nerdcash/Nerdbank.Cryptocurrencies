@@ -123,6 +123,9 @@
   <data name="BlockNumberCaption" xml:space="preserve">
     <value>Блокировать #</value>
   </data>
+  <data name="DeleteExpiredTransactionCommandCaption" xml:space="preserve">
+    <value>Удалить срок действия транзакции</value>
+  </data>
   <data name="ExpiredUnmined" xml:space="preserve">
     <value>Истекший</value>
   </data>

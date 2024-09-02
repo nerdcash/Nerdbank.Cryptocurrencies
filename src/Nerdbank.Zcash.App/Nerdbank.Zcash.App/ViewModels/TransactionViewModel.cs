@@ -72,6 +72,9 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		{
 			this.AlternateNetChange = this.NetChange * exchangeRate;
 		}
+
+		IObservable<bool> canDelete = this.WhenAnyValue(vm => vm.ExpiredUnmined);
+		this.DeleteTransactionCommand = ReactiveCommand.Create(this.DeleteTransaction, canDelete);
 	}
 
 	public HistoryViewModel Owner => this.owner;
@@ -87,6 +90,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	public bool ExpiredUnmined => this.Model.ExpiredUnmined;
 
 	public string ExpiredUnminedExplanation => TransactionStrings.ExpiredUnminedExplanation;
+
+	public ReactiveCommand<Unit, Unit> DeleteTransactionCommand { get; }
+
+	public string DeleteTransactionCommandCaption => TransactionStrings.DeleteExpiredTransactionCommandCaption;
 
 	public string TransactionId => this.Model.TransactionId?.ToString() ?? string.Empty;
 
@@ -311,6 +318,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	private Security? AlternateSecurity { get; }
 
 	private string DebuggerDisplay => $"{this.WhenColumnFormatted} {this.NetChange}";
+
+	public void DeleteTransaction()
+	{
+		this.Owner.DeleteTransaction(this);
+	}
 
 	private ReadOnlyCollection<LineItem> InitializeLineItems(ImmutableArray<ZcashTransaction.LineItem> sendItems, ImmutableArray<ZcashTransaction.LineItem> recvItems)
 	{

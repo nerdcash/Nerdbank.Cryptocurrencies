@@ -37,6 +37,15 @@
         <Style Selector="TextBlock.ExpiredUnmined, local|SecurityAmountDisplay.ExpiredUnmined TextBlock">
           <Setter Property="TextDecorations" Value="Strikethrough" />
         </Style>
+        <Style Selector="DataGridRow">
+          <Setter Property="ContextMenu">
+            <ContextMenu x:DataType="vm:TransactionViewModel"
+                         IsVisible="{Binding ExpiredUnmined}">
+              <MenuItem Header="{Binding DeleteTransactionCommandCaption}"
+                        Command="{Binding DeleteTransactionCommand}"/>
+            </ContextMenu>
+          </Setter>
+        </Style>
       </DataGrid.Styles>
       <DataGrid.Columns>
         <DataGridTemplateColumn Header="{Binding WhenColumnHeader}"

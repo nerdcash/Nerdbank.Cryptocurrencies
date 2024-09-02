@@ -123,6 +123,9 @@
   <data name="BlockNumberCaption" xml:space="preserve">
     <value>블록 번호</value>
   </data>
+  <data name="DeleteExpiredTransactionCommandCaption" xml:space="preserve">
+    <value>만료 된 트랜잭션을 삭제합니다</value>
+  </data>
   <data name="ExpiredUnmined" xml:space="preserve">
     <value>만료되었습니다</value>
   </data>
