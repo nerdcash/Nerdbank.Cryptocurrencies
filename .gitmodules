@@ -1,9 +1,6 @@
 [submodule "external/librustzcash"]
 	path = external/librustzcash
 	url = https://github.com/nerdcash/librustzcash.git
-[submodule "external/hdwallet"]
-	path = external/hdwallet
-	url = https://github.com/nerdcash/hdwallet.git
 [submodule "external/sapling-crypto"]
 	path = external/sapling-crypto
 	url = https://github.com/nerdcash/sapling-crypto.git

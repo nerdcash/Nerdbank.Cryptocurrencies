@@ -4,7 +4,7 @@ use rusqlite::Connection;
 use secrecy::SecretVec;
 use tonic::transport::Channel;
 use zcash_client_backend::{
-    data_api::{AccountBirthday, WalletWrite},
+    data_api::{AccountBirthday, AccountPurpose, WalletWrite},
     keys::UnifiedSpendingKey,
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
@@ -62,7 +62,7 @@ impl Db {
     pub(crate) async fn import_account_ufvk(
         &mut self,
         ufvk: &UnifiedFullViewingKey,
-        spending_key_available: bool,
+        purpose: AccountPurpose,
         birthday: u64,
         client: &mut CompactTxStreamerClient<Channel>,
     ) -> Result<Account, Error> {
@@ -78,9 +78,7 @@ impl Db {
             AccountBirthday::from_treestate(treestate, None)?
         };
 
-        Ok(self
-            .data
-            .import_account_ufvk(ufvk, &birthday, spending_key_available)?)
+        Ok(self.data.import_account_ufvk(ufvk, &birthday, purpose)?)
     }
 
     pub(crate) fn add_diversifier(
