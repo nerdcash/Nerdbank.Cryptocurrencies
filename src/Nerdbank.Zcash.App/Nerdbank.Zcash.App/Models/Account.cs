@@ -162,6 +162,12 @@ public class Account : ReactiveObject, IPersistableData
 			ZcashTransaction? tx = this.TransactionsMutable.FirstOrDefault(t => t.TransactionId == transaction.TransactionId);
 			if (tx is null)
 			{
+				// Don't import expired transactions.
+				if (transaction.ExpiredUnmined)
+				{
+					continue;
+				}
+
 				// Although no transaction had a matching txid, this may match a
 				// provisional transaction, in which case, we should fill in the details.
 				tx = this.TransactionsMutable.FirstOrDefault(t => t.IsProvisionalTransaction && t.SendItems.FirstOrDefault() is { } si1 &&
@@ -173,6 +179,8 @@ public class Account : ReactiveObject, IPersistableData
 				// We already have this transaction
 				// Copy over elements that can change as a transaction gets confirmed or transitions from being provisional.
 				tx.BlockNumber = transaction.MinedHeight;
+
+				tx.ExpiredUnmined = transaction.ExpiredUnmined;
 
 				// If we're finalizing a provisional transaction, fill in extra details.
 				// The transaction ID itself may have been filled in by the send view model,
@@ -215,6 +223,7 @@ public class Account : ReactiveObject, IPersistableData
 					RecvItems = transaction.Incoming.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
 					SendItems = transaction.Outgoing.Select(i => new ZcashTransaction.LineItem(i)).ToImmutableArray(),
 					Fee = transaction.Outgoing.IsEmpty && transaction.Change.IsEmpty ? 0 : transaction.Fee,
+					ExpiredUnmined = transaction.ExpiredUnmined,
 				};
 
 				this.TransactionsMutable.Add(tx);

@@ -56,6 +56,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			.ToProperty(this, nameof(this.IsToAddressVisible));
 
 		this.LinkProperty(transaction, nameof(transaction.BlockNumber), nameof(this.BlockNumber));
+		this.LinkProperty(transaction, nameof(transaction.ExpiredUnmined), nameof(this.ExpiredUnmined));
 		this.LinkProperty(transaction, nameof(transaction.When), nameof(this.When));
 		this.LinkProperty(transaction, nameof(transaction.MutableMemo), nameof(this.MutableMemo));
 		this.LinkProperty(transaction, nameof(transaction.Fee), nameof(this.Fee));
@@ -71,6 +72,9 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		{
 			this.AlternateNetChange = this.NetChange * exchangeRate;
 		}
+
+		IObservable<bool> canDelete = this.WhenAnyValue(vm => vm.ExpiredUnmined);
+		this.DeleteTransactionCommand = ReactiveCommand.Create(this.DeleteTransaction, canDelete);
 	}
 
 	public HistoryViewModel Owner => this.owner;
@@ -82,6 +86,14 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	public string BlockNumberFormatted => $"{this.BlockNumber:N0}";
 
 	public string BlockNumberCaption => TransactionStrings.BlockNumberCaption;
+
+	public bool ExpiredUnmined => this.Model.ExpiredUnmined;
+
+	public string ExpiredUnminedExplanation => TransactionStrings.ExpiredUnminedExplanation;
+
+	public ReactiveCommand<Unit, Unit> DeleteTransactionCommand { get; }
+
+	public string DeleteTransactionCommandCaption => TransactionStrings.DeleteExpiredTransactionCommandCaption;
 
 	public string TransactionId => this.Model.TransactionId?.ToString() ?? string.Empty;
 
@@ -98,7 +110,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 				return string.Empty;
 			}
 
-			string prefix = this.BlockNumber is null ? "*" : string.Empty;
+			string prefix =
+				this.ExpiredUnmined ? "❌" :
+				this.BlockNumber is null ? "📤" :
+				string.Empty;
 
 			// If this happened today, just display the time.
 			if (this.When.Value.Date == DateTimeOffset.Now.Date)
@@ -123,7 +138,10 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 
 	public string WhenDetailedFormatted => this.When?.ToString("g") ?? string.Empty;
 
-	public string WhenToolTip => this.BlockNumber is null ? $"{this.WhenDetailedFormatted} ({TransactionStrings.NotYetMined})" : this.WhenDetailedFormatted;
+	public string WhenToolTip =>
+		this.ExpiredUnmined ? $"{this.WhenDetailedFormatted} ({TransactionStrings.ExpiredUnmined})" :
+		this.BlockNumber is null ? $"{this.WhenDetailedFormatted} ({TransactionStrings.NotYetMined})" :
+		this.WhenDetailedFormatted;
 
 	public string WhenCaption => TransactionStrings.WhenCaption;
 
@@ -300,6 +318,11 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 	private Security? AlternateSecurity { get; }
 
 	private string DebuggerDisplay => $"{this.WhenColumnFormatted} {this.NetChange}";
+
+	public void DeleteTransaction()
+	{
+		this.Owner.DeleteTransaction(this);
+	}
 
 	private ReadOnlyCollection<LineItem> InitializeLineItems(ImmutableArray<ZcashTransaction.LineItem> sendItems, ImmutableArray<ZcashTransaction.LineItem> recvItems)
 	{
