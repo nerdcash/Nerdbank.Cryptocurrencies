@@ -15,23 +15,27 @@
     <StackPanel Spacing="15" VerticalAlignment="Center" MaxWidth="400">
       <Image Source="{Binding Logo}" HorizontalAlignment="Center" Height="100" />
       <TextBlock Text="{Binding AppTitle}" HorizontalAlignment="Center" FontSize="18" Foreground="DarkOrange" />
-      <StackPanel Classes="ButtonAndExplanation" HorizontalAlignment="Stretch">
-        <SplitButton Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" HorizontalAlignment="Stretch">
-          <SplitButton.Flyout>
-            <Flyout>
-              <MenuItem Command="{Binding StartNewWalletAdvancedCommand}" Header="{Binding StartNewWalletAdvancedCommandCaption}" />
-            </Flyout>
-          </SplitButton.Flyout>
-        </SplitButton>
-        <TextBlock Text="{Binding StartNewWalletExplanation}" />
-      </StackPanel>
-      <StackPanel Classes="ButtonAndExplanation">
-        <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
-        <TextBlock Text="{Binding ImportWalletExplanation}" />
-        <Button Command="{Binding ShowCapabilitiesCommand}" Content="{Binding ShowCapabilitiesCommandCaption}"
-                Classes="Hyperlink" />
-      </StackPanel>
-      <StackPanel Classes="ButtonAndExplanation">
+      <Border Classes="ButtonAndExplanation">
+        <StackPanel>
+          <SplitButton Content="{Binding StartNewWalletButtonText}" Command="{Binding StartNewWalletCommand}" HorizontalAlignment="Stretch">
+            <SplitButton.Flyout>
+              <Flyout>
+                <MenuItem Command="{Binding StartNewWalletAdvancedCommand}" Header="{Binding StartNewWalletAdvancedCommandCaption}" />
+              </Flyout>
+            </SplitButton.Flyout>
+          </SplitButton>
+          <TextBlock Text="{Binding StartNewWalletExplanation}" />
+        </StackPanel>
+      </Border>
+      <Border Classes="ButtonAndExplanation">
+        <StackPanel>
+          <Button Content="{Binding ImportWalletButtonText}" Command="{Binding ImportWalletCommand}" />
+          <TextBlock Text="{Binding ImportWalletExplanation}" />
+          <Button Command="{Binding ShowCapabilitiesCommand}" Content="{Binding ShowCapabilitiesCommandCaption}"
+                  Classes="Hyperlink" />
+        </StackPanel>
+      </Border>
+      <StackPanel>
         <TextBlock Text="{Binding LicenseAcceptance}" />
         <Button Content="{Binding ViewLicenseCommandCaption}" Command="{Binding ViewLicenseCommand}" HorizontalAlignment="Center" />
       </StackPanel>

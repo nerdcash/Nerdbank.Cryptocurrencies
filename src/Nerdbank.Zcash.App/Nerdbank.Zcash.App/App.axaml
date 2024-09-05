@@ -112,21 +112,22 @@
       <Setter Property="TextAlignment" Value="Center" />
       <Setter Property="Padding" Value="15" />
     </Style>
-    <Style Selector="StackPanel.ButtonAndExplanation">
+    <Style Selector="Border.ButtonAndExplanation">
       <Setter Property="Background" Value="{DynamicResource RepeatedRegionBackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="3" />
     </Style>
-    <Style Selector="StackPanel.ButtonAndExplanation Button">
+    <Style Selector="Border.ButtonAndExplanation Button">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="Margin" Value="8" />
     </Style>
-    <Style Selector="StackPanel.ButtonAndExplanation SplitButton">
+    <Style Selector="Border.ButtonAndExplanation SplitButton">
       <Setter Property="Margin" Value="8" />
     </Style>
-    <Style Selector="StackPanel.ButtonAndExplanation SplitButton Button">
+    <Style Selector="Border.ButtonAndExplanation SplitButton Button">
       <Setter Property="Margin" Value="0" />
     </Style>
-    <Style Selector="StackPanel.ButtonAndExplanation TextBlock">
+    <Style Selector="Border.ButtonAndExplanation TextBlock">
       <Setter Property="Margin" Value="5 0 5 5" />
     </Style>
     <Style Selector="StackPanel.IncomingFunds">
