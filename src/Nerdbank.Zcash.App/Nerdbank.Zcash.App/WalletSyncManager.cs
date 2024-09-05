@@ -211,9 +211,16 @@ public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 
 						this.SyncProgress.Apply(v);
 
-						foreach (Account account in this.Accounts)
+						// Update balances for all accounts.
+						// Enumerate the accounts based on what the lightwallet client knows about,
+						// since we may know more than it does while adding an account and it'll throw if we ask here too soon.
+						foreach (ZcashAccount account in this.client.GetAccounts())
 						{
-							account.Balance = this.client.GetBalances(account.ZcashAccount);
+							Account? a = this.Accounts.FirstOrDefault(a => a.ZcashAccount == account);
+							if (a is not null)
+							{
+								a.Balance = this.client.GetBalances(account);
+							}
 						}
 					});
 
