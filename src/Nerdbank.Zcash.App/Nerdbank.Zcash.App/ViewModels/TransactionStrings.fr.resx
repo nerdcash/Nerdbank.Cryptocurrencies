@@ -123,6 +123,15 @@
   <data name="BlockNumberCaption" xml:space="preserve">
     <value>Bloc #</value>
   </data>
+  <data name="DeleteExpiredTransactionCommandCaption" xml:space="preserve">
+    <value>Supprimer la transaction expirée</value>
+  </data>
+  <data name="ExpiredUnmined" xml:space="preserve">
+    <value>Expiré</value>
+  </data>
+  <data name="ExpiredUnminedExplanation" xml:space="preserve">
+    <value>Cette transaction a expiré avant que le réseau ne l'accepte. Cela n'a pas d'impact sur votre équilibre.</value>
+  </data>
   <data name="FeeCaption" xml:space="preserve">
     <value>Frais</value>
   </data>

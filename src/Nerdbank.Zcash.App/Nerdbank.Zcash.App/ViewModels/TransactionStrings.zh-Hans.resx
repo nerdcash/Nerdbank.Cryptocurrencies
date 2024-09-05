@@ -123,6 +123,15 @@
   <data name="BlockNumberCaption" xml:space="preserve">
     <value>区块号</value>
   </data>
+  <data name="DeleteExpiredTransactionCommandCaption" xml:space="preserve">
+    <value>删除过期的交易</value>
+  </data>
+  <data name="ExpiredUnmined" xml:space="preserve">
+    <value>已到期</value>
+  </data>
+  <data name="ExpiredUnminedExplanation" xml:space="preserve">
+    <value>该交易在网络接受之前到期。它不会影响您的平衡。</value>
+  </data>
   <data name="FeeCaption" xml:space="preserve">
     <value>手续费</value>
   </data>
