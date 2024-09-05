@@ -129,13 +129,13 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		get => this.isTestNet;
 		set
 		{
-			bool updateBirthdayHeight = this.BirthdayHeight == this.NetworkParameters.SaplingActivationHeight;
+			bool updateBirthdayHeight = this.BirthdayHeight == this.MinimumBirthdayHeight;
 
 			this.RaiseAndSetIfChanged(ref this.isTestNet, value);
 
 			if (updateBirthdayHeight)
 			{
-				this.BirthdayHeight = this.NetworkParameters.SaplingActivationHeight;
+				this.BirthdayHeight = this.MinimumBirthdayHeight;
 			}
 		}
 	}
