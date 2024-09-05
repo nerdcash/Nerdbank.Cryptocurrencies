@@ -21,7 +21,7 @@ use uniffi::deps::anyhow;
 use zcash_client_sqlite::{error::SqliteClientError, AccountId, WalletDb};
 use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
-    consensus::{BlockHeight, BranchId, Network, NetworkUpgrade, Parameters},
+    consensus::{BlockHeight, BranchId, Network, Parameters},
     legacy::TransparentAddress,
     memo::Memo,
     merkle_tree::HashSer,
@@ -43,8 +43,8 @@ use zcash_client_backend::{
     proto::{
         compact_formats::CompactBlock,
         service::{
-            self, compact_tx_streamer_client::CompactTxStreamerClient, BlockId, BlockRange, Empty,
-            RawTransaction, TransparentAddressBlockFilter, TxFilter,
+            self, compact_tx_streamer_client::CompactTxStreamerClient, Empty, RawTransaction,
+            TransparentAddressBlockFilter, TxFilter,
         },
     },
     wallet::WalletTransparentOutput,
@@ -54,6 +54,7 @@ use zcash_client_backend::{
 use crate::{
     backing_store::Db,
     block_source::BlockCacheError,
+    blockrange::BlockRange,
     error::Error,
     grpc::get_client,
     interop::{Pool, SyncUpdate, SyncUpdateData, TransactionNote},
@@ -181,13 +182,21 @@ pub async fn sync<P: AsRef<Path>>(
         let mut taddrs_to_scan = taddrs.clone();
         while !taddrs_to_scan.is_empty() {
             for addr_info in taddrs.iter_mut().filter(|a| taddrs_to_scan.contains(a)) {
+                // In a weird case, I've seen the addr_info.height be greater than the tip_height, so we need to check for that.
+                let range = BlockRange::try_from(addr_info.height..(status.tip_height + 1).into())
+                    .map_err(|_| {
+                        Error::Internal(format!(
+                            "T address {:?} has sync height {}, which exceeds tip height {}.",
+                            addr_info.address, addr_info.height, status.tip_height
+                        ))
+                    })?;
+
                 let txids = download_transparent_transactions(
                     &mut client,
                     &mut db,
                     &state.network,
                     &addr_info.address,
-                    Some(addr_info.height),
-                    status.tip_height.into(),
+                    &range,
                     state.cancellation_token.clone(),
                 )
                 .await?;
@@ -385,7 +394,7 @@ pub async fn sync<P: AsRef<Path>>(
                         let address = address.encode(&state.network);
                         let request = service::TransparentAddressBlockFilter {
                             address: address.clone(),
-                            range: Some(BlockRange {
+                            range: Some(service::BlockRange {
                                 start: Some(service::BlockId {
                                     height: u64::from(block_range_start),
                                     ..Default::default()
@@ -770,10 +779,13 @@ async fn download_transparent_transactions(
     db: &mut Db,
     network: &Network,
     address: &TransparentAddress,
-    start: Option<BlockHeight>,
-    end: BlockHeight,
+    range: &BlockRange,
     cancellation_token: CancellationToken,
 ) -> Result<Vec<TxId>, Error> {
+    if range.block_range().is_empty() {
+        return Ok(vec![]);
+    }
+
     let mut txids_for_new_transparent_transactions = vec![];
     let client = Arc::new(Mutex::new(client));
     let transparent_transactions = webrequest_with_retry(
@@ -783,20 +795,7 @@ async fn download_transparent_transactions(
                 .await
                 .get_taddress_txids(TransparentAddressBlockFilter {
                     address: address.encode(network),
-                    range: Some(BlockRange {
-                        start: Some(BlockId {
-                            height: start
-                                .unwrap_or_else(|| {
-                                    network.activation_height(NetworkUpgrade::Sapling).unwrap()
-                                })
-                                .into(),
-                            ..Default::default()
-                        }),
-                        end: Some(BlockId {
-                            height: end.into(),
-                            ..Default::default()
-                        }),
-                    }),
+                    range: Some(range.into()),
                 })
                 .await?
                 .into_inner()
@@ -832,7 +831,7 @@ async fn download_transparent_transactions(
     }
 
     db.data
-        .put_latest_scanned_block_for_transparent(address, BlockHeight::from_u32(end.into()))?;
+        .put_latest_scanned_block_for_transparent(address, range.end())?;
 
     Ok(txids_for_new_transparent_transactions)
 }

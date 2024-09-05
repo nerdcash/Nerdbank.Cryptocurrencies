@@ -6,6 +6,7 @@ extern crate lazy_static;
 mod analysis;
 mod backing_store;
 mod block_source;
+mod blockrange;
 mod error;
 mod grpc;
 mod interop;
