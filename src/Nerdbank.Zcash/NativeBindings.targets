@@ -106,10 +106,10 @@
   </ItemGroup>
   <!-- We only expect the iOS native library to be present if we're on a Mac or we're in a local dev environment where they were copied locally. -->
   <ItemGroup Condition="'$(IncludeiOSBinaries)'=='true' and ('$(CI)'!='true' or $([MSBuild]::IsOsPlatform('OSX')))">
-    <None Include="$(RustOutputiOSArm64)" Condition="'$(Platform)'=='ARM64'">
+    <None Include="$(RustOutputiOSArm64)" Condition="'$(PlatformTarget)'=='arm64'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(RustOutputiOSX64)" Condition="'$(Platform)'=='x64'">
+    <None Include="$(RustOutputiOSX64)" Condition="'$(PlatformTarget)'=='x64'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
