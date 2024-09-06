@@ -351,7 +351,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 						cancellationToken);
 
 					// Semantically, the most similar transaction to what the user intended will be the last one.
-					tx.TransactionId = transactions.Span[^1];
+					tx.TransactionId ??= transactions.Span[^1];
 				}
 				finally
 				{
