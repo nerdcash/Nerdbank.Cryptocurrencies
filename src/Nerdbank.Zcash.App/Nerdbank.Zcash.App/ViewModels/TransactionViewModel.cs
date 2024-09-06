@@ -358,6 +358,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		return new(lineItems);
 	}
 
+	[DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
 	public class LineItem : ReactiveObject
 	{
 		private readonly TransactionViewModel owner;
@@ -454,6 +455,8 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 		}
 
 		public ReadOnlyObservableCollection<Contact> OtherParties => this.owner.OtherParties;
+
+		private string DebuggerDisplay => $"{this.Amount} {this.OtherPartyName} {this.Memo} {this.ToAddress}";
 
 		private void LazyInitializeOtherParty()
 		{
