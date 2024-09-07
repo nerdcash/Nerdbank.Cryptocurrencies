@@ -36,6 +36,10 @@ steps:
   workingDirectory: azure-pipelines
 
 - pwsh: |
+    # Workaround AzP error
+    Write-Host "##[command]dotnet workload restore"
+    dotnet workload restore
+
     $publishArgs = @()
     # The binlog will unfortunately capture the password, whatever we do,
     # don't leak the .keystore file content itself as well.

@@ -198,6 +198,9 @@ dotnet_diagnostic.DOC202.severity = warning
 # CA1062: Validate arguments of public methods
 dotnet_diagnostic.CA1062.severity = warning
 
+# CA2016: Forward the CancellationToken parameter
+dotnet_diagnostic.CA2016.severity = warning
+
 # SA1010: Opening square brackets must be spaced correctly
 dotnet_diagnostic.SA1010.severity = silent # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3687
 
