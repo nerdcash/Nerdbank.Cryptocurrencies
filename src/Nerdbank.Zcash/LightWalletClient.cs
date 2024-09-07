@@ -330,7 +330,7 @@ public partial class LightWalletClient : IDisposable
 		}
 		catch (uniffi.LightWallet.LightWalletException ex)
 		{
-			throw LightWalletException.Wrap(ex);
+			throw LightWalletException.Wrap(ex, cancellationToken);
 		}
 	}
 
