@@ -95,6 +95,12 @@
               <TextBlock Text="{Binding HistoryCommandCaption}" />
             </StackPanel>
           </Button>
+          <Button Command="{Binding AddressBookCommand}">
+            <StackPanel>
+              <TextBlock Text="📇" Classes="Emoji" />
+              <TextBlock Text="{Binding AddressBookCommandCaption}" />
+            </StackPanel>
+          </Button>
         </WrapPanel>
       </StackPanel>
     </ScrollViewer>
