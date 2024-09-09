@@ -63,7 +63,7 @@
           <WrapPanel Classes="Action">
             <Button Command="{Binding BackupCommand}">
               <StackPanel>
-                <TextBlock Text="🗻" Classes="Emoji" />
+                <TextBlock Text="🔐" Classes="Emoji" />
                 <TextBlock Text="{Binding BackupCommandCaption}" />
               </StackPanel>
             </Button>
@@ -93,6 +93,12 @@
             <StackPanel>
               <TextBlock Text="📜" Classes="Emoji" />
               <TextBlock Text="{Binding HistoryCommandCaption}" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding AddressBookCommand}">
+            <StackPanel>
+              <TextBlock Text="📇" Classes="Emoji" />
+              <TextBlock Text="{Binding AddressBookCommandCaption}" />
             </StackPanel>
           </Button>
         </WrapPanel>

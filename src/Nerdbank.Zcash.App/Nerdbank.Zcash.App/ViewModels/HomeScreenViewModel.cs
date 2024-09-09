@@ -30,6 +30,7 @@ public class HomeScreenViewModel : ViewModelBase
 		this.SendCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new SendingViewModel(viewModelServices)), canSpend);
 		this.BalanceCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BalanceViewModel(viewModelServices)));
 		this.HistoryCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new HistoryViewModel(viewModelServices)));
+		this.AddressBookCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new AddressBookViewModel(viewModelServices)));
 		this.BackupCommand = ReactiveCommand.Create(() => viewModelServices.NavigateTo(new BackupViewModel(viewModelServices)));
 	}
 
@@ -52,6 +53,10 @@ public class HomeScreenViewModel : ViewModelBase
 	public string HistoryCommandCaption => HomeScreenStrings.HistoryCommandCaption;
 
 	public ReactiveCommand<Unit, HistoryViewModel> HistoryCommand { get; }
+
+	public string AddressBookCommandCaption => HomeScreenStrings.AddressBookCommandCaption;
+
+	public ReactiveCommand<Unit, AddressBookViewModel> AddressBookCommand { get; }
 
 	public bool IsBackupCommandPromoted => this.isBackupCommandPromoted.Value;
 

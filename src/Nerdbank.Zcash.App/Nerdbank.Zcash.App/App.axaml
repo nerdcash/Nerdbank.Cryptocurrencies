@@ -29,7 +29,7 @@
           <SolidColorBrush x:Key="BackMenuBackgroundBrush" Color="{DynamicResource ColorPalette0}" />
           <SolidColorBrush x:Key="HyperlinkBrush" Color="{DynamicResource ColorPalette3}" />
           <SolidColorBrush x:Key="HyperlinkHoverBrush" Color="{DynamicResource ColorPalette1}" />
-          
+
           <SvgImage x:Key="ZcashLogo" Source="/Assets/Zcash Media Kit/Primary-Logo-Black-Yellow.svg" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
