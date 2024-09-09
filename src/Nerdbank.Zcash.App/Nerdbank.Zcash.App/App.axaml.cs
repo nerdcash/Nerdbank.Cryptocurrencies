@@ -140,7 +140,7 @@ public partial class App : Application, IAsyncDisposable
 		{
 			DeferredTopLevel viewModel = new(this);
 			this.ViewModel = viewModel;
-			singleViewPlatform.MainView = new MainView
+			singleViewPlatform.MainView = new MainMobileView
 			{
 				DataContext = viewModel,
 			};
@@ -284,7 +284,7 @@ public partial class App : Application, IAsyncDisposable
 		}
 	}
 
-	private class DeferredTopLevel(App app) : MainViewModel(app)
+	private class DeferredTopLevel(App app) : MainMobileViewModel(app)
 	{
 		private TopLevel? topLevel;
 

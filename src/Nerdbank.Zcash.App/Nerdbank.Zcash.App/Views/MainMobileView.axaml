@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Nerdbank.Zcash.App.ViewModels"
+             xmlns:views="clr-namespace:Nerdbank.Zcash.App.Views"
+             mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="800"
+             x:Class="Nerdbank.Zcash.App.Views.MainMobileView"
+             x:DataType="vm:MainMobileViewModel">
+  <Design.DataContext>
+    <vm:MainMobileViewModel />
+  </Design.DataContext>
+    <DockPanel>
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="auto,*,auto">
+        <Button VerticalAlignment="Top" Background="Transparent">
+          <Canvas Width="15" Height="20">
+            <Canvas.Styles>
+              <Style Selector="Line">
+                <Setter Property="StrokeThickness" Value="1" />
+                <Setter Property="Stroke" Value="{DynamicResource CaptionButtonForeground}" />
+              </Style>
+            </Canvas.Styles>
+            <Line StartPoint="0,5" EndPoint="15,5" />
+            <Line StartPoint="0,10" EndPoint="15,10" />
+            <Line StartPoint="0,15" EndPoint="15,15" />
+          </Canvas>
+          <Button.Flyout>
+            <MenuFlyout>
+              <MenuItem Header="{Binding BackCommandCaption}" Background="{DynamicResource BackMenuBackgroundBrush}" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
+              <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" IsVisible="{Binding CanNavigateBack}" />
+              <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" IsVisible="{Binding IsNonEmptyWallet}" />
+              <MenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
+              <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" IsVisible="{Binding IsNonEmptyWallet}" />
+              <MenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
+              <Separator />
+              <MenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+        <TextBlock Text="{Binding ContentTitle}"
+                   Grid.Column="1"
+                   HorizontalAlignment="Center"
+                   Margin="10"
+                   FontSize="18" />
+        <views:SyncStatusControl
+          DataContext="{Binding SyncProgress}"
+          Grid.Column="2" Margin="7" />
+      </Grid>
+      <views:SyncHeaderControl DataContext="{Binding SendProgress}"
+                               DockPanel.Dock="Bottom" Margin="0 10 0 0" />
+      <ContentControl Content="{Binding Content}" />
+    </DockPanel>
+</UserControl>
