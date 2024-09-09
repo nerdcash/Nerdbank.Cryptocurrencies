@@ -40,6 +40,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 			.ToProperty(this, nameof(this.IsNonEmptyWallet));
 
 		IObservable<bool> nonEmptyWallet = this.WhenAnyValue(vm => vm.Wallet.IsEmpty, empty => !empty);
+		IObservable<bool> canSpend = this.WhenAnyValue(vm => vm.Wallet.AnyAccountCanSpend);
 
 		this.AboutCommand = ReactiveCommand.Create(() => this.NavigateTo(new AboutViewModel(this)));
 		this.SettingsCommand = ReactiveCommand.Create(() => this.NavigateTo(new SettingsViewModel(this)));
@@ -49,7 +50,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.AccountsListCommand = ReactiveCommand.Create(() => this.NavigateTo(new AccountsViewModel(this)), nonEmptyWallet);
 		this.AccountBalanceCommand = ReactiveCommand.Create(() => this.NavigateTo(new BalanceViewModel(this)), nonEmptyWallet);
 		this.TransactionHistoryCommand = ReactiveCommand.Create(() => this.NavigateTo(new HistoryViewModel(this)), nonEmptyWallet);
-		this.SendCommand = ReactiveCommand.Create(() => this.NavigateTo(new SendingViewModel(this)), nonEmptyWallet);
+		this.SendCommand = ReactiveCommand.Create(() => this.NavigateTo(new SendingViewModel(this)), canSpend);
 		this.ReceiveCommand = ReactiveCommand.Create(() => this.NavigateTo(new ReceivingIntentSelectorViewModel(this)), nonEmptyWallet);
 		this.BackupCommand = ReactiveCommand.Create(() => this.NavigateTo(new BackupViewModel(this)), nonEmptyWallet);
 
