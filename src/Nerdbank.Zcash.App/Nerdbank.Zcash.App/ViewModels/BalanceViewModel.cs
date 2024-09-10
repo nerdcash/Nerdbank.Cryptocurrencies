@@ -53,6 +53,8 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public BalanceViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
+		// For view-only accounts, we cannot perform auto-shielding.
+		// So instead of representing unshielded funds as immature income, we include them in the "spendable" category.
 		this.balance = this.WhenAnyValue(
 			vm => vm.SelectedAccount,
 			vm => vm.SelectedAccount!.Balance,
@@ -64,7 +66,7 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount!.Balance,
 			vm => vm.ShowAlternateCurrency,
 			vm => vm.ExchangeRate,
-			(a, b, alt, x) => X(x, alt, b.Spendable)).ToProperty(this, nameof(this.SpendableBalance));
+			(a, b, alt, x) => X(x, alt, ViewOrSpend(a, b.Spendable + b.ImmatureIncome, b.Spendable))).ToProperty(this, nameof(this.SpendableBalance));
 		this.isBalanceBreakdownVisible = this.WhenAnyValue(
 			vm => vm.Balance,
 			vm => vm.SpendableBalance,
@@ -105,7 +107,7 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			vm => vm.SelectedAccount!.Balance,
 			vm => vm.ShowAlternateCurrency,
 			vm => vm.ExchangeRate,
-			(a, b, alt, x) => X(x, alt, b.ImmatureIncome)).ToProperty(this, nameof(this.ImmatureIncome));
+			(a, b, alt, x) => X(x, alt, ViewOrSpend(a, spend: b.ImmatureIncome))).ToProperty(this, nameof(this.ImmatureIncome));
 		this.isImmatureIncomeVisible = this.WhenAnyValue(
 			vm => vm.ImmatureIncome,
 			i => i?.Amount > 0).ToProperty(this, nameof(this.IsImmatureIncomeVisible));
@@ -125,6 +127,7 @@ public class BalanceViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.SwitchCurrencyCommand = ReactiveCommand.Create(this.SwitchCurrency);
 
 		static SecurityAmount? X(ExchangeRate? exchangeRate, bool showAlternateCurrency, SecurityAmount nativeAmount) => showAlternateCurrency && exchangeRate.HasValue && nativeAmount.Security is not null ? nativeAmount * exchangeRate : nativeAmount;
+		static SecurityAmount ViewOrSpend(Account? account, SecurityAmount? viewOnly = default, SecurityAmount? spend = default) => (account?.ZcashAccount.Spending is null ? viewOnly : spend) ?? account?.Network.AsSecurity().Amount(0) ?? default;
 	}
 
 	public string Title => BalanceStrings.Title;
