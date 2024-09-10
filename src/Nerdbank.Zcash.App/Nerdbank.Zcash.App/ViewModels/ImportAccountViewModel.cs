@@ -194,6 +194,11 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		this.inputIsValidKey = isSupportedKey;
 		bool isValidInput = this.mnemonic is not null || this.inputIsValidKey;
 
+		if (key is not null)
+		{
+			this.IsTestNet = key.IsTestNet;
+		}
+
 		string? message =
 			this.Key.Length == 0 || isValidInput ? null :
 			isValidKey ? ImportAccountStrings.UnsupportedAccount :
