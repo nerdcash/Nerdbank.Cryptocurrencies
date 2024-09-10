@@ -153,7 +153,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public string BirthdayHeightCaption => ImportAccountStrings.BirthdayHeightCaption;
 
-	public uint MinimumBirthdayHeight => (uint)(this.NetworkParameters.SaplingActivationHeight + (this.IsTestNet ? 0 : 2)); // workaround https://github.com/zcash/librustzcash/issues/1467
+	public uint MinimumBirthdayHeight => (uint)(this.NetworkParameters.SaplingActivationHeight + (this.IsTestNet ? 1 : 2)); // workaround https://github.com/zcash/librustzcash/issues/1467
 
 	public string ImportCommandCaption => ImportAccountStrings.ImportCommandCaption;
 
