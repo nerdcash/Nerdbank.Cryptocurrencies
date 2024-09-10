@@ -277,7 +277,7 @@ public class WalletSyncManager : ReactiveObject, IAsyncDisposable
 				// Wait for new transactions to arrive, or at least that sync has reached the tip of the blockchain.
 				await this.unblockAutoShielding.WaitAsync(cancellationToken);
 
-				foreach (Account account in this.Accounts)
+				foreach (Account account in this.Accounts.Where(acct => acct.ZcashAccount.Spending is not null))
 				{
 					IReadOnlyList<(TransparentAddress Address, decimal Balance)> unshieldedBalances = this.client.GetUnshieldedBalances(account.ZcashAccount);
 					if (unshieldedBalances.Count > 0)
