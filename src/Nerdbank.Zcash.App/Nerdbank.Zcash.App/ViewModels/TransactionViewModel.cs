@@ -381,7 +381,6 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			});
 
 			this.Amount = owner.Security.Amount(model.Amount + (additionalModel?.Amount ?? 0));
-			this.otherParty = model.OtherParty;
 
 			if (negate)
 			{
@@ -437,7 +436,7 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			get
 			{
 				this.LazyInitializeOtherParty();
-				return this.model.OtherPartyName;
+				return this.model.OtherPartyName ?? (this.OtherParty as Contact)?.Name;
 			}
 
 			set
@@ -463,6 +462,15 @@ public class TransactionViewModel : ViewModelBase, IViewModel<ZcashTransaction>
 			if (this.otherParty is null && !this.otherPartyLazyInitDone)
 			{
 				Account? otherAccount = null;
+
+				// Repair odd corruption for when transaction show up with just a contact ID instead of their name.
+				if (this.model.OtherParty is null && this.model.OtherPartyName is { Length: > 0 } && int.TryParse(this.model.OtherPartyName, out int otherContactId) &&
+					this.owner.owner.ViewModelServices.ContactManager.TryGetContact(otherContactId, out Contact? otherParty2))
+				{
+					this.otherParty = otherParty2;
+					this.model.OtherParty = otherParty2.Id;
+				}
+
 				if (this.model.OtherParty is int otherPartyId && this.owner.owner.ViewModelServices.ContactManager.TryGetContact(otherPartyId, out Contact? otherParty))
 				{
 					this.otherParty = otherParty;

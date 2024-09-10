@@ -153,7 +153,7 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 
 	public string BirthdayHeightCaption => ImportAccountStrings.BirthdayHeightCaption;
 
-	public uint MinimumBirthdayHeight => (uint)(this.NetworkParameters.SaplingActivationHeight + (this.IsTestNet ? 0 : 2)); // workaround https://github.com/zcash/librustzcash/issues/1467
+	public uint MinimumBirthdayHeight => (uint)(this.NetworkParameters.SaplingActivationHeight + (this.IsTestNet ? 1 : 2)); // workaround https://github.com/zcash/librustzcash/issues/1467
 
 	public string ImportCommandCaption => ImportAccountStrings.ImportCommandCaption;
 
@@ -193,6 +193,11 @@ public class ImportAccountViewModel : ViewModelBase, IHasTitle, INotifyDataError
 		bool isSupportedKey = key is not null && ZcashAccount.TryImportAccount(key, out _);
 		this.inputIsValidKey = isSupportedKey;
 		bool isValidInput = this.mnemonic is not null || this.inputIsValidKey;
+
+		if (key is not null)
+		{
+			this.IsTestNet = key.IsTestNet;
+		}
 
 		string? message =
 			this.Key.Length == 0 || isValidInput ? null :

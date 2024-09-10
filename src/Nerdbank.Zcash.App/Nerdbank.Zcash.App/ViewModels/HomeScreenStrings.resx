@@ -120,9 +120,6 @@
   <data name="AddressBookCommandCaption" xml:space="preserve">
     <value>Address Book</value>
   </data>
-  <data name="AddressBookCommandCaption_Duplicate[1]" xml:space="preserve">
-    <value>Address Book</value>
-  </data>
   <data name="BackupCommandCaption" xml:space="preserve">
     <value>Backup</value>
   </data>
