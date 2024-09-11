@@ -236,10 +236,11 @@ public partial class App : Application, IAsyncDisposable
 
 	internal static AppPlatformSettings CreateDesignTimeAppPlatformSettings()
 	{
+		string basePath = Path.Combine(Path.GetTempPath(), "eZcash.DesignTime");
 		return new()
 		{
-			ConfidentialDataPath = @"C:\some\path\to\wallet.dat",
-			NonConfidentialDataPath = @"C:\some\path\to\settings",
+			ConfidentialDataPath = Path.Combine(basePath, "wallet.dat"),
+			NonConfidentialDataPath = Path.Combine(basePath, "settings"),
 		};
 	}
 
