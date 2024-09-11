@@ -13,30 +13,39 @@
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="{Binding BackCommandCaption}" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
+      <NativeMenuItem Header="{Binding AppMenuCaption}">
+        <NativeMenu>
+          <NativeMenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
+          <NativeMenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
+          <NativeMenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
+          <NativeMenuItemSeparator />
+          <NativeMenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
+          <NativeMenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" />
+          <NativeMenuItemSeparator IsVisible="{Binding IsAboutCommandVisible}" />
+          <NativeMenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" IsVisible="{Binding IsAboutCommandVisible}" />
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="{Binding TransactionsMenuCaption}">
+        <NativeMenu>
+          <NativeMenuItem Header="{Binding AccountBalanceCommandCaption}" Command="{Binding AccountBalanceCommand}" />
+          <NativeMenuItem Header="{Binding TransactionHistoryCommandCaption}" Command="{Binding TransactionHistoryCommand}" />
+          <NativeMenuItem Header="{Binding SendCommandCaption}" Command="{Binding SendCommand}" />
+          <NativeMenuItem Header="{Binding ReceiveCommandCaption}" Command="{Binding ReceiveCommand}" />
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="{Binding ToolsMenuCaption}">
+        <NativeMenu>
+          <NativeMenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
+        </NativeMenu>
+      </NativeMenuItem>
+    </NativeMenu>
+  </NativeMenu.Menu>
   <Grid>
     <DockPanel>
-      <Menu DockPanel.Dock="Top">
-        <MenuItem Header="{Binding BackCommandCaption}" Background="{DynamicResource BackMenuBackgroundBrush}" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
-        <MenuItem Header="{Binding AppMenuCaption}">
-          <MenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
-          <MenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
-          <MenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
-          <Separator />
-          <MenuItem Header="{Binding SettingsCommandCaption}" Command="{Binding SettingsCommand}" />
-          <MenuItem Header="{Binding BackupCommandCaption}" Command="{Binding BackupCommand}" />
-          <Separator />
-          <MenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
-        </MenuItem>
-        <MenuItem Header="{Binding TransactionsMenuCaption}">
-          <MenuItem Header="{Binding AccountBalanceCommandCaption}" Command="{Binding AccountBalanceCommand}" />
-          <MenuItem Header="{Binding TransactionHistoryCommandCaption}" Command="{Binding TransactionHistoryCommand}" />
-          <MenuItem Header="{Binding SendCommandCaption}" Command="{Binding SendCommand}" />
-          <MenuItem Header="{Binding ReceiveCommandCaption}" Command="{Binding ReceiveCommand}" />
-        </MenuItem>
-        <MenuItem Header="{Binding ToolsMenuCaption}">
-          <MenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
-        </MenuItem>
-      </Menu>
+      <NativeMenuBar DockPanel.Dock="Top" />
       <views:SyncHeaderControl DataContext="{Binding SendProgress}" DockPanel.Dock="Bottom" />
       <ContentControl Content="{Binding Content}" />
     </DockPanel>

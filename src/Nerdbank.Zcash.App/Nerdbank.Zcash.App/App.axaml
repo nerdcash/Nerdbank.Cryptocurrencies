@@ -1,7 +1,10 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Nerdbank.Zcash.App"
+             xmlns:vm="using:Nerdbank.Zcash.App.ViewModels"
+             Name="eZcash"
              x:Class="Nerdbank.Zcash.App.App"
+             x:DataType="vm:AppViewModel"
              RequestedThemeVariant="Default">
 
   <Application.DataTemplates>
@@ -178,4 +181,11 @@
       </Setter>-->
     </Style>
   </Application.Styles>
+
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="{Binding AboutCommandCaption}" Command="{Binding AboutCommand}" />
+    </NativeMenu>
+  </NativeMenu.Menu>
+
 </Application>

@@ -143,6 +143,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public ReactiveCommand<Unit, AboutViewModel> AboutCommand { get; }
 
+	public bool IsAboutCommandVisible => !this.App.PlatformServices.HasAppLevelSystemMenu;
+
 	public ReactiveCommand<Unit, ViewModelBase> HomeCommand { get; }
 
 	public ReactiveCommand<Unit, AddressBookViewModel> AddressBookCommand { get; }

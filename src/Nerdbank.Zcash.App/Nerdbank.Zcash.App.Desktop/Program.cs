@@ -1,4 +1,4 @@
-﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Runtime.InteropServices;
@@ -93,7 +93,7 @@ internal class Program
 #if WINDOWS
 			new WindowsPlatformServices();
 #else
-			new FallbackPlatformServices();
+			OperatingSystem.IsMacOS() ? new MacOSPlatformServices() : new FallbackPlatformServices();
 #endif
 
 		string? updateSource = Environment.GetEnvironmentVariable("EZCASH_UPDATE_SOURCE");

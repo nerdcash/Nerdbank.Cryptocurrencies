@@ -146,6 +146,12 @@ public partial class App : Application, IAsyncDisposable
 			};
 			viewModel.TopVisual = singleViewPlatform.MainView;
 		}
+		else
+		{
+			throw new NotSupportedException();
+		}
+
+		this.DataContext = new AppViewModel(this.ViewModel);
 
 		// Remember the last account the user used.
 		if (this.settings?.LastUsedAccountName is string lastAccountName && this.ViewModel is not null)

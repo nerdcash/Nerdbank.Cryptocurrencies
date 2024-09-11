@@ -23,6 +23,14 @@ public abstract class PlatformServices : INotifyPropertyChanged
 	public virtual bool HasHardwareBackButton => false;
 
 	/// <summary>
+	/// Gets a value indicating whether an app-level menu exists where the About menu item can be placed.
+	/// </summary>
+	/// <remarks>
+	/// This is expected to be <see langword="true"/> on MacOS.
+	/// </remarks>
+	public virtual bool HasAppLevelSystemMenu => false;
+
+	/// <summary>
 	/// Gets a value indicating whether the system is running on AC power.
 	/// </summary>
 	public abstract bool IsOnACPower { get; }
