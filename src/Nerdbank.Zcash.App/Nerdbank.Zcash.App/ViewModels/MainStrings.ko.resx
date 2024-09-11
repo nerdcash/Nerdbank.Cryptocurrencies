@@ -133,7 +133,7 @@
     <value>주소 확인</value>
   </data>
   <data name="AppMenuCaption" xml:space="preserve">
-    <value>앱</value>
+    <value>지갑</value>
   </data>
   <data name="BackCommandCaption" xml:space="preserve">
     <value>뒤로</value>

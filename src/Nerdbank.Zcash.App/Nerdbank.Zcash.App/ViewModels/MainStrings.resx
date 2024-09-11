@@ -133,7 +133,7 @@
     <value>A_ddress check</value>
   </data>
   <data name="AppMenuCaption" xml:space="preserve">
-    <value>_App</value>
+    <value>_Wallet</value>
   </data>
   <data name="BackCommandCaption" xml:space="preserve">
     <value>Back</value>
