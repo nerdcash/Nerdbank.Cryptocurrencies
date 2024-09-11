@@ -1,4 +1,4 @@
-// Copyright (c) Andrew Arnott. All rights reserved.
+﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Runtime.InteropServices;
@@ -108,14 +108,21 @@ internal class Program
 			.LogToTrace()
 			.UseReactiveUI();
 
-		// Workaround for transparent Window on win-arm64 (https://github.com/AvaloniaUI/Avalonia/issues/10405)
-		if (OperatingSystem.IsWindows() && RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+		if (OperatingSystem.IsWindows())
 		{
-			builder = builder.UseWin32()
-				.With(new Win32PlatformOptions
-				{
-					RenderingMode = new[] { Win32RenderingMode.Software },
-				});
+			Win32PlatformOptions options = new();
+
+			if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+			{
+				// Workaround for transparent Window on win-arm64 (https://github.com/AvaloniaUI/Avalonia/issues/10405)
+				options.RenderingMode = [Win32RenderingMode.Software];
+			}
+
+			builder.UseWin32().With(options);
+		}
+		else if (OperatingSystem.IsMacOS())
+		{
+			builder.With(new MacOSPlatformOptions { });
 		}
 
 		return builder;
