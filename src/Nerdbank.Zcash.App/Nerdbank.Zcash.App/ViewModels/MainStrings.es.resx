@@ -129,8 +129,14 @@
   <data name="AddressBookCommandCaption" xml:space="preserve">
     <value>Directorio</value>
   </data>
+  <data name="AddressCheckCommandCaption" xml:space="preserve">
+    <value>Cheque de dirección</value>
+  </data>
   <data name="AppMenuCaption" xml:space="preserve">
-    <value>Aplicación</value>
+    <value>Billetera</value>
+  </data>
+  <data name="BackCommandCaption" xml:space="preserve">
+    <value>Atrás</value>
   </data>
   <data name="BackupCommandCaption" xml:space="preserve">
     <value>Respaldo</value>
@@ -147,19 +153,13 @@
   <data name="SettingsCommandCaption" xml:space="preserve">
     <value>Ajustes</value>
   </data>
+  <data name="ToolsMenuCaption" xml:space="preserve">
+    <value>Herramientas</value>
+  </data>
   <data name="TransactionHistoryCommandCaption" xml:space="preserve">
     <value>Historia</value>
   </data>
   <data name="TransactionsMenuCaption" xml:space="preserve">
     <value>Actas</value>
-  </data>
-  <data name="AddressCheckCommandCaption" xml:space="preserve">
-    <value>Cheque de dirección</value>
-  </data>
-  <data name="ToolsMenuCaption" xml:space="preserve">
-    <value>Herramientas</value>
-  </data>
-  <data name="BackCommandCaption" xml:space="preserve">
-    <value>Atrás</value>
   </data>
 </root>

@@ -74,6 +74,20 @@ steps:
         '--runtime', $rid
       )
 
+      if ($IsWindows) {
+        $vpkCommand += @(
+          '--icon', 'src/Nerdbank.Zcash.App/Nerdbank.Zcash.App/Assets/applogo.ico'
+        )
+      } elseif ($IsMacOS) {
+        $vpkCommand += @(
+          '--icon', 'src/Nerdbank.Zcash.App/applogo.icns'
+        )
+      } elseif ($IsLinux) {
+        $vpkCommand += @(
+          '--icon', 'src/Nerdbank.Zcash.App/applogo.png'
+        )
+      }
+
       # Add signing parameters if we're not building a pull request.
       if ('${{ parameters.signArtifacts }}' -eq 'true') {
         if ($IsMacOS) {

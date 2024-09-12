@@ -146,6 +146,12 @@ public partial class App : Application, IAsyncDisposable
 			};
 			viewModel.TopVisual = singleViewPlatform.MainView;
 		}
+		else
+		{
+			throw new NotSupportedException();
+		}
+
+		this.DataContext = new AppViewModel(this.ViewModel);
 
 		// Remember the last account the user used.
 		if (this.settings?.LastUsedAccountName is string lastAccountName && this.ViewModel is not null)
@@ -230,10 +236,11 @@ public partial class App : Application, IAsyncDisposable
 
 	internal static AppPlatformSettings CreateDesignTimeAppPlatformSettings()
 	{
+		string basePath = Path.Combine(Path.GetTempPath(), "eZcash.DesignTime");
 		return new()
 		{
-			ConfidentialDataPath = @"C:\some\path\to\wallet.dat",
-			NonConfidentialDataPath = @"C:\some\path\to\settings",
+			ConfidentialDataPath = Path.Combine(basePath, "wallet.dat"),
+			NonConfidentialDataPath = Path.Combine(basePath, "settings"),
 		};
 	}
 

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Nerdbank.Zcash.App</string>
+	<string>eZcash</string>
 	<key>CFBundleIdentifier</key>
 	<string>net.ironpigeon.ezcash</string>
 	<key>CFBundleShortVersionString</key>
