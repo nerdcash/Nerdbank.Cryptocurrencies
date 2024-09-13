@@ -8,6 +8,7 @@
     <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
     <!--<ForceSimulatorX64ArchitectureInIDE>true</ForceSimulatorX64ArchitectureInIDE>-->
     <IncludeiOSBinaries>true</IncludeiOSBinaries>
+    <AppIcon>Media.xcassets/AppIcons.appiconset</AppIcon>
   </PropertyGroup>
 
   <!-- Always build the iOS app when in CI. -->
