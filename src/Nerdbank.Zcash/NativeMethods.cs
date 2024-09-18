@@ -9,7 +9,12 @@ using Nerdbank.Zcash;
 /// </summary>
 internal static unsafe partial class NativeMethods
 {
+#if IOS
+	// https://github.com/xamarin/xamarin-macios/issues/21238
+	private const string LibraryName = "@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust";
+#else
 	private const string LibraryName = "nerdbank_zcash_rust";
+#endif
 
 	/// <summary>
 	/// Passes a byte buffer through the Orchard ToScalar method in the spec.

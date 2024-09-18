@@ -22,9 +22,45 @@ if ($InstallPrerequisites) {
     }
 }
 
-$outDir = "$PSScriptRoot\..\Nerdbank.Zcash\RustBindings"
+$outDir = Resolve-Path "$PSScriptRoot\..\Nerdbank.Zcash\RustBindings"
+$uniffiTomlPath = Resolve-Path "$PSScriptRoot\uniffi.toml"
+$ffiUdlPath = Resolve-Path "$PSScriptRoot\src\ffi.udl"
 uniffi-bindgen-cs `
-    -c $PSScriptRoot\uniffi.toml `
+    -c $uniffiTomlPath `
     -o $outDir `
-    $PSScriptRoot\src\ffi.udl
-dotnet csharpier --include-generated (Resolve-Path $outDir)
+    $ffiUdlPath
+if ($LASTEXITCODE -ne 0) {
+    throw "uniffi-bindgen-cs failed with exit code $LASTEXITCODE."
+}
+
+dotnet csharpier --include-generated $outDir
+Copy-Item $outDir\LightWallet.cs $outDir\LightWallet.iOS.cs -Force
+
+# Customize the lib name based on platform
+Function Replace-LibName {
+    param(
+        [string]$FilePath,
+        [string]$NewLibName
+    )
+
+    $content = Get-Content $FilePath
+    $content = $content.Replace('LIBNAMEHERE', $NewLibName)
+    Set-Content -Path $FilePath -Value $content -Encoding utf8NoBOM
+}
+
+Write-Host "Replacing lib name in LightWallet.cs"
+Replace-LibName $outDir\LightWallet.cs nerdbank_zcash_rust
+(Get-Content $outDir\LightWallet.cs | Select-String DllImport)[0]
+
+Write-Host "Replacing lib name in LightWallet.iOS.cs"
+Replace-LibName $outDir\LightWallet.iOS.cs '@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust'
+(Get-Content $outDir\LightWallet.iOS.cs | Select-String DllImport)[0]
+
+# If we're in CI and this changed the bindings, someone failed to commit the changes earlier.
+# We should fail the build in that case.
+if ($env:TF_BUILD) {
+    git diff --exit-code $outDir
+    if ($LASTEXITCODE -ne 0) {
+        throw "Bindings changed. Please run this script locally and commit the changes before submitting."
+    }
+}

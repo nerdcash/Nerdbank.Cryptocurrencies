@@ -90,6 +90,11 @@ jobs:
     parameters:
       test_target: x86_64-apple-darwin
 
+  - pwsh: |
+      Write-Host "##[command]./azure-pipelines/build_ios_framework.ps1"
+      ./azure-pipelines/build_ios_framework.ps1
+    displayName: 📱 iOS Framework
+
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
