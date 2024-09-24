@@ -44,6 +44,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
     <CI Condition="'$(TF_BUILD)'=='true'">true</CI>
+
+    <!-- Avoid file write collisions when building multiple times with the MSBuild Project Cache plugin active. -->
+    <MSBuildCacheIdenticalDuplicateOutputPatterns>$(MSBuildCacheIdenticalDuplicateOutputPatterns);**</MSBuildCacheIdenticalDuplicateOutputPatterns>
+    <MSBuildCacheAllowFileAccessAfterProjectFinishFilePatterns>$(MSBuildCacheAllowFileAccessAfterProjectFinishFilePatterns);$(LocalAppData)\Microsoft\Windows\INetCache\**</MSBuildCacheAllowFileAccessAfterProjectFinishFilePatterns>
   </PropertyGroup>
 
   <PropertyGroup>
