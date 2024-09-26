@@ -34,6 +34,7 @@
           <SolidColorBrush x:Key="HyperlinkHoverBrush" Color="{DynamicResource ColorPalette1}" />
 
           <SvgImage x:Key="ZcashLogo" Source="/Assets/Zcash Media Kit/Primary-Logo-Black-Yellow.svg" />
+          <Image x:Key="CopyIcon" Source="/Assets/copy_light.png" Height="12" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <Color x:Key="ColorPalette0">#040240</Color>
@@ -55,6 +56,7 @@
           <SolidColorBrush x:Key="HyperlinkHoverBrush" Color="{DynamicResource ColorPalette4}" />
 
           <SvgImage x:Key="ZcashLogo" Source="/Assets/Zcash Media Kit/Primary-Logo-White-Yellow.svg" />
+          <Image x:Key="CopyIcon" Source="/Assets/copy_dark.png" Height="12" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
@@ -172,13 +174,6 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Margin" Value="0" />
-    </Style>
-    <Style Selector="Button.Copy">
-      <!--<Setter Property="Content">
-        <Setter.Value>
-          <Image Source="/Assets/copy.png" />
-        </Setter.Value>
-      </Setter>-->
     </Style>
   </Application.Styles>
 
