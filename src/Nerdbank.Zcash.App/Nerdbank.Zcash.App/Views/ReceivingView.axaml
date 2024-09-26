@@ -64,11 +64,7 @@
               <TextBlock HorizontalAlignment="Center" Text="{Binding CopyTextPrompt}" />
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="{Binding ShortText}" VerticalAlignment="Center" />
-                <Button Classes="Copy" Background="Transparent" Command="{Binding CopyCommand}">
-                  <Button.Content>
-                    <Image Source="/Assets/copy.png" Height="12" />
-                  </Button.Content>
-                </Button>
+                <Button Background="Transparent" Command="{Binding CopyCommand}" Content="{DynamicResource CopyIcon}"/>
               </StackPanel>
             </StackPanel>
           </Grid>
