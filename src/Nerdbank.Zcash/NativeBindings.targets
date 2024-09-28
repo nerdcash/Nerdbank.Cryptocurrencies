@@ -76,7 +76,8 @@
     </RustBinary>
 
     <!-- iOS -->
-    <RustBinary Condition="'$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true'" Include="$(iOSFrameworkPath)/**">
+    <!-- The '$(BuildingInsideVisualStudio)'!='true' condition is a workaround because CPS fails to load the project when this item exists. -->
+    <RustBinary Condition="'$(BuildingInsideVisualStudio)'!='true' and ('$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true')" Include="$(iOSFrameworkPath)/**">
       <PackagePath>lib/net8.0-ios17.0/Nerdbank.Zcash.resources/$(iOSFrameworkName)/</PackagePath>
       <Visible>false</Visible>
     </RustBinary>
