@@ -20,6 +20,10 @@ parameters:
   displayName: Run tests
   type: boolean
   default: true
+- name: AppleStoreReady
+  displayName: Use Apple Store provisioning profile
+  type: boolean
+  default: false
 
 variables:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -34,10 +38,15 @@ jobs:
     ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/app') }}:
       BaseChannelName: dogfood
       GooglePlayTrack: internal
+      AppleStoreReady: ${{ parameters.AppleStoreReady }}
     ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/app-prerelease') }}:
       BaseChannelName: prerelease
       GooglePlayTrack: alpha
+      AppleStoreReady: true
     ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/app-release') }}:
       BaseChannelName: release
       GooglePlayTrack: production
+      AppleStoreReady: true
+    ${{ else }}:
+      AppleStoreReady: ${{ parameters.AppleStoreReady }}
     signArtifacts: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
