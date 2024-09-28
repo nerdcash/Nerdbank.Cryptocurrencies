@@ -21,6 +21,7 @@ steps:
 
 - pwsh: src/nerdbank-zcash-rust/generate_cs_bindings.ps1 -InstallPrerequisites
   displayName: 🛠️ generate C# bindings
+  condition: and(succeeded(), ne('${{ parameters.RunTests }}', 'false'))
 
 - pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release -SkipCsBindings
   displayName: 🛠️ cargo build
