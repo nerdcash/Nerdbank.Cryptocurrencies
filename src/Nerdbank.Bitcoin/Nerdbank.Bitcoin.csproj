@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <DefineConstants>$(DefineConstants);BITCOIN</DefineConstants>
+    <Description>A .NET library for Bitcoin, capable of several commonly-used algorithms.</Description>
   </PropertyGroup>
 
   <ItemGroup>
