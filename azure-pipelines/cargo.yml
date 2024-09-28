@@ -16,7 +16,10 @@ steps:
 #     path: $(HOME)/.cargo/registry
 #   displayName: cache cargo registry
 
-- pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release
+- pwsh: src/nerdbank-zcash-rust/generate_cs_bindings.ps1 -InstallPrerequisites
+  displayName: 🛠️ generate C# bindings
+
+- pwsh: src/nerdbank-zcash-rust/build_all.ps1 -Release -SkipCsBindings
   displayName: 🛠️ cargo build
 
 - pwsh: cargo test -r --target ${{ parameters.test_target }}
