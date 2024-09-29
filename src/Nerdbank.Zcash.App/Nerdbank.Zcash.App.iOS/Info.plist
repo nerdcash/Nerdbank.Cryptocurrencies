@@ -7,9 +7,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>net.ironpigeon.ezcash</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$version$</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>$version$</string>
 	<key>XSAppIconAssets</key>
 	<string>Media.xcassets/AppIcons.appiconset</string>
 	<key>LSRequiresIPhoneOS</key>
