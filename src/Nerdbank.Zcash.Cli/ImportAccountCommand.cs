@@ -38,22 +38,22 @@ internal class ImportAccountCommand
 			lightServerUriOption,
 		};
 
-		command.SetHandler(ctxt =>
+		command.SetHandler(async ctxt =>
 		{
-			ctxt.ExitCode = new ImportAccountCommand()
+			ctxt.ExitCode = await new ImportAccountCommand()
 			{
 				Console = ctxt.Console,
 				Key = ctxt.ParseResult.GetValueForArgument(keyArgument),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(lightServerUriOption),
 				WalletPath = ctxt.ParseResult.GetValueForOption(walletPathOption),
 				BirthdayHeight = ctxt.ParseResult.GetValueForOption(birthdayHeightOption),
-			}.Execute(ctxt.GetCancellationToken());
+			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
 
 		return command;
 	}
 
-	private int Execute(CancellationToken cancellationToken)
+	private async Task<int> ExecuteAsync(CancellationToken cancellationToken)
 	{
 		if (!ZcashAccount.TryImportAccount(this.Key, out ZcashAccount? account))
 		{
@@ -72,6 +72,7 @@ internal class ImportAccountCommand
 				this.LightWalletServerUrl,
 				account.Network,
 				this.WalletPath);
+			await client.AddAccountAsync(account, cancellationToken);
 			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
 		}
 

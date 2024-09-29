@@ -20,8 +20,8 @@
     <RustOutputAndroidArm64>$(RustOutputDirBase)aarch64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidArm64>
     <RustOutputAndroidX64>$(RustOutputDirBase)x86_64-linux-android/$(RustConfiguration)/libnerdbank_zcash_rust.so</RustOutputAndroidX64>
 
-    <RustOutputiOSArm64>$(RustOutputDirBase)aarch64-apple-ios/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputiOSArm64>
-    <RustOutputiOSX64>$(RustOutputDirBase)x86_64-apple-ios/$(RustConfiguration)/libnerdbank_zcash_rust.dylib</RustOutputiOSX64>
+    <iOSFrameworkName>nerdbank_zcash_rust.xcframework</iOSFrameworkName>
+    <iOSFrameworkPath>$(RepoRootPath)bin/$(RustConfiguration)/$(iOSFrameworkName)</iOSFrameworkPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsMobileAppProject)'!='true'">
     <IncludeWindowsBinaries Condition="$([MSBuild]::IsOsPlatform('Windows'))">true</IncludeWindowsBinaries>
@@ -76,11 +76,14 @@
     </RustBinary>
 
     <!-- iOS -->
-    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='arm64' and '$(IncludeiOSBinaries)'=='true')" Include="$(RustOutputiOSArm64)">
-      <PackagePath>runtimes/ios-arm64/native/</PackagePath>
+    <!-- The '$(BuildingInsideVisualStudio)'!='true' condition is a workaround because CPS fails to load the project when this item exists. -->
+    <RustBinary Condition="'$(BuildingInsideVisualStudio)'!='true' and ('$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true')" Include="$(iOSFrameworkPath)/**">
+      <PackagePath>lib/net8.0-ios17.0/Nerdbank.Zcash.resources/$(iOSFrameworkName)/</PackagePath>
+      <Visible>false</Visible>
     </RustBinary>
-    <RustBinary Condition="'$(IsPackable)'=='true' or ('$(PlatformTarget)'=='x64' and '$(IncludeiOSBinaries)'=='true')" Include="$(RustOutputiOSX64)">
-      <PackagePath>runtimes/ios-x64/native/</PackagePath>
+    <RustBinary Condition="'$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true'" Include="$(RepoRootPath)/azure-pipelines/manifest">
+      <PackagePath>lib/net8.0-ios17.0/Nerdbank.Zcash.resources/</PackagePath>
+      <Visible>false</Visible>
     </RustBinary>
   </ItemGroup>
   <ItemGroup>
@@ -100,18 +103,9 @@
     </None>
   </ItemGroup>
   <ItemGroup Condition="'$(IncludeiOSBinaries)'=='true'">
-    <NativeCopyLocalItems Include="@(RustBinary)">
-      <AssetType>native</AssetType>
-    </NativeCopyLocalItems>
-  </ItemGroup>
-  <!-- We only expect the iOS native library to be present if we're on a Mac or we're in a local dev environment where they were copied locally. -->
-  <ItemGroup Condition="'$(IncludeiOSBinaries)'=='true' and ('$(CI)'!='true' or $([MSBuild]::IsOsPlatform('OSX')))">
-    <None Include="$(RustOutputiOSArm64)" Condition="'$(PlatformTarget)'=='arm64'">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(RustOutputiOSX64)" Condition="'$(PlatformTarget)'=='x64'">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <NativeReference Include="$(iOSFrameworkPath)">
+      <Kind>Framework</Kind>
+    </NativeReference>
   </ItemGroup>
   <ItemGroup Condition="'$(IncludeAndroidBinaries)'=='true'">
     <AndroidNativeLibrary Include="$(RustOutputAndroidArm64)" Abi="arm64-v8a" />
