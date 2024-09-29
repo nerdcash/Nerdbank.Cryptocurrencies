@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <Description>A .NET library for cryptocurrencies, capable of several commonly-used algorithms.</Description>
   </PropertyGroup>
 
   <ItemGroup>

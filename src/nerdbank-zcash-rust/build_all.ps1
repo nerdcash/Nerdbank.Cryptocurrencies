@@ -30,6 +30,7 @@ $buildArgs = @()
 Push-Location $PSScriptRoot
 
 if (-not $SkipCsBindings) {
+    Write-Host "Generating C# bindings..."
     .\generate_cs_bindings.ps1
 }
 

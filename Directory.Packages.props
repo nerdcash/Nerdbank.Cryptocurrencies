@@ -6,7 +6,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <AvaloniaVersion>11.1.1</AvaloniaVersion>
     <AvaloniaMarkdownVersion>11.0.2</AvaloniaMarkdownVersion>
-    <RoslynVersion>3.11.0-beta1.24104.1</RoslynVersion>
+    <RoslynVersion>3.11.0-beta1.24415.1</RoslynVersion>
     <AspNetWebAssemblyVersion>8.0.7</AspNetWebAssemblyVersion>
     <MessagePackVersion>2.5.168</MessagePackVersion>
   </PropertyGroup>
@@ -47,7 +47,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.48" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
     <PackageVersion Include="NBitcoin.Secp256k1" Version="3.1.5" />
-    <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.50-beta" />
+    <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.61" />
     <PackageVersion Include="QRCoder" Version="1.6.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />

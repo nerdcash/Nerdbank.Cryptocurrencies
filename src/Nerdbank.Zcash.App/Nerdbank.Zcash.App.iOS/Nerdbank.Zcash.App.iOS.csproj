@@ -1,4 +1,4 @@
-﻿  <Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-ios</TargetFramework>
@@ -8,6 +8,10 @@
     <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
     <!--<ForceSimulatorX64ArchitectureInIDE>true</ForceSimulatorX64ArchitectureInIDE>-->
     <IncludeiOSBinaries>true</IncludeiOSBinaries>
+    <AppIcon>Media.xcassets/AppIcons.appiconset</AppIcon>
+
+    <!-- Workaround https://github.com/xamarin/xamarin-macios/issues/19157 -->
+    <MtouchNoSymbolStrip Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">True</MtouchNoSymbolStrip>
   </PropertyGroup>
 
   <!-- Always build the iOS app when in CI. -->

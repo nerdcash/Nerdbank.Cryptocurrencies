@@ -17,6 +17,9 @@ parameters:
 - name: GooglePlayTrack
   type: string
   default: ''
+- name: AppleStoreReady
+  type: boolean
+  default: false
 - name: desktopAppAgents
   type: object
   default:
@@ -146,7 +149,7 @@ jobs:
 
   - template: install-dependencies.yml
 
-  - ${{ if or(eq(parameters.BaseChannelName, 'release'), eq(parameters.BaseChannelName, 'prerelease')) }}:
+  - ${{ if parameters.AppleStoreReady }}:
     - task: DownloadSecureFile@1
       name: dsfAppleCert
       displayName: 🍎 Download App Store certificate
@@ -177,7 +180,7 @@ jobs:
       /opt/homebrew/bin/openssl pkcs12 -in $(dsfAppleCert.secureFilePath) -nokeys -passin pass:$P12_PASSWORD -legacy | /opt/homebrew/bin/openssl x509 -sha1 -noout -fingerprint -subject -dates -nameopt utf8,sep_semi_plus_space
 
       KEYCHAIN_PATH=$AGENT_TEMPDIRECTORY/app-signing.keychain-db
-      if [ "${{ parameters.BaseChannelName }}" = "prerelease" ] || [ "${{ parameters.BaseChannelName }}" = "release" ]; then
+      if [ "${{ parameters.AppleStoreReady }}" = "True" ]; then
         CodesignProvision="eZcash App Store distribution"
         CodesignKey="Apple Distribution: Andrew Arnott (6B9NEABBFE)"
       else
@@ -215,6 +218,11 @@ jobs:
     parameters:
       RunTests: ${{ parameters.RunTests }}
       test_target: x86_64-apple-darwin
+
+  - pwsh: |
+      Write-Host "##[command]./azure-pipelines/build_ios_framework.ps1"
+      ./azure-pipelines/build_ios_framework.ps1
+    displayName: 📱 iOS Framework
 
   - template: dotnet.yml
     parameters:
