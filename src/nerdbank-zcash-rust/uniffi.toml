@@ -1,2 +1,2 @@
 [bindings.csharp]
-cdylib_name = "nerdbank_zcash_rust"
+cdylib_name = "LIBNAMEHERE"

@@ -23,6 +23,12 @@ steps:
     buildType: current
     targetPath: src/nerdbank-zcash-rust/target
     artifactName: rust-macOS
+- task: DownloadPipelineArtifact@2
+  displayName: 🔻 Download ios_framework binaries
+  inputs:
+    buildType: current
+    targetPath: bin/release/nerdbank_zcash_rust.xcframework
+    artifactName: ios_framework-macOS
 
 - pwsh: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
   displayName: 🪪 3rd party licenses
