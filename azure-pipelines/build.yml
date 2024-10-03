@@ -60,6 +60,7 @@ jobs:
       RunTests: ${{ parameters.RunTests }}
       osRID: win
       publishPlatforms: ${{ parameters.publishPlatforms }}
+      signArtifacts: ${{ parameters.signArtifacts }}
 
 - job: Windows_velopack
   displayName: Windows velopack
@@ -108,6 +109,7 @@ jobs:
       RunTests: ${{ parameters.RunTests }}
       osRID: linux
       publishPlatforms: ${{ parameters.publishPlatforms }}
+      signArtifacts: ${{ parameters.signArtifacts }}
 
   - template: velopack.yml
     parameters:
@@ -238,6 +240,7 @@ jobs:
       RunTests: ${{ parameters.RunTests }}
       osRID: osx
       publishPlatforms: ${{ parameters.publishPlatforms }}
+      signArtifacts: ${{ parameters.signArtifacts }}
 
   - pwsh: |
       $provisioningProfileFileName = Split-Path '$(dsfProvisioningProfile.secureFilePath)' -Leaf
