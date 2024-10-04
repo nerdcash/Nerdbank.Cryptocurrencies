@@ -77,7 +77,7 @@ jobs:
 
 - job: macOS
   pool:
-    vmImage: macOS-12
+    vmImage: macOS-14
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
