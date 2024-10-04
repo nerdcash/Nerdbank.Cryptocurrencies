@@ -151,6 +151,11 @@ jobs:
 
   - template: install-dependencies.yml
 
+  - script: |
+      xcode-select -p
+      xcodebuild -version
+    displayName: 🍎 Print Xcode version
+
   - ${{ if parameters.AppleStoreReady }}:
     - task: DownloadSecureFile@1
       name: dsfAppleCert
