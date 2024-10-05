@@ -143,6 +143,9 @@ jobs:
     - Agent.OS -equals Darwin
   variables:
   - group: Apple signing
+  - name: DEVELOPER_DIR
+    value: /Applications/Xcode_16.app/Contents/Developer
+
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
