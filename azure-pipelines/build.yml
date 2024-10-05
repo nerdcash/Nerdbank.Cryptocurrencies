@@ -78,6 +78,10 @@ jobs:
 - job: macOS
   pool:
     vmImage: macOS-14
+  variables:
+  - name: IPHONEOS_DEPLOYMENT_TARGET
+    value: 17.0
+
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
