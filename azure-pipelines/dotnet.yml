@@ -5,6 +5,8 @@ parameters:
   type: string
 - name: publishPlatforms
   type: object
+- name: signArtifacts
+  type: boolean
 
 steps:
 
@@ -17,6 +19,11 @@ steps:
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test
   condition: and(succeeded(), ${{ parameters.RunTests }})
+
+- ${{ if and(parameters.signArtifacts, eq(parameters.osRID, 'osx')) }}:
+  - bash: xcrun altool --validate-app -f "bin/Nerdbank.Zcash.App.iOS/Release/net8.0-ios18.0/ios-arm64/publish/Nerdbank.Zcash.App.iOS.ipa" -t ios -u $(APPLE-ID) -p $(APPLE-PASSWORD)
+    displayName: 🧪 Validate iOS app
+    condition: and(succeeded(), ${{ parameters.RunTests }})
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true

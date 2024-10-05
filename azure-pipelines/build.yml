@@ -60,6 +60,7 @@ jobs:
       RunTests: ${{ parameters.RunTests }}
       osRID: win
       publishPlatforms: ${{ parameters.publishPlatforms }}
+      signArtifacts: ${{ parameters.signArtifacts }}
 
 - job: Windows_velopack
   displayName: Windows velopack
@@ -108,6 +109,7 @@ jobs:
       RunTests: ${{ parameters.RunTests }}
       osRID: linux
       publishPlatforms: ${{ parameters.publishPlatforms }}
+      signArtifacts: ${{ parameters.signArtifacts }}
 
   - template: velopack.yml
     parameters:
@@ -141,6 +143,9 @@ jobs:
     - Agent.OS -equals Darwin
   variables:
   - group: Apple signing
+  - name: DEVELOPER_DIR
+    value: /Applications/Xcode_16.app/Contents/Developer
+
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -148,6 +153,11 @@ jobs:
     submodules: true
 
   - template: install-dependencies.yml
+
+  - script: |
+      xcode-select -p
+      xcodebuild -version
+    displayName: 🍎 Print Xcode version
 
   - ${{ if parameters.AppleStoreReady }}:
     - task: DownloadSecureFile@1
@@ -224,11 +234,21 @@ jobs:
       ./azure-pipelines/build_ios_framework.ps1
     displayName: 📱 iOS Framework
 
+  - pwsh: |
+      $version = dotnet nbgv get-version -v SimpleVersion
+      $plist = Get-Content Info.plist
+      $plist = $plist.Replace('$version$', $version)
+      Set-Content -Path Info.plist -Value $plist -Encoding utf8NoBOM
+      Write-Host $plist
+    displayName: 🍎 Stamp Info.plist version
+    workingDirectory: src/Nerdbank.Zcash.App/Nerdbank.Zcash.App.iOS
+
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
       osRID: osx
       publishPlatforms: ${{ parameters.publishPlatforms }}
+      signArtifacts: ${{ parameters.signArtifacts }}
 
   - pwsh: |
       $provisioningProfileFileName = Split-Path '$(dsfProvisioningProfile.secureFilePath)' -Leaf
