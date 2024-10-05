@@ -145,6 +145,8 @@ jobs:
   - group: Apple signing
   - name: DEVELOPER_DIR
     value: /Applications/Xcode_16.app/Contents/Developer
+  - name: IPHONEOS_DEPLOYMENT_TARGET
+    value: 17.0
 
   steps:
   - checkout: self
