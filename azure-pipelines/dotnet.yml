@@ -21,7 +21,7 @@ steps:
   condition: and(succeeded(), ${{ parameters.RunTests }})
 
 - ${{ if and(parameters.AppleStoreReady, eq(parameters.osRID, 'osx')) }}:
-  - bash: xcrun altool --validate-app -f "bin/Nerdbank.Zcash.App.iOS/Release/net8.0-ios18.0/ios-arm64/publish/Nerdbank.Zcash.App.iOS.ipa" -t ios -u $(APPLE-ID) -p $(APPLE-PASSWORD)
+  - bash: xcrun altool --validate-app -f "bin/Nerdbank.Zcash.App.iOS/Release/net8.0-ios/ios-arm64/publish/Nerdbank.Zcash.App.iOS.ipa" -t ios -u $(APPLE-ID) -p $(APPLE-PASSWORD)
     displayName: 🧪 Validate iOS app
     condition: and(succeeded(), ${{ parameters.RunTests }})
 
