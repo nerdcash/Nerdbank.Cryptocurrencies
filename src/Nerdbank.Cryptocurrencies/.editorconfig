@@ -2,3 +2,6 @@
 
 # VSTHRD111: Use .ConfigureAwait(bool)
 dotnet_diagnostic.VSTHRD111.severity = warning
+
+# VSTHRD012: Provide JoinableTaskFactory where allowed
+dotnet_diagnostic.VSTHRD012.severity = silent

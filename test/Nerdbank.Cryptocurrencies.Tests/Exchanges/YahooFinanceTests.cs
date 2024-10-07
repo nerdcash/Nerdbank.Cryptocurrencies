@@ -5,62 +5,20 @@ using System.Globalization;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
 [Trait("RequiresNetwork", "true")]
-public class YahooFinanceTests : TestBase
+public class YahooFinanceTests(ITestOutputHelper logger) : HistoricalPriceTestBase(logger)
 {
-	private static readonly TradingPair UsdZec = new(Security.USD, Security.ZEC);
 	private readonly YahooFinance exchange = new(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", "Nerdbank.Cryptocurrencies.Tests" } } });
 
-	public YahooFinanceTests(ITestOutputHelper logger)
-		: base(logger)
-	{
-	}
+	protected override IHistoricalExchangeRateProvider Provider => this.exchange;
 
-	[Theory, PairwiseData]
-	public async Task GetExchangeRateAsync_RespectsPairOrdering(bool fiatSecond)
-	{
-		TradingPair pair = new(Security.USD, Security.ZEC);
-		if (fiatSecond)
-		{
-			pair = pair.OppositeDirection;
-		}
+	protected override string? SkipGetExchangeRateTests => "Authentication now required.";
 
-		ExchangeRate? rate = await this.exchange.GetExchangeRateAsync(pair, DateTimeOffset.Now, this.TimeoutToken);
-		this.Logger.WriteLine($"{rate}");
-		Assert.Equal(rate.Value.Basis.Security, pair.Basis);
-		Assert.Equal(rate.Value.TradeInterest.Security, pair.TradeInterest);
-	}
-
-	[Fact]
+	[Fact(Skip = "Authentication now required.")]
 	public async Task GetZecUsdHistoricalPricing()
 	{
 		DateTimeOffset when = DateTimeOffset.Parse("11/3/2022", CultureInfo.InvariantCulture);
 		ExchangeRate? exchangeRate = await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken);
 		this.Logger.WriteLine($"{when:d} {exchangeRate}");
 		Assert.Equal(Security.USD.Amount((50.312881m + 50.36557m) / 2), exchangeRate.Value.InBasisAmount);
-	}
-
-	[Fact]
-	public async Task GetHistoricalPricing_TooFarBack()
-	{
-		DateTimeOffset when = DateTimeOffset.Parse("11/3/2005", CultureInfo.InvariantCulture);
-		Assert.Null(await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken));
-	}
-
-	[Fact]
-	public async Task GetHistoricalPricing_TooFarForward()
-	{
-		DateTimeOffset when = DateTimeOffset.Now.AddDays(2);
-		Assert.Null(await this.exchange.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken));
-	}
-
-	[Fact]
-	public async Task GetAvailableTradingPairsAsync()
-	{
-		IReadOnlyCollection<TradingPair> pairs = await this.exchange.GetAvailableTradingPairsAsync(this.TimeoutToken);
-		Assert.NotEmpty(pairs);
-		foreach (TradingPair pair in pairs)
-		{
-			this.Logger.WriteLine($"{pair}");
-		}
 	}
 }
