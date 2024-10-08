@@ -28,7 +28,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.App = app;
 
 		this.ExchangeRateProvider = new BinanceUSExchange(this.httpClient);
-		this.HistoricalExchangeRateProvider = new YahooFinance(this.httpClient);
+		this.HistoricalExchangeRateProvider = new Coinbase(this.httpClient);
 
 		this.NavigateBackCommand = ReactiveCommand.Create(
 			() => this.NavigateBack(),
