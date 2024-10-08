@@ -54,4 +54,15 @@ public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBa
 			this.Logger.WriteLine($"{pair}");
 		}
 	}
+
+	[SkippableFact]
+	public async Task GetHistoricalPricing_Now()
+	{
+		Skip.If(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests);
+
+		DateTimeOffset when = DateTimeOffset.Now;
+		ExchangeRate? rate = await this.Provider.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken);
+		Assert.NotNull(rate);
+		this.Logger.WriteLine($"{rate}");
+	}
 }
