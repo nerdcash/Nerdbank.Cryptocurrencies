@@ -2,12 +2,14 @@ steps:
 - pwsh: tools/Install-AndroidBuildTools.ps1
   displayName: ⚙️ install android tooling
 
-- pwsh: ./build_all.ps1 -AndroidEmulatorOnly -Release -SkipCsBindings
-  displayName: 🛠️ build android-x64
-  workingDirectory: src/nerdbank-zcash-rust
+- task: Cache@2
+  inputs:
+    key: '"cargo" | "$(Agent.OS)" | "Android"'
+    path: $(Build.SourcesDirectory)/src/nerdbank-zcash-rust/target
+  displayName: 🧠 cache cargo build
 
-- pwsh: ./build_all.ps1 -AndroidDeviceOnly -Release -SkipCsBindings
-  displayName: 🛠️ build android-arm64
+- pwsh: ./build_all.ps1 -AndroidEmulatorOnly -AndroidDeviceOnly -Release -SkipCsBindings
+  displayName: 🛠️ build android
   workingDirectory: src/nerdbank-zcash-rust
 
 - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
