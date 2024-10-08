@@ -19,7 +19,7 @@ pub(crate) async fn get_grpc_channel(uri: Uri) -> Result<Channel, tonic::transpo
     }
 
     let tls = ClientTlsConfig::new()
-        .with_native_roots()
+        .with_webpki_roots()
         .domain_name(uri.host().unwrap());
     let channel = Channel::builder(uri.clone())
         .tls_config(tls)?
