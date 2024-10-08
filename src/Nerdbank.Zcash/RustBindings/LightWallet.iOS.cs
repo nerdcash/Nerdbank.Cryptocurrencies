@@ -1895,7 +1895,7 @@ class FfiConverterTypeUserBalances : FfiConverterRustBuffer<UserBalances>
 internal enum ChainType : int
 {
 	Testnet,
-	Mainnet
+	Mainnet,
 }
 
 class FfiConverterTypeChainType : FfiConverterRustBuffer<ChainType>
@@ -2108,7 +2108,7 @@ internal enum Pool : int
 {
 	Transparent,
 	Sapling,
-	Orchard
+	Orchard,
 }
 
 class FfiConverterTypePool : FfiConverterRustBuffer<Pool>
