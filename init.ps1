@@ -77,6 +77,9 @@ if (!$NoPrerequisites) {
     }
 
     if (!$NoRust) {
+        Push-Location $PSScriptRoot/src/nerdbank-zcash-rust
+        rustup update # Install the pinned toolset
+        Pop-Location
         $rustTargets = @(& "$PSScriptRoot\azure-pipelines\Get-RustTargets.ps1")
         rustup target add @rustTargets
     }
