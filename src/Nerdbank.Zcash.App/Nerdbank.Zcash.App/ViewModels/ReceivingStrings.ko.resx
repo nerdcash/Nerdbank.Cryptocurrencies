@@ -126,6 +126,9 @@
   <data name="CopyTextPrompt" xml:space="preserve">
     <value>카메라 없이 공유하려면 아래 텍스트를 복사하세요.</value>
   </data>
+  <data name="PayInvoiceHyperlinkText" xml:space="preserve">
+    <value>Zcash로 송장을 지불하십시오</value>
+  </data>
   <data name="SaplingReceivingAddressHeader" xml:space="preserve">
     <value>Sapling</value>
   </data>
