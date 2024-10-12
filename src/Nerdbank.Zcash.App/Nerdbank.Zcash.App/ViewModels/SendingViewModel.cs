@@ -15,7 +15,7 @@ namespace Nerdbank.Zcash.App.ViewModels;
 public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 {
 	private static readonly TimeSpan DefaultEphemeralMessageDelay = TimeSpan.FromSeconds(3);
-	private static readonly TimeSpan PaymentRequestScanEphemeralMessageDelay = TimeSpan.FromSeconds(5);
+	private static readonly TimeSpan PaymentRequestAppliedEphemeralMessageDelay = TimeSpan.FromSeconds(5);
 
 	private readonly ObservableCollection<LineItem> lineItems = new();
 	private readonly ReadOnlyObservableCollection<LineItem> lineItemsReadOnly;
@@ -48,6 +48,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 	public SendingViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices, showOnlyAccountsWithSpendKeys: true)
 	{
+		this.isSendingInProgress = this.WhenAnyValue(vm => vm.SelectedAccount!.SendProgress.IsInProgress)
+			.ToProperty(this, nameof(this.IsSendingInProgress));
+
 		this.lineItemsReadOnly = new(this.lineItems);
 		this.AddLineItem();
 
@@ -73,9 +76,6 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			.Select(account => account?.Network != ZcashNetwork.MainNet)
 			.ToProperty(this, nameof(this.IsTestNetWarningVisible));
 
-		// ZingoLib does not support sending more than one transaction at once.
-		this.isSendingInProgress = this.WhenAnyValue(vm => vm.SelectedAccount!.SendProgress.IsInProgress)
-			.ToProperty(this, nameof(this.IsSendingInProgress));
 		IObservable<bool> canSend = this.WhenAnyValue(
 			vm => vm.SelectedAccount!.SendProgress.IsInProgress,
 			vm => vm.SelectedAccount!.Balance.Spendable,
@@ -178,7 +178,7 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		return this.TryApplyPaymentRequest(paymentRequest);
 	}
 
-	public bool TryApplyPaymentRequest(Zip321PaymentRequestUris.PaymentRequest paymentRequest)
+	public bool TryApplyPaymentRequest(Zip321PaymentRequestUris.PaymentRequest paymentRequest, bool clearExistingLineItems = true)
 	{
 		if (this.Accounts.Count == 0)
 		{
@@ -186,7 +186,10 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			return false;
 		}
 
-		this.Clear(leaveOneEmptyLineItem: false);
+		if (clearExistingLineItems)
+		{
+			this.Clear(leaveOneEmptyLineItem: false);
+		}
 
 		ZcashNetwork? network = null;
 		foreach (Zip321PaymentRequestUris.PaymentRequestDetails payment in paymentRequest.Payments)
@@ -209,6 +212,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 			lineItem.Message = payment.Message;
 			lineItem.RecipientLabel = payment.Label;
 		}
+
+		this.ShowEphemeralMessage(SendingStrings.FormatPaymentRequestApplied(paymentRequest.Payments.Length), PaymentRequestAppliedEphemeralMessageDelay);
 
 		// Ensure the selected sending account is not incompatible with the recipients in the payment request.
 		if (this.SelectedAccount is not null && this.SelectedAccount.Network != network)
@@ -493,6 +498,8 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 
 		this.lineItems.Add(lineItem);
 		this.UpdateAreLineItemsValidProperty();
+		this.UpdateSendCommandCaption();
+
 		return lineItem;
 	}
 
@@ -501,6 +508,15 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		this.lineItems.Remove(lineItem);
 		this.RecalculateAggregates();
 		this.UpdateAreLineItemsValidProperty();
+		this.UpdateSendCommandCaption();
+	}
+
+	private void UpdateSendCommandCaption()
+	{
+		this.SendCommandCaption =
+			this.IsSendingInProgress ? SendingStrings.SendCommandCaption_Sending :
+			this.GetLineItems().Length > 1 ? SendingStrings.FormatSendMultiplePaymentsCommandCaption(this.LineItems.Count) :
+			SendingStrings.SendCommandCaption;
 	}
 
 	public class LineItem : ViewModelBaseWithAccountSelector
@@ -569,7 +585,20 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 		public string RecipientAddress
 		{
 			get => this.recipientAddress;
-			set => this.RaiseAndSetIfChanged(ref this.recipientAddress, value);
+			set
+			{
+				if (Zip321PaymentRequestUris.PaymentRequest.TryParse(value, out Zip321PaymentRequestUris.PaymentRequest? paymentRequest))
+				{
+					if (this.owner.TryApplyPaymentRequest(paymentRequest, clearExistingLineItems: false))
+					{
+						this.owner.Remove(this);
+					}
+				}
+				else
+				{
+					this.RaiseAndSetIfChanged(ref this.recipientAddress, value);
+				}
+			}
 		}
 
 		public object? SelectedRecipient
@@ -643,13 +672,9 @@ public class SendingViewModel : ViewModelBaseWithExchangeRate, IHasTitle
 						}
 						else if (Zip321PaymentRequestUris.PaymentRequest.TryParse(text, out Zip321PaymentRequestUris.PaymentRequest? paymentRequest))
 						{
-							if (this.owner.TryApplyPaymentRequest(paymentRequest))
+							if (!this.owner.TryApplyPaymentRequest(paymentRequest))
 							{
-								this.owner.ShowEphemeralMessage(SendingStrings.FormatQRCodePaymentRequestScanned(paymentRequest.Payments.Length), PaymentRequestScanEphemeralMessageDelay);
-							}
-							else
-							{
-								this.owner.ShowEphemeralMessage(SendingStrings.QRCodePaymentRequestApplicationFailed, PaymentRequestScanEphemeralMessageDelay);
+								this.owner.ShowEphemeralMessage(SendingStrings.QRCodePaymentRequestApplicationFailed, PaymentRequestAppliedEphemeralMessageDelay);
 							}
 						}
 						else

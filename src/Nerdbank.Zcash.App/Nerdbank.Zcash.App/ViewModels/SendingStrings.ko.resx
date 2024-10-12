@@ -145,7 +145,7 @@
     <value>수신자:</value>
   </data>
   <data name="LineItem_RecipientBoxWatermark" xml:space="preserve">
-    <value>Zcash 주소 또는 연락처 이름</value>
+    <value>연락처, Zcash 주소 또는 지불 요청</value>
   </data>
   <data name="LineItem_RemoveLineItemCommandCaption" xml:space="preserve">
     <value>❌</value>
@@ -156,11 +156,11 @@
   <data name="NoQRCodeFound" xml:space="preserve">
     <value>QR 코드가 발견되지 않았습니다.</value>
   </data>
+  <data name="PaymentRequestApplied" xml:space="preserve">
+    <value>지불 요청이 적용됩니다. {count} 지불 (들) 초기화. 보내기 전에 신중하게 검토하십시오.</value>
+  </data>
   <data name="QRCodePaymentRequestApplicationFailed" xml:space="preserve">
     <value>지불 요청을 적용하는 동안 오류가 발생했습니다. 신중하게 검토하십시오.</value>
-  </data>
-  <data name="QRCodePaymentRequestScanned" xml:space="preserve">
-    <value>QR 코드 스캔 성공. {count} 지불 (들) 초기화. 신중하게 검토하십시오.</value>
   </data>
   <data name="QRCodeZcashAddressScanned" xml:space="preserve">
     <value>Zcash 주소가 발견되었습니다.</value>
@@ -170,6 +170,9 @@
   </data>
   <data name="SendCommandCaption_Sending" xml:space="preserve">
     <value>⚒️ 보내기</value>
+  </data>
+  <data name="SendMultiplePaymentsCommandCaption" xml:space="preserve">
+    <value>📤 {lineItemsCount} 결제를 보냅니다</value>
   </data>
   <data name="SendSuccessfulMessage" xml:space="preserve">
     <value>{Amount}가 성공적으로 보냈습니다.</value>
