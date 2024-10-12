@@ -135,6 +135,12 @@
     <Style Selector="Border.ButtonAndExplanation TextBlock">
       <Setter Property="Margin" Value="5 0 5 5" />
     </Style>
+    <Style Selector="TextBlock.PaymentRequestText">
+      <Setter Property="FontFamily" Value="Arial" />
+      <Setter Property="FontStyle" Value="Italic" />
+      <Setter Property="Foreground" Value="{DynamicResource InsignificantTextBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
     <Style Selector="StackPanel.IncomingFunds">
       <Setter Property="Background" Value="{DynamicResource IncomingFundsBackgroundBrush}" />
     </Style>

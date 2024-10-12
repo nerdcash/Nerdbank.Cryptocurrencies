@@ -27,14 +27,6 @@
     </DataTemplate>
   </UserControl.DataTemplates>
   <Grid>
-    <Grid.Styles>
-      <Style Selector="TextBlock.PaymentRequestText">
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontStyle" Value="Italic" />
-        <Setter Property="Foreground" Value="DarkBlue" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-      </Style>
-    </Grid.Styles>
     <DockPanel>
       <local:SyncHeaderControl DataContext="{Binding SyncProgress}" DockPanel.Dock="Top" Margin="0 0 0 10" />
       <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" DockPanel.Dock="Bottom" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
