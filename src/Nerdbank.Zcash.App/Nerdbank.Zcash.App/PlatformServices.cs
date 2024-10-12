@@ -3,6 +3,8 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Nerdbank.Zcash.App;
 
@@ -51,6 +53,22 @@ public abstract class PlatformServices : INotifyPropertyChanged
 	public virtual bool CanSearchForQRCodes => this.ViewModelServices?.TopLevel?.StorageProvider.CanOpen is true;
 
 	/// <summary>
+	/// Gets a factory of loggers that may be accessible to the user when reporting issues.
+	/// </summary>
+	/// <remarks>
+	/// Derived types should initialize this property using
+	/// <see cref="LoggerFactory.Create(Action{ILoggingBuilder})"/>
+	/// and call <see cref="ConfigureLogging(ILoggingBuilder)" /> within the delegate,
+	/// along with optionally adding additional loggers.
+	/// </remarks>
+	public abstract ILoggerFactory LoggerFactory { get; }
+
+	/// <summary>
+	/// Gets the collection of loggers that have been created.
+	/// </summary>
+	public MemoryLogger.Provider? MemoryLoggers { get; private set; }
+
+	/// <summary>
 	/// Requests that the system not sleep until the returned object is disposed.
 	/// </summary>
 	/// <returns>
@@ -83,6 +101,18 @@ public abstract class PlatformServices : INotifyPropertyChanged
 	/// <param name="propertyName">The name of the property whose value has changed.</param>
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 		=> this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+	/// <summary>
+	/// Configures default logging providers for any derived type.
+	/// </summary>
+	/// <param name="builder">The logging builder.</param>
+	protected virtual void ConfigureLogging(ILoggingBuilder builder)
+	{
+		builder.AddDebug();
+
+		this.MemoryLoggers = new();
+		builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, MemoryLogger.Provider>(sp => this.MemoryLoggers));
+	}
 
 	protected void RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
 	{

@@ -117,52 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AboutCommandCaption" xml:space="preserve">
-    <value>Acerca de</value>
+  <data name="CategoriesCaption" xml:space="preserve">
+    <value>카테고리</value>
   </data>
-  <data name="AccountBalanceCommandCaption" xml:space="preserve">
-    <value>Balance</value>
+  <data name="MessageColumnCaption" xml:space="preserve">
+    <value>메시지</value>
   </data>
-  <data name="AccountsListCommandCaption" xml:space="preserve">
-    <value>Cuentas</value>
+  <data name="SeverityColumnCaption" xml:space="preserve">
+    <value>심각성</value>
   </data>
-  <data name="AddressBookCommandCaption" xml:space="preserve">
-    <value>Directorio</value>
+  <data name="TimestampColumnCaption" xml:space="preserve">
+    <value>언제</value>
   </data>
-  <data name="AddressCheckCommandCaption" xml:space="preserve">
-    <value>Cheque de dirección</value>
-  </data>
-  <data name="AppMenuCaption" xml:space="preserve">
-    <value>Billetera</value>
-  </data>
-  <data name="BackCommandCaption" xml:space="preserve">
-    <value>Atrás</value>
-  </data>
-  <data name="BackupCommandCaption" xml:space="preserve">
-    <value>Respaldo</value>
-  </data>
-  <data name="HomeCommandCaption" xml:space="preserve">
-    <value>Hogar</value>
-  </data>
-  <data name="LogsCommandCaption" xml:space="preserve">
-    <value>Mostrar registros</value>
-  </data>
-  <data name="ReceiveCommandCaption" xml:space="preserve">
-    <value>Recibir</value>
-  </data>
-  <data name="SendCommandCaption" xml:space="preserve">
-    <value>Enviar</value>
-  </data>
-  <data name="SettingsCommandCaption" xml:space="preserve">
-    <value>Ajustes</value>
-  </data>
-  <data name="ToolsMenuCaption" xml:space="preserve">
-    <value>Herramientas</value>
-  </data>
-  <data name="TransactionHistoryCommandCaption" xml:space="preserve">
-    <value>Historia</value>
-  </data>
-  <data name="TransactionsMenuCaption" xml:space="preserve">
-    <value>Actas</value>
+  <data name="Title" xml:space="preserve">
+    <value>로그</value>
   </data>
 </root>

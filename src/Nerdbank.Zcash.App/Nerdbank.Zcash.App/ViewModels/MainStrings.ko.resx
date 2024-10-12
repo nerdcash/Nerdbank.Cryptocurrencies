@@ -144,6 +144,9 @@
   <data name="HomeCommandCaption" xml:space="preserve">
     <value>홈</value>
   </data>
+  <data name="LogsCommandCaption" xml:space="preserve">
+    <value>로그를 표시하십시오</value>
+  </data>
   <data name="ReceiveCommandCaption" xml:space="preserve">
     <value>받기</value>
   </data>

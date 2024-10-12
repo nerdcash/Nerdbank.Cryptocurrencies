@@ -5,6 +5,7 @@ using Android.Content;
 using Android.Net;
 using Android.OS;
 using Microsoft;
+using Microsoft.Extensions.Logging;
 
 namespace Nerdbank.Zcash.App.Android;
 
@@ -12,6 +13,7 @@ internal class AndroidPlatformServices : PlatformServices
 {
 	private readonly Context context;
 	private readonly PowerManager? powerManager;
+	private readonly ILoggerFactory loggerFactory;
 	private bool isOnACPower;
 	private bool isNetworkMetered = true;
 
@@ -19,6 +21,7 @@ internal class AndroidPlatformServices : PlatformServices
 	{
 		this.context = context;
 		this.powerManager = (PowerManager?)context.GetSystemService(Context.PowerService);
+		this.loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(this.ConfigureLogging);
 
 		Receiver receiver = new(this);
 
@@ -43,6 +46,8 @@ internal class AndroidPlatformServices : PlatformServices
 	public override bool IsOnACPower => this.isOnACPower;
 
 	public override bool IsNetworkMetered => this.isNetworkMetered;
+
+	public override ILoggerFactory LoggerFactory => this.loggerFactory;
 
 	public override IDisposable? RequestSleepDeferral()
 	{

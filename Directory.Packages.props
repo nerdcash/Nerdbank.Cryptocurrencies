@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <AvaloniaVersion>11.1.1</AvaloniaVersion>
+    <AvaloniaVersion>11.1.4</AvaloniaVersion>
     <AvaloniaMarkdownVersion>11.0.2</AvaloniaMarkdownVersion>
     <RoslynVersion>3.11.0-beta1.24415.1</RoslynVersion>
     <AspNetWebAssemblyVersion>8.0.8</AspNetWebAssemblyVersion>
@@ -26,6 +26,8 @@
     <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePack.Annotations" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.106" />
     <PackageVersion Include="Sentry" Version="4.9.0" />
     <PackageVersion Include="Velopack" Version="0.0.556" />

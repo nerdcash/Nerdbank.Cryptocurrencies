@@ -39,6 +39,7 @@
       <NativeMenuItem Header="{Binding ToolsMenuCaption}">
         <NativeMenu>
           <NativeMenuItem Header="{Binding AddressCheckCommandCaption}" Command="{Binding AddressCheckCommand}" />
+          <NativeMenuItem Header="{Binding LogsCommandCaption}" Command="{Binding LogsCommand}" />
         </NativeMenu>
       </NativeMenuItem>
     </NativeMenu>

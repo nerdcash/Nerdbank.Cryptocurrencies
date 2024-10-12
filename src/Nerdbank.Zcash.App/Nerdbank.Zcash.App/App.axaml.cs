@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Zcash.App.Views;
 using IAsyncDisposable = System.IAsyncDisposable;
@@ -146,9 +147,14 @@ public partial class App : Application, IAsyncDisposable
 			};
 			viewModel.TopVisual = singleViewPlatform.MainView;
 		}
+		else if (this.ApplicationLifetime is null)
+		{
+			// Design-time in Rider does not initialize this.ApplicationLifetime.
+			this.ViewModel = new(this);
+		}
 		else
 		{
-			throw new NotSupportedException();
+			throw new NotSupportedException($"Unsupported {nameof(this.ApplicationLifetime)} type: {this.ApplicationLifetime.GetType().FullName}.");
 		}
 
 		this.DataContext = new AppViewModel(this.ViewModel);
@@ -306,11 +312,20 @@ public partial class App : Application, IAsyncDisposable
 
 	private class DesignTimePlatformServices : PlatformServices
 	{
+		private readonly ILoggerFactory loggerFactory;
+
+		internal DesignTimePlatformServices()
+		{
+			this.loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(this.ConfigureLogging);
+		}
+
 		public override bool IsOnACPower => false;
 
 		public override bool IsNetworkMetered => false;
 
 		public override bool IsRunningUnderTest => true;
+
+		public override ILoggerFactory LoggerFactory => this.loggerFactory;
 
 		public override IDisposable? RequestSleepDeferral() => null;
 	}

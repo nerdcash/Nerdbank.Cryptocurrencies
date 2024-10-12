@@ -144,6 +144,9 @@
   <data name="HomeCommandCaption" xml:space="preserve">
     <value>Accueil</value>
   </data>
+  <data name="LogsCommandCaption" xml:space="preserve">
+    <value>Afficher les journaux</value>
+  </data>
   <data name="ReceiveCommandCaption" xml:space="preserve">
     <value>Recevoir</value>
   </data>

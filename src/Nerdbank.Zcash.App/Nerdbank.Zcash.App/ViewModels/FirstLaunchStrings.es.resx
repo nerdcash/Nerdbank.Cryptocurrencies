@@ -117,6 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DefaultNameForFirstAccountWithTicker" xml:space="preserve">
+    <value>Main {Ticker}</value>
+  </data>
+  <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
+    <value>Principal HD</value>
+  </data>
+  <data name="FirstLaunchWalletCapabilitiesCommandCaption" xml:space="preserve">
+    <value>Revise las capacidades de la billetera para la compatibilidad.</value>
+  </data>
   <data name="ImportWalletButtonText" xml:space="preserve">
     <value>Importar una billetera existente</value>
   </data>
@@ -125,6 +134,9 @@
   </data>
   <data name="LicenseAcceptance" xml:space="preserve">
     <value>El uso de esta solicitud expresa acuerdo a sus términos de licencia. Absolutamente no se proporciona garantía.</value>
+  </data>
+  <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
+    <value>Crea una nueva billetera (avanzada) ...</value>
   </data>
   <data name="StartNewWalletButtonText" xml:space="preserve">
     <value>Crea una nueva billetera</value>
@@ -137,17 +149,5 @@
   </data>
   <data name="WalletForHeading" xml:space="preserve">
     <value>Una billetera para</value>
-  </data>
-  <data name="FirstLaunchWalletCapabilitiesCommandCaption" xml:space="preserve">
-    <value>Revise las capacidades de la billetera para la compatibilidad.</value>
-  </data>
-  <data name="StartNewWalletAdvancedCommandCaption" xml:space="preserve">
-    <value>Crea una nueva billetera (avanzada) ...</value>
-  </data>
-  <data name="DefaultNameForFirstAccountWithTicker" xml:space="preserve">
-    <value>Main {Ticker}</value>
-  </data>
-  <data name="DefaultNameForFirstHDWallet" xml:space="preserve">
-    <value>Principal HD</value>
   </data>
 </root>

@@ -3,6 +3,8 @@
 
 using System.Collections.ObjectModel;
 using DynamicData;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
 
 namespace Nerdbank.Zcash.App;
 
@@ -24,6 +26,15 @@ public static class AppUtilities
 	{
 		uint birthdayHeight = await LightWalletClient.GetLatestBlockHeightAsync(viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
 		return birthdayHeight;
+	}
+
+	internal static void LogFaults(this Task task, ILogger logger, string message)
+	{
+		task.ContinueWith(
+			t => logger.LogError(t.Exception, message),
+			CancellationToken.None,
+			TaskContinuationOptions.OnlyOnFaulted,
+			TaskScheduler.Default).Forget();
 	}
 
 	/// <inheritdoc cref="BinarySearch{T}(IReadOnlyList{T}, int, int, T, IComparer{T}?)"/>
