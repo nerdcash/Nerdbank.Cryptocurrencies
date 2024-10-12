@@ -126,6 +126,9 @@
   <data name="CopyTextPrompt" xml:space="preserve">
     <value>Copy the text below to share without a camera.</value>
   </data>
+  <data name="PayInvoiceHyperlinkText" xml:space="preserve">
+    <value>Pay invoice with Zcash</value>
+  </data>
   <data name="SaplingReceivingAddressHeader" xml:space="preserve">
     <value>Sapling</value>
   </data>

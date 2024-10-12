@@ -126,6 +126,9 @@
   <data name="CopyTextPrompt" xml:space="preserve">
     <value>复制下面的文本以无需摄像头进行分享。</value>
   </data>
+  <data name="PayInvoiceHyperlinkText" xml:space="preserve">
+    <value>用Zcash付款</value>
+  </data>
   <data name="SaplingReceivingAddressHeader" xml:space="preserve">
     <value>Sapling</value>
   </data>

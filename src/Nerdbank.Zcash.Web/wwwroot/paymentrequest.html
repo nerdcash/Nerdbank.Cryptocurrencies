@@ -1,0 +1,108 @@
+﻿<html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f5f5f5;
+                margin: 0;
+                padding: 0;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            h1 {
+                color: #333;
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            p {
+                color: #666;
+                font-size: 16px;
+                line-height: 1.5;
+                margin-bottom: 10px;
+            }
+
+            #paymentRequestActive,
+            #paymentRequestInactive {
+                background-color: #fff;
+                border-radius: 5px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            #paymentRequestActive {
+                display: none;
+            }
+
+            #paymentRequestInactive {
+                display: block;
+            }
+
+            #payLink {
+                color: #007bff;
+                text-decoration: none;
+                font-weight: bold;
+            }
+        </style>
+        <script>
+            // Function to execute after DOM has been built
+            document.addEventListener("DOMContentLoaded", function() {
+                setPayLink();
+            });
+
+            // Define a function to update the payLink when the #fragment changes
+            window.onhashchange = function() {
+                setPayLink();
+            }
+
+            function setPayLink() {
+                const fragment = window.location.hash.slice(1);
+                const valid = fragment.startsWith('zcash:');
+                if (valid) {
+                    document.getElementById('payLink').href = fragment;
+                    document.getElementById('paymentRequestActive').style.display = 'block';
+                    document.getElementById('paymentRequestInactive').style.display = 'none';
+                } else {
+                    document.getElementById('payLink').href = "javascript:alert('Not a payment URI')";
+                    document.getElementById('paymentRequestActive').style.display = 'none';
+                    document.getElementById('paymentRequestInactive').style.display = 'block';
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Pay invoice with Zcash</h1>
+
+            <div id="paymentRequestActive">
+                <p>
+                    You have been invited to pay an invoice with Zcash.
+                </p>
+                <p>
+                    If you already have a Zcash wallet, proceed to <a id="payLink">pay the invoice</a>.
+                </p>
+                <p>
+                    If clicking the link does not work, you may not have a Zcash wallet installed that can handle payment URIs.
+                </p>
+            </div>
+            <div id="paymentRequestInactive">
+                <p>
+                    This page can be used as a redirector for zcash: payment request URIs.
+                    Just add # and the URI itself at the end of the URL.
+                </p>
+            </div>
+            <p align="center">
+                If you are looking to start using Zcash and need a wallet,
+                try <a href="https://blog.nerdbank.net/ezcash-app">eZcash</a>.
+            </p>
+            <p align="center">
+                <a href="https://blog.nerdbank.net/ezcash-app"><img src="images/ezcash-logo.png" width="80" height="77" /></a>
+            </p>
+        </div>
+    </body>
+</html>
