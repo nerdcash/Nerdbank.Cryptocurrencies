@@ -145,7 +145,7 @@
     <value>收款方：</value>
   </data>
   <data name="LineItem_RecipientBoxWatermark" xml:space="preserve">
-    <value>Zcash地址或联系人姓名</value>
+    <value>联系，ZCASH地址或付款请求</value>
   </data>
   <data name="LineItem_RemoveLineItemCommandCaption" xml:space="preserve">
     <value>❌</value>
@@ -156,11 +156,11 @@
   <data name="NoQRCodeFound" xml:space="preserve">
     <value>找不到QR码。</value>
   </data>
+  <data name="PaymentRequestApplied" xml:space="preserve">
+    <value>适用付款请求。 {count}付款初始化。发送前请仔细检查。</value>
+  </data>
   <data name="QRCodePaymentRequestApplicationFailed" xml:space="preserve">
     <value>应用付款请求时发生错误。请仔细查看。</value>
-  </data>
-  <data name="QRCodePaymentRequestScanned" xml:space="preserve">
-    <value>QR码扫描成功。 {count}付款初始化。请仔细查看。</value>
   </data>
   <data name="QRCodeZcashAddressScanned" xml:space="preserve">
     <value>找到ZCASH地址。</value>
@@ -170,6 +170,9 @@
   </data>
   <data name="SendCommandCaption_Sending" xml:space="preserve">
     <value>⚒️发送</value>
+  </data>
+  <data name="SendMultiplePaymentsCommandCaption" xml:space="preserve">
+    <value>📤发送{lineItemsCount}付款</value>
   </data>
   <data name="SendSuccessfulMessage" xml:space="preserve">
     <value>{Amount}成功发送。</value>

@@ -145,7 +145,7 @@
     <value>Recipient:</value>
   </data>
   <data name="LineItem_RecipientBoxWatermark" xml:space="preserve">
-    <value>Zcash address or contact name</value>
+    <value>Contact, Zcash address or payment request</value>
   </data>
   <data name="LineItem_RemoveLineItemCommandCaption" xml:space="preserve">
     <value>❌</value>
@@ -156,11 +156,11 @@
   <data name="NoQRCodeFound" xml:space="preserve">
     <value>No QR code found.</value>
   </data>
+  <data name="PaymentRequestApplied" xml:space="preserve">
+    <value>Payment request applied. {count} payment(s) initialized. Please review carefully before sending.</value>
+  </data>
   <data name="QRCodePaymentRequestApplicationFailed" xml:space="preserve">
     <value>Errors occurred while applying payment request. Please review carefully.</value>
-  </data>
-  <data name="QRCodePaymentRequestScanned" xml:space="preserve">
-    <value>QR code scan successful. {count} payment(s) initialized. Please review carefully.</value>
   </data>
   <data name="QRCodeZcashAddressScanned" xml:space="preserve">
     <value>Zcash address found.</value>
@@ -170,6 +170,9 @@
   </data>
   <data name="SendCommandCaption_Sending" xml:space="preserve">
     <value>⚒️ Sending</value>
+  </data>
+  <data name="SendMultiplePaymentsCommandCaption" xml:space="preserve">
+    <value>📤 Send {lineItemsCount} payments</value>
   </data>
   <data name="SendSuccessfulMessage" xml:space="preserve">
     <value>{Amount} sent successfully.</value>
