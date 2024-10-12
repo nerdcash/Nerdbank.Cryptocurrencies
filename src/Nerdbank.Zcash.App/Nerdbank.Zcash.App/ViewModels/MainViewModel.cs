@@ -27,7 +27,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	{
 		this.App = app;
 
-		this.ExchangeRateProvider = new BinanceUSExchange(this.httpClient);
+		this.ExchangeRateProvider = new LoggingExchangeRateProvider(new BinanceUSExchange(this.httpClient), app.PlatformServices.LoggerFactory.CreateLogger("Exchange rate"));
 		this.HistoricalExchangeRateProvider = new Coinbase(this.httpClient);
 
 		this.NavigateBackCommand = ReactiveCommand.Create(
@@ -46,6 +46,7 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 		this.SettingsCommand = ReactiveCommand.Create(() => this.NavigateTo(new SettingsViewModel(this)));
 		this.AddressBookCommand = ReactiveCommand.Create(() => this.NavigateTo(new AddressBookViewModel(this)));
 		this.AddressCheckCommand = ReactiveCommand.Create(() => this.NavigateTo(new MatchAddressViewModel(this)));
+		this.LogsCommand = ReactiveCommand.Create(() => this.NavigateTo(new LogsViewModel(this)));
 		this.HomeCommand = ReactiveCommand.Create(() => this.ReplaceViewStack(this.GetHomeViewModel()));
 		this.AccountsListCommand = ReactiveCommand.Create(() => this.NavigateTo(new AccountsViewModel(this)), nonEmptyWallet);
 		this.AccountBalanceCommand = ReactiveCommand.Create(() => this.NavigateTo(new BalanceViewModel(this)), nonEmptyWallet);
@@ -101,6 +102,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 
 	public string AddressCheckCommandCaption => MainStrings.AddressCheckCommandCaption;
 
+	public string LogsCommandCaption => MainStrings.LogsCommandCaption;
+
 	public App App { get; }
 
 	public SyncProgressData? SyncProgress => this.syncProgress.Value;
@@ -152,6 +155,8 @@ public class MainViewModel : ViewModelBase, IViewModelServices
 	public ReactiveCommand<Unit, SettingsViewModel> SettingsCommand { get; }
 
 	public ReactiveCommand<Unit, MatchAddressViewModel> AddressCheckCommand { get; }
+
+	public ReactiveCommand<Unit, LogsViewModel> LogsCommand { get; }
 
 	public ReactiveCommand<Unit, AccountsViewModel> AccountsListCommand { get; }
 

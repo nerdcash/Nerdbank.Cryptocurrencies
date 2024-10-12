@@ -144,6 +144,9 @@
   <data name="HomeCommandCaption" xml:space="preserve">
     <value>主页</value>
   </data>
+  <data name="LogsCommandCaption" xml:space="preserve">
+    <value>显示日志</value>
+  </data>
   <data name="ReceiveCommandCaption" xml:space="preserve">
     <value>接收</value>
   </data>

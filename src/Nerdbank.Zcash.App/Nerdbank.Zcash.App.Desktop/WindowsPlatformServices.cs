@@ -5,6 +5,7 @@
 
 using System.Reactive.Disposables;
 using System.Windows.Forms;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Windows.Networking.Connectivity;
 using Windows.Win32;
@@ -16,12 +17,15 @@ internal class WindowsPlatformServices : PlatformServices
 {
 	private readonly Thread powerManagementThread;
 	private readonly object powerManagementThreadLock = new();
+	private readonly ILoggerFactory loggerFactory;
 	private int keepAwakeCounter;
 	private bool isOnACPower;
 	private bool isNetworkMetered;
 
 	internal WindowsPlatformServices()
 	{
+		this.loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(this.ConfigureLogging);
+
 		NetworkInformation.NetworkStatusChanged += this.NetworkInformation_NetworkStatusChanged;
 
 		SystemEvents.PowerModeChanged += this.SystemEvents_PowerModeChanged;
@@ -39,6 +43,8 @@ internal class WindowsPlatformServices : PlatformServices
 	public override bool IsOnACPower => this.isOnACPower;
 
 	public override bool IsNetworkMetered => this.isNetworkMetered;
+
+	public override ILoggerFactory LoggerFactory => this.loggerFactory;
 
 	public override IDisposable? RequestSleepDeferral()
 	{

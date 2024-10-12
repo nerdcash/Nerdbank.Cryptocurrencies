@@ -129,10 +129,10 @@
   <data name="IndexCaption" xml:space="preserve">
     <value>Índice de cuenta:</value>
   </data>
-  <data name="RevealKeysCommandCaption" xml:space="preserve">
-    <value>Revelar claves</value>
-  </data>
   <data name="LoneAccountGroupName" xml:space="preserve">
     <value>Cuentas importadas</value>
+  </data>
+  <data name="RevealKeysCommandCaption" xml:space="preserve">
+    <value>Revelar claves</value>
   </data>
 </root>
