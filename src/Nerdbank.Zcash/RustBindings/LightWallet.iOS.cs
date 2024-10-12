@@ -35,9 +35,7 @@ internal struct RustBuffer
 				var buffer = _UniFFILib.ffi_nerdbank_zcash_rust_rustbuffer_alloc(size, ref status);
 				if (buffer.data == IntPtr.Zero)
 				{
-					throw new AllocationException(
-						$"RustBuffer.Alloc() returned null data pointer (size={size})"
-					);
+					throw new AllocationException($"RustBuffer.Alloc() returned null data pointer (size={size})");
 				}
 				return buffer;
 			}
@@ -74,14 +72,7 @@ internal struct RustBuffer
 	{
 		unsafe
 		{
-			return new BigEndianStream(
-				new UnmanagedMemoryStream(
-					(byte*)data.ToPointer(),
-					capacity,
-					capacity,
-					FileAccess.Write
-				)
-			);
+			return new BigEndianStream(new UnmanagedMemoryStream((byte*)data.ToPointer(), capacity, capacity, FileAccess.Write));
 		}
 	}
 }
@@ -162,9 +153,7 @@ internal abstract class FfiConverter<CsType, FfiType>
 			var item = Read(stream);
 			if (stream.HasRemaining())
 			{
-				throw new InternalException(
-					"junk remaining in buffer after lifting, something is very wrong!!"
-				);
+				throw new InternalException("junk remaining in buffer after lifting, something is very wrong!!");
 			}
 			return item;
 		}
@@ -281,9 +270,7 @@ class NullCallStatusErrorHandler : CallStatusErrorHandler<UniffiException>
 	public UniffiException Lift(RustBuffer error_buf)
 	{
 		RustBuffer.Free(error_buf);
-		return new UndeclaredErrorException(
-			"library has returned an error not declared in UNIFFI interface file"
-		);
+		return new UndeclaredErrorException("library has returned an error not declared in UNIFFI interface file");
 	}
 }
 
@@ -296,10 +283,7 @@ class _UniffiHelpers
 	public delegate U RustCallFunc<out U>(ref RustCallStatus status);
 
 	// Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-	public static U RustCallWithError<U, E>(
-		CallStatusErrorHandler<E> errorHandler,
-		RustCallFunc<U> callback
-	)
+	public static U RustCallWithError<U, E>(CallStatusErrorHandler<E> errorHandler, RustCallFunc<U> callback)
 		where E : UniffiException
 	{
 		var status = new RustCallStatus();
@@ -333,10 +317,7 @@ class _UniffiHelpers
 	}
 
 	// Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-	public static void RustCallWithError<E>(
-		CallStatusErrorHandler<E> errorHandler,
-		RustCallAction callback
-	)
+	public static void RustCallWithError<E>(CallStatusErrorHandler<E> errorHandler, RustCallAction callback)
 		where E : UniffiException
 	{
 		_UniffiHelpers.RustCallWithError(
@@ -482,12 +463,7 @@ class BigEndianStream
 	public uint ReadUInt()
 	{
 		CheckRemaining(4);
-		return (uint)(
-			stream.ReadByte() << 24
-			| stream.ReadByte() << 16
-			| stream.ReadByte() << 8
-			| stream.ReadByte()
-		);
+		return (uint)(stream.ReadByte() << 24 | stream.ReadByte() << 16 | stream.ReadByte() << 8 | stream.ReadByte());
 	}
 
 	public ulong ReadULong()
@@ -586,22 +562,13 @@ static class _UniFFILib
 	);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void uniffi_nerdbank_zcash_rust_fn_func_cancel(
-		uint @id,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern void uniffi_nerdbank_zcash_rust_fn_func_cancel(uint @id, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern sbyte uniffi_nerdbank_zcash_rust_fn_func_disconnect_server(
-		RustBuffer @uri,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern sbyte uniffi_nerdbank_zcash_rust_fn_func_disconnect_server(RustBuffer @uri, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_accounts(
-		RustBuffer @config,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_accounts(RustBuffer @config, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_birthday_height(
@@ -663,10 +630,7 @@ static class _UniFFILib
 	);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void uniffi_nerdbank_zcash_rust_fn_func_init(
-		RustBuffer @config,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern void uniffi_nerdbank_zcash_rust_fn_func_init(RustBuffer @config, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_send(
@@ -705,22 +669,13 @@ static class _UniFFILib
 	);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_alloc(
-		int @size,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_alloc(int @size, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_from_bytes(
-		ForeignBytes @bytes,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_from_bytes(ForeignBytes @bytes, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rustbuffer_free(
-		RustBuffer @buf,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rustbuffer_free(RustBuffer @buf, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern RustBuffer ffi_nerdbank_zcash_rust_rustbuffer_reserve(
@@ -730,15 +685,10 @@ static class _UniFFILib
 	);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_continuation_callback_set(
-		IntPtr @callback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_continuation_callback_set(IntPtr @callback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u8(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u8(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u8(IntPtr @handle);
@@ -747,16 +697,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u8(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern byte ffi_nerdbank_zcash_rust_rust_future_complete_u8(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern byte ffi_nerdbank_zcash_rust_rust_future_complete_u8(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i8(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i8(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i8(IntPtr @handle);
@@ -765,16 +709,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i8(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern sbyte ffi_nerdbank_zcash_rust_rust_future_complete_i8(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern sbyte ffi_nerdbank_zcash_rust_rust_future_complete_i8(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u16(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u16(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u16(IntPtr @handle);
@@ -783,16 +721,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u16(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern ushort ffi_nerdbank_zcash_rust_rust_future_complete_u16(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern ushort ffi_nerdbank_zcash_rust_rust_future_complete_u16(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i16(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i16(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i16(IntPtr @handle);
@@ -801,16 +733,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i16(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern short ffi_nerdbank_zcash_rust_rust_future_complete_i16(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern short ffi_nerdbank_zcash_rust_rust_future_complete_i16(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u32(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u32(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u32(IntPtr @handle);
@@ -819,16 +745,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u32(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern uint ffi_nerdbank_zcash_rust_rust_future_complete_u32(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern uint ffi_nerdbank_zcash_rust_rust_future_complete_u32(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i32(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i32(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i32(IntPtr @handle);
@@ -837,16 +757,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i32(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern int ffi_nerdbank_zcash_rust_rust_future_complete_i32(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern int ffi_nerdbank_zcash_rust_rust_future_complete_i32(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u64(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_u64(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_u64(IntPtr @handle);
@@ -855,16 +769,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_u64(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern ulong ffi_nerdbank_zcash_rust_rust_future_complete_u64(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern ulong ffi_nerdbank_zcash_rust_rust_future_complete_u64(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i64(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_i64(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_i64(IntPtr @handle);
@@ -873,16 +781,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_i64(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern long ffi_nerdbank_zcash_rust_rust_future_complete_i64(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern long ffi_nerdbank_zcash_rust_rust_future_complete_i64(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_f32(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_f32(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_f32(IntPtr @handle);
@@ -891,16 +793,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_f32(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern float ffi_nerdbank_zcash_rust_rust_future_complete_f32(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern float ffi_nerdbank_zcash_rust_rust_future_complete_f32(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_f64(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_f64(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_f64(IntPtr @handle);
@@ -909,16 +805,10 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_f64(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern double ffi_nerdbank_zcash_rust_rust_future_complete_f64(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern double ffi_nerdbank_zcash_rust_rust_future_complete_f64(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_pointer(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_pointer(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_pointer(IntPtr @handle);
@@ -933,15 +823,10 @@ static class _UniFFILib
 	);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_rust_buffer(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_rust_buffer(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_rust_buffer(
-		IntPtr @handle
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_rust_buffer(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_rust_buffer(IntPtr @handle);
@@ -953,10 +838,7 @@ static class _UniFFILib
 	);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_void(
-		IntPtr @handle,
-		IntPtr @uniffiCallback
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_poll_void(IntPtr @handle, IntPtr @uniffiCallback);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_cancel_void(IntPtr @handle);
@@ -965,10 +847,7 @@ static class _UniFFILib
 	public static extern void ffi_nerdbank_zcash_rust_rust_future_free_void(IntPtr @handle);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
-	public static extern void ffi_nerdbank_zcash_rust_rust_future_complete_void(
-		IntPtr @handle,
-		ref RustCallStatus _uniffi_out_err
-	);
+	public static extern void ffi_nerdbank_zcash_rust_rust_future_complete_void(IntPtr @handle, ref RustCallStatus _uniffi_out_err);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust")]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_add_account();
@@ -1038,8 +917,7 @@ static class _UniFFILib
 
 	static void uniffiCheckContractApiVersion()
 	{
-		var scaffolding_contract_version =
-			_UniFFILib.ffi_nerdbank_zcash_rust_uniffi_contract_version();
+		var scaffolding_contract_version = _UniFFILib.ffi_nerdbank_zcash_rust_uniffi_contract_version();
 		if (24 != scaffolding_contract_version)
 		{
 			throw new UniffiContractVersionException(
@@ -1096,8 +974,7 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum =
-				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_birthday_height();
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_birthday_height();
 			if (checksum != 24763)
 			{
 				throw new UniffiContractChecksumException(
@@ -1106,8 +983,7 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum =
-				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_birthday_heights();
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_birthday_heights();
 			if (checksum != 22457)
 			{
 				throw new UniffiContractChecksumException(
@@ -1143,8 +1019,7 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum =
-				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_unshielded_utxos();
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_unshielded_utxos();
 			if (checksum != 48666)
 			{
 				throw new UniffiContractChecksumException(
@@ -1162,8 +1037,7 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum =
-				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_import_account_ufvk();
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_import_account_ufvk();
 			if (checksum != 64807)
 			{
 				throw new UniffiContractChecksumException(
@@ -1217,8 +1091,7 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum =
-				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_cancellationsource_set_cancellation_id();
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_cancellationsource_set_cancellation_id();
 			if (checksum != 25003)
 			{
 				throw new UniffiContractChecksumException(
@@ -1227,8 +1100,7 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum =
-				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_update_status();
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_update_status();
 			if (checksum != 36073)
 			{
 				throw new UniffiContractChecksumException(
@@ -1237,8 +1109,7 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum =
-				_UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_report_transactions();
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_method_syncupdate_report_transactions();
 			if (checksum != 64247)
 			{
 				throw new UniffiContractChecksumException(
@@ -1460,15 +1331,7 @@ class FfiConverterTimestamp : FfiConverterRustBuffer<DateTime>
 	private const uint NanosecondsPerTick = 100;
 
 	// DateTime.UnixEpoch is not available in net48
-	private static readonly DateTime UnixEpoch = new DateTime(
-		1970,
-		1,
-		1,
-		0,
-		0,
-		0,
-		DateTimeKind.Utc
-	);
+	private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
 	public override DateTime Read(BigEndianStream stream)
 	{
@@ -1502,9 +1365,7 @@ class FfiConverterTimestamp : FfiConverterRustBuffer<DateTime>
 		}
 
 		stream.WriteLong(epochOffset.Ticks / TimeSpan.TicksPerSecond * sign);
-		stream.WriteUInt(
-			Convert.ToUInt32(epochOffset.Ticks % TimeSpan.TicksPerSecond * NanosecondsPerTick)
-		);
+		stream.WriteUInt(Convert.ToUInt32(epochOffset.Ticks % TimeSpan.TicksPerSecond * NanosecondsPerTick));
 	}
 }
 
@@ -1538,11 +1399,7 @@ class FfiConverterTypeAccountInfo : FfiConverterRustBuffer<AccountInfo>
 	}
 }
 
-internal record BirthdayHeights(
-	uint @originalBirthdayHeight,
-	uint? @birthdayHeight,
-	uint? @rebirthHeight
-) { }
+internal record BirthdayHeights(uint @originalBirthdayHeight, uint? @birthdayHeight, uint? @rebirthHeight) { }
 
 class FfiConverterTypeBirthdayHeights : FfiConverterRustBuffer<BirthdayHeights>
 {
@@ -1628,8 +1485,7 @@ internal record SendTransactionResult(byte[] @txid) { }
 
 class FfiConverterTypeSendTransactionResult : FfiConverterRustBuffer<SendTransactionResult>
 {
-	public static FfiConverterTypeSendTransactionResult INSTANCE =
-		new FfiConverterTypeSendTransactionResult();
+	public static FfiConverterTypeSendTransactionResult INSTANCE = new FfiConverterTypeSendTransactionResult();
 
 	public override SendTransactionResult Read(BigEndianStream stream)
 	{
@@ -1647,13 +1503,7 @@ class FfiConverterTypeSendTransactionResult : FfiConverterRustBuffer<SendTransac
 	}
 }
 
-internal record SyncUpdateData(
-	uint? @lastFullyScannedBlock,
-	uint @tipHeight,
-	ulong @currentStep,
-	ulong @totalSteps,
-	String? @lastError
-) { }
+internal record SyncUpdateData(uint? @lastFullyScannedBlock, uint @tipHeight, ulong @currentStep, ulong @totalSteps, String? @lastError) { }
 
 class FfiConverterTypeSyncUpdateData : FfiConverterRustBuffer<SyncUpdateData>
 {
@@ -1788,8 +1638,7 @@ internal record TransactionSendDetail(ulong @value, byte[]? @memo, String @recip
 
 class FfiConverterTypeTransactionSendDetail : FfiConverterRustBuffer<TransactionSendDetail>
 {
-	public static FfiConverterTypeTransactionSendDetail INSTANCE =
-		new FfiConverterTypeTransactionSendDetail();
+	public static FfiConverterTypeTransactionSendDetail INSTANCE = new FfiConverterTypeTransactionSendDetail();
 
 	public override TransactionSendDetail Read(BigEndianStream stream)
 	{
@@ -1823,16 +1672,12 @@ class FfiConverterTypeTransparentNote : FfiConverterRustBuffer<TransparentNote>
 
 	public override TransparentNote Read(BigEndianStream stream)
 	{
-		return new TransparentNote(
-			@value: FfiConverterUInt64.INSTANCE.Read(stream),
-			@recipient: FfiConverterString.INSTANCE.Read(stream)
-		);
+		return new TransparentNote(@value: FfiConverterUInt64.INSTANCE.Read(stream), @recipient: FfiConverterString.INSTANCE.Read(stream));
 	}
 
 	public override int AllocationSize(TransparentNote value)
 	{
-		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@value)
-			+ FfiConverterString.INSTANCE.AllocationSize(value.@recipient);
+		return FfiConverterUInt64.INSTANCE.AllocationSize(value.@value) + FfiConverterString.INSTANCE.AllocationSize(value.@recipient);
 	}
 
 	public override void Write(TransparentNote value, BigEndianStream stream)
@@ -1911,9 +1756,7 @@ class FfiConverterTypeChainType : FfiConverterRustBuffer<ChainType>
 		}
 		else
 		{
-			throw new InternalException(
-				String.Format("invalid enum value '{0}' in FfiConverterTypeChainType.Read()", value)
-			);
+			throw new InternalException(String.Format("invalid enum value '{0}' in FfiConverterTypeChainType.Read()", value));
 		}
 	}
 
@@ -1990,12 +1833,9 @@ internal class LightWalletException : UniffiException
 	}
 }
 
-class FfiConverterTypeLightWalletException
-	: FfiConverterRustBuffer<LightWalletException>,
-		CallStatusErrorHandler<LightWalletException>
+class FfiConverterTypeLightWalletException : FfiConverterRustBuffer<LightWalletException>, CallStatusErrorHandler<LightWalletException>
 {
-	public static FfiConverterTypeLightWalletException INSTANCE =
-		new FfiConverterTypeLightWalletException();
+	public static FfiConverterTypeLightWalletException INSTANCE = new FfiConverterTypeLightWalletException();
 
 	public override LightWalletException Read(BigEndianStream stream)
 	{
@@ -2003,15 +1843,11 @@ class FfiConverterTypeLightWalletException
 		switch (value)
 		{
 			case 1:
-				return new LightWalletException.InvalidArgument(
-					FfiConverterString.INSTANCE.Read(stream)
-				);
+				return new LightWalletException.InvalidArgument(FfiConverterString.INSTANCE.Read(stream));
 			case 2:
 				return new LightWalletException.InvalidUri();
 			case 3:
-				return new LightWalletException.SqliteClientException(
-					FfiConverterString.INSTANCE.Read(stream)
-				);
+				return new LightWalletException.SqliteClientException(FfiConverterString.INSTANCE.Read(stream));
 			case 4:
 				return new LightWalletException.Canceled();
 			case 5:
@@ -2025,10 +1861,7 @@ class FfiConverterTypeLightWalletException
 				return new LightWalletException.Other(FfiConverterString.INSTANCE.Read(stream));
 			default:
 				throw new InternalException(
-					String.Format(
-						"invalid error value '{0}' in FfiConverterTypeLightWalletException.Read()",
-						value
-					)
+					String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Read()", value)
 				);
 		}
 	}
@@ -2055,10 +1888,7 @@ class FfiConverterTypeLightWalletException
 				return 4 + FfiConverterString.INSTANCE.AllocationSize(variant_value.@message);
 			default:
 				throw new InternalException(
-					String.Format(
-						"invalid error value '{0}' in FfiConverterTypeLightWalletException.AllocationSize()",
-						value
-					)
+					String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.AllocationSize()", value)
 				);
 		}
 	}
@@ -2095,10 +1925,7 @@ class FfiConverterTypeLightWalletException
 				break;
 			default:
 				throw new InternalException(
-					String.Format(
-						"invalid error value '{0}' in FfiConverterTypeLightWalletException.Write()",
-						value
-					)
+					String.Format("invalid error value '{0}' in FfiConverterTypeLightWalletException.Write()", value)
 				);
 		}
 	}
@@ -2124,9 +1951,7 @@ class FfiConverterTypePool : FfiConverterRustBuffer<Pool>
 		}
 		else
 		{
-			throw new InternalException(
-				String.Format("invalid enum value '{0}' in FfiConverterTypePool.Read()", value)
-			);
+			throw new InternalException(String.Format("invalid enum value '{0}' in FfiConverterTypePool.Read()", value));
 		}
 	}
 
@@ -2208,16 +2033,9 @@ class ConcurrentHandleMap<T>
 }
 
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-internal delegate int ForeignCallback(
-	ulong handle,
-	uint method,
-	IntPtr argsData,
-	int argsLength,
-	ref RustBuffer outBuf
-);
+internal delegate int ForeignCallback(ulong handle, uint method, IntPtr argsData, int argsLength, ref RustBuffer outBuf);
 
-internal abstract class FfiConverterCallbackInterface<CallbackInterface>
-	: FfiConverter<CallbackInterface, ulong>
+internal abstract class FfiConverterCallbackInterface<CallbackInterface> : FfiConverter<CallbackInterface, ulong>
 	where CallbackInterface : notnull
 {
 	ConcurrentHandleMap<CallbackInterface> handleMap = new ConcurrentHandleMap<CallbackInterface>();
@@ -2275,13 +2093,7 @@ class ForeignCallbackTypeCancellationSource
 #if IOS
 	[ObjCRuntime.MonoPInvokeCallback(typeof(ForeignCallback))]
 #endif
-	private static int INSTANCE_FUNC(
-		ulong handle,
-		uint method,
-		IntPtr argsData,
-		int argsLength,
-		ref RustBuffer outBuf
-	)
+	private static int INSTANCE_FUNC(ulong handle, uint method, IntPtr argsData, int argsLength, ref RustBuffer outBuf)
 	{
 		var cb = FfiConverterTypeCancellationSource.INSTANCE.Lift(handle);
 		switch (method)
@@ -2300,10 +2112,7 @@ class ForeignCallbackTypeCancellationSource
 			{
 				try
 				{
-					outBuf = InvokeSetCancellationId(
-						cb,
-						RustBuffer.MemoryStream(argsData, argsLength)
-					);
+					outBuf = InvokeSetCancellationId(cb, RustBuffer.MemoryStream(argsData, argsLength));
 					return UniffiCallbackResponseCode.SUCCESS;
 				}
 				catch (Exception e)
@@ -2342,8 +2151,7 @@ class ForeignCallbackTypeCancellationSource
 // The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
 class FfiConverterTypeCancellationSource : FfiConverterCallbackInterface<CancellationSource>
 {
-	public static FfiConverterTypeCancellationSource INSTANCE =
-		new FfiConverterTypeCancellationSource();
+	public static FfiConverterTypeCancellationSource INSTANCE = new FfiConverterTypeCancellationSource();
 
 	public override void Register()
 	{
@@ -2373,13 +2181,7 @@ class ForeignCallbackTypeSyncUpdate
 #if IOS
 	[ObjCRuntime.MonoPInvokeCallback(typeof(ForeignCallback))]
 #endif
-	private static int INSTANCE_FUNC(
-		ulong handle,
-		uint method,
-		IntPtr argsData,
-		int argsLength,
-		ref RustBuffer outBuf
-	)
+	private static int INSTANCE_FUNC(ulong handle, uint method, IntPtr argsData, int argsLength, ref RustBuffer outBuf)
 	{
 		var cb = FfiConverterTypeSyncUpdate.INSTANCE.Lift(handle);
 		switch (method)
@@ -2421,10 +2223,7 @@ class ForeignCallbackTypeSyncUpdate
 			{
 				try
 				{
-					outBuf = InvokeReportTransactions(
-						cb,
-						RustBuffer.MemoryStream(argsData, argsLength)
-					);
+					outBuf = InvokeReportTransactions(cb, RustBuffer.MemoryStream(argsData, argsLength));
 					return UniffiCallbackResponseCode.SUCCESS;
 				}
 				catch (Exception e)
@@ -2476,10 +2275,7 @@ class FfiConverterTypeSyncUpdate : FfiConverterCallbackInterface<SyncUpdate>
 		_UniffiHelpers.RustCall(
 			(ref RustCallStatus status) =>
 			{
-				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_init_callback_syncupdate(
-					ForeignCallbackTypeSyncUpdate.INSTANCE,
-					ref status
-				);
+				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_init_callback_syncupdate(ForeignCallbackTypeSyncUpdate.INSTANCE, ref status);
 			}
 		);
 	}
@@ -2682,8 +2478,7 @@ class FfiConverterOptionalTimestamp : FfiConverterRustBuffer<DateTime?>
 
 class FfiConverterOptionalTypeCancellationSource : FfiConverterRustBuffer<CancellationSource?>
 {
-	public static FfiConverterOptionalTypeCancellationSource INSTANCE =
-		new FfiConverterOptionalTypeCancellationSource();
+	public static FfiConverterOptionalTypeCancellationSource INSTANCE = new FfiConverterOptionalTypeCancellationSource();
 
 	public override CancellationSource? Read(BigEndianStream stream)
 	{
@@ -2702,10 +2497,7 @@ class FfiConverterOptionalTypeCancellationSource : FfiConverterRustBuffer<Cancel
 		}
 		else
 		{
-			return 1
-				+ FfiConverterTypeCancellationSource.INSTANCE.AllocationSize(
-					(CancellationSource)value
-				);
+			return 1 + FfiConverterTypeCancellationSource.INSTANCE.AllocationSize((CancellationSource)value);
 		}
 	}
 
@@ -2725,8 +2517,7 @@ class FfiConverterOptionalTypeCancellationSource : FfiConverterRustBuffer<Cancel
 
 class FfiConverterOptionalTypeSyncUpdate : FfiConverterRustBuffer<SyncUpdate?>
 {
-	public static FfiConverterOptionalTypeSyncUpdate INSTANCE =
-		new FfiConverterOptionalTypeSyncUpdate();
+	public static FfiConverterOptionalTypeSyncUpdate INSTANCE = new FfiConverterOptionalTypeSyncUpdate();
 
 	public override SyncUpdate? Read(BigEndianStream stream)
 	{
@@ -2765,8 +2556,7 @@ class FfiConverterOptionalTypeSyncUpdate : FfiConverterRustBuffer<SyncUpdate?>
 
 class FfiConverterSequenceTypeAccountInfo : FfiConverterRustBuffer<List<AccountInfo>>
 {
-	public static FfiConverterSequenceTypeAccountInfo INSTANCE =
-		new FfiConverterSequenceTypeAccountInfo();
+	public static FfiConverterSequenceTypeAccountInfo INSTANCE = new FfiConverterSequenceTypeAccountInfo();
 
 	public override List<AccountInfo> Read(BigEndianStream stream)
 	{
@@ -2789,9 +2579,7 @@ class FfiConverterSequenceTypeAccountInfo : FfiConverterRustBuffer<List<AccountI
 			return sizeForLength;
 		}
 
-		var sizeForItems = value
-			.Select(item => FfiConverterTypeAccountInfo.INSTANCE.AllocationSize(item))
-			.Sum();
+		var sizeForItems = value.Select(item => FfiConverterTypeAccountInfo.INSTANCE.AllocationSize(item)).Sum();
 		return sizeForLength + sizeForItems;
 	}
 
@@ -2809,11 +2597,9 @@ class FfiConverterSequenceTypeAccountInfo : FfiConverterRustBuffer<List<AccountI
 	}
 }
 
-class FfiConverterSequenceTypeSendTransactionResult
-	: FfiConverterRustBuffer<List<SendTransactionResult>>
+class FfiConverterSequenceTypeSendTransactionResult : FfiConverterRustBuffer<List<SendTransactionResult>>
 {
-	public static FfiConverterSequenceTypeSendTransactionResult INSTANCE =
-		new FfiConverterSequenceTypeSendTransactionResult();
+	public static FfiConverterSequenceTypeSendTransactionResult INSTANCE = new FfiConverterSequenceTypeSendTransactionResult();
 
 	public override List<SendTransactionResult> Read(BigEndianStream stream)
 	{
@@ -2836,9 +2622,7 @@ class FfiConverterSequenceTypeSendTransactionResult
 			return sizeForLength;
 		}
 
-		var sizeForItems = value
-			.Select(item => FfiConverterTypeSendTransactionResult.INSTANCE.AllocationSize(item))
-			.Sum();
+		var sizeForItems = value.Select(item => FfiConverterTypeSendTransactionResult.INSTANCE.AllocationSize(item)).Sum();
 		return sizeForLength + sizeForItems;
 	}
 
@@ -2858,8 +2642,7 @@ class FfiConverterSequenceTypeSendTransactionResult
 
 class FfiConverterSequenceTypeTransaction : FfiConverterRustBuffer<List<Transaction>>
 {
-	public static FfiConverterSequenceTypeTransaction INSTANCE =
-		new FfiConverterSequenceTypeTransaction();
+	public static FfiConverterSequenceTypeTransaction INSTANCE = new FfiConverterSequenceTypeTransaction();
 
 	public override List<Transaction> Read(BigEndianStream stream)
 	{
@@ -2882,9 +2665,7 @@ class FfiConverterSequenceTypeTransaction : FfiConverterRustBuffer<List<Transact
 			return sizeForLength;
 		}
 
-		var sizeForItems = value
-			.Select(item => FfiConverterTypeTransaction.INSTANCE.AllocationSize(item))
-			.Sum();
+		var sizeForItems = value.Select(item => FfiConverterTypeTransaction.INSTANCE.AllocationSize(item)).Sum();
 		return sizeForLength + sizeForItems;
 	}
 
@@ -2904,8 +2685,7 @@ class FfiConverterSequenceTypeTransaction : FfiConverterRustBuffer<List<Transact
 
 class FfiConverterSequenceTypeTransactionNote : FfiConverterRustBuffer<List<TransactionNote>>
 {
-	public static FfiConverterSequenceTypeTransactionNote INSTANCE =
-		new FfiConverterSequenceTypeTransactionNote();
+	public static FfiConverterSequenceTypeTransactionNote INSTANCE = new FfiConverterSequenceTypeTransactionNote();
 
 	public override List<TransactionNote> Read(BigEndianStream stream)
 	{
@@ -2928,9 +2708,7 @@ class FfiConverterSequenceTypeTransactionNote : FfiConverterRustBuffer<List<Tran
 			return sizeForLength;
 		}
 
-		var sizeForItems = value
-			.Select(item => FfiConverterTypeTransactionNote.INSTANCE.AllocationSize(item))
-			.Sum();
+		var sizeForItems = value.Select(item => FfiConverterTypeTransactionNote.INSTANCE.AllocationSize(item)).Sum();
 		return sizeForLength + sizeForItems;
 	}
 
@@ -2948,11 +2726,9 @@ class FfiConverterSequenceTypeTransactionNote : FfiConverterRustBuffer<List<Tran
 	}
 }
 
-class FfiConverterSequenceTypeTransactionSendDetail
-	: FfiConverterRustBuffer<List<TransactionSendDetail>>
+class FfiConverterSequenceTypeTransactionSendDetail : FfiConverterRustBuffer<List<TransactionSendDetail>>
 {
-	public static FfiConverterSequenceTypeTransactionSendDetail INSTANCE =
-		new FfiConverterSequenceTypeTransactionSendDetail();
+	public static FfiConverterSequenceTypeTransactionSendDetail INSTANCE = new FfiConverterSequenceTypeTransactionSendDetail();
 
 	public override List<TransactionSendDetail> Read(BigEndianStream stream)
 	{
@@ -2975,9 +2751,7 @@ class FfiConverterSequenceTypeTransactionSendDetail
 			return sizeForLength;
 		}
 
-		var sizeForItems = value
-			.Select(item => FfiConverterTypeTransactionSendDetail.INSTANCE.AllocationSize(item))
-			.Sum();
+		var sizeForItems = value.Select(item => FfiConverterTypeTransactionSendDetail.INSTANCE.AllocationSize(item)).Sum();
 		return sizeForLength + sizeForItems;
 	}
 
@@ -2997,8 +2771,7 @@ class FfiConverterSequenceTypeTransactionSendDetail
 
 class FfiConverterSequenceTypeTransparentNote : FfiConverterRustBuffer<List<TransparentNote>>
 {
-	public static FfiConverterSequenceTypeTransparentNote INSTANCE =
-		new FfiConverterSequenceTypeTransparentNote();
+	public static FfiConverterSequenceTypeTransparentNote INSTANCE = new FfiConverterSequenceTypeTransparentNote();
 
 	public override List<TransparentNote> Read(BigEndianStream stream)
 	{
@@ -3021,9 +2794,7 @@ class FfiConverterSequenceTypeTransparentNote : FfiConverterRustBuffer<List<Tran
 			return sizeForLength;
 		}
 
-		var sizeForItems = value
-			.Select(item => FfiConverterTypeTransparentNote.INSTANCE.AllocationSize(item))
-			.Sum();
+		var sizeForItems = value.Select(item => FfiConverterTypeTransparentNote.INSTANCE.AllocationSize(item)).Sum();
 		return sizeForLength + sizeForItems;
 	}
 
@@ -3093,10 +2864,7 @@ internal static class LightWalletMethods
 		_UniffiHelpers.RustCallWithError(
 			FfiConverterTypeLightWalletException.INSTANCE,
 			(ref RustCallStatus _status) =>
-				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_cancel(
-					FfiConverterUInt32.INSTANCE.Lower(@id),
-					ref _status
-				)
+				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_cancel(FfiConverterUInt32.INSTANCE.Lower(@id), ref _status)
 		);
 	}
 
@@ -3107,10 +2875,7 @@ internal static class LightWalletMethods
 			_UniffiHelpers.RustCallWithError(
 				FfiConverterTypeLightWalletException.INSTANCE,
 				(ref RustCallStatus _status) =>
-					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_disconnect_server(
-						FfiConverterString.INSTANCE.Lower(@uri),
-						ref _status
-					)
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_disconnect_server(FfiConverterString.INSTANCE.Lower(@uri), ref _status)
 			)
 		);
 	}
@@ -3122,10 +2887,7 @@ internal static class LightWalletMethods
 			_UniffiHelpers.RustCallWithError(
 				FfiConverterTypeLightWalletException.INSTANCE,
 				(ref RustCallStatus _status) =>
-					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_accounts(
-						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
-						ref _status
-					)
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_accounts(FfiConverterTypeDbInit.INSTANCE.Lower(@config), ref _status)
 			)
 		);
 	}
@@ -3196,11 +2958,7 @@ internal static class LightWalletMethods
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static List<Transaction> GetTransactions(
-		DbInit @config,
-		uint @accountId,
-		uint @startingBlock
-	)
+	public static List<Transaction> GetTransactions(DbInit @config, uint @accountId, uint @startingBlock)
 	{
 		return FfiConverterSequenceTypeTransaction.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
@@ -3281,20 +3039,12 @@ internal static class LightWalletMethods
 		_UniffiHelpers.RustCallWithError(
 			FfiConverterTypeLightWalletException.INSTANCE,
 			(ref RustCallStatus _status) =>
-				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_init(
-					FfiConverterTypeDbInit.INSTANCE.Lower(@config),
-					ref _status
-				)
+				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_init(FfiConverterTypeDbInit.INSTANCE.Lower(@config), ref _status)
 		);
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static List<SendTransactionResult> Send(
-		DbInit @config,
-		String @uri,
-		byte[] @usk,
-		List<TransactionSendDetail> @sendDetails
-	)
+	public static List<SendTransactionResult> Send(DbInit @config, String @uri, byte[] @usk, List<TransactionSendDetail> @sendDetails)
 	{
 		return FfiConverterSequenceTypeSendTransactionResult.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
@@ -3312,12 +3062,7 @@ internal static class LightWalletMethods
 	}
 
 	/// <exception cref="LightWalletException"></exception>
-	public static List<SendTransactionResult> Shield(
-		DbInit @config,
-		String @uri,
-		byte[] @usk,
-		String @address
-	)
+	public static List<SendTransactionResult> Shield(DbInit @config, String @uri, byte[] @usk, String @address)
 	{
 		return FfiConverterSequenceTypeSendTransactionResult.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
@@ -3338,11 +3083,7 @@ internal static class LightWalletMethods
 	/// Constructs a proposal for how a given spend can be executed, and returns details for how it would work.
 	/// </summary>
 	/// <exception cref="LightWalletException"></exception>
-	public static SendDetails SimulateSend(
-		DbInit @config,
-		String @ufvk,
-		List<TransactionSendDetail> @sendDetails
-	)
+	public static SendDetails SimulateSend(DbInit @config, String @ufvk, List<TransactionSendDetail> @sendDetails)
 	{
 		return FfiConverterTypeSendDetails.INSTANCE.Lift(
 			_UniffiHelpers.RustCallWithError(
