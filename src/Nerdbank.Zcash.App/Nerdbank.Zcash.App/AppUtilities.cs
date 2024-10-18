@@ -22,19 +22,19 @@ public static class AppUtilities
 		_ => throw new NotSupportedException(),
 	};
 
-	internal static async ValueTask<uint> GetChainLengthAsync(IViewModelServices viewModelServices, ZcashNetwork network, CancellationToken cancellationToken)
-	{
-		uint birthdayHeight = await LightWalletClient.GetLatestBlockHeightAsync(viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
-		return birthdayHeight;
-	}
-
-	internal static void LogFaults(this Task task, ILogger logger, string message)
+	public static void LogFaults(this Task task, ILogger logger, string message)
 	{
 		task.ContinueWith(
 			t => logger.LogError(t.Exception, message),
 			CancellationToken.None,
 			TaskContinuationOptions.OnlyOnFaulted,
 			TaskScheduler.Default).Forget();
+	}
+
+	internal static async ValueTask<uint> GetChainLengthAsync(IViewModelServices viewModelServices, ZcashNetwork network, CancellationToken cancellationToken)
+	{
+		uint birthdayHeight = await LightWalletClient.GetLatestBlockHeightAsync(viewModelServices.Settings.GetLightServerUrl(network), cancellationToken);
+		return birthdayHeight;
 	}
 
 	/// <inheritdoc cref="BinarySearch{T}(IReadOnlyList{T}, int, int, T, IComparer{T}?)"/>

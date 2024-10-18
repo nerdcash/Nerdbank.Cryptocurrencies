@@ -2,8 +2,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows.Input;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.QRCodes;
 
 namespace Nerdbank.Zcash.App.ViewModels;
@@ -13,12 +21,14 @@ public class CameraViewModel : ViewModelBase, IDisposable
 	private readonly TaskCompletionSource<string?> scannedText = new();
 	private readonly IViewModelServices viewModelServices;
 	private Camera? selectedCamera;
+	private IImage? capturedImage;
 
 	[Obsolete("Design-time only", error: true)]
 	public CameraViewModel()
 		: this(new DesignTimeViewModelServices())
 	{
-		this.Cameras = new([new("Front"), new("Back")]);
+		this.Cameras.Add(new Camera("Front"));
+		this.Cameras.Add(new Camera("Back"));
 	}
 
 	public CameraViewModel(IViewModelServices viewModelServices)
@@ -27,9 +37,25 @@ public class CameraViewModel : ViewModelBase, IDisposable
 
 		ObservableBox<bool> canSelectPhoto = new(viewModelServices.TopLevel?.StorageProvider.CanOpen is true);
 		this.SelectPhotoFromLibraryCommand = ReactiveCommand.CreateFromTask(this.SelectPhotoFromLibraryAsync, canSelectPhoto);
+		this.Cameras.CollectionChanged += (sender, e) =>
+		{
+			if (this.SelectedCamera is not null && e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove && e.OldItems?.Contains(this.SelectedCamera) is true)
+			{
+				// Unselect a camera that has been removed.
+				this.SelectedCamera = null;
+			}
 
-		this.Cameras = new([]);
-		this.selectedCamera = this.Cameras.FirstOrDefault();
+			if (this.Cameras.Count > 0 && this.SelectedCamera is null)
+			{
+				// Select the first available camera when no camera is available.
+				this.SelectedCamera = this.Cameras[0];
+			}
+		};
+	}
+
+	~CameraViewModel()
+	{
+		this.Dispose(false);
 	}
 
 	public string SelectPhotoFromLibraryCaption => CameraStrings.SelectPhotoFromLibraryCaption;
@@ -38,13 +64,41 @@ public class CameraViewModel : ViewModelBase, IDisposable
 
 	public string UserPrompt => CameraStrings.UserPrompt;
 
-	public ReadOnlyCollection<Camera> Cameras { get; protected set; }
+	public ObservableCollection<Camera> Cameras { get; } = new();
 
 	public Camera? SelectedCamera
 	{
 		get => this.selectedCamera;
-		set => this.RaiseAndSetIfChanged(ref this.selectedCamera, value);
+		set
+		{
+			if (this.selectedCamera != value)
+			{
+				if (this.selectedCamera is not null)
+				{
+					this.selectedCamera.IsActivated = false;
+					this.selectedCamera.PropertyChanged -= this.Camera_PropertyChanged;
+				}
+
+				this.selectedCamera = value;
+				this.RaisePropertyChanged();
+				this.CapturedImage = null;
+
+				if (value is not null)
+				{
+					value.PropertyChanged += this.Camera_PropertyChanged;
+					value.IsActivated = true;
+				}
+			}
+		}
 	}
+
+	public IImage? CapturedImage
+	{
+		get => this.capturedImage;
+		set => this.RaiseAndSetIfChanged(ref this.capturedImage, value);
+	}
+
+	protected virtual JoinableTask CamerasInitialized => this.viewModelServices.App.JoinableTaskContext.Factory.RunAsync(() => Task.CompletedTask);
 
 	public async Task SelectPhotoFromLibraryAsync(CancellationToken cancellationToken)
 	{
@@ -101,6 +155,7 @@ public class CameraViewModel : ViewModelBase, IDisposable
 
 		// Only show the camera view if there is a camera available on the device
 		// (and the platform-derivation of this class supports it).
+		await this.CamerasInitialized;
 		if (this.Cameras.Count > 0)
 		{
 			this.viewModelServices.NavigateTo(this);
@@ -122,7 +177,21 @@ public class CameraViewModel : ViewModelBase, IDisposable
 
 	public void Dispose()
 	{
-		this.scannedText.TrySetCanceled();
+		this.Dispose(true);
+	}
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (disposing)
+		{
+			this.scannedText.TrySetCanceled();
+
+			if (this.SelectedCamera is not null)
+			{
+				this.SelectedCamera.IsActivated = false;
+				this.SelectedCamera = null;
+			}
+		}
 	}
 
 	protected void SetResult(string? text)
@@ -145,10 +214,70 @@ public class CameraViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	public class Camera(string name)
+	private void Camera_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
+		if (sender != this.SelectedCamera || sender is null)
+		{
+			return;
+		}
+
+		switch (e.PropertyName)
+		{
+			case nameof(Camera.CurrentFrame):
+				IImage? oldFrame = this.CapturedImage;
+				if (((Camera)sender).CurrentFrame is Frame frame)
+				{
+					this.CapturedImage = new Bitmap(new MemoryStream(frame.EncodedImage));
+
+					// Look for a QR code in this frame.
+					if (QRDecoder.TryDecode(frame.EncodedImage, out string? data))
+					{
+						this.SetResult(data);
+					}
+				}
+				else
+				{
+					this.CapturedImage = null;
+				}
+
+				(oldFrame as IDisposable)?.Dispose();
+				break;
+		}
+	}
+
+	public class Camera(string name) : ReactiveObject
+	{
+		private Frame? currentFrame;
+		private bool isActivated;
+
 		public string Name => name;
 
+		public Frame? CurrentFrame
+		{
+			get => this.currentFrame;
+			set => this.RaiseAndSetIfChanged(ref this.currentFrame, value);
+		}
+
+		public bool IsActivated
+		{
+			get => this.isActivated;
+			set
+			{
+				if (this.isActivated != value)
+				{
+					this.isActivated = value;
+					this.RaisePropertyChanged();
+					this.OnActivationChange();
+				}
+			}
+		}
+
 		public override string ToString() => name;
+
+		protected virtual void OnActivationChange()
+		{
+		}
 	}
+
+	public record Frame(byte[] EncodedImage);
 }
