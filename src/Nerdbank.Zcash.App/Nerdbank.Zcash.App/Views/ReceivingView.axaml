@@ -59,7 +59,10 @@
         <DataTemplate x:DataType="{x:Type vm:ReceivingAddress}">
           <Grid RowDefinitions="auto, *, auto, auto">
             <TextBlock Text="{Binding Subheading}" HorizontalAlignment="Center" />
-            <Image Source="{Binding QRCode}" Margin="10" Grid.Row="1" />
+            <!-- QR Codes *must* be displayed on a white background, even in dark theme. -->
+            <Border Padding="10" Grid.Row="1" Background="White" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Image Source="{Binding QRCode}" />
+            </Border>
             <StackPanel Grid.Row="2">
               <TextBlock HorizontalAlignment="Center" Text="{Binding CopyTextPrompt}" />
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
