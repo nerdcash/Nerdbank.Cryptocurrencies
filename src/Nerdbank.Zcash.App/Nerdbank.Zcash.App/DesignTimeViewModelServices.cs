@@ -10,9 +10,9 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 namespace Nerdbank.Zcash.App;
 
-internal class DesignTimeViewModelServices : IViewModelServices
+public class DesignTimeViewModelServices : IViewModelServices
 {
-	internal DesignTimeViewModelServices(bool empty = false)
+	public DesignTimeViewModelServices(bool empty = false)
 	{
 		if (!empty)
 		{

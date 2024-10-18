@@ -9,25 +9,20 @@
   <Design.DataContext>
     <vm:CameraViewModel />
   </Design.DataContext>
-  <Grid ColumnDefinitions="*,2*,*" RowDefinitions="*,2*,*" Classes="ScreenMargin">
-    <Grid.Styles>
-      <Style Selector="Rectangle.Shaded">
-        <Setter Property="Fill" Value="Gray" />
-        <Setter Property="Opacity" Value="0.2" />
-      </Style>
-    </Grid.Styles>
-    <Rectangle Classes="Shaded" Grid.RowSpan="3" />
-    <Rectangle Classes="Shaded" Grid.RowSpan="3" Grid.Column="2" />
-    <Rectangle Classes="Shaded" Grid.Row="0" Grid.Column="1" />
-    <Rectangle Classes="Shaded" Grid.Row="2" Grid.Column="1" />
+  <Grid RowDefinitions="auto,*,auto" Classes="ScreenMargin">
 
-    <TextBlock TextAlignment="Center" TextWrapping="Wrap"
-               VerticalAlignment="Center"
-               Grid.ColumnSpan="3"
-               Text="{Binding UserPrompt}" />
+    <Image Grid.RowSpan="3"
+           Source="{Binding CapturedImage}" />
 
-    <StackPanel Grid.ColumnSpan="3"
-                Grid.Row="2"
+    <Border Background="Black" Opacity="0.6" Padding="10" CornerRadius="5" MaxWidth="300">
+      <TextBlock TextAlignment="Center" TextWrapping="Wrap"
+                 VerticalAlignment="Center"
+                 Grid.ColumnSpan="3"
+                 Foreground="White"
+                 Text="{Binding UserPrompt}" />
+    </Border>
+
+    <StackPanel Grid.Row="2"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Spacing="10">

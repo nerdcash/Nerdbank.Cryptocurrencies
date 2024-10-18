@@ -7,6 +7,8 @@ using System.Reactive.Disposables;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using Nerdbank.Zcash.App.Desktop.ViewModels;
+using Nerdbank.Zcash.App.ViewModels;
 using Windows.Networking.Connectivity;
 using Windows.Win32;
 using Windows.Win32.System.Power;
@@ -75,6 +77,9 @@ internal class WindowsPlatformServices : PlatformServices
 			}
 		});
 	}
+
+	public override CameraViewModel? CreateCameraViewModel()
+		=> this.ViewModelServices is not null ? new WindowsCameraViewModel(this.ViewModelServices) : null;
 
 	private void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
 	{

@@ -19,15 +19,32 @@ public class ViewLocator : IDataTemplate
 			return null;
 		}
 
-		var name = data.GetType().AssemblyQualifiedName!.Replace("ViewModel", "View");
-		var type = Type.GetType(name);
+		Type? viewModelType = data.GetType();
 
-		if (type != null)
+		while (viewModelType is not null)
 		{
-			return (Control)Activator.CreateInstance(type)!;
+			string name = viewModelType.AssemblyQualifiedName!.Replace("ViewModel", "View");
+			Type? viewType = Type.GetType(name);
+			if (viewType is not null)
+			{
+				return (Control)Activator.CreateInstance(viewType)!;
+			}
+
+			// We're missing a view.
+			// If the view model is defined in another assembly, look at its base type(s)
+			// until we find a view model defined in the same assembly as the view locator.
+			if (viewModelType.Assembly != typeof(ViewLocator).Assembly)
+			{
+				viewModelType = viewModelType.BaseType;
+			}
+			else
+			{
+				// give up.
+				break;
+			}
 		}
 
-		return new TextBlock { Text = name };
+		return new TextBlock { Text = $"Missing view for view model {data.GetType().FullName}" };
 	}
 
 	/// <inheritdoc/>
