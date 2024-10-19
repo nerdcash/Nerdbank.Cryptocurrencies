@@ -1,6 +1,18 @@
 <Project Sdk="Microsoft.Build.Traversal">
+  <PropertyGroup>
+    <PreferredAppTargetFrameworkForPublish Condition="$([MSBuild]::IsOsPlatform('Windows'))">net8.0-windows10.0.22621.0</PreferredAppTargetFrameworkForPublish>
+    <PreferredAppTargetFrameworkForPublish Condition="$([MSBuild]::IsOsPlatform('OSX'))">net8.0-macos</PreferredAppTargetFrameworkForPublish>
+    <PreferredAppTargetFrameworkForPublish Condition="$([MSBuild]::IsOsPlatform('Linux'))">net8.0</PreferredAppTargetFrameworkForPublish>
+  </PropertyGroup>
   <ItemGroup>
-    <MultiRIDProjectReference Include="Nerdbank.Zcash.App.Desktop\Nerdbank.Zcash.App.Desktop.csproj" />
+    <MultiRIDProjectReference Include="Nerdbank.Zcash.App.Desktop\Nerdbank.Zcash.App.Desktop.csproj">
+      <!-- This traversal is used to build and publish the app.
+           Since App.Desktop.csproj is a multitargeting app (for convenience when working in the IDE),
+           we need to specify the target framework to use so that the Publish target knows what to do. -->
+      <!-- https://github.com/microsoft/MSBuildSdks/issues/582
+      <SetTargetFramework>TargetFramework=$(PreferredAppTargetFrameworkForPublish)</SetTargetFramework> -->
+      <AdditionalProperties2>TargetFramework=$(PreferredAppTargetFrameworkForPublish)</AdditionalProperties2>
+    </MultiRIDProjectReference>
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsOsPlatform('Linux')) and '$(DisableAndroidCsproj)'!='true'">
     <MultiRIDProjectReference Include="Nerdbank.Zcash.App.Android\Nerdbank.Zcash.App.Android.csproj" />

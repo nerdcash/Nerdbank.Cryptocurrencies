@@ -1,5 +1,7 @@
-﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#if MACOS
 
 using Microsoft.Extensions.Logging;
 
@@ -26,3 +28,5 @@ internal class MacOSPlatformServices : PlatformServices
 
 	public override IDisposable? RequestSleepDeferral() => null;
 }
+
+#endif

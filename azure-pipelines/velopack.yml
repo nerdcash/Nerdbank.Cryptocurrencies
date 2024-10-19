@@ -31,8 +31,12 @@ steps:
   - pwsh: |
       $platform = '${{ platform }}'.ToLower()
       $rid = '${{ parameters.osRID }}-${{ platform }}'.ToLower()
+      $packDir = "bin/publish/$(BuildConfiguration)/$rid"
       if ('${{ parameters.osRID }}' -eq 'win') {
         $tfm = 'net8.0-windows10.0.22621.0'
+      } elseif ('${{ parameters.osRID }}' -eq 'osx') {
+        $tfm = 'net8.0-macos'
+        $packDir = "bin/Nerdbank.Zcash.App.Desktop/$(BuildConfiguration)/net8.0-macos/$rid/Nerdbank.Zcash.App.Desktop.app"
       } else {
         $tfm = 'net8.0'
       }
@@ -69,7 +73,7 @@ steps:
         '--packTitle', 'eZcash',
         '--packAuthors', 'Nerdbank',
         '--mainExe', $VelopackData.exeName,
-        '--packDir', "bin/publish/$(BuildConfiguration)/$rid",
+        '--packDir', $packDir,
         '--outputDir', $OutputDir
         '--runtime', $rid
       )

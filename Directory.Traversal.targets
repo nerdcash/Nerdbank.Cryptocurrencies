@@ -1,4 +1,4 @@
-<Project>
+<Project InitialTargets="MergeAdditionalProperties">
   <PropertyGroup>
     <PackInParallel>true</PackInParallel>
 
@@ -11,4 +11,11 @@
     <ProjectReference Include="@(MultiRIDProjectReference)" AdditionalProperties="RuntimeIdentifier=$(RidOsPrefix)-x64" Test="$(TestX64Binaries)" />
     <ProjectReference Include="@(MultiRIDProjectReference)" AdditionalProperties="RuntimeIdentifier=$(RidOsPrefix)-arm64" Test="$(TestArm64Binaries)" />
   </ItemGroup>
+  <Target Name="MergeAdditionalProperties">
+    <ItemGroup>
+      <ProjectReference>
+        <AdditionalProperties>%(ProjectReference.AdditionalProperties);%(ProjectReference.AdditionalProperties2)</AdditionalProperties>
+      </ProjectReference>
+    </ItemGroup>
+  </Target>
 </Project>

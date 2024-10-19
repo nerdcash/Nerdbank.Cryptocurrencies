@@ -1,4 +1,4 @@
-<Project>
+<Project InitialTargets="SuppressRIDWarning">
   <PropertyGroup>
     <VelopackRuntimeRequired>net8.0</VelopackRuntimeRequired>
     <VelopackStorageAccount>ezcash</VelopackStorageAccount>
@@ -9,6 +9,14 @@
   <ItemGroup>
     <AdditionalThisAssemblyFields Include="VelopackUpdateUrl" String="$(VelopackUpdateUrl)" />
   </ItemGroup>
+
+  <Target Name="SuppressRIDWarning">
+    <!-- The Xamarin targets seem to think it's a bad thing to publish to a particular RID as specified at the CLI. No idea why.
+         But it's important for us to do, because we need to build two RIDs for macOS. -->
+    <PropertyGroup>
+      <_RuntimeIdentifiersClashMessage />
+    </PropertyGroup>
+  </Target>
 
   <Target Name="WriteVelopackUpdateUrlFile"
           BeforeTargets="CoreCompile"

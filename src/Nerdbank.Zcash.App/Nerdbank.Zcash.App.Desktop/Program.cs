@@ -92,8 +92,10 @@ internal class Program
 		PlatformServices platformServices =
 #if WINDOWS
 			new WindowsPlatformServices();
+#elif MACOS
+			new MacOSPlatformServices();
 #else
-			OperatingSystem.IsMacOS() ? new MacOSPlatformServices() : new FallbackPlatformServices();
+			new FallbackPlatformServices();
 #endif
 
 		string? updateSource = Environment.GetEnvironmentVariable("EZCASH_UPDATE_SOURCE");
