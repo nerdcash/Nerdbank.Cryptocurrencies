@@ -40,7 +40,7 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.Equal(isTestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet, account?.Network);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task ValidSeedPhrase_ExplicitPassword()
 	{
 		this.viewModel.Key = ValidSeedPhrase;
@@ -56,7 +56,7 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.Equal<uint?>(0, account?.ZcashAccount.HDDerivation?.AccountIndex);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task ValidSeedPhrase_ImplicitPassword()
 	{
 		this.viewModel.Key = $"{ValidSeedPhrase} {OneWordPassword}";
@@ -76,7 +76,7 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 	/// but then changing the seed phrase to include the password in the seed phrase
 	/// such that the password box disappears, while their explicit password was specified.
 	/// </summary>
-	[Fact]
+	[UIFact]
 	public async Task ValidSeedPhrase_ImplicitPassword_WithIgnoredExplicitPassword()
 	{
 		// Enter regular seed phrase with explicit password.
@@ -101,7 +101,7 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.Equal<uint?>(0, account?.ZcashAccount.HDDerivation?.AccountIndex);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task PrivateKey_Transparent()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse(ValidSeedPhrase);
@@ -121,7 +121,7 @@ public class ImportAccountViewModelTests : ViewModelTestBase
 		Assert.Null(account?.ZcashAccount.HDDerivation);
 	}
 
-	[Fact]
+	[UIFact]
 	public void PasswordHasSpacesWarning()
 	{
 		this.viewModel.Key = ValidSeedPhrase;

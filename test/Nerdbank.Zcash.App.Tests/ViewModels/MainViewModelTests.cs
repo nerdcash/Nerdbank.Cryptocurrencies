@@ -5,7 +5,7 @@ namespace ViewModels;
 
 public class MainViewModelTests : ViewModelTestBase
 {
-	[Fact]
+	[UIFact]
 	public void FirstLaunch()
 	{
 		Assert.IsType<FirstLaunchViewModel>(this.MainViewModel.Content);

@@ -14,7 +14,7 @@ public class CreateNewWalletViewModelTests : ViewModelTestBase
 		this.viewModel = new(this.MainViewModel);
 	}
 
-	[Fact]
+	[UIFact]
 	public void PasswordContainsWhitespace()
 	{
 		Assert.False(this.viewModel.PasswordContainsWhitespace);
@@ -34,7 +34,7 @@ public class CreateNewWalletViewModelTests : ViewModelTestBase
 		Assert.True(this.viewModel.PasswordContainsWhitespace);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task RemoveWhitespaceCommandAsync()
 	{
 		await this.viewModel.RemoveWhitespaceCommand.Execute().FirstAsync();

@@ -16,7 +16,7 @@ public class BackupViewModelTests : ViewModelTestBase
 		this.viewModel = new(this.MainViewModel);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task HiddenByDefaultAsync()
 	{
 		Assert.False(this.viewModel.IsRevealed);

@@ -16,7 +16,7 @@ public class FirstLaunchViewModelTests : ViewModelTestBase
 		this.logger = logger;
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task CreateNewWallet()
 	{
 		await this.viewModel.StartNewWalletCommand.Execute().FirstAsync();
