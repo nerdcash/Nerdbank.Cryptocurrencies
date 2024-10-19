@@ -21,7 +21,7 @@ public class DualAmountEntryViewModelTests : ViewModelTestBase
 		await this.InitializeWalletAsync();
 	}
 
-	[Fact]
+	[UIFact]
 	public void Amount_SetUpdatesAlternateAmount()
 	{
 		DualAmountEntryViewModel viewModel = new(this.MainViewModel);
@@ -34,7 +34,7 @@ public class DualAmountEntryViewModelTests : ViewModelTestBase
 		Assert.Equal(roundedUsd, viewModel.AmountInAlternateCurrency);
 	}
 
-	[Fact]
+	[UIFact]
 	public void AmountInAlternateCurrency_SetUpdatesAmount()
 	{
 		DualAmountEntryViewModel viewModel = new(this.MainViewModel);
@@ -47,7 +47,7 @@ public class DualAmountEntryViewModelTests : ViewModelTestBase
 		Assert.Equal(roundedZec, viewModel.Amount);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task LateComingExchangeRateReconcilesAmounts()
 	{
 		// Arrange for the ExchangeRate to be not (yet) available.
@@ -70,7 +70,7 @@ public class DualAmountEntryViewModelTests : ViewModelTestBase
 		Assert.Equal(2 * MockExchangeRateProvider.ZecPriceUsd, viewModel.AmountInAlternateCurrency);
 	}
 
-	[Fact]
+	[UIFact]
 	public void AlternateAmountsHiddenOnTestNetAccounts()
 	{
 		DualAmountEntryViewModel viewModel = new(this.MainViewModel);

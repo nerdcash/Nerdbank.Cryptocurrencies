@@ -23,7 +23,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 		]);
 	}
 
-	[Fact]
+	[UIFact]
 	public void TransactionsSortedByDate()
 	{
 		ImmutableArray<TransactionViewModel> sortedTransactions =
@@ -33,7 +33,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 		Assert.Equal(sortedTransactions, this.viewModel.Transactions);
 	}
 
-	[Fact]
+	[UIFact]
 	public void ReorderTransactionsWithWhenChange()
 	{
 		// Move the transaction that is in the middle up to the top position by changing its When column.
@@ -44,7 +44,7 @@ public class HistoryViewModelTests : ViewModelTestBase
 		Assert.Same(topTransaction, this.viewModel.Transactions[1]);
 	}
 
-	[Fact]
+	[UIFact]
 	public void FeeChangeUpdatesRunningBalance()
 	{
 		TransactionViewModel tx = this.viewModel.Transactions[1];
@@ -54,20 +54,20 @@ public class HistoryViewModelTests : ViewModelTestBase
 		Assert.Equal(runningBalance.Amount - feeChange, tx.RunningBalance.Amount);
 	}
 
-	[Fact]
+	[UIFact]
 	public void Balance_Initial()
 	{
 		this.AssertRunningBalances();
 	}
 
-	[Fact]
+	[UIFact]
 	public void Balance_AfterInsertingOneAtTop()
 	{
 		this.viewModel.Transactions.Add(this.MockTx(3.2m, "Inserted", TimeSpan.Zero, "005f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "somebody"));
 		this.AssertRunningBalances();
 	}
 
-	[Fact]
+	[UIFact]
 	public void Balance_AfterInsertingTwoAtTop()
 	{
 		this.viewModel.Transactions.AddRange([
@@ -77,14 +77,14 @@ public class HistoryViewModelTests : ViewModelTestBase
 		this.AssertRunningBalances();
 	}
 
-	[Fact]
+	[UIFact]
 	public void Balance_AfterInsertingOneInTheMiddle()
 	{
 		this.viewModel.Transactions.Add(this.MockTx(3.2m, "Inserted", TimeSpan.FromDays(5), "005f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "somebody"));
 		this.AssertRunningBalances();
 	}
 
-	[Fact]
+	[UIFact]
 	public void Balance_AfterInsertingTwoInTheMiddle()
 	{
 		this.viewModel.Transactions.AddRange([
@@ -94,14 +94,14 @@ public class HistoryViewModelTests : ViewModelTestBase
 		this.AssertRunningBalances();
 	}
 
-	[Fact]
+	[UIFact]
 	public void Balance_AfterInsertingOneAtBottom()
 	{
 		this.viewModel.Transactions.Add(this.MockTx(3.2m, "Inserted", TimeSpan.FromDays(300), "005f72b5eb58018daf506a13a5ccd9cb6b7657fd9f9ac4a8c297a51b5499ed9b", "somebody"));
 		this.AssertRunningBalances();
 	}
 
-	[Fact]
+	[UIFact]
 	public void Balance_AfterInsertingTwoAtBottom()
 	{
 		this.viewModel.Transactions.AddRange([

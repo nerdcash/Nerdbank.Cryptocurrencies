@@ -14,7 +14,7 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		this.viewModel = new AddressBookViewModel(this.MainViewModel);
 	}
 
-	[Fact]
+	[UIFact]
 	public void NewContact()
 	{
 		Assert.Null(this.viewModel.SelectedContact);
@@ -33,7 +33,7 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		Assert.Equal(2, this.viewModel.Contacts.Count);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task RemoveContactAsync()
 	{
 		ContactViewModel contact = this.viewModel.NewContact();
@@ -44,7 +44,7 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		Assert.Empty(this.MainViewModel.ContactManager.Contacts);
 	}
 
-	[Fact]
+	[UIFact]
 	public void Contact_IsEmpty()
 	{
 		ContactViewModel contact = this.viewModel.NewContact();
@@ -53,7 +53,7 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		Assert.False(contact.IsEmpty);
 	}
 
-	[Fact]
+	[UIFact]
 	public void NewContactRemovedWhenSelectionChangesIfStillEmpty()
 	{
 		ContactViewModel contact1 = this.viewModel.NewContact();
@@ -66,7 +66,7 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		Assert.Same(contact1.Model, Assert.Single(this.MainViewModel.ContactManager.Contacts));
 	}
 
-	[Fact]
+	[UIFact]
 	public void PropertiesPersist()
 	{
 		const string name = "Somebody";
@@ -82,7 +82,7 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		Assert.Equal(address, reloadedContact.Addresses);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task AddressAssignmentMade()
 	{
 		await this.InitializeWalletAsync();
@@ -98,7 +98,7 @@ public class AddressBookViewModelTests : ViewModelTestBase
 		Assert.Single(contact.Model.AssignedAddresses);
 	}
 
-	[Fact]
+	[UIFact]
 	public void ChangeToInvalidZcashAddressIgnored()
 	{
 		const string name = "Somebody";

@@ -23,7 +23,7 @@ public class SendingViewModelTests : ViewModelTestBase
 		this.viewModel = new SendingViewModel(this.MainViewModel);
 	}
 
-	[Fact]
+	[UIFact]
 	public void InitialValues()
 	{
 		Assert.Equal(string.Empty, this.viewModel.LineItems[0].RecipientAddress);
@@ -34,7 +34,7 @@ public class SendingViewModelTests : ViewModelTestBase
 		Assert.Equal(this.viewModel.Subtotal.Amount + this.viewModel.Fee?.Amount, this.viewModel.Total?.Amount);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task LateComingExchangeRateUpdatesAggregates()
 	{
 		// Arrange for the ExchangeRate to be not (yet) available.
@@ -56,7 +56,7 @@ public class SendingViewModelTests : ViewModelTestBase
 		Assert.Equal(2 * MockExchangeRateProvider.ZecPriceUsd, this.viewModel.SubtotalAlternate?.Amount);
 	}
 
-	[Fact]
+	[UIFact]
 	public void AlternateAmountsHiddenOnTestNetAccounts()
 	{
 		this.viewModel.SelectedAccount = this.MainViewModel.Wallet.Accounts.Single(a => a.Network == ZcashNetwork.TestNet);

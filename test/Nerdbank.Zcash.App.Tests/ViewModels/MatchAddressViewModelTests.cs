@@ -39,7 +39,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		this.MainViewModel.ContactManager.Add(this.friend);
 	}
 
-	[Fact]
+	[UIFact]
 	public void NoMatch_ValidAddress()
 	{
 		this.viewModel.Address = "u1ge2kww2a5fmlywt8pnetmgumatuw085kttxsu0fkuq9yxj8qtvnqtu0nskmsxtq9uk5a8q7xz9awevj90azgtk7p05g80yhwyfurkjnl3fs0a75548vnvgv3k96xsfutvezyp25g92d7lkzqrj2zjn9fhsuvm2l97892nveelvhlhsyr";
@@ -49,7 +49,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		Assert.Null(this.viewModel.Match?.DiversifiedAddressShownToContact);
 	}
 
-	[Fact]
+	[UIFact]
 	public void InvalidAddress()
 	{
 		this.viewModel.Address = "u1ge2kww2a5";
@@ -61,7 +61,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		}
 	}
 
-	[Fact]
+	[UIFact]
 	public void MatchOnAccount_NoObservingContact()
 	{
 		this.viewModel.Address = this.defaultAccount.ZcashAccount.DefaultAddress;
@@ -71,7 +71,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		Assert.False(this.viewModel.Match?.IsNoMatch);
 	}
 
-	[Fact]
+	[UIFact]
 	public void MatchOnAccount_WithObservingContact_Diversified()
 	{
 		DiversifierIndex idx = this.friend.AssignedAddresses[this.defaultAccount.Id!.Value].Diversifier;
@@ -82,7 +82,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 		Assert.False(this.viewModel.Match?.IsNoMatch);
 	}
 
-	[Fact]
+	[UIFact]
 	public void MatchOnAccount_WithObservingContact_Transparent()
 	{
 		uint idx = this.friend.AssignedAddresses[this.defaultAccount.Id!.Value].TransparentAddressIndex!.Value;
@@ -96,7 +96,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	/// <summary>
 	/// Verifies that a match is found when the address is exactly what is in the address book.
 	/// </summary>
-	[Fact]
+	[UIFact]
 	public void MatchOnContact_ExactMatch()
 	{
 		this.viewModel.Address = this.friend.ReceivingAddresses[0].Address;
@@ -109,7 +109,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	/// <summary>
 	/// Verifies that a match is found when the address has just one receiver in the contact's listed receiving address, which has several.
 	/// </summary>
-	[Fact]
+	[UIFact]
 	public void MatchOnContact_MatchOneReceiverOfCompoundUnified()
 	{
 		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddresses[0];
@@ -123,7 +123,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	/// <summary>
 	/// Verifies that a match is found when the address is a compound unified address with a strict subset of the receivers in the contact's listed receiving address.
 	/// </summary>
-	[Fact]
+	[UIFact]
 	public void MatchOnContact_MatchTwoReceiversOfCompoundUnified()
 	{
 		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddresses[0];
@@ -140,7 +140,7 @@ public class MatchAddressViewModelTests : ViewModelTestBase
 	/// <summary>
 	/// Verifies that NO match is found when a UA is supplied that contains receivers that conflict with receivers in the listed address.
 	/// </summary>
-	[Fact]
+	[UIFact]
 	public void MatchOnContact_ReceiverMismatch()
 	{
 		UnifiedAddress friendUA = (UnifiedAddress)this.friend.ReceivingAddresses[0];

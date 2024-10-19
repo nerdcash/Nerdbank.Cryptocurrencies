@@ -14,7 +14,7 @@ public class AboutViewModelTests : ViewModelTestBase
 		this.viewModel = new(this.MainViewModel);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task DonateEnabledIffNonEmptyWallet()
 	{
 		Assert.False(await this.viewModel.DonateCommand.CanExecute.FirstAsync());

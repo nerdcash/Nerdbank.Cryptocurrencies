@@ -15,7 +15,7 @@ public class MainWindowViewModelTests : ViewModelTestBase
 		this.MainViewModel = this.viewModel;
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task HomeCommandStaysOnFirstLaunchAsync()
 	{
 		Assert.IsType<FirstLaunchViewModel>(this.viewModel.Content);
@@ -24,7 +24,7 @@ public class MainWindowViewModelTests : ViewModelTestBase
 		Assert.False(this.viewModel.CanNavigateBack);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task HomeCommandReturnsToFirstLaunchAsync()
 	{
 		Assert.IsType<FirstLaunchViewModel>(this.viewModel.Content);
@@ -35,7 +35,7 @@ public class MainWindowViewModelTests : ViewModelTestBase
 		Assert.False(this.viewModel.CanNavigateBack);
 	}
 
-	[Fact]
+	[UIFact]
 	public async Task BackCommandReturnsToFirstLaunchAsync()
 	{
 		Assert.IsType<FirstLaunchViewModel>(this.viewModel.Content);
