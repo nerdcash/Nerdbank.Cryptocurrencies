@@ -17,13 +17,9 @@ namespace Nerdbank.Zcash.App.Desktop.ViewModels;
 
 internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 {
-	private readonly CancellationTokenSource disposalTokenSource = new();
-	private readonly AsyncManualResetEvent disposalEvent = new();
-	private readonly ILogger logger;
 	private readonly JoinableTask camerasPopulation;
 	private readonly ConcurrentDictionary<string, WindowsCamera> camerasByGroupId = new();
 	private readonly ConcurrentDictionary<string, WindowsCamera> camerasBySourceId = new();
-	private readonly IViewModelServices viewModelServices;
 
 	[Obsolete("Design-time only", error: true)]
 	public WindowsCameraViewModel()
@@ -34,26 +30,13 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 	public WindowsCameraViewModel(IViewModelServices viewModelServices)
 		: base(viewModelServices)
 	{
-		this.viewModelServices = viewModelServices;
-		this.logger = viewModelServices.App.PlatformServices.LoggerFactory.CreateLogger<WindowsCameraViewModel>();
 		this.camerasPopulation = viewModelServices.App.JoinableTaskContext.Factory.RunAsync(
-			() => this.PopulateCamerasCollectionAsync(this.disposalTokenSource.Token));
-		this.camerasPopulation.Task.LogFaults(this.logger, "Initial camera population failed.");
-		this.WatchCamerasCollectionAsync(this.disposalTokenSource.Token).LogFaults(this.logger, "Watcher of available cameras failed.");
+			() => this.PopulateCamerasCollectionAsync(this.DisposalToken));
+		this.camerasPopulation.Task.LogFaults(this.Logger, "Initial camera population failed.");
+		this.WatchCamerasCollectionAsync(this.DisposalToken).LogFaults(this.Logger, "Watcher of available cameras failed.");
 	}
 
 	protected override JoinableTask CamerasInitialized => this.camerasPopulation;
-
-	protected override void Dispose(bool disposing)
-	{
-		if (disposing)
-		{
-			this.disposalTokenSource.Cancel();
-			this.disposalEvent.Set();
-		}
-
-		base.Dispose(true);
-	}
 
 	private static bool IsAcceptableSource(MediaFrameSourceInfo sourceInfo)
 		=> sourceInfo.SourceKind == MediaFrameSourceKind.Color && sourceInfo.MediaStreamType is MediaStreamType.Photo or MediaStreamType.VideoRecord or MediaStreamType.VideoPreview;
@@ -112,7 +95,7 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 		watcher.Start();
 		try
 		{
-			await this.disposalEvent;
+			await this.WaitForDisposalAsync(cancellationToken);
 		}
 		finally
 		{
@@ -130,12 +113,12 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 				}
 
 				MediaFrameSourceGroup added = await MediaFrameSourceGroup.FromIdAsync(args.Id);
-				await this.viewModelServices.App.JoinableTaskContext.Factory.SwitchToMainThreadAsync(this.disposalTokenSource.Token);
+				await this.ViewModelServices.App.JoinableTaskContext.Factory.SwitchToMainThreadAsync(this.DisposalToken);
 				this.AddCameraIfAcceptable(added);
 			}
 			catch (Exception ex)
 			{
-				this.logger.LogError("Failure processing added camera: {ex}", ex.Message);
+				this.Logger.LogError("Failure processing added camera: {ex}", ex.Message);
 			}
 		}
 
@@ -152,13 +135,13 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 					}
 
 					camera.IsActivated = false;
-					await this.viewModelServices.App.JoinableTaskContext.Factory.SwitchToMainThreadAsync(this.disposalTokenSource.Token);
+					await this.ViewModelServices.App.JoinableTaskContext.Factory.SwitchToMainThreadAsync(this.DisposalToken);
 					this.Cameras.Remove(camera);
 				}
 			}
 			catch (Exception ex)
 			{
-				this.logger.LogError("Failure removing camera \"{camera}\": {ex}", camera?.Name, ex.Message);
+				this.Logger.LogError("Failure removing camera \"{camera}\": {ex}", camera?.Name, ex.Message);
 			}
 		}
 #pragma warning restore VSTHRD100 // Avoid async void methods
@@ -176,7 +159,7 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 
 			if (this.IsActivated)
 			{
-				this.CaptureAsync(owner.disposalTokenSource.Token).LogFaults(owner.logger, "Camera connection failed.");
+				this.CaptureAsync(owner.DisposalToken).LogFaults(owner.Logger, "Camera connection failed.");
 			}
 		}
 
@@ -213,11 +196,11 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 				MediaFrameReaderStartStatus status = await frameReader.StartAsync();
 				if (status == MediaFrameReaderStartStatus.Success)
 				{
-					owner.logger.LogInformation("Started the \"{group}\" camera.", this.Name);
+					owner.Logger.LogInformation("Started the \"{group}\" camera.", this.Name);
 				}
 				else
 				{
-					owner.logger.LogError("Unable to start the \"{group}\" camera. Error: {status}", this.Name, status);
+					owner.Logger.LogError("Unable to start the \"{group}\" camera. Error: {status}", this.Name, status);
 				}
 
 				while (!cancellationToken.IsCancellationRequested && this.IsActivated)
@@ -235,6 +218,10 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 					}
 				}
 			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				owner.Logger.LogError(ex, "Failed to capture camera");
+			}
 			finally
 			{
 				mediaCapture?.Dispose();
@@ -250,7 +237,7 @@ internal class WindowsCameraViewModel : CameraViewModel, IDisposable
 				// Only log the error once so we don't spam this for every single frame.
 				if (!this.unexpectedFormatLogged)
 				{
-					owner.logger.LogError("Camera {camera} produced unexpected format {format}.", this.Name, inputBitmap.BitmapPixelFormat);
+					owner.Logger.LogError("Camera {camera} produced unexpected format {format}.", this.Name, inputBitmap.BitmapPixelFormat);
 					this.unexpectedFormatLogged = true;
 				}
 

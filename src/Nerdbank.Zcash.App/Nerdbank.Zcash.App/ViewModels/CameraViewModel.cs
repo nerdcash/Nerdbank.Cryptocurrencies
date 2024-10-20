@@ -3,14 +3,11 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.InteropServices;
 using System.Windows.Input;
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.QRCodes;
 
@@ -18,8 +15,9 @@ namespace Nerdbank.Zcash.App.ViewModels;
 
 public class CameraViewModel : ViewModelBase, IDisposable
 {
+	private readonly CancellationTokenSource disposalTokenSource = new();
+	private readonly AsyncManualResetEvent disposalEvent = new();
 	private readonly TaskCompletionSource<string?> scannedText = new();
-	private readonly IViewModelServices viewModelServices;
 	private Camera? selectedCamera;
 	private IImage? capturedImage;
 
@@ -33,7 +31,8 @@ public class CameraViewModel : ViewModelBase, IDisposable
 
 	public CameraViewModel(IViewModelServices viewModelServices)
 	{
-		this.viewModelServices = viewModelServices;
+		this.ViewModelServices = viewModelServices;
+		this.Logger = viewModelServices.App.PlatformServices.LoggerFactory.CreateLogger<CameraViewModel>();
 
 		ObservableBox<bool> canSelectPhoto = new(viewModelServices.TopLevel?.StorageProvider.CanOpen is true);
 		this.SelectPhotoFromLibraryCommand = ReactiveCommand.CreateFromTask(this.SelectPhotoFromLibraryAsync, canSelectPhoto);
@@ -98,12 +97,21 @@ public class CameraViewModel : ViewModelBase, IDisposable
 		set => this.RaiseAndSetIfChanged(ref this.capturedImage, value);
 	}
 
-	protected virtual JoinableTask CamerasInitialized => this.viewModelServices.App.JoinableTaskContext.Factory.RunAsync(() => Task.CompletedTask);
+	protected ILogger Logger { get; }
+
+	protected virtual JoinableTask CamerasInitialized => this.ViewModelServices.App.JoinableTaskContext.Factory.RunAsync(() => Task.CompletedTask);
+
+	protected IViewModelServices ViewModelServices { get; }
+
+	/// <summary>
+	/// Gets a token that is canceled when this view is disposed of.
+	/// </summary>
+	protected CancellationToken DisposalToken => this.disposalTokenSource.Token;
 
 	public async Task SelectPhotoFromLibraryAsync(CancellationToken cancellationToken)
 	{
-		Verify.Operation(this.viewModelServices.TopLevel is not null, "This command is not available.");
-		IReadOnlyList<IStorageFile> selectedFiles = await this.viewModelServices.TopLevel.StorageProvider.OpenFilePickerAsync(new()
+		Verify.Operation(this.ViewModelServices.TopLevel is not null, "This command is not available.");
+		IReadOnlyList<IStorageFile> selectedFiles = await this.ViewModelServices.TopLevel.StorageProvider.OpenFilePickerAsync(new()
 		{
 			AllowMultiple = false,
 			Title = "Select a photo to scan for a QR code",
@@ -151,14 +159,14 @@ public class CameraViewModel : ViewModelBase, IDisposable
 	/// </returns>
 	public async Task<string?> GetTextFromQRCodeAsync(CancellationToken cancellationToken)
 	{
-		Verify.Operation(this.viewModelServices.TopLevel is not null, "This command is not available.");
+		Verify.Operation(this.ViewModelServices.TopLevel is not null, "This command is not available.");
 
 		// Only show the camera view if there is a camera available on the device
 		// (and the platform-derivation of this class supports it).
 		await this.CamerasInitialized;
 		if (this.Cameras.Count > 0)
 		{
-			this.viewModelServices.NavigateTo(this);
+			this.ViewModelServices.NavigateTo(this);
 		}
 		else
 		{
@@ -184,6 +192,8 @@ public class CameraViewModel : ViewModelBase, IDisposable
 	{
 		if (disposing)
 		{
+			this.disposalTokenSource.Cancel();
+			this.disposalEvent.Set();
 			this.scannedText.TrySetCanceled();
 
 			if (this.SelectedCamera is not null)
@@ -194,13 +204,20 @@ public class CameraViewModel : ViewModelBase, IDisposable
 		}
 	}
 
+	/// <summary>
+	/// Gets a task that completes when this view model is disposed of.
+	/// </summary>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>A task that completes when this view model has been disposed of.</returns>
+	protected Task WaitForDisposalAsync(CancellationToken cancellationToken) => this.disposalEvent.WaitAsync(cancellationToken);
+
 	protected void SetResult(string? text)
 	{
 		this.scannedText.TrySetResult(text);
-		this.viewModelServices.NavigateBack(this);
+		this.ViewModelServices.NavigateBack(this);
 	}
 
-	protected virtual async Task<string> ScanPhotoAsync(Stream photoStream, CancellationToken cancellationToken)
+	protected async Task<string> ScanPhotoAsync(Stream photoStream, CancellationToken cancellationToken)
 	{
 		MemoryStream ms = new();
 		await photoStream.CopyToAsync(ms, cancellationToken);
