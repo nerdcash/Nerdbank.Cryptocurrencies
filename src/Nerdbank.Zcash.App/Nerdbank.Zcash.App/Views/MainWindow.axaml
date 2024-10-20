@@ -15,9 +15,9 @@
   </Design.DataContext>
   <NativeMenu.Menu>
     <NativeMenu>
-      <NativeMenuItem Header="{Binding BackCommandCaption}" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
       <NativeMenuItem Header="{Binding AppMenuCaption}">
         <NativeMenu>
+          <NativeMenuItem Header="{Binding BackCommandCaption}" Command="{Binding NavigateBackCommand}" IsVisible="{Binding IsNavigateBackVisible}" />
           <NativeMenuItem Header="{Binding HomeCommandCaption}" Command="{Binding HomeCommand}" />
           <NativeMenuItem Header="{Binding AddressBookCommandCaption}" Command="{Binding AddressBookCommand}" />
           <NativeMenuItem Header="{Binding AccountsListCommandCaption}" Command="{Binding AccountsListCommand}" />
