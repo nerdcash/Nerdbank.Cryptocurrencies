@@ -7,6 +7,12 @@
     <RoslynVersion>3.11.0-beta1.24415.1</RoslynVersion>
     <AspNetWebAssemblyVersion>8.0.10</AspNetWebAssemblyVersion>
   </PropertyGroup>
+  <PropertyGroup>
+    <!-- In Azure pipelines, use Pipeline Caching as the cache storage backend. Otherwise, use the local cache. -->
+    <MSBuildCachePackageName Condition="'$(TF_BUILD)' != ''">Microsoft.MSBuildCache.AzurePipelines</MSBuildCachePackageName>
+    <MSBuildCachePackageName Condition="'$(MSBuildCachePackageName)' == ''">Microsoft.MSBuildCache.Local</MSBuildCachePackageName>
+    <MSBuildCachePackageVersion>0.1.287-preview</MSBuildCachePackageVersion>
+  </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="BouncyCastle.Cryptography" Version="2.4.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.28.2" />
@@ -34,9 +40,13 @@
   <ItemGroup>
     <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.593" />
     <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
+    <GlobalPackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="$(RoslynVersion)" />
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.143" />
     <GlobalPackageReference Include="Nullable" Version="1.3.1" />
     <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556" />
-    <GlobalPackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="$(RoslynVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <GlobalPackageReference Include="$(MSBuildCachePackageName)" Version="$(MSBuildCachePackageVersion)" />
+    <GlobalPackageReference Include="Microsoft.MSBuildCache.SharedCompilation" Version="$(MSBuildCachePackageVersion)" />
   </ItemGroup>
 </Project>

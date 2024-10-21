@@ -7,6 +7,16 @@ steps:
 - pwsh: dotnet build -t:build,publish --no-restore -c $(BuildConfiguration) -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: 🛠️ dotnet build
   workingDirectory: azure-pipelines
+  condition: and(succeeded(), ne(variables['Agent.OS'], 'Windows_NT'))
+
+- task: MSBuild@1
+  inputs:
+    solution: '*.sln'
+    msbuildArguments: /t:build,publish /warnaserror /reportfileaccesses /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+    configuration: $(BuildConfiguration)
+    msbuildArchitecture: x64
+  displayName: 🛠️ MSBuild
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test
