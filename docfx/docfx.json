@@ -1,0 +1,50 @@
+{
+	"metadata": [
+		{
+			"src": [
+				{
+					"src": "../src",
+					"files": [
+						"Nerdbank.Cryptocurrencies/*.csproj",
+						"Nerdbank.Zcash/*.csproj",
+						"Nerdbank.Bitcoin/*.csproj"
+					]
+				}
+			],
+			"dest": "api"
+		}
+	],
+	"build": {
+		"content": [
+			{
+				"files": [
+					"**/*.{md,yml}"
+				],
+				"exclude": [
+					"_site/**"
+				]
+			}
+		],
+		"resource": [
+			{
+				"files": [
+					"images/**"
+				]
+			}
+		],
+		"xref": [
+			"https://learn.microsoft.com/en-us/dotnet/.xrefmap.json"
+		],
+		"output": "_site",
+		"template": [
+			"default",
+			"modern"
+		],
+		"globalMetadata": {
+			"_appName": "Nerdbank.Cryptocurrencies",
+			"_appTitle": "Nerdbank.Cryptocurrencies",
+			"_enableSearch": true,
+			"pdf": false
+		}
+	}
+}
