@@ -77,7 +77,7 @@ jobs:
 
 - job: macOS
   pool:
-    vmImage: macOS-14
+    vmImage: macOS-15
   variables:
   - name: DEVELOPER_DIR
     value: /Applications/Xcode_16.app/Contents/Developer
