@@ -28,7 +28,7 @@ Param (
     [string]$InstallLocality='user',
     [switch]$SdkOnly,
     [switch]$IncludeX86,
-    [switch]$IncludeAspNetCore
+    [switch]$IncludeAspNetCore=$true # needed for csharpier
 )
 
 $DotNetInstallScriptRoot = "$PSScriptRoot/../obj/tools"
@@ -51,7 +51,7 @@ if (!$arch) { # Windows Powershell leaves this blank
 }
 
 # Search for all .NET runtime versions referenced from MSBuild projects and arrange to install them.
-$runtimeVersions = @()
+$runtimeVersions = @('8.0')
 $windowsDesktopRuntimeVersions = @()
 $aspnetRuntimeVersions = @()
 if (!$SdkOnly) {
