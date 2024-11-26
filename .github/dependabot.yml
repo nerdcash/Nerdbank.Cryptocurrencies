@@ -7,6 +7,10 @@ updates:
   directory: /
   schedule:
     interval: weekly
+- package-ecosystem: dotnet-sdk
+  directory: /
+  schedule:
+    interval: monthly
 - package-ecosystem: cargo
   directory: /src/nerdbank-zcash-rust
   schedule:

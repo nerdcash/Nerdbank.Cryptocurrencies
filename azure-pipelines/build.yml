@@ -59,8 +59,10 @@ jobs:
   - template: dotnet.yml
     parameters:
       RunTests: ${{ parameters.RunTests }}
-  - script: dotnet format --verify-no-changes --no-restore
+  - script: dotnet format --verify-no-changes
     displayName: 💅 Verify formatted code
+    env:
+      dotnetformat: true # part of a workaround for https://github.com/dotnet/sdk/issues/44951
     enabled: false # TODO: enable this once we've solved the issue with uniffi C# emitted code formatting
 
 - job: android
