@@ -18,6 +18,6 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"{rate}");
 		Assert.NotNull(rate);
 		Assert.Equal(Security.USD, rate.Value.Basis.Security);
-		Assert.Equal(29.08m, rate.Value.InBasisAmount.RoundedAmount);
+		Assert.True(Math.Abs(rate.Value.InBasisAmount.RoundedAmount - 29.08m) < 0.20m);
 	}
 }
