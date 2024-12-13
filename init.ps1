@@ -116,7 +116,7 @@ try {
 
     if (!$NoRestore -and $PSCmdlet.ShouldProcess(".NET workloads", "Restore")) {
         Write-Host "Restoring applicable .NET workloads" -ForegroundColor $HeaderColor
-        dotnet workload restore
+        dotnet workload restore (Join-Path $PSScriptRoot Nerdbank.Cryptocurrencies.sln)
         if ($lastexitcode -ne 0) {
             throw "Failure while restoring workloads."
         }
