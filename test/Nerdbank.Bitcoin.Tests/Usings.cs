@@ -4,5 +4,4 @@
 global using Nerdbank.Bitcoin;
 global using Nerdbank.Cryptocurrencies;
 global using Xunit;
-global using Xunit.Abstractions;
 global using static TestUtilities;

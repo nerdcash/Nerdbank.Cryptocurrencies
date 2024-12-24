@@ -12,10 +12,10 @@ public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBa
 
 	protected virtual string? SkipGetExchangeRateTests => null;
 
-	[SkippableTheory, PairwiseData]
+	[Theory, PairwiseData]
 	public async Task GetExchangeRateAsync_RespectsPairOrdering(bool fiatSecond)
 	{
-		Skip.If(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests);
+		Assert.SkipWhen(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests ?? "Not skipped");
 
 		TradingPair pair = UsdZec;
 		if (fiatSecond)
@@ -55,10 +55,10 @@ public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBa
 		}
 	}
 
-	[SkippableFact]
+	[Fact]
 	public async Task GetHistoricalPricing_Now()
 	{
-		Skip.If(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests);
+		Assert.SkipWhen(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests ?? "Not skipped");
 
 		DateTimeOffset when = DateTimeOffset.Now;
 		ExchangeRate? rate = await this.Provider.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken);

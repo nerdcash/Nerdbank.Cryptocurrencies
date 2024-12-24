@@ -4,4 +4,3 @@
 global using Nerdbank.Cryptocurrencies;
 global using Nerdbank.Zcash;
 global using Xunit;
-global using Xunit.Abstractions;

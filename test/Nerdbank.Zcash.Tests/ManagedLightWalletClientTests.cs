@@ -7,17 +7,17 @@ public class ManagedLightWalletClientTests : TestBase, IAsyncLifetime
 	private ManagedLightWalletClient mainnet = null!; // initialized in InitializeAsync
 	private ManagedLightWalletClient testnet = null!; // initialized in InitializeAsync
 
-	public async Task InitializeAsync()
+	public async ValueTask InitializeAsync()
 	{
 		this.mainnet = await ManagedLightWalletClient.CreateAsync(LightWalletServerMainNet, this.TimeoutToken);
 		this.testnet = await ManagedLightWalletClient.CreateAsync(LightWalletServerTestNet, this.TimeoutToken);
 	}
 
-	public Task DisposeAsync()
+	public ValueTask DisposeAsync()
 	{
 		this.mainnet.Dispose();
 		this.testnet.Dispose();
-		return Task.CompletedTask;
+		return ValueTask.CompletedTask;
 	}
 
 	[Fact]
