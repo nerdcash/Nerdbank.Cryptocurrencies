@@ -49,7 +49,7 @@ jobs:
       test_target: x86_64-unknown-linux-gnu
       checks: true
 
-  - pwsh: cargo install cross --git https://github.com/cross-rs/cross --rev c87a52a60dbcde069714a8d2ed51570e7fc23cf9
+  - pwsh: cargo install cross --git https://github.com/cross-rs/cross --rev c87a52a60dbcde069714a8d2ed51570e7fc23cf9 --locked
     displayName: ⚙️ install cross
 
   - pwsh: cross build -r --target=aarch64-unknown-linux-gnu
