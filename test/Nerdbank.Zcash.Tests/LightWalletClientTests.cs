@@ -25,7 +25,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 			Path.Join(this.testDir, "zcash-test.wallet"));
 	}
 
-	public async Task InitializeAsync()
+	public async ValueTask InitializeAsync()
 	{
 		if (!defaultAccountBirthdayHeightSet)
 		{
@@ -36,9 +36,9 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		await this.client.AddAccountAsync(DefaultAccount, this.TimeoutToken);
 	}
 
-	public Task DisposeAsync()
+	public ValueTask DisposeAsync()
 	{
-		return Task.CompletedTask;
+		return ValueTask.CompletedTask;
 	}
 
 	public void Dispose()
