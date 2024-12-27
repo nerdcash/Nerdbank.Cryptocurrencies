@@ -12,7 +12,7 @@ steps:
   displayName: 🛠️ build android
   workingDirectory: src/nerdbank-zcash-rust
 
-- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
+- powershell: azure-pipelines/publish_artifacts.ps1 -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
   failOnStderr: true
   displayName: 📢 Publish artifacts
   condition: succeededOrFailed()
