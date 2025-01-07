@@ -19,7 +19,7 @@
 			"groupName": "Dockerfile and global.json updates"
 		},
 		{
-			"matchDatasources": ["cargo"],
+			"matchDatasources": ["crate"],
 			"matchDepNames": ["uniffi"],
 			"allowedVersions": "<=0.25"
 		}
