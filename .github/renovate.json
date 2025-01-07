@@ -16,6 +16,11 @@
 			"matchDatasources": ["dotnet-version", "docker"],
 			"matchDepNames": ["dotnet-sdk", "mcr.microsoft.com/dotnet/sdk"],
 			"groupName": "Dockerfile and global.json updates"
+		},
+		{
+			"matchDatasources": ["cargo"],
+			"matchDepNames": ["uniffi"],
+			"allowedVersions": "<=0.25"
 		}
 	]
 }
