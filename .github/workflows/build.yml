@@ -18,7 +18,7 @@ env:
 jobs:
   linux:
     name: 🏭 Linux
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -39,6 +39,7 @@ jobs:
       with:
         test_target: x86_64-unknown-linux-gnu
         checks: true
+      name: 🏭 Cargo build and test
 
     - run: cargo install cross --git https://github.com/cross-rs/cross --rev c87a52a60dbcde069714a8d2ed51570e7fc23cf9 --locked
       name: ⚙️ install cross
@@ -72,12 +73,13 @@ jobs:
     - uses: ./.github/actions/cargo
       with:
         test_target: x86_64-apple-darwin
+      name: 🏭 Cargo build and test
 
     - name: 📱 iOS Framework
       shell: pwsh
       run: |
-        Write-Host "##[command]./azure-pipelines/build_ios_framework.ps1"
-        ./azure-pipelines/build_ios_framework.ps1
+        Write-Host "##[command]./tools/build_ios_framework.ps1"
+        ./tools/build_ios_framework.ps1
 
     - name: 🛠 build
       run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
@@ -112,6 +114,7 @@ jobs:
     - uses: ./.github/actions/cargo
       with:
         test_target: x86_64-pc-windows-msvc
+      name: 🏭 Cargo build and test
 
     - name: 🛠 build
       run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
