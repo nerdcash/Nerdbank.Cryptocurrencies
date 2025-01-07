@@ -6,11 +6,14 @@ runs:
   steps:
   - run: src/nerdbank-zcash-rust/generate_cs_bindings.ps1 -InstallPrerequisites
     name: 🛠️ generate C# bindings
+    shell: pwsh
 
   - run: src/nerdbank-zcash-rust/build_all.ps1 -Release -SkipCsBindings
     name: 🛠️ cargo build
+    shell: pwsh
 
   - run: cargo test -r --target ${{ parameters.test_target }}
+    shell: pwsh
     name: 🧪 cargo test
     working-directory: src/nerdbank-zcash-rust
     env:
@@ -18,9 +21,11 @@ runs:
     if: and(succeeded(), ne('${{ parameters.test_target }}', ''))
 
   - run: cargo clippy -r --target=${{ parameters.test_target }} -- -D warnings
+    shell: pwsh
     name: 🧼 cargo clippy
     working-directory: src/nerdbank-zcash-rust
 
   - run: cargo fmt --check
     name: 📝 cargo fmt
+    shell: pwsh
     working-directory: src/nerdbank-zcash-rust
