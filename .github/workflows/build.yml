@@ -51,6 +51,12 @@ jobs:
     - name: 💅🏻 Verify formatted code
       run: dotnet format --verify-no-changes --no-restore
 
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: linux
+      if: cancelled() == false
+
   macos:
     name: 🏭 macOS
     runs-on: macos-14
@@ -82,11 +88,17 @@ jobs:
         ./tools/build_ios_framework.ps1
 
     - name: 🛠 build
-      run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+      run: dotnet build -t:build,publish --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
 
     - name: 🧪 test
       run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
       shell: pwsh
+
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: macos
+      if: cancelled() == false
 
   windows:
     name: 🏭 Windows
@@ -117,19 +129,26 @@ jobs:
       name: 🏭 Cargo build and test
 
     - name: 🛠 build
-      run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+      run: dotnet build -t:build,publish --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+
     - name: 🧪 test
       run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
       shell: pwsh
+
     - name: 📚 Verify docfx build
       run: dotnet docfx docfx/docfx.json --warningsAsErrors --disableGitFeatures
       if: runner.os == 'Linux'
+
     - name: ⚙ Update pipeline variables based on build outputs
       run: tools/variables/_define.ps1
       shell: pwsh
+
     - name: 📢 Publish artifacts
       uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: windows
       if: cancelled() == false
+
     - name: 📢 Publish code coverage results to codecov.io
       run: ./tools/publish-CodeCov.ps1 -CodeCovToken "${{ env.codecov_token }}" -PathToCodeCoverage "${{ runner.temp }}/_artifacts/coverageResults" -Name "${{ runner.os }} Coverage Results" -Flags "${{ runner.os }}"
       shell: pwsh
@@ -154,9 +173,12 @@ jobs:
       name: 🛠️ build android
     - name: 📢 Publish artifacts
       uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: android
       if: cancelled() == false
 
   pack:
+    name: 📦 Pack
     needs:
     - windows
     - macos
