@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 
 namespace Nerdbank.Cryptocurrencies.Exchanges;
@@ -51,6 +52,11 @@ public class Coinbase : IHistoricalExchangeRateProvider
 #pragma warning restore SA1602 // Enumeration items should be documented
 	}
 
+	/// <summary>
+	/// Gets the logger to use.
+	/// </summary>
+	public ILogger? Logger { get; init; }
+
 	/// <inheritdoc/>
 	public async ValueTask<IReadOnlySet<TradingPair>> GetAvailableTradingPairsAsync(CancellationToken cancellationToken)
 	{
@@ -71,6 +77,10 @@ public class Coinbase : IHistoricalExchangeRateProvider
 			static (DateOnly utcDate, (TradingPair TradingPair, Coinbase Self) arg) => Task.Run(async delegate
 			{
 				ResponseItem[] rows = await arg.Self.FetchCandlesAsync(arg.TradingPair, Granularity.Hourly, ToOffset(utcDate), ToOffset(utcDate.AddDays(1)), CancellationToken.None).ConfigureAwait(false);
+				if (rows.Length == 0)
+				{
+					arg.Self.Logger?.LogError("No exchange rate data found for {tradingPair} on {date}.", arg.TradingPair, utcDate);
+				}
 
 				SortedList<DateTimeOffset, ExchangeRate> list = new();
 
@@ -95,6 +105,11 @@ public class Coinbase : IHistoricalExchangeRateProvider
 		{
 			// Allow for the best match that exceeds the time if no match that precedes it was found.
 			result = forDate.Count > 0 ? forDate.GetValueAtIndex(0) : null;
+		}
+
+		if (result is not null && this.Logger is not null)
+		{
+			this.Logger.LogInformation("Found exchange rate for {tradingPair} at {when} to be {result}.", tradingPair, when, result);
 		}
 
 		return tradingPair == normalizedTradingPair ? result : result?.OppositeDirection;
