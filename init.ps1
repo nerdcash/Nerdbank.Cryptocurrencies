@@ -100,7 +100,7 @@ $env:NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS = 20
 $env:NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS = 20
 
 if (($env:CI -eq 'true') -or ($env:TF_BUILD -eq 'true')) {
-    $RestorePath = Join-Path $PSScriptRoot 'azure-pipelines'
+    $RestorePath = Join-Path $PSScriptRoot '.github'
 } else {
     $RestorePath = $PSScriptRoot
 }
