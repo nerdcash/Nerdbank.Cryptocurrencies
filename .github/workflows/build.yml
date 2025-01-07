@@ -1,0 +1,183 @@
+name: 🏭 Build
+
+on:
+  push:
+    branches:
+    - main
+    - 'v*.*'
+    - validate/*
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BUILDCONFIGURATION: Release
+  # codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # Get a new one from https://codecov.io/
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages/
+
+jobs:
+  linux:
+    name: 🏭 Linux
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+
+        # Print mono version if it is present.
+        if (Get-Command mono -ErrorAction SilentlyContinue) {
+          mono --version
+        }
+      shell: pwsh
+
+    - uses: ./.github/actions/cargo
+      with:
+        test_target: x86_64-unknown-linux-gnu
+        checks: true
+
+    - run: cargo install cross --git https://github.com/cross-rs/cross --rev c87a52a60dbcde069714a8d2ed51570e7fc23cf9 --locked
+      name: ⚙️ install cross
+
+    - run: cross build -r --target=aarch64-unknown-linux-gnu
+      name: 🛠️ build linux-arm64
+      working-directory: src/nerdbank-zcash-rust
+
+    - name: 💅🏻 Verify formatted code
+      run: dotnet format --verify-no-changes --no-restore
+
+  macos:
+    name: 🏭 macOS
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+
+        # Print mono version if it is present.
+        if (Get-Command mono -ErrorAction SilentlyContinue) {
+          mono --version
+        }
+      shell: pwsh
+
+    - uses: ./.github/actions/cargo
+      with:
+        test_target: x86_64-apple-darwin
+
+    - name: 📱 iOS Framework
+      shell: pwsh
+      run: |
+        Write-Host "##[command]./azure-pipelines/build_ios_framework.ps1"
+        ./azure-pipelines/build_ios_framework.ps1
+
+    - name: 🛠 build
+      run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+
+    - name: 🧪 test
+      run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
+      shell: pwsh
+
+  windows:
+    name: 🏭 Windows
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+
+        # Print mono version if it is present.
+        if (Get-Command mono -ErrorAction SilentlyContinue) {
+          mono --version
+        }
+      shell: pwsh
+
+    # For optimizing Blazor WebAssembly builds
+    - run: dotnet workload install wasm-tools
+      name: ⚙ Install wasm-tools
+
+    - uses: ./.github/actions/cargo
+      with:
+        test_target: x86_64-pc-windows-msvc
+
+    - name: 🛠 build
+      run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+    - name: 🧪 test
+      run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
+      shell: pwsh
+    - name: 📚 Verify docfx build
+      run: dotnet docfx docfx/docfx.json --warningsAsErrors --disableGitFeatures
+      if: runner.os == 'Linux'
+    - name: ⚙ Update pipeline variables based on build outputs
+      run: tools/variables/_define.ps1
+      shell: pwsh
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      if: cancelled() == false
+    - name: 📢 Publish code coverage results to codecov.io
+      run: ./tools/publish-CodeCov.ps1 -CodeCovToken "${{ env.codecov_token }}" -PathToCodeCoverage "${{ runner.temp }}/_artifacts/coverageResults" -Name "${{ runner.os }} Coverage Results" -Flags "${{ runner.os }}"
+      shell: pwsh
+      timeout-minutes: 3
+      continue-on-error: true
+      if: env.codecov_token != ''
+
+  android:
+    name: 🏭 Android
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - run: ./tools/Install-AndroidBuildTools.ps1
+      shell: pwsh
+      name: ⚙️ install android tooling
+    - run: ./build_all.ps1 -AndroidEmulatorOnly -AndroidDeviceOnly -Release -SkipCsBindings
+      shell: pwsh
+      working-directory: src/nerdbank-zcash-rust
+      name: 🛠️ build android
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      if: cancelled() == false
+
+  pack:
+    needs:
+    - windows
+    - macos
+    - linux
+    - android
+    runs-on: windows-2022 # Must not be linux because linux cannot build net8.0-ios targets.
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+
+        # Print mono version if it is present.
+        if (Get-Command mono -ErrorAction SilentlyContinue) {
+          mono --version
+        }
+      shell: pwsh
+    - run: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
+      name: 🪪 3rd party licenses
+      shell: pwsh
+    - run: dotnet pack --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
+      working-directory: azure-pipelines
+      name: 🛠 pack

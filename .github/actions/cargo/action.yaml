@@ -1,0 +1,26 @@
+name: Cargo
+description: Cargo
+
+runs:
+  using: composite
+  steps:
+  - run: src/nerdbank-zcash-rust/generate_cs_bindings.ps1 -InstallPrerequisites
+    name: 🛠️ generate C# bindings
+
+  - run: src/nerdbank-zcash-rust/build_all.ps1 -Release -SkipCsBindings
+    name: 🛠️ cargo build
+
+  - run: cargo test -r --target ${{ parameters.test_target }}
+    name: 🧪 cargo test
+    working-directory: src/nerdbank-zcash-rust
+    env:
+      RUST_BACKTRACE: 1
+    if: and(succeeded(), ne('${{ parameters.test_target }}', ''))
+
+  - run: cargo clippy -r --target=${{ parameters.test_target }} -- -D warnings
+    name: 🧼 cargo clippy
+    working-directory: src/nerdbank-zcash-rust
+
+  - run: cargo fmt --check
+    name: 📝 cargo fmt
+    working-directory: src/nerdbank-zcash-rust

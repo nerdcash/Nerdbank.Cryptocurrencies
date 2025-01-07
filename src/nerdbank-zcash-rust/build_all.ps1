@@ -61,7 +61,7 @@ else {
         $rustTargets = , 'x86_64-pc-windows-msvc'
     }
     else {
-        $rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
+        $rustTargets = @(..\..\tools\Get-RustTargets.ps1)
     }
 
     $rustTargets | % { $buildArgs += "--target=$_" }
