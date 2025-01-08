@@ -16,7 +16,7 @@ runs:
     name: 🛠️ generate C# bindings
     shell: pwsh
 
-  - run: src/nerdbank-zcash-rust/build_all.ps1 -Release -SkipCsBindings
+  - run: src/nerdbank-zcash-rust/build_all.ps1 -Release -SkipCsBindings -Locked
     name: 🛠️ cargo build
     shell: pwsh
 
