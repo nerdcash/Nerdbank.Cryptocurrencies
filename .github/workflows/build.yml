@@ -203,7 +203,7 @@ jobs:
         submodules: true
     - name: ⚙ Install prerequisites
       run: |
-        ./init.ps1 -UpgradePrerequisites
+        ./init.ps1 -UpgradePrerequisites -NoRust
         dotnet --info
       shell: pwsh
 
@@ -249,6 +249,7 @@ jobs:
         path: bin/Packages/${{ env.BUILDCONFIGURATION }}
 
   analyze:
+    name: 🕵️‍♂️ Analyze
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
