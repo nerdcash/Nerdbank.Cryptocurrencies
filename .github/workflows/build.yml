@@ -226,7 +226,7 @@ jobs:
         submodules: true
     - name: ⚙ Install prerequisites
       run: |
-        ./init.ps1 -UpgradePrerequisites -NoRust -NoRestore
+        ./init.ps1 -UpgradePrerequisites -NoRust
         dotnet --info
       shell: pwsh
 
