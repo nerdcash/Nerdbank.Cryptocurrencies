@@ -21,53 +21,49 @@ runs:
 # https://github.com/actions/toolkit/tree/main/packages/artifact (or similar) to push the artifacts.
 
   - name: 📢 Upload project.assets.json files
-    if: always()
+    if: inputs.skipDotNet == false
     uses: actions/upload-artifact@v4
     with:
       name: projectAssetsJson-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/projectAssetsJson
     continue-on-error: true
-    if: inputs.skipDotNet == false
   - name: 📢 Upload build_logs
-    if: always()
+    if: inputs.skipDotNet == false
     uses: actions/upload-artifact@v4
     with:
       name: build_logs-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/build_logs
     continue-on-error: true
-    if: inputs.skipDotNet == false
   - name: 📢 Upload testResults
-    if: always()
+    if: inputs.skipDotNet == false
     uses: actions/upload-artifact@v4
     with:
       name: testResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/testResults
     continue-on-error: true
-    if: inputs.skipDotNet == false
   - name: 📢 Upload coverageResults
-    if: always()
+    if: inputs.skipDotNet == false
     uses: actions/upload-artifact@v4
     with:
       name: coverageResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/coverageResults
     continue-on-error: true
-    if: inputs.skipDotNet == false
   - name: 📢 Upload symbols
+    if: inputs.skipDotNet == false
     uses: actions/upload-artifact@v4
     with:
       name: symbols-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/symbols
     continue-on-error: true
-    if: inputs.skipDotNet == false
   - name: 📢 Upload rust
+    if: always()
     uses: actions/upload-artifact@v4
     with:
       name: rust-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/rust
-    if: always()
   - name: 📢 Upload ios_framework
+    if: runner.os == 'macOS'
     uses: actions/upload-artifact@v4
     with:
       name: ios_framework-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/ios_framework
-    if: always() && if: runner.os == 'macOS'
