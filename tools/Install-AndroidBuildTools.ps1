@@ -79,7 +79,7 @@ if ($env:TF_BUILD) {
     Write-Host "Acquiring cargo ndk" -ForegroundColor Cyan
 }
 
-cargo install --version ^3 cargo-ndk
+cargo binstall -y --version ^3 cargo-ndk
 
 if ($env:TF_BUILD) {
     Write-Host "##[endgroup]"
