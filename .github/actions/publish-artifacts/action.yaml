@@ -62,3 +62,15 @@ runs:
       name: deployables-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/deployables
     if: always()
+  - name: 📢 Upload rust
+    uses: actions/upload-artifact@v4
+    with:
+      name: rust-${{ inputs.suffix }}
+      path: ${{ runner.temp }}/_artifacts/rust
+    if: always()
+  - name: 📢 Upload ios_framework
+    uses: actions/upload-artifact@v4
+    with:
+      name: ios_framework-${{ inputs.suffix }}
+      path: ${{ runner.temp }}/_artifacts/ios_framework
+    if: always()
