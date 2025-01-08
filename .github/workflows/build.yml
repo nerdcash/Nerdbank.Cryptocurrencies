@@ -166,6 +166,27 @@ jobs:
         suffix: android
       if: cancelled() == false
 
+  licenses:
+    name: ⚖️ Licenses
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+
+    - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      name: ⚙️ Install cargo-binstall
+
+    - run: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
+      name: 🪪 3rd party licenses
+      shell: pwsh
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: 3rdPartyNotices
+        path: obj/src/nerdbank-zcash-rust/THIRD_PARTY_LICENSES.yml
+
   pack:
     name: 📦 Pack
     needs:
@@ -173,6 +194,7 @@ jobs:
     - macos
     - linux
     - android
+    - licenses
     runs-on: windows-2022 # Must not be linux because linux cannot build net8.0-ios targets.
     steps:
     - uses: actions/checkout@v4
@@ -210,13 +232,12 @@ jobs:
       with:
         name: ios_framework-macOS
         path: bin/release/nerdbank_zcash_rust.xcframework
+    - name: 🔻 Download 3rdPartyNotices
+      uses: actions/download-artifact@v4
+      with:
+        name: 3rdPartyNotices
+        path: obj/src/nerdbank-zcash-rust/THIRD_PARTY_LICENSES.yml
 
-    - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-      name: ⚙️ Install cargo-binstall
-
-    - run: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
-      name: 🪪 3rd party licenses
-      shell: pwsh
     - run: dotnet pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/pack.binlog"
       working-directory: .github
       name: 🛠 pack
