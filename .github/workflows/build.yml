@@ -39,7 +39,7 @@ jobs:
         checks: true
       name: 🛠️ Cargo build and test
 
-    - run: cargo install cross --git https://github.com/cross-rs/cross --rev c87a52a60dbcde069714a8d2ed51570e7fc23cf9 --locked
+    - run: cargo binstall -y cross@0.2.5 --locked
       name: ⚙️ install cross
 
     - run: cross build -r --target=aarch64-unknown-linux-gnu
