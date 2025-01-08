@@ -28,6 +28,8 @@ jobs:
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
+
+        curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       shell: pwsh
 
     - uses: ./.github/actions/cargo
@@ -61,6 +63,8 @@ jobs:
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
+
+        curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       shell: pwsh
 
     - uses: ./.github/actions/cargo
@@ -100,11 +104,12 @@ jobs:
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
-      shell: pwsh
 
-    # For optimizing Blazor WebAssembly builds
-    - run: dotnet workload install wasm-tools
-      name: ⚙ Install wasm-tools
+        # For optimizing Blazor WebAssembly builds
+        dotnet workload install wasm-tools
+
+        iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
+      shell: pwsh
 
     - uses: ./.github/actions/cargo
       with:
@@ -144,9 +149,11 @@ jobs:
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
-    - run: ./tools/Install-AndroidBuildTools.ps1
+    - run: |
+        curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+        ./tools/Install-AndroidBuildTools.ps1
       shell: pwsh
-      name: ⚙️ install android tooling
+      name: ⚙️ Install prerequisites
     - run: ./build_all.ps1 -AndroidEmulatorOnly -AndroidDeviceOnly -Release -SkipCsBindings
       shell: pwsh
       working-directory: src/nerdbank-zcash-rust
