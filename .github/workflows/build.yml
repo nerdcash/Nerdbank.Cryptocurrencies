@@ -33,6 +33,9 @@ jobs:
     - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       name: ⚙️ Install cargo-binstall
 
+    - run: cargo binstall -y cross@0.2.5 --locked
+      name: ⚙️ install cross
+
     - uses: Swatinem/rust-cache@v2
       name: 💾 Cache rust
       with:
@@ -44,9 +47,6 @@ jobs:
         test_target: x86_64-unknown-linux-gnu
         checks: true
       name: 🛠️ Cargo build and test
-
-    - run: cargo binstall -y cross@0.2.5 --locked
-      name: ⚙️ install cross
 
     - run: cross build -r --target=aarch64-unknown-linux-gnu
       name: 🛠️ build linux-arm64
