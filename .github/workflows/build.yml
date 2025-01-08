@@ -56,6 +56,7 @@ jobs:
       uses: ./.github/actions/publish-artifacts
       with:
         suffix: linux
+        skipDotNet: true
       if: cancelled() == false
 
   macos:
@@ -104,6 +105,7 @@ jobs:
       uses: ./.github/actions/publish-artifacts
       with:
         suffix: macOS
+        skipDotNet: true
       if: cancelled() == false
 
   windows:
@@ -187,6 +189,7 @@ jobs:
       uses: ./.github/actions/publish-artifacts
       with:
         suffix: android
+        skipDotNet: true
       if: cancelled() == false
 
   licenses:

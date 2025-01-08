@@ -4,6 +4,10 @@ inputs:
   suffix:
     description: 'Suffix to append to the artifact name'
     required: true
+  skipDotNet:
+    description: Skip publishing .NET related artifacts
+    required: false
+    default: false
 
 runs:
   using: composite
@@ -23,12 +27,7 @@ runs:
       name: projectAssetsJson-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/projectAssetsJson
     continue-on-error: true
-  - name: 📢 Upload variables
-    uses: actions/upload-artifact@v4
-    with:
-      name: variables-${{ inputs.suffix }}
-      path: ${{ runner.temp }}/_artifacts/Variables
-    continue-on-error: true
+    if: inputs.skipDotNet == false
   - name: 📢 Upload build_logs
     if: always()
     uses: actions/upload-artifact@v4
@@ -36,6 +35,7 @@ runs:
       name: build_logs-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/build_logs
     continue-on-error: true
+    if: inputs.skipDotNet == false
   - name: 📢 Upload testResults
     if: always()
     uses: actions/upload-artifact@v4
@@ -43,6 +43,7 @@ runs:
       name: testResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/testResults
     continue-on-error: true
+    if: inputs.skipDotNet == false
   - name: 📢 Upload coverageResults
     if: always()
     uses: actions/upload-artifact@v4
@@ -50,18 +51,14 @@ runs:
       name: coverageResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/coverageResults
     continue-on-error: true
+    if: inputs.skipDotNet == false
   - name: 📢 Upload symbols
     uses: actions/upload-artifact@v4
     with:
       name: symbols-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/symbols
     continue-on-error: true
-  - name: 📢 Upload deployables
-    uses: actions/upload-artifact@v4
-    with:
-      name: deployables-${{ inputs.suffix }}
-      path: ${{ runner.temp }}/_artifacts/deployables
-    if: always()
+    if: inputs.skipDotNet == false
   - name: 📢 Upload rust
     uses: actions/upload-artifact@v4
     with:
@@ -73,4 +70,4 @@ runs:
     with:
       name: ios_framework-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/ios_framework
-    if: always()
+    if: always() && if: runner.os == 'macOS'
