@@ -211,7 +211,7 @@ jobs:
     - name: 🔻 Download Linux binaries
       uses: actions/download-artifact@v4
       with:
-        name: rust-Linux
+        name: rust-linux
         path: src/nerdbank-zcash-rust/target
     - name: 🔻 Download android binaries
       uses: actions/download-artifact@v4
