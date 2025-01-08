@@ -211,6 +211,9 @@ jobs:
         name: ios_framework-macOS
         path: bin/release/nerdbank_zcash_rust.xcframework
 
+    - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      name: ⚙️ Install cargo-binstall
+
     - run: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
       name: 🪪 3rd party licenses
       shell: pwsh
