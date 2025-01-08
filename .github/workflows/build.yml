@@ -211,7 +211,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: 3rdPartyNotices
-        path: obj/src/nerdbank-zcash-rust/THIRD_PARTY_LICENSES.yml
+        path: obj/src/nerdbank-zcash-rust
 
   pack:
     name: 📦 Pack
@@ -262,7 +262,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: 3rdPartyNotices
-        path: obj/src/nerdbank-zcash-rust/THIRD_PARTY_LICENSES.yml
+        path: obj/src/nerdbank-zcash-rust
 
     - run: dotnet pack -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/pack.binlog"
       working-directory: .github
