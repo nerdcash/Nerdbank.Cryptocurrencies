@@ -203,7 +203,7 @@ jobs:
         submodules: true
     - name: ⚙ Install prerequisites
       run: |
-        ./init.ps1 -UpgradePrerequisites -NoRust
+        ./init.ps1 -UpgradePrerequisites -NoRust -NoRestore
         dotnet --info
       shell: pwsh
 
@@ -238,7 +238,7 @@ jobs:
         name: 3rdPartyNotices
         path: obj/src/nerdbank-zcash-rust/THIRD_PARTY_LICENSES.yml
 
-    - run: dotnet pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/pack.binlog"
+    - run: dotnet pack -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/pack.binlog"
       working-directory: .github
       name: 🛠 pack
 
