@@ -173,14 +173,14 @@ jobs:
         submodules: true
     - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       name: ⚙️ Install cargo-binstall
+    - run: ./tools/Install-AndroidBuildTools.ps1
+      shell: pwsh
+      name: ⚙️ Install Android tooling
     - uses: Swatinem/rust-cache@v2
       name: 💾 Cache rust
       with:
         workspaces: |
           src/nerdbank-zcash-rust
-    - run: ./tools/Install-AndroidBuildTools.ps1
-      shell: pwsh
-      name: ⚙️ Install Android tooling
     - run: ./build_all.ps1 -AndroidEmulatorOnly -AndroidDeviceOnly -Release -SkipCsBindings
       shell: pwsh
       working-directory: src/nerdbank-zcash-rust
