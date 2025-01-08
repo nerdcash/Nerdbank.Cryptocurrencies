@@ -277,7 +277,7 @@ jobs:
     - name: 📦 Push CI package
       shell: pwsh
       run: |
-        dotnet nuget push bin\Packages\${{ env.BUILDCONFIGURATION }}\NuGet\*.nupkg -s https://nuget.pkg.github.com/aarnott/index.json -k ${{ secrets.GITHUB_TOKEN }}
+        dotnet nuget push bin\Packages\${{ env.BUILDCONFIGURATION }}\NuGet\*.nupkg -s https://nuget.pkg.github.com/nerdcash/index.json -k ${{ secrets.GITHUB_TOKEN }}
         if ('${{ secrets.AZP_TOKEN }}') {
           dotnet nuget add source https://pkgs.dev.azure.com/andrewarnott/OSS/_packaging/PublicCI/nuget/v3/index.json -n publicCI -u andrewarnott -p ${{ secrets.AZP_TOKEN }} --store-password-in-clear-text
           dotnet nuget push bin\Packages\${{ env.BUILDCONFIGURATION }}\NuGet\*.nupkg -s publicCI -k x
