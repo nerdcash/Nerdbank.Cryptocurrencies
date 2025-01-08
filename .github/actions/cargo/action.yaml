@@ -1,0 +1,41 @@
+name: Cargo
+description: Cargo
+inputs:
+  test_target:
+    description: 'The target to test with cargo test.'
+    required: true
+  checks:
+    description: 'Whether to run cargo clippy and cargo fmt.'
+    required: false
+    default: false
+
+runs:
+  using: composite
+  steps:
+  - run: src/nerdbank-zcash-rust/generate_cs_bindings.ps1 -InstallPrerequisites
+    name: 🛠️ generate C# bindings
+    shell: pwsh
+
+  - run: src/nerdbank-zcash-rust/build_all.ps1 -Release -SkipCsBindings -Locked
+    name: 🛠️ cargo build
+    shell: pwsh
+
+  - run: cargo test -r --target ${{ inputs.test_target }}
+    shell: pwsh
+    name: 🧪 cargo test
+    working-directory: src/nerdbank-zcash-rust
+    env:
+      RUST_BACKTRACE: 1
+    if: and(succeeded(), ne('${{ inputs.test_target }}', ''))
+
+  - run: cargo clippy -r --target=${{ inputs.test_target }} -- -D warnings
+    shell: pwsh
+    name: 🧼 cargo clippy
+    working-directory: src/nerdbank-zcash-rust
+    if: success() && inputs.checks
+
+  - run: cargo fmt --check
+    name: 📝 cargo fmt
+    shell: pwsh
+    working-directory: src/nerdbank-zcash-rust
+    if: success() && inputs.checks

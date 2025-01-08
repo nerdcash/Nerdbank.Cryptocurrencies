@@ -14,7 +14,8 @@ public partial class Zip32HDWallet
 	/// </summary>
 	public static partial class Sapling
 	{
-		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)"/>
+		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)" path="/summary"/>
+		/// <inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)" path="/returns"/>
 		/// <param name="mnemonic">The mnemonic phrase from which to generate the master key.</param>
 		/// <param name="network"><inheritdoc cref="Create(ReadOnlySpan{byte}, ZcashNetwork)" path="/param[@name='network']"/></param>
 		public static ExtendedSpendingKey Create(Bip39Mnemonic mnemonic, ZcashNetwork network) => Create(Requires.NotNull(mnemonic).Seed, network);

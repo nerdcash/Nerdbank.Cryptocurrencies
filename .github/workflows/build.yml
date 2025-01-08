@@ -1,0 +1,307 @@
+name: 🏭 Build
+
+on:
+  push:
+    branches:
+    - main
+    - 'v*.*'
+    - validate/*
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BUILDCONFIGURATION: Release
+  # codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # Get a new one from https://codecov.io/
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages/
+
+jobs:
+  linux:
+    name: 🏭 Linux
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+      shell: pwsh
+
+    - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      name: ⚙️ Install cargo-binstall
+
+    - run: cargo binstall -y cross@0.2.5 --locked
+      name: ⚙️ install cross
+
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
+
+    - uses: ./.github/actions/cargo
+      with:
+        test_target: x86_64-unknown-linux-gnu
+        checks: true
+      name: 🛠️ Cargo build and test
+
+    - run: cross build -r --target=aarch64-unknown-linux-gnu
+      name: 🛠️ build linux-arm64
+      working-directory: src/nerdbank-zcash-rust
+
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: linux
+        skipDotNet: true
+      if: cancelled() == false
+
+  macos:
+    name: 🏭 macOS
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+      shell: pwsh
+
+    - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      name: ⚙️ Install cargo-binstall
+
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
+
+    - uses: ./.github/actions/cargo
+      with:
+        test_target: x86_64-apple-darwin
+      name: 🛠️ Cargo build and test
+
+    - name: 📱 iOS Framework
+      shell: pwsh
+      run: |
+        Write-Host "##[command]./tools/build_ios_framework.ps1"
+        ./tools/build_ios_framework.ps1
+
+    - name: 🛠 dotnet build
+      run: dotnet build -t:build,publish --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+      working-directory: .github
+
+    - name: 🧪 test
+      run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
+      shell: pwsh
+
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: macOS
+        skipDotNet: true
+      if: cancelled() == false
+
+  windows:
+    name: 🏭 Windows
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+
+        # For optimizing Blazor WebAssembly builds
+        dotnet workload install wasm-tools
+
+        iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
+      shell: pwsh
+
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
+
+    - uses: ./.github/actions/cargo
+      with:
+        test_target: x86_64-pc-windows-msvc
+      name: 🛠️ Cargo build and test
+
+    - name: 🛠 dotnet build
+      run: dotnet build -t:build,publish --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+      working-directory: .github
+
+    - name: 🧪 test
+      run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
+      shell: pwsh
+
+    - name: ⚙ Update pipeline variables based on build outputs
+      run: tools/variables/_define.ps1
+      shell: pwsh
+
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: Windows
+      if: cancelled() == false
+
+    - name: 📢 Publish code coverage results to codecov.io
+      run: ./tools/publish-CodeCov.ps1 -CodeCovToken "${{ env.codecov_token }}" -PathToCodeCoverage "${{ runner.temp }}/_artifacts/coverageResults" -Name "${{ runner.os }} Coverage Results" -Flags "${{ runner.os }}"
+      shell: pwsh
+      timeout-minutes: 3
+      continue-on-error: true
+      if: env.codecov_token != ''
+
+  android:
+    name: 🏭 Android
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      name: ⚙️ Install cargo-binstall
+    - run: ./tools/Install-AndroidBuildTools.ps1
+      shell: pwsh
+      name: ⚙️ Install Android tooling
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
+    - run: ./build_all.ps1 -AndroidEmulatorOnly -AndroidDeviceOnly -Release -SkipCsBindings
+      shell: pwsh
+      working-directory: src/nerdbank-zcash-rust
+      name: 🛠️ build android
+    - name: 📢 Publish artifacts
+      uses: ./.github/actions/publish-artifacts
+      with:
+        suffix: android
+        skipDotNet: true
+      if: cancelled() == false
+
+  licenses:
+    name: ⚖️ Licenses
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+
+    - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      name: ⚙️ Install cargo-binstall
+
+    - run: src/nerdbank-zcash-rust/Generate-3rdPartyNotices.ps1
+      name: 🪪 3rd party licenses
+      shell: pwsh
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: 3rdPartyNotices
+        path: obj/src/nerdbank-zcash-rust
+
+  pack:
+    name: 📦 Pack
+    needs:
+    - windows
+    - macos
+    - linux
+    - android
+    - licenses
+    runs-on: windows-2022 # Must not be linux because linux cannot build net8.0-ios targets.
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites -NoRust
+        dotnet --info
+      shell: pwsh
+
+    - name: 🔻 Download Windows binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: rust-Windows
+        path: src/nerdbank-zcash-rust/target
+    - name: 🔻 Download Linux binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: rust-linux
+        path: src/nerdbank-zcash-rust/target
+    - name: 🔻 Download android binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: rust-android
+        path: src/nerdbank-zcash-rust/target
+    - name: 🔻 Download macOS binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: rust-macOS
+        path: src/nerdbank-zcash-rust/target
+    - name: 🔻 Download ios_framework binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: ios_framework-macOS
+        path: bin/release/nerdbank_zcash_rust.xcframework
+    - name: 🔻 Download 3rdPartyNotices
+      uses: actions/download-artifact@v4
+      with:
+        name: 3rdPartyNotices
+        path: obj/src/nerdbank-zcash-rust
+
+    - run: dotnet pack -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/pack.binlog"
+      working-directory: .github
+      name: 🛠 pack
+
+    - name: 📢 Upload deployables
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployables
+        path: bin/Packages/${{ env.BUILDCONFIGURATION }}
+
+    - name: 📦 Push CI package
+      shell: pwsh
+      run: |
+        dotnet nuget push bin/Packages/${{ env.BUILDCONFIGURATION }}/*.nupkg -s https://nuget.pkg.github.com/aarnott/index.json -k ${{ secrets.GITHUB_TOKEN }}
+        if ('${{ secrets.AZP_TOKEN }}') {
+          dotnet nuget add source https://pkgs.dev.azure.com/andrewarnott/OSS/_packaging/PublicCI/nuget/v3/index.json -n publicCI -u andrewarnott -p ${{ secrets.AZP_TOKEN }} --store-password-in-clear-text
+          dotnet nuget push bin/Packages/${{ env.BUILDCONFIGURATION }}/*.nupkg -s publicCI -k x
+        }
+      if: success() && github.event_name != 'pull_request'
+      continue-on-error: true
+
+  analyze:
+    name: 🕵️‍♂️ Analyze
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        submodules: true
+
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+      shell: pwsh
+
+    - name: 📚 Verify docfx build
+      run: dotnet docfx docfx/docfx.json --warningsAsErrors --disableGitFeatures
+
+    - name: 💅🏻 Verify formatted code
+      run: dotnet format --verify-no-changes --no-restore

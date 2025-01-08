@@ -81,7 +81,7 @@
       <PackagePath>lib/net8.0-ios17.0/Nerdbank.Zcash.resources/$(iOSFrameworkName)/</PackagePath>
       <Visible>false</Visible>
     </RustBinary>
-    <RustBinary Condition="'$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true'" Include="$(RepoRootPath)/azure-pipelines/manifest">
+    <RustBinary Condition="'$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true'" Include="$(RepoRootPath).github/manifest">
       <PackagePath>lib/net8.0-ios17.0/Nerdbank.Zcash.resources/</PackagePath>
       <Visible>false</Visible>
     </RustBinary>

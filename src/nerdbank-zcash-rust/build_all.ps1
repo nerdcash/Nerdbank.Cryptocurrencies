@@ -5,6 +5,8 @@
     Builds the rust dynamic link library for all supported targets.
 .PARAMETER Release
     Build in release mode.
+.PARAMETER Locked
+    Specify --locked to the cargo build command.
 .PARAMETER WinArm64Only
     Build only the win-arm64 target.
 .PARAMETER WinX64Only
@@ -18,6 +20,7 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 Param(
     [switch]$Release,
+    [switch]$Locked,
     [switch]$WinArm64Only,
     [switch]$WinX64Only,
     [switch]$AndroidEmulatorOnly,
@@ -26,6 +29,10 @@ Param(
 )
 
 $buildArgs = @()
+
+if ($Locked) {
+    $buildArgs += '--locked'
+}
 
 Push-Location $PSScriptRoot
 
@@ -61,7 +68,7 @@ else {
         $rustTargets = , 'x86_64-pc-windows-msvc'
     }
     else {
-        $rustTargets = @(..\..\azure-pipelines\Get-RustTargets.ps1)
+        $rustTargets = @(..\..\tools\Get-RustTargets.ps1)
     }
 
     $rustTargets | % { $buildArgs += "--target=$_" }
