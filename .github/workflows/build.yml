@@ -33,6 +33,12 @@ jobs:
     - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       name: ⚙️ Install cargo-binstall
 
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
+
     - uses: ./.github/actions/cargo
       with:
         test_target: x86_64-unknown-linux-gnu
@@ -68,6 +74,12 @@ jobs:
 
     - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       name: ⚙️ Install cargo-binstall
+
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
 
     - uses: ./.github/actions/cargo
       with:
@@ -113,6 +125,12 @@ jobs:
         iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
       shell: pwsh
 
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
+
     - uses: ./.github/actions/cargo
       with:
         test_target: x86_64-pc-windows-msvc
@@ -153,6 +171,11 @@ jobs:
         submodules: true
     - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       name: ⚙️ Install cargo-binstall
+    - uses: Swatinem/rust-cache@v2
+      name: 💾 Cache rust
+      with:
+        workspaces: |
+          src/nerdbank-zcash-rust
     - run: ./tools/Install-AndroidBuildTools.ps1
       shell: pwsh
       name: ⚙️ Install Android tooling
