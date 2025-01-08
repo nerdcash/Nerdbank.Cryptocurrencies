@@ -67,10 +67,27 @@ jobs:
     - name: 🔻 Download deployables artifacts
       uses: actions/download-artifact@v4
       with:
-        name: deployables-Linux
+        name: deployables
         path: ${{ runner.temp }}/deployables
         run-id: ${{ steps.findrunid.outputs.runid }}
         github-token: ${{ github.token }}
+
+    - name: 🔏 Code sign
+      run: >
+        rm global.json # avoid a need to install a particular SDK version
+
+        dotnet tool install --tool-path obj SignClient
+
+        obj/SignClient sign
+        --baseDirectory '${{ runner.temp }}/deployables'
+        --input '**/*'
+        --config '${{ github.workspace }}/.github/SignClient.json'
+        --filelist '${{ github.workspace }}/.github/signfiles.txt'
+        --user '${{ secrets.CODESIGN_USERNAME }}'
+        --secret '${{ secrets.CODESIGN_SECRET }}'
+        --name 'Nerdbank.Cryptocurrencies'
+        --descriptionUrl 'https://github.com/nerdcash/Nerdbank.Cryptocurrencies'
+      shell: pwsh
 
     - name: 💽 Upload artifacts to release
       shell: pwsh

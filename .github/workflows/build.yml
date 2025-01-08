@@ -274,6 +274,17 @@ jobs:
         name: deployables
         path: bin/Packages/${{ env.BUILDCONFIGURATION }}
 
+    - name: 📦 Push CI package
+      shell: pwsh
+      run: |
+        dotnet nuget push ${{ runner.temp }}/_artifacts/deployables/*.nupkg -s https://nuget.pkg.github.com/aarnott/index.json -k ${{ secrets.GITHUB_TOKEN }}
+        if ('${{ secrets.AZP_TOKEN }}') {
+          dotnet nuget add source https://pkgs.dev.azure.com/andrewarnott/OSS/_packaging/PublicCI/nuget/v3/index.json -n publicCI -u andrewarnott -p ${{ secrets.AZP_TOKEN }} --store-password-in-clear-text
+          dotnet nuget push ${{ runner.temp }}/_artifacts/deployables/*.nupkg -s publicCI -k x
+        }
+      if: success() && github.event_name != 'pull_request'
+      continue-on-error: true
+
   analyze:
     name: 🕵️‍♂️ Analyze
     runs-on: ubuntu-24.04
