@@ -300,7 +300,7 @@ jobs:
 
     - name: ⚙ Install prerequisites
       run: |
-        ./init.ps1 -UpgradePrerequisites
+        ./init.ps1 -UpgradePrerequisites -NoRust
         dotnet --info
       shell: pwsh
 
