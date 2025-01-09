@@ -11,6 +11,7 @@ on:
 
 permissions:
   packages: write
+  contents: read
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
