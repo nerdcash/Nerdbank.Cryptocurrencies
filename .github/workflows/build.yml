@@ -11,6 +11,7 @@ on:
 
 permissions:
   packages: write
+  contents: read
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -299,7 +300,7 @@ jobs:
 
     - name: ⚙ Install prerequisites
       run: |
-        ./init.ps1 -UpgradePrerequisites
+        ./init.ps1 -UpgradePrerequisites -NoRust
         dotnet --info
       shell: pwsh
 

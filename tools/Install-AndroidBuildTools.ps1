@@ -26,14 +26,6 @@ Function Get-FileFromWeb([Uri]$Uri, $OutFile) {
     }
 }
 
-Function SetEnv($name, $value) {
-    Write-Host "Setting env var $name=$value"
-    if ($env:TF_BUILD) {
-        Write-Host "##vso[task.setvariable variable=$name;]$value"
-    }
-    Set-Item -Path "env:$name" -Value $value
-}
-
 $installRoot = "$PSScriptRoot/../obj/tools"
 if (!(Test-Path $installRoot)) { New-Item -ItemType Directory -Path $installRoot -WhatIf:$false | Out-Null }
 $installRoot = Resolve-Path $installRoot
@@ -62,9 +54,11 @@ else {
     Write-Host "NDK already installed at $ndkHome"
 }
 
-SetEnv 'ANDROID_NDK_HOME' $ndkHome
-SetEnv 'ANDROID_NDK_ROOT' $ndkHome
-SetEnv 'ANDROID_NDK' $ndkHome
+& "$PSScriptRoot\Set-EnvVars.ps1" @{
+    ANDROID_NDK_HOME = $ndkHome
+    ANDROID_NDK_ROOT = $ndkHome
+    ANDROID_NDK = $ndkHome
+}
 
 if ($env:TF_BUILD) {
     Write-Host "##[endgroup]"
