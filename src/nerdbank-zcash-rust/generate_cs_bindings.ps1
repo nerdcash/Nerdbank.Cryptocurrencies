@@ -58,7 +58,7 @@ Replace-LibName $outDir\LightWallet.iOS.cs '@rpath/nerdbank_zcash_rust.framework
 
 # If we're in CI and this changed the bindings, someone failed to commit the changes earlier.
 # We should fail the build in that case.
-if ($env:TF_BUILD) {
+if ($env:TF_BUILD -or $env:GITHUB_ACTIONS) {
     git diff --exit-code $outDir
     if ($LASTEXITCODE -ne 0) {
         throw "Bindings changed. Please run this script locally and commit the changes before submitting."
