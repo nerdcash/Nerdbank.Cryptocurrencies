@@ -23,7 +23,7 @@ indent_style = tab
 insert_final_newline = true
 trim_trailing_whitespace = true
 max_line_length = 140
-file_header_template = Copyright (c) Andrew Arnott. All rights reserved.\nLicensed under the MIT license. See LICENSE file in the project root for full license information.
+file_header_template = Copyright (c) IronPigeon, LLC. All rights reserved.\nLicensed under the MIT license. See LICENSE file in the project root for full license information.
 
 # MSBuild project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj,msbuildproj,props,targets}]
