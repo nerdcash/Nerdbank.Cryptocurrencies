@@ -19,7 +19,7 @@ Please be advised of the following:
 
 ## Nerdbank.Cryptocurrencies
 
-[![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Cryptocurrencies.svg)](https://nuget.org/packages/Nerdbank.Cryptocurrencies)
+[![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Cryptocurrencies.svg)](https://www.nuget.org/packages/Nerdbank.Cryptocurrencies)
 
 * Cryptography functions that are common to many cryptocurrencies, such as:
   * Base58Check
@@ -33,18 +33,18 @@ BIPs, and more...
 
 ## Nerdbank.Zcash
 
-[![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Zcash.svg)](https://nuget.org/packages/Nerdbank.Zcash)
+[![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Zcash.svg)](https://www.nuget.org/packages/Nerdbank.Zcash)
 
 * Parse and construct Zcash addresses, including transparent, shielded and unified addresses.
 * Lightclient functionality.
 
 [Learn more about this package.](src/Nerdbank.Zcash/README.md)
 
-This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Unified_Address_library_for_NET.pdf) by the 🛡️ [Zcash Foundation](https://twitter.com/ZcashFoundation).
+This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Unified_Address_library_for_NET.pdf) by the 🛡️ [Zcash Foundation](https://x.com/ZcashFoundation).
 
 ## Nerdbank.Bitcoin
 
-[![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Bitcoin.svg)](https://nuget.org/packages/Nerdbank.Bitcoin)
+[![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Bitcoin.svg)](https://www.nuget.org/packages/Nerdbank.Bitcoin)
 
 * BIP-32 Hierarchical Deterministic wallets
 * BIP-39 seed phrases
@@ -57,6 +57,3 @@ This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Uni
 
 Zcash donations are gratefully accepted:
 `u1vv2ws6xhs72faugmlrasyeq298l05rrj6wfw8hr3r29y3czev5qt4ugp7kylz6suu04363ze92dfg8ftxf3237js0x9p5r82fgy47xkjnw75tqaevhfh0rnua72hurt22v3w3f7h8yt6mxaa0wpeeh9jcm359ww3rl6fj5ylqqv54uuwrs8q4gys9r3cxdm3yslsh3rt6p7wznzhky7`
-
-[<img src="https://api.gitsponsors.com/api/badge/img?id=630254820" height="20">](https://api.gitsponsors.com/api/badge/link?p=fDgypi9dkjKAS2ly929iYwZWqGh4W8+7P2DeqZgUVq5BTHLlMgsMIcDiUCRxm6nVnudBL/NBViK0vlqsSkPXVEeFlIQmuKj3OI+3QarcV/dGgZLE5/f1ksHRXS021yI3Y3tHFk4WPNP9ZS1FVtlCWA==)
-

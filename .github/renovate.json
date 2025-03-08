@@ -1,7 +1,6 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"extends": ["config:recommended"],
-	"semanticCommits": "disabled",
 	"cloneSubmodules": true,
 	"labels": ["dependencies"],
 	"packageRules": [
@@ -17,6 +16,10 @@
 			"matchDatasources": ["dotnet-version", "docker"],
 			"matchDepNames": ["dotnet-sdk", "mcr.microsoft.com/dotnet/sdk"],
 			"groupName": "Dockerfile and global.json updates"
+		},
+		{
+			"matchPackageNames": ["*"],
+			"allowedVersions": "!/-g[a-f0-9]+$/"
 		},
 		{
 			"matchDatasources": ["crate"],

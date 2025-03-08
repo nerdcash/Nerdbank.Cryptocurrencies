@@ -24,7 +24,7 @@
 * ZIP-321 Payment request URIs
 * and more (indirectly, through rust crates that we use)
 
-This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Unified_Address_library_for_NET.pdf) by the 🛡️ [Zcash Foundation](https://twitter.com/ZcashFoundation).
+This project [sponsored in part](https://zfnd.org/wp-content/uploads/2023/04/Unified_Address_library_for_NET.pdf) by the 🛡️ [Zcash Foundation](https://x.com/ZcashFoundation).
 
 ## Online live demo
 
