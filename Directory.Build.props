@@ -34,9 +34,9 @@
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)strongname.snk</AssemblyOriginatorKeyFile>
 
     <PackageProjectUrl>https://github.com/aarnott/Nerdbank.Cryptocurrencies</PackageProjectUrl>
-    <Company>Andrew Arnott</Company>
+    <Company>IronPigeon, LLC</Company>
     <Authors>Andrew Arnott</Authors>
-    <Copyright>© Andrew Arnott. All rights reserved.</Copyright>
+    <Copyright>© IronPigeon, LLC. All rights reserved.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
