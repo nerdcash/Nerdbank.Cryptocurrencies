@@ -59,7 +59,7 @@ Web-based AI could also work by pasting the prompt and the `<data>` elements int
 
 When adding or updating just one string in an existing file, the following AI prompt can be useful to provide the updated translations:
 
-> Translate the following message to es, fr, ko, pt, ru, zh-Hans. 
+> Translate the following message to es, fr, ko, pt, ru, zh-Hans.
 > The message is a localizable string in a software application that focuses on cryptocurrency.
 > If the message includes macros in the form of `{somename}`, leave that macro untranslated and exactly the same as it was, including capitalization.
 
@@ -70,7 +70,7 @@ When adding or updating just one string in an existing file, the following AI pr
 ## Releases
 
 Use `nbgv tag` to create a tag for a particular commit that you mean to release.
-[Learn more about `nbgv` and its `tag` and `prepare-release` commands](https://github.com/dotnet/Nerdbank.GitVersioning/blob/main/doc/nbgv-cli.md).
+[Learn more about `nbgv` and its `tag` and `prepare-release` commands](https://dotnet.github.io/Nerdbank.GitVersioning/docs/nbgv-cli.html).
 
 Push the tag.
 

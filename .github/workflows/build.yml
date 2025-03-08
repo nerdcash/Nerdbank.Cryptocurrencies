@@ -309,3 +309,13 @@ jobs:
 
     - name: 💅🏻 Verify formatted code
       run: dotnet format --verify-no-changes --no-restore
+
+  docs:
+    name: 📃 Docs
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: 🔗 Markup Link Checker (mlc)
+      uses: becheran/mlc@v0.21.0
+      with:
+        args: --do-not-warn-for-redirect-to https://learn.microsoft.com*,https://dotnet.microsoft.com/*,https://dev.azure.com/*,https://app.codecov.io/* -p docfx
