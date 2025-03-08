@@ -70,7 +70,7 @@ zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
 	"multicore",
 ], default-features = false }
 zeroize = "1.7.0"
-zip32 = "0.1.1"
+zip32 = "0.2.0"
 tokio-shared-rt = "0.1.0"
 
 [dev-dependencies]
