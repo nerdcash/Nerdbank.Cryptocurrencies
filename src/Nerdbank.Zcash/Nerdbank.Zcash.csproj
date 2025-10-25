@@ -4,6 +4,7 @@
     <TargetFrameworks Condition="!$([MSBuild]::IsOsPlatform('Linux'))">$(TargetFrameworks);net8.0-ios17.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
     <Description>A .NET library for Zcash, capable of creating accounts, deriving addresses, interacting with lightwallet servers, syncing, and sending transactions.</Description>
+    <PackageValidationBaselineVersion>0.3.185</PackageValidationBaselineVersion>
   </PropertyGroup>
   <ItemGroup>
     <Protobuf Include="Protos\*.proto" GrpcServices="Client" Access="internal" />
