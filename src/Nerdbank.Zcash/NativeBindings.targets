@@ -78,17 +78,17 @@
     <!-- iOS -->
     <!-- The '$(BuildingInsideVisualStudio)'!='true' condition is a workaround because CPS fails to load the project when this item exists. -->
     <RustBinary Condition="'$(BuildingInsideVisualStudio)'!='true' and ('$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true')" Include="$(iOSFrameworkPath)/**">
-      <PackagePath>lib/net8.0-ios17.0/Nerdbank.Zcash.resources/$(iOSFrameworkName)/</PackagePath>
+      <PackagePath>lib/net9.0-ios18.0/Nerdbank.Zcash.resources/$(iOSFrameworkName)/</PackagePath>
       <Visible>false</Visible>
     </RustBinary>
     <RustBinary Condition="'$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true'" Include="$(RepoRootPath).github/manifest">
-      <PackagePath>lib/net8.0-ios17.0/Nerdbank.Zcash.resources/</PackagePath>
+      <PackagePath>lib/net9.0-ios18.0/Nerdbank.Zcash.resources/</PackagePath>
       <Visible>false</Visible>
     </RustBinary>
   </ItemGroup>
   <ItemGroup>
     <!-- Do not include rust symbols in the snupkg because nuget.org will reject the whole package as it only supports portable pdbs. -->
-    <!-- <TfmSpecificDebugSymbolsFile Include="@(RustSymbol)" Condition="'$(TargetFramework)'=='net8.0'">
+    <!-- <TfmSpecificDebugSymbolsFile Include="@(RustSymbol)" Condition="'$(TargetFramework)'=='net9.0'">
       <TargetPath>/%(PackagePath)%(FileName)%(Extension)</TargetPath>
       <TargetFramework>native</TargetFramework>
     </TfmSpecificDebugSymbolsFile> -->
