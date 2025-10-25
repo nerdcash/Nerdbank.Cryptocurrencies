@@ -179,8 +179,16 @@ public class Coinbase : IHistoricalExchangeRateProvider
 		// https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
 		string requestUri = $"https://api.exchange.coinbase.com/products/{tradingPair.Basis.TickerSymbol}-{tradingPair.TradeInterest.TickerSymbol}/candles?granularity={(int)granularity}&start={start.ToUnixTimeSeconds()}&end={end.ToUnixTimeSeconds()}";
 
-		ResponseItem[]? result = await this.httpClient.GetFromJsonAsync<ResponseItem[]>(requestUri, cancellationToken).ConfigureAwait(false);
-		return result ?? [];
+		try
+		{
+			ResponseItem[]? result = await this.httpClient.GetFromJsonAsync<ResponseItem[]>(requestUri, cancellationToken).ConfigureAwait(false);
+			return result ?? [];
+		}
+		catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+		{
+			// Coinbase returns HTTP 500 if no data is available for the requested time range.
+			return [];
+		}
 	}
 
 	private async Task<ImmutableHashSet<TradingPair>> GetAvailableTradingPairsNowAsync(CancellationToken cancellationToken)
