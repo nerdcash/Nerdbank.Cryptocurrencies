@@ -22,7 +22,7 @@ jubjub = "0.10"
 lazy_static = "1.4"
 minreq = "2.11.0"
 nonempty = "0.7"
-orchard = { version = "0.10", default-features = false }
+orchard = { version = "0.12", default-features = false }
 pasta_curves = "0.5"
 prost = "0.14"
 rusqlite = "0.29"
