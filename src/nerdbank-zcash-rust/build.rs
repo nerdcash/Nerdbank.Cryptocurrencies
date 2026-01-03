@@ -65,12 +65,16 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let candidates = [
-        // Prefer arch-specific libraries (common in Xcode toolchains).
+        // Prefer arch+platform-specific libraries (common in Xcode toolchains).
         format!("clang_rt.builtins_{clang_arch}_{platform_suffix}"),
-        // Fallback to non-arch-specific names.
+        // Some toolchains use only platform-specific names.
         format!("clang_rt.builtins_{platform_suffix}"),
         // Some toolchains expose a "dynamic" archive as well.
         format!("clang_rt.builtins_{platform_suffix}_dynamic"),
+        // Some toolchains ship generic darwin builtins without an ios/iossim suffix.
+        format!("clang_rt.builtins_{clang_arch}"),
+        // Last-ditch: fully generic name.
+        "clang_rt.builtins".to_string(),
     ];
 
     let mut selected: Option<String> = None;
@@ -83,7 +87,7 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if selected.is_none() {
-        // Last resort: scan for any builtins archive matching the platform suffix.
+        // Last resort: scan for any builtins archive that plausibly matches.
         let entries = fs::read_dir(&link_path).map_err(|e| {
             format!(
                 "Unable to enumerate clang runtime directory {}: {e}",
@@ -91,30 +95,35 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
             )
         })?;
 
-        let mut builtins = entries
+        let mut archives = entries
             .filter_map(|e| e.ok())
             .filter_map(|e| e.file_name().into_string().ok())
-            .filter(|name| {
-                name.ends_with(".a") && name.contains("builtins") && name.contains(platform_suffix)
-            })
+            .filter(|name| name.ends_with(".a"))
+            .collect::<Vec<_>>();
+        archives.sort();
+
+        let mut builtins = archives
+            .iter()
+            .filter(|name| name.contains("builtins"))
+            .cloned()
             .collect::<Vec<_>>();
         builtins.sort();
 
-        if let Some(first) = builtins
+        // Prefer: arch match, then platform match.
+        let pick = builtins
             .iter()
-            .find(|n| n.contains(clang_arch))
-            .or_else(|| builtins.first())
-        {
-            selected = Some(
-                first
-                    .trim_start_matches("lib")
-                    .trim_end_matches(".a")
-                    .to_string(),
-            );
+            .find(|n| n.contains(clang_arch) && n.contains(platform_suffix))
+            .or_else(|| builtins.iter().find(|n| n.contains(clang_arch)))
+            .or_else(|| builtins.iter().find(|n| n.contains(platform_suffix)))
+            .or_else(|| builtins.first());
+
+        if let Some(first) = pick {
+            selected = Some(first.trim_start_matches("lib").trim_end_matches(".a").to_string());
         } else {
             return Err(format!(
-                "Could not find a clang builtins library for target {target} (arch={clang_arch}, sdk={sdk}). Looked in {}",
-                link_path.display()
+                "Could not find a clang builtins library for target {target} (arch={clang_arch}, sdk={sdk}). Looked in {}. Available builtins archives: {:?}",
+                link_path.display(),
+                builtins
             )
             .into());
         }
