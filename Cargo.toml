@@ -46,7 +46,7 @@ pasta_curves = "0.5"
 bip32 = { version = "=0.6.0-pre.1", default-features = false, features = [
 	"alloc",
 ] }
-block-buffer = { version = "=0.11.0-rc.3" }
+block-buffer = { version = "=0.11.0" }
 crypto-common = { version = "=0.2.0-rc.1" }
 ripemd = { version = "0.1", default-features = false }
 secp256k1 = { version = "0.29", default-features = false, features = ["alloc"] }
