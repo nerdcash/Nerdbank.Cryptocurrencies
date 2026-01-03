@@ -30,7 +30,7 @@ rusqlite = { version = "0.37", features = ["bundled"] }
 sapling = { package = "sapling-crypto", version = "0.6" }
 schemerz = "0.2"
 secrecy = "0.8.0"
-thiserror = "1.0"
+thiserror = "2.0"
 time = "0.3.22"
 tracing = "0.1"
 tokio = { version = "1", features = ["rt", "fs", "macros", "rt-multi-thread"] }
@@ -76,6 +76,6 @@ cmake = "0.1.57"
 rustls = "0.23.35"
 
 [dev-dependencies]
-testdir = "0.9.1"
-matches = "0.1"
-bip0039 = { version = "0.12.0", features = ["std"] }
+testdir = "=0.9.1"
+matches = "=0.1.10"
+bip0039 = { version = "=0.12.0", features = ["std"] }

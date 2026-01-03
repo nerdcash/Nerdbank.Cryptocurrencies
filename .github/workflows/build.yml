@@ -23,7 +23,7 @@ jobs:
     name: 🏭 Linux
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -39,7 +39,7 @@ jobs:
     - run: cargo binstall -y cross@0.2.5 --locked
       name: ⚙️ install cross
 
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
@@ -83,7 +83,7 @@ jobs:
     - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       name: ⚙️ Install cargo-binstall
 
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
@@ -119,7 +119,7 @@ jobs:
     name: 🏭 Windows
     runs-on: windows-2025
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -134,7 +134,7 @@ jobs:
         iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
       shell: pwsh
 
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
@@ -176,7 +176,7 @@ jobs:
     name: 🏭 Android
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -185,7 +185,7 @@ jobs:
     - run: ./tools/Install-AndroidBuildTools.ps1
       shell: pwsh
       name: ⚙️ Install Android tooling
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
@@ -205,7 +205,7 @@ jobs:
     name: ⚖️ Licenses
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -217,7 +217,7 @@ jobs:
       name: 🪪 3rd party licenses
       shell: pwsh
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         name: 3rdPartyNotices
         path: obj/src/nerdbank-zcash-rust
@@ -232,7 +232,7 @@ jobs:
     - licenses
     runs-on: windows-2025 # Must not be linux because linux cannot build net8.0-ios targets.
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -243,32 +243,32 @@ jobs:
       shell: pwsh
 
     - name: 🔻 Download Windows binaries
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
       with:
         name: rust-Windows
         path: target
     - name: 🔻 Download Linux binaries
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
       with:
         name: rust-linux
         path: target
     - name: 🔻 Download android binaries
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
       with:
         name: rust-android
         path: target
     - name: 🔻 Download macOS binaries
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
       with:
         name: rust-macOS
         path: target
     - name: 🔻 Download ios_framework binaries
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
       with:
         name: ios_framework-macOS
         path: bin/release/nerdbank_zcash_rust.xcframework
     - name: 🔻 Download 3rdPartyNotices
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
       with:
         name: 3rdPartyNotices
         path: obj/src/nerdbank-zcash-rust
@@ -278,7 +278,7 @@ jobs:
       name: 🛠 pack
 
     - name: 📢 Upload deployables
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         name: deployables
         path: bin/Packages/${{ env.BUILDCONFIGURATION }}
@@ -298,7 +298,7 @@ jobs:
     name: 🕵️‍♂️ Analyze
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
