@@ -13,19 +13,19 @@ jobs:
     name: 🧹 Delete old packages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/delete-package-versions@v5
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5
         with:
           package-name: Nerdbank.Cryptocurrencies
           package-type: nuget
           min-versions-to-keep: 2
         name: Nerdbank.Cryptocurrencies
-      - uses: actions/delete-package-versions@v5
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5
         with:
           package-name: Nerdbank.Zcash
           package-type: nuget
           min-versions-to-keep: 2
         name: Nerdbank.Zcash
-      - uses: actions/delete-package-versions@v5
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5
         with:
           package-name: Nerdbank.Bitcoin
           package-type: nuget
