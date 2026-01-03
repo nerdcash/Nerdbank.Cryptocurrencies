@@ -119,7 +119,7 @@ tonic-prost-build = { version = "0.14", default-features = false }
 which = "8"
 
 # Secret management
-secrecy = "0.8"
+secrecy = "0.10"
 subtle = { version = "2.2.3", default-features = false }
 
 # SQLite databases

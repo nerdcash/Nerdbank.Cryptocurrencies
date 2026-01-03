@@ -29,7 +29,7 @@ rand = "0.8"
 rusqlite = { version = "0.37", features = ["bundled"] }
 sapling = { package = "sapling-crypto", version = "0.6" }
 schemerz = "0.2"
-secrecy = "0.8.0"
+secrecy = "0.10.0"
 thiserror = "1.0"
 time = "0.3.22"
 tracing = "0.1"
