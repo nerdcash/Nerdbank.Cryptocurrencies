@@ -22,35 +22,35 @@ runs:
 
   - name: 📢 Upload project.assets.json files
     if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
     with:
       name: projectAssetsJson-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/projectAssetsJson
     continue-on-error: true
   - name: 📢 Upload build_logs
     if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
     with:
       name: build_logs-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/build_logs
     continue-on-error: true
   - name: 📢 Upload testResults
     if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
     with:
       name: testResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/testResults
     continue-on-error: true
   - name: 📢 Upload coverageResults
     if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
     with:
       name: coverageResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/coverageResults
     continue-on-error: true
   - name: 📢 Upload symbols
     if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
     with:
       name: symbols-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/symbols
@@ -63,7 +63,7 @@ runs:
       path: ${{ runner.temp }}/_artifacts/rust
   - name: 📢 Upload ios_framework
     if: runner.os == 'macOS'
-    uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
     with:
       name: ios_framework-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/ios_framework
