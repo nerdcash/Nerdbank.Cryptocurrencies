@@ -16,6 +16,11 @@ public record struct SecurityAmount(decimal Amount, Security Security)
 	public decimal RoundedAmount => this.Security is null ? this.Amount : Math.Round(this.Amount, this.Security.Precision);
 
 	/// <summary>
+	/// Gets the absolute value of this amount.
+	/// </summary>
+	public SecurityAmount Absolute => this.Amount < 0 ? -this : this;
+
+	/// <summary>
 	/// Adds the amounts of the same security.
 	/// </summary>
 	/// <param name="left">The left operand.</param>

@@ -3,7 +3,6 @@ abstract Nerdbank.Zcash.ZcashAddress.GetPoolReceiver<TPoolReceiver>() -> TPoolRe
 abstract Nerdbank.Zcash.ZcashAddress.HasShieldedReceiver.get -> bool
 abstract Nerdbank.Zcash.ZcashAddress.Network.get -> Nerdbank.Zcash.ZcashNetwork
 const Nerdbank.Zcash.DiversifierIndex.Length = 11 -> int
-const Nerdbank.Zcash.LightWalletClient.MinimumConfirmations = 3 -> int
 const Nerdbank.Zcash.OrchardReceiver.Length = 43 -> int
 const Nerdbank.Zcash.SaplingReceiver.Length = 43 -> int
 const Nerdbank.Zcash.SproutReceiver.Length = 64 -> int
@@ -106,7 +105,7 @@ Nerdbank.Zcash.LightWalletClient.SendProgress.SendProgress(Nerdbank.Zcash.LightW
 Nerdbank.Zcash.LightWalletClient.SendProgress.SendProgress(uint Id, bool IsSendInProgress, uint Progress, uint Total, string? LastError, string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.get -> uint
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.init -> void
-Nerdbank.Zcash.LightWalletClient.ShieldAsync(Nerdbank.Zcash.ZcashAccount! account, Nerdbank.Zcash.TransparentAddress! address, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.TxId>!
+Nerdbank.Zcash.LightWalletClient.ShieldAsync(Nerdbank.Zcash.ZcashAccount! account, Nerdbank.Zcash.TransparentAddress? address, ulong shieldingThreshold, in Nerdbank.Zcash.Memo? memo, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.TxId>!
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Balance.get -> decimal
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Balance.set -> void
@@ -569,6 +568,8 @@ Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.InternalSpendingKeys(Nerdbank.Z
 Nerdbank.Zcash.ZcashAccount.InternalSpendingKeys.Sapling.get -> Nerdbank.Zcash.Sapling.ExpandedSpendingKey?
 Nerdbank.Zcash.ZcashAccount.MaxTransparentAddressIndex.get -> uint?
 Nerdbank.Zcash.ZcashAccount.MaxTransparentAddressIndex.set -> void
+Nerdbank.Zcash.ZcashAccount.Name.get -> string?
+Nerdbank.Zcash.ZcashAccount.Name.set -> void
 Nerdbank.Zcash.ZcashAccount.Network.get -> Nerdbank.Zcash.ZcashNetwork
 Nerdbank.Zcash.ZcashAccount.PropertyChanged -> System.ComponentModel.PropertyChangedEventHandler?
 Nerdbank.Zcash.ZcashAccount.Spending.get -> Nerdbank.Zcash.ZcashAccount.SpendingKeys?

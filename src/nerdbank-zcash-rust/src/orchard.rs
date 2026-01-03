@@ -5,7 +5,7 @@ use orchard::{
 };
 use pasta_curves::pallas;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn decrypt_orchard_diversifier(
     ivk: *const [u8; 64],
     receiver: *const [u8; 43],
@@ -35,7 +35,7 @@ pub extern "C" fn decrypt_orchard_diversifier(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn get_orchard_ivk_from_fvk(fvk: *const [u8; 96], ivk: *mut [u8; 64]) -> i32 {
     let fvk = unsafe { &*fvk };
     let ivk = unsafe { &mut *ivk };
@@ -61,7 +61,7 @@ fn get_fvk_from_spending_key(spending_key: &[u8; 32]) -> Option<[u8; 96]> {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn get_orchard_fvk_bytes_from_sk_bytes(
     spending_key: *const [u8; 32],
     fvk: *mut [u8; 96],
@@ -92,7 +92,7 @@ fn get_raw_payment_address_from_ivk(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn get_orchard_raw_payment_address_from_ivk(
     ivk: *const [u8; 64],
     diversifier_index: *const [u8; 11],
@@ -111,7 +111,7 @@ pub extern "C" fn get_orchard_raw_payment_address_from_ivk(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn orchard_to_scalar_to_repr(
     uniform_bytes: *const [u8; 64],
     repr: *mut [u8; 32],

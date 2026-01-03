@@ -1,7 +1,7 @@
 use std::{fmt, ops::Range};
 
 use zcash_client_backend::proto::service::{self, BlockId};
-use zcash_primitives::consensus::BlockHeight;
+use zcash_protocol::consensus::BlockHeight;
 
 use crate::error::Error;
 

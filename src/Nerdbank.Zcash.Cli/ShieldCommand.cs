@@ -9,9 +9,15 @@ internal class ShieldCommand : SyncFirstCommandBase
 {
 	internal bool ShieldAllAddresses { get; init; }
 
+	internal string? Memo { get; init; }
+
+	internal ulong Threshold { get; init; }
+
 	internal static Command BuildCommand()
 	{
 		Option<bool> shieldAllOption = new("--all", Strings.ShieldAllOptionDescription);
+		Option<string> memoOption = new("--memo", Strings.SendMemoOptionDescription);
+		Option<ulong> thresholdOption = new("--threshold", Strings.ShieldThresholdOptionDescription);
 
 		Command command = new("shield", Strings.ShieldCommandDescription)
 		{
@@ -20,6 +26,8 @@ internal class ShieldCommand : SyncFirstCommandBase
 			LightServerUriOption,
 			NoSyncOption,
 			shieldAllOption,
+			memoOption,
+			thresholdOption,
 			SpendingKeySeedOption,
 			SpendingKeyAccountIndexOption,
 		};
@@ -34,6 +42,8 @@ internal class ShieldCommand : SyncFirstCommandBase
 				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
 				ShieldAllAddresses = ctxt.ParseResult.GetValueForOption(shieldAllOption),
+				Memo = ctxt.ParseResult.GetValueForOption(memoOption),
+				Threshold = ctxt.ParseResult.GetValueForOption(thresholdOption),
 				SpendingKeySeed = ctxt.ParseResult.GetValueForOption(SpendingKeySeedOption),
 				SpendingKeyAccountIndex = ctxt.ParseResult.GetValueForOption(SpendingKeyAccountIndexOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
@@ -78,7 +88,7 @@ internal class ShieldCommand : SyncFirstCommandBase
 		async Task ShieldAddressAsync((TransparentAddress Address, decimal Balance) entry)
 		{
 			this.Console.WriteLine($"Shielding {entry.Balance} ZEC from {entry.Address}...");
-			TxId txid = await client.ShieldAsync(this.SelectedAccount!, entry.Address, cancellationToken);
+			TxId txid = await client.ShieldAsync(this.SelectedAccount!, entry.Address, this.Threshold, Zcash.Memo.FromMessage(this.Memo), cancellationToken);
 			this.Console.WriteLine($"Transmitted transaction ID: {txid}");
 		}
 	}

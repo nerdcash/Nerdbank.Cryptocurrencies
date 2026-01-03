@@ -3,3 +3,8 @@
 # Disable all .NET analyzers
 dotnet_analyzer_diagnostic.severity = none
 dotnet_diagnostic.severity = none
+
+# Suppress issues from https://github.com/NordSecurity/uniffi-bindgen-cs/issues/149
+dotnet_diagnostic.CS1572.severity = silent # XML comment is not placed on a valid language element
+dotnet_diagnostic.CS1573.severity = silent # Parameter '***' has no matching param tag in the XML comment for '***' (but other parameters do)
+dotnet_diagnostic.CS1587.severity = silent # XML comment has a param tag for 'account_id', but there is no parameter by that name

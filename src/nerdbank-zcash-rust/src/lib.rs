@@ -19,6 +19,7 @@ mod send;
 mod shield;
 mod sql_statements;
 mod sync;
+mod util;
 
 #[cfg(test)]
 mod test_constants;

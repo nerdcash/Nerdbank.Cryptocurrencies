@@ -66,6 +66,7 @@ internal class BalanceCommand : SyncFirstCommandBase
 		];
 
 		int captionWidth = lines.Max(l => l.Item1.Length);
+		int amountWidth = lines.Max(l => l.Item2.Absolute.ToString().Length);
 		foreach ((string caption, SecurityAmount amount) in lines)
 		{
 			PrintLine(caption, amount);
@@ -75,13 +76,11 @@ internal class BalanceCommand : SyncFirstCommandBase
 		{
 			this.Console.Write(caption.PadRight(captionWidth));
 			this.Console.Write(" ");
-			if (amount.Amount >= 0)
-			{
-				// Keep our non-negative value aligned considering a - character that might appear in other rows.
-				this.Console.Write(" ");
-			}
 
-			this.Console.WriteLine(amount.ToString());
+			// Align our negative indicator.
+			this.Console.Write(amount.Amount >= 0 ? " " : "-");
+
+			this.Console.WriteLine(amount.Absolute.ToString().PadLeft(amountWidth));
 		}
 	}
 

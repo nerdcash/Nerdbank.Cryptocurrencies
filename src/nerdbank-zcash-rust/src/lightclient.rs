@@ -2,7 +2,7 @@ use crate::{error::Error, grpc::get_client, resilience::webrequest_with_retry};
 use http::Uri;
 use tokio_util::sync::CancellationToken;
 use zcash_client_backend::proto::service::{self, LightdInfo};
-use zcash_primitives::consensus::Network;
+use zcash_protocol::consensus::Network;
 
 /// Gets the block height from the lightwalletd server.
 /// This may not match the the latest block that has been sync'd to the wallet.
