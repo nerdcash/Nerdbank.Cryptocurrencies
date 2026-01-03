@@ -11,7 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" PrivateAssets="compile, analyzers" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" PrivateAssets="compile" />
