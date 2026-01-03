@@ -71,6 +71,9 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
         format!("clang_rt.builtins_{platform_suffix}"),
         // Some toolchains expose a "dynamic" archive as well.
         format!("clang_rt.builtins_{platform_suffix}_dynamic"),
+        // Some Apple toolchains name these without the "builtins" infix.
+        format!("clang_rt.{platform_suffix}"),
+        format!("clang_rt.{platform_suffix}_dynamic"),
         // Some toolchains ship generic darwin builtins without an ios/iossim suffix.
         format!("clang_rt.builtins_{clang_arch}"),
         // Last-ditch: fully generic name.
@@ -102,20 +105,33 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
             .collect::<Vec<_>>();
         archives.sort();
 
-        let mut builtins = archives
+        // Some toolchains ship builtins as "libclang_rt.ios.a" / "libclang_rt.iossim.a"
+        // (no "builtins" substring). Prefer builtins when present, otherwise prefer
+        // clang_rt archives that match the platform.
+        let mut plausible = archives
             .iter()
-            .filter(|name| name.contains("builtins"))
+            .filter(|name| {
+                name.contains("clang_rt")
+                    && (name.contains("builtins") || name.contains(platform_suffix))
+            })
             .cloned()
             .collect::<Vec<_>>();
-        builtins.sort();
+        plausible.sort();
 
-        // Prefer: arch match, then platform match.
-        let pick = builtins
+        // Prefer: (builtins && arch && platform) -> (arch && platform) -> (platform) -> (builtins) -> first plausible.
+        let pick = plausible
             .iter()
-            .find(|n| n.contains(clang_arch) && n.contains(platform_suffix))
-            .or_else(|| builtins.iter().find(|n| n.contains(clang_arch)))
-            .or_else(|| builtins.iter().find(|n| n.contains(platform_suffix)))
-            .or_else(|| builtins.first());
+            .find(|n| {
+                n.contains("builtins") && n.contains(clang_arch) && n.contains(platform_suffix)
+            })
+            .or_else(|| {
+                plausible
+                    .iter()
+                    .find(|n| n.contains(clang_arch) && n.contains(platform_suffix))
+            })
+            .or_else(|| plausible.iter().find(|n| n.contains(platform_suffix)))
+            .or_else(|| plausible.iter().find(|n| n.contains("builtins")))
+            .or_else(|| plausible.first());
 
         if let Some(first) = pick {
             selected = Some(
@@ -126,9 +142,9 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
             );
         } else {
             return Err(format!(
-                "Could not find a clang builtins library for target {target} (arch={clang_arch}, sdk={sdk}). Looked in {}. Available builtins archives: {:?}",
+                "Could not find a clang builtins library for target {target} (arch={clang_arch}, sdk={sdk}). Looked in {}. Available .a archives: {:?}",
                 link_path.display(),
-                builtins
+                archives
             )
             .into());
         }
