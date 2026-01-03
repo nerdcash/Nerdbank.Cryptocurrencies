@@ -20,7 +20,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": false // enable this when they conform
   },
-  "dotnet.defaultSolution": "Nerdbank.Cryptocurrencies.sln",
+  "dotnet.defaultSolution": "Nerdbank.Cryptocurrencies.slnx",
   "rust-analyzer.linkedProjects": [
     ".\\src\\nerdbank-zcash-rust\\Cargo.toml"
   ],
