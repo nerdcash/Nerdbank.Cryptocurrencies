@@ -245,22 +245,22 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: rust-Windows
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download Linux binaries
       uses: actions/download-artifact@v4
       with:
         name: rust-linux
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download android binaries
       uses: actions/download-artifact@v4
       with:
         name: rust-android
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download macOS binaries
       uses: actions/download-artifact@v4
       with:
         name: rust-macOS
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download ios_framework binaries
       uses: actions/download-artifact@v4
       with:
