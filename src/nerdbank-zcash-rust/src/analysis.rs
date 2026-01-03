@@ -66,6 +66,7 @@ pub fn get_birthday_heights(
 /// The more likely scenario is that the sender is trying to send a small amount of value as a new user and doesn't realize
 /// the value is too small to be useful.
 /// A good Zcash wallet should prevent sending dust in the first place.
+#[derive(Default)]
 pub struct UserBalances {
     /// Available for immediate spending.
     /// Expected fees are *not* deducted from this value, but the app may do so by subtracting `minimum_fees`.
@@ -105,19 +106,6 @@ pub struct UserBalances {
     pub incoming_dust: u64,
 }
 
-impl Default for UserBalances {
-    fn default() -> Self {
-        Self {
-            spendable: 0,
-            immature_change: 0,
-            minimum_fees: 0,
-            immature_income: 0,
-            dust: 0,
-            incoming: 0,
-            incoming_dust: 0,
-        }
-    }
-}
 
 pub fn get_user_balances(
     config: &DbInit,

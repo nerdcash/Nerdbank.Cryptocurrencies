@@ -24,8 +24,7 @@ impl std::convert::TryFrom<Range<BlockHeight>> for BlockRange {
     fn try_from(block_range: Range<BlockHeight>) -> Result<Self, Self::Error> {
         if block_range.end < block_range.start {
             Err(Error::Internal(format!(
-                "{:?} is invalid for BlockRange",
-                block_range
+                "{block_range:?} is invalid for BlockRange"
             )))
         } else {
             Ok(Self { block_range })
@@ -62,8 +61,7 @@ impl BlockRange {
     pub fn from_range(block_range: Range<BlockHeight>) -> Self {
         assert!(
             block_range.end >= block_range.start,
-            "{:?} is invalid for BlockRange",
-            block_range,
+            "{block_range:?} is invalid for BlockRange",
         );
         Self { block_range }
     }

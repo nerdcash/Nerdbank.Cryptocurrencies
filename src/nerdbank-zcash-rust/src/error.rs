@@ -147,7 +147,7 @@ impl std::fmt::Display for Error {
             Error::SyncFirst => f.write_str("Sync before performing this operation."),
             Error::InvalidArgument(e) => e.fmt(f),
             Error::Anyhow(e) => e.fmt(f),
-            Error::SendFailed { code, reason } => write!(f, "Send failed: {}: {}", code, reason),
+            Error::SendFailed { code, reason } => write!(f, "Send failed: {code}: {reason}"),
             Error::Minreq(e) => e.fmt(f),
             Error::OutPointMissing => f.write_str("OutPoint missing"),
             Error::ProposalNotSupported => f.write_str("Proposal not supported"),
@@ -155,7 +155,7 @@ impl std::fmt::Display for Error {
             Error::Join(e) => e.fmt(f),
             Error::Canceled => f.write_str("Canceled"),
             Error::KeyNotAvailable(pool_type) => {
-                write!(f, "Key not available for {:?} pool.", pool_type)
+                write!(f, "Key not available for {pool_type:?} pool.")
             }
             Error::AccountCannotSpend => f.write_str("This account is not set up to spend."),
             Error::Change => f.write_str("An error occurred in selecting change."),
@@ -294,16 +294,16 @@ where
         >,
     ) -> Self {
         match value {
-            BackendError::DataSource(inner) => Error::Internal(format!("DataSource: {}", inner)),
+            BackendError::DataSource(inner) => Error::Internal(format!("DataSource: {inner}")),
             BackendError::CommitmentTree(inner) => {
-                Error::Internal(format!("CommitmentTree: {}", inner))
+                Error::Internal(format!("CommitmentTree: {inner}"))
             }
             BackendError::NoteSelection(inner) => {
-                Error::Internal(format!("NoteSelection: {}", inner))
+                Error::Internal(format!("NoteSelection: {inner}"))
             }
             BackendError::KeyNotRecognized => Error::KeyNotRecognized,
             BackendError::BalanceError(inner) => {
-                Error::Internal(format!("BalanceError: {}", inner))
+                Error::Internal(format!("BalanceError: {inner}"))
             }
             BackendError::InsufficientFunds {
                 available,
@@ -313,15 +313,15 @@ where
                 available,
             },
             BackendError::ScanRequired => Error::SyncFirst,
-            BackendError::Builder(inner) => Error::Internal(format!("Builder: {}", inner)),
+            BackendError::Builder(inner) => Error::Internal(format!("Builder: {inner}")),
             BackendError::MemoForbidden => Error::Internal("MemoForbidden".to_string()),
             BackendError::NoteMismatch(_) => Error::Internal("NoteMismatch".to_string()),
             BackendError::AddressNotRecognized(_) => Error::InvalidAddress,
             BackendError::ProposalNotSupported => Error::ProposalNotSupported,
             BackendError::UnsupportedChangeType(pool_type) => {
-                Error::Internal(format!("UnsupportedChangeType: {}", pool_type))
+                Error::Internal(format!("UnsupportedChangeType: {pool_type}"))
             }
-            BackendError::Proposal(e) => Error::Internal(format!("Proposal: {}", e)),
+            BackendError::Proposal(e) => Error::Internal(format!("Proposal: {e}")),
             BackendError::NoSupportedReceivers(_) => {
                 Error::Internal("No supported receivers".to_string())
             }

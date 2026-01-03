@@ -19,7 +19,7 @@ impl std::fmt::Display for BlockCacheError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             BlockCacheError::BlockNotFound(height) => {
-                write!(f, "Block not found in cache: {}", height)
+                write!(f, "Block not found in cache: {height}")
             }
         }
     }

@@ -24,6 +24,7 @@ use zcash_protocol::{consensus::Network, value::Zatoshis};
 use zcash_transparent::address::TransparentAddress;
 use zcash_transparent::keys::TransparentKeyScope;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn shield_funds<P: AsRef<Path>>(
     data_file: P,
     server_uri: Uri,
@@ -42,7 +43,7 @@ pub async fn shield_funds<P: AsRef<Path>>(
     let account_receivers = db
         .data
         .get_target_and_anchor_heights(NonZeroU32::MIN)
-        .map_err(|e| Error::from(e))
+        .map_err(Error::from)
         .and_then(|opt| {
             opt.map(|(target, _)| target) // Include unconfirmed funds.
                 .ok_or_else(|| Error::SyncFirst)
@@ -50,7 +51,7 @@ pub async fn shield_funds<P: AsRef<Path>>(
         .and_then(|target_height| {
             db.data
                 .get_transparent_balances(account_uuid, target_height, confirmations_policy)
-                .map_err(|e| Error::from(e))
+                .map_err(Error::from)
         })?;
 
     // If a specific address is specified, or balance only exists for one address, select the

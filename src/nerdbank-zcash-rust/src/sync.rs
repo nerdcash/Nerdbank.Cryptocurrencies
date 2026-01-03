@@ -142,7 +142,7 @@ pub async fn sync<P: AsRef<Path>>(
         )
         .await?
         .try_into()
-        .map_err(|e| Error::Internal(format!("Invalid block height: {}", e)))?;
+        .map_err(|e| Error::Internal(format!("Invalid block height: {e}")))?;
 
         // 4) Notify the wallet of the updated chain tip.
         db.data.update_chain_tip(status.tip_height.into())?;
@@ -623,7 +623,7 @@ fn calculate_transaction_fee(
             |row| row.get::<_, u64>(0),
         ) {
             Ok(v) => Ok(Some(Zatoshis::try_from(v).map_err(|e| {
-                Error::Internal(format!("Invalid ZAT value in UTXO table: {}", e))
+                Error::Internal(format!("Invalid ZAT value in UTXO table: {e}"))
             })?)),
             Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
             Err(e) => Err(e.into()),
@@ -1199,7 +1199,7 @@ pub(crate) fn get_transactions(
                 3 => PoolType::ORCHARD,
                 _ => {
                     return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
-                        format!("Unknown output pool type: {}", output_pool),
+                        format!("Unknown output pool type: {output_pool}"),
                     )));
                 }
             };
@@ -1253,8 +1253,7 @@ pub(crate) fn get_transactions(
                         time::OffsetDateTime::from_unix_timestamp(v)
                             .map_err(|e| {
                                 Error::SqliteClient(SqliteClientError::CorruptedData(format!(
-                                    "Error translating unix timestamp: {}",
-                                    e
+                                    "Error translating unix timestamp: {e}"
                                 )))
                             })?
                             .into(),

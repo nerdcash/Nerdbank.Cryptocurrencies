@@ -40,7 +40,7 @@ lazy_static! {
     };
     static ref RT: Runtime = {
         // Ensure crypto is initialized
-        let _ = *CRYPTO_INIT;
+        *CRYPTO_INIT;
         tokio::runtime::Runtime::new().unwrap()
     };
 }
@@ -195,7 +195,7 @@ impl From<rusqlite::Error> for LightWalletError {
 impl From<time::error::ComponentRange> for LightWalletError {
     fn from(e: time::error::ComponentRange) -> Self {
         LightWalletError::Other {
-            message: format!("Invalid time: {}", e),
+            message: format!("Invalid time: {e}"),
         }
     }
 }
@@ -372,7 +372,7 @@ pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError
     let mut result = Vec::new();
     for account_info in db.data.get_unified_full_viewing_keys()?.iter() {
         result.push(AccountInfo {
-            id: uuid_to_bytes(&account_info.0),
+            id: uuid_to_bytes(account_info.0),
             uvk: Some(account_info.1.encode(&network)),
             birthday_heights: get_birthday_heights(config.clone(), account_info.0)?,
         });
