@@ -40,9 +40,26 @@ function Get-RustFilesUnderTargetRoot {
         return $files
     }
 
+    $libraryFileNames = @(
+        'nerdbank_zcash_rust.dll',
+        'nerdbank_zcash_rust.pdb',
+        'libnerdbank_zcash_rust.so',
+        'libnerdbank_zcash_rust.dylib'
+    )
+
+    $profiles = @('release', 'debug')
+
     Get-ChildItem (Join-Path $TargetRoot '*-*-*') -Directory -ErrorAction SilentlyContinue | % {
-        # Expect outputs under: <target>/<triple>/<profile>/... and also deps.
-        $files += Get-ChildItem (Join-Path $_.FullName '*') -Recurse -Filter '*nerdbank_zcash_rust*' -ErrorAction SilentlyContinue
+        $tripleDir = $_.FullName
+        foreach ($profile in $profiles) {
+            $profileDir = Join-Path $tripleDir $profile
+            foreach ($fileName in $libraryFileNames) {
+                $candidate = Join-Path $profileDir $fileName
+                if (Test-Path -PathType Leaf $candidate) {
+                    $files += Get-Item -LiteralPath $candidate
+                }
+            }
+        }
     }
 
     $files
