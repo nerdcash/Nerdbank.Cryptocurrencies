@@ -1,5 +1,6 @@
 use std::{fs, path::Path};
 
+use rand::rngs::OsRng;
 use rusqlite::Connection;
 use secrecy::SecretVec;
 use tonic::transport::Channel;
@@ -9,16 +10,18 @@ use zcash_client_backend::{
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
 use zcash_client_sqlite::{
-    wallet::{init::init_wallet_db, Account},
-    AccountId, WalletDb,
+    AccountUuid, WalletDb,
+    util::SystemClock,
+    wallet::{Account, init::init_wallet_db},
 };
 use zcash_keys::{address::UnifiedAddress, keys::UnifiedFullViewingKey};
-use zcash_primitives::{consensus::Network, zip32::DiversifierIndex};
+use zcash_protocol::consensus::Network;
+use zip32::DiversifierIndex;
 
 use crate::{block_source::BlockCache, error::Error};
 
 pub(crate) struct Db {
-    pub(crate) data: WalletDb<Connection, Network>,
+    pub(crate) data: WalletDb<Connection, Network, SystemClock, OsRng>,
     pub(crate) blocks: BlockCache,
 }
 
@@ -37,33 +40,46 @@ impl Db {
 
     pub(crate) async fn add_account(
         &mut self,
+        name: &str,
         seed: &SecretVec<u8>,
         account_index: zip32::AccountId,
         birthday: u64,
         client: &mut CompactTxStreamerClient<Channel>,
     ) -> Result<(Account, UnifiedSpendingKey), Error> {
+        // Get the current chain height (for the wallet's birthday and/or recover-until height).
+        let chain_tip: u32 = client
+            .get_latest_block(service::ChainSpec::default())
+            .await?
+            .into_inner()
+            .height
+            .try_into()
+            .expect("block heights must fit into u32");
+        let recover_until = Some(chain_tip.into());
+
         // Construct an `AccountBirthday` for the account's birthday.
         let birthday = {
             // Fetch the tree state corresponding to the last block prior to the wallet's
             // birthday height. NOTE: THIS APPROACH LEAKS THE BIRTHDAY TO THE SERVER!
             let request = service::BlockId {
-                height: birthday - 1,
+                height: birthday.saturating_sub(1),
                 ..Default::default()
             };
             let treestate = client.get_tree_state(request).await?.into_inner();
-            AccountBirthday::from_treestate(treestate, None)?
+            AccountBirthday::from_treestate(treestate, recover_until)?
         };
 
         Ok(self
             .data
-            .import_account_hd(seed, account_index, &birthday)?)
+            .import_account_hd(name, seed, account_index, &birthday, None)?)
     }
 
     pub(crate) async fn import_account_ufvk(
         &mut self,
+        name: &str,
         ufvk: &UnifiedFullViewingKey,
         purpose: AccountPurpose,
         birthday: u64,
+        key_source: Option<&str>,
         client: &mut CompactTxStreamerClient<Channel>,
     ) -> Result<Account, Error> {
         // Construct an `AccountBirthday` for the account's birthday.
@@ -78,17 +94,19 @@ impl Db {
             AccountBirthday::from_treestate(treestate, None)?
         };
 
-        Ok(self.data.import_account_ufvk(ufvk, &birthday, purpose)?)
+        Ok(self
+            .data
+            .import_account_ufvk(name, ufvk, &birthday, purpose, key_source)?)
     }
 
     pub(crate) fn add_diversifier(
         &mut self,
-        account_id: AccountId,
+        account_id: AccountUuid,
         diversifier_index: DiversifierIndex,
     ) -> Result<UnifiedAddress, Error> {
         Ok(self
             .data
-            .put_address_with_diversifier_index(&account_id, diversifier_index)?)
+            .put_address_with_diversifier_index(account_id, diversifier_index)?)
     }
 }
 
@@ -103,7 +121,7 @@ fn get_db_internal<P: AsRef<Path>>(
         }
     }
 
-    let mut data = WalletDb::for_path(data_file, network)?;
+    let mut data = WalletDb::for_path(data_file, network, SystemClock, OsRng)?;
 
     if init {
         init_wallet_db(&mut data, None)?;

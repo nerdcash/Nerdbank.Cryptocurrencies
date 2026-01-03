@@ -118,6 +118,7 @@ Nerdbank.Cryptocurrencies.Security.Security(string! TickerSymbol, string? Name =
 Nerdbank.Cryptocurrencies.Security.TickerSymbol.get -> string!
 Nerdbank.Cryptocurrencies.Security.TickerSymbol.init -> void
 Nerdbank.Cryptocurrencies.SecurityAmount
+Nerdbank.Cryptocurrencies.SecurityAmount.Absolute.get -> Nerdbank.Cryptocurrencies.SecurityAmount
 Nerdbank.Cryptocurrencies.SecurityAmount.Amount.get -> decimal
 Nerdbank.Cryptocurrencies.SecurityAmount.Amount.set -> void
 Nerdbank.Cryptocurrencies.SecurityAmount.Deconstruct(out decimal Amount, out Nerdbank.Cryptocurrencies.Security! Security) -> void

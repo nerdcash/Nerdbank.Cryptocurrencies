@@ -120,6 +120,9 @@
   <data name="AccountIndexOptionDescription" xml:space="preserve">
     <value>El índice de la cuenta a crear.</value>
   </data>
+  <data name="AccountNameOptionDescription" xml:space="preserve">
+    <value>El nombre de la cuenta</value>
+  </data>
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>Enumere todas las cuentas conocidas en la base de datos.</value>
   </data>
@@ -254,6 +257,9 @@
   </data>
   <data name="ShieldCommandDescription" xml:space="preserve">
     <value>Protege fondos transparentes.</value>
+  </data>
+  <data name="ShieldThresholdOptionDescription" xml:space="preserve">
+    <value>El valor mínimo (en ZAT) para proteger. Se ignorarán los UTXO con menor valor.</value>
   </data>
   <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
     <value>El índice de cuenta bajo la frase inicial utilizada para generar la clave de gasto.</value>

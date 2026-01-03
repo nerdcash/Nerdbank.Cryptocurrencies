@@ -45,12 +45,16 @@ jobs:
       with:
         workspaces: |
           src/nerdbank-zcash-rust
+        cache-directories: |
+          src/nerdbank-zcash-rust/target-host
 
     - uses: ./.github/actions/cargo
       with:
         test_target: x86_64-unknown-linux-gnu
         checks: true
       name: 🛠️ Cargo build and test
+      env:
+        CARGO_TARGET_DIR: target-host
 
     - run: cross build -r --target=aarch64-unknown-linux-gnu
       name: 🛠️ build linux-arm64
@@ -241,22 +245,22 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: rust-Windows
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download Linux binaries
       uses: actions/download-artifact@v4
       with:
         name: rust-linux
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download android binaries
       uses: actions/download-artifact@v4
       with:
         name: rust-android
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download macOS binaries
       uses: actions/download-artifact@v4
       with:
         name: rust-macOS
-        path: src/nerdbank-zcash-rust/target
+        path: target
     - name: 🔻 Download ios_framework binaries
       uses: actions/download-artifact@v4
       with:

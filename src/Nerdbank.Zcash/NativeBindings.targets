@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <RustIntermediateDirBase>$(RepoRootPath)obj/src/nerdbank-zcash-rust/</RustIntermediateDirBase>
-    <RustOutputDirBase>$(RepoRootPath)src/nerdbank-zcash-rust/target/</RustOutputDirBase>
+    <RustOutputDirBase>$(RepoRootPath)target/</RustOutputDirBase>
     <RustConfiguration>$(Configuration.ToLower())</RustConfiguration>
 
     <IsMobileAppProject Condition="'$(IncludeAndroidBinaries)'=='true' or '$(IncludeiOSBinaries)'=='true'">true</IsMobileAppProject>

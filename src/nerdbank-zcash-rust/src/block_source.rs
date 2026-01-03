@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Range};
 
 use zcash_client_backend::{data_api::chain::BlockSource, proto::compact_formats::CompactBlock};
-use zcash_primitives::consensus::BlockHeight;
+use zcash_protocol::consensus::BlockHeight;
 
 type ChainError<WalletError, BlockSourceError> =
     zcash_client_backend::data_api::chain::error::Error<WalletError, BlockSourceError>;
@@ -19,7 +19,7 @@ impl std::fmt::Display for BlockCacheError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             BlockCacheError::BlockNotFound(height) => {
-                write!(f, "Block not found in cache: {}", height)
+                write!(f, "Block not found in cache: {height}")
             }
         }
     }
@@ -63,7 +63,7 @@ impl BlockSource for BlockCache {
 
     fn with_blocks<F, WalletErrT>(
         &self,
-        from_height: Option<zcash_primitives::consensus::BlockHeight>,
+        from_height: Option<BlockHeight>,
         limit: Option<usize>,
         mut with_row: F,
     ) -> Result<(), ChainError<WalletErrT, Self::Error>>
@@ -81,7 +81,7 @@ impl BlockSource for BlockCache {
                 None => {
                     return Err(ChainError::BlockSource(BlockCacheError::BlockNotFound(
                         head,
-                    )))
+                    )));
                 }
             };
 

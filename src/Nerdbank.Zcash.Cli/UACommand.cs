@@ -63,11 +63,20 @@ internal class UACommand
 
 			foreach (ZcashAddress receiver in ua.Receivers)
 			{
-				this.Console.WriteLine(receiver);
+				this.Console.WriteLine($"{GetPoolReceiver(receiver),-12}: {receiver}");
 			}
 
 			return 0;
 		}
+
+		private static string GetPoolReceiver(ZcashAddress address) => address switch
+		{
+			TransparentAddress => "Transparent",
+			SproutAddress => "Sprout",
+			SaplingAddress => "Sapling",
+			OrchardAddress => "Orchard",
+			_ => "Unknown",
+		};
 	}
 
 	private class ConstructCommand

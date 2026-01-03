@@ -5,12 +5,13 @@ use testdir::testdir;
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Channel;
 use zcash_client_backend::data_api::Account;
+use zcash_client_backend::data_api::wallet::ConfirmationsPolicy;
 use zcash_client_backend::keys::UnifiedSpendingKey;
 use zcash_client_backend::proto::service::{
-    self, compact_tx_streamer_client::CompactTxStreamerClient, LightdInfo,
+    self, LightdInfo, compact_tx_streamer_client::CompactTxStreamerClient,
 };
-use zcash_client_sqlite::AccountId;
-use zcash_primitives::consensus::Network;
+use zcash_client_sqlite::AccountUuid;
+use zcash_protocol::consensus::Network;
 
 use crate::error::Error;
 use crate::interop::SyncUpdateData;
@@ -25,7 +26,6 @@ lazy_static! {
         Uri::from_static("https://zcash.mysideoftheweb.com:9067/");
 }
 
-pub(crate) const MIN_CONFIRMATIONS: u32 = 3;
 pub(crate) const VALID_SAPLING_TESTNET: &str =
     "ztestsapling15740genxvp99m3vut5q7dqm0da9l8nst2njae3kpu6e406peeypk0n78zue0hgxt5gmasaznnm0";
 
@@ -69,7 +69,6 @@ pub(crate) async fn setup_test() -> TestSetup {
         db_init: DbInit {
             data_file: data_file.into_os_string().into_string().unwrap(),
             network: network.into(),
-            min_confirmations: 3,
         },
         db,
         server_info,
@@ -80,7 +79,7 @@ pub(crate) async fn setup_test() -> TestSetup {
 impl TestSetup {
     pub async fn create_account(
         &mut self,
-    ) -> Result<(Secret<Vec<u8>>, u64, AccountId, UnifiedSpendingKey), Error> {
+    ) -> Result<(Secret<Vec<u8>>, u64, AccountUuid, UnifiedSpendingKey), Error> {
         let seed: secrecy::Secret<Vec<u8>> = SecretVec::new(
             Mnemonic::<English>::generate(Count::Words24)
                 .to_seed("")
@@ -90,7 +89,13 @@ impl TestSetup {
         let birthday = self.server_info.block_height.saturating_sub(100);
         let account = self
             .db
-            .add_account(&seed, zip32::AccountId::ZERO, birthday, &mut self.client)
+            .add_account(
+                "main test account",
+                &seed,
+                zip32::AccountId::ZERO,
+                birthday,
+                &mut self.client,
+            )
             .await?;
         Ok((seed, birthday, account.0.id(), account.1))
     }
@@ -100,7 +105,7 @@ impl TestSetup {
             self.server_uri.clone(),
             &self.data_file,
             None,
-            self.db_init.min_confirmations,
+            ConfirmationsPolicy::default(),
             false,
             CancellationToken::new(),
         )

@@ -1,14 +1,14 @@
 use sapling::{
+    PaymentAddress, SaplingIvk,
     keys::{ExpandedSpendingKey, FullViewingKey},
     zip32::{
-        sapling_derive_internal_fvk, DiversifiableFullViewingKey, DiversifierKey,
-        ExtendedSpendingKey,
+        DiversifiableFullViewingKey, DiversifierKey, ExtendedSpendingKey,
+        sapling_derive_internal_fvk,
     },
-    PaymentAddress, SaplingIvk,
 };
-use zcash_primitives::zip32::{ChildIndex, DiversifierIndex, Scope};
+use zip32::{ChildIndex, DiversifierIndex, Scope};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn derive_sapling_ivk_from_fvk(fvk: *const [u8; 96], ivk: *mut [u8; 32]) -> i32 {
     let fvk = unsafe { &*fvk };
     let ivk = unsafe { &mut *ivk };
@@ -23,7 +23,7 @@ pub extern "C" fn derive_sapling_ivk_from_fvk(fvk: *const [u8; 96], ivk: *mut [u
     0
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn decrypt_sapling_diversifier(
     fvk: *const [u8; 96],
     dk: *const [u8; 32],
@@ -62,7 +62,7 @@ pub extern "C" fn decrypt_sapling_diversifier(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn decrypt_sapling_diversifier_with_ivk(
     ivk: *const [u8; 32],
     dk: *const [u8; 32],
@@ -107,7 +107,7 @@ pub extern "C" fn decrypt_sapling_diversifier_with_ivk(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn derive_sapling_child(
     ext_sk: *const [u8; 169],
     child_index: u32,
@@ -131,7 +131,7 @@ pub extern "C" fn derive_sapling_child(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn derive_internal_fvk_sapling(
     fvk: *const [u8; 96],
     dk: *const [u8; 32],
@@ -158,7 +158,7 @@ pub extern "C" fn derive_internal_fvk_sapling(
 // But the API offered by the crates we use only offer internal key derivation
 // for an extended spending key. We could rewrite the derivation easily enough
 // if needed.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn derive_internal_sk_sapling(
     ext_sk: *const [u8; 169],
     internal_ext_sk: *mut [u8; 169],
@@ -175,7 +175,7 @@ pub extern "C" fn derive_internal_sk_sapling(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn get_sapling_expanded_sk(sk: *const [u8; 32], expsk: *mut [u8; 96]) {
     let sk = unsafe { &*sk };
     let expsk_bytes = unsafe { &mut *expsk };
@@ -184,7 +184,7 @@ pub extern "C" fn get_sapling_expanded_sk(sk: *const [u8; 32], expsk: *mut [u8; 
     expsk_bytes.copy_from_slice(&expsk.to_bytes());
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn get_sapling_fvk_from_expanded_sk(
     expsk: *const [u8; 96],
     fvk: *mut [u8; 96],
@@ -204,7 +204,7 @@ pub extern "C" fn get_sapling_fvk_from_expanded_sk(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn get_sapling_receiver(
     ivk: *const [u8; 32],
     dk: *const [u8; 32],

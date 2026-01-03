@@ -17,6 +17,8 @@ internal class NewAccountCommand
 
 	internal required IConsole Console { get; set; }
 
+	internal required string Name { get; set; }
+
 	internal bool PromptForSeedPhrase { get; set; }
 
 	internal string? SeedPhrase { get; set; }
@@ -60,7 +62,9 @@ internal class NewAccountCommand
 		Option<string> walletPathOption = new Option<string>("--wallet", Strings.NewAccountWalletPathOptionDescription)
 			.LegalFilePathsOnly();
 
-		Option<uint> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
+		Option<string> nameOption = new Option<string>("--name", () => "(default)", Strings.AccountNameOptionDescription);
+
+		Option<uint?> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
 
 		Command command = new("new", Strings.NewAccountCommandDescription)
 		{
@@ -72,6 +76,7 @@ internal class NewAccountCommand
 			WalletUserCommandBase.LightServerUriOption,
 			offlineModeOption,
 			walletPathOption,
+			nameOption,
 			birthdayHeightOption,
 		};
 
@@ -97,6 +102,7 @@ internal class NewAccountCommand
 				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(WalletUserCommandBase.LightServerUriOption),
 				OfflineMode = ctxt.ParseResult.GetValueForOption(offlineModeOption),
 				WalletPath = ctxt.ParseResult.GetValueForOption(walletPathOption),
+				Name = ctxt.ParseResult.GetValueForOption(nameOption)!,
 				BirthdayHeight = ctxt.ParseResult.GetValueForOption(birthdayHeightOption),
 			}.ExecuteAsync(ctxt.GetCancellationToken());
 		});
