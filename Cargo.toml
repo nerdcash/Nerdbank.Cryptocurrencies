@@ -44,7 +44,7 @@ pasta_curves = "0.5"
 
 # - Transparent
 bip32 = { version = "=0.6.0-pre.1", default-features = false, features = [
-  "alloc",
+	"alloc",
 ] }
 block-buffer = { version = "=0.11.0-rc.3" }
 crypto-common = { version = "=0.2.0-rc.1" }
@@ -65,7 +65,7 @@ rand_distr = { version = "0.4", default-features = false }
 
 # Currency conversions
 rust_decimal = { version = "1.35", default-features = false, features = [
-  "serde",
+	"serde",
 ] }
 
 # Digests
@@ -80,8 +80,8 @@ base64 = "0.22"
 bech32 = { version = "0.11", default-features = false, features = ["alloc"] }
 bitflags = "2"
 bs58 = { version = "0.5", default-features = false, features = [
-  "alloc",
-  "check",
+	"alloc",
+	"check",
 ] }
 byteorder = "1"
 hex = { version = "0.4", default-features = false, features = ["alloc"] }
@@ -143,9 +143,9 @@ incrementalmerkletree-testing = "0.3"
 
 # Tor
 arti-client = { version = "0.35", default-features = false, features = [
-  "compression",
-  "rustls",
-  "tokio",
+	"compression",
+	"rustls",
+	"tokio",
 ] }
 dynosaur = "0.3"
 fs-mistrust = "0.12"
@@ -165,13 +165,13 @@ time-core = "=0.1.2"
 
 [workspace.package]
 edition = "2024"
-rust-version = "1.85.1"
+rust-version = "1.88"
 repository = "https://github.com/zcash/librustzcash"
 license = "MIT OR Apache-2.0"
 categories = ["cryptography::cryptocurrencies"]
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
-  'cfg(zcash_unstable, values("zfuture", "nu7"))',
-  'cfg(live_network_tests)',
+	'cfg(zcash_unstable, values("zfuture", "nu7"))',
+	'cfg(live_network_tests)',
 ] }
