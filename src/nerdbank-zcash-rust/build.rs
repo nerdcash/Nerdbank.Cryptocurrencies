@@ -118,7 +118,12 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
             .or_else(|| builtins.first());
 
         if let Some(first) = pick {
-            selected = Some(first.trim_start_matches("lib").trim_end_matches(".a").to_string());
+            selected = Some(
+                first
+                    .trim_start_matches("lib")
+                    .trim_end_matches(".a")
+                    .to_string(),
+            );
         } else {
             return Err(format!(
                 "Could not find a clang builtins library for target {target} (arch={clang_arch}, sdk={sdk}). Looked in {}. Available builtins archives: {:?}",
