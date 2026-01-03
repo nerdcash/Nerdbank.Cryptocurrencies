@@ -45,12 +45,16 @@ jobs:
       with:
         workspaces: |
           src/nerdbank-zcash-rust
+        cache-directories: |
+          src/nerdbank-zcash-rust/target-host
 
     - uses: ./.github/actions/cargo
       with:
         test_target: x86_64-unknown-linux-gnu
         checks: true
       name: 🛠️ Cargo build and test
+      env:
+        CARGO_TARGET_DIR: target-host
 
     - run: cross build -r --target=aarch64-unknown-linux-gnu
       name: 🛠️ build linux-arm64
