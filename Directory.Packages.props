@@ -5,7 +5,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <MicrosoftTestingPlatformVersion>2.0.2</MicrosoftTestingPlatformVersion>
-    <RoslynVersion>3.11.0-beta1.24629.2</RoslynVersion>
+    <RoslynVersion>3.11.0-beta1.25173.3</RoslynVersion>
     <AspNetWebAssemblyVersion>8.0.13</AspNetWebAssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
