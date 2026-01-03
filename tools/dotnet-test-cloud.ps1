@@ -71,7 +71,7 @@ if ($isMTP) {
         ,'--report-trx'
     )
 
-    & $dotnet test --project $RepoRoot/.github/dirs.proj `
+    & $dotnet test `
         --no-build `
         -c $Configuration `
         -bl:"$testBinLog" `
