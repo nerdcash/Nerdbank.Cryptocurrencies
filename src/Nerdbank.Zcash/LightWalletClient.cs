@@ -412,6 +412,13 @@ public partial class LightWalletClient : IDisposable
 			select (addr, tAddrString.Value.Balance)];
 	}
 
+	/// <inheritdoc cref="ShieldAsync(ZcashAccount, TransparentAddress?, ulong, in Memo?, CancellationToken)"/>
+	/// <remarks>
+	/// This overload uses 0.1 ZEC as the shielding threshold.
+	/// </remarks>
+	public Task<TxId> ShieldAsync(ZcashAccount account, TransparentAddress? address, CancellationToken cancellationToken)
+		=> this.ShieldAsync(account, address, ZcashUtilities.ZecToZats(0.1m), null, cancellationToken);
+
 	/// <summary>
 	/// Shields all funds in a given transparent address.
 	/// </summary>

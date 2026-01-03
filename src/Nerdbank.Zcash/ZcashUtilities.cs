@@ -125,6 +125,13 @@ public static class ZcashUtilities
 	internal static decimal ZatsToZEC(ulong zats) => (decimal)zats / ZatsPerZEC;
 
 	/// <summary>
+	/// Converts ZEC at ZATs.
+	/// </summary>
+	/// <param name="zec">The amount in ZECs.</param>
+	/// <returns>The amount in ZATs.</returns>
+	internal static ulong ZecToZats(decimal zec) => (ulong)(zec * ZatsPerZEC);
+
+	/// <summary>
 	/// Converts ZATs to ZEC.
 	/// </summary>
 	/// <param name="zats">The amount in ZATs.</param>

@@ -105,6 +105,7 @@ Nerdbank.Zcash.LightWalletClient.SendProgress.SendProgress(Nerdbank.Zcash.LightW
 Nerdbank.Zcash.LightWalletClient.SendProgress.SendProgress(uint Id, bool IsSendInProgress, uint Progress, uint Total, string? LastError, string? LastTransactionId) -> void
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.get -> uint
 Nerdbank.Zcash.LightWalletClient.SendProgress.Total.init -> void
+Nerdbank.Zcash.LightWalletClient.ShieldAsync(Nerdbank.Zcash.ZcashAccount! account, Nerdbank.Zcash.TransparentAddress? address, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.TxId>!
 Nerdbank.Zcash.LightWalletClient.ShieldAsync(Nerdbank.Zcash.ZcashAccount! account, Nerdbank.Zcash.TransparentAddress? address, ulong shieldingThreshold, in Nerdbank.Zcash.Memo? memo, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Zcash.TxId>!
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance
 Nerdbank.Zcash.LightWalletClient.ShieldedPoolBalance.Balance.get -> decimal
