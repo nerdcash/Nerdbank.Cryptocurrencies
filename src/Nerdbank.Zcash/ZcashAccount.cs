@@ -139,6 +139,11 @@ public class ZcashAccount : INotifyPropertyChanged
 	}
 
 	/// <summary>
+	/// Gets or sets a human-readable name for the account.
+	/// </summary>
+	public string? Name { get; set; }
+
+	/// <summary>
 	/// Gets the default unified address for this account.
 	/// </summary>
 	public UnifiedAddress DefaultAddress => this.IncomingViewing.UnifiedKey.DefaultAddress;

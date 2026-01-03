@@ -21,21 +21,34 @@ enum Pool {
 };
 
 dictionary AccountInfo {
-	u32 id;
+	/// A 16-byte buffer storing a GUID.
+	bytes id;
+	/// The string encoding of the Unified Viewing Key associated with this account.
 	string? uvk;
+	/// The various birthday heights associated with this account.
 	BirthdayHeights birthday_heights;
 };
 
 dictionary Transaction {
-	u32 account_id;
+	/// A 16-byte buffer storing a GUID.
+	bytes account_id;
+	/// The transaction ID.
 	bytes txid;
+	/// The timestamp the block containing the transaction was mined, if applicable.
 	timestamp? block_time;
+	/// The height of the block containing the transaction, if mined.
 	u32? mined_height;
+	/// A value indicating whether the transaction expired without being mined.
 	boolean expired_unmined;
+	/// The net impact this transaction has (or would have) on the account balance.
 	i64 account_balance_delta;
+	/// The network fee associated with this transaction.
 	u64? fee;
+	/// The notes associated with withdrawals from this account.
 	sequence<TransactionNote> outgoing;
+	/// The notes associated with deposits into this account.
 	sequence<TransactionNote> incoming;
+	/// The note(s) used to create change for this transaction.
 	sequence<TransactionNote> change;
 };
 
@@ -76,7 +89,6 @@ dictionary BirthdayHeights {
 dictionary DbInit {
 	string data_file;
 	ChainType network;
-	u32 min_confirmations;
 };
 
 dictionary SendTransactionResult {
@@ -112,10 +124,10 @@ namespace LightWallet {
 	void init(DbInit config);
 
 	[Throws=LightWalletError]
-	u32 add_account(DbInit config, string uri, bytes seed, u32 account_index, u32? birthday_height, CancellationSource? cancellation);
+	bytes add_account(DbInit config, string uri, string name, bytes seed, u32 account_index, u32? birthday_height, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
-	u32 import_account_ufvk(DbInit config, string uri, string ufvk, boolean spending_key_available, u32? birthday_height, CancellationSource? cancellation);
+	bytes import_account_ufvk(DbInit config, string uri, string name, string ufvk, boolean spending_key_available, u32? birthday_height, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
 	sequence<AccountInfo> get_accounts(DbInit config);
@@ -146,20 +158,20 @@ namespace LightWallet {
 	sequence<SendTransactionResult> send(DbInit config, string uri, bytes usk, sequence<TransactionSendDetail> send_details);
 
 	[Throws=LightWalletError]
-	sequence<TransparentNote> get_unshielded_utxos(DbInit config, u32 account_id);
+	sequence<TransparentNote> get_unshielded_utxos(DbInit config, bytes account_id);
 
 	[Throws=LightWalletError]
-	sequence<SendTransactionResult> shield(DbInit config, string uri, bytes usk, string address);
+	sequence<SendTransactionResult> shield(DbInit config, string uri, bytes account_id, bytes usk, string? address, u64 shielding_threshold, bytes? memo);
 
 	[Throws=LightWalletError]
-	sequence<Transaction> get_transactions(DbInit config, u32 account_id, u32 starting_block);
+	sequence<Transaction> get_transactions(DbInit config, bytes account_id, u32 starting_block);
 
 	[Throws=LightWalletError]
-	UserBalances get_user_balances(DbInit config, u32 account_id);
+	UserBalances get_user_balances(DbInit config, bytes account_id);
 
 	[Throws=LightWalletError]
-	BirthdayHeights get_birthday_heights(DbInit config, u32 account_id);
+	BirthdayHeights get_birthday_heights(DbInit config, bytes account_id);
 
 	[Throws=LightWalletError]
-	string add_diversifier(DbInit config, u32 account_id, bytes diversifier_index);
+	string add_diversifier(DbInit config, bytes account_id, bytes diversifier_index);
 };

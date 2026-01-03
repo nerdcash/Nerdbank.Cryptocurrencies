@@ -20,7 +20,21 @@ else {
 
 # copy Info.plist and the binary into the appropriate .framework directory structure
 # so that when NativeBindings.targets references it with ResolvedFileToPublish, it will be treated appropriately.
-$RustTargetBaseDir = "$repoRoot/src/nerdbank-zcash-rust/target"
+$RustTargetBaseDir = $null
+if ($env:CARGO_TARGET_DIR) {
+    # If set, this may be relative to the working directory of the process.
+    $RustTargetBaseDir = Resolve-Path $env:CARGO_TARGET_DIR
+}
+else {
+    # Prefer Cargo's authoritative view of the target directory (important when this repo is a workspace).
+    $metadata = cargo metadata --format-version 1 --no-deps --manifest-path "$repoRoot/Cargo.toml" | ConvertFrom-Json
+    $RustTargetBaseDir = $metadata.target_directory
+}
+
+if (-not $RustTargetBaseDir -or !(Test-Path $RustTargetBaseDir)) {
+    throw "Unable to determine Cargo target directory. Computed: '$RustTargetBaseDir'."
+}
+
 $RustDylibFileName = "libnerdbank_zcash_rust.dylib"
 $DeviceRustOutput = "$RustTargetBaseDir/aarch64-apple-ios/$Configuration/$RustDylibFileName"
 $SimulatorX64RustOutput = "$RustTargetBaseDir/x86_64-apple-ios/$Configuration/$RustDylibFileName"
@@ -28,7 +42,7 @@ $SimulatorArm64RustOutput = "$RustTargetBaseDir/aarch64-apple-ios-sim/$Configura
 
 $DeviceFrameworkDir = "$repoRoot/bin/$Configuration/device/nerdbank_zcash_rust.framework"
 $SimulatorFrameworkDir = "$repoRoot/bin/$Configuration/simulator/nerdbank_zcash_rust.framework"
-New-Item -Path $DeviceFrameworkDir,$SimulatorFrameworkDir -ItemType Directory -Force | Out-Null
+New-Item -Path $DeviceFrameworkDir, $SimulatorFrameworkDir -ItemType Directory -Force | Out-Null
 
 Write-Host "Preparing Apple iOS and iOS-simulator frameworks"
 

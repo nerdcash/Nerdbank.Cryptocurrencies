@@ -1,26 +1,28 @@
 use std::{
     collections::HashMap,
-    num::NonZeroU32,
     sync::{
-        atomic::{AtomicU32, Ordering},
         Mutex,
+        atomic::{AtomicU32, Ordering},
     },
     time::SystemTime,
 };
 
-use http::{uri::InvalidUri, Uri};
+use http::{Uri, uri::InvalidUri};
 use rusqlite::Connection;
 use secrecy::SecretVec;
 use tokio::runtime::Runtime;
 use tokio_util::sync::CancellationToken;
+use uuid::Uuid;
 use zcash_client_backend::{
-    data_api::{Account, AccountPurpose, WalletRead},
+    data_api::{Account, AccountPurpose, WalletRead, wallet::ConfirmationsPolicy},
     encoding::AddressCodec,
     keys::{Era, UnifiedSpendingKey},
 };
-use zcash_client_sqlite::error::SqliteClientError;
+use zcash_client_sqlite::{AccountUuid, error::SqliteClientError};
 use zcash_keys::keys::UnifiedFullViewingKey;
-use zcash_primitives::{consensus::Network, legacy::TransparentAddress, zip32::DiversifierIndex};
+use zcash_protocol::{consensus::Network, memo::MemoBytes, value::Zatoshis};
+use zcash_transparent::address::TransparentAddress;
+use zip32::DiversifierIndex;
 
 use crate::{
     analysis::{BirthdayHeights, UserBalances},
@@ -28,11 +30,19 @@ use crate::{
     error::Error,
     grpc::{destroy_channel, get_client},
     send::{create_send_proposal, send_transaction},
-    shield::shield_funds_at_address,
+    shield::shield_funds,
 };
 
 lazy_static! {
-    static ref RT: Runtime = tokio::runtime::Runtime::new().unwrap();
+    static ref CRYPTO_INIT: () = {
+        // Initialize the rustls crypto provider before any operations
+        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    };
+    static ref RT: Runtime = {
+        // Ensure crypto is initialized
+        *CRYPTO_INIT;
+        tokio::runtime::Runtime::new().unwrap()
+    };
 }
 
 pub trait SyncUpdate: Send + Sync + std::fmt::Debug {
@@ -93,14 +103,14 @@ impl From<Network> for ChainType {
 }
 
 pub struct AccountInfo {
-    pub id: u32,
+    pub id: Vec<u8>,
     pub uvk: Option<String>,
     pub birthday_heights: BirthdayHeights,
 }
 
 #[derive(Debug, Clone)]
 pub struct Transaction {
-    pub account_id: u32,
+    pub account_id: Vec<u8>,
     pub txid: Vec<u8>,
     pub block_time: Option<SystemTime>,
     pub mined_height: Option<u32>,
@@ -185,7 +195,7 @@ impl From<rusqlite::Error> for LightWalletError {
 impl From<time::error::ComponentRange> for LightWalletError {
     fn from(e: time::error::ComponentRange) -> Self {
         LightWalletError::Other {
-            message: format!("Invalid time: {}", e),
+            message: format!("Invalid time: {e}"),
         }
     }
 }
@@ -217,7 +227,6 @@ impl From<Error> for LightWalletError {
 pub struct DbInit {
     pub data_file: String,
     pub network: ChainType,
-    pub min_confirmations: u32,
 }
 
 lazy_static! {
@@ -278,14 +287,15 @@ pub fn init(config: DbInit) -> Result<(), LightWalletError> {
 pub fn add_account(
     config: DbInit,
     uri: String,
+    name: String,
     seed: Vec<u8>,
-    account_index: u32,
+    zip32_account_index: u32,
     birthday_height: Option<u32>,
     cancellation: Option<Box<dyn CancellationSource>>,
-) -> Result<u32, LightWalletError> {
+) -> Result<Vec<u8>, LightWalletError> {
     use crate::lightclient::get_block_height;
     let cancellation_token = get_cancellation_token(cancellation)?;
-    let account_index = zip32::AccountId::try_from(account_index).map_err(|_| {
+    let account_index = zip32::AccountId::try_from(zip32_account_index).map_err(|_| {
         LightWalletError::InvalidArgument {
             message: "Invalid account index".to_string(),
         }
@@ -300,20 +310,27 @@ pub fn add_account(
         };
         let secret = SecretVec::new(seed);
         let account = db
-            .add_account(&secret, account_index, birthday_height as u64, &mut client)
+            .add_account(
+                &name,
+                &secret,
+                account_index,
+                birthday_height as u64,
+                &mut client,
+            )
             .await?;
-        Ok(account.0.id().into())
+        Ok(uuid_to_bytes(&account.0.id()))
     })
 }
 
 pub fn import_account_ufvk(
     config: DbInit,
     uri: String,
+    name: String,
     ufvk: String,
     spending_key_available: bool,
     birthday_height: Option<u32>,
     cancellation: Option<Box<dyn CancellationSource>>,
-) -> Result<u32, LightWalletError> {
+) -> Result<Vec<u8>, LightWalletError> {
     use crate::lightclient::get_block_height;
     let cancellation_token = get_cancellation_token(cancellation)?;
     let network: Network = config.network.into();
@@ -331,17 +348,19 @@ pub fn import_account_ufvk(
         })?;
         let account = db
             .import_account_ufvk(
+                &name,
                 &ufvk,
                 if spending_key_available {
-                    AccountPurpose::Spending
+                    AccountPurpose::Spending { derivation: None }
                 } else {
                     AccountPurpose::ViewOnly
                 },
                 birthday_height as u64,
+                None,
                 &mut client,
             )
             .await?;
-        Ok(account.id().into())
+        Ok(uuid_to_bytes(&account.id()))
     })
 }
 
@@ -353,20 +372,35 @@ pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError
     let mut result = Vec::new();
     for account_info in db.data.get_unified_full_viewing_keys()?.iter() {
         result.push(AccountInfo {
-            id: account_info.0.to_owned().into(),
+            id: uuid_to_bytes(account_info.0),
             uvk: Some(account_info.1.encode(&network)),
-            birthday_heights: get_birthday_heights(config.clone(), account_info.0.to_owned())?,
+            birthday_heights: get_birthday_heights(config.clone(), account_info.0)?,
         });
     }
 
     Ok(result)
 }
 
+fn uuid_to_bytes(account_uuid: &AccountUuid) -> Vec<u8> {
+    account_uuid.expose_uuid().as_bytes().to_vec()
+}
+
+fn bytes_to_uuid(account_id: Vec<u8>) -> Result<AccountUuid, LightWalletError> {
+    Ok(AccountUuid::from_uuid(Uuid::from_bytes(
+        account_id
+            .try_into()
+            .map_err(|_| LightWalletError::InvalidArgument {
+                message: "Invalid account ID".to_string(),
+            })?,
+    )))
+}
+
 pub fn add_diversifier(
     config: DbInit,
-    account: u32,
+    account_id: Vec<u8>,
     diversifier_index: Vec<u8>,
 ) -> Result<String, LightWalletError> {
+    let account_id = bytes_to_uuid(account_id)?;
     RT.block_on(async move {
         let network = config.network.into();
         let mut db = Db::load(config.data_file, network)?;
@@ -378,7 +412,7 @@ pub fn add_diversifier(
                 })?;
         let diversifier_index = DiversifierIndex::from(diversified_index);
         Ok(db
-            .add_diversifier(account.into(), diversifier_index)?
+            .add_diversifier(account_id, diversifier_index)?
             .encode(&network))
     })
 }
@@ -422,7 +456,7 @@ pub fn sync(
             uri,
             config.data_file,
             progress,
-            config.min_confirmations,
+            ConfirmationsPolicy::default(),
             continually,
             cancellation_token.0.clone(),
         )
@@ -432,12 +466,13 @@ pub fn sync(
 
 pub fn get_transactions(
     config: DbInit,
-    account_id: u32,
+    account_id: Vec<u8>,
     starting_block: u32,
 ) -> Result<Vec<Transaction>, LightWalletError> {
     let network: Network = config.network.into();
     let mut db = Db::load(config.data_file.clone(), network)?;
     let mut conn = Connection::open(config.data_file)?;
+    let account_id = bytes_to_uuid(account_id)?;
     Ok(crate::sync::get_transactions(
         &mut db,
         &mut conn,
@@ -450,23 +485,24 @@ pub fn get_transactions(
 
 pub fn get_birthday_heights(
     config: DbInit,
-    account_id: u32,
+    account_id: Vec<u8>,
 ) -> Result<BirthdayHeights, LightWalletError> {
     use crate::analysis::get_birthday_heights;
 
-    Ok(get_birthday_heights(config, account_id.into())?)
+    let account_id = bytes_to_uuid(account_id)?;
+    Ok(get_birthday_heights(config, &account_id)?)
 }
 
 pub fn get_user_balances(
     config: DbInit,
-    account_id: u32,
+    account_id: Vec<u8>,
 ) -> Result<UserBalances, LightWalletError> {
     use crate::analysis::get_user_balances;
+    let account_id = bytes_to_uuid(account_id)?;
     Ok(get_user_balances(
         &config,
-        account_id.into(),
-        NonZeroU32::try_from(config.min_confirmations)
-            .map_err(|_| Error::InvalidArgument("A positive integer is required.".to_string()))?,
+        &account_id,
+        ConfirmationsPolicy::default(),
     )?)
 }
 
@@ -492,12 +528,7 @@ pub fn simulate_send(
     let mut db = Db::init(config.data_file, network)?;
     let ufvk = UnifiedFullViewingKey::decode(&network, &ufvk)
         .map_err(|s| LightWalletError::InvalidArgument { message: s })?;
-    let min_confirmations = NonZeroU32::try_from(config.min_confirmations).map_err(|_| {
-        LightWalletError::InvalidArgument {
-            message: "A positive integer is required.".to_string(),
-        }
-    })?;
-    let proposal = create_send_proposal(&mut db, network, &ufvk, min_confirmations, send_details)?;
+    let proposal = create_send_proposal(&mut db, network, &ufvk, send_details)?;
 
     Ok(SendDetails {
         fee: proposal
@@ -526,9 +557,6 @@ pub fn send(
             uri,
             config.network.into(),
             &usk,
-            NonZeroU32::try_from(config.min_confirmations).map_err(|_| {
-                Error::InvalidArgument("A positive integer is required.".to_string())
-            })?,
             send_details,
         )
         .await?;
@@ -543,37 +571,59 @@ pub fn send(
 
 pub fn get_unshielded_utxos(
     config: DbInit,
-    account_id: u32,
+    account_id: Vec<u8>,
 ) -> Result<Vec<TransparentNote>, LightWalletError> {
     use crate::shield::get_unshielded_utxos;
-    Ok(get_unshielded_utxos(config, account_id.into())?)
+    let account_id = bytes_to_uuid(account_id)?;
+    Ok(get_unshielded_utxos(config, account_id)?)
 }
 
 pub fn shield(
     config: DbInit,
     uri: String,
+    account_id: Vec<u8>,
     usk: Vec<u8>,
-    address: String,
+    address: Option<String>,
+    shielding_threshold: u64,
+    memo: Option<Vec<u8>>,
 ) -> Result<Vec<SendTransactionResult>, LightWalletError> {
     let uri: Uri = uri.parse()?;
+    let account_id = bytes_to_uuid(account_id)?;
     let usk = UnifiedSpendingKey::from_bytes(Era::Orchard, &usk).map_err(|_| {
         LightWalletError::InvalidArgument {
             message: "Failure when parsing USK.".to_string(),
         }
     })?;
     let network = Network::from(config.network);
-    let address =
-        TransparentAddress::decode(&network, &address[..]).map_err(|_| Error::InvalidAddress)?;
+    let address = address
+        .map(|a| TransparentAddress::decode(&network, &a[..]).map_err(|_| Error::InvalidAddress))
+        .transpose()?;
+    let shielding_threshold = Zatoshis::from_u64(shielding_threshold).map_err(|_| {
+        Error::InvalidArgument("Shielding threshold exceeds maximum Zatoshis count.".to_string())
+    })?;
+    let memo = memo
+        .map(|m| {
+            MemoBytes::from_bytes(&m)
+                .map_err(|e| Error::InvalidArgument(format!("Invalid memo: {e}")))
+        })
+        .transpose()?;
     RT.block_on(async move {
-        Ok(
-            shield_funds_at_address(config.data_file, uri, network, &usk, address)
-                .await?
-                .map(|r| SendTransactionResult {
-                    txid: r.txid.as_ref().to_vec(),
-                })
-                .into_iter()
-                .collect::<Vec<_>>(),
+        Ok(shield_funds(
+            config.data_file,
+            uri,
+            network,
+            account_id,
+            &usk,
+            shielding_threshold,
+            address,
+            memo,
         )
+        .await?
+        .map(|r| SendTransactionResult {
+            txid: r.txid.as_ref().to_vec(),
+        })
+        .into_iter()
+        .collect::<Vec<_>>())
     })
 }
 
@@ -589,9 +639,12 @@ mod tests {
 
     #[test]
     fn test_get_transactions_empty() {
-        let setup = RT.block_on(async move { setup_test().await });
-        let transactions = get_transactions(setup.db_init, 0, 0).unwrap();
-
-        assert!(transactions.is_empty());
+        RT.block_on(async move {
+            let mut setup = setup_test().await;
+            let account_id = setup.create_account().await.unwrap();
+            let account_id_bytes = uuid_to_bytes(&account_id.2);
+            let transactions = get_transactions(setup.db_init, account_id_bytes, 0).unwrap();
+            assert!(transactions.is_empty());
+        });
     }
 }

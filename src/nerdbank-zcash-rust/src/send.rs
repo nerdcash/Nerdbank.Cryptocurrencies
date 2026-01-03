@@ -1,37 +1,30 @@
-use std::{num::NonZeroU32, path::Path};
+use std::{convert::Infallible, path::Path};
 
 use http::Uri;
 use nonempty::NonEmpty;
+use rand::rngs::OsRng;
 use rusqlite::Connection;
 use zcash_address::ZcashAddress;
 use zcash_client_backend::{
     data_api::{
-        wallet::{
-            create_proposed_transactions,
-            input_selection::{GreedyInputSelector, GreedyInputSelectorError},
-            propose_transfer,
-        },
         Account, WalletRead,
+        wallet::{self, ConfirmationsPolicy, create_proposed_transactions, propose_transfer},
     },
-    fees::{zip317::SingleOutputChangeStrategy, ChangeStrategy},
+    fees::StandardFeeRule,
     keys::UnifiedSpendingKey,
     proposal::Proposal,
     proto::service,
     wallet::OvkPolicy,
     zip321::{Payment, TransactionRequest},
-    ShieldedProtocol,
 };
-use zcash_client_sqlite::{ReceivedNoteId, WalletDb};
+use zcash_client_sqlite::{ReceivedNoteId, WalletDb, util::SystemClock};
 use zcash_keys::keys::UnifiedFullViewingKey;
-use zcash_primitives::{
-    consensus::Network,
-    memo::MemoBytes,
-    transaction::{components::amount::NonNegativeAmount, fees::zip317::FeeRule, TxId},
-};
+use zcash_primitives::transaction::TxId;
+use zcash_protocol::{consensus::Network, memo::MemoBytes, value::Zatoshis};
 
 use crate::{
     backing_store::Db, error::Error, grpc::get_client, interop::TransactionSendDetail,
-    prover::get_prover,
+    prover::get_prover, util::zip317_helper,
 };
 
 #[derive(Debug)]
@@ -43,14 +36,9 @@ pub(crate) fn create_send_proposal(
     db: &mut Db,
     network: Network,
     account_ufvk: &UnifiedFullViewingKey,
-    min_confirmations: NonZeroU32,
     details: Vec<TransactionSendDetail>,
-) -> Result<Proposal<FeeRule, ReceivedNoteId>, Error> {
-    // TODO: revise this to a smarter change strategy that avoids unnecessarily crossing the turnstile.
-    let input_selector = GreedyInputSelector::new(
-        SingleOutputChangeStrategy::new(FeeRule::standard(), None, ShieldedProtocol::Sapling),
-        Default::default(),
-    );
+) -> Result<Proposal<StandardFeeRule, ReceivedNoteId>, Error> {
+    let (change_strategy, input_selector) = zip317_helper(None);
 
     let mut payments = Vec::new();
     for detail in details.iter() {
@@ -62,7 +50,7 @@ pub(crate) fn create_send_proposal(
             Payment::new(
                 ZcashAddress::try_from_encoded(detail.recipient.as_str())
                     .map_err(|_| Error::InvalidAddress)?,
-                NonNegativeAmount::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
+                Zatoshis::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
                 memo,
                 None,
                 None,
@@ -78,13 +66,14 @@ pub(crate) fn create_send_proposal(
         .get_account_for_ufvk(account_ufvk)?
         .ok_or(Error::KeyNotRecognized)?;
 
-    Ok(propose_transfer::<_, _, _, Error>(
+    Ok(propose_transfer::<_, _, _, _, Infallible>(
         &mut db.data,
         &network,
         account.id(),
         &input_selector,
+        &change_strategy,
         request,
-        min_confirmations,
+        ConfirmationsPolicy::default(),
     )?)
 }
 
@@ -93,7 +82,6 @@ pub async fn send_transaction<P: AsRef<Path>>(
     server_uri: Uri,
     network: Network,
     usk: &UnifiedSpendingKey,
-    min_confirmations: NonZeroU32,
     details: Vec<TransactionSendDetail>,
 ) -> Result<NonEmpty<SendTransactionResult>, Error> {
     let mut db = Db::init(data_file, network)?;
@@ -101,26 +89,16 @@ pub async fn send_transaction<P: AsRef<Path>>(
         &mut db,
         network,
         &usk.to_unified_full_viewing_key(),
-        min_confirmations,
         details,
     )?;
 
     let prover = get_prover()?;
-    let txids = create_proposed_transactions::<
-        _,
-        _,
-        GreedyInputSelectorError<
-            <SingleOutputChangeStrategy as ChangeStrategy>::Error,
-            ReceivedNoteId,
-        >,
-        _,
-        _,
-    >(
+    let txids = create_proposed_transactions::<_, _, Infallible, _, Infallible, _>(
         &mut db.data,
         &network,
         &prover,
         &prover,
-        usk,
+        &wallet::SpendingKeys::from_unified_spending_key(usk.to_owned()),
         OvkPolicy::Sender,
         &proposal,
     )?;
@@ -136,7 +114,7 @@ pub async fn send_transaction<P: AsRef<Path>>(
 pub(crate) async fn transmit_transaction(
     txid: TxId,
     server_uri: Uri,
-    db: &mut WalletDb<Connection, Network>,
+    db: &mut WalletDb<Connection, Network, SystemClock, OsRng>,
 ) -> Result<SendTransactionResult, Error> {
     let mut client = get_client(server_uri).await?;
     let raw_tx = db
@@ -165,7 +143,7 @@ mod tests {
 
     use crate::{
         sync::sync,
-        test_constants::{setup_test, MIN_CONFIRMATIONS, VALID_SAPLING_TESTNET},
+        test_constants::{VALID_SAPLING_TESTNET, setup_test},
     };
 
     use super::*;
@@ -178,7 +156,7 @@ mod tests {
             setup.server_uri.clone(),
             setup.data_file.clone(),
             None,
-            setup.db_init.min_confirmations,
+            ConfirmationsPolicy::default(),
             false,
             CancellationToken::new(),
         )
@@ -189,7 +167,6 @@ mod tests {
             setup.server_uri,
             setup.network,
             &account.3,
-            NonZeroU32::try_from(MIN_CONFIRMATIONS).unwrap(),
             vec![TransactionSendDetail {
                 value: 1000,
                 memo: None,

@@ -120,6 +120,9 @@
   <data name="AccountIndexOptionDescription" xml:space="preserve">
     <value>Индекс учетной записи для создания.</value>
   </data>
+  <data name="AccountNameOptionDescription" xml:space="preserve">
+    <value>Имя учетной записи</value>
+  </data>
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>Список всех учетных записей, известных в базе данных.</value>
   </data>
@@ -254,6 +257,9 @@
   </data>
   <data name="ShieldCommandDescription" xml:space="preserve">
     <value>Щиты прозрачные фонды. Код выхода 1 указывает на то, что дополнительные прозрачные адреса остаются при защите ненулевых уравностей.</value>
+  </data>
+  <data name="ShieldThresholdOptionDescription" xml:space="preserve">
+    <value>Минимальное значение (в ZAT) для защиты. UTXO с меньшим значением будут игнорироваться.</value>
   </data>
   <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
     <value>Индекс учетной записи под семенной фразой, используемый для генерации ключа расходов.</value>

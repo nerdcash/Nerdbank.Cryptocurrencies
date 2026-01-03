@@ -120,6 +120,9 @@
   <data name="AccountIndexOptionDescription" xml:space="preserve">
     <value>The index for the account. Must be a non-negative number.</value>
   </data>
+  <data name="AccountNameOptionDescription" xml:space="preserve">
+    <value>The name of the account</value>
+  </data>
   <data name="AccountsCommandDescription" xml:space="preserve">
     <value>List all accounts known to the database.</value>
   </data>
@@ -254,6 +257,9 @@
   </data>
   <data name="ShieldCommandDescription" xml:space="preserve">
     <value>Shields transparent funds. An exit code of 1 indicates additional transparent addresses remain with non-zero balances to be shielded.</value>
+  </data>
+  <data name="ShieldThresholdOptionDescription" xml:space="preserve">
+    <value>The minimum value (in ZATs) to shield. UTXOs with lesser value will be ignored.</value>
   </data>
   <data name="SpendingKeyAccountIndexOptionDescription" xml:space="preserve">
     <value>The account index under the seed phrase used to generate the spending key.</value>

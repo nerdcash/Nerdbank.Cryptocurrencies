@@ -23,7 +23,9 @@ The prerequisites for building, testing, and deploying from this repository are:
 
 * The [.NET SDK](https://get.dot.net/).
 * The [Rust toolset](https://rust-lang.org/tools/install/)
-* Note that Zingolib is automatically brought in as a git submodule, make sure git submodule support is enabled with the following command: `git submodule update --init :/`. If there are troubles compiling this then [compiling from source instructions are here](https://github.com/nerdcash/zingolib/tree/dev?tab=readme-ov-file#compiling-from-source). On Windows this can be done using [Perl Windows Download](https://strawberryperl.com/) and you can download [Protobuf](https://github.com/protocolbuffers/protobuf/releases) from here and put it in your path. Then to install the "Build Tools" on Windows launch "Visual Studio Installer" that you installed for Rust then click "More" → "Import Configuration" and import the ".vsconfig" file at the root of this project and install any components that come up.
+* Note that librustzcash is automatically brought in as a git submodule, make sure git submodule support is enabled with the following command: `git submodule update --init :/`.
+* On Windows, some dependencies can be acquired by installing the "Build Tools" SKU in the "Visual Studio Installer" that you installed for Rust then click "More" → "Import Configuration" and import the ".vsconfig" file at the root of this project and install any components that come up.
+* [NASM and CMake](https://aws.github.io/aws-lc-rs/requirements/index.html)
 
 ## Package restore
 

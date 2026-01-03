@@ -2,7 +2,8 @@ use futures_util::{StreamExt, TryStreamExt};
 use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
-use rusqlite::{named_params, Connection};
+use rand::rngs::OsRng;
+use rusqlite::{Connection, named_params};
 use std::{
     borrow::Borrow,
     collections::{BTreeSet, HashMap},
@@ -12,43 +13,44 @@ use std::{
 };
 use tokio::{
     select,
-    sync::{mpsc, Mutex},
+    sync::{Mutex, mpsc},
 };
 use tokio_util::sync::CancellationToken;
-use tonic::{transport::Channel, Status};
+use tonic::{Status, transport::Channel};
 use tracing::{debug, info};
 use uniffi::deps::anyhow;
-use zcash_client_sqlite::{error::SqliteClientError, AccountId, WalletDb};
+use uuid::Uuid;
+use zcash_client_sqlite::{AccountUuid, WalletDb, error::SqliteClientError, util::SystemClock};
 use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
-    consensus::{BlockHeight, BranchId, Network, Parameters},
-    legacy::TransparentAddress,
-    memo::Memo,
     merkle_tree::HashSer,
-    transaction::{
-        components::{Amount, OutPoint},
-        Transaction, TxId,
-    },
+    transaction::{Transaction, TxId},
 };
+use zcash_transparent::{address::TransparentAddress, bundle::OutPoint};
 
 use zcash_client_backend::{
     data_api::{
-        chain::{scan_cached_blocks, ChainState, CommitmentTreeRoot},
-        scanning::{ScanPriority, ScanRange},
-        wallet::decrypt_and_store_transaction,
         TransactionDataRequest, TransactionStatus, TransparentAddressSyncInfo,
         WalletCommitmentTrees, WalletRead, WalletWrite,
+        chain::{ChainState, CommitmentTreeRoot, scan_cached_blocks},
+        scanning::{ScanPriority, ScanRange},
+        wallet::{ConfirmationsPolicy, decrypt_and_store_transaction},
     },
     encoding::AddressCodec,
     proto::{
         compact_formats::CompactBlock,
         service::{
-            self, compact_tx_streamer_client::CompactTxStreamerClient, Empty, RawTransaction,
-            TransparentAddressBlockFilter, TxFilter,
+            self, Empty, RawTransaction, TransparentAddressBlockFilter, TxFilter,
+            compact_tx_streamer_client::CompactTxStreamerClient,
         },
     },
     wallet::WalletTransparentOutput,
+};
+use zcash_protocol::{
     PoolType,
+    consensus::{BlockHeight, BranchId, Network, Parameters},
+    memo::Memo,
+    value::{ZatBalance, Zatoshis},
 };
 
 use crate::{
@@ -87,7 +89,7 @@ pub async fn sync<P: AsRef<Path>>(
     uri: Uri,
     data_file: P,
     progress: Option<Box<dyn SyncUpdate>>,
-    min_confirmations: u32,
+    confirmations_policy: ConfirmationsPolicy,
     continually: bool,
     cancellation_token: CancellationToken,
 ) -> Result<SyncUpdateData, Error> {
@@ -105,7 +107,7 @@ pub async fn sync<P: AsRef<Path>>(
     .await?;
     let state = SyncState {
         cancellation_token,
-        min_confirmations,
+        confirmations_policy,
         network: parse_network(&info)?,
         progress: Arc::new(progress),
     };
@@ -140,7 +142,7 @@ pub async fn sync<P: AsRef<Path>>(
         )
         .await?
         .try_into()
-        .map_err(|e| Error::Internal(format!("Invalid block height: {}", e)))?;
+        .map_err(|e| Error::Internal(format!("Invalid block height: {e}")))?;
 
         // 4) Notify the wallet of the updated chain tip.
         db.data.update_chain_tip(status.tip_height.into())?;
@@ -273,7 +275,7 @@ pub async fn sync<P: AsRef<Path>>(
         status.total_steps =
             status.current_step + scan_ranges.iter().map(|r| r.len()).sum::<usize>() as u64;
 
-        update_and_report_status(&mut status, &db.data, min_confirmations, &state.progress)?;
+        update_and_report_status(&mut status, &db.data, confirmations_policy, &state.progress)?;
 
         let mut caught_up = true;
         for scan_range in scan_ranges.into_iter() {
@@ -314,7 +316,7 @@ pub async fn sync<P: AsRef<Path>>(
                 &state.network,
             )?;
 
-            update_and_report_status(&mut status, &db.data, min_confirmations, &state.progress)?;
+            update_and_report_status(&mut status, &db.data, confirmations_policy, &state.progress)?;
 
             if scan_result.priorities_changed {
                 // The suggested scan ranges have been updated (either due to a continuity
@@ -335,13 +337,13 @@ pub async fn sync<P: AsRef<Path>>(
                 }
 
                 info!("Fetching data for request {:?}", data_request);
-                match data_request {
+                match &data_request {
                     TransactionDataRequest::GetStatus(txid) => {
                         let status = fetch_transaction(
                             &mut client,
                             &state.network,
                             status.tip_height.into(),
-                            txid,
+                            *txid,
                         )
                         .await?
                         .map_or(
@@ -354,21 +356,21 @@ pub async fn sync<P: AsRef<Path>>(
                             },
                         );
                         info!("Got status {:?}", status);
-                        db.data.set_transaction_status(txid, status)?;
+                        db.data.set_transaction_status(*txid, status)?;
                     }
                     TransactionDataRequest::Enhancement(txid) => {
                         match fetch_transaction(
                             &mut client,
                             &state.network,
                             status.tip_height.into(),
-                            txid,
+                            *txid,
                         )
                         .await?
                         {
                             None => {
                                 info!("Txid not recognized {:?}", txid);
                                 db.data.set_transaction_status(
-                                    txid,
+                                    *txid,
                                     TransactionStatus::TxidNotRecognized,
                                 )?;
                             }
@@ -386,20 +388,16 @@ pub async fn sync<P: AsRef<Path>>(
                             }
                         }
                     }
-                    TransactionDataRequest::SpendsFromAddress {
-                        address,
-                        block_range_start,
-                        block_range_end,
-                    } => {
-                        let address = address.encode(&state.network);
+                    TransactionDataRequest::TransactionsInvolvingAddress(tia) => {
+                        let address = tia.address().encode(&state.network);
                         let request = service::TransparentAddressBlockFilter {
                             address: address.clone(),
                             range: Some(service::BlockRange {
                                 start: Some(service::BlockId {
-                                    height: u64::from(block_range_start),
+                                    height: u64::from(tia.block_range_start()),
                                     ..Default::default()
                                 }),
-                                end: block_range_end.map(|h| service::BlockId {
+                                end: tia.block_range_end().map(|h| service::BlockId {
                                     height: u64::from(h - 1), // `BlockRange` end is inclusive.
                                     ..Default::default()
                                 }),
@@ -438,7 +436,7 @@ pub async fn sync<P: AsRef<Path>>(
         }
 
         if caught_up {
-            update_status(&mut status, &db.data, min_confirmations)?;
+            update_status(&mut status, &db.data, confirmations_policy)?;
 
             if !continually {
                 return Ok(status);
@@ -502,17 +500,17 @@ fn report_transactions_in_range<P: AsRef<Path>>(
 
 fn update_status<'a>(
     status: &'a mut SyncUpdateData,
-    data: &WalletDb<Connection, Network>,
-    min_confirmations: u32,
+    data: &WalletDb<Connection, Network, SystemClock, OsRng>,
+    confirmations_policy: ConfirmationsPolicy,
 ) -> Result<&'a SyncUpdateData, Error> {
     status.last_fully_scanned_block = data.block_fully_scanned()?.map(|b| b.block_height().into());
 
     // Disabled for now because it's unstable -- it goes backwards, jumps around, etc.
     if false {
         if let Some(wallet_progress) = data
-            .get_wallet_summary(min_confirmations)
+            .get_wallet_summary(confirmations_policy)
             .unwrap_or(None)
-            .and_then(|s| s.scan_progress())
+            .and_then(|s| s.progress().recovery())
         {
             status.current_step = *wallet_progress.numerator();
             status.total_steps = *wallet_progress.denominator();
@@ -530,11 +528,11 @@ fn report_status(status: &SyncUpdateData, progress: &Option<Box<dyn SyncUpdate>>
 
 fn update_and_report_status(
     status: &mut SyncUpdateData,
-    data: &WalletDb<Connection, Network>,
-    min_confirmations: u32,
+    data: &WalletDb<Connection, Network, SystemClock, OsRng>,
+    confirmations_policy: ConfirmationsPolicy,
     progress: &Option<Box<dyn SyncUpdate>>,
 ) -> Result<(), Error> {
-    report_status(update_status(status, data, min_confirmations)?, progress);
+    report_status(update_status(status, data, confirmations_policy)?, progress);
     Ok(())
 }
 
@@ -544,14 +542,14 @@ struct DownloadAndScanResult {
 }
 
 fn fill_in_taddrs_to_gap_limit(
-    taddrs: &mut Vec<TransparentAddressSyncInfo<AccountId>>,
-    db: &mut WalletDb<Connection, Network>,
-) -> Result<Vec<TransparentAddressSyncInfo<AccountId>>, Error> {
+    taddrs: &mut Vec<TransparentAddressSyncInfo<AccountUuid>>,
+    db: &mut WalletDb<Connection, Network, SystemClock, OsRng>,
+) -> Result<Vec<TransparentAddressSyncInfo<AccountUuid>>, Error> {
     // Transform the vector of addresses into this structure:
     // Account -> (DiversifierIndex -> TransparentAddressSyncInfo)
     let mut taddrs_by_account: HashMap<
-        AccountId,
-        HashMap<u32, TransparentAddressSyncInfo<AccountId>>,
+        AccountUuid,
+        HashMap<u32, TransparentAddressSyncInfo<AccountUuid>>,
     > = HashMap::new();
     for taddr in taddrs.iter() {
         let account = taddr.account_id;
@@ -572,7 +570,8 @@ fn fill_in_taddrs_to_gap_limit(
         while consecutive_unused_addresses < TADDR_INDEX_GAP_LIMIT {
             match taddrs_in_account.get(&index) {
                 None => {
-                    let ua = db.put_address_with_diversifier_index(account, index.into())?;
+                    let ua =
+                        db.put_address_with_diversifier_index(account.to_owned(), index.into())?;
                     if let Some(taddr) = ua.transparent() {
                         let sync_info = TransparentAddressSyncInfo {
                             account_id: *account,
@@ -607,37 +606,44 @@ fn fill_in_taddrs_to_gap_limit(
 /// Calculates the fee for some transaction.
 ///
 /// Returns `Error::OutPointMissing` if any UTXO consumed by the transaction is not already in the `utxos` table.
-fn calculate_transaction_fee(transaction: Transaction, conn: &Connection) -> Result<Amount, Error> {
-    fn get_prevout_value(outpoint: &OutPoint, conn: &Connection) -> Result<Amount, Error> {
-        Ok(Amount::try_from(
-            conn.query_row(
-                GET_OUTPOINT_VALUE,
-                named_params! {
-                    ":txid": outpoint.hash(),
-                    ":idx": outpoint.n(),
-                },
-                |row| row.get::<_, i64>(0),
-            )
-            .map_err(|e| match e {
-                rusqlite::Error::QueryReturnedNoRows => Error::OutPointMissing,
-                e => e.into(),
-            })?,
-        )
-        .unwrap())
+fn calculate_transaction_fee(
+    transaction: Transaction,
+    conn: &Connection,
+) -> Result<ZatBalance, Error> {
+    fn get_prevout_value(
+        outpoint: &OutPoint,
+        conn: &Connection,
+    ) -> Result<Option<Zatoshis>, Error> {
+        match conn.query_row(
+            GET_OUTPOINT_VALUE,
+            named_params! {
+                ":txid": outpoint.hash(),
+                ":idx": outpoint.n(),
+            },
+            |row| row.get::<_, u64>(0),
+        ) {
+            Ok(v) => Ok(Some(Zatoshis::try_from(v).map_err(|e| {
+                Error::Internal(format!("Invalid ZAT value in UTXO table: {e}"))
+            })?)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
-    let transparent_value_balance = transaction
-        .transparent_bundle()
-        .map_or(Ok(Amount::zero()), |b| {
-            b.value_balance(|outpoint| get_prevout_value(outpoint, conn))
-        })?;
-    let sprout_value_balance = transaction.sprout_bundle().map_or(Amount::zero(), |b| {
-        b.value_balance().unwrap_or(Amount::zero())
+    let transparent_value_balance =
+        transaction
+            .transparent_bundle()
+            .map_or(Ok(ZatBalance::zero()), |b| {
+                b.value_balance(|outpoint| get_prevout_value(outpoint, conn))?
+                    .ok_or(Error::OutPointMissing)
+            })?;
+    let sprout_value_balance = transaction.sprout_bundle().map_or(ZatBalance::zero(), |b| {
+        b.value_balance().unwrap_or(ZatBalance::zero())
     });
     let sapling_value_balance = transaction.sapling_value_balance();
     let orchard_value_balance = transaction
         .orchard_bundle()
-        .map_or(Amount::zero(), |b| b.value_balance().to_owned());
+        .map_or(ZatBalance::zero(), |b| b.value_balance().to_owned());
 
     Ok((transparent_value_balance
         + sprout_value_balance
@@ -733,7 +739,7 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
 
 async fn update_subtree_roots<P: Parameters>(
     client: &mut CompactTxStreamerClient<Channel>,
-    db_data: &mut WalletDb<rusqlite::Connection, P>,
+    db_data: &mut WalletDb<rusqlite::Connection, P, SystemClock, OsRng>,
 ) -> Result<(), anyhow::Error> {
     // Update sapling subtree roots
     let mut request = service::GetSubtreeRootsArg::default();
@@ -840,7 +846,7 @@ async fn download_transparent_transactions(
 struct SyncState {
     network: Network,
     progress: Arc<Option<Box<dyn SyncUpdate>>>,
-    min_confirmations: u32,
+    confirmations_policy: ConfirmationsPolicy,
     cancellation_token: CancellationToken,
 }
 
@@ -909,7 +915,7 @@ async fn download_and_scan_blocks(
                 update_and_report_status(
                     s,
                     &db.data,
-                    state.min_confirmations,
+                    state.confirmations_policy,
                     state.progress.borrow(),
                 )?;
             }
@@ -1117,7 +1123,14 @@ async fn fetch_transaction(
         Ok(response) => Ok(Some(response.into_inner())),
         Err(status) if status.code() == tonic::Code::NotFound => Ok(None),
         // Workaround for https://github.com/ZcashFoundation/zebra/issues/8786 and https://github.com/zcash/lightwalletd/issues/497
-        Err(status) if status.code() == tonic::Code::Unknown && (status.message() == "-5: No such mempool or blockchain transaction. Use gettransaction for wallet transactions." || status.message() == "0: Transaction not found") => Ok(None),
+        Err(status)
+            if status.code() == tonic::Code::Unknown
+                && (status.message()
+                    == "-5: No such mempool or blockchain transaction. Use gettransaction for wallet transactions."
+                    || status.message() == "0: Transaction not found") =>
+        {
+            Ok(None)
+        }
         Err(status) => Err(status),
     }?;
 
@@ -1150,7 +1163,7 @@ pub(crate) fn get_transactions(
     db: &mut Db,
     conn: &mut rusqlite::Connection,
     network: &Network,
-    account_id_filter: Option<u32>,
+    account_id_filter: Option<AccountUuid>,
     starting_block_filter: Option<u32>,
     ending_block_filter: Option<u32>,
 ) -> Result<Vec<crate::interop::Transaction>, Error> {
@@ -1162,15 +1175,19 @@ pub(crate) fn get_transactions(
 
     let rows = stmt_txs.query_and_then(
         named_params! {
-            ":account_id": account_id_filter,
+            ":account_uuid": account_id_filter.map(|id| id.expose_uuid()),
             ":starting_block": starting_block_filter,
             ":ending_block": ending_block_filter,
         },
         |row| -> Result<crate::interop::Transaction, Error> {
-            let account_id: u32 = row.get("account_id")?;
+            let account_uuid = AccountUuid::from_uuid(row.get("account_uuid")?);
             let output_pool: u32 = row.get("output_pool")?;
-            let from_account_id: Option<u32> = row.get("from_account_id")?;
-            let to_account_id: Option<u32> = row.get("to_account_id")?;
+            let from_account_uuid = row
+                .get::<_, Option<Uuid>>("from_account_uuid")?
+                .map(AccountUuid::from_uuid);
+            let to_account_uuid = row
+                .get::<_, Option<Uuid>>("to_account_uuid")?
+                .map(AccountUuid::from_uuid);
             let mut recipient: Option<String> = row.get("to_address")?;
             let value: u64 = row.get("value")?;
             let memo: Option<Vec<u8>> = row.get("memo")?;
@@ -1182,12 +1199,12 @@ pub(crate) fn get_transactions(
                 3 => PoolType::ORCHARD,
                 _ => {
                     return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
-                        format!("Unknown output pool type: {}", output_pool),
-                    )))
+                        format!("Unknown output pool type: {output_pool}"),
+                    )));
                 }
             };
 
-            let ufvk = ufvkeys.get(&AccountId::from(account_id));
+            let ufvk = ufvkeys.get(&account_uuid);
 
             // Work out the receiving address when the sqlite db doesn't record it
             // but we have a diversifier that can regenerate it.
@@ -1225,7 +1242,7 @@ pub(crate) fn get_transactions(
             }
 
             let mut tx = crate::interop::Transaction {
-                account_id,
+                account_id: account_uuid.expose_uuid().as_bytes().to_vec(),
                 txid: row.get::<_, Vec<u8>>("txid")?,
                 mined_height: row.get("mined_height")?,
                 expired_unmined: row
@@ -1236,8 +1253,7 @@ pub(crate) fn get_transactions(
                         time::OffsetDateTime::from_unix_timestamp(v)
                             .map_err(|e| {
                                 Error::SqliteClient(SqliteClientError::CorruptedData(format!(
-                                    "Error translating unix timestamp: {}",
-                                    e
+                                    "Error translating unix timestamp: {e}"
                                 )))
                             })?
                             .into(),
@@ -1270,7 +1286,7 @@ pub(crate) fn get_transactions(
             // * the recipient is to the same account
             // * the recipient is shielded (since change will never be sent to the transparent pool).
             // * the memo does not contain user text,
-            let is_change = to_account_id == from_account_id
+            let is_change = to_account_uuid == from_account_uuid
                 && matches!(output_pool, PoolType::Shielded(_))
                 && Memo::from_bytes(&memo).is_ok_and(|m| !matches!(m, Memo::Text(_)));
 
@@ -1278,11 +1294,11 @@ pub(crate) fn get_transactions(
                 tx.change.push(note);
             } else {
                 // A 'send to self' will appear as both incoming and outgoing.
-                if to_account_id == Some(account_id) {
+                if to_account_uuid == Some(account_uuid) {
                     tx.incoming.push(note.clone());
                 }
 
-                if from_account_id == Some(account_id) {
+                if from_account_uuid == Some(account_uuid) {
                     tx.outgoing.push(note);
                 }
             }
@@ -1316,7 +1332,6 @@ pub(crate) fn get_transactions(
 #[cfg(test)]
 mod tests {
     use zcash_client_backend::data_api::Account;
-    use zcash_primitives::transaction::components::Amount;
 
     use crate::test_constants::setup_test;
 
@@ -1327,21 +1342,26 @@ mod tests {
         let mut setup = setup_test().await;
         let (seed, birthday, account_id, _) = setup.create_account().await.unwrap();
 
-        // Add one more account two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
+        // Add one more account. Two accounts with the same seed leads to accounts with unique indexes and thus spending authorities.
+        let second_account_zip32_idx = zip32::AccountId::ZERO.next().unwrap();
         let account_ids = [
-            account_id,
-            setup
-                .db
-                .add_account(
-                    &seed,
-                    zip32::AccountId::ZERO.next().unwrap(),
-                    birthday,
-                    &mut setup.client,
-                )
-                .await
-                .unwrap()
-                .0
-                .id(),
+            (zip32::AccountId::ZERO, account_id),
+            (
+                second_account_zip32_idx,
+                setup
+                    .db
+                    .add_account(
+                        "test account name",
+                        &seed,
+                        second_account_zip32_idx,
+                        birthday,
+                        &mut setup.client,
+                    )
+                    .await
+                    .unwrap()
+                    .0
+                    .id(),
+            ),
         ]
         .map(|a| a);
 
@@ -1349,7 +1369,7 @@ mod tests {
             setup.server_uri.clone(),
             &setup.data_file,
             None,
-            setup.db_init.min_confirmations,
+            ConfirmationsPolicy::default(),
             false,
             CancellationToken::new(),
         )
@@ -1361,21 +1381,24 @@ mod tests {
         if let Some(summary) = setup
             .db
             .data
-            .get_wallet_summary(setup.db_init.min_confirmations)
+            .get_wallet_summary(ConfirmationsPolicy::default())
             .unwrap()
         {
-            for id in account_ids {
-                info!("Account index: {}", u32::from(id));
-                let b = summary.account_balances().get(&id).unwrap();
+            for (zip32_index, uuid) in account_ids {
+                info!("Account index: {}", u32::from(zip32_index));
+                let b = summary.account_balances().get(&uuid).unwrap();
                 info!(
                     "Orchard balance: {}",
-                    format_zec(Amount::from(b.orchard_balance().spendable_value()))
+                    format_zec(b.orchard_balance().spendable_value())
                 );
                 info!(
                     "Sapling balance: {}",
-                    format_zec(Amount::from(b.sapling_balance().spendable_value()))
+                    format_zec(b.sapling_balance().spendable_value())
                 );
-                info!("Transparent balance: {}", format_zec(b.unshielded()));
+                info!(
+                    "Transparent balance: {}",
+                    format_zec(b.unshielded_balance().total())
+                );
             }
         } else {
             info!("No summary found");
@@ -1389,12 +1412,12 @@ mod tests {
 
     const COIN: u64 = 1_0000_0000;
 
-    fn format_zec(value: impl Into<Amount>) -> String {
-        let value = i64::from(value.into());
-        let abs_value = value.unsigned_abs();
+    fn format_zec(value: impl Into<ZatBalance>) -> String {
+        let balance = value.into();
+        let abs_value = i64::from(balance).unsigned_abs();
         let abs_zec = abs_value / COIN;
         let frac = abs_value % COIN;
-        let zec = if value.is_negative() {
+        let zec = if balance.is_negative() {
             -(abs_zec as i64)
         } else {
             abs_zec as i64

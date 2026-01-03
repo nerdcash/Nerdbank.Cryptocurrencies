@@ -59,7 +59,6 @@ public record AccountBalances
 	/// </para>
 	/// <para>
 	/// For enhanced privacy, the minimum number of required confirmations to spend a note is usually greater than one.
-	/// This value is controlled by <see cref="LightWalletClient.MinimumConfirmations"/>.
 	/// </para>
 	/// </remarks>
 	public SecurityAmount Spendable { get; init; }

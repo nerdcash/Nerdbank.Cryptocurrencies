@@ -1,9 +1,9 @@
 [package]
 name = "nerdbank-zcash-rust"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
-edition = "2021"
-rust-version = "1.79"
+edition = "2024"
+rust-version = "1.88"
 
 [lib]
 crate-type = ["cdylib"]
@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-uniffi = { version = "0.25.0", features = ["build"] }
+uniffi = { version = "0.29.4", features = ["build"] }
 
 [dependencies]
 ff = "0.13"
@@ -21,35 +21,32 @@ http = "1"
 jubjub = "0.10"
 lazy_static = "1.4"
 minreq = "2.11.0"
-nonempty = "0.7"
-orchard = { version = "0.10", default-features = false }
+nonempty = "0.11"
+orchard = { version = "0.12", default-features = false }
 pasta_curves = "0.5"
 prost = "0.14"
-rusqlite = "0.29"
-sapling = { package = "sapling-crypto", version = "0.3" }
-schemer = "0.2"
+rand = "0.8"
+rusqlite = { version = "0.37", features = ["bundled"] }
+sapling = { package = "sapling-crypto", version = "0.6" }
+schemerz = "0.2"
 secrecy = "0.8.0"
 thiserror = "1.0"
-time = "0.3.31"
+time = "0.3.22"
 tracing = "0.1"
-tokio = { version = "1", features = [
-	"rt",
-	"fs",
-	"macros",
-	"rt-multi-thread",
-] }
+tokio = { version = "1", features = ["rt", "fs", "macros", "rt-multi-thread"] }
 tokio-util = "0.7.10"
-tonic = { version = "0.12", features = ["gzip", "tls-webpki-roots"] }
-uniffi = "0.25"
+tonic = { version = "0.14", features = ["gzip", "tls-webpki-roots"] }
+uniffi = "0.29.4"
 zcash_address = { path = "../../external/librustzcash/components/zcash_address" }
+zcash_transparent = { path = "../../external/librustzcash/zcash_transparent" }
 zcash_primitives = { path = "../../external/librustzcash/zcash_primitives", features = [
 	"transparent-inputs",
 ] }
 zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backend", features = [
 	"test-dependencies",
 	"transparent-inputs",
-	"lightwalletd-tonic",
 	"orchard",
+	"lightwalletd-tonic",
 ] }
 zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite", features = [
 	"multicore",
@@ -64,14 +61,19 @@ zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
 	"unstable",
 	"test-dependencies",
 ] }
+zcash_protocol = { path = "../../external/librustzcash/components/zcash_protocol" }
 zcash_proofs = { path = "../../external/librustzcash/zcash_proofs", features = [
 	"download-params",
 	"local-prover",
 	"multicore",
 ], default-features = false }
-zeroize = "1.7.0"
-zip32 = "0.1.1"
+zeroize = "1.7"
+zip32 = "0.2"
 tokio-shared-rt = "0.1.0"
+uuid.workspace = true
+aws-lc-rs = "1.15.2"
+cmake = "0.1.57"
+rustls = "0.23.35"
 
 [dev-dependencies]
 testdir = "0.9.1"

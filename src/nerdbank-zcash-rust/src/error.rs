@@ -1,26 +1,35 @@
-use schemer::MigratorError;
+use schemerz::MigratorError;
 use tokio::task::JoinError;
 use uniffi::deps::anyhow;
+use uuid::Uuid;
 use zcash_client_backend::{
-    data_api::{chain::error::Error as ChainError, BirthdayError},
+    data_api::{BirthdayError, chain::error::Error as ChainError},
     scanning::ScanError,
     zip321::Zip321Error,
 };
 use zcash_client_sqlite::{error::SqliteClientError, wallet::init::WalletMigrationError};
-use zcash_primitives::{
-    memo,
-    transaction::components::amount::{BalanceError, NonNegativeAmount},
+use zcash_protocol::{
+    PoolType, memo,
+    value::{BalanceError, Zatoshis},
 };
 
 use crate::block_source::BlockCacheError;
 
-type BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError> =
-    zcash_client_backend::data_api::error::Error<
-        DataSourceError,
-        CommitmentTreeError,
-        SelectionError,
-        FeeError,
-    >;
+type BackendError<
+    DataSourceError,
+    CommitmentTreeError,
+    SelectionError,
+    FeeError,
+    ChangeErrT,
+    NoteRefT,
+> = zcash_client_backend::data_api::error::Error<
+    DataSourceError,
+    CommitmentTreeError,
+    SelectionError,
+    FeeError,
+    ChangeErrT,
+    NoteRefT,
+>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -53,18 +62,22 @@ pub enum Error {
 
     SqliteClient(SqliteClientError),
 
-    SqliteMigrator(MigratorError<rusqlite::Error>),
+    SqliteMigrator(MigratorError<Uuid, rusqlite::Error>),
 
-    WalletMigrator(MigratorError<WalletMigrationError>),
+    WalletMigrator(MigratorError<Uuid, WalletMigrationError>),
 
     InvalidHeight,
 
     InvalidAmount,
 
     InsufficientFunds {
-        required: NonNegativeAmount,
-        available: NonNegativeAmount,
+        required: Zatoshis,
+        available: Zatoshis,
     },
+
+    KeyNotAvailable(PoolType),
+
+    AccountCannotSpend,
 
     InvalidAddress,
 
@@ -83,6 +96,8 @@ pub enum Error {
 
     InvalidArgument(String),
 
+    Change,
+
     Anyhow(anyhow::Error),
 
     SendFailed {
@@ -91,8 +106,6 @@ pub enum Error {
     },
 
     ProposalNotSupported,
-
-    NoSpendingKey(String),
 
     KeyNotRecognized,
 
@@ -134,14 +147,18 @@ impl std::fmt::Display for Error {
             Error::SyncFirst => f.write_str("Sync before performing this operation."),
             Error::InvalidArgument(e) => e.fmt(f),
             Error::Anyhow(e) => e.fmt(f),
-            Error::SendFailed { code, reason } => write!(f, "Send failed: {}: {}", code, reason),
+            Error::SendFailed { code, reason } => write!(f, "Send failed: {code}: {reason}"),
             Error::Minreq(e) => e.fmt(f),
             Error::OutPointMissing => f.write_str("OutPoint missing"),
             Error::ProposalNotSupported => f.write_str("Proposal not supported"),
-            Error::NoSpendingKey(e) => write!(f, "No spending key: {}", e),
             Error::KeyNotRecognized => f.write_str("No account found with the given key."),
             Error::Join(e) => e.fmt(f),
             Error::Canceled => f.write_str("Canceled"),
+            Error::KeyNotAvailable(pool_type) => {
+                write!(f, "Key not available for {pool_type:?} pool.")
+            }
+            Error::AccountCannotSpend => f.write_str("This account is not set up to spend."),
+            Error::Change => f.write_str("An error occurred in selecting change."),
         }
     }
 }
@@ -201,14 +218,14 @@ impl From<rusqlite::Error> for Error {
     }
 }
 
-impl From<MigratorError<rusqlite::Error>> for Error {
-    fn from(e: MigratorError<rusqlite::Error>) -> Self {
+impl From<MigratorError<Uuid, rusqlite::Error>> for Error {
+    fn from(e: MigratorError<Uuid, rusqlite::Error>) -> Self {
         Error::SqliteMigrator(e)
     }
 }
 
-impl From<MigratorError<WalletMigrationError>> for Error {
-    fn from(e: MigratorError<WalletMigrationError>) -> Self {
+impl From<MigratorError<Uuid, WalletMigrationError>> for Error {
+    fn from(e: MigratorError<Uuid, WalletMigrationError>) -> Self {
         Error::WalletMigrator(e)
     }
 }
@@ -249,8 +266,17 @@ impl From<minreq::Error> for Error {
     }
 }
 
-impl<DataSourceError, CommitmentTreeError, SelectionError, FeeError>
-    From<BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError>> for Error
+impl<DataSourceError, CommitmentTreeError, SelectionError, FeeError, ChangeErrT, NoteRefT>
+    From<
+        BackendError<
+            DataSourceError,
+            CommitmentTreeError,
+            SelectionError,
+            FeeError,
+            ChangeErrT,
+            NoteRefT,
+        >,
+    > for Error
 where
     DataSourceError: std::fmt::Display + std::fmt::Debug,
     CommitmentTreeError: std::fmt::Display + std::fmt::Debug,
@@ -258,20 +284,25 @@ where
     FeeError: std::fmt::Display + std::fmt::Debug,
 {
     fn from(
-        value: BackendError<DataSourceError, CommitmentTreeError, SelectionError, FeeError>,
+        value: BackendError<
+            DataSourceError,
+            CommitmentTreeError,
+            SelectionError,
+            FeeError,
+            ChangeErrT,
+            NoteRefT,
+        >,
     ) -> Self {
         match value {
-            BackendError::DataSource(inner) => Error::Internal(format!("DataSource: {}", inner)),
+            BackendError::DataSource(inner) => Error::Internal(format!("DataSource: {inner}")),
             BackendError::CommitmentTree(inner) => {
-                Error::Internal(format!("CommitmentTree: {}", inner))
+                Error::Internal(format!("CommitmentTree: {inner}"))
             }
             BackendError::NoteSelection(inner) => {
-                Error::Internal(format!("NoteSelection: {}", inner))
+                Error::Internal(format!("NoteSelection: {inner}"))
             }
             BackendError::KeyNotRecognized => Error::KeyNotRecognized,
-            BackendError::BalanceError(inner) => {
-                Error::Internal(format!("BalanceError: {}", inner))
-            }
+            BackendError::BalanceError(inner) => Error::Internal(format!("BalanceError: {inner}")),
             BackendError::InsufficientFunds {
                 available,
                 required,
@@ -280,21 +311,25 @@ where
                 available,
             },
             BackendError::ScanRequired => Error::SyncFirst,
-            BackendError::Builder(inner) => Error::Internal(format!("Builder: {}", inner)),
+            BackendError::Builder(inner) => Error::Internal(format!("Builder: {inner}")),
             BackendError::MemoForbidden => Error::Internal("MemoForbidden".to_string()),
             BackendError::NoteMismatch(_) => Error::Internal("NoteMismatch".to_string()),
             BackendError::AddressNotRecognized(_) => Error::InvalidAddress,
             BackendError::ProposalNotSupported => Error::ProposalNotSupported,
-            BackendError::NoSpendingKey(msg) => Error::NoSpendingKey(msg),
             BackendError::UnsupportedChangeType(pool_type) => {
-                Error::Internal(format!("UnsupportedChangeType: {}", pool_type))
+                Error::Internal(format!("UnsupportedChangeType: {pool_type}"))
             }
-            BackendError::Proposal(e) => Error::Internal(format!("Proposal: {}", e)),
+            BackendError::Proposal(e) => Error::Internal(format!("Proposal: {e}")),
             BackendError::NoSupportedReceivers(_) => {
                 Error::Internal("No supported receivers".to_string())
             }
             BackendError::Address(_) => Error::InvalidAddress,
-            BackendError::PaysEphemeralTransparentAddress(_) => Error::Internal(value.to_string()),
+            BackendError::Change(_) => Error::Change,
+            BackendError::AccountIdNotRecognized => {
+                Error::InvalidArgument("Account ID not recognized.".to_string())
+            }
+            BackendError::AccountCannotSpend => Error::AccountCannotSpend,
+            BackendError::KeyNotAvailable(pool_type) => Error::KeyNotAvailable(pool_type),
         }
     }
 }
