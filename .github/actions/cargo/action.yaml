@@ -28,7 +28,7 @@ runs:
       RUST_BACKTRACE: 1
     if: and(succeeded(), ne('${{ inputs.test_target }}', ''))
 
-  - run: cargo clippy -r --target=${{ inputs.test_target }} -- -D warnings
+  - run: cargo clippy -r --target=${{ inputs.test_target }} --no-deps -- -D warnings
     shell: pwsh
     name: 🧼 cargo clippy
     working-directory: src/nerdbank-zcash-rust
