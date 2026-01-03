@@ -21,9 +21,16 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let target = env::var("TARGET").unwrap_or_default();
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    let clang_arch = match target_arch.as_str() {
+        "aarch64" => "arm64",
+        "x86_64" => "x86_64",
+        other => other,
+    };
     let is_simulator = target.contains("apple-ios-sim")
         || target.starts_with("x86_64-apple-ios")
         || target.starts_with("i386-apple-ios");
+    let platform_suffix = if is_simulator { "iossim" } else { "ios" };
     let sdk = if is_simulator {
         "iphonesimulator"
     } else {
@@ -57,36 +64,63 @@ fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
         .into());
     }
 
-    let candidates: &[&str] = if is_simulator {
-        &[
-            "clang_rt.builtins_iossim",
-            "clang_rt.builtins_iossim_dynamic",
-            "clang_rt.builtins_ios",
-        ]
-    } else {
-        &["clang_rt.builtins_ios", "clang_rt.builtins_ios_dynamic"]
-    };
+    let candidates = [
+        // Prefer arch-specific libraries (common in Xcode toolchains).
+        format!("clang_rt.builtins_{clang_arch}_{platform_suffix}"),
+        // Fallback to non-arch-specific names.
+        format!("clang_rt.builtins_{platform_suffix}"),
+        // Some toolchains expose a "dynamic" archive as well.
+        format!("clang_rt.builtins_{platform_suffix}_dynamic"),
+    ];
 
-    let selected = candidates
-        .iter()
-        .copied()
-        .find(|name| link_path.join(format!("lib{name}.a")).is_file());
-    let Some(selected) = selected else {
-        let files = fs::read_dir(&link_path)
-            .ok()
-            .into_iter()
-            .flatten()
+    let mut selected: Option<String> = None;
+
+    for candidate in candidates {
+        if link_path.join(format!("lib{candidate}.a")).is_file() {
+            selected = Some(candidate);
+            break;
+        }
+    }
+
+    if selected.is_none() {
+        // Last resort: scan for any builtins archive matching the platform suffix.
+        let entries = fs::read_dir(&link_path).map_err(|e| {
+            format!(
+                "Unable to enumerate clang runtime directory {}: {e}",
+                link_path.display()
+            )
+        })?;
+
+        let mut builtins = entries
             .filter_map(|e| e.ok())
             .filter_map(|e| e.file_name().into_string().ok())
-            .filter(|n| n.contains("builtins") && n.ends_with(".a"))
+            .filter(|name| {
+                name.ends_with(".a") && name.contains("builtins") && name.contains(platform_suffix)
+            })
             .collect::<Vec<_>>();
-        return Err(format!(
-            "Could not find clang builtins library in {}. Found: {:?}",
-            link_path.display(),
-            files
-        )
-        .into());
-    };
+        builtins.sort();
+
+        if let Some(first) = builtins
+            .iter()
+            .find(|n| n.contains(clang_arch))
+            .or_else(|| builtins.first())
+        {
+            selected = Some(
+                first
+                    .trim_start_matches("lib")
+                    .trim_end_matches(".a")
+                    .to_string(),
+            );
+        } else {
+            return Err(format!(
+                "Could not find a clang builtins library for target {target} (arch={clang_arch}, sdk={sdk}). Looked in {}",
+                link_path.display()
+            )
+            .into());
+        }
+    }
+
+    let selected = selected.expect("selected must be set");
 
     println!("cargo:rustc-link-search={}", link_path.display());
     println!("cargo:rustc-link-lib=static={selected}");
