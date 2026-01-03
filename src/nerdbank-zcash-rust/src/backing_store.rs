@@ -10,7 +10,9 @@ use zcash_client_backend::{
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
 use zcash_client_sqlite::{
-    AccountUuid, WalletDb, util::SystemClock, wallet::{Account, init::init_wallet_db}
+    AccountUuid, WalletDb,
+    util::SystemClock,
+    wallet::{Account, init::init_wallet_db},
 };
 use zcash_keys::{address::UnifiedAddress, keys::UnifiedFullViewingKey};
 use zcash_protocol::consensus::Network;

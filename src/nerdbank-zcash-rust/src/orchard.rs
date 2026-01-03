@@ -1,7 +1,7 @@
 use group::ff::{FromUniformBytes, PrimeField};
 use orchard::{
-    keys::{DiversifierIndex, FullViewingKey, IncomingViewingKey, Scope, SpendingKey},
     Address,
+    keys::{DiversifierIndex, FullViewingKey, IncomingViewingKey, Scope, SpendingKey},
 };
 use pasta_curves::pallas;
 

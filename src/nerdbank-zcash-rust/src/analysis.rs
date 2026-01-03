@@ -106,7 +106,6 @@ pub struct UserBalances {
     pub incoming_dust: u64,
 }
 
-
 pub fn get_user_balances(
     config: &DbInit,
     account_uuid: &AccountUuid,

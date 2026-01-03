@@ -302,9 +302,7 @@ where
                 Error::Internal(format!("NoteSelection: {inner}"))
             }
             BackendError::KeyNotRecognized => Error::KeyNotRecognized,
-            BackendError::BalanceError(inner) => {
-                Error::Internal(format!("BalanceError: {inner}"))
-            }
+            BackendError::BalanceError(inner) => Error::Internal(format!("BalanceError: {inner}")),
             BackendError::InsufficientFunds {
                 available,
                 required,

@@ -1,10 +1,10 @@
 use sapling::{
+    PaymentAddress, SaplingIvk,
     keys::{ExpandedSpendingKey, FullViewingKey},
     zip32::{
-        sapling_derive_internal_fvk, DiversifiableFullViewingKey, DiversifierKey,
-        ExtendedSpendingKey,
+        DiversifiableFullViewingKey, DiversifierKey, ExtendedSpendingKey,
+        sapling_derive_internal_fvk,
     },
-    PaymentAddress, SaplingIvk,
 };
 use zip32::{ChildIndex, DiversifierIndex, Scope};
 
