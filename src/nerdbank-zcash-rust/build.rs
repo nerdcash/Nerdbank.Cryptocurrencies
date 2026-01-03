@@ -1,5 +1,6 @@
 use std::env;
 use std::ffi::OsStr;
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -9,6 +10,86 @@ const ANDROID_NDK_CLANG_VERSION: &str = "17";
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     uniffi::generate_scaffolding("src/ffi.udl").unwrap();
     setup_x86_64_android_workaround();
+    setup_ios_workaround()?;
+    Ok(())
+}
+
+fn setup_ios_workaround() -> Result<(), Box<dyn std::error::Error>> {
+    let target_os = env::var("CARGO_CFG_TARGET_OS").expect("CARGO_CFG_TARGET_OS not set");
+    if target_os != "ios" {
+        return Ok(());
+    }
+
+    let target = env::var("TARGET").unwrap_or_default();
+    let is_simulator = target.contains("apple-ios-sim")
+        || target.starts_with("x86_64-apple-ios")
+        || target.starts_with("i386-apple-ios");
+    let sdk = if is_simulator {
+        "iphonesimulator"
+    } else {
+        "iphoneos"
+    };
+
+    let clang = Command::new("xcrun")
+        .args(["--sdk", sdk, "--find", "clang"])
+        .output()?
+        .stdout;
+    let clang = String::from_utf8(clang)?.trim().to_string();
+    if clang.is_empty() {
+        return Err(format!("Unable to locate clang via xcrun for sdk {sdk}.").into());
+    }
+
+    let resource_dir = Command::new(&clang)
+        .arg("--print-resource-dir")
+        .output()?
+        .stdout;
+    let resource_dir = String::from_utf8(resource_dir)?.trim().to_string();
+    if resource_dir.is_empty() {
+        return Err(format!("Unable to query clang resource dir using {clang}.").into());
+    }
+
+    let link_path = PathBuf::from(resource_dir).join("lib").join("darwin");
+    if !link_path.exists() {
+        return Err(format!(
+            "Expected clang runtime dir does not exist: {}",
+            link_path.display()
+        )
+        .into());
+    }
+
+    let candidates: &[&str] = if is_simulator {
+        &[
+            "clang_rt.builtins_iossim",
+            "clang_rt.builtins_iossim_dynamic",
+            "clang_rt.builtins_ios",
+        ]
+    } else {
+        &["clang_rt.builtins_ios", "clang_rt.builtins_ios_dynamic"]
+    };
+
+    let selected = candidates
+        .iter()
+        .copied()
+        .find(|name| link_path.join(format!("lib{name}.a")).is_file());
+    let Some(selected) = selected else {
+        let files = fs::read_dir(&link_path)
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(|e| e.ok())
+            .filter_map(|e| e.file_name().into_string().ok())
+            .filter(|n| n.contains("builtins") && n.ends_with(".a"))
+            .collect::<Vec<_>>();
+        return Err(format!(
+            "Could not find clang builtins library in {}. Found: {:?}",
+            link_path.display(),
+            files
+        )
+        .into());
+    };
+
+    println!("cargo:rustc-link-search={}", link_path.display());
+    println!("cargo:rustc-link-lib=static={selected}");
     Ok(())
 }
 
