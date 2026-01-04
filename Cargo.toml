@@ -161,7 +161,7 @@ fpe = { version = "0.6", default-features = false, features = ["alloc"] }
 zip32 = { version = "0.2", default-features = false }
 
 # Workaround for https://anonticket.torproject.org/user/projects/arti/issues/pending/4028/
-time-core = "=0.1.2"
+time-core = "=0.1.6"
 
 [workspace.package]
 edition = "2024"
