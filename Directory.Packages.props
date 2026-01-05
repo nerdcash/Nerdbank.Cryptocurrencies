@@ -5,7 +5,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <MicrosoftTestingPlatformVersion>2.0.2</MicrosoftTestingPlatformVersion>
-    <RoslynVersion>3.11.0-beta1.24629.2</RoslynVersion>
+    <RoslynVersion>3.11.0-beta1.25173.3</RoslynVersion>
     <AspNetWebAssemblyVersion>10.0.1</AspNetWebAssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -24,7 +24,7 @@
     <PackageVersion Include="NBitcoin.Secp256k1" Version="3.2.0" />
     <PackageVersion Include="Nerdbank.QRCodes" Version="0.2.65" />
     <PackageVersion Include="QRCoder" Version="1.7.0" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.1" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="xunit.combinatorial" Version="2.0.24" />
   </ItemGroup>
