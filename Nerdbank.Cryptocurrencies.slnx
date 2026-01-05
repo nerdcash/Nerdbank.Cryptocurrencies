@@ -29,6 +29,7 @@
     <Project Path="src/Nerdbank.Zcash/Nerdbank.Zcash.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/AotCompatibilityTest/AotCompatibilityTest.csproj" />
     <Project Path="test/Nerdbank.Bitcoin.Tests/Nerdbank.Bitcoin.Tests.csproj" />
     <Project Path="test/Nerdbank.Cryptocurrencies.Tests/Nerdbank.Cryptocurrencies.Tests.csproj" />
     <Project Path="test/Nerdbank.Zcash.Tests/Nerdbank.Zcash.Tests.csproj" />

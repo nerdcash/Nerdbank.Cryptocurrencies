@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\AOT.props" />
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Nerdbank.Bitcoin" />
+    <TrimmerRootAssembly Include="Nerdbank.Cryptocurrencies" />
+    <TrimmerRootAssembly Include="Nerdbank.Zcash" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nerdbank.Bitcoin\Nerdbank.Bitcoin.csproj" />
+    <ProjectReference Include="..\..\src\Nerdbank.Cryptocurrencies\Nerdbank.Cryptocurrencies.csproj" />
+    <ProjectReference Include="..\..\src\Nerdbank.Zcash\Nerdbank.Zcash.csproj" />
+  </ItemGroup>
+
+</Project>

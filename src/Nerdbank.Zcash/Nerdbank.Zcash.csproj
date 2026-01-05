@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <TargetFrameworks Condition="!$([MSBuild]::IsOsPlatform('Linux'))">$(TargetFrameworks);net9.0-ios18.0</TargetFrameworks>
+    <IsAotCompatible>true</IsAotCompatible>
     <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
     <Description>A .NET library for Zcash, capable of creating accounts, deriving addresses, interacting with lightwallet servers, syncing, and sending transactions.</Description>
     <PackageValidationBaselineVersion>0.3.185</PackageValidationBaselineVersion>

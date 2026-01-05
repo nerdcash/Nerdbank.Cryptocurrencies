@@ -7,6 +7,7 @@
     <RuntimeIdentifiers>$(AvailableRuntimeIdentifiers)</RuntimeIdentifiers>
     <RuntimeIdentifier>$(DefaultRuntimeIdentifier)</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 
   <ItemGroup>
