@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <SelfContained>true</SelfContained>
     <PublishAot>true</PublishAot>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <!--<PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>-->
     <InvariantGlobalization>true</InvariantGlobalization>

@@ -83,7 +83,7 @@ internal class SyncCommand : WalletUserCommandBase
 			this.Continually,
 			cancellationToken);
 
-		this.Console.WriteLine($"Scanned to block {syncResult.LastFullyScannedBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: Humanizer.Localisation.TimeUnit.Second)}.");
+		this.Console.WriteLine($"Scanned to block {syncResult.LastFullyScannedBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: TimeUnit.Second)}.");
 
 		return 0;
 	}
