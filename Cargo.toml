@@ -103,7 +103,7 @@ memuse = { version = "0.2.2", default-features = false }
 tracing = { version = "0.1", default-features = false }
 
 # No-std support
-core2 = { version = "0.3", default-features = false, features = ["alloc"] }
+core2 = { version = "0.4", default-features = false, features = ["alloc"] }
 
 # Parallel processing
 crossbeam-channel = "0.5"
