@@ -3,6 +3,7 @@
     <ProjectReference Include="Nerdbank.Cryptocurrencies.Tests\Nerdbank.Cryptocurrencies.Tests.csproj" />
     <ProjectReference Include="Nerdbank.Bitcoin.Tests\Nerdbank.Bitcoin.Tests.csproj" />
 
+    <MultiRIDProjectReference Include="AotCompatibilityTest\AotCompatibilityTest.csproj" />
     <MultiRIDProjectReference Include="Nerdbank.Zcash.Tests\Nerdbank.Zcash.Tests.csproj" />
   </ItemGroup>
 </Project>

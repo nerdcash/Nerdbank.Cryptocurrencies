@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <IsAotCompatible>true</IsAotCompatible>
     <DefineConstants>$(DefineConstants);BITCOIN</DefineConstants>
     <Description>A .NET library for Bitcoin, capable of several commonly-used algorithms.</Description>
     <PackageValidationBaselineVersion>0.3.185</PackageValidationBaselineVersion>

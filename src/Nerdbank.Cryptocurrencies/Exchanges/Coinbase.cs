@@ -181,7 +181,7 @@ public class Coinbase : IHistoricalExchangeRateProvider
 
 		try
 		{
-			ResponseItem[]? result = await this.httpClient.GetFromJsonAsync<ResponseItem[]>(requestUri, cancellationToken).ConfigureAwait(false);
+			ResponseItem[]? result = await this.httpClient.GetFromJsonAsync(requestUri, JsonSerializationInfo.Default.ResponseItemArray, cancellationToken).ConfigureAwait(false);
 			return result ?? [];
 		}
 		catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.InternalServerError)
@@ -193,7 +193,7 @@ public class Coinbase : IHistoricalExchangeRateProvider
 
 	private async Task<ImmutableHashSet<TradingPair>> GetAvailableTradingPairsNowAsync(CancellationToken cancellationToken)
 	{
-		Product[]? products = await this.httpClient.GetFromJsonAsync<Product[]>("https://api.exchange.coinbase.com/products", cancellationToken).ConfigureAwait(false);
+		Product[]? products = await this.httpClient.GetFromJsonAsync("https://api.exchange.coinbase.com/products", JsonSerializationInfo.Default.ProductArray, cancellationToken).ConfigureAwait(false);
 		if (products is null)
 		{
 			return EmptyTradingPairs;
@@ -214,7 +214,8 @@ public class Coinbase : IHistoricalExchangeRateProvider
 		return tradingPairs.ToImmutable();
 	}
 
-	private record struct Product
+#pragma warning disable SA1600 // These types are only internal to enable source generated serialization. They are considered private.
+	internal record struct Product
 	{
 		[JsonPropertyName("base_currency")]
 		public string? BaseCurrency { get; init; }
@@ -224,11 +225,11 @@ public class Coinbase : IHistoricalExchangeRateProvider
 	}
 
 	[JsonConverter(typeof(ResponseItemConverter))]
-	private record ResponseItem(DateTimeOffset StartTime, double Low, double High, double Open, double Close, double Volume)
+	internal record ResponseItem(DateTimeOffset StartTime, double Low, double High, double Open, double Close, double Volume)
 	{
 	}
 
-	private class ResponseItemConverter : JsonConverter<ResponseItem>
+	internal class ResponseItemConverter : JsonConverter<ResponseItem>
 	{
 		public override ResponseItem Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
@@ -271,4 +272,5 @@ public class Coinbase : IHistoricalExchangeRateProvider
 			writer.WriteEndArray();
 		}
 	}
+#pragma warning restore SA1600 // These types are only internal to enable source generated serialization. They are considered private.
 }
