@@ -62,6 +62,9 @@ public class YahooFinance : IHistoricalExchangeRateProvider
 	}
 
 	/// <inheritdoc/>
+	public TimeSpan Resolution => TimeSpan.FromDays(1);
+
+	/// <inheritdoc/>
 	public ValueTask<IReadOnlySet<TradingPair>> GetAvailableTradingPairsAsync(CancellationToken cancellationToken)
 	{
 		return new(AvailableTradingPairs);

@@ -9,6 +9,11 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 public interface IHistoricalExchangeRateProvider : ITradingPairProvider
 {
 	/// <summary>
+	/// Gets the time resolution of exchange rates provided by this provider.
+	/// </summary>
+	TimeSpan Resolution { get; }
+
+	/// <summary>
 	/// Gets the exchange rate between two currencies at a specific point in time.
 	/// </summary>
 	/// <param name="tradingPair">The trading pair to get the price of.</param>

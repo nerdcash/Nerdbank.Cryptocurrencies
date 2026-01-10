@@ -21,41 +21,72 @@ namespace Nerdbank.Cryptocurrencies.Exchanges;
 /// </remarks>
 public class Coinbase : IHistoricalExchangeRateProvider
 {
+	/// <summary>
+	/// The maximum number of candles that Coinbase will return in a single response.
+	/// </summary>
+	/// <remarks>
+	/// <see href="https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-candles#max-candles">source documentation</see>.
+	/// </remarks>
+	private const int MaxCandles = 300;
+
 	private static readonly ImmutableHashSet<TradingPair> EmptyTradingPairs = ImmutableHashSet.Create<TradingPair>(TradingPairEitherOrderEqualityComparer.Instance);
 
 	private readonly AsyncLazy<ImmutableHashSet<TradingPair>> availableTradingPairs;
 	private readonly HttpClient httpClient;
-	private readonly ConcurrentDictionary<TradingPair, ConcurrentDictionary<DateOnly, Task<SortedList<DateTimeOffset, ExchangeRate>>>> historicalExchangeRates = new(TradingPairEitherOrderEqualityComparer.Instance);
+
+	/// <summary>
+	/// The duration of each cache segment, based on the resolution and MaxCandles.
+	/// </summary>
+	private readonly TimeSpan segmentDuration;
+
+	private readonly ConcurrentDictionary<TradingPair, ConcurrentDictionary<DateTimeOffset, Task<SortedList<DateTimeOffset, ExchangeRate>>>> historicalExchangeRates = new(TradingPairEitherOrderEqualityComparer.Instance);
+
+	/// <inheritdoc cref="Coinbase(HttpClient, Granularity)"/>
+	public Coinbase(HttpClient httpClient)
+		: this(httpClient, Granularity.Hourly)
+	{
+	}
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Coinbase"/> class.
 	/// </summary>
 	/// <param name="httpClient">The HTTP client to use for downloading prices.</param>
-	public Coinbase(HttpClient httpClient)
+	/// <param name="granularity">The desired resolution of the data returned.</param>
+	public Coinbase(HttpClient httpClient, Granularity granularity)
 	{
 		this.httpClient = httpClient;
+		this.Resolution = granularity;
+		this.segmentDuration = TimeSpan.FromSeconds((int)granularity * MaxCandles);
 		this.availableTradingPairs = new(() => this.GetAvailableTradingPairsNowAsync(CancellationToken.None));
 	}
 
 	/// <summary>
 	/// These are the granularities supported by the Coinbase API.
 	/// </summary>
-	private enum Granularity
+	public enum Granularity
 	{
-#pragma warning disable SA1602 // Enumeration items should be documented
+#pragma warning disable SA1602, CS1591 // Enumeration items should be documented
 		Minute = 60,
 		FiveMinutes = 300,
 		FifteenMinutes = 900,
 		Hourly = 3600,
 		SixHours = 21600,
 		Daily = 86400,
-#pragma warning restore SA1602 // Enumeration items should be documented
+#pragma warning restore SA1602, CS1591 // Enumeration items should be documented
 	}
 
 	/// <summary>
 	/// Gets the logger to use.
 	/// </summary>
 	public ILogger? Logger { get; init; }
+
+	/// <summary>
+	/// Gets the resolution of exchange rates provided by this provider.
+	/// </summary>
+	public Granularity Resolution { get; }
+
+	/// <inheritdoc/>
+	TimeSpan IHistoricalExchangeRateProvider.Resolution => TimeSpan.FromSeconds((int)this.Resolution);
 
 	/// <inheritdoc/>
 	public async ValueTask<IReadOnlySet<TradingPair>> GetAvailableTradingPairsAsync(CancellationToken cancellationToken)
@@ -66,20 +97,36 @@ public class Coinbase : IHistoricalExchangeRateProvider
 	/// <inheritdoc/>
 	public async ValueTask<ExchangeRate?> GetExchangeRateAsync(TradingPair tradingPair, DateTimeOffset when, CancellationToken cancellationToken)
 	{
+		// Return null for future dates since we can't have exchange rate data for times that haven't occurred yet.
+		if (when > DateTimeOffset.UtcNow)
+		{
+			return null;
+		}
+
 		TradingPair normalizedTradingPair = await this.GetNormalizedPairAsync(tradingPair, cancellationToken).ConfigureAwait(false);
 
-		ConcurrentDictionary<DateOnly, Task<SortedList<DateTimeOffset, ExchangeRate>>> byDate = this.historicalExchangeRates.GetOrAdd(
+		ConcurrentDictionary<DateTimeOffset, Task<SortedList<DateTimeOffset, ExchangeRate>>> bySegment = this.historicalExchangeRates.GetOrAdd(
 			normalizedTradingPair,
 			static tp => new());
 
-		SortedList<DateTimeOffset, ExchangeRate> forDate = await byDate.GetOrAdd(
-			DateOnly.FromDateTime(when.UtcDateTime),
-			static (DateOnly utcDate, (TradingPair TradingPair, Coinbase Self) arg) => Task.Run(async delegate
+		DateTimeOffset segmentStart = this.GetSegmentStart(when);
+		SortedList<DateTimeOffset, ExchangeRate> forSegment = await bySegment.GetOrAdd(
+			segmentStart,
+			static (DateTimeOffset segStart, (TradingPair TradingPair, Coinbase Self) arg) => Task.Run(async delegate
 			{
-				ResponseItem[] rows = await arg.Self.FetchCandlesAsync(arg.TradingPair, Granularity.Hourly, ToOffset(utcDate), ToOffset(utcDate.AddDays(1)), CancellationToken.None).ConfigureAwait(false);
+				DateTimeOffset segEnd = segStart + arg.Self.segmentDuration;
+				arg.Self.Logger?.LogInformation(
+					"Fetching {granularity} candles for {tradingPair} from {segmentStart} to {segmentEnd} (segment duration: {segmentDuration}).",
+					arg.Self.Resolution,
+					arg.TradingPair,
+					segStart,
+					segEnd,
+					arg.Self.segmentDuration);
+
+				ResponseItem[] rows = await arg.Self.FetchCandlesAsync(arg.TradingPair, arg.Self.Resolution, segStart, segEnd, CancellationToken.None).ConfigureAwait(false);
 				if (rows.Length == 0)
 				{
-					arg.Self.Logger?.LogError("No exchange rate data found for {tradingPair} on {date}.", arg.TradingPair, utcDate);
+					arg.Self.Logger?.LogError("No exchange rate data found for {tradingPair} in segment starting at {segmentStart}.", arg.TradingPair, segStart);
 				}
 
 				SortedList<DateTimeOffset, ExchangeRate> list = new();
@@ -97,14 +144,14 @@ public class Coinbase : IHistoricalExchangeRateProvider
 			(normalizedTradingPair, this)).WithCancellation(cancellationToken).ConfigureAwait(false);
 
 		ExchangeRate? result;
-		if (TryFindBestMatch(forDate, when, out ExchangeRate rate))
+		if (TryFindBestMatch(forSegment, when, out ExchangeRate rate))
 		{
 			result = rate;
 		}
 		else
 		{
 			// Allow for the best match that exceeds the time if no match that precedes it was found.
-			result = forDate.Count > 0 ? forDate.GetValueAtIndex(0) : null;
+			result = forSegment.Count > 0 ? forSegment.GetValueAtIndex(0) : null;
 		}
 
 		if (result is not null && this.Logger is not null)
@@ -159,7 +206,18 @@ public class Coinbase : IHistoricalExchangeRateProvider
 		return false;
 	}
 
-	private static DateTimeOffset ToOffset(DateOnly date) => new(date, TimeOnly.MinValue, TimeSpan.Zero);
+	/// <summary>
+	/// Gets the start time of the cache segment that contains the given time.
+	/// </summary>
+	/// <param name="when">The time to find the segment for.</param>
+	/// <returns>The start time of the segment.</returns>
+	private DateTimeOffset GetSegmentStart(DateTimeOffset when)
+	{
+		long segmentTicks = this.segmentDuration.Ticks;
+		long timeTicks = when.UtcTicks;
+		long segmentStartTicks = (timeTicks / segmentTicks) * segmentTicks;
+		return new DateTimeOffset(segmentStartTicks, TimeSpan.Zero);
+	}
 
 	private async ValueTask<TradingPair> GetNormalizedPairAsync(TradingPair tradingPair, CancellationToken cancellationToken)
 	{
