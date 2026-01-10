@@ -306,4 +306,25 @@
   <data name="WalletPathArgumentDescription" xml:space="preserve">
     <value>The path to the wallet file.</value>
   </data>
+  <data name="PriceCommandDescription" xml:space="preserve">
+    <value>Gets the price of ZEC in USD or an equivalent stablecoin for a given timestamp.</value>
+  </data>
+  <data name="PriceTimestampOptionDescription" xml:space="preserve">
+    <value>The timestamp to get the price for. Defaults to the current time.</value>
+  </data>
+  <data name="PriceCurrencyOptionDescription" xml:space="preserve">
+    <value>The currency to get the price in (e.g., USD, USDC, USDT). Defaults to USD.</value>
+  </data>
+  <data name="PriceUnknownCurrency" xml:space="preserve">
+    <value>Unknown currency: {0}. Please use a valid currency ticker symbol.</value>
+  </data>
+  <data name="PriceNotAvailable" xml:space="preserve">
+    <value>Price data is not available for the specified timestamp: {0}.</value>
+  </data>
+  <data name="PriceError" xml:space="preserve">
+    <value>Error retrieving price: {0}</value>
+  </data>
+  <data name="PriceResult" xml:space="preserve">
+    <value>{basis} = {tradeInterest} (at {timestamp}, +/- {resolution})</value>
+  </data>
 </root>
