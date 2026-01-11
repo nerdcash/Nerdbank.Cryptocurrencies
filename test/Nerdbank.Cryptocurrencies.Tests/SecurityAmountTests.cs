@@ -52,6 +52,86 @@ public class SecurityAmountTests
 	}
 
 	[Fact]
+	public void GreaterThan()
+	{
+		var smaller = new SecurityAmount(1.0m, Security.USD);
+		var larger = new SecurityAmount(2.0m, Security.USD);
+
+		Assert.True(larger > smaller);
+		Assert.True(larger >= smaller);
+		Assert.False(smaller > larger);
+		Assert.False(smaller >= larger);
+	}
+
+	[Fact]
+	public void GreaterThan_Equal()
+	{
+		var amount1 = new SecurityAmount(1.0m, Security.USD);
+		var amount2 = new SecurityAmount(1.0m, Security.USD);
+
+		Assert.False(amount1 > amount2);
+		Assert.True(amount1 >= amount2);
+	}
+
+	[Fact]
+	public void GreaterThan_DifferentSecurities()
+	{
+		var amount1 = new SecurityAmount(1.0m, Security.USD);
+		var amount2 = new SecurityAmount(1.0m, Security.BTC);
+
+		Assert.Throws<ArgumentException>(() => amount1 > amount2);
+	}
+
+	[Fact]
+	public void GreaterThanOrEqual_DifferentSecurities()
+	{
+		var amount1 = new SecurityAmount(1.0m, Security.USD);
+		var amount2 = new SecurityAmount(1.0m, Security.BTC);
+
+		Assert.Throws<ArgumentException>(() => amount1 >= amount2);
+	}
+
+	[Fact]
+	public void LessThan()
+	{
+		var smaller = new SecurityAmount(1.0m, Security.USD);
+		var larger = new SecurityAmount(2.0m, Security.USD);
+
+		Assert.True(smaller < larger);
+		Assert.True(smaller <= larger);
+		Assert.False(larger < smaller);
+		Assert.False(larger <= smaller);
+	}
+
+	[Fact]
+	public void LessThan_Equal()
+	{
+		var amount1 = new SecurityAmount(1.0m, Security.USD);
+		var amount2 = new SecurityAmount(1.0m, Security.USD);
+
+		Assert.False(amount1 < amount2);
+		Assert.True(amount1 <= amount2);
+	}
+
+	[Fact]
+	public void LessThan_DifferentSecurities()
+	{
+		var amount1 = new SecurityAmount(1.0m, Security.USD);
+		var amount2 = new SecurityAmount(1.0m, Security.BTC);
+
+		Assert.Throws<ArgumentException>(() => amount1 < amount2);
+	}
+
+	[Fact]
+	public void LessThanOrEqual_DifferentSecurities()
+	{
+		var amount1 = new SecurityAmount(1.0m, Security.USD);
+		var amount2 = new SecurityAmount(1.0m, Security.BTC);
+
+		Assert.Throws<ArgumentException>(() => amount1 <= amount2);
+	}
+
+	[Fact]
 	public void RoundedAmount()
 	{
 		Assert.Equal(1.20m, Security.USD.Amount(1.201m).RoundedAmount);

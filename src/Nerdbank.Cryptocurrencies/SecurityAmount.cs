@@ -87,6 +87,74 @@ public record struct SecurityAmount(decimal Amount, Security Security)
 	/// <returns>The quotient of the division.</returns>
 	public static SecurityAmount operator /(SecurityAmount left, decimal right) => new(left.Amount / right, left.Security);
 
+	/// <summary>
+	/// Compares two amounts of a given security.
+	/// </summary>
+	/// <param name="left">The amount on the left.</param>
+	/// <param name="right">The amount on the right.</param>
+	/// <returns>Whether the <paramref name="left"/> amount has a greater value than the <paramref name="right"/> amount.</returns>
+	/// <exception cref="ArgumentException">Thrown when <see cref="Security"/> is not equal across the two arguments.</exception>
+	public static bool operator >(SecurityAmount left, SecurityAmount right)
+	{
+		if (left.Security != right.Security)
+		{
+			throw new ArgumentException(Strings.SecurityMismatch);
+		}
+
+		return left.Amount > right.Amount;
+	}
+
+	/// <summary>
+	/// Compares two amounts of a given security.
+	/// </summary>
+	/// <param name="left">The amount on the left.</param>
+	/// <param name="right">The amount on the right.</param>
+	/// <returns>Whether the <paramref name="left"/> amount has a lesser value than the <paramref name="right"/> amount.</returns>
+	/// <exception cref="ArgumentException">Thrown when <see cref="Security"/> is not equal across the two arguments.</exception>
+	public static bool operator <(SecurityAmount left, SecurityAmount right)
+	{
+		if (left.Security != right.Security)
+		{
+			throw new ArgumentException(Strings.SecurityMismatch);
+		}
+
+		return left.Amount < right.Amount;
+	}
+
+	/// <summary>
+	/// Compares two amounts of a given security.
+	/// </summary>
+	/// <param name="left">The amount on the left.</param>
+	/// <param name="right">The amount on the right.</param>
+	/// <returns>Whether the <paramref name="left"/> amount has a greater or equal value to the <paramref name="right"/> amount.</returns>
+	/// <exception cref="ArgumentException">Thrown when <see cref="Security"/> is not equal across the two arguments.</exception>
+	public static bool operator >=(SecurityAmount left, SecurityAmount right)
+	{
+		if (left.Security != right.Security)
+		{
+			throw new ArgumentException(Strings.SecurityMismatch);
+		}
+
+		return left.Amount >= right.Amount;
+	}
+
+	/// <summary>
+	/// Compares two amounts of a given security.
+	/// </summary>
+	/// <param name="left">The amount on the left.</param>
+	/// <param name="right">The amount on the right.</param>
+	/// <returns>Whether the <paramref name="left"/> amount has a lesser or equal value to the <paramref name="right"/> amount.</returns>
+	/// <exception cref="ArgumentException">Thrown when <see cref="Security"/> is not equal across the two arguments.</exception>
+	public static bool operator <=(SecurityAmount left, SecurityAmount right)
+	{
+		if (left.Security != right.Security)
+		{
+			throw new ArgumentException(Strings.SecurityMismatch);
+		}
+
+		return left.Amount <= right.Amount;
+	}
+
 	/// <inheritdoc/>
 	public override string ToString() => this.Security is not null ? $"{this.Amount.ToString("F" + this.Security.Precision)} {this.Security.TickerSymbol}" : "0";
 }
