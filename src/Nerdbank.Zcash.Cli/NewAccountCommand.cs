@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
-using System.CommandLine.IO;
+using System.CommandLine.Parsing;
 using Nerdbank.Bitcoin;
 
 namespace Nerdbank.Zcash.Cli;
@@ -14,8 +14,6 @@ internal class NewAccountCommand
 	private NewAccountCommand()
 	{
 	}
-
-	internal required IConsole Console { get; set; }
 
 	internal required string Name { get; set; }
 
@@ -41,30 +39,54 @@ internal class NewAccountCommand
 
 	internal static Command BuildCommand()
 	{
-		Option<int> seedPhraseWordLengthOption = new("--seedPhraseLength", () => SeedPhraseWordLengthDefault, Strings.SeedPhraseLengthOptionDescription);
-		seedPhraseWordLengthOption.AddValidator(v =>
+		Option<int> seedPhraseWordLengthOption = new("--seedPhraseLength")
 		{
-			int value = v.GetValueForOption(seedPhraseWordLengthOption);
+			Description = Strings.SeedPhraseLengthOptionDescription,
+		};
+		seedPhraseWordLengthOption.Validators.Add(v =>
+		{
+			int value = v.GetValueOrDefault<int>();
 			if (value % 3 != 0 || value < Bip39Mnemonic.WordsRequiredForEntropyLength(Zip32HDWallet.MinimumEntropyLengthInBits))
 			{
-				v.ErrorMessage = Strings.BadSeedPhraseLength;
+				v.AddError(Strings.BadSeedPhraseLength);
 			}
 		});
 
-		Option<string> seedPhraseOption = new("--seedPhrase", Strings.SeedPhraseOptionDescription) { Arity = ArgumentArity.ZeroOrOne };
+		Option<string> seedPhraseOption = new("--seedPhrase")
+		{
+			Description = Strings.SeedPhraseOptionDescription,
+			Arity = ArgumentArity.ZeroOrOne,
+		};
 
-		Option<string> seedPhrasePasswordOption = new("--password", Strings.PasswordOptionDescription);
+		Option<string> seedPhrasePasswordOption = new("--password")
+		{
+			Description = Strings.PasswordOptionDescription,
+		};
 
-		Option<uint> accountIndexOption = new("--index", () => 0, Strings.AccountIndexOptionDescription);
+		Option<uint> accountIndexOption = new("--index")
+		{
+			Description = Strings.AccountIndexOptionDescription,
+		};
 
-		Option<bool> offlineModeOption = new("--offline", Strings.OfflineOptionDescription);
+		Option<bool> offlineModeOption = new("--offline")
+		{
+			Description = Strings.OfflineOptionDescription,
+		};
 
-		Option<string> walletPathOption = new Option<string>("--wallet", Strings.NewAccountWalletPathOptionDescription)
-			.LegalFilePathsOnly();
+		Option<string> walletPathOption = new Option<string>("--wallet")
+		{
+			Description = Strings.NewAccountWalletPathOptionDescription,
+		}.AcceptLegalFilePathsOnly();
 
-		Option<string> nameOption = new Option<string>("--name", () => "(default)", Strings.AccountNameOptionDescription);
+		Option<string> nameOption = new Option<string>("--name")
+		{
+			Description = Strings.AccountNameOptionDescription,
+		};
 
-		Option<uint?> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
+		Option<uint?> birthdayHeightOption = new("--birthday-height")
+		{
+			Description = Strings.BirthdayHeightOptionDescription,
+		};
 
 		Command command = new("new", Strings.NewAccountCommandDescription)
 		{
@@ -80,31 +102,34 @@ internal class NewAccountCommand
 			birthdayHeightOption,
 		};
 
-		command.AddValidator(v =>
+		command.Validators.Add(v =>
 		{
-			if (v.FindResultFor(seedPhraseOption)?.Token is not null && v.FindResultFor(seedPhraseWordLengthOption)?.Token is not null)
+			OptionResult? seedPhraseRes = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseOption);
+			OptionResult? lengthRes = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseWordLengthOption);
+			if (seedPhraseRes?.Tokens.Count > 0 && lengthRes?.Tokens.Count > 0)
 			{
-				v.ErrorMessage = Strings.SeedLengthAndSeedPhraseNotAllowed;
+				v.AddError(Strings.SeedLengthAndSeedPhraseNotAllowed);
 			}
 		});
 
-		command.SetHandler(async ctxt =>
+		command.SetAction((parseResult, cancellationToken) =>
 		{
-			ctxt.ExitCode = await new NewAccountCommand()
+			CommandResult rootCommandResult = parseResult.RootCommandResult;
+			OptionResult? seedPhraseRes = rootCommandResult.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseOption);
+			return new NewAccountCommand()
 			{
-				Console = ctxt.Console,
-				SeedPhraseWordLength = ctxt.ParseResult.GetValueForOption(seedPhraseWordLengthOption),
-				SeedPhrase = ctxt.ParseResult.GetValueForOption(seedPhraseOption),
-				PromptForSeedPhrase = ctxt.ParseResult.FindResultFor(seedPhraseOption) is { Token: not null, Tokens: { Count: 0 } },
-				Password = ctxt.ParseResult.GetValueForOption(seedPhrasePasswordOption),
-				TestNet = ctxt.ParseResult.GetValueForOption(WalletUserCommandBase.TestNetOption),
-				AccountIndex = ctxt.ParseResult.GetValueForOption(accountIndexOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(WalletUserCommandBase.LightServerUriOption),
-				OfflineMode = ctxt.ParseResult.GetValueForOption(offlineModeOption),
-				WalletPath = ctxt.ParseResult.GetValueForOption(walletPathOption),
-				Name = ctxt.ParseResult.GetValueForOption(nameOption)!,
-				BirthdayHeight = ctxt.ParseResult.GetValueForOption(birthdayHeightOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				SeedPhraseWordLength = parseResult.GetValue(seedPhraseWordLengthOption),
+				SeedPhrase = parseResult.GetValue(seedPhraseOption),
+				PromptForSeedPhrase = seedPhraseRes is { Tokens.Count: 0 },
+				Password = parseResult.GetValue(seedPhrasePasswordOption),
+				TestNet = parseResult.GetValue(WalletUserCommandBase.TestNetOption),
+				AccountIndex = parseResult.GetValue(accountIndexOption),
+				LightWalletServerUrl = parseResult.GetValue(WalletUserCommandBase.LightServerUriOption),
+				OfflineMode = parseResult.GetValue(offlineModeOption),
+				WalletPath = parseResult.GetValue(walletPathOption),
+				Name = parseResult.GetValue(nameOption)!,
+				BirthdayHeight = parseResult.GetValue(birthdayHeightOption),
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;
@@ -129,7 +154,7 @@ internal class NewAccountCommand
 		{
 			if (!Bip39Mnemonic.TryParse(this.SeedPhrase, this.Password, out mnemonic, out _, out string? errorMessage))
 			{
-				this.Console.Error.WriteLine(errorMessage);
+				await Console.Error.WriteLineAsync(errorMessage);
 				return 1;
 			}
 		}
@@ -137,13 +162,13 @@ internal class NewAccountCommand
 		ZcashNetwork network = this.TestNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
 		Zip32HDWallet zip32 = new(mnemonic, network);
 
-		this.Console.WriteLine($"Seed phrase:     {mnemonic}");
-		this.Console.WriteLine($"Password:        {this.Password}");
+		Console.WriteLine($"Seed phrase:     {mnemonic}");
+		Console.WriteLine($"Password:        {this.Password}");
 
 		this.BirthdayHeight ??= await this.ComputeBirthdayHeightAsync(network, cancellationToken);
 		if (this.BirthdayHeight is not null)
 		{
-			this.Console.WriteLine($"Birthday height: {this.BirthdayHeight}");
+			Console.WriteLine($"Birthday height: {this.BirthdayHeight}");
 		}
 
 		ZcashAccount account = new(zip32, this.AccountIndex)
@@ -158,12 +183,12 @@ internal class NewAccountCommand
 				account.Network,
 				this.WalletPath);
 			await client.AddAccountAsync(account, cancellationToken);
-			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
+			Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
 		}
 
 		this.PrintAccountInfo(account);
 
-		this.Console.WriteLine(string.Empty);
+		Console.WriteLine(string.Empty);
 
 		return 0;
 	}
@@ -208,7 +233,7 @@ internal class NewAccountCommand
 
 	private void PrintAccountInfo(ZcashAccount account)
 	{
-		this.Console.WriteLine($"Index:           {this.AccountIndex}");
-		Utilities.PrintAccountInfo(this.Console, account);
+		Console.WriteLine($"Index:           {this.AccountIndex}");
+		Utilities.PrintAccountInfo(account);
 	}
 }

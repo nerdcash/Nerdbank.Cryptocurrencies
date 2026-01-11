@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.IO;
+using System.CommandLine.Parsing;
 using Nerdbank.QRCodes;
 using QRCoder;
 
@@ -11,8 +11,6 @@ namespace Nerdbank.Zcash.Cli;
 
 internal class RequestPaymentCommand
 {
-	internal required IConsole Console { get; init; }
-
 	internal required ZcashAddress[] Payees { get; init; }
 
 	internal required decimal[]? Amounts { get; init; }
@@ -27,12 +25,37 @@ internal class RequestPaymentCommand
 
 	internal static Command BuildCommand()
 	{
-		Argument<ZcashAddress[]> payeesArgument = new("payee", parse: Utilities.AddressParserAllowMultiple, description: Strings.RequestPaymentPayeeArgumentDescription) { Arity = ArgumentArity.OneOrMore };
-		Option<decimal[]> amountsOption = new("--amount", Strings.RequestPaymentAmountOptionDescription) { Arity = ArgumentArity.OneOrMore };
-		Option<Memo[]> memosOption = new("--memo", parseArgument: Utilities.MemoParserAllowMultiple, description: Strings.RequestPaymentMemoOptionDescription) { Arity = ArgumentArity.OneOrMore };
-		Option<string[]> labelsOption = new("--label", Strings.RequestPaymentLabelOptionDescription) { Arity = ArgumentArity.OneOrMore };
-		Option<string[]> messagesOption = new("--message", Strings.RequestPaymentMessageOptionDescription) { Arity = ArgumentArity.OneOrMore };
-		Option<string> saveQRCodeOption = new Option<string>("--output", Strings.RequestPaymentSaveQRCodeOption).LegalFilePathsOnly();
+		Argument<ZcashAddress[]> payeesArgument = new("payee")
+		{
+			Description = Strings.RequestPaymentPayeeArgumentDescription,
+			CustomParser = Utilities.AddressParserAllowMultiple,
+			Arity = ArgumentArity.OneOrMore,
+		};
+		Option<decimal[]> amountsOption = new("--amount")
+		{
+			Description = Strings.RequestPaymentAmountOptionDescription,
+			Arity = ArgumentArity.OneOrMore,
+		};
+		Option<Memo[]> memosOption = new("--memo")
+		{
+			Description = Strings.RequestPaymentMemoOptionDescription,
+			CustomParser = Utilities.MemoParserAllowMultiple,
+			Arity = ArgumentArity.OneOrMore,
+		};
+		Option<string[]> labelsOption = new("--label")
+		{
+			Description = Strings.RequestPaymentLabelOptionDescription,
+			Arity = ArgumentArity.OneOrMore,
+		};
+		Option<string[]> messagesOption = new("--message")
+		{
+			Description = Strings.RequestPaymentMessageOptionDescription,
+			Arity = ArgumentArity.OneOrMore,
+		};
+		Option<string> saveQRCodeOption = new Option<string>("--output")
+		{
+			Description = Strings.RequestPaymentSaveQRCodeOption,
+		}.AcceptLegalFilePathsOnly();
 
 		Command command = new("invoice", Strings.RequestPaymentCommandDescription)
 		{
@@ -44,51 +67,50 @@ internal class RequestPaymentCommand
 			saveQRCodeOption,
 		};
 
-		command.AddValidator(v =>
+		command.Validators.Add(v =>
 		{
-			int payeeCount = v.FindResultFor(payeesArgument)?.Tokens.Count ?? 0;
-			int amountsCount = v.FindResultFor(amountsOption)?.Tokens.Count ?? 0;
-			int memosCount = v.FindResultFor(memosOption)?.Tokens.Count ?? 0;
-			int labelsCount = v.FindResultFor(labelsOption)?.Tokens.Count ?? 0;
-			int messagesCount = v.FindResultFor(messagesOption)?.Tokens.Count ?? 0;
+			int payeeCount = v.Children.OfType<ArgumentResult>().FirstOrDefault(ar => ar.Argument == payeesArgument)?.Tokens.Count ?? 0;
+			int amountsCount = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == amountsOption)?.Tokens.Count ?? 0;
+			int memosCount = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == memosOption)?.Tokens.Count ?? 0;
+			int labelsCount = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == labelsOption)?.Tokens.Count ?? 0;
+			int messagesCount = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == messagesOption)?.Tokens.Count ?? 0;
 
 			if (amountsCount > 0 && payeeCount != amountsCount)
 			{
-				v.ErrorMessage = Strings.FormatRequestPaymentArgumentCountMismatch(amountsOption.Name, payeeCount, amountsCount);
+				v.AddError(Strings.FormatRequestPaymentArgumentCountMismatch(amountsOption.Name, payeeCount, amountsCount));
 				return;
 			}
 
 			if (memosCount > 0 && payeeCount != memosCount)
 			{
-				v.ErrorMessage = Strings.FormatRequestPaymentArgumentCountMismatch(memosOption.Name, payeeCount, memosCount);
+				v.AddError(Strings.FormatRequestPaymentArgumentCountMismatch(memosOption.Name, payeeCount, memosCount));
 				return;
 			}
 
 			if (labelsCount > 0 && payeeCount != labelsCount)
 			{
-				v.ErrorMessage = Strings.FormatRequestPaymentArgumentCountMismatch(labelsOption.Name, payeeCount, labelsCount);
+				v.AddError(Strings.FormatRequestPaymentArgumentCountMismatch(labelsOption.Name, payeeCount, labelsCount));
 				return;
 			}
 
 			if (messagesCount > 0 && payeeCount != messagesCount)
 			{
-				v.ErrorMessage = Strings.FormatRequestPaymentArgumentCountMismatch(messagesOption.Name, payeeCount, messagesCount);
+				v.AddError(Strings.FormatRequestPaymentArgumentCountMismatch(messagesOption.Name, payeeCount, messagesCount));
 				return;
 			}
 		});
 
-		command.SetHandler(ctxt =>
+		command.SetAction((parseResult, cancellationToken) =>
 		{
-			ctxt.ExitCode = new RequestPaymentCommand
+			return Task.FromResult(new RequestPaymentCommand
 			{
-				Console = ctxt.Console,
-				Payees = ctxt.ParseResult.GetValueForArgument(payeesArgument),
-				Amounts = ctxt.ParseResult.GetValueForOption(amountsOption),
-				Memos = ctxt.ParseResult.GetValueForOption(memosOption),
-				Labels = ctxt.ParseResult.GetValueForOption(labelsOption),
-				Messages = ctxt.ParseResult.GetValueForOption(messagesOption),
-				SaveQRCodePath = ctxt.ParseResult.GetValueForOption(saveQRCodeOption),
-			}.Execute();
+				Payees = parseResult.GetValue(payeesArgument)!,
+				Amounts = parseResult.GetValue(amountsOption),
+				Memos = parseResult.GetValue(memosOption),
+				Labels = parseResult.GetValue(labelsOption),
+				Messages = parseResult.GetValue(messagesOption),
+				SaveQRCodePath = parseResult.GetValue(saveQRCodeOption),
+			}.Execute());
 		});
 
 		return command;
@@ -118,7 +140,7 @@ internal class RequestPaymentCommand
 
 		int exitCode = this.ExportQRCode(request);
 
-		this.Console.WriteLine($"Uri: {request}");
+		Console.WriteLine($"Uri: {request}");
 
 		return exitCode;
 	}
@@ -135,11 +157,11 @@ internal class RequestPaymentCommand
 			try
 			{
 				encoder.Encode(data, new FileInfo(this.SaveQRCodePath), null);
-				this.Console.WriteLine($"QR code saved to \"{this.SaveQRCodePath}\".");
+				Console.WriteLine($"QR code saved to \"{this.SaveQRCodePath}\".");
 			}
 			catch (NotSupportedException ex)
 			{
-				this.Console.Error.WriteLine(ex.Message);
+				Console.Error.WriteLine(ex.Message);
 				exitCode = 1;
 			}
 		}

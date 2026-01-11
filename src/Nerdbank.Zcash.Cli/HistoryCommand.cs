@@ -11,7 +11,10 @@ internal class HistoryCommand : SyncFirstCommandBase
 
 	internal static Command BuildCommand()
 	{
-		Option<uint> startingBlockOption = new("--from", Strings.HistoryStartingBlockOptionDescription);
+		Option<uint> startingBlockOption = new("--from")
+		{
+			Description = Strings.HistoryStartingBlockOptionDescription,
+		};
 
 		Command command = new("history", Strings.HistoryCommandDescription)
 		{
@@ -23,41 +26,40 @@ internal class HistoryCommand : SyncFirstCommandBase
 			startingBlockOption,
 		};
 
-		command.SetHandler(async ctxt =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
-			ctxt.ExitCode = await new HistoryCommand
+			return await new HistoryCommand
 			{
-				Console = ctxt.Console,
-				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
-				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
-				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
-				StartingBlock = ctxt.ParseResult.GetValueForOption(startingBlockOption),
-				SelectedAccountAddress = ctxt.ParseResult.GetValueForOption(RequiredSelectedAccountOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				WalletPath = parseResult.GetValue(WalletPathArgument)!,
+				TestNet = parseResult.GetValue(TestNetOption),
+				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
+				NoSync = parseResult.GetValue(NoSyncOption),
+				StartingBlock = parseResult.GetValue(startingBlockOption),
+				SelectedAccountAddress = parseResult.GetValue(RequiredSelectedAccountOption),
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;
 	}
 
-	internal static void PrintTransaction(IConsole console, Transaction tx)
+	internal static void PrintTransaction(Transaction tx)
 	{
-		console.WriteLine($"{tx.When?.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
+		Console.WriteLine($"{tx.When?.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
 		const string indentation = "                      ";
 
 		foreach (Transaction.LineItem send in tx.Outgoing)
 		{
-			console.WriteLine($"{indentation} -{send.Amount,13:N8} {FormatMemo(send.Memo)} {send.ToAddress}");
+			Console.WriteLine($"{indentation} -{send.Amount,13:N8} {FormatMemo(send.Memo)} {send.ToAddress}");
 		}
 
 		foreach (Transaction.LineItem recv in tx.Incoming)
 		{
-			console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
+			Console.WriteLine($"{indentation} +{recv.Amount,13:N8} {recv.Pool} {FormatMemo(recv.Memo)} {recv.ToAddress}");
 		}
 
 		if (!tx.IsIncoming)
 		{
-			console.WriteLine($"{indentation} -{tx.Fee,13:N8} transaction fee");
+			Console.WriteLine($"{indentation} -{tx.Fee,13:N8} transaction fee");
 		}
 	}
 
@@ -72,7 +74,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 		List<Transaction> txs = client.GetDownloadedTransactions(this.SelectedAccount!, this.StartingBlock);
 		foreach (Transaction tx in txs)
 		{
-			PrintTransaction(this.Console, tx);
+			PrintTransaction(tx);
 		}
 
 		return 0;
