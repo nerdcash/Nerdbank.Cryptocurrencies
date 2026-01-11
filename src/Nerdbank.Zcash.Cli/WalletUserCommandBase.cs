@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using static System.CommandLine.ArgumentValidation;
 using System.Diagnostics.CodeAnalysis;
 using Nerdbank.Bitcoin;
 
@@ -16,7 +17,6 @@ internal abstract class WalletUserCommandBase
 	[SetsRequiredMembers]
 	internal WalletUserCommandBase(WalletUserCommandBase copyFrom)
 	{
-		this.Console = copyFrom.Console;
 		this.WalletPath = copyFrom.WalletPath;
 		this.TestNet = copyFrom.TestNet;
 		this.LightWalletServerUrl = copyFrom.LightWalletServerUrl;
@@ -25,8 +25,6 @@ internal abstract class WalletUserCommandBase
 	internal static Option<bool> TestNetOption { get; } = new("--testnet", Strings.TestNetOptionDescription);
 
 	internal static Option<Uri> LightServerUriOption { get; } = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
-
-	internal required IConsole Console { get; init; }
 
 	internal required string WalletPath { get; init; }
 
@@ -42,15 +40,34 @@ internal abstract class WalletUserCommandBase
 
 	internal uint SpendingKeyAccountIndex { get; init; }
 
-	protected static Argument<string> WalletPathArgument { get; } = new Argument<string>("wallet path", Strings.WalletPathArgumentDescription).LegalFilePathsOnly();
+	protected static Argument<string> WalletPathArgument { get; } = new Argument<string>("wallet path")
+	{
+		Description = Strings.WalletPathArgumentDescription,
+	}.AcceptLegalFilePathsOnly();
 
-	protected static Option<ZcashAddress> OptionalSelectedAccountOption { get; } = new("--account", parseArgument: arg => ZcashAddress.Decode(arg.Tokens[0].Value), description: Strings.SelectedAccountArgumentDescription);
+	protected static Option<ZcashAddress> OptionalSelectedAccountOption { get; } = new("--account")
+	{
+		Description = Strings.SelectedAccountArgumentDescription,
+		CustomParser = arg => ZcashAddress.Decode(arg.Tokens[0].Value),
+	};
 
-	protected static Option<ZcashAddress> RequiredSelectedAccountOption { get; } = new("--account", parseArgument: arg => ZcashAddress.Decode(arg.Tokens[0].Value), description: Strings.SelectedAccountArgumentDescription) { IsRequired = true };
+	protected static Option<ZcashAddress> RequiredSelectedAccountOption { get; } = new("--account")
+	{
+		Description = Strings.SelectedAccountArgumentDescription,
+		CustomParser = arg => ZcashAddress.Decode(arg.Tokens[0].Value),
+		Required = true,
+	};
 
-	protected static Option<string> SpendingKeySeedOption { get; } = new("--spending-key-seed", Strings.SpendingKeySeedOptionDescription) { IsRequired = true };
+	protected static Option<string> SpendingKeySeedOption { get; } = new("--spending-key-seed")
+	{
+		Description = Strings.SpendingKeySeedOptionDescription,
+		Required = true,
+	};
 
-	protected static Option<uint> SpendingKeyAccountIndexOption { get; } = new("--spending-key-account-index", () => 0, Strings.SpendingKeyAccountIndexOptionDescription);
+	protected static Option<uint> SpendingKeyAccountIndexOption { get; } = new("--spending-key-account-index")
+	{
+		Description = Strings.SpendingKeyAccountIndexOptionDescription,
+	};
 
 	internal async Task<int> ExecuteAsync(CancellationToken cancellationToken)
 	{
