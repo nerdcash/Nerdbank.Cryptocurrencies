@@ -106,7 +106,7 @@ internal class NewAccountCommand
 			}
 		});
 
-		command.SetAction(parseResult =>
+		command.SetAction((parseResult, cancellationToken) =>
 		{
 			var rootCommandResult = parseResult.RootCommandResult;
 			var seedPhraseRes = rootCommandResult.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseOption);
@@ -123,7 +123,7 @@ internal class NewAccountCommand
 				WalletPath = parseResult.GetValue(walletPathOption),
 				Name = parseResult.GetValue(nameOption)!,
 				BirthdayHeight = parseResult.GetValue(birthdayHeightOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

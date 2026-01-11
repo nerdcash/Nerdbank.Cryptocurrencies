@@ -32,7 +32,7 @@ internal class ShieldCommand : SyncFirstCommandBase
 			SpendingKeyAccountIndexOption,
 		};
 
-		command.SetAction(async parseResult =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
 			return await new ShieldCommand
 			{
@@ -45,7 +45,7 @@ internal class ShieldCommand : SyncFirstCommandBase
 				Threshold = parseResult.GetValue(thresholdOption),
 				SpendingKeySeed = parseResult.GetValue(SpendingKeySeedOption),
 				SpendingKeyAccountIndex = parseResult.GetValue(SpendingKeyAccountIndexOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

@@ -18,7 +18,7 @@ internal class BalanceCommand : SyncFirstCommandBase
 			NoSyncOption,
 		};
 
-		command.SetAction(async parseResult =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
 			return await new BalanceCommand
 			{
@@ -26,7 +26,7 @@ internal class BalanceCommand : SyncFirstCommandBase
 				TestNet = parseResult.GetValue(TestNetOption),
 				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
 				NoSync = parseResult.GetValue(NoSyncOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

@@ -23,7 +23,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 			startingBlockOption,
 		};
 
-		command.SetAction(async parseResult =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
 			return await new HistoryCommand
 			{
@@ -33,7 +33,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 				NoSync = parseResult.GetValue(NoSyncOption),
 				StartingBlock = parseResult.GetValue(startingBlockOption),
 				SelectedAccountAddress = parseResult.GetValue(RequiredSelectedAccountOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

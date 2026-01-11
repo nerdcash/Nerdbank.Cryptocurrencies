@@ -101,9 +101,9 @@ internal class RequestPaymentCommand
 			}
 		});
 
-		command.SetAction(parseResult =>
+		command.SetAction((parseResult, cancellationToken) =>
 		{
-			return new RequestPaymentCommand
+			return Task.FromResult(new RequestPaymentCommand
 			{
 				Payees = parseResult.GetValue(payeesArgument),
 				Amounts = parseResult.GetValue(amountsOption),
@@ -111,7 +111,7 @@ internal class RequestPaymentCommand
 				Labels = parseResult.GetValue(labelsOption),
 				Messages = parseResult.GetValue(messagesOption),
 				SaveQRCodePath = parseResult.GetValue(saveQRCodeOption),
-			}.Execute();
+			}.Execute()));
 		});
 
 		return command;

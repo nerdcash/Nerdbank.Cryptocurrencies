@@ -19,13 +19,13 @@ internal class AccountsCommand : WalletUserCommandBase
 			TestNetOption,
 		};
 
-		command.SetAction(async parseResult =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
 			return await new AccountsCommand()
 			{
 				WalletPath = parseResult.GetValue(WalletPathArgument),
 				TestNet = parseResult.GetValue(TestNetOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

@@ -42,7 +42,7 @@ internal class SendCommand : SyncFirstCommandBase
 			SpendingKeyAccountIndexOption,
 		};
 
-		command.SetAction(async parseResult =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
 			return await new SendCommand
 			{
@@ -55,7 +55,7 @@ internal class SendCommand : SyncFirstCommandBase
 				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
 				SpendingKeySeed = parseResult.GetValue(SpendingKeySeedOption),
 				SpendingKeyAccountIndex = parseResult.GetValue(SpendingKeyAccountIndexOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

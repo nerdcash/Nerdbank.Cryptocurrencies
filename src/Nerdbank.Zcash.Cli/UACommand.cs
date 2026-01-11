@@ -33,12 +33,12 @@ internal class UACommand
 		{
 			uaArgument,
 		};
-			parseCommand.SetAction(parseResult =>
+			parseCommand.SetAction((parseResult, cancellationToken) =>
 			{
-				return new ParseCommand
+				return Task.FromResult(new ParseCommand
 				{
 					UnifiedAddress = parseResult.GetValue(uaArgument),
-				}.Execute(CancellationToken.None);
+				}.Execute(cancellationToken));
 			});
 
 			return parseCommand;
@@ -95,12 +95,12 @@ internal class UACommand
 				receiversArgument,
 			};
 
-			command.SetAction(parseResult =>
+			command.SetAction((parseResult, cancellationToken) =>
 			{
-				return new ConstructCommand
+				return Task.FromResult(new ConstructCommand
 				{
 					Receivers = parseResult.GetValue(receiversArgument),
-				}.Execute(CancellationToken.None);
+				}.Execute(cancellationToken));
 			});
 
 			return command;

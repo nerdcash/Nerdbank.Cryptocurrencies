@@ -50,7 +50,7 @@ internal class ImportAccountCommand
 			lightServerUriOption,
 		};
 
-		command.SetAction(parseResult =>
+		command.SetAction((parseResult, cancellationToken) =>
 		{
 			return new ImportAccountCommand()
 			{
@@ -58,7 +58,7 @@ internal class ImportAccountCommand
 				LightWalletServerUrl = parseResult.GetValue(lightServerUriOption),
 				WalletPath = parseResult.GetValue(walletPathOption),
 				BirthdayHeight = parseResult.GetValue(birthdayHeightOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

@@ -21,12 +21,12 @@ internal class TexCommand
 			transparentAddressArgument,
 		};
 
-		command.SetAction(parseResult =>
+		command.SetAction((parseResult, cancellationToken) =>
 		{
-			return new TexCommand
+			return Task.FromResult(new TexCommand
 			{
 				TransparentAddress = parseResult.GetValue(transparentAddressArgument),
-			}.Execute(CancellationToken.None);
+			}.Execute(cancellationToken));
 		});
 		return command;
 	}

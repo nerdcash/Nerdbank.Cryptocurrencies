@@ -34,7 +34,7 @@ internal class SyncCommand : WalletUserCommandBase
 			continuallyOption,
 		};
 
-		command.SetAction(async parseResult =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
 			return await new SyncCommand
 			{
@@ -42,7 +42,7 @@ internal class SyncCommand : WalletUserCommandBase
 				TestNet = parseResult.GetValue(TestNetOption),
 				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
 				Continually = parseResult.GetValue(continuallyOption),
-			}.ExecuteAsync(CancellationToken.None);
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;

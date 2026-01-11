@@ -98,13 +98,13 @@ internal abstract class DeriveCommand
 			AddCommonOptions(command);
 
 			command.SetAction(
-				parseResult => new DeriveOrchardCommand
+				(parseResult, cancellationToken) => Task.FromResult(new DeriveOrchardCommand
 				{
 					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
 					Password = parseResult.GetValue(PasswordOption),
 					AccountIndex = parseResult.GetValue(AccountIndexOption),
 					TestNet = parseResult.GetValue(TestNetOption),
-				}.Execute(CancellationToken.None));
+				}.Execute(cancellationToken)));
 
 			return command;
 		}
@@ -123,13 +123,13 @@ internal abstract class DeriveCommand
 			AddCommonOptions(command);
 
 			command.SetAction(
-				parseResult => new DeriveSaplingCommand
+				(parseResult, cancellationToken) => Task.FromResult(new DeriveSaplingCommand
 				{
 					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
 					Password = parseResult.GetValue(PasswordOption),
 					AccountIndex = parseResult.GetValue(AccountIndexOption),
 					TestNet = parseResult.GetValue(TestNetOption),
-				}.Execute(CancellationToken.None));
+				}.Execute(cancellationToken)));
 
 			return command;
 		}
@@ -159,7 +159,7 @@ internal abstract class DeriveCommand
 			command.Options.Add(addressCountOption);
 
 			command.SetAction(
-				parseResult => new DeriveTransparentCommand
+				(parseResult, cancellationToken) => Task.FromResult(new DeriveTransparentCommand
 				{
 					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
 					Password = parseResult.GetValue(PasswordOption),
@@ -167,7 +167,7 @@ internal abstract class DeriveCommand
 					AddressIndex = parseResult.GetValue(addressIndexOption),
 					AddressCount = parseResult.GetValue(addressCountOption),
 					TestNet = parseResult.GetValue(TestNetOption),
-				}.Execute(CancellationToken.None));
+				}.Execute(cancellationToken)));
 
 			return command;
 		}
