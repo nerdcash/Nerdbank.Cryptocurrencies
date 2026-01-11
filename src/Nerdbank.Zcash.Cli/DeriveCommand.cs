@@ -104,7 +104,7 @@ internal abstract class DeriveCommand
 					Password = parseResult.GetValue(PasswordOption),
 					AccountIndex = parseResult.GetValue(AccountIndexOption),
 					TestNet = parseResult.GetValue(TestNetOption),
-				}.Execute(CancellationToken.None));
+				}.Execute(cancellationToken)));
 
 			return command;
 		}
@@ -129,7 +129,7 @@ internal abstract class DeriveCommand
 					Password = parseResult.GetValue(PasswordOption),
 					AccountIndex = parseResult.GetValue(AccountIndexOption),
 					TestNet = parseResult.GetValue(TestNetOption),
-				}.Execute(CancellationToken.None));
+				}.Execute(cancellationToken)));
 
 			return command;
 		}
@@ -167,7 +167,7 @@ internal abstract class DeriveCommand
 					AddressIndex = parseResult.GetValue(addressIndexOption),
 					AddressCount = parseResult.GetValue(addressCountOption),
 					TestNet = parseResult.GetValue(TestNetOption),
-				}.Execute(CancellationToken.None));
+				}.Execute(cancellationToken)));
 
 			return command;
 		}
