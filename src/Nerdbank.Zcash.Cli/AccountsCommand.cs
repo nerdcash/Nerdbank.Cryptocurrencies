@@ -19,14 +19,13 @@ internal class AccountsCommand : WalletUserCommandBase
 			TestNetOption,
 		};
 
-		command.SetHandler(async ctxt =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
-			ctxt.ExitCode = await new AccountsCommand()
+			return await new AccountsCommand()
 			{
-				Console = ctxt.Console,
-				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
-				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				WalletPath = parseResult.GetValue(WalletPathArgument)!,
+				TestNet = parseResult.GetValue(TestNetOption),
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;
@@ -36,7 +35,7 @@ internal class AccountsCommand : WalletUserCommandBase
 	{
 		foreach (ZcashAccount account in client.GetAccounts())
 		{
-			this.Console.WriteLine($"{account.DefaultAddress}");
+			Console.WriteLine($"{account.DefaultAddress}");
 		}
 
 		return Task.FromResult(0);

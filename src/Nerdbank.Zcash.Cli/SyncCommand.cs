@@ -24,7 +24,10 @@ internal class SyncCommand : WalletUserCommandBase
 
 	internal static Command BuildCommand()
 	{
-		Option<bool> continuallyOption = new("--continually", Strings.ContinuallyOptionDescription);
+		Option<bool> continuallyOption = new("--continually")
+		{
+			Description = Strings.ContinuallyOptionDescription,
+		};
 
 		Command command = new("sync", Strings.SyncCommandDescription)
 		{
@@ -34,16 +37,15 @@ internal class SyncCommand : WalletUserCommandBase
 			continuallyOption,
 		};
 
-		command.SetHandler(async ctxt =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
-			ctxt.ExitCode = await new SyncCommand
+			return await new SyncCommand
 			{
-				Console = ctxt.Console,
-				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
-				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
-				Continually = ctxt.ParseResult.GetValueForOption(continuallyOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				WalletPath = parseResult.GetValue(WalletPathArgument)!,
+				TestNet = parseResult.GetValue(TestNetOption),
+				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
+				Continually = parseResult.GetValue(continuallyOption),
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;
@@ -62,13 +64,13 @@ internal class SyncCommand : WalletUserCommandBase
 					int newPercent = (int)p.PercentComplete;
 					if (newPercent != lastPercentCompleteReported)
 					{
-						this.Console.WriteLine($"{newPercent,3}% complete ({p.LastFullyScannedBlock:N0}/{p.TipHeight:N0})");
+						Console.WriteLine($"{newPercent,3}% complete ({p.LastFullyScannedBlock:N0}/{p.TipHeight:N0})");
 						lastPercentCompleteReported = newPercent;
 					}
 
 					if (lastErrorReported != p.LastError)
 					{
-						this.Console.WriteLine(p.LastError is null ? "Last error resolved." : $"Non-fatal error: {p.LastError}");
+						Console.WriteLine(p.LastError is null ? "Last error resolved." : $"Non-fatal error: {p.LastError}");
 						lastErrorReported = p.LastError;
 					}
 				}
@@ -77,13 +79,13 @@ internal class SyncCommand : WalletUserCommandBase
 			{
 				foreach (Transaction tx in transactions.Values.SelectMany(t => t))
 				{
-					HistoryCommand.PrintTransaction(this.Console, tx);
+					HistoryCommand.PrintTransaction(tx);
 				}
 			}),
 			this.Continually,
 			cancellationToken);
 
-		this.Console.WriteLine($"Scanned to block {syncResult.LastFullyScannedBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: TimeUnit.Second)}.");
+		Console.WriteLine($"Scanned to block {syncResult.LastFullyScannedBlock} in {syncTimer.Elapsed.Humanize(2, minUnit: TimeUnit.Second)}.");
 
 		return 0;
 	}

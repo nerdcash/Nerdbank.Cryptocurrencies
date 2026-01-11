@@ -15,9 +15,19 @@ internal class SendCommand : SyncFirstCommandBase
 
 	internal static Command BuildCommand()
 	{
-		Argument<ZcashAddress> recipientArgument = new("recipient", Utilities.AddressParser, description: Strings.SendRecipientArgumentDescription);
-		Argument<decimal> amountArgument = new("amount", Strings.SendAmountArgumentDescription);
-		Option<string> memoOption = new("--memo", Strings.SendMemoOptionDescription);
+		Argument<ZcashAddress> recipientArgument = new("recipient")
+		{
+			Description = Strings.SendRecipientArgumentDescription,
+			CustomParser = Utilities.AddressParser,
+		};
+		Argument<decimal> amountArgument = new("amount")
+		{
+			Description = Strings.SendAmountArgumentDescription,
+		};
+		Option<string> memoOption = new("--memo")
+		{
+			Description = Strings.SendMemoOptionDescription,
+		};
 
 		Command command = new("send", Strings.SendCommandDescription)
 		{
@@ -32,21 +42,20 @@ internal class SendCommand : SyncFirstCommandBase
 			SpendingKeyAccountIndexOption,
 		};
 
-		command.SetHandler(async ctxt =>
+		command.SetAction(async (parseResult, cancellationToken) =>
 		{
-			ctxt.ExitCode = await new SendCommand
+			return await new SendCommand
 			{
-				Console = ctxt.Console,
-				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
-				Recipient = ctxt.ParseResult.GetValueForArgument(recipientArgument),
-				Amount = ctxt.ParseResult.GetValueForArgument(amountArgument),
-				Memo = ctxt.ParseResult.GetValueForOption(memoOption),
-				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
-				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
-				SpendingKeySeed = ctxt.ParseResult.GetValueForOption(SpendingKeySeedOption),
-				SpendingKeyAccountIndex = ctxt.ParseResult.GetValueForOption(SpendingKeyAccountIndexOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				WalletPath = parseResult.GetValue(WalletPathArgument)!,
+				Recipient = parseResult.GetValue(recipientArgument)!,
+				Amount = parseResult.GetValue(amountArgument),
+				Memo = parseResult.GetValue(memoOption),
+				NoSync = parseResult.GetValue(NoSyncOption),
+				TestNet = parseResult.GetValue(TestNetOption),
+				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
+				SpendingKeySeed = parseResult.GetValue(SpendingKeySeedOption),
+				SpendingKeyAccountIndex = parseResult.GetValue(SpendingKeyAccountIndexOption),
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;
@@ -68,14 +77,14 @@ internal class SendCommand : SyncFirstCommandBase
 			{
 				if (p.Total > 0)
 				{
-					this.Console.WriteLine($"{100 * p.Progress / p.Total}%");
+					Console.WriteLine($"{100 * p.Progress / p.Total}%");
 				}
 			}),
 			cancellationToken);
 
 		for (int i = 0; i < txids.Length; i++)
 		{
-			this.Console.WriteLine($"Transmitted transaction ID: {txids.Span[i]}");
+			Console.WriteLine($"Transmitted transaction ID: {txids.Span[i]}");
 		}
 
 		return 0;

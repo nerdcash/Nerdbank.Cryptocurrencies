@@ -11,7 +11,10 @@ internal abstract class SyncFirstCommandBase : WalletUserCommandBase
 	{
 	}
 
-	internal static Option<bool> NoSyncOption { get; } = new("--no-sync", Strings.NoSyncOption);
+	internal static Option<bool> NoSyncOption { get; } = new("--no-sync")
+	{
+		Description = Strings.NoSyncOption,
+	};
 
 	internal required bool NoSync { get; init; }
 
@@ -21,7 +24,7 @@ internal abstract class SyncFirstCommandBase : WalletUserCommandBase
 		{
 			SyncCommand syncCommand = new(this);
 			await syncCommand.ExecuteAsync(client, cancellationToken);
-			this.Console.WriteLine(string.Empty);
+			Console.WriteLine(string.Empty);
 		}
 
 		return 0;

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
-using System.CommandLine.IO;
 using Nerdbank.Cryptocurrencies;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
@@ -10,11 +9,15 @@ namespace Nerdbank.Zcash.Cli;
 
 internal class PriceCommand
 {
-	private static readonly Option<DateTimeOffset> TimestampOption = new(["--timestamp", "-t"], () => DateTimeOffset.UtcNow, Strings.PriceTimestampOptionDescription);
+	private static readonly Option<DateTimeOffset?> TimestampOption = new("--timestamp", "-t")
+	{
+		Description = Strings.PriceTimestampOptionDescription,
+	};
 
-	private static readonly Option<string> CurrencyOption = new(["--currency", "-c"], () => "USD", Strings.PriceCurrencyOptionDescription);
-
-	internal required IConsole Console { get; init; }
+	private static readonly Option<string?> CurrencyOption = new("--currency", "-c")
+	{
+		Description = Strings.PriceCurrencyOptionDescription,
+	};
 
 	internal required DateTimeOffset Timestamp { get; init; }
 
@@ -22,18 +25,22 @@ internal class PriceCommand
 
 	internal static Command BuildCommand()
 	{
-		Command command = new("price", Strings.PriceCommandDescription);
-		command.AddOption(TimestampOption);
-		command.AddOption(CurrencyOption);
-
-		command.SetHandler(async ctxt =>
+		Command command = new("price", Strings.PriceCommandDescription)
 		{
-			ctxt.ExitCode = await new PriceCommand
+			TimestampOption,
+			CurrencyOption,
+		};
+
+		command.SetAction(async (parseResult, cancellationToken) =>
+		{
+			DateTimeOffset timestamp = parseResult.GetValue(TimestampOption) ?? DateTimeOffset.UtcNow;
+			string currency = parseResult.GetValue(CurrencyOption) ?? "USD";
+
+			return await new PriceCommand
 			{
-				Console = ctxt.Console,
-				Timestamp = ctxt.ParseResult.GetValueForOption(TimestampOption),
-				Currency = ctxt.ParseResult.GetValueForOption(CurrencyOption)!,
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				Timestamp = timestamp,
+				Currency = currency,
+			}.ExecuteAsync(cancellationToken);
 		});
 
 		return command;
@@ -43,7 +50,7 @@ internal class PriceCommand
 	{
 		if (!Security.WellKnown.TryGetValue(this.Currency, out Security? currency))
 		{
-			this.Console.Error.WriteLine(Strings.FormatPriceUnknownCurrency(this.Currency));
+			await Console.Error.WriteLineAsync(Strings.FormatPriceUnknownCurrency(this.Currency));
 			return 1;
 		}
 
@@ -64,16 +71,16 @@ internal class PriceCommand
 
 			if (rate is null)
 			{
-				this.Console.Error.WriteLine(Strings.FormatPriceNotAvailable(this.Timestamp));
+				await Console.Error.WriteLineAsync(Strings.FormatPriceNotAvailable(this.Timestamp));
 				return 1;
 			}
 
-			this.Console.WriteLine(Strings.FormatPriceResult(rate.Value.Basis, rate.Value.TradeInterest, this.Timestamp, ((IHistoricalExchangeRateProvider)coinbase).Resolution));
+			Console.WriteLine(Strings.FormatPriceResult(rate.Value.Basis, rate.Value.TradeInterest, this.Timestamp, ((IHistoricalExchangeRateProvider)coinbase).Resolution));
 			return 0;
 		}
 		catch (Exception ex)
 		{
-			this.Console.Error.WriteLine(Strings.FormatPriceError(ex.Message));
+			await Console.Error.WriteLineAsync(Strings.FormatPriceError(ex.Message));
 			return 1;
 		}
 	}

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
-using System.CommandLine.IO;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -21,25 +20,25 @@ internal class UACommand
 
 	private class ParseCommand
 	{
-		internal required IConsole Console { get; init; }
-
 		internal required string UnifiedAddress { get; init; }
 
 		internal static Command BuildCommand()
 		{
-			Argument<string> uaArgument = new("unified address", Strings.UAParseArgumentDescription);
+			Argument<string> uaArgument = new("unified address")
+			{
+				Description = Strings.UAParseArgumentDescription,
+			};
 
 			Command parseCommand = new("parse", Strings.UAParseCommandDescription)
 		{
 			uaArgument,
 		};
-			parseCommand.SetHandler(ctxt =>
+			parseCommand.SetAction((parseResult, cancellationToken) =>
 			{
-				ctxt.ExitCode = new ParseCommand
+				return Task.FromResult(new ParseCommand
 				{
-					Console = ctxt.Console,
-					UnifiedAddress = ctxt.ParseResult.GetValueForArgument(uaArgument),
-				}.Execute(ctxt.GetCancellationToken());
+					UnifiedAddress = parseResult.GetValue(uaArgument)!,
+				}.Execute(cancellationToken));
 			});
 
 			return parseCommand;
@@ -49,21 +48,21 @@ internal class UACommand
 		{
 			if (!ZcashAddress.TryDecode(this.UnifiedAddress, out _, out string? errorMessage, out ZcashAddress? parsed))
 			{
-				this.Console.Error.WriteLine(errorMessage);
+				Console.Error.WriteLine(errorMessage);
 				return 1;
 			}
 
 			if (parsed is not UnifiedAddress ua)
 			{
-				this.Console.Error.WriteLine(Strings.NotAUnifiedAddress);
+				Console.Error.WriteLine(Strings.NotAUnifiedAddress);
 				return 2;
 			}
 
-			this.Console.WriteLine($"Network: {ua.Network}");
+			Console.WriteLine($"Network: {ua.Network}");
 
 			foreach (ZcashAddress receiver in ua.Receivers)
 			{
-				this.Console.WriteLine($"{GetPoolReceiver(receiver),-12}: {receiver}");
+				Console.WriteLine($"{GetPoolReceiver(receiver),-12}: {receiver}");
 			}
 
 			return 0;
@@ -81,14 +80,13 @@ internal class UACommand
 
 	private class ConstructCommand
 	{
-		internal required IConsole Console { get; init; }
-
 		internal required string[] Receivers { get; init; }
 
 		internal static Command BuildCommand()
 		{
-			Argument<string[]> receiversArgument = new("receivers", Strings.UAConstructReceiversArgumentDescription)
+			Argument<string[]> receiversArgument = new("receivers")
 			{
+				Description = Strings.UAConstructReceiversArgumentDescription,
 				Arity = ArgumentArity.OneOrMore,
 			};
 
@@ -97,13 +95,12 @@ internal class UACommand
 				receiversArgument,
 			};
 
-			command.SetHandler(ctxt =>
+			command.SetAction((parseResult, cancellationToken) =>
 			{
-				ctxt.ExitCode = new ConstructCommand
+				return Task.FromResult(new ConstructCommand
 				{
-					Console = ctxt.Console,
-					Receivers = ctxt.ParseResult.GetValueForArgument(receiversArgument),
-				}.Execute(ctxt.GetCancellationToken());
+					Receivers = parseResult.GetValue(receiversArgument)!,
+				}.Execute(cancellationToken));
 			});
 
 			return command;
@@ -116,7 +113,7 @@ internal class UACommand
 			{
 				if (!ZcashAddress.TryDecode(this.Receivers[i], out _, out string? errorMessage, out ZcashAddress? addr))
 				{
-					this.Console.Error.WriteLine(Strings.FormatInvalidAddress(this.Receivers[i], errorMessage));
+					Console.Error.WriteLine(Strings.FormatInvalidAddress(this.Receivers[i], errorMessage));
 					return 1;
 				}
 
@@ -126,11 +123,11 @@ internal class UACommand
 			try
 			{
 				UnifiedAddress ua = UnifiedAddress.Create(receiverAddresses);
-				this.Console.WriteLine(ua);
+				Console.WriteLine(ua);
 			}
 			catch (ArgumentException ex)
 			{
-				this.Console.Error.WriteLine(ex.Message);
+				Console.Error.WriteLine(ex.Message);
 				return 2;
 			}
 
