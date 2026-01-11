@@ -11,13 +11,17 @@ internal class TexCommand
 
 	internal static Command BuildCommand()
 	{
-		Argument<string> transparentAddressArgument = new("transparentAddress", Strings.TexTransparentAddressArgumentDescription) { Arity = ArgumentArity.ExactlyOne };
+		Argument<string> transparentAddressArgument = new("transparentAddress")
+		{
+			Description = Strings.TexTransparentAddressArgumentDescription,
+			Arity = ArgumentArity.ExactlyOne,
+		};
 		Command command = new Command("tex", Strings.TexCommandDescription)
 		{
 			transparentAddressArgument,
 		};
 
-		command.SetHandler(parseResult =>
+		command.SetAction(parseResult =>
 		{
 			return new TexCommand
 			{

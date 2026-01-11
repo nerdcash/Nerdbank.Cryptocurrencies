@@ -32,7 +32,7 @@ internal class ShieldCommand : SyncFirstCommandBase
 			SpendingKeyAccountIndexOption,
 		};
 
-		command.SetHandler(async parseResult =>
+		command.SetAction(async parseResult =>
 		{
 			return await new ShieldCommand
 			{

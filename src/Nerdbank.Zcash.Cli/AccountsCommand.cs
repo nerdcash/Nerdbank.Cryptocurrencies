@@ -19,7 +19,7 @@ internal class AccountsCommand : WalletUserCommandBase
 			TestNetOption,
 		};
 
-		command.SetHandler(async parseResult =>
+		command.SetAction(async parseResult =>
 		{
 			return await new AccountsCommand()
 			{

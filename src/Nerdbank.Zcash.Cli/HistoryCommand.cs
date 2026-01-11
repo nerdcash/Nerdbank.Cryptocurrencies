@@ -23,7 +23,7 @@ internal class HistoryCommand : SyncFirstCommandBase
 			startingBlockOption,
 		};
 
-		command.SetHandler(async parseResult =>
+		command.SetAction(async parseResult =>
 		{
 			return await new HistoryCommand
 			{

@@ -34,7 +34,7 @@ internal class SyncCommand : WalletUserCommandBase
 			continuallyOption,
 		};
 
-		command.SetHandler(async parseResult =>
+		command.SetAction(async parseResult =>
 		{
 			return await new SyncCommand
 			{

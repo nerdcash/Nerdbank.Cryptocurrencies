@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using static System.CommandLine.ArgumentValidation;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -23,11 +24,23 @@ internal class ImportAccountCommand
 
 	internal static Command BuildCommand()
 	{
-		Argument<string> keyArgument = new("key", Strings.KeyArgumentDescription) { Arity = ArgumentArity.ExactlyOne };
-		Option<string> walletPathOption = new Option<string>("--wallet", Strings.NewAccountWalletPathOptionDescription)
-			.LegalFilePathsOnly();
-		Option<uint> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
-		Option<Uri> lightServerUriOption = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
+		Argument<string> keyArgument = new("key")
+		{
+			Description = Strings.KeyArgumentDescription,
+			Arity = ArgumentArity.ExactlyOne,
+		};
+		Option<string> walletPathOption = new Option<string>("--wallet")
+		{
+			Description = Strings.NewAccountWalletPathOptionDescription,
+		}.AcceptLegalFilePathsOnly();
+		Option<uint> birthdayHeightOption = new("--birthday-height")
+		{
+			Description = Strings.BirthdayHeightOptionDescription,
+		};
+		Option<Uri> lightServerUriOption = new("--lightserverUrl")
+		{
+			Description = Strings.LightServerUrlOptionDescription,
+		};
 
 		Command command = new("import", Strings.ImportAccountCommandDescription)
 		{

@@ -24,7 +24,7 @@ internal static class Utilities
 			return addr;
 		}
 
-		result.ErrorMessage = errorMessage;
+		result.AddError(errorMessage);
 		return null!;
 	}
 
@@ -39,7 +39,7 @@ internal static class Utilities
 			}
 			else
 			{
-				result.ErrorMessage = errorMessage;
+				result.AddError(errorMessage);
 				return Array.Empty<ZcashAddress>();
 			}
 		}

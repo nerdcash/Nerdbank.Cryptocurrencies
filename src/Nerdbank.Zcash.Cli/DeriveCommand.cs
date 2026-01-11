@@ -10,13 +10,29 @@ namespace Nerdbank.Zcash.Cli;
 
 internal abstract class DeriveCommand
 {
-	protected static readonly Option<string> SeedPhraseOption = new("--seedPhrase", Strings.SeedPhraseOptionDescription) { IsRequired = true, Arity = ArgumentArity.ExactlyOne };
+	protected static readonly Option<string> SeedPhraseOption = new("--seedPhrase")
+	{
+		Description = Strings.SeedPhraseOptionDescription,
+		Required = true,
+		Arity = ArgumentArity.ExactlyOne,
+	};
 
-	protected static readonly Option<string> PasswordOption = new("--password", Strings.PasswordOptionDescription) { Arity = ArgumentArity.ZeroOrOne };
+	protected static readonly Option<string> PasswordOption = new("--password")
+	{
+		Description = Strings.PasswordOptionDescription,
+		Arity = ArgumentArity.ZeroOrOne,
+	};
 
-	protected static readonly Option<uint> AccountIndexOption = new("--account", () => 0, Strings.AccountIndexOptionDescription) { Arity = ArgumentArity.ZeroOrOne };
+	protected static readonly Option<uint> AccountIndexOption = new("--account")
+	{
+		Description = Strings.AccountIndexOptionDescription,
+		Arity = ArgumentArity.ZeroOrOne,
+	};
 
-	protected static readonly Option<bool> TestNetOption = new("--testnet", Strings.TestNetOptionDescription);
+	protected static readonly Option<bool> TestNetOption = new("--testnet")
+	{
+		Description = Strings.TestNetOptionDescription,
+	};
 
 	internal required string SeedPhrase { get; init; }
 
@@ -48,14 +64,15 @@ internal abstract class DeriveCommand
 
 	protected static void AddCommonOptions(Command command)
 	{
-		command.AddOption(SeedPhraseOption);
-		command.AddOption(PasswordOption);
-		command.AddOption(AccountIndexOption);
-		command.AddOption(TestNetOption);
+		command.Options.Add(SeedPhraseOption);
+		command.Options.Add(PasswordOption);
+		command.Options.Add(AccountIndexOption);
+		command.Options.Add(TestNetOption);
 
-		command.AddValidator(cr =>
+		command.Validators.Add(cr =>
 		{
-			if (cr.FindResultFor(SeedPhraseOption)?.Tokens is IReadOnlyList<Token> tokenList)
+			var seedPhraseResult = cr.Children.OfType<OptionResult>().FirstOrDefault(sr => sr.Option == SeedPhraseOption);
+			if (seedPhraseResult?.Tokens is IReadOnlyList<Token> tokenList && tokenList.Count > 0)
 			{
 				StringBuilder sb = new();
 				foreach (Token token in tokenList)
@@ -66,7 +83,7 @@ internal abstract class DeriveCommand
 
 				if (!Bip39Mnemonic.TryParse(sb.ToString(), (string?)null, out _, out _, out string? errorMessage))
 				{
-					cr.ErrorMessage = errorMessage;
+					cr.AddError(errorMessage);
 				}
 			}
 		});
@@ -81,7 +98,7 @@ internal abstract class DeriveCommand
 			Command command = new("orchard", Strings.DeriveOrchardCommandDescription);
 			AddCommonOptions(command);
 
-			command.SetHandler(
+			command.SetAction(
 				parseResult => new DeriveOrchardCommand
 				{
 					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
@@ -106,7 +123,7 @@ internal abstract class DeriveCommand
 			Command command = new("sapling", Strings.DeriveSaplingCommandDescription);
 			AddCommonOptions(command);
 
-			command.SetHandler(
+			command.SetAction(
 				parseResult => new DeriveSaplingCommand
 				{
 					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
@@ -134,15 +151,21 @@ internal abstract class DeriveCommand
 
 		internal static new Command BuildCommand()
 		{
-			Option<uint> addressIndexOption = new("--address", () => 0, Strings.AddressIndexOptionDescription);
-			Option<uint> addressCountOption = new("--count", () => DefaultAddressCount, Strings.TransparentAddressCountOptionDescription);
+			Option<uint> addressIndexOption = new("--address")
+			{
+				Description = Strings.AddressIndexOptionDescription,
+			};
+			Option<uint> addressCountOption = new("--count")
+			{
+				Description = Strings.TransparentAddressCountOptionDescription,
+			};
 
 			Command command = new("transparent", Strings.DeriveTransparentCommandDescription);
 			AddCommonOptions(command);
-			command.AddOption(addressIndexOption);
-			command.AddOption(addressCountOption);
+			command.Options.Add(addressIndexOption);
+			command.Options.Add(addressCountOption);
 
-			command.SetHandler(
+			command.SetAction(
 				parseResult => new DeriveTransparentCommand
 				{
 					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,

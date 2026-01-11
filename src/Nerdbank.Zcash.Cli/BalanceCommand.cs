@@ -18,7 +18,7 @@ internal class BalanceCommand : SyncFirstCommandBase
 			NoSyncOption,
 		};
 
-		command.SetHandler(async parseResult =>
+		command.SetAction(async parseResult =>
 		{
 			return await new BalanceCommand
 			{

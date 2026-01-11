@@ -15,9 +15,19 @@ internal class SendCommand : SyncFirstCommandBase
 
 	internal static Command BuildCommand()
 	{
-		Argument<ZcashAddress> recipientArgument = new("recipient", Utilities.AddressParser, description: Strings.SendRecipientArgumentDescription);
-		Argument<decimal> amountArgument = new("amount", Strings.SendAmountArgumentDescription);
-		Option<string> memoOption = new("--memo", Strings.SendMemoOptionDescription);
+		Argument<ZcashAddress> recipientArgument = new("recipient")
+		{
+			Description = Strings.SendRecipientArgumentDescription,
+			CustomParser = Utilities.AddressParser,
+		};
+		Argument<decimal> amountArgument = new("amount")
+		{
+			Description = Strings.SendAmountArgumentDescription,
+		};
+		Option<string> memoOption = new("--memo")
+		{
+			Description = Strings.SendMemoOptionDescription,
+		};
 
 		Command command = new("send", Strings.SendCommandDescription)
 		{
@@ -32,7 +42,7 @@ internal class SendCommand : SyncFirstCommandBase
 			SpendingKeyAccountIndexOption,
 		};
 
-		command.SetHandler(async parseResult =>
+		command.SetAction(async parseResult =>
 		{
 			return await new SendCommand
 			{

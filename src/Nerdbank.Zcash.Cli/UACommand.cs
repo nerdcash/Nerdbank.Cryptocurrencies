@@ -24,13 +24,16 @@ internal class UACommand
 
 		internal static Command BuildCommand()
 		{
-			Argument<string> uaArgument = new("unified address", Strings.UAParseArgumentDescription);
+			Argument<string> uaArgument = new("unified address")
+			{
+				Description = Strings.UAParseArgumentDescription,
+			};
 
 			Command parseCommand = new("parse", Strings.UAParseCommandDescription)
 		{
 			uaArgument,
 		};
-			parseCommand.SetHandler(parseResult =>
+			parseCommand.SetAction(parseResult =>
 			{
 				return new ParseCommand
 				{
@@ -81,8 +84,9 @@ internal class UACommand
 
 		internal static Command BuildCommand()
 		{
-			Argument<string[]> receiversArgument = new("receivers", Strings.UAConstructReceiversArgumentDescription)
+			Argument<string[]> receiversArgument = new("receivers")
 			{
+				Description = Strings.UAConstructReceiversArgumentDescription,
 				Arity = ArgumentArity.OneOrMore,
 			};
 
@@ -91,7 +95,7 @@ internal class UACommand
 				receiversArgument,
 			};
 
-			command.SetHandler(parseResult =>
+			command.SetAction(parseResult =>
 			{
 				return new ConstructCommand
 				{

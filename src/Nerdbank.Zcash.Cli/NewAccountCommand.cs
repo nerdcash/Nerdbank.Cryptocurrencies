@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using static System.CommandLine.ArgumentValidation;
+using System.CommandLine.Parsing;
 using Nerdbank.Bitcoin;
 
 namespace Nerdbank.Zcash.Cli;
@@ -40,30 +42,54 @@ internal class NewAccountCommand
 
 	internal static Command BuildCommand()
 	{
-		Option<int> seedPhraseWordLengthOption = new("--seedPhraseLength", () => SeedPhraseWordLengthDefault, Strings.SeedPhraseLengthOptionDescription);
-		seedPhraseWordLengthOption.AddValidator(v =>
+		Option<int> seedPhraseWordLengthOption = new("--seedPhraseLength")
 		{
-			int value = v.GetValueForOption(seedPhraseWordLengthOption);
+			Description = Strings.SeedPhraseLengthOptionDescription,
+		};
+		seedPhraseWordLengthOption.Validators.Add(v =>
+		{
+			int value = v.GetValueOrDefault<int>();
 			if (value % 3 != 0 || value < Bip39Mnemonic.WordsRequiredForEntropyLength(Zip32HDWallet.MinimumEntropyLengthInBits))
 			{
-				v.ErrorMessage = Strings.BadSeedPhraseLength;
+				v.AddError(Strings.BadSeedPhraseLength);
 			}
 		});
 
-		Option<string> seedPhraseOption = new("--seedPhrase", Strings.SeedPhraseOptionDescription) { Arity = ArgumentArity.ZeroOrOne };
+		Option<string> seedPhraseOption = new("--seedPhrase")
+		{
+			Description = Strings.SeedPhraseOptionDescription,
+			Arity = ArgumentArity.ZeroOrOne,
+		};
 
-		Option<string> seedPhrasePasswordOption = new("--password", Strings.PasswordOptionDescription);
+		Option<string> seedPhrasePasswordOption = new("--password")
+		{
+			Description = Strings.PasswordOptionDescription,
+		};
 
-		Option<uint> accountIndexOption = new("--index", () => 0, Strings.AccountIndexOptionDescription);
+		Option<uint> accountIndexOption = new("--index")
+		{
+			Description = Strings.AccountIndexOptionDescription,
+		};
 
-		Option<bool> offlineModeOption = new("--offline", Strings.OfflineOptionDescription);
+		Option<bool> offlineModeOption = new("--offline")
+		{
+			Description = Strings.OfflineOptionDescription,
+		};
 
-		Option<string> walletPathOption = new Option<string>("--wallet", Strings.NewAccountWalletPathOptionDescription)
-			.LegalFilePathsOnly();
+		Option<string> walletPathOption = new Option<string>("--wallet")
+		{
+			Description = Strings.NewAccountWalletPathOptionDescription,
+		}.AcceptLegalFilePathsOnly();
 
-		Option<string> nameOption = new Option<string>("--name", () => "(default)", Strings.AccountNameOptionDescription);
+		Option<string> nameOption = new Option<string>("--name")
+		{
+			Description = Strings.AccountNameOptionDescription,
+		};
 
-		Option<uint?> birthdayHeightOption = new("--birthday-height", Strings.BirthdayHeightOptionDescription);
+		Option<uint?> birthdayHeightOption = new("--birthday-height")
+		{
+			Description = Strings.BirthdayHeightOptionDescription,
+		};
 
 		Command command = new("new", Strings.NewAccountCommandDescription)
 		{
@@ -79,21 +105,25 @@ internal class NewAccountCommand
 			birthdayHeightOption,
 		};
 
-		command.AddValidator(v =>
+		command.Validators.Add(v =>
 		{
-			if (v.FindResultFor(seedPhraseOption)?.Token is not null && v.FindResultFor(seedPhraseWordLengthOption)?.Token is not null)
+			var seedPhraseRes = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseOption);
+			var lengthRes = v.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseWordLengthOption);
+			if (seedPhraseRes?.Tokens.Count > 0 && lengthRes?.Tokens.Count > 0)
 			{
-				v.ErrorMessage = Strings.SeedLengthAndSeedPhraseNotAllowed;
+				v.AddError(Strings.SeedLengthAndSeedPhraseNotAllowed);
 			}
 		});
 
 		command.SetAction(parseResult =>
 		{
+			var rootCommandResult = parseResult.RootCommandResult;
+			var seedPhraseRes = rootCommandResult.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseOption);
 			return new NewAccountCommand()
 			{
 				SeedPhraseWordLength = parseResult.GetValue(seedPhraseWordLengthOption),
 				SeedPhrase = parseResult.GetValue(seedPhraseOption),
-				PromptForSeedPhrase = parseResult.FindResultFor(seedPhraseOption) is { Token: not null, Tokens: { Count: 0 } },
+				PromptForSeedPhrase = seedPhraseRes is { Tokens.Count: 0 },
 				Password = parseResult.GetValue(seedPhrasePasswordOption),
 				TestNet = parseResult.GetValue(WalletUserCommandBase.TestNetOption),
 				AccountIndex = parseResult.GetValue(accountIndexOption),

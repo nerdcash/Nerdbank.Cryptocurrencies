@@ -21,4 +21,4 @@ Command rootCommand = new(Assembly.GetExecutingAssembly().GetName().Name!, Strin
 	DeriveCommand.BuildCommand(),
 };
 
-return await rootCommand.InvokeAsync(args);
+return await rootCommand.Parse(args).InvokeAsync();
