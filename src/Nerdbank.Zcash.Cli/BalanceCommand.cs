@@ -18,16 +18,15 @@ internal class BalanceCommand : SyncFirstCommandBase
 			NoSyncOption,
 		};
 
-		command.SetHandler(async ctxt =>
+		command.SetHandler(async parseResult =>
 		{
-			ctxt.ExitCode = await new BalanceCommand
+			return await new BalanceCommand
 			{
-				Console = ctxt.Console,
-				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
-				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
-				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				WalletPath = parseResult.GetValue(WalletPathArgument),
+				TestNet = parseResult.GetValue(TestNetOption),
+				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
+				NoSync = parseResult.GetValue(NoSyncOption),
+			}.ExecuteAsync(CancellationToken.None);
 		});
 
 		return command;
@@ -43,7 +42,7 @@ internal class BalanceCommand : SyncFirstCommandBase
 
 		foreach (ZcashAccount account in client.GetAccounts())
 		{
-			this.Console.WriteLine($"Account default address: {account.DefaultAddress}");
+			Console.WriteLine($"Account default address: {account.DefaultAddress}");
 
 			this.PrintAccountBalances(client.GetBalances(account));
 			this.PrintUnshieldedBalances(client.GetUnshieldedBalances(account));
@@ -74,30 +73,30 @@ internal class BalanceCommand : SyncFirstCommandBase
 
 		void PrintLine(string caption, SecurityAmount amount)
 		{
-			this.Console.Write(caption.PadRight(captionWidth));
-			this.Console.Write(" ");
+			Console.Write(caption.PadRight(captionWidth));
+			Console.Write(" ");
 
 			// Align our negative indicator.
-			this.Console.Write(amount.Amount >= 0 ? " " : "-");
+			Console.Write(amount.Amount >= 0 ? " " : "-");
 
-			this.Console.WriteLine(amount.Absolute.ToString().PadLeft(amountWidth));
+			Console.WriteLine(amount.Absolute.ToString().PadLeft(amountWidth));
 		}
 	}
 
 	private void PrintUnshieldedBalances(IReadOnlyList<(TransparentAddress Address, decimal Balance)> unshieldedFunds)
 	{
-		this.Console.WriteLine(string.Empty);
+		Console.WriteLine(string.Empty);
 
 		if (unshieldedFunds.Count == 0)
 		{
-			this.Console.WriteLine(Strings.NoUnshieldedFunds);
+			Console.WriteLine(Strings.NoUnshieldedFunds);
 			return;
 		}
 
-		this.Console.WriteLine("Unshielded balances:");
+		Console.WriteLine("Unshielded balances:");
 		foreach ((TransparentAddress address, decimal balance) in unshieldedFunds)
 		{
-			this.Console.WriteLine($"{Security.ZEC.Amount(balance)} {address}");
+			Console.WriteLine($"{Security.ZEC.Amount(balance)} {address}");
 		}
 	}
 }

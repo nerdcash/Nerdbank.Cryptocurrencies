@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
-using System.CommandLine.IO;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -12,7 +11,7 @@ internal class ImportAccountCommand
 	{
 	}
 
-	internal required IConsole Console { get; set; }
+
 
 	internal required string Key { get; set; }
 
@@ -38,16 +37,15 @@ internal class ImportAccountCommand
 			lightServerUriOption,
 		};
 
-		command.SetHandler(async ctxt =>
+		command.SetAction(parseResult =>
 		{
-			ctxt.ExitCode = await new ImportAccountCommand()
+			return new ImportAccountCommand()
 			{
-				Console = ctxt.Console,
-				Key = ctxt.ParseResult.GetValueForArgument(keyArgument),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(lightServerUriOption),
-				WalletPath = ctxt.ParseResult.GetValueForOption(walletPathOption),
-				BirthdayHeight = ctxt.ParseResult.GetValueForOption(birthdayHeightOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				Key = parseResult.GetValue(keyArgument)!,
+				LightWalletServerUrl = parseResult.GetValue(lightServerUriOption),
+				WalletPath = parseResult.GetValue(walletPathOption),
+				BirthdayHeight = parseResult.GetValue(birthdayHeightOption),
+			}.ExecuteAsync(CancellationToken.None);
 		});
 
 		return command;
@@ -57,13 +55,13 @@ internal class ImportAccountCommand
 	{
 		if (!ZcashAccount.TryImportAccount(this.Key, out ZcashAccount? account))
 		{
-			this.Console.Error.WriteLine(Strings.UnrecognizedKeyFormat);
+			Console.Error.WriteLine(Strings.UnrecognizedKeyFormat);
 			return 1;
 		}
 
 		account.BirthdayHeight = this.BirthdayHeight;
 
-		this.Console.WriteLine($"Network: {account.Network}");
+		Console.WriteLine($"Network: {account.Network}");
 
 		Uri serverUrl = this.LightWalletServerUrl ?? Utilities.GetDefaultLightWalletUrl(account.Network == ZcashNetwork.TestNet);
 		if (this.WalletPath is not null)
@@ -73,12 +71,12 @@ internal class ImportAccountCommand
 				account.Network,
 				this.WalletPath);
 			await client.AddAccountAsync(account, cancellationToken);
-			this.Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
+			Console.WriteLine($"Wallet file saved to \"{this.WalletPath}\".");
 		}
 
-		Utilities.PrintAccountInfo(this.Console, account);
+		Utilities.PrintAccountInfo(account);
 
-		this.Console.WriteLine(string.Empty);
+		Console.WriteLine(string.Empty);
 
 		return 0;
 	}

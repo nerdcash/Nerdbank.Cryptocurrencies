@@ -18,8 +18,6 @@ internal abstract class DeriveCommand
 
 	protected static readonly Option<bool> TestNetOption = new("--testnet", Strings.TestNetOptionDescription);
 
-	internal required IConsole Console { get; set; }
-
 	internal required string SeedPhrase { get; init; }
 
 	internal required string? Password { get; init; }
@@ -84,21 +82,20 @@ internal abstract class DeriveCommand
 			AddCommonOptions(command);
 
 			command.SetHandler(
-				ctxt => new DeriveOrchardCommand
+				parseResult => new DeriveOrchardCommand
 				{
-					Console = ctxt.Console,
-					SeedPhrase = ctxt.ParseResult.GetValueForOption(SeedPhraseOption)!,
-					Password = ctxt.ParseResult.GetValueForOption(PasswordOption),
-					AccountIndex = ctxt.ParseResult.GetValueForOption(AccountIndexOption),
-					TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				}.Execute(ctxt.GetCancellationToken()));
+					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
+					Password = parseResult.GetValue(PasswordOption),
+					AccountIndex = parseResult.GetValue(AccountIndexOption),
+					TestNet = parseResult.GetValue(TestNetOption),
+				}.Execute(CancellationToken.None));
 
 			return command;
 		}
 
 		protected override void Execute(Zip32HDWallet zip32, CancellationToken cancellationToken)
 		{
-			this.Console.WriteLine(zip32.CreateOrchardAccount(this.AccountIndex).DefaultAddress);
+			Console.WriteLine(zip32.CreateOrchardAccount(this.AccountIndex).DefaultAddress);
 		}
 	}
 
@@ -110,21 +107,20 @@ internal abstract class DeriveCommand
 			AddCommonOptions(command);
 
 			command.SetHandler(
-				ctxt => new DeriveSaplingCommand
+				parseResult => new DeriveSaplingCommand
 				{
-					Console = ctxt.Console,
-					SeedPhrase = ctxt.ParseResult.GetValueForOption(SeedPhraseOption)!,
-					Password = ctxt.ParseResult.GetValueForOption(PasswordOption),
-					AccountIndex = ctxt.ParseResult.GetValueForOption(AccountIndexOption),
-					TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				}.Execute(ctxt.GetCancellationToken()));
+					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
+					Password = parseResult.GetValue(PasswordOption),
+					AccountIndex = parseResult.GetValue(AccountIndexOption),
+					TestNet = parseResult.GetValue(TestNetOption),
+				}.Execute(CancellationToken.None));
 
 			return command;
 		}
 
 		protected override void Execute(Zip32HDWallet zip32, CancellationToken cancellationToken)
 		{
-			this.Console.WriteLine(zip32.CreateSaplingAccount(this.AccountIndex).DefaultAddress);
+			Console.WriteLine(zip32.CreateSaplingAccount(this.AccountIndex).DefaultAddress);
 		}
 	}
 
@@ -147,16 +143,15 @@ internal abstract class DeriveCommand
 			command.AddOption(addressCountOption);
 
 			command.SetHandler(
-				ctxt => new DeriveTransparentCommand
+				parseResult => new DeriveTransparentCommand
 				{
-					Console = ctxt.Console,
-					SeedPhrase = ctxt.ParseResult.GetValueForOption(SeedPhraseOption)!,
-					Password = ctxt.ParseResult.GetValueForOption(PasswordOption),
-					AccountIndex = ctxt.ParseResult.GetValueForOption(AccountIndexOption),
-					AddressIndex = ctxt.ParseResult.GetValueForOption(addressIndexOption),
-					AddressCount = ctxt.ParseResult.GetValueForOption(addressCountOption),
-					TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				}.Execute(ctxt.GetCancellationToken()));
+					SeedPhrase = parseResult.GetValue(SeedPhraseOption)!,
+					Password = parseResult.GetValue(PasswordOption),
+					AccountIndex = parseResult.GetValue(AccountIndexOption),
+					AddressIndex = parseResult.GetValue(addressIndexOption),
+					AddressCount = parseResult.GetValue(addressCountOption),
+					TestNet = parseResult.GetValue(TestNetOption),
+				}.Execute(CancellationToken.None));
 
 			return command;
 		}
@@ -168,7 +163,7 @@ internal abstract class DeriveCommand
 			for (uint addressIndex = this.AddressIndex; addressIndex < this.AddressIndex + this.AddressCount; addressIndex++)
 			{
 				TransparentAddress transparent = transparentKey.GetReceivingKey(addressIndex).DefaultAddress;
-				this.Console.WriteLine($"{addressIndex,5} {transparent}");
+				Console.WriteLine($"{addressIndex,5} {transparent}");
 			}
 		}
 	}

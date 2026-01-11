@@ -58,17 +58,17 @@ internal static class Utilities
 		return memos;
 	}
 
-	internal static void PrintAccountInfo(IConsole console, ZcashAccount account)
+	internal static void PrintAccountInfo(ZcashAccount account)
 	{
-		console.WriteLine($"Network:         {account.Network}");
-		console.WriteLine(string.Empty);
-		console.WriteLine($"Unified address:      {account.DefaultAddress}");
-		console.WriteLine($"Orchard receiver:     {account.IncomingViewing.Orchard?.DefaultAddress}");
-		console.WriteLine($"Sapling receiver:     {account.IncomingViewing.Sapling?.DefaultAddress}");
-		console.WriteLine($"Transparent receiver: {account.IncomingViewing.Transparent?.DefaultAddress}");
+		Console.WriteLine($"Network:         {account.Network}");
+		Console.WriteLine(string.Empty);
+		Console.WriteLine($"Unified address:      {account.DefaultAddress}");
+		Console.WriteLine($"Orchard receiver:     {account.IncomingViewing.Orchard?.DefaultAddress}");
+		Console.WriteLine($"Sapling receiver:     {account.IncomingViewing.Sapling?.DefaultAddress}");
+		Console.WriteLine($"Transparent receiver: {account.IncomingViewing.Transparent?.DefaultAddress}");
 
-		console.WriteLine(string.Empty);
-		console.WriteLine($"Unified full viewing key:     {account.FullViewing?.UnifiedKey}");
-		console.WriteLine($"Unified incoming viewing key: {account.IncomingViewing?.UnifiedKey}");
+		Console.WriteLine(string.Empty);
+		Console.WriteLine($"Unified full viewing key:     {account.FullViewing?.UnifiedKey}");
+		Console.WriteLine($"Unified incoming viewing key: {account.IncomingViewing?.UnifiedKey}");
 	}
 }

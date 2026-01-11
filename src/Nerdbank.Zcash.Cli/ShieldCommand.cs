@@ -32,21 +32,20 @@ internal class ShieldCommand : SyncFirstCommandBase
 			SpendingKeyAccountIndexOption,
 		};
 
-		command.SetHandler(async ctxt =>
+		command.SetHandler(async parseResult =>
 		{
-			ctxt.ExitCode = await new ShieldCommand
+			return await new ShieldCommand
 			{
-				Console = ctxt.Console,
-				WalletPath = ctxt.ParseResult.GetValueForArgument(WalletPathArgument),
-				NoSync = ctxt.ParseResult.GetValueForOption(NoSyncOption),
-				TestNet = ctxt.ParseResult.GetValueForOption(TestNetOption),
-				LightWalletServerUrl = ctxt.ParseResult.GetValueForOption(LightServerUriOption),
-				ShieldAllAddresses = ctxt.ParseResult.GetValueForOption(shieldAllOption),
-				Memo = ctxt.ParseResult.GetValueForOption(memoOption),
-				Threshold = ctxt.ParseResult.GetValueForOption(thresholdOption),
-				SpendingKeySeed = ctxt.ParseResult.GetValueForOption(SpendingKeySeedOption),
-				SpendingKeyAccountIndex = ctxt.ParseResult.GetValueForOption(SpendingKeyAccountIndexOption),
-			}.ExecuteAsync(ctxt.GetCancellationToken());
+				WalletPath = parseResult.GetValue(WalletPathArgument),
+				NoSync = parseResult.GetValue(NoSyncOption),
+				TestNet = parseResult.GetValue(TestNetOption),
+				LightWalletServerUrl = parseResult.GetValue(LightServerUriOption),
+				ShieldAllAddresses = parseResult.GetValue(shieldAllOption),
+				Memo = parseResult.GetValue(memoOption),
+				Threshold = parseResult.GetValue(thresholdOption),
+				SpendingKeySeed = parseResult.GetValue(SpendingKeySeedOption),
+				SpendingKeyAccountIndex = parseResult.GetValue(SpendingKeyAccountIndexOption),
+			}.ExecuteAsync(CancellationToken.None);
 		});
 
 		return command;
@@ -63,7 +62,7 @@ internal class ShieldCommand : SyncFirstCommandBase
 		IReadOnlyList<(TransparentAddress Address, decimal Balance)> unshieldedBalances = client.GetUnshieldedBalances(this.SelectedAccount!);
 		if (unshieldedBalances.Count == 0)
 		{
-			this.Console.WriteLine(Strings.NoUnshieldedFunds);
+			Console.WriteLine(Strings.NoUnshieldedFunds);
 			return 0;
 		}
 
@@ -87,9 +86,9 @@ internal class ShieldCommand : SyncFirstCommandBase
 
 		async Task ShieldAddressAsync((TransparentAddress Address, decimal Balance) entry)
 		{
-			this.Console.WriteLine($"Shielding {entry.Balance} ZEC from {entry.Address}...");
+			Console.WriteLine($"Shielding {entry.Balance} ZEC from {entry.Address}...");
 			TxId txid = await client.ShieldAsync(this.SelectedAccount!, entry.Address, this.Threshold, Zcash.Memo.FromMessage(this.Memo), cancellationToken);
-			this.Console.WriteLine($"Transmitted transaction ID: {txid}");
+			Console.WriteLine($"Transmitted transaction ID: {txid}");
 		}
 	}
 }

@@ -2,14 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
-using System.CommandLine.IO;
 
 namespace Nerdbank.Zcash.Cli;
 
 internal class TexCommand
 {
-	internal required IConsole Console { get; init; }
-
 	internal required string TransparentAddress { get; init; }
 
 	internal static Command BuildCommand()
@@ -20,13 +17,12 @@ internal class TexCommand
 			transparentAddressArgument,
 		};
 
-		command.SetHandler(ctxt =>
+		command.SetHandler(parseResult =>
 		{
-			ctxt.ExitCode = new TexCommand
+			return new TexCommand
 			{
-				Console = ctxt.Console,
-				TransparentAddress = ctxt.ParseResult.GetValueForArgument(transparentAddressArgument),
-			}.Execute(ctxt.GetCancellationToken());
+				TransparentAddress = parseResult.GetValue(transparentAddressArgument),
+			}.Execute(CancellationToken.None);
 		});
 		return command;
 	}
@@ -35,18 +31,18 @@ internal class TexCommand
 	{
 		if (!ZcashAddress.TryDecode(this.TransparentAddress, out _, out string? errorMessage, out ZcashAddress? result))
 		{
-			this.Console.Error.WriteLine(errorMessage);
+			Console.Error.WriteLine(errorMessage);
 			return 1;
 		}
 
 		if (result is not TransparentP2PKHAddress tAddr)
 		{
-			this.Console.Error.WriteLine(Strings.TransparentP2PKHAddressRequired);
+			Console.Error.WriteLine(Strings.TransparentP2PKHAddressRequired);
 			return 2;
 		}
 
 		TexAddress tex = new(tAddr);
-		this.Console.WriteLine(tex);
+		Console.WriteLine(tex);
 		return 0;
 	}
 }

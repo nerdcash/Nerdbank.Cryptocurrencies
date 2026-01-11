@@ -21,7 +21,7 @@ internal abstract class SyncFirstCommandBase : WalletUserCommandBase
 		{
 			SyncCommand syncCommand = new(this);
 			await syncCommand.ExecuteAsync(client, cancellationToken);
-			this.Console.WriteLine(string.Empty);
+			Console.WriteLine(string.Empty);
 		}
 
 		return 0;

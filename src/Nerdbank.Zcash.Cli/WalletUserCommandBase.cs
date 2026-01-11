@@ -16,7 +16,6 @@ internal abstract class WalletUserCommandBase
 	[SetsRequiredMembers]
 	internal WalletUserCommandBase(WalletUserCommandBase copyFrom)
 	{
-		this.Console = copyFrom.Console;
 		this.WalletPath = copyFrom.WalletPath;
 		this.TestNet = copyFrom.TestNet;
 		this.LightWalletServerUrl = copyFrom.LightWalletServerUrl;
@@ -25,8 +24,6 @@ internal abstract class WalletUserCommandBase
 	internal static Option<bool> TestNetOption { get; } = new("--testnet", Strings.TestNetOptionDescription);
 
 	internal static Option<Uri> LightServerUriOption { get; } = new("--lightserverUrl", Strings.LightServerUrlOptionDescription);
-
-	internal required IConsole Console { get; init; }
 
 	internal required string WalletPath { get; init; }
 

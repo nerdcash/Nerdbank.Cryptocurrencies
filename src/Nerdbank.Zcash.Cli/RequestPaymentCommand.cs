@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.CommandLine;
-using System.CommandLine.IO;
 using Nerdbank.QRCodes;
 using QRCoder;
 
@@ -11,8 +10,6 @@ namespace Nerdbank.Zcash.Cli;
 
 internal class RequestPaymentCommand
 {
-	internal required IConsole Console { get; init; }
-
 	internal required ZcashAddress[] Payees { get; init; }
 
 	internal required decimal[]? Amounts { get; init; }
@@ -77,17 +74,16 @@ internal class RequestPaymentCommand
 			}
 		});
 
-		command.SetHandler(ctxt =>
+		command.SetHandler(parseResult =>
 		{
-			ctxt.ExitCode = new RequestPaymentCommand
+			return new RequestPaymentCommand
 			{
-				Console = ctxt.Console,
-				Payees = ctxt.ParseResult.GetValueForArgument(payeesArgument),
-				Amounts = ctxt.ParseResult.GetValueForOption(amountsOption),
-				Memos = ctxt.ParseResult.GetValueForOption(memosOption),
-				Labels = ctxt.ParseResult.GetValueForOption(labelsOption),
-				Messages = ctxt.ParseResult.GetValueForOption(messagesOption),
-				SaveQRCodePath = ctxt.ParseResult.GetValueForOption(saveQRCodeOption),
+				Payees = parseResult.GetValue(payeesArgument),
+				Amounts = parseResult.GetValue(amountsOption),
+				Memos = parseResult.GetValue(memosOption),
+				Labels = parseResult.GetValue(labelsOption),
+				Messages = parseResult.GetValue(messagesOption),
+				SaveQRCodePath = parseResult.GetValue(saveQRCodeOption),
 			}.Execute();
 		});
 
@@ -118,7 +114,7 @@ internal class RequestPaymentCommand
 
 		int exitCode = this.ExportQRCode(request);
 
-		this.Console.WriteLine($"Uri: {request}");
+		Console.WriteLine($"Uri: {request}");
 
 		return exitCode;
 	}
@@ -135,11 +131,11 @@ internal class RequestPaymentCommand
 			try
 			{
 				encoder.Encode(data, new FileInfo(this.SaveQRCodePath), null);
-				this.Console.WriteLine($"QR code saved to \"{this.SaveQRCodePath}\".");
+				Console.WriteLine($"QR code saved to \"{this.SaveQRCodePath}\".");
 			}
 			catch (NotSupportedException ex)
 			{
-				this.Console.Error.WriteLine(ex.Message);
+				Console.Error.WriteLine(ex.Message);
 				exitCode = 1;
 			}
 		}
