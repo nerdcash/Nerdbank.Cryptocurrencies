@@ -111,7 +111,7 @@ internal class RequestPaymentCommand
 				Labels = parseResult.GetValue(labelsOption),
 				Messages = parseResult.GetValue(messagesOption),
 				SaveQRCodePath = parseResult.GetValue(saveQRCodeOption),
-			}.Execute()));
+			}.Execute());
 		});
 
 		return command;
