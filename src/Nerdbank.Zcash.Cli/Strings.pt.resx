@@ -195,6 +195,27 @@
   <data name="PasswordOptionDescription" xml:space="preserve">
     <value>Uma senha além da frase-semente que desbloqueia a conta. Embora qualquer frase seja aceita, algumas carteiras aceitam apenas uma palavra.</value>
   </data>
+  <data name="PriceCommandDescription" xml:space="preserve">
+    <value>Obtém o preço do ZEC em dólares americanos ou uma moeda estável equivalente para um determinado carimbo de data/hora.</value>
+  </data>
+  <data name="PriceCurrencyOptionDescription" xml:space="preserve">
+    <value>A moeda para obter o preço (por exemplo, USD, USDC, USDT). O padrão é USD.</value>
+  </data>
+  <data name="PriceError" xml:space="preserve">
+    <value>Erro ao recuperar preço: {0}</value>
+  </data>
+  <data name="PriceNotAvailable" xml:space="preserve">
+    <value>Os dados de preço não estão disponíveis para o carimbo de data/hora especificado: {0}.</value>
+  </data>
+  <data name="PriceResult" xml:space="preserve">
+    <value>{base} = {tradeInterest} (em {timestamp}, +/- {resolução})</value>
+  </data>
+  <data name="PriceTimestampOptionDescription" xml:space="preserve">
+    <value>O carimbo de data/hora para obter o preço. O padrão é a hora atual.</value>
+  </data>
+  <data name="PriceUnknownCurrency" xml:space="preserve">
+    <value>Moeda desconhecida: {0}. Use um símbolo de moeda válido.</value>
+  </data>
   <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
     <value>O valor a ser solicitado para um pagamento específico.</value>
   </data>
@@ -302,6 +323,9 @@
   </data>
   <data name="UnrecognizedKeyFormat" xml:space="preserve">
     <value>Este formato de chave não é reconhecido.</value>
+  </data>
+  <data name="UnshieldedBalances" xml:space="preserve">
+    <value>Saldos não blindados:</value>
   </data>
   <data name="WalletPathArgumentDescription" xml:space="preserve">
     <value>O caminho para o arquivo da carteira.</value>

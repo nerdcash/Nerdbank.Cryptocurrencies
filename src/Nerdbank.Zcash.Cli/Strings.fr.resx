@@ -195,6 +195,27 @@
   <data name="PasswordOptionDescription" xml:space="preserve">
     <value>Un mot de passe en plus de la phrase de graine qui déverrouille le compte. Bien que n'importe quelle phrase fasse l'affaire, certains portefeuilles n'acceptent qu'un seul mot.</value>
   </data>
+  <data name="PriceCommandDescription" xml:space="preserve">
+    <value>Obtient le prix du ZEC en USD ou un stablecoin équivalent pour un horodatage donné.</value>
+  </data>
+  <data name="PriceCurrencyOptionDescription" xml:space="preserve">
+    <value>La devise dans laquelle obtenir le prix (par exemple, USD, USDC, USDT). La valeur par défaut est USD.</value>
+  </data>
+  <data name="PriceError" xml:space="preserve">
+    <value>Erreur lors de la récupération du prix : {0}</value>
+  </data>
+  <data name="PriceNotAvailable" xml:space="preserve">
+    <value>Les données de prix ne sont pas disponibles pour l'horodatage spécifié : {0}.</value>
+  </data>
+  <data name="PriceResult" xml:space="preserve">
+    <value>{basis} = {tradeInterest} (à {timestamp}, +/- {resolution})</value>
+  </data>
+  <data name="PriceTimestampOptionDescription" xml:space="preserve">
+    <value>L'horodatage pour lequel obtenir le prix. La valeur par défaut est l'heure actuelle.</value>
+  </data>
+  <data name="PriceUnknownCurrency" xml:space="preserve">
+    <value>Devise inconnue : {0}. Veuillez utiliser un symbole monétaire valide.</value>
+  </data>
   <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
     <value>Le montant à demander pour un paiement particulier.</value>
   </data>
@@ -302,6 +323,9 @@
   </data>
   <data name="UnrecognizedKeyFormat" xml:space="preserve">
     <value>Ce format de clé n'est pas reconnu.</value>
+  </data>
+  <data name="UnshieldedBalances" xml:space="preserve">
+    <value>Soldes non protégés :</value>
   </data>
   <data name="WalletPathArgumentDescription" xml:space="preserve">
     <value>Le chemin d'accès au fichier de portefeuille.</value>

@@ -195,6 +195,27 @@
   <data name="PasswordOptionDescription" xml:space="preserve">
     <value>Una contraseña además de la frase semilla que desbloquea la cuenta. Si bien cualquier frase servirá, algunos monederos solo aceptan una palabra.</value>
   </data>
+  <data name="PriceCommandDescription" xml:space="preserve">
+    <value>Obtiene el precio de ZEC en USD o una moneda estable equivalente para una marca de tiempo determinada.</value>
+  </data>
+  <data name="PriceCurrencyOptionDescription" xml:space="preserve">
+    <value>La moneda en la que se obtendrá el precio (por ejemplo, USD, USDC, USDT). El valor predeterminado es USD.</value>
+  </data>
+  <data name="PriceError" xml:space="preserve">
+    <value>Error al recuperar el precio: {0}</value>
+  </data>
+  <data name="PriceNotAvailable" xml:space="preserve">
+    <value>Los datos de precios no están disponibles para la marca de tiempo especificada: {0}.</value>
+  </data>
+  <data name="PriceResult" xml:space="preserve">
+    <value>{base} = {tradeInterest} (en {timestamp}, +/- {resolución})</value>
+  </data>
+  <data name="PriceTimestampOptionDescription" xml:space="preserve">
+    <value>La marca de tiempo para obtener el precio. El valor predeterminado es la hora actual.</value>
+  </data>
+  <data name="PriceUnknownCurrency" xml:space="preserve">
+    <value>Moneda desconocida: {0}. Utilice un símbolo de cotización de moneda válido.</value>
+  </data>
   <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
     <value>La cantidad a solicitar para un pago en particular.</value>
   </data>
@@ -302,6 +323,9 @@
   </data>
   <data name="UnrecognizedKeyFormat" xml:space="preserve">
     <value>Este formato de clave no se reconoce.</value>
+  </data>
+  <data name="UnshieldedBalances" xml:space="preserve">
+    <value>Balanzas no blindadas:</value>
   </data>
   <data name="WalletPathArgumentDescription" xml:space="preserve">
     <value>La ruta al archivo del monedero.</value>
