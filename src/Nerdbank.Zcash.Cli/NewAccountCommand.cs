@@ -42,10 +42,7 @@ internal class NewAccountCommand
 
 	internal static Command BuildCommand()
 	{
-		Option<int> seedPhraseWordLengthOption = new("--seedPhraseLength")
-		{
-			Description = Strings.SeedPhraseLengthOptionDescription,
-		};
+		Option<int> seedPhraseWordLengthOption = new("--seedPhraseLength", getDefaultValue: () => SeedPhraseWordLengthDefault, description: Strings.SeedPhraseLengthOptionDescription);
 		seedPhraseWordLengthOption.Validators.Add(v =>
 		{
 			int value = v.GetValueOrDefault<int>();
@@ -66,10 +63,7 @@ internal class NewAccountCommand
 			Description = Strings.PasswordOptionDescription,
 		};
 
-		Option<uint> accountIndexOption = new("--index")
-		{
-			Description = Strings.AccountIndexOptionDescription,
-		};
+		Option<uint> accountIndexOption = new("--index", getDefaultValue: () => 0, description: Strings.AccountIndexOptionDescription);
 
 		Option<bool> offlineModeOption = new("--offline")
 		{
@@ -81,10 +75,7 @@ internal class NewAccountCommand
 			Description = Strings.NewAccountWalletPathOptionDescription,
 		}.AcceptLegalFilePathsOnly();
 
-		Option<string> nameOption = new Option<string>("--name")
-		{
-			Description = Strings.AccountNameOptionDescription,
-		};
+		Option<string> nameOption = new Option<string>("--name", getDefaultValue: () => "(default)", description: Strings.AccountNameOptionDescription);
 
 		Option<uint?> birthdayHeightOption = new("--birthday-height")
 		{

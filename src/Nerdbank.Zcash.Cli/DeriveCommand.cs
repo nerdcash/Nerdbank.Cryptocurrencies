@@ -23,9 +23,8 @@ internal abstract class DeriveCommand
 		Arity = ArgumentArity.ZeroOrOne,
 	};
 
-	protected static readonly Option<uint> AccountIndexOption = new("--account")
+	protected static readonly Option<uint> AccountIndexOption = new("--account", getDefaultValue: () => 0, description: Strings.AccountIndexOptionDescription)
 	{
-		Description = Strings.AccountIndexOptionDescription,
 		Arity = ArgumentArity.ZeroOrOne,
 	};
 
@@ -151,14 +150,8 @@ internal abstract class DeriveCommand
 
 		internal static new Command BuildCommand()
 		{
-			Option<uint> addressIndexOption = new("--address")
-			{
-				Description = Strings.AddressIndexOptionDescription,
-			};
-			Option<uint> addressCountOption = new("--count")
-			{
-				Description = Strings.TransparentAddressCountOptionDescription,
-			};
+			Option<uint> addressIndexOption = new("--address", getDefaultValue: () => 0, description: Strings.AddressIndexOptionDescription);
+			Option<uint> addressCountOption = new("--count", getDefaultValue: () => DefaultAddressCount, description: Strings.TransparentAddressCountOptionDescription);
 
 			Command command = new("transparent", Strings.DeriveTransparentCommandDescription);
 			AddCommonOptions(command);

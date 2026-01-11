@@ -64,10 +64,7 @@ internal abstract class WalletUserCommandBase
 		Required = true,
 	};
 
-	protected static Option<uint> SpendingKeyAccountIndexOption { get; } = new("--spending-key-account-index")
-	{
-		Description = Strings.SpendingKeyAccountIndexOptionDescription,
-	};
+	protected static Option<uint> SpendingKeyAccountIndexOption { get; } = new("--spending-key-account-index", getDefaultValue: () => 0, description: Strings.SpendingKeyAccountIndexOptionDescription);
 
 	internal async Task<int> ExecuteAsync(CancellationToken cancellationToken)
 	{
