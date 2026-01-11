@@ -109,7 +109,7 @@ public record struct SecurityAmount(decimal Amount, Security Security)
 	/// </summary>
 	/// <param name="left">The amount on the left.</param>
 	/// <param name="right">The amount on the right.</param>
-	/// <returns>Whether the <paramref name="left"/> security has a lesser value than the <paramref name="right"/> security.</returns>
+	/// <returns>Whether the <paramref name="left"/> amount has a lesser value than the <paramref name="right"/> amount.</returns>
 	/// <exception cref="ArgumentException">Thrown when <see cref="Security"/> is not equal across the two arguments.</exception>
 	public static bool operator <(SecurityAmount left, SecurityAmount right)
 	{
@@ -126,7 +126,7 @@ public record struct SecurityAmount(decimal Amount, Security Security)
 	/// </summary>
 	/// <param name="left">The amount on the left.</param>
 	/// <param name="right">The amount on the right.</param>
-	/// <returns>Whether the <paramref name="left"/> security has a greater or equal value to the <paramref name="right"/> security.</returns>
+	/// <returns>Whether the <paramref name="left"/> amount has a greater or equal value to the <paramref name="right"/> amount.</returns>
 	/// <exception cref="ArgumentException">Thrown when <see cref="Security"/> is not equal across the two arguments.</exception>
 	public static bool operator >=(SecurityAmount left, SecurityAmount right)
 	{
@@ -143,7 +143,7 @@ public record struct SecurityAmount(decimal Amount, Security Security)
 	/// </summary>
 	/// <param name="left">The amount on the left.</param>
 	/// <param name="right">The amount on the right.</param>
-	/// <returns>Whether the <paramref name="left"/> security has a lesser or equal value to the <paramref name="right"/> security.</returns>
+	/// <returns>Whether the <paramref name="left"/> amount has a lesser or equal value to the <paramref name="right"/> amount.</returns>
 	/// <exception cref="ArgumentException">Thrown when <see cref="Security"/> is not equal across the two arguments.</exception>
 	public static bool operator <=(SecurityAmount left, SecurityAmount right)
 	{
