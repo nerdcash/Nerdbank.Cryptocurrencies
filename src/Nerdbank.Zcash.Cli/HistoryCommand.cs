@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.CommandLine;
+using System.Globalization;
 
 namespace Nerdbank.Zcash.Cli;
 
@@ -44,7 +45,10 @@ internal class HistoryCommand : SyncFirstCommandBase
 
 	internal static void PrintTransaction(Transaction tx)
 	{
-		Console.WriteLine($"{tx.When?.ToLocalTime():yyyy-MM-dd hh:mm:ss tt}  {tx.NetChange,13:N8} Block: {tx.MinedHeight} Txid: {tx.TransactionId}");
+		const string WhenFormat = "yyyy-MM-dd hh:mm:ss tt";
+		string when = tx.When is null ? new string(' ', WhenFormat.Length) : tx.When.Value.ToLocalTime().ToString(WhenFormat);
+		string minedHeight = tx.MinedHeight is null ? "mempool" : tx.MinedHeight.Value.ToString(CultureInfo.CurrentCulture);
+		Console.WriteLine($"{when}  {tx.NetChange,13:N8} Block: {minedHeight.PadLeft(8)} Txid: {tx.TransactionId}");
 		const string indentation = "                      ";
 
 		foreach (Transaction.LineItem send in tx.Outgoing)
