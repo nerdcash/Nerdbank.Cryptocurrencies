@@ -195,6 +195,27 @@
   <data name="PasswordOptionDescription" xml:space="preserve">
     <value>계정을 잠금 해제하는 데 사용되는 시드 구문 외의 비밀번호입니다. 어떤 구문이든 상관없지만 일부 지갑은 한 단어만 허용합니다.</value>
   </data>
+  <data name="PriceCommandDescription" xml:space="preserve">
+    <value>특정 타임스탬프에 대해 USD 또는 이에 상응하는 스테이블코인으로 ZEC 가격을 가져옵니다.</value>
+  </data>
+  <data name="PriceCurrencyOptionDescription" xml:space="preserve">
+    <value>가격을 확인할 통화입니다(예: USD, USDC, USDT). 기본값은 USD입니다.</value>
+  </data>
+  <data name="PriceError" xml:space="preserve">
+    <value>가격 검색 중 오류 발생: {0}</value>
+  </data>
+  <data name="PriceNotAvailable" xml:space="preserve">
+    <value>지정된 타임스탬프: {0}에 대한 가격 데이터를 사용할 수 없습니다.</value>
+  </data>
+  <data name="PriceResult" xml:space="preserve">
+    <value>{basis} = {tradeInterest} ({timestamp}, +/- {solution})</value>
+  </data>
+  <data name="PriceTimestampOptionDescription" xml:space="preserve">
+    <value>가격을 가져올 타임스탬프입니다. 기본값은 현재 시간입니다.</value>
+  </data>
+  <data name="PriceUnknownCurrency" xml:space="preserve">
+    <value>알 수 없는 통화: {0}. 유효한 통화 표시기호를 사용하세요.</value>
+  </data>
   <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
     <value>특정 결제를 요청할 금액입니다.</value>
   </data>
@@ -302,6 +323,9 @@
   </data>
   <data name="UnrecognizedKeyFormat" xml:space="preserve">
     <value>이 키 형식은 인식할 수 없습니다.</value>
+  </data>
+  <data name="UnshieldedBalances" xml:space="preserve">
+    <value>비보호 잔액:</value>
   </data>
   <data name="WalletPathArgumentDescription" xml:space="preserve">
     <value>지갑 파일의 경로입니다.</value>

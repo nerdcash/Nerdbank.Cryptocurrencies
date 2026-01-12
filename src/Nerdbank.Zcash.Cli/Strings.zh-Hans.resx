@@ -195,6 +195,27 @@
   <data name="PasswordOptionDescription" xml:space="preserve">
     <value>除了种子短语之外，解锁账户的密码。虽然任何短语都可以，但某些钱包只接受一个单词。</value>
   </data>
+  <data name="PriceCommandDescription" xml:space="preserve">
+    <value>获取给定时间戳的 ZEC 美元价格或等值稳定币价格。</value>
+  </data>
+  <data name="PriceCurrencyOptionDescription" xml:space="preserve">
+    <value>获取价格的货币（例如 USD、USDC、USDT）。默认为美元。</value>
+  </data>
+  <data name="PriceError" xml:space="preserve">
+    <value>检索价格时出错：{0}</value>
+  </data>
+  <data name="PriceNotAvailable" xml:space="preserve">
+    <value>指定时间戳 {0} 的价格数据不可用。</value>
+  </data>
+  <data name="PriceResult" xml:space="preserve">
+    <value>{basis} = {tradeInterest}（在{时间戳}，+/- {分辨率}）</value>
+  </data>
+  <data name="PriceTimestampOptionDescription" xml:space="preserve">
+    <value>获取价格的时间戳。默认为当前时间。</value>
+  </data>
+  <data name="PriceUnknownCurrency" xml:space="preserve">
+    <value>未知货币：{0}。请使用有效的货币代码。</value>
+  </data>
   <data name="RequestPaymentAmountOptionDescription" xml:space="preserve">
     <value>要请求的特定付款金额。</value>
   </data>
@@ -302,6 +323,9 @@
   </data>
   <data name="UnrecognizedKeyFormat" xml:space="preserve">
     <value>此密钥格式无法识别。</value>
+  </data>
+  <data name="UnshieldedBalances" xml:space="preserve">
+    <value>非屏蔽余额：</value>
   </data>
   <data name="WalletPathArgumentDescription" xml:space="preserve">
     <value>钱包文件的路径。</value>
