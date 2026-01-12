@@ -138,7 +138,7 @@ assert_matches = "1.5"
 criterion = "0.5"
 proptest = ">=1,<1.7"
 rand_chacha = "0.3"
-rand_xorshift = "0.3"
+rand_xorshift = "0.4"
 incrementalmerkletree-testing = "0.3"
 
 # Tor
