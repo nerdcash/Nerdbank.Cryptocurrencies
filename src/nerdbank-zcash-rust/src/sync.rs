@@ -1076,32 +1076,33 @@ async fn watch_mempool<P: AsRef<Path>>(
 ) -> Result<(), Error> {
     let mut response = client.get_mempool_stream(Empty {}).await?.into_inner();
 
-    let mempool_range = db.data.chain_height()?.map(|h| (h + 1)..(h + 1));
-
     // The primary purpose of this function is to pause until the next block is mined,
     // which will trigger the next iteration of the main loop to download the next block.
     // But while we wait, we'll download transactions from the mempool and report them to the client.
     while let Some(raw_tx) = response.message().await? {
         if progress.is_some() {
-            if let Some(range) = mempool_range.as_ref() {
-                let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
-                decrypt_and_store_transaction(
-                    network,
-                    &mut db.data,
-                    &tx,
-                    Some((raw_tx.height as u32).into()),
-                )?;
+            let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
+            decrypt_and_store_transaction(
+                network,
+                &mut db.data,
+                &tx,
+                Some((raw_tx.height as u32).into()),
+            )?;
 
-                report_transactions_in_range(
-                    range,
-                    Some(tx.txid()),
-                    progress,
-                    data_file,
-                    db,
-                    None,
-                    network,
-                )?;
-            }
+            // The sql table records mempool transactions with a mined height of 0.
+            let mempool_range = Range {
+                start: BlockHeight::from_u32(0),
+                end: BlockHeight::from_u32(0),
+            };
+            report_transactions_in_range(
+                &mempool_range,
+                Some(tx.txid()),
+                progress,
+                data_file,
+                db,
+                None,
+                network,
+            )?;
         }
     }
 
@@ -1244,7 +1245,10 @@ pub(crate) fn get_transactions(
             let mut tx = crate::interop::Transaction {
                 account_id: account_uuid.expose_uuid().as_bytes().to_vec(),
                 txid: row.get::<_, Vec<u8>>("txid")?,
-                mined_height: row.get("mined_height")?,
+                mined_height: match row.get("mined_height")? {
+                    0 => None, // the db records unmined transactions with a height of 0.
+                    h => Some(h),
+                },
                 expired_unmined: row
                     .get::<_, Option<bool>>("expired_unmined")?
                     .unwrap_or(false),
