@@ -150,7 +150,7 @@ arti-client = { version = "0.37", default-features = false, features = [
 dynosaur = "0.3"
 fs-mistrust = "0.12"
 tokio = "1"
-tor-rtcompat = "0.35"
+tor-rtcompat = "0.38"
 tower = "0.5"
 trait-variant = "0.1"
 
