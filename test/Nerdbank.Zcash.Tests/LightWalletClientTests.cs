@@ -112,6 +112,14 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	}
 
 	[Fact]
+	public void GetIncomingPayments_Empty()
+	{
+		ZcashAddress address = DefaultAccount.DefaultAddress;
+		List<Nerdbank.Zcash.Transaction> transactions = this.client.GetIncomingPayments(address, 0);
+		Assert.Empty(transactions);
+	}
+
+	[Fact]
 	public async Task SendAsync_ValidatesNullArgs()
 	{
 		await Assert.ThrowsAsync<ArgumentNullException>("account", () => this.client.SendAsync(null!, Array.Empty<Transaction.LineItem>(), null, this.TimeoutToken));

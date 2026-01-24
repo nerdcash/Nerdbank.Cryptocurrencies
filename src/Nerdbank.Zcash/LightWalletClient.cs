@@ -287,6 +287,31 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
+	/// Gets all the downloaded transactions that contain incoming payments to any receiver within the specified address.
+	/// </summary>
+	/// <param name="address">
+	/// The address to search for incoming payments. This may be a unified address containing multiple receivers.
+	/// Each receiver within the address will be searched individually, and the resulting transactions will be deduplicated.
+	/// </param>
+	/// <param name="startingBlock">The minimum block number to return transactions for.</param>
+	/// <returns>A list of transactions that contain at least one incoming payment to the specified address.</returns>
+	/// <remarks>
+	/// <para>
+	/// A <see cref="ZcashAddress"/> can contain multiple receivers (e.g., a unified address with Orchard, Sapling, and transparent receivers).
+	/// An incoming payment will only target one receiver at a time.
+	/// This method searches for payments to each receiver individually and returns the unique set of transactions that match.
+	/// </para>
+	/// </remarks>
+	public List<Transaction> GetIncomingPayments(ZcashAddress address, uint startingBlock = 0)
+	{
+		Requires.NotNull(address);
+
+		return [.. LightWalletMethods.GetIncomingPayments(this.dbinit, address.Address, startingBlock)
+			.Select(CreateTransaction)
+			.OrderBy(t => t.When)];
+	}
+
+	/// <summary>
 	/// Creates and broadcasts a transaction that sends Zcash to one or more recipients.
 	/// </summary>
 	/// <param name="account">The account whose funds are to be spent.</param>

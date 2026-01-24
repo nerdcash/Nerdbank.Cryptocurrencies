@@ -483,6 +483,25 @@ pub fn get_transactions(
     )?)
 }
 
+pub fn get_incoming_payments(
+    config: DbInit,
+    address: String,
+    starting_block: u32,
+) -> Result<Vec<Transaction>, LightWalletError> {
+    use crate::incoming_payments::get_incoming_payments as get_payments;
+
+    let network: Network = config.network.into();
+    let mut db = Db::load(config.data_file.clone(), network)?;
+    let mut conn = Connection::open(config.data_file)?;
+    Ok(get_payments(
+        &mut db,
+        &mut conn,
+        &network,
+        &address,
+        Some(starting_block),
+    )?)
+}
+
 pub fn get_birthday_heights(
     config: DbInit,
     account_id: Vec<u8>,
