@@ -4056,15 +4056,18 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 
 [[package]]
 name = "retry-error"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b295404fa4a9e1e63537ccbd4e4b6309d9688bd70608ddc16d3b8af0389a673a"
-
-[[package]]
-name = "retry-error"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c84f083bfb868c1d36bffabb76535daf424bac19e08461674f908ef54b52399"
+
+[[package]]
+name = "retry-error"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea40f9c21de3a068f1097fe2348d718c63630e650429aefb72bd04668018d871"
+dependencies = [
+ "humantime",
+]
 
 [[package]]
 name = "rfc6979"
@@ -5770,21 +5773,6 @@ dependencies = [
 
 [[package]]
 name = "tor-error"
-version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63d766a5d11ddad7946cf8357ce7a1e948abdc3ad3ef06ed23f35af522dc089c"
-dependencies = [
- "derive_more",
- "futures",
- "paste",
- "retry-error 0.8.0",
- "strum",
- "thiserror 2.0.17",
- "void",
-]
-
-[[package]]
-name = "tor-error"
 version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3829addfa2f33b56506267ddc02e7ff0586eb70ff506b85c395d2af5299ae4b2"
@@ -5801,13 +5789,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "tor-general-addr"
-version = "0.35.0"
+name = "tor-error"
+version = "0.38.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c42cb5b5aec0584db2fba4a88c4e08fb09535ef61e4ef5674315a89e69ec31a2"
+checksum = "2a2b140d3cc5d682b3327aa2e2813815062be7a6653250748ce837d26e69eda7"
 dependencies = [
  "derive_more",
+ "futures",
+ "paste",
+ "retry-error 0.10.0",
+ "static_assertions",
+ "strum",
  "thiserror 2.0.17",
+ "tracing",
  "void",
 ]
 
@@ -5816,6 +5810,17 @@ name = "tor-general-addr"
 version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6dea60caf9dd38bfb87f0f534448123dbd2e14b6064eabb31e398a988dd67bda"
+dependencies = [
+ "derive_more",
+ "thiserror 2.0.17",
+ "void",
+]
+
+[[package]]
+name = "tor-general-addr"
+version = "0.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3102d541c70017e73495582c4652e9bdb6b7d8c71dd98461a210c63d8376dc3e"
 dependencies = [
  "derive_more",
  "thiserror 2.0.17",
@@ -6278,31 +6283,6 @@ dependencies = [
 
 [[package]]
 name = "tor-rtcompat"
-version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "591b0b0695e86c2958b8ab9c431f6fea17b544ef3ed3931bbfe96239fd5c9193"
-dependencies = [
- "async-trait",
- "async_executors",
- "asynchronous-codec",
- "coarsetime",
- "derive_more",
- "dyn-clone",
- "educe",
- "futures",
- "hex",
- "libc",
- "paste",
- "pin-project",
- "thiserror 2.0.17",
- "tor-error 0.35.0",
- "tor-general-addr 0.35.0",
- "tracing",
- "void",
-]
-
-[[package]]
-name = "tor-rtcompat"
 version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7bf9c81d8e0eeee8261874804b6358298b2e882ab53298690a5162e1f474eeb6"
@@ -6328,6 +6308,32 @@ dependencies = [
  "tokio-util",
  "tor-error 0.37.0",
  "tor-general-addr 0.37.0",
+ "tracing",
+ "void",
+]
+
+[[package]]
+name = "tor-rtcompat"
+version = "0.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32679e552f960984484a7f4edb5649c4073d7b7a5532d57dcfe58af45dfd37bd"
+dependencies = [
+ "async-trait",
+ "async_executors",
+ "asynchronous-codec",
+ "coarsetime",
+ "derive_more",
+ "dyn-clone",
+ "educe",
+ "futures",
+ "hex",
+ "libc",
+ "paste",
+ "pin-project",
+ "socket2",
+ "thiserror 2.0.17",
+ "tor-error 0.38.0",
+ "tor-general-addr 0.38.0",
  "tracing",
  "void",
 ]
@@ -7466,7 +7472,7 @@ dependencies = [
  "tonic",
  "tonic-prost",
  "tonic-prost-build",
- "tor-rtcompat 0.35.0",
+ "tor-rtcompat 0.38.0",
  "tower",
  "tracing",
  "trait-variant",
