@@ -12,6 +12,8 @@ Param (
     [switch]$InstallPrerequisites = $null -eq (Get-Command uniffi-bindgen-cs -ErrorAction SilentlyContinue)
 )
 
+$ErrorActionPreference = 'Stop'
+
 if ($InstallPrerequisites) {
     if ($env:TF_BUILD) {
         Write-Host "##[group]Install uniffi-bindgen-cs"

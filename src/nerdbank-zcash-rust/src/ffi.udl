@@ -166,6 +166,11 @@ namespace LightWallet {
 	[Throws=LightWalletError]
 	sequence<Transaction> get_transactions(DbInit config, bytes account_id, u32 starting_block);
 
+	/// Returns transactions that contain incoming payments to any receiver within the given address.
+	/// The address may be a unified address containing multiple receivers, in which case all receivers are searched.
+	[Throws=LightWalletError]
+	sequence<Transaction> get_incoming_payments(DbInit config, string address, u32 starting_block);
+
 	[Throws=LightWalletError]
 	UserBalances get_user_balances(DbInit config, bytes account_id);
 

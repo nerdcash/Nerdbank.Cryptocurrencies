@@ -28,6 +28,8 @@ Param(
     [switch]$SkipCsBindings
 )
 
+$ErrorActionPreference = 'Stop'
+
 $buildArgs = @()
 
 if ($Locked) {

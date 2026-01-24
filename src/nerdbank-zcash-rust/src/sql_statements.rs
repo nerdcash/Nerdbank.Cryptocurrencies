@@ -124,3 +124,64 @@ pub(crate) const GET_OUTPOINT_VALUE: &str = r#"
 	INNER JOIN transactions t ON txo.transaction_id = t.id_tx
 	WHERE t.txid = :txid AND output_index = :idx
 "#;
+
+/// Returns transactions containing incoming payments filtered by account and diversifier/address.
+/// For shielded pools (Orchard/Sapling), filters by the diversifier bytes.
+/// For transparent pools, filters by the address string.
+pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
+	SELECT
+		tx.id_tx,
+		t.account_uuid,
+		t.txid,
+		t.mined_height,
+		t.tx_index,
+		t.expiry_height,
+		t.account_balance_delta,
+		t.fee_paid,
+		t.block_time,
+		t.expired_unmined,
+		txo.output_pool,
+		coalesce(
+			txo.from_account_uuid,
+			(SELECT account_id
+			 FROM sapling_received_notes srn
+			 WHERE srn.id = (
+				SELECT sapling_received_note_id
+				FROM sapling_received_note_spends srns
+				WHERE transaction_id = tx.id_tx
+			 )),
+			(SELECT account_id
+			 FROM orchard_received_notes srn
+			 WHERE srn.id = (
+				SELECT orchard_received_note_id
+				FROM orchard_received_note_spends srns
+				WHERE transaction_id = tx.id_tx
+			 ))
+		) AS from_account_uuid,
+		txo.to_account_uuid,
+		coalesce(
+			(SELECT to_address FROM v_tx_outputs vtxo WHERE vtxo.txid = t.txid AND vtxo.output_pool = txo.output_pool AND vtxo.output_index = txo.output_index AND to_address IS NOT NULL),
+			(SELECT address FROM transparent_received_outputs tro WHERE tro.transaction_id = tx.id_tx AND tro.output_index = txo.output_index AND address IS NOT NULL)
+		) AS to_address,
+		coalesce(s.diversifier, o.diversifier) AS diversifier,
+		txo.value,
+		txo.memo
+	FROM v_transactions t
+	LEFT OUTER JOIN v_tx_outputs txo ON t.txid = txo.txid
+	LEFT OUTER JOIN transactions tx ON tx.txid = t.txid
+	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.transaction_id = tx.id_tx AND s.output_index = txo.output_index
+	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.transaction_id = tx.id_tx AND o.action_index = txo.output_index
+	LEFT OUTER JOIN transparent_received_outputs tro ON txo.output_pool = 0 AND tro.transaction_id = tx.id_tx AND tro.output_index = txo.output_index
+	WHERE t.account_uuid = :account_uuid
+		AND txo.to_account_uuid = t.account_uuid
+		AND (from_account_uuid IS NOT NULL OR to_account_uuid IS NOT NULL)
+		AND (t.mined_height IS NULL OR :starting_block IS NULL OR t.mined_height >= :starting_block)
+		AND (
+			-- For shielded pools, match by diversifier
+			(txo.output_pool IN (2, 3) AND coalesce(s.diversifier, o.diversifier) = :diversifier)
+			-- For transparent pool, match by address string directly from transparent_received_outputs
+			OR (txo.output_pool = 0 AND :transparent_address IS NOT NULL AND tro.address = :transparent_address)
+		)
+	GROUP BY t.account_uuid, tx.id_tx, t.account_uuid, txo.output_pool, txo.output_index
+	ORDER BY t.account_uuid, t.mined_height, t.tx_index, txo.output_pool, txo.output_index
+"#;

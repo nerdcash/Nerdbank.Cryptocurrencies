@@ -48,6 +48,6 @@ mod tests {
             .await
             .unwrap();
         assert!(block_height > 100_000);
-        println!("block_height: {}", block_height);
+        println!("block_height: {block_height}");
     }
 }

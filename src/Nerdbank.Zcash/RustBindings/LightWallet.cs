@@ -896,6 +896,14 @@ static class _UniFFILib
 	);
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_incoming_payments(
+		RustBuffer @config,
+		RustBuffer @address,
+		uint @startingBlock,
+		ref UniffiRustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_get_sync_height(
 		RustBuffer @config,
 		ref UniffiRustCallStatus _uniffi_out_err
@@ -1183,6 +1191,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_get_block_height();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_get_incoming_payments();
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_get_sync_height();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
@@ -1306,6 +1317,15 @@ static class _UniFFILib
 			{
 				throw new UniffiContractChecksumException(
 					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_block_height` checksum `23405`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_get_incoming_payments();
+			if (checksum != 15024)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_get_incoming_payments` checksum `15024`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -3348,6 +3368,27 @@ internal static class LightWalletMethods
 					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_block_height(
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
+						ref _status
+					)
+			)
+		);
+	}
+
+	/// <summary>
+	/// Returns transactions that contain incoming payments to any receiver within the given address.
+	/// The address may be a unified address containing multiple receivers, in which case all receivers are searched.
+	/// </summary>
+	/// <exception cref="LightWalletException"></exception>
+	public static Transaction[] GetIncomingPayments(DbInit @config, string @address, uint @startingBlock)
+	{
+		return FfiConverterSequenceTypeTransaction.INSTANCE.Lift(
+			_UniffiHelpers.RustCallWithError(
+				FfiConverterTypeLightWalletError.INSTANCE,
+				(ref UniffiRustCallStatus _status) =>
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_get_incoming_payments(
+						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
+						FfiConverterString.INSTANCE.Lower(@address),
+						FfiConverterUInt32.INSTANCE.Lower(@startingBlock),
 						ref _status
 					)
 			)

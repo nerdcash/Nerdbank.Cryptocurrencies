@@ -14,6 +14,7 @@ RootCommand rootCommand = new(Strings.RootCommandDescription)
 	SyncCommand.BuildCommand(),
 	BalanceCommand.BuildCommand(),
 	HistoryCommand.BuildCommand(),
+	PaymentsCommand.BuildCommand(),
 	ShieldCommand.BuildCommand(),
 	SendCommand.BuildCommand(),
 	RequestPaymentCommand.BuildCommand(),
