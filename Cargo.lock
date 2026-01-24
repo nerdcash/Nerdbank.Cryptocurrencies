@@ -647,7 +647,7 @@ version = "0.11.0-rc.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fd016a0ddc7cb13661bf5576073ce07330a693f8608a1320b4e20561cc12cdc"
 dependencies = [
- "hybrid-array",
+ "hybrid-array 0.2.3",
 ]
 
 [[package]]
@@ -1188,11 +1188,11 @@ dependencies = [
 
 [[package]]
 name = "crypto-common"
-version = "0.2.0-rc.1"
+version = "0.2.0-rc.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0b8ce8218c97789f16356e7896b3714f26c2ee1079b79c0b7ae7064bb9089fa"
+checksum = "c7722afd27468475c9b6063dc03a57ef2ca833816981619f8ebe64d38d207eef"
 dependencies = [
- "hybrid-array",
+ "hybrid-array 0.4.6",
 ]
 
 [[package]]
@@ -1461,7 +1461,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf2e3d6615d99707295a9673e889bf363a04b2a466bd320c65a72536f7577379"
 dependencies = [
  "block-buffer 0.11.0-rc.3",
- "crypto-common 0.2.0-rc.1",
+ "crypto-common 0.2.0-rc.13",
  "subtle",
 ]
 
@@ -2399,6 +2399,15 @@ name = "hybrid-array"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2d35805454dc9f8662a98d6d61886ffe26bd465f5960e0e55345c70d5c0d2a9"
+dependencies = [
+ "typenum",
+]
+
+[[package]]
+name = "hybrid-array"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b41fb3dc24fe72c2e3a4685eed55917c2fb228851257f4a8f2d985da9443c3e5"
 dependencies = [
  "typenum",
 ]
@@ -7615,7 +7624,7 @@ dependencies = [
  "chacha20poly1305",
  "core2",
  "criterion 0.5.1",
- "crypto-common 0.2.0-rc.1",
+ "crypto-common 0.2.0-rc.13",
  "document-features",
  "equihash",
  "ff",
