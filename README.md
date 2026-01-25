@@ -5,17 +5,13 @@
 [![🏭 Build](https://github.com/nerdcash/Nerdbank.Cryptocurrencies/actions/workflows/build.yml/badge.svg)](https://github.com/nerdcash/Nerdbank.Cryptocurrencies/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/nerdcash/Nerdbank.Cryptocurrencies/branch/main/graph/badge.svg?token=ATCC7NEXTC)](https://codecov.io/gh/nerdcash/Nerdbank.Cryptocurrencies)
 
-Check out [our docs](doc/index.md) and our features below.
+Check out [our docs](https://nerdcash.github.io/Nerdbank.Cryptocurrencies/) and our features below.
 
 See this library [running live via Blazor in your web browser](https://zcash.nerdbank.net/).
 
 Please be advised of the following:
 
 - 🚫🕵🏻 This code currently is not audited by an external security auditor, use it at your own risk.
-- 🚫🕵🏻 The code has not been subjected to thorough review by engineers at the Electric Coin Company or anywhere else.
-- 🚫 Sending and receiving funds in the Orchard pool does not yet work. See [librustzcash#404](https://github.com/zcash/librustzcash/issues/404) and [librustzcash#403](https://github.com/zcash/librustzcash/issues/403).
-- ⚠️ Transparent funds must be shielded before they can be spent.
-- 🚧 We are actively adding features and fixing bugs.
 
 ## Nerdbank.Cryptocurrencies
 
