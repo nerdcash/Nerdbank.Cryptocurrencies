@@ -142,7 +142,7 @@ rand_xorshift = "0.3"
 incrementalmerkletree-testing = "0.3"
 
 # Tor
-arti-client = { version = "0.37", default-features = false, features = [
+arti-client = { version = "0.38", default-features = false, features = [
 	"compression",
 	"rustls",
 	"tokio",
