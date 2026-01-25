@@ -1,16 +1,23 @@
-# Getting Started
+# Getting started
 
-## Installation
+Please be advised of the following:
 
-Consume this library via its NuGet Package.
-Click on the badge to find its latest version and the instructions for consuming it that best apply to your project.
+- 🚫🕵🏻 This code currently is not audited by an external security auditor, use it at your own risk.
 
-[![Nerdbank.Zcash](https://img.shields.io/nuget/v/Nerdbank.Zcash?label=Nerdbank.Zcash)](https://nuget.org/packages/Nerdbank.Zcash)
+## Nerdbank.Cryptocurrencies
 
-[![Nerdbank.Bitcoin](https://img.shields.io/nuget/v/Nerdbank.Bitcoin?label=Nerdbank.Bitcoin)](https://nuget.org/packages/Nerdbank.Bitcoin)
+[![NuGet package](https://img.shields.io/nuget/v/Nerdbank.Cryptocurrencies.svg)](https://nuget.org/packages/Nerdbank.Cryptocurrencies)
 
-[![Nerdbank.Cryptocurrencies](https://img.shields.io/nuget/v/Nerdbank.Cryptocurrencies?label=Nerdbank.Cryptocurrencies)](https://nuget.org/packages/Nerdbank.Cryptocurrencies)
+* Cryptography functions that are common to many cryptocurrencies, such as:
+  * Base58Check
+  * Bech32 and Bech32m
+  * Blake2B
+  * Compact Size
 
-## Usage
+BIPs, and more...
 
-Check out our APIs (top nav bar).
+[Learn more about this package.](https://github.com/nerdcash/Nerdbank.Cryptocurrencies/blob/main/src/Nerdbank.Cryptocurrencies/README.md)
+
+## Cryptocurrency-specific libraries
+
+Check the nav bar across the top for libraries for specific cryptocurrencies.

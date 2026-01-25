@@ -1,6 +1,10 @@
 items:
-- name: Docs
+- name: General
   href: docs/
+- href: docs/zec/
+  name: Zcash
+- href: docs/btc/
+  name: Bitcoin
 - name: API
   href: api/
 - name: GitHub
