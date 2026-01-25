@@ -39,7 +39,7 @@ internal class NewAccountCommand
 
 	internal static Command BuildCommand()
 	{
-		Option<int> seedPhraseWordLengthOption = new("--seedPhraseLength")
+		Option<int?> seedPhraseWordLengthOption = new("--seedPhraseLength")
 		{
 			Description = Strings.SeedPhraseLengthOptionDescription,
 		};
@@ -118,7 +118,7 @@ internal class NewAccountCommand
 			OptionResult? seedPhraseRes = rootCommandResult.Children.OfType<OptionResult>().FirstOrDefault(or => or.Option == seedPhraseOption);
 			return new NewAccountCommand()
 			{
-				SeedPhraseWordLength = parseResult.GetValue(seedPhraseWordLengthOption),
+				SeedPhraseWordLength = parseResult.GetValue(seedPhraseWordLengthOption) ?? SeedPhraseWordLengthDefault,
 				SeedPhrase = parseResult.GetValue(seedPhraseOption),
 				PromptForSeedPhrase = seedPhraseRes is { Tokens.Count: 0 },
 				Password = parseResult.GetValue(seedPhrasePasswordOption),
