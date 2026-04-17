@@ -1,0 +1,272 @@
+﻿<html>
+
+<head>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f5f5f5;
+			margin: 0;
+			padding: 0;
+		}
+
+		.container {
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		h1 {
+			color: #333;
+			font-size: 24px;
+			margin-bottom: 20px;
+		}
+
+		p {
+			color: #666;
+			font-size: 16px;
+			line-height: 1.5;
+			margin-bottom: 10px;
+		}
+
+		#paymentRequestActive,
+		#paymentRequestInactive {
+			background-color: #fff;
+			border-radius: 5px;
+			padding: 20px;
+			margin-bottom: 20px;
+		}
+
+		#paymentRequestActive {
+			display: none;
+		}
+
+		#paymentRequestInactive {
+			display: block;
+		}
+
+		#payLink {
+			color: #007bff;
+			text-decoration: none;
+			font-weight: bold;
+		}
+
+		span#invoiceTotal {
+			font-weight: bold;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		th,
+		td {
+			border: 1px solid #ddd;
+			padding: 8px;
+			text-align: left;
+		}
+
+		th {
+			background-color: #f2f2f2;
+		}
+
+		td.amount {
+			font-family: monospace;
+			text-align: right;
+			white-space: nowrap;
+		}
+
+		a.copyToClipboard {
+			cursor: pointer;
+			color: #007bff;
+			text-decoration: none;
+		}
+
+		a.copyToClipboard:hover {
+			text-decoration: underline;
+		}
+	</style>
+	<script>
+		// Function to execute after DOM has been built
+		document.addEventListener("DOMContentLoaded", function () {
+			setPayLink();
+			fillInvoiceDetails();
+		});
+
+		// Define a function to update the payLink when the #fragment changes
+		window.onhashchange = function () {
+			setPayLink();
+			fillInvoiceDetails();
+		}
+
+		function setPayLink() {
+			const fragment = window.location.hash.slice(1);
+			const valid = fragment.startsWith('zcash:');
+			if (valid) {
+				document.getElementById('payLink').href = fragment;
+				document.getElementById('paymentRequestActive').style.display = 'block';
+				document.getElementById('paymentRequestInactive').style.display = 'none';
+			} else {
+				document.getElementById('payLink').href = "javascript:alert('Not a payment URI')";
+				document.getElementById('paymentRequestActive').style.display = 'none';
+				document.getElementById('paymentRequestInactive').style.display = 'block';
+			}
+		}
+
+		async function copyToClipboard(text) {
+			await navigator.clipboard.writeText('${item.address}');
+			const notification = document.createElement('div');
+			notification.innerText = 'Zcash address copied to clipboard';
+			notification.style.position = 'fixed';
+			notification.style.top = '50%';
+			notification.style.left = '50%';
+			notification.style.transform = 'translate(-50%, -50%)';
+			notification.style.backgroundColor = '#333';
+			notification.style.color = '#fff';
+			notification.style.padding = '10px';
+			notification.style.borderRadius = '5px';
+			notification.style.zIndex = '1000';
+			document.body.appendChild(notification);
+
+			setTimeout(() => {
+				document.body.removeChild(notification);
+			}, 2000);
+		}
+
+		async function fillInvoiceDetails() {
+			const invoiceDiv = document.getElementById('invoiceDetails');
+			const invoiceTotalSpan = document.getElementById('invoiceTotal');
+			const lineItems = parsePaymentRequest(window.location.hash.slice(1));
+
+			let total = 0;
+			invoiceDiv.querySelector('tbody').innerHTML = '';
+			lineItems.forEach(item => {
+				const row = document.createElement('tr');
+				const recipientCell = document.createElement('td');
+				const memoCell = document.createElement('td');
+				const messageCell = document.createElement('td');
+				const amountCell = document.createElement('td');
+
+				amountCell.className = 'amount';
+
+				if (!Number.isNaN(item.amount)) {
+					amountCell.innerText = `${item.amount.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 8 })} ZEC`;
+					total += item.amount;
+				}
+
+				memoCell.innerText = item.memo || '';
+				messageCell.innerText = item.message || '';
+
+				// Sanitize the address. Make sure it contains only digits and alphanumeric characters.
+				const address = item.address.replace(/[^a-zA-Z0-9]/g, '');
+				const copyAddressToClipboardHtml = `<small><a class="copyToClipboard" onclick="copyToClipboard('${address}')" title="Copy Zcash address to clipboard">📋 Copy Zcash address</a></small>`;
+				if (item.label) {
+					recipientCell.innerText = `${item.label}`;
+					recipientCell.innerHTML += `<br>${copyAddressToClipboardHtml}`;
+				} else {
+					recipientCell.innerHTML = copyAddressToClipboardHtml;
+				}
+
+				row.appendChild(amountCell);
+				row.appendChild(memoCell);
+				row.appendChild(messageCell);
+				row.appendChild(recipientCell);
+
+				invoiceDiv.querySelector('tbody').appendChild(row);
+			});
+
+			invoiceTotalSpan.innerText = `${total.toLocaleString(undefined, { maximumFractionDigits: 8, minimumFractionDigits: 8 })} ZEC`;
+
+			try {
+				let response = await fetch('https://api.exchange.coinbase.com/products/ZEC-USD/ticker');
+				let responseJson = await response.json();
+				invoiceTotalSpan.innerText += ` (~$${(total * responseJson.price).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} USD as of ${new Date(responseJson.time).toLocaleString()})`;
+			} catch { }
+		}
+
+		function parsePaymentRequest(paymentRequestUri) {
+			const uri = new URL(paymentRequestUri);
+			if (uri.protocol != 'zcash:') {
+				return false;
+			}
+
+			const items = [];
+			let paramIndex = 0;
+			let lineItem = parseLineItem(paramIndex);
+			while (lineItem) {
+				items.push(lineItem);
+				paramIndex++;
+				lineItem = parseLineItem(paramIndex);
+			}
+
+			return items;
+
+			function parseLineItem(paramIndex) {
+				const suffix = paramIndex == 0 ? '' : `.${paramIndex}`;
+				const address = paramIndex == 0 && uri.pathname ? uri.pathname : uri.searchParams.get('address' + suffix);
+				if (!address) {
+					return null;
+				}
+
+				const amount = Number.parseFloat(uri.searchParams.get('amount' + suffix));
+				const label = uri.searchParams.get('label' + suffix);
+				const memo = uri.searchParams.get('memo' + suffix) ? atob(uri.searchParams.get('memo' + suffix)) : '';
+				const message = uri.searchParams.get('message' + suffix);
+				return { address, amount, label, memo, message };
+			}
+		}
+	</script>
+</head>
+
+<body>
+	<div class="container">
+		<h1>Pay invoice with Zcash</h1>
+
+		<div id="paymentRequestActive">
+			<p>
+				You have been invited to pay an invoice with Zcash.
+				<a href="https://z.cash/">Zcash</a> is a privacy-focused cryptocurrency.</a>
+			</p>
+			<p>
+				If you already have a Zcash wallet, proceed to <a id="payLink">pay the invoice</a>.
+			</p>
+			<p>
+				If clicking the link does not work, you may not have a Zcash wallet installed that can handle payment
+				URIs.
+				You can inspect the invoice details and copy them manually into you Zcash wallet.
+			</p>
+			<div id="invoiceDetails">
+				<table>
+					<thead>
+						<tr>
+							<th>Amount</th>
+							<th>Memo</th>
+							<th>Message</th>
+							<th>Recipient</th>
+						</tr>
+					</thead>
+					<tbody id="invoiceItems">
+						<!-- Data binding will populate this section -->
+					</tbody>
+				</table>
+				<p>Total invoice value: <span id="invoiceTotal" /></p>
+			</div>
+		</div>
+		<div id="paymentRequestInactive">
+			<p>
+				This page can be used as a redirector for zcash: payment request URIs.
+				Just add # and the URI itself at the end of the URL.
+			</p>
+		</div>
+		<p align="center">
+			If you are looking to start using Zcash and need a wallet,
+			try <a href="https://blog.nerdbank.net/ezcash-app">eZcash</a>.
+		</p>
+		<p align="center">
+			<a href="https://blog.nerdbank.net/ezcash-app"><img src="images/ezcash-logo.png" width="80"
+					height="77" /></a>
+		</p>
+	</div>
+</body>
+
+</html>
