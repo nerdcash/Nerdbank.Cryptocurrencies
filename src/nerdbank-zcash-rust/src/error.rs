@@ -202,7 +202,6 @@ impl From<BirthdayError> for Error {
         match e {
             BirthdayError::Decode(e) => Error::Io(e),
             BirthdayError::HeightInvalid(_) => Error::InvalidHeight,
-            _ => Error::Internal("An unknown birthday error occurred.".to_string()),
         }
     }
 }
