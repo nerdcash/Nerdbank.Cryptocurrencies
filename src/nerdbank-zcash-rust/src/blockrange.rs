@@ -49,6 +49,7 @@ impl From<&BlockRange> for service::BlockRange {
                 height: u64::from(val.block_range.end) - 1, // end is exclusive for our BlockRange, inclusive for service::BlockRange
                 ..Default::default()
             }),
+            pool_types: vec![],
         }
     }
 }

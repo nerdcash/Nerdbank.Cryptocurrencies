@@ -12,7 +12,7 @@ use crate::{
 use http::Uri;
 use nonempty::NonEmpty;
 use rusqlite::{Connection, named_params};
-use zcash_client_backend::data_api::WalletRead;
+use zcash_client_backend::data_api::{CoinbaseFilter, TransparentKeyOrigin, WalletRead};
 use zcash_client_backend::{
     data_api::wallet::{self, create_proposed_transactions, propose_shielding},
     keys::UnifiedSpendingKey,
@@ -75,7 +75,14 @@ pub async fn shield_funds<P: AsRef<Path>>(
             let (ephemeral, non_ephemeral): (Vec<_>, Vec<_>) = account_receivers
                 .into_iter()
                 .filter(|(_, (_, balance))| balance.spendable_value() >= shielding_threshold)
-                .partition(|(_, (scope, _))| *scope == TransparentKeyScope::EPHEMERAL);
+                .partition(|(_, (origin, _))| {
+                    matches!(
+                        origin,
+                        TransparentKeyOrigin::Derived {
+                            scope: TransparentKeyScope::EPHEMERAL
+                        }
+                    )
+                });
 
             if non_ephemeral.is_empty() {
                 ephemeral
@@ -107,6 +114,8 @@ pub async fn shield_funds<P: AsRef<Path>>(
         &from_addrs,
         account_uuid,
         confirmations_policy,
+        CoinbaseFilter::default(),
+        None,
     )?;
 
     let prover = get_prover()?;
@@ -119,6 +128,7 @@ pub async fn shield_funds<P: AsRef<Path>>(
         &wallet::SpendingKeys::from_unified_spending_key(usk.to_owned()),
         OvkPolicy::Sender,
         &proposal,
+        None,
     )?;
 
     for txid in txids {

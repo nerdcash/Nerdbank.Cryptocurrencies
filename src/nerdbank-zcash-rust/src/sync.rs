@@ -401,6 +401,7 @@ pub async fn sync<P: AsRef<Path>>(
                                     height: u64::from(h - 1), // `BlockRange` end is inclusive.
                                     ..Default::default()
                                 }),
+                                pool_types: vec![],
                             }),
                         };
 
@@ -823,9 +824,14 @@ async fn download_transparent_transactions(
         if let Some(t) = tx.transparent_bundle() {
             for (txout_index, txout) in t.vout.iter().enumerate() {
                 let outpoint = OutPoint::new(tx.txid().as_ref().to_owned(), txout_index as u32);
-                if let Some(output) =
-                    WalletTransparentOutput::from_parts(outpoint, txout.to_owned(), Some(height))
-                {
+                if let Some(output) = WalletTransparentOutput::from_parts(
+                    outpoint,
+                    txout.to_owned(),
+                    Some(height),
+                    None,
+                    None,
+                    None,
+                ) {
                     match db.data.put_received_transparent_utxo(&output) {
                         Ok(_) => (),
                         Err(SqliteClientError::AddressNotRecognized(_)) => (), // Not all tx outputs will be for our wallet. We only want to record the ones that are.
@@ -950,6 +956,7 @@ async fn download_blocks(
     let range = service::BlockRange {
         start: Some(start),
         end: Some(end),
+        pool_types: vec![],
     };
 
     let mut blocks = Vec::new();
@@ -1278,6 +1285,9 @@ pub(crate) fn get_transactions(
                     PoolType::Transparent => Pool::Transparent,
                     PoolType::SAPLING => Pool::Sapling,
                     PoolType::ORCHARD => Pool::Orchard,
+                    PoolType::IRONWOOD => {
+                        return Err(Error::Internal("Ironwood pool is unsupported.".to_string()));
+                    }
                 },
                 memo: if memo.is_empty() {
                     None

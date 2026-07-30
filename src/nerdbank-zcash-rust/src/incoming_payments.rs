@@ -184,6 +184,11 @@ pub(crate) fn get_incoming_payments(
                         PoolType::Transparent => Pool::Transparent,
                         PoolType::SAPLING => Pool::Sapling,
                         PoolType::ORCHARD => Pool::Orchard,
+                        PoolType::IRONWOOD => {
+                            return Err(Error::Internal(
+                                "Ironwood pool is unsupported.".to_string(),
+                            ));
+                        }
                     },
                     memo: if memo.is_empty() {
                         None

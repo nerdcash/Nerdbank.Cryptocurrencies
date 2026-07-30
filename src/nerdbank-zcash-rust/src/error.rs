@@ -187,6 +187,7 @@ impl From<ChainError<SqliteClientError, BlockCacheError>> for Error {
             ChainError::Wallet(e) => Error::Wallet(e),
             ChainError::BlockSource(e) => Error::BlockSource(e),
             ChainError::Scan(e) => Error::Scan(e),
+            _ => Error::Internal(e.to_string()),
         }
     }
 }
@@ -202,6 +203,7 @@ impl From<BirthdayError> for Error {
         match e {
             BirthdayError::Decode(e) => Error::Io(e),
             BirthdayError::HeightInvalid(_) => Error::InvalidHeight,
+            _ => Error::Internal(e.to_string()),
         }
     }
 }
@@ -312,7 +314,6 @@ where
             },
             BackendError::ScanRequired => Error::SyncFirst,
             BackendError::Builder(inner) => Error::Internal(format!("Builder: {inner}")),
-            BackendError::MemoForbidden => Error::Internal("MemoForbidden".to_string()),
             BackendError::NoteMismatch(_) => Error::Internal("NoteMismatch".to_string()),
             BackendError::AddressNotRecognized(_) => Error::InvalidAddress,
             BackendError::ProposalNotSupported => Error::ProposalNotSupported,
@@ -330,6 +331,7 @@ where
             }
             BackendError::AccountCannotSpend => Error::AccountCannotSpend,
             BackendError::KeyNotAvailable(pool_type) => Error::KeyNotAvailable(pool_type),
+            _ => Error::Internal("An unknown backend error occurred.".to_string()),
         }
     }
 }
