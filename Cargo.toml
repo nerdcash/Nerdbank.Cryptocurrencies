@@ -9,11 +9,11 @@ members = ["src/nerdbank-zcash-rust"]
 # Intra-workspace dependencies
 equihash = { version = "0.3", path = "external/librustzcash/components/equihash", default-features = false }
 zcash_address = { version = "0.13.0", path = "external/librustzcash/components/zcash_address", default-features = false }
-zcash_client_backend = { version = "0.24.0-rc.6", path = "external/librustzcash/zcash_client_backend" }
+zcash_client_backend = { version = "0.24.0-rc.4", path = "external/librustzcash/zcash_client_backend" }
 zcash_encoding = { version = "0.4", default-features = false }
-zcash_keys = { version = "0.16.1", path = "external/librustzcash/zcash_keys" }
-zcash_pool_migration = { version = "0.1.0-rc.5", path = "external/librustzcash/zcash_pool_migration" }
-zcash_protocol = { version = "0.10.3", path = "external/librustzcash/components/zcash_protocol", default-features = false }
+zcash_keys = { version = "0.16.0", path = "external/librustzcash/zcash_keys" }
+zcash_pool_migration = { version = "0.1.0-rc.3", path = "external/librustzcash/zcash_pool_migration" }
+zcash_protocol = { version = "0.10.1", path = "external/librustzcash/components/zcash_protocol", default-features = false }
 zip321 = { version = "0.9.0-rc.1", path = "external/librustzcash/components/zip321" }
 
 zcash_note_encryption = "0.4.1"

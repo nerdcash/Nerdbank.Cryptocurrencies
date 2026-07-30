@@ -187,7 +187,6 @@ impl From<ChainError<SqliteClientError, BlockCacheError>> for Error {
             ChainError::Wallet(e) => Error::Wallet(e),
             ChainError::BlockSource(e) => Error::BlockSource(e),
             ChainError::Scan(e) => Error::Scan(e),
-            _ => Error::Internal(e.to_string()),
         }
     }
 }
@@ -203,7 +202,7 @@ impl From<BirthdayError> for Error {
         match e {
             BirthdayError::Decode(e) => Error::Io(e),
             BirthdayError::HeightInvalid(_) => Error::InvalidHeight,
-            _ => Error::Internal(e.to_string()),
+            _ => Error::Internal("An unknown birthday error occurred.".to_string()),
         }
     }
 }

@@ -61,7 +61,7 @@ zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
 	"unstable",
 	"test-dependencies",
 ] }
-zcash_protocol = { version = "0.10.3", path = "../../external/librustzcash/components/zcash_protocol" }
+zcash_protocol = { version = "0.10.1", path = "../../external/librustzcash/components/zcash_protocol" }
 zcash_proofs = { version = "0.30.0", path = "../../external/librustzcash/zcash_proofs", features = [
 	"download-params",
 	"local-prover",
