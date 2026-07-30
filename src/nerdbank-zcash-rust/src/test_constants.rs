@@ -21,7 +21,7 @@ use crate::{backing_store::Db, grpc::get_client, interop::DbInit, lightclient::p
 
 lazy_static! {
     pub(crate) static ref TESTNET_LIGHTSERVER_URI: Uri =
-        Uri::from_static("https://zcash.mysideoftheweb.com:19067/");
+        Uri::from_static("https://testnet.zec.rocks/");
     pub(crate) static ref MAINNET_LIGHTSERVER_URI: Uri =
         Uri::from_static("https://zcash.mysideoftheweb.com:9067/");
 }
