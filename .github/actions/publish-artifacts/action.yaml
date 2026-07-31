@@ -4,10 +4,6 @@ inputs:
   suffix:
     description: 'Suffix to append to the artifact name'
     required: true
-  skipDotNet:
-    description: Skip publishing .NET related artifacts
-    required: false
-    default: false
 
 runs:
   using: composite
@@ -21,49 +17,60 @@ runs:
 # https://github.com/actions/toolkit/tree/main/packages/artifact (or similar) to push the artifacts.
 
   - name: 📢 Upload project.assets.json files
-    if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    if: always()
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
     with:
       name: projectAssetsJson-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/projectAssetsJson
     continue-on-error: true
+  - name: 📢 Upload variables
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+    with:
+      name: variables-${{ inputs.suffix }}
+      path: ${{ runner.temp }}/_artifacts/Variables
+    continue-on-error: true
   - name: 📢 Upload build_logs
-    if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    if: always()
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
     with:
       name: build_logs-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/build_logs
     continue-on-error: true
   - name: 📢 Upload testResults
-    if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    if: always()
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
     with:
       name: testResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/testResults
     continue-on-error: true
   - name: 📢 Upload coverageResults
-    if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    if: always()
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
     with:
       name: coverageResults-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/coverageResults
     continue-on-error: true
   - name: 📢 Upload symbols
-    if: inputs.skipDotNet == false
-    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
     with:
       name: symbols-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/symbols
     continue-on-error: true
+  - name: 📢 Upload deployables
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+    with:
+      name: deployables-${{ inputs.suffix }}
+      path: ${{ runner.temp }}/_artifacts/deployables
+    if: always()
   - name: 📢 Upload rust
     if: always()
-    uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
     with:
       name: rust-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/rust
   - name: 📢 Upload ios_framework
     if: runner.os == 'macOS'
-    uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
     with:
       name: ios_framework-${{ inputs.suffix }}
       path: ${{ runner.temp }}/_artifacts/ios_framework

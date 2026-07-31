@@ -63,14 +63,13 @@ jobs:
       uses: ./.github/actions/publish-artifacts
       with:
         suffix: linux
-        skipDotNet: true
       if: cancelled() == false
 
   macos:
     name: 🏭 macOS
     runs-on: macOS-15
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -112,7 +111,6 @@ jobs:
       uses: ./.github/actions/publish-artifacts
       with:
         suffix: macOS
-        skipDotNet: true
       if: cancelled() == false
 
   windows:
@@ -125,7 +123,7 @@ jobs:
         submodules: true
     - name: ⚙ Install prerequisites
       run: |
-        ./init.ps1 -UpgradePrerequisites
+        ./init.ps1 -UpgradePrerequisites -NoNuGetCredProvider
         dotnet --info
 
         # For optimizing Blazor WebAssembly builds
@@ -197,7 +195,6 @@ jobs:
       uses: ./.github/actions/publish-artifacts
       with:
         suffix: android
-        skipDotNet: true
       if: cancelled() == false
 
   licenses:
@@ -318,7 +315,7 @@ jobs:
     name: 📃 Docs
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: 🔗 Markup Link Checker (mlc)
       uses: becheran/mlc@7ec24825cefe0c9c8c6bac48430e1f69e3ec356e # v1.2.0
       with:
