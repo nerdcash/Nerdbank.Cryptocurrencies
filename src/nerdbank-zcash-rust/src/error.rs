@@ -282,6 +282,8 @@ where
     CommitmentTreeError: std::fmt::Display + std::fmt::Debug,
     SelectionError: std::fmt::Display + std::fmt::Debug,
     FeeError: std::fmt::Display + std::fmt::Debug,
+    ChangeErrT: std::fmt::Display,
+    NoteRefT: std::fmt::Display,
 {
     fn from(
         value: BackendError<
@@ -329,7 +331,7 @@ where
             }
             BackendError::AccountCannotSpend => Error::AccountCannotSpend,
             BackendError::KeyNotAvailable(pool_type) => Error::KeyNotAvailable(pool_type),
-            _ => Error::Internal("An unknown backend error occurred.".to_string()),
+            other => Error::Internal(format!("Backend error: {other}")),
         }
     }
 }

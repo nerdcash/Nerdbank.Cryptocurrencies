@@ -82,6 +82,7 @@ pub enum Pool {
     Transparent,
     Sapling,
     Orchard,
+    Ironwood,
 }
 
 impl From<ChainType> for Network {
