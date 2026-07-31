@@ -2374,6 +2374,7 @@ internal enum Pool : int
 	Transparent,
 	Sapling,
 	Orchard,
+	Ironwood,
 }
 
 class FfiConverterTypePool : FfiConverterRustBuffer<Pool>

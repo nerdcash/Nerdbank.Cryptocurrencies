@@ -184,6 +184,7 @@ pub(crate) fn get_incoming_payments(
                         PoolType::Transparent => Pool::Transparent,
                         PoolType::SAPLING => Pool::Sapling,
                         PoolType::ORCHARD => Pool::Orchard,
+                        PoolType::IRONWOOD => Pool::Ironwood,
                     },
                     memo: if memo.is_empty() {
                         None

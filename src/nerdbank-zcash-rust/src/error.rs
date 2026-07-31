@@ -282,6 +282,8 @@ where
     CommitmentTreeError: std::fmt::Display + std::fmt::Debug,
     SelectionError: std::fmt::Display + std::fmt::Debug,
     FeeError: std::fmt::Display + std::fmt::Debug,
+    ChangeErrT: std::fmt::Display,
+    NoteRefT: std::fmt::Display,
 {
     fn from(
         value: BackendError<
@@ -312,7 +314,6 @@ where
             },
             BackendError::ScanRequired => Error::SyncFirst,
             BackendError::Builder(inner) => Error::Internal(format!("Builder: {inner}")),
-            BackendError::MemoForbidden => Error::Internal("MemoForbidden".to_string()),
             BackendError::NoteMismatch(_) => Error::Internal("NoteMismatch".to_string()),
             BackendError::AddressNotRecognized(_) => Error::InvalidAddress,
             BackendError::ProposalNotSupported => Error::ProposalNotSupported,
@@ -330,6 +331,7 @@ where
             }
             BackendError::AccountCannotSpend => Error::AccountCannotSpend,
             BackendError::KeyNotAvailable(pool_type) => Error::KeyNotAvailable(pool_type),
+            other => Error::Internal(format!("Backend error: {other}")),
         }
     }
 }

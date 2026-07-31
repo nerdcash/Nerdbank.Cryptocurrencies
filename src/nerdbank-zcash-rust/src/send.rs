@@ -50,13 +50,13 @@ pub(crate) fn create_send_proposal(
             Payment::new(
                 ZcashAddress::try_from_encoded(detail.recipient.as_str())
                     .map_err(|_| Error::InvalidAddress)?,
-                Zatoshis::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?,
+                Some(Zatoshis::from_u64(detail.value).map_err(|_| Error::InvalidAmount)?),
                 memo,
                 None,
                 None,
                 Vec::new(),
             )
-            .ok_or(Error::MemoNotAllowed)?,
+            .map_err(|_| Error::MemoNotAllowed)?,
         );
     }
 
@@ -74,6 +74,9 @@ pub(crate) fn create_send_proposal(
         &change_strategy,
         request,
         ConfirmationsPolicy::default(),
+        &wallet::input_selection::SpendPolicy::default(),
+        None,
+        None,
     )?)
 }
 
@@ -101,6 +104,7 @@ pub async fn send_transaction<P: AsRef<Path>>(
         &wallet::SpendingKeys::from_unified_spending_key(usk.to_owned()),
         OvkPolicy::Sender,
         &proposal,
+        None,
     )?;
 
     let mut result = Vec::new();
