@@ -18,8 +18,9 @@ use zcash_client_backend::{
     encoding::AddressCodec,
     keys::{Era, UnifiedSpendingKey},
 };
+// Account trait provides ufvk()/uivk() used when listing accounts.
 use zcash_client_sqlite::{AccountUuid, error::SqliteClientError};
-use zcash_keys::keys::UnifiedFullViewingKey;
+use zcash_keys::keys::{UnifiedFullViewingKey, UnifiedIncomingViewingKey};
 use zcash_protocol::{consensus::Network, memo::MemoBytes, value::Zatoshis};
 use zcash_transparent::address::TransparentAddress;
 use zip32::DiversifierIndex;
@@ -365,17 +366,55 @@ pub fn import_account_ufvk(
     })
 }
 
+pub fn import_account_uivk(
+    config: DbInit,
+    uri: String,
+    name: String,
+    uivk: String,
+    birthday_height: Option<u32>,
+    cancellation: Option<Box<dyn CancellationSource>>,
+) -> Result<Vec<u8>, LightWalletError> {
+    use crate::lightclient::get_block_height;
+    let cancellation_token = get_cancellation_token(cancellation)?;
+    let network: Network = config.network.into();
+    RT.block_on(async move {
+        let mut db = Db::load(config.data_file, config.network.into())?;
+        let mut client = get_client(uri.parse()?).await.map_err(Error::from)?;
+        let birthday_height = match birthday_height {
+            Some(v) => v,
+            None => get_block_height(uri.parse()?, cancellation_token.0.clone()).await?,
+        };
+        let uivk = UnifiedIncomingViewingKey::decode(&network, uivk.as_str()).map_err(|e| {
+            LightWalletError::InvalidArgument {
+                message: format!("Invalid UIVK: {e}"),
+            }
+        })?;
+        let account = db
+            .import_account_uivk(&name, &uivk, birthday_height as u64, None, &mut client)
+            .await?;
+        Ok(uuid_to_bytes(&account.id()))
+    })
+}
+
 pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError> {
     use crate::analysis::get_birthday_heights;
 
     let db = Db::load(config.data_file.clone(), config.network.into())?;
     let network: Network = config.network.into();
     let mut result = Vec::new();
-    for account_info in db.data.get_unified_full_viewing_keys()?.iter() {
+    for account_id in db.data.get_account_ids()? {
+        let Some(account) = db.data.get_account(account_id)? else {
+            continue;
+        };
+        let uvk = if let Some(ufvk) = account.ufvk() {
+            Some(ufvk.encode(&network))
+        } else {
+            Some(account.uivk().encode(&network))
+        };
         result.push(AccountInfo {
-            id: uuid_to_bytes(account_info.0),
-            uvk: Some(account_info.1.encode(&network)),
-            birthday_heights: get_birthday_heights(config.clone(), account_info.0)?,
+            id: uuid_to_bytes(&account_id),
+            uvk,
+            birthday_heights: get_birthday_heights(config.clone(), &account_id)?,
         });
     }
 

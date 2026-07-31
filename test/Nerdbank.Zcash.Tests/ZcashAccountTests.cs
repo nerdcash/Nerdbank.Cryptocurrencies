@@ -491,6 +491,32 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 
+	[Fact]
+	public void TryImportAccount_IncomingViewing_Unified()
+	{
+		ZcashAccount account = this.ImportAccount(this.DefaultAccount.IncomingViewing.UnifiedKey.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+		Assert.Null(account.FullViewing);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.NotNull(account.IncomingViewing.Orchard);
+		Assert.NotNull(account.IncomingViewing.Sapling);
+		Assert.NotNull(account.IncomingViewing.Transparent);
+
+		// Use UnifiedViewingKey.Equals (not Assert.Equal) so transparent elements compare by
+		// cryptographic material. Assert.Equal would enumerate the UVK and use ExtendedViewingKey
+		// equality, which fails on BIP32 metadata that the UIVK encoding does not preserve.
+		Assert.True(this.DefaultAccount.IncomingViewing.UnifiedKey.Equals(account.IncomingViewing.UnifiedKey));
+		Assert.Equal(this.DefaultAccount.IncomingViewing.Orchard, account.IncomingViewing.Orchard);
+		Assert.Equal(this.DefaultAccount.IncomingViewing.Sapling, account.IncomingViewing.Sapling);
+		Assert.Equal(
+			this.DefaultAccount.IncomingViewing.Transparent!.DefaultAddress,
+			account.IncomingViewing.Transparent.DefaultAddress);
+		Assert.True(this.DefaultAccount.IncomingViewing.Transparent.ChainCode.Equals(account.IncomingViewing.Transparent.ChainCode));
+	}
+
 	private ZcashAccount ImportAccount(string encoded)
 	{
 		this.logger.WriteLine(encoded);

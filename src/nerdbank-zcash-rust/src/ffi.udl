@@ -131,6 +131,9 @@ namespace LightWallet {
 	bytes import_account_ufvk(DbInit config, string uri, string name, string ufvk, boolean spending_key_available, u32? birthday_height, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
+	bytes import_account_uivk(DbInit config, string uri, string name, string uivk, u32? birthday_height, CancellationSource? cancellation);
+
+	[Throws=LightWalletError]
 	sequence<AccountInfo> get_accounts(DbInit config);
 
 	/// Gets the oldest birthday height for any account in the wallet.

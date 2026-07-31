@@ -132,6 +132,9 @@
   <data name="FullViewingKeyRequired" xml:space="preserve">
     <value>A full viewing key is required for an account to simulate a send.</value>
   </data>
+  <data name="BalancesRequireFullViewingKey" xml:space="preserve">
+    <value>Balances are not available for accounts that only have an incoming viewing key, because spends cannot be detected without a full viewing key.</value>
+  </data>
   <data name="InsufficientFunds" xml:space="preserve">
     <value>There are insufficient funds for the requested spend: {required} would be required (including fees) but only {available} was available.</value>
   </data>
