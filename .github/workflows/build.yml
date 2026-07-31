@@ -39,7 +39,7 @@ jobs:
     - run: cargo binstall -y cross@0.2.5 --locked
       name: ⚙️ install cross
 
-    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
+    - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
@@ -82,7 +82,7 @@ jobs:
     - run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       name: ⚙️ Install cargo-binstall
 
-    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
+    - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
@@ -132,7 +132,7 @@ jobs:
         iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
       shell: pwsh
 
-    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
+    - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
@@ -182,7 +182,7 @@ jobs:
     - run: ./tools/Install-AndroidBuildTools.ps1
       shell: pwsh
       name: ⚙️ Install Android tooling
-    - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
+    - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       name: 💾 Cache rust
       with:
         workspaces: |
