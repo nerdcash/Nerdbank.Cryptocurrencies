@@ -391,8 +391,10 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="account">The account to get balances for.</param>
 	/// <returns>Pool balances.</returns>
 	/// <exception cref="NotSupportedException">
-	/// Thrown when <paramref name="account"/> has only an incoming viewing key.
-	/// Accurate balances require a full viewing key so spent notes can be detected.
+	/// Thrown when the wallet's stored account matching <paramref name="account"/> has only an
+	/// incoming viewing key. Accurate balances require a full viewing key so spent notes can be
+	/// detected. An IVK-only handle that matches a UFVK account by incoming viewing key equality
+	/// does not trigger this exception.
 	/// </exception>
 	public AccountBalances GetBalances(ZcashAccount account)
 	{
@@ -421,8 +423,10 @@ public partial class LightWalletClient : IDisposable
 	/// This can be useful as an input into an algorithm that shields transparent funds.
 	/// </remarks>
 	/// <exception cref="NotSupportedException">
-	/// Thrown when <paramref name="account"/> has only an incoming viewing key.
-	/// Accurate balances require a full viewing key so spent notes can be detected.
+	/// Thrown when the wallet's stored account matching <paramref name="account"/> has only an
+	/// incoming viewing key. Accurate balances require a full viewing key so spent notes can be
+	/// detected. An IVK-only handle that matches a UFVK account by incoming viewing key equality
+	/// does not trigger this exception.
 	/// </exception>
 	public IReadOnlyList<(TransparentAddress Address, decimal Balance)> GetUnshieldedBalances(ZcashAccount account)
 	{

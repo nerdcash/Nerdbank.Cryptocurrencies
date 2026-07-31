@@ -14,10 +14,7 @@ use tokio::runtime::Runtime;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 use zcash_client_backend::{
-    data_api::{
-        Account, AccountPurpose, WalletRead,
-        wallet::ConfirmationsPolicy,
-    },
+    data_api::{Account, AccountPurpose, WalletRead, wallet::ConfirmationsPolicy},
     encoding::AddressCodec,
     keys::{Era, UnifiedSpendingKey},
 };

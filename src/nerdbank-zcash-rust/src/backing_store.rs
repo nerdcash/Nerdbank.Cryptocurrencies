@@ -110,6 +110,12 @@ impl Db {
         key_source: Option<&str>,
         client: &mut CompactTxStreamerClient<Channel>,
     ) -> Result<Account, Error> {
+        if birthday == 0 {
+            return Err(Error::InvalidArgument(
+                "Account birthday height must be greater than 0.".to_string(),
+            ));
+        }
+
         // Construct an `AccountBirthday` for the account's birthday.
         let birthday = {
             // Fetch the tree state corresponding to the last block prior to the wallet's

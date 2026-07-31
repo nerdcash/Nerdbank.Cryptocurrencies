@@ -505,11 +505,16 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing.Sapling);
 		Assert.NotNull(account.IncomingViewing.Transparent);
 
-		// Orchard and Sapling round-trip exactly. Transparent keys in a UIVK are the
-		// external (child-0) derivation of the UFVK's transparent key, so compare those
-		// components rather than the whole UVK string which may re-encode differently.
+		// Use UnifiedViewingKey.Equals (not Assert.Equal) so transparent elements compare by
+		// cryptographic material. Assert.Equal would enumerate the UVK and use ExtendedViewingKey
+		// equality, which fails on BIP32 metadata that the UIVK encoding does not preserve.
+		Assert.True(this.DefaultAccount.IncomingViewing.UnifiedKey.Equals(account.IncomingViewing.UnifiedKey));
 		Assert.Equal(this.DefaultAccount.IncomingViewing.Orchard, account.IncomingViewing.Orchard);
 		Assert.Equal(this.DefaultAccount.IncomingViewing.Sapling, account.IncomingViewing.Sapling);
+		Assert.Equal(
+			this.DefaultAccount.IncomingViewing.Transparent!.DefaultAddress,
+			account.IncomingViewing.Transparent.DefaultAddress);
+		Assert.True(this.DefaultAccount.IncomingViewing.Transparent.ChainCode.Equals(account.IncomingViewing.Transparent.ChainCode));
 	}
 
 	private ZcashAccount ImportAccount(string encoded)

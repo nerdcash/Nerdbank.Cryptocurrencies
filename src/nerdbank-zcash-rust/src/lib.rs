@@ -32,6 +32,6 @@ use interop::{
     TransactionSendDetail, TransparentNote, add_account, add_diversifier, cancel,
     disconnect_server, get_accounts, get_birthday_height, get_birthday_heights, get_block_height,
     get_incoming_payments, get_sync_height, get_transactions, get_unshielded_utxos,
-    get_user_balances, import_account_ufvk, import_account_uivk, init, send, shield,
-    simulate_send, sync,
+    get_user_balances, import_account_ufvk, import_account_uivk, init, send, shield, simulate_send,
+    sync,
 };
