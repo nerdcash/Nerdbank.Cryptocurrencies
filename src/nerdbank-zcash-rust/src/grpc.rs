@@ -51,14 +51,36 @@ pub async fn get_client(
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use crate::test_constants::LIGHTSERVER_URI;
 
     use super::*;
 
     #[tokio_shared_rt::test]
     async fn get_client_twice_then_destroy() {
-        get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
-        get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
-        assert!(destroy_channel(LIGHTSERVER_URI.to_owned()));
+        // External lightwalletd endpoints occasionally drop TLS handshakes;
+        // retry a few times so CI is not flaky on transient network errors.
+        const ATTEMPTS: u32 = 3;
+        let mut last_err = None;
+        for attempt in 1..=ATTEMPTS {
+            match get_client(LIGHTSERVER_URI.to_owned()).await {
+                Ok(_) => {
+                    get_client(LIGHTSERVER_URI.to_owned()).await.unwrap();
+                    assert!(destroy_channel(LIGHTSERVER_URI.to_owned()));
+                    return;
+                }
+                Err(e) => {
+                    last_err = Some(e);
+                    if attempt < ATTEMPTS {
+                        tokio::time::sleep(Duration::from_secs(2)).await;
+                    }
+                }
+            }
+        }
+        panic!(
+            "get_client failed after {ATTEMPTS} attempts: {:?}",
+            last_err
+        );
     }
 }
