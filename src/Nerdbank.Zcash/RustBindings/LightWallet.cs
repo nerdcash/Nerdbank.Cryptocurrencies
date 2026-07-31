@@ -944,6 +944,17 @@ static class _UniFFILib
 	);
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_import_account_uivk(
+		RustBuffer @config,
+		RustBuffer @uri,
+		RustBuffer @name,
+		RustBuffer @uivk,
+		RustBuffer @birthdayHeight,
+		RustBuffer @cancellation,
+		ref UniffiRustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern void uniffi_nerdbank_zcash_rust_fn_func_init(RustBuffer @config, ref UniffiRustCallStatus _uniffi_out_err);
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
@@ -1209,6 +1220,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_import_account_ufvk();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_import_account_uivk();
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_init();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
@@ -1371,6 +1385,15 @@ static class _UniFFILib
 			{
 				throw new UniffiContractChecksumException(
 					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_import_account_ufvk` checksum `32453`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_import_account_uivk();
+			if (checksum != 63497)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_import_account_uivk` checksum `63497`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -3481,6 +3504,33 @@ internal static class LightWalletMethods
 						FfiConverterString.INSTANCE.Lower(@name),
 						FfiConverterString.INSTANCE.Lower(@ufvk),
 						FfiConverterBoolean.INSTANCE.Lower(@spendingKeyAvailable),
+						FfiConverterOptionalUInt32.INSTANCE.Lower(@birthdayHeight),
+						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
+						ref _status
+					)
+			)
+		);
+	}
+
+	/// <exception cref="LightWalletException"></exception>
+	public static byte[] ImportAccountUivk(
+		DbInit @config,
+		string @uri,
+		string @name,
+		string @uivk,
+		uint? @birthdayHeight,
+		CancellationSource? @cancellation
+	)
+	{
+		return FfiConverterByteArray.INSTANCE.Lift(
+			_UniffiHelpers.RustCallWithError(
+				FfiConverterTypeLightWalletError.INSTANCE,
+				(ref UniffiRustCallStatus _status) =>
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_import_account_uivk(
+						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
+						FfiConverterString.INSTANCE.Lower(@uri),
+						FfiConverterString.INSTANCE.Lower(@name),
+						FfiConverterString.INSTANCE.Lower(@uivk),
 						FfiConverterOptionalUInt32.INSTANCE.Lower(@birthdayHeight),
 						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status

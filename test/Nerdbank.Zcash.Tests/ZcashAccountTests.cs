@@ -491,6 +491,27 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 
+	[Fact]
+	public void TryImportAccount_IncomingViewing_Unified()
+	{
+		ZcashAccount account = this.ImportAccount(this.DefaultAccount.IncomingViewing.UnifiedKey.TextEncoding);
+		Assert.NotNull(account);
+
+		Assert.Null(account.Spending);
+		Assert.Null(account.FullViewing);
+
+		Assert.NotNull(account.IncomingViewing);
+		Assert.NotNull(account.IncomingViewing.Orchard);
+		Assert.NotNull(account.IncomingViewing.Sapling);
+		Assert.NotNull(account.IncomingViewing.Transparent);
+
+		// Orchard and Sapling round-trip exactly. Transparent keys in a UIVK are the
+		// external (child-0) derivation of the UFVK's transparent key, so compare those
+		// components rather than the whole UVK string which may re-encode differently.
+		Assert.Equal(this.DefaultAccount.IncomingViewing.Orchard, account.IncomingViewing.Orchard);
+		Assert.Equal(this.DefaultAccount.IncomingViewing.Sapling, account.IncomingViewing.Sapling);
+	}
+
 	private ZcashAccount ImportAccount(string encoded)
 	{
 		this.logger.WriteLine(encoded);

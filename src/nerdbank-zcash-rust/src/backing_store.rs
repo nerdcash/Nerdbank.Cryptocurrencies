@@ -14,7 +14,10 @@ use zcash_client_sqlite::{
     util::SystemClock,
     wallet::{Account, init::init_wallet_db},
 };
-use zcash_keys::{address::UnifiedAddress, keys::UnifiedFullViewingKey};
+use zcash_keys::{
+    address::UnifiedAddress,
+    keys::{UnifiedFullViewingKey, UnifiedIncomingViewingKey},
+};
 use zcash_protocol::consensus::Network;
 use zip32::DiversifierIndex;
 
@@ -97,6 +100,31 @@ impl Db {
         Ok(self
             .data
             .import_account_ufvk(name, ufvk, &birthday, purpose, key_source)?)
+    }
+
+    pub(crate) async fn import_account_uivk(
+        &mut self,
+        name: &str,
+        uivk: &UnifiedIncomingViewingKey,
+        birthday: u64,
+        key_source: Option<&str>,
+        client: &mut CompactTxStreamerClient<Channel>,
+    ) -> Result<Account, Error> {
+        // Construct an `AccountBirthday` for the account's birthday.
+        let birthday = {
+            // Fetch the tree state corresponding to the last block prior to the wallet's
+            // birthday height. NOTE: THIS APPROACH LEAKS THE BIRTHDAY TO THE SERVER!
+            let request = service::BlockId {
+                height: birthday - 1,
+                ..Default::default()
+            };
+            let treestate = client.get_tree_state(request).await?.into_inner();
+            AccountBirthday::from_treestate(treestate, None)?
+        };
+
+        Ok(self
+            .data
+            .import_account_uivk(name, uivk, &birthday, key_source)?)
     }
 
     pub(crate) fn add_diversifier(

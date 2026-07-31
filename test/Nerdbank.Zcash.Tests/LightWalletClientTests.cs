@@ -189,4 +189,53 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		// It so happens that this index produces a valid sapling receiver.
 		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
 	}
+
+	[Fact]
+	public async Task AddAccountAsync_IncomingViewingKey()
+	{
+		// Use a separate wallet DB so we don't collide with the default spending account.
+		string walletPath = Path.Join(this.testDir, "uivk-wallet.sqlite");
+		using LightWalletClient client = new(LightWalletServerMainNet, DefaultAccount.Network, walletPath);
+
+		ZcashAccount ivkAccount = new(DefaultAccount.IncomingViewing.UnifiedKey)
+		{
+			// Birthday was set in InitializeAsync against the shared client; reuse it so we
+			// don't need a second tip-height query if the network is flaky.
+			BirthdayHeight = DefaultAccount.BirthdayHeight,
+		};
+		Assert.Null(ivkAccount.FullViewing);
+		Assert.NotNull(ivkAccount.IncomingViewing.UnifiedKey);
+
+		await client.AddAccountAsync(ivkAccount, this.TimeoutToken);
+
+		ZcashAccount[] accounts = client.GetAccounts().ToArray();
+		Assert.Contains(
+			accounts,
+			a => a.IncomingViewing.Orchard == ivkAccount.IncomingViewing.Orchard
+				&& a.IncomingViewing.Sapling == ivkAccount.IncomingViewing.Sapling);
+		Assert.All(accounts, a => Assert.Null(a.FullViewing));
+	}
+
+	[Fact]
+	public async Task AddAccountAsync_IncomingViewingKey_Reload()
+	{
+		string walletPath = Path.Join(this.testDir, "uivk-reload.sqlite");
+		ZcashAccount ivkAccount;
+		{
+			using LightWalletClient client = new(LightWalletServerMainNet, DefaultAccount.Network, walletPath);
+			ivkAccount = new(DefaultAccount.IncomingViewing.UnifiedKey)
+			{
+				BirthdayHeight = DefaultAccount.BirthdayHeight,
+			};
+			await client.AddAccountAsync(ivkAccount, this.TimeoutToken);
+		}
+
+		// Re-open the wallet and ensure the IVK-only account is restored.
+		using LightWalletClient reloaded = new(LightWalletServerMainNet, DefaultAccount.Network, walletPath);
+		ZcashAccount[] accounts = reloaded.GetAccounts().ToArray();
+		Assert.Single(accounts);
+		Assert.Null(accounts[0].FullViewing);
+		Assert.Equal(ivkAccount.IncomingViewing.Orchard, accounts[0].IncomingViewing.Orchard);
+		Assert.Equal(ivkAccount.IncomingViewing.Sapling, accounts[0].IncomingViewing.Sapling);
+	}
 }
