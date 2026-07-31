@@ -71,7 +71,7 @@ if ($isMTP) {
         ,'--report-trx'
     )
 
-    & $dotnet test `
+    & $dotnet test --solution $RepoRoot `
         --no-build `
         -c $Configuration `
         -bl:"$testBinLog" `
@@ -86,7 +86,7 @@ if ($isMTP) {
     $trxFiles = Get-ChildItem -Recurse -Path $testLogs\*.trx
 } else {
     $testDiagLog = Join-Path $ArtifactStagingFolder (Join-Path test_logs diag.log)
-    & $dotnet test $RepoRoot/.github/dirs.proj `
+    & $dotnet test $RepoRoot `
         --no-build `
         -c $Configuration `
         --filter "TestCategory!=FailsInCloudTest & RequiresNetwork!=true" `

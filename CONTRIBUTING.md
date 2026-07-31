@@ -67,7 +67,11 @@ When adding or updating just one string in an existing file, the following AI pr
 
 >> (your message here)
 
-[pwsh]: https://learn.microsoft.com/powershell/scripting/install/installing-powershell
+## Testing
+
+You can use `dotnet test` to build and/or test the repo.
+
+There may be tests that are known to be unstable or have special requirements. These can be avoided by running tests using the [dotnet-test-cloud.ps1](tools/dotnet-test-cloud.ps1) script *after* running `dotnet build`.
 
 ## Releases
 
@@ -124,3 +128,5 @@ git checkout origin/main
 # resolve any conflicts, then commit the merge commit.
 git push origin -u HEAD
 ```
+
+[pwsh]: https://learn.microsoft.com/powershell/scripting/install/installing-powershell
