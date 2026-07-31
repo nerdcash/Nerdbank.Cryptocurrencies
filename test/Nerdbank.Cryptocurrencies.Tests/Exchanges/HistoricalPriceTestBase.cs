@@ -25,8 +25,10 @@ public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBa
 
 		ExchangeRate? rate = await this.Provider.GetExchangeRateAsync(pair, DateTimeOffset.Now, this.TimeoutToken);
 		this.Logger.WriteLine($"{rate}");
-		Assert.Equal(rate.Value.Basis.Security, pair.Basis);
-		Assert.Equal(rate.Value.TradeInterest.Security, pair.TradeInterest);
+		Assert.NotNull(rate);
+		ExchangeRate exchangeRate = rate.GetValueOrDefault();
+		Assert.Equal(exchangeRate.Basis.Security, pair.Basis);
+		Assert.Equal(exchangeRate.TradeInterest.Security, pair.TradeInterest);
 	}
 
 	[Fact]
