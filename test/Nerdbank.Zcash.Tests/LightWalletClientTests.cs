@@ -214,6 +214,11 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 			a => a.IncomingViewing.Orchard == ivkAccount.IncomingViewing.Orchard
 				&& a.IncomingViewing.Sapling == ivkAccount.IncomingViewing.Sapling);
 		Assert.All(accounts, a => Assert.Null(a.FullViewing));
+
+		// IVK-only accounts cannot report accurate balances (spends are invisible).
+		NotSupportedException ex = Assert.Throws<NotSupportedException>(() => client.GetBalances(ivkAccount));
+		this.logger.WriteLine(ex.Message);
+		Assert.Throws<NotSupportedException>(() => client.GetUnshieldedBalances(ivkAccount));
 	}
 
 	[Fact]

@@ -390,12 +390,23 @@ public partial class LightWalletClient : IDisposable
 	/// </summary>
 	/// <param name="account">The account to get balances for.</param>
 	/// <returns>Pool balances.</returns>
+	/// <exception cref="NotSupportedException">
+	/// Thrown when <paramref name="account"/> has only an incoming viewing key.
+	/// Accurate balances require a full viewing key so spent notes can be detected.
+	/// </exception>
 	public AccountBalances GetBalances(ZcashAccount account)
 	{
 		Requires.NotNull(account);
 		if (!this.accountIds.TryGetValue(account, out Guid accountId))
 		{
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
+		}
+
+		// Prefer the wallet's retained account instance: callers may pass an IVK-only
+		// handle that matches a UFVK account by incoming viewing key equality.
+		if (this.accountsById[accountId].FullViewing is null)
+		{
+			throw new NotSupportedException(Strings.BalancesRequireFullViewingKey);
 		}
 
 		return new(this.Network.AsSecurity(), LightWalletMethods.GetUserBalances(this.dbinit, ToAccountIdBuffer(accountId)));
@@ -409,12 +420,21 @@ public partial class LightWalletClient : IDisposable
 	/// <remarks>
 	/// This can be useful as an input into an algorithm that shields transparent funds.
 	/// </remarks>
+	/// <exception cref="NotSupportedException">
+	/// Thrown when <paramref name="account"/> has only an incoming viewing key.
+	/// Accurate balances require a full viewing key so spent notes can be detected.
+	/// </exception>
 	public IReadOnlyList<(TransparentAddress Address, decimal Balance)> GetUnshieldedBalances(ZcashAccount account)
 	{
 		Requires.NotNull(account);
 		if (!this.accountIds.TryGetValue(account, out Guid accountId))
 		{
 			throw new InvalidOperationException(Strings.UnrecognizedAccount);
+		}
+
+		if (this.accountsById[accountId].FullViewing is null)
+		{
+			throw new NotSupportedException(Strings.BalancesRequireFullViewingKey);
 		}
 
 		TransparentNote[] utxos = LightWalletMethods.GetUnshieldedUtxos(this.dbinit, ToAccountIdBuffer(accountId));
