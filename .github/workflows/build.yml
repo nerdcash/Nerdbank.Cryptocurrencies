@@ -117,7 +117,7 @@ jobs:
     name: 🏭 Windows
     runs-on: windows-2025
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -172,7 +172,7 @@ jobs:
     name: 🏭 Android
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -200,7 +200,7 @@ jobs:
     name: ⚖️ Licenses
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -227,7 +227,7 @@ jobs:
     - licenses
     runs-on: windows-2025 # Must not be linux because linux cannot build net8.0-ios targets.
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -293,7 +293,7 @@ jobs:
     name: 🕵️‍♂️ Analyze
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
