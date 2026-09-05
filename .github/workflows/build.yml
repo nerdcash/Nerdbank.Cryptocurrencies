@@ -167,7 +167,6 @@ jobs:
         }
       shell: pwsh
       timeout-minutes: 3
-      continue-on-error: true
 
   android:
     name: 🏭 Android
