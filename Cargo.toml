@@ -11,11 +11,10 @@ equihash = { version = "0.3", path = "external/librustzcash/components/equihash"
 zcash_address = { version = "0.13.0", path = "external/librustzcash/components/zcash_address", default-features = false }
 zcash_client_backend = { version = "0.24.0", path = "external/librustzcash/zcash_client_backend", default-features = false }
 # zcash_encoding 0.5.0 is a breaking release (MSRV bump + `CompactSize::write` now
-# rejects values above `MAX_COMPACT_SIZE`). To avoid forcing every dependent to
-# migrate at once, the workspace default stays pinned to the published 0.4; only
-# `zcash_history` (a leaf crate, and the sole consumer of the new API) takes an
-# explicit path dependency on the local 0.5. Migrate the remaining crates one at a
-# time, then flip this back to `path = "external/librustzcash/components/zcash_encoding"` at "0.5".
+# rejects values above `MAX_COMPACT_SIZE`). Keep the workspace default on published
+# 0.4 so dependents migrate independently. A crate that needs the 0.5 API should
+# take an explicit path dependency on `external/librustzcash/components/zcash_encoding`.
+# Flip this default back to that path at "0.5" once every consumer has moved.
 zcash_encoding = { version = "0.4", default-features = false }
 zcash_keys = { version = "0.16.1", path = "external/librustzcash/zcash_keys", default-features = false }
 zcash_pool_migration = { version = "0.1.0", path = "external/librustzcash/zcash_pool_migration" }
