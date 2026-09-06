@@ -187,6 +187,7 @@ impl From<ChainError<SqliteClientError, BlockCacheError>> for Error {
             ChainError::Wallet(e) => Error::Wallet(e),
             ChainError::BlockSource(e) => Error::BlockSource(e),
             ChainError::Scan(e) => Error::Scan(e),
+            other => Error::Internal(format!("Chain scan error: {other}")),
         }
     }
 }
@@ -202,6 +203,7 @@ impl From<BirthdayError> for Error {
         match e {
             BirthdayError::Decode(e) => Error::Io(e),
             BirthdayError::HeightInvalid(_) => Error::InvalidHeight,
+            other => Error::Internal(format!("Account birthday error: {other}")),
         }
     }
 }
