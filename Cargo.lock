@@ -496,6 +496,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32637268377fc7b10a8c6d51de3e7fba1ce5dd371a96e342b34e6078db558e7f"
 
 [[package]]
+name = "bech32"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efbd3e1070bbdf4cd88a75264e18e8a26f7cb5c6949eadf0ceb85fb159cf08f8"
+
+[[package]]
 name = "bellman"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1368,7 +1374,7 @@ checksum = "dd5f2b7218a51c827a11d22d1439b598121fac94bf9b99452e4afffe512d78c9"
 dependencies = [
  "heck",
  "indexmap 2.14.0",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "proc-macro-crate",
  "proc-macro2",
  "quote",
@@ -3733,7 +3739,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03da047801ff44bb6a4d407d4860c05fd70bb81714e6b2f3812603d5b145b042"
 dependencies = [
  "heck",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "log",
  "multimap",
  "petgraph 0.8.3",
@@ -3752,7 +3758,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b570b25f7617e43d59005d0990ccb79e950a423952cea19671b7a876da390adf"
 dependencies = [
  "anyhow",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "proc-macro2",
  "quote",
  "syn 2.0.119",
@@ -7368,7 +7374,7 @@ name = "zcash_address"
 version = "0.13.0"
 dependencies = [
  "assert_matches",
- "bech32",
+ "bech32 0.12.0",
  "bs58",
  "corez",
  "f4jumble",
@@ -7386,7 +7392,7 @@ dependencies = [
  "assert_matches",
  "async-trait",
  "base64",
- "bech32",
+ "bech32 0.12.0",
  "bip32",
  "bls12_381",
  "bs58",
@@ -7458,7 +7464,7 @@ version = "0.22.0"
 dependencies = [
  "ambassador",
  "assert_matches",
- "bech32",
+ "bech32 0.12.0",
  "bip0039",
  "bip32",
  "bitflags 2.10.0",
@@ -7530,7 +7536,7 @@ name = "zcash_keys"
 version = "0.16.1"
 dependencies = [
  "assert_matches",
- "bech32",
+ "bech32 0.12.0",
  "bip0039",
  "bip32",
  "blake2b_simd",
@@ -7811,7 +7817,7 @@ version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b64bf5186a8916f7a48f2a98ef599bf9c099e2458b36b819e393db1c0e768c4b"
 dependencies = [
- "bech32",
+ "bech32 0.11.1",
  "blake2b_simd",
  "memuse",
  "subtle",
