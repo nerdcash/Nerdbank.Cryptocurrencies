@@ -39,7 +39,7 @@ tonic = { version = "0.14", features = ["gzip", "tls-webpki-roots"] }
 uniffi = "0.29.4"
 zcash_address = { version = "0.13.0", path = "../../external/librustzcash/components/zcash_address" }
 zcash_transparent = { version = "0.10.0", path = "../../external/librustzcash/zcash_transparent" }
-zcash_primitives = { version = "0.30.0", path = "../../external/librustzcash/zcash_primitives", features = [
+zcash_primitives = { version = "0.30.1", path = "../../external/librustzcash/zcash_primitives", features = [
 	"transparent-inputs",
 ] }
 zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backend", features = [
@@ -61,7 +61,7 @@ zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
 	"unstable",
 	"test-dependencies",
 ] }
-zcash_protocol = { version = "0.10.1", path = "../../external/librustzcash/components/zcash_protocol" }
+zcash_protocol = { version = "0.10.5", path = "../../external/librustzcash/components/zcash_protocol" }
 zcash_proofs = { version = "0.30.0", path = "../../external/librustzcash/zcash_proofs", features = [
 	"download-params",
 	"local-prover",
