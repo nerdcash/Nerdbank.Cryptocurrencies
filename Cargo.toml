@@ -85,7 +85,7 @@ sha2 = { version = "0.10", default-features = false }
 document-features = "0.2"
 
 # Encodings and Parsing
-base64 = "0.22"
+base64 = "0.23"
 bech32 = { version = "0.11", default-features = false, features = ["alloc"] }
 bitflags = "2"
 bs58 = { version = "0.5", default-features = false, features = [
