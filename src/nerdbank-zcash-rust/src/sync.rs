@@ -507,15 +507,14 @@ fn update_status<'a>(
     status.last_fully_scanned_block = data.block_fully_scanned()?.map(|b| b.block_height().into());
 
     // Disabled for now because it's unstable -- it goes backwards, jumps around, etc.
-    if false {
-        if let Some(wallet_progress) = data
+    if false
+        && let Some(wallet_progress) = data
             .get_wallet_summary(confirmations_policy)
             .unwrap_or(None)
             .and_then(|s| s.progress().recovery())
-        {
-            status.current_step = *wallet_progress.numerator();
-            status.total_steps = *wallet_progress.denominator();
-        }
+    {
+        status.current_step = *wallet_progress.numerator();
+        status.total_steps = *wallet_progress.denominator();
     }
 
     Ok(status)
