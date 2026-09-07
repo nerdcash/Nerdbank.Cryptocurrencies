@@ -149,7 +149,7 @@ fn get_db_internal<P: AsRef<Path>>(
     network: Network,
     init: bool,
 ) -> Result<Db, Error> {
-    if init && let Some(data_dir) = data_file.as_ref().to_owned().parent() {
+    if init && let Some(data_dir) = data_file.as_ref().parent() {
         fs::create_dir_all(data_dir)?;
     }
 
