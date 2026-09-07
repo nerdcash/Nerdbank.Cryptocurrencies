@@ -175,7 +175,7 @@ zewif = "1.0.0-rc.3"
 
 [workspace.package]
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.98.1"
 repository = "https://github.com/zcash/librustzcash"
 license = "MIT OR Apache-2.0"
 categories = ["cryptography::cryptocurrencies"]

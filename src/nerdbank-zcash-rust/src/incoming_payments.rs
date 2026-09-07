@@ -243,7 +243,7 @@ pub(crate) fn get_incoming_payments(
     }
 
     // Sort by mined height
-    all_transactions.sort_by(|a, b| a.mined_height.cmp(&b.mined_height));
+    all_transactions.sort_by_key(|a| a.mined_height);
 
     Ok(all_transactions)
 }
@@ -270,28 +270,26 @@ fn find_receiver_info(
     match addr {
         zcash_keys::address::Address::Unified(ua) => {
             // Try to find the account that owns this unified address by checking each receiver
-            if let Some(orchard_addr) = ua.orchard() {
-                if let Some((account_uuid, diversifier)) =
+            if let Some(orchard_addr) = ua.orchard()
+                && let Some((account_uuid, diversifier)) =
                     find_orchard_receiver_info(&ufvkeys, orchard_addr)
-                {
-                    receiver_infos.push(ReceiverInfo {
-                        account_uuid,
-                        diversifier: Some(diversifier),
-                        transparent_address: None,
-                    });
-                }
+            {
+                receiver_infos.push(ReceiverInfo {
+                    account_uuid,
+                    diversifier: Some(diversifier),
+                    transparent_address: None,
+                });
             }
 
-            if let Some(sapling_addr) = ua.sapling() {
-                if let Some((account_uuid, diversifier)) =
+            if let Some(sapling_addr) = ua.sapling()
+                && let Some((account_uuid, diversifier)) =
                     find_sapling_receiver_info(&ufvkeys, sapling_addr)
-                {
-                    receiver_infos.push(ReceiverInfo {
-                        account_uuid,
-                        diversifier: Some(diversifier),
-                        transparent_address: None,
-                    });
-                }
+            {
+                receiver_infos.push(ReceiverInfo {
+                    account_uuid,
+                    diversifier: Some(diversifier),
+                    transparent_address: None,
+                });
             }
 
             if let Some(transparent_addr) = ua.transparent() {
@@ -382,10 +380,10 @@ fn find_sapling_receiver_info(
             // Verify this address belongs to this account by checking if the IVK
             // can derive the same address from this diversifier
             let diversifier_bytes: [u8; 11] = diversifier.0;
-            if let Some(derived_addr) = ivk.address_at(DiversifierIndex::from(diversifier_bytes)) {
-                if &derived_addr == sapling_addr {
-                    return Some((*account_uuid, diversifier.0.to_vec()));
-                }
+            if let Some(derived_addr) = ivk.address_at(DiversifierIndex::from(diversifier_bytes))
+                && &derived_addr == sapling_addr
+            {
+                return Some((*account_uuid, diversifier.0.to_vec()));
             }
         }
     }
