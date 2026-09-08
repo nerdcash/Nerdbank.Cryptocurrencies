@@ -171,7 +171,7 @@ dependencies = [
  "derive_builder_fork_arti",
  "derive_more",
  "educe",
- "fs-mistrust",
+ "fs-mistrust 0.12.0",
  "futures",
  "hostname-validator",
  "humantime",
@@ -1731,6 +1731,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "extend"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "311a6d2f1f9d60bff73d2c78a0af97ed27f79672f15c238192a5bbb64db56d00"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
 name = "f4jumble"
 version = "0.1.1"
 dependencies = [
@@ -1901,6 +1912,22 @@ dependencies = [
  "pwd-grp",
  "serde",
  "thiserror 2.0.17",
+ "walkdir",
+]
+
+[[package]]
+name = "fs-mistrust"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b2c81a5a0e7d67644309a15694eb7f414a4d6556c64c1ece1e5969aa609c8a9"
+dependencies = [
+ "derive_builder_fork_arti",
+ "dirs",
+ "extend",
+ "libc",
+ "pwd-grp",
+ "thiserror 2.0.17",
+ "void",
  "walkdir",
 ]
 
@@ -5623,7 +5650,7 @@ dependencies = [
  "educe",
  "either",
  "figment",
- "fs-mistrust",
+ "fs-mistrust 0.12.0",
  "futures",
  "itertools 0.14.0",
  "notify",
@@ -5731,7 +5758,7 @@ dependencies = [
  "digest 0.10.7",
  "educe",
  "event-listener",
- "fs-mistrust",
+ "fs-mistrust 0.12.0",
  "fslock",
  "futures",
  "hex",
@@ -5954,7 +5981,7 @@ dependencies = [
  "derive_more",
  "downcast-rs",
  "dyn-clone",
- "fs-mistrust",
+ "fs-mistrust 0.12.0",
  "glob-match",
  "humantime",
  "inventory",
@@ -6180,7 +6207,7 @@ dependencies = [
  "derive-deftly",
  "derive_more",
  "filetime",
- "fs-mistrust",
+ "fs-mistrust 0.12.0",
  "fslock",
  "futures",
  "itertools 0.14.0",
@@ -7412,7 +7439,7 @@ dependencies = [
  "document-features",
  "dynosaur",
  "flume",
- "fs-mistrust",
+ "fs-mistrust 0.15.1",
  "futures-util",
  "getset",
  "group",
