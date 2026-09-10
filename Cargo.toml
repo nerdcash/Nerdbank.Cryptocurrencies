@@ -50,7 +50,7 @@ orchard = { version = "0.15.0", default-features = false }
 pasta_curves = "0.5"
 
 # - Transparent
-bip32 = { version = "=0.6.0-pre.1", default-features = false, features = [
+bip32 = { version = "=0.6.0-rc.0", default-features = false, features = [
 	"alloc",
 ] }
 block-buffer = { version = "=0.12.1" } # later RCs require edition2024
