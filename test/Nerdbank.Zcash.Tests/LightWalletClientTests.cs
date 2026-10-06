@@ -1,8 +1,9 @@
 ﻿// Copyright (c) IronPigeon, LLC. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-[Trait("RequiresNetwork", "true")]
-public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
+[Property("RequiresNetwork", "true")]
+[NotInParallel(nameof(LightWalletClientTests))] // Tests share and mutate DefaultAccount, as xunit's serial same-class execution allowed.
+public class LightWalletClientTests : TestBase, IDisposable
 {
 	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
 	private static bool defaultAccountBirthdayHeightSet;
@@ -11,9 +12,9 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	private readonly LightWalletClient client;
 	private readonly string testDir;
 
-	public LightWalletClientTests(ITestOutputHelper logger)
+	public LightWalletClientTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 
 		this.testDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 		Directory.CreateDirectory(this.testDir);
@@ -25,6 +26,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 			Path.Join(this.testDir, "zcash-test.wallet"));
 	}
 
+	[Before(HookType.Test)]
 	public async ValueTask InitializeAsync()
 	{
 		if (!defaultAccountBirthdayHeightSet)
@@ -36,24 +38,19 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		await this.client.AddAccountAsync(DefaultAccount, this.TimeoutToken);
 	}
 
-	public ValueTask DisposeAsync()
-	{
-		return ValueTask.CompletedTask;
-	}
-
 	public void Dispose()
 	{
 		this.client.Dispose();
 		Directory.Delete(this.testDir, recursive: true);
 	}
 
-	[Fact]
+	[Test]
 	public void Deinitialize()
 	{
 		// This test intentionally left blank. Its body is in the Dispose method of this class.
 	}
 
-	[Fact]
+	[Test]
 	public async Task GetLatestBlockHeight()
 	{
 		ulong height = await this.client.GetLatestBlockHeightAsync(this.TimeoutToken);
@@ -61,7 +58,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		Assert.NotEqual(0u, height);
 	}
 
-	[Fact]
+	[Test]
 	public async Task GetLatestBlockHeight_Static()
 	{
 		ulong height = await LightWalletClient.GetLatestBlockHeightAsync(LightWalletServerMainNet, this.TimeoutToken);
@@ -69,28 +66,28 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		Assert.NotEqual(0u, height);
 	}
 
-	[Fact]
+	[Test]
 	public async Task GetLatestBlockHeight_NoServerAtUrl()
 	{
 		LightWalletException ex = await Assert.ThrowsAnyAsync<LightWalletException>(async () => await LightWalletClient.GetLatestBlockHeightAsync(new Uri("https://doesnotexist.mysideoftheweb.com/"), this.TimeoutToken));
 		this.logger.WriteLine(ex.ToString());
 	}
 
-	[Fact]
+	[Test]
 	public void BirthdayHeight()
 	{
 		uint? birthdayHeight = this.client.BirthdayHeight;
 		this.logger.WriteLine($"Birthday height: {birthdayHeight}");
 	}
 
-	[Fact]
+	[Test]
 	public void LastDownloadHeight()
 	{
 		uint? lastDownloadHeight = this.client.LastDownloadHeight;
 		this.logger.WriteLine($"Last sync height: {lastDownloadHeight}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task DownloadTransactionsAsync()
 	{
 		LightWalletClient.SyncProgress result = await this.client.DownloadTransactionsAsync(
@@ -104,14 +101,14 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		this.logger.WriteLine($"Sync succeeded. Scanned to block {result.LastFullyScannedBlock}.");
 	}
 
-	[Fact]
+	[Test]
 	public void GetDownloadedTransactions_Empty()
 	{
 		List<Nerdbank.Zcash.Transaction> transactions = this.client.GetDownloadedTransactions(DefaultAccount, 0);
 		Assert.Empty(transactions);
 	}
 
-	[Fact]
+	[Test]
 	public void GetIncomingPayments_Empty()
 	{
 		ZcashAddress address = DefaultAccount.DefaultAddress;
@@ -119,14 +116,14 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		Assert.Empty(transactions);
 	}
 
-	[Fact]
+	[Test]
 	public async Task SendAsync_ValidatesNullArgs()
 	{
 		await Assert.ThrowsAsync<ArgumentNullException>("account", () => this.client.SendAsync(null!, Array.Empty<Transaction.LineItem>(), null, this.TimeoutToken));
 		await Assert.ThrowsAsync<ArgumentNullException>("payments", () => this.client.SendAsync(DefaultAccount, null!, null, this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public async Task SendAsync_EmptySendsList()
 	{
 		List<Nerdbank.Zcash.Transaction.LineItem> sends = new();
@@ -134,7 +131,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		this.logger.WriteLine(ex.ToString());
 	}
 
-	[Fact]
+	[Test]
 	public async Task SendAsync_InsufficientFunds()
 	{
 		List<Nerdbank.Zcash.Transaction.LineItem> sends = new()
@@ -155,7 +152,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 	/// Verifies that diversifier index collisions are handled gracefully.
 	/// In particular, handled by just reporting success.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void AddDiversifier_IndexCollision()
 	{
 		// Use the index of the default address to ensure a collision.
@@ -167,7 +164,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
 	}
 
-	[Fact]
+	[Test]
 	public void AddDiversifier_InvalidSapling()
 	{
 		UnifiedAddress ua = this.client.AddDiversifier(DefaultAccount, new DiversifierIndex(500));
@@ -178,7 +175,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		Assert.Null(ua.GetPoolReceiver<SaplingReceiver>());
 	}
 
-	[Fact]
+	[Test]
 	public void AddDiversifier_InvalidTransparent()
 	{
 		// Use an index that is outside the range 32-bit range supported by transparent addresses.
@@ -190,7 +187,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		Assert.NotNull(ua.GetPoolReceiver<SaplingReceiver>());
 	}
 
-	[Fact]
+	[Test]
 	public async Task AddAccountAsync_IncomingViewingKey()
 	{
 		// Use a separate wallet DB so we don't collide with the default spending account.
@@ -221,7 +218,7 @@ public class LightWalletClientTests : TestBase, IDisposable, IAsyncLifetime
 		Assert.Throws<NotSupportedException>(() => client.GetUnshieldedBalances(ivkAccount));
 	}
 
-	[Fact]
+	[Test]
 	public async Task AddAccountAsync_IncomingViewingKey_Reload()
 	{
 		string walletPath = Path.Join(this.testDir, "uivk-reload.sqlite");

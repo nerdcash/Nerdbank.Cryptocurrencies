@@ -1,6 +1,7 @@
-﻿// Copyright (c) IronPigeon, LLC. All rights reserved.
+// Copyright (c) IronPigeon, LLC. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 global using Nerdbank.Cryptocurrencies;
 global using Nerdbank.Zcash;
+global using TUnit.Core;
 global using Xunit;

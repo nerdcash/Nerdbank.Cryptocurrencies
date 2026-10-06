@@ -3,14 +3,14 @@
 
 public class TexAddressTests
 {
-	[Fact]
+	[Test]
 	public void Ctor_FromTransparent()
 	{
 		TexAddress tex = new((TransparentP2PKHAddress)ZcashAddress.Decode("t1VmmGiyjVNeCjxDZzg7vZmd99WyzVby9yC"));
 		Assert.Equal("tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte", tex.Address);
 	}
 
-	[Fact]
+	[Test]
 	public void SameReceiverAsTransparent()
 	{
 		var tex = (TexAddress)ZcashAddress.Decode("tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte");

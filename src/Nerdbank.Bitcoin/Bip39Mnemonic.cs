@@ -494,6 +494,17 @@ public partial class Bip39Mnemonic : IEquatable<Bip39Mnemonic>
 		readonly bool IEquatable<InlineSeed>.Equals(InlineSeed other) => this.Equals(other);
 
 		public readonly bool Equals(in InlineSeed other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc/>
+		public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is InlineSeed other && this.Equals(other);
+
+		/// <inheritdoc/>
+		public override readonly int GetHashCode()
+		{
+			HashCode hashCode = default;
+			hashCode.AddBytes(this[..]);
+			return hashCode.ToHashCode();
+		}
 	}
 
 	private unsafe struct InlineEntropy : IEquatable<InlineEntropy>

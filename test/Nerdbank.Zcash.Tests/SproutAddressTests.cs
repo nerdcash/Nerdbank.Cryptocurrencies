@@ -11,22 +11,22 @@ public class SproutAddressTests : TestBase
 		new object?[] { "zceuoch" },
 	};
 
-	[Fact]
+	[Test]
 	public void Network()
 	{
 		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SproutAddress>(ZcashAddress.Decode(ValidSproutAddress)).Network);
 	}
 
-	[Fact]
+	[Test]
 	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Decode(ValidSproutAddress).HasShieldedReceiver);
 
-	[Theory, MemberData(nameof(InvalidAddresses))]
+	[Test, MethodDataSource(nameof(InvalidAddresses))]
 	public void TryDecode_Invalid(string address)
 	{
 		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_Receiver()
 	{
 		SproutReceiver? receiver = ZcashAddress.Decode(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();
@@ -37,7 +37,7 @@ public class SproutAddressTests : TestBase
 		Assert.Equal("zc8E5gYid86n4bo2Usdq1cpr7PpfoJGzttwBHEEgGhGkLUg7SPPVFNB2AkRFXZ7usfphup5426dt1buMmY3fkYeRrQGLa8y", addr.Address);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_Receiver_TestNet()
 	{
 		SproutReceiver? receiver = ZcashAddress.Decode(ValidSproutAddress).GetPoolReceiver<SproutReceiver>();

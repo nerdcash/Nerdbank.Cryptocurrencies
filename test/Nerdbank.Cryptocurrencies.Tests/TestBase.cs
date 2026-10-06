@@ -17,9 +17,9 @@ public abstract class TestBase
 	/// </summary>
 	protected static readonly TimeSpan ExpectedTimeout = TimeSpan.FromSeconds(2);
 
-	public TestBase(ITestOutputHelper logger)
+	public TestBase()
 	{
-		this.Logger = logger;
+		this.Logger = TestOutputHelper.Instance;
 	}
 
 	/// <summary>

@@ -5,17 +5,12 @@ using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 {
-	public ExtendedPublicKeyTests(ITestOutputHelper logger)
-		: base(logger)
-	{
-	}
-
 	/// <summary>
 	/// Asserts matching <see href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#test-vectors">Test vectors from BIP-32</see>
 	/// using the public key as the source of derivation wherever allowed.
 	/// </summary>
 	/// <param name="vector">The vector to test.</param>
-	[Theory, MemberData(nameof(TestVectors))]
+	[Test, MethodDataSource(nameof(TestVectors))]
 	public void Derive_TestVectors(TestVector vector)
 	{
 		ExtendedPrivateKey m = ExtendedPrivateKey.Create(Convert.FromHexString(vector.SeedAsHex));
@@ -51,14 +46,14 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void Derive_Hardened()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
 		Assert.Throws<NotSupportedException>(() => master.PublicKey.Derive(2 | Bip32KeyPath.HardenedBit));
 	}
 
-	[Fact]
+	[Test]
 	public void Derive_KeyPath_FromMaster()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
@@ -74,7 +69,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		AssertEqual(expected, derive123Rooted);
 	}
 
-	[Fact]
+	[Test]
 	public void Derive_KeyPath_RootedOnNonMaster()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
@@ -88,7 +83,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		Assert.Throws<NotSupportedException>(() => derived.Derive(Bip32KeyPath.Parse("m/1/2")));
 	}
 
-	[Fact]
+	[Test]
 	public void Decode_Roundtripping()
 	{
 		using ExtendedPrivateKey pvk = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(128));
@@ -104,7 +99,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		AssertEqual(pubDerivedAsString, pubDerived2);
 	}
 
-	[Fact]
+	[Test]
 	public void DerivationPath()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));

@@ -39,4 +39,15 @@ internal struct SpendValidatingKey : IEquatable<SpendValidatingKey>
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in SpendValidatingKey other) => this[..].SequenceEqual(other);
+
+	/// <inheritdoc/>
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is SpendValidatingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override readonly int GetHashCode()
+	{
+		HashCode hashCode = default;
+		hashCode.AddBytes(this[..]);
+		return hashCode.ToHashCode();
+	}
 }

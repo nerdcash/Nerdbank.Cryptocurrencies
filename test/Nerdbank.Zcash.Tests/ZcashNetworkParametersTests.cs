@@ -3,7 +3,7 @@
 
 public class ZcashNetworkParametersTests
 {
-	[Fact]
+	[Test]
 	public void GetParameters()
 	{
 		Assert.Same(ZcashNetworkParameters.MainNet, ZcashNetworkParameters.GetParameters(ZcashNetwork.MainNet));
@@ -11,7 +11,7 @@ public class ZcashNetworkParametersTests
 		Assert.Throws<ArgumentOutOfRangeException>(() => ZcashNetworkParameters.GetParameters((ZcashNetwork)int.MaxValue));
 	}
 
-	[Fact]
+	[Test]
 	public void MainNet()
 	{
 		ZcashNetworkParameters parameters = ZcashNetworkParameters.MainNet;
@@ -19,7 +19,7 @@ public class ZcashNetworkParametersTests
 		Assert.Equal(419_200UL, parameters.SaplingActivationHeight);
 	}
 
-	[Fact]
+	[Test]
 	public void TestNet()
 	{
 		ZcashNetworkParameters parameters = ZcashNetworkParameters.TestNet;

@@ -105,9 +105,9 @@ public abstract class Bip32HDWalletTestBase
 
 	protected readonly ITestOutputHelper logger;
 
-	public Bip32HDWalletTestBase(ITestOutputHelper logger)
+	public Bip32HDWalletTestBase()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
 	public static object[][] TestVectors => new object[][]

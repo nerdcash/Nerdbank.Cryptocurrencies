@@ -534,12 +534,12 @@ public class Blake2BTests
 
 	private readonly ITestOutputHelper logger;
 
-	public Blake2BTests(ITestOutputHelper logger)
+	public Blake2BTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void CheckTestVectors()
 	{
 		for (int len = 0; len < UnkeyedBlake2B.Length; len++)
@@ -553,7 +553,7 @@ public class Blake2BTests
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void CheckKeyedTestVectors()
 	{
 		byte[] key = Enumerable.Range(0, 64).Select(i => (byte)i).ToArray();
@@ -569,9 +569,9 @@ public class Blake2BTests
 		}
 	}
 
-	[Fact]
-	[Trait("Runtime", "Slow")] // The test takes 20+ seconds to run.
-	[Trait("Category", "SkipWhenLiveUnitTesting")] // The test takes 20+ seconds to run.
+	[Test]
+	[Property("Runtime", "Slow")] // The test takes 20+ seconds to run.
+	[Category("SkipWhenLiveUnitTesting")] // The test takes 20+ seconds to run.
 	public void Splits()
 	{
 		Blake2B hasher = new();
@@ -599,7 +599,7 @@ public class Blake2BTests
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void FinishTwice()
 	{
 		Blake2B hasher = new();
@@ -608,7 +608,7 @@ public class Blake2BTests
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void Finish_Reset_Finish()
 	{
 		Blake2B hasher = new();
@@ -617,25 +617,25 @@ public class Blake2BTests
 		hasher.Finish(new byte[10]);
 	}
 
-	[Fact]
+	[Test]
 	public void OutputSizeTooLarge()
 	{
 		Assert.Throws<ArgumentOutOfRangeException>(() => new Blake2B(new() { OutputSizeInBytes = 96 }));
 	}
 
-	[Fact]
+	[Test]
 	public void KeySizeTooLarge()
 	{
 		Assert.Throws<ArgumentException>(() => new Blake2B(new() { Key = new byte[100] }));
 	}
 
-	[Fact]
+	[Test]
 	public void SaltSizeWrong()
 	{
 		Assert.Throws<ArgumentException>(() => new Blake2B(new() { Salt = new byte[100] }));
 	}
 
-	[Fact]
+	[Test]
 	public void SaltSet()
 	{
 		Blake2B b = new(new() { Salt = new byte[16] });

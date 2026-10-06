@@ -3,7 +3,7 @@
 
 public class TexReceiverTests
 {
-	[Fact]
+	[Test]
 	public void Ctor()
 	{
 		byte[] hash = new byte[20];
@@ -16,16 +16,16 @@ public class TexReceiverTests
 		Assert.Equal(0, receiver[0]);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_ArgValidation()
 	{
 		Assert.Throws<ArgumentException>(() => new TexReceiver(new byte[1]));
 	}
 
-	[Fact]
+	[Test]
 	public void Pool_Transparent() => Assert.Equal(Pool.Transparent, default(TexReceiver).Pool);
 
-	[Fact]
+	[Test]
 	public void TexToTransparentConversion()
 	{
 		Span<byte> p2pkh = stackalloc byte[20];
@@ -35,7 +35,7 @@ public class TexReceiverTests
 		Assert.Equal(texReceiver[..], transparentReceiver[..]);
 	}
 
-	[Fact]
+	[Test]
 	public void TransparentToTexConversion()
 	{
 		Span<byte> p2pkh = stackalloc byte[20];
@@ -45,7 +45,7 @@ public class TexReceiverTests
 		Assert.Equal(transparentReceiver[..], texReceiver[..]);
 	}
 
-	[Fact]
+	[Test]
 	public void EqualityOfT()
 	{
 		byte[] hash = new byte[20];
@@ -59,7 +59,7 @@ public class TexReceiverTests
 		Assert.NotEqual(receiver, receiver_unique);
 	}
 
-	[Fact]
+	[Test]
 	public void EqualsObjectOverride()
 	{
 		byte[] hash = new byte[20];

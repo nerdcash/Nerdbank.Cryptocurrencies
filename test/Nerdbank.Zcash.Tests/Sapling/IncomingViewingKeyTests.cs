@@ -11,12 +11,12 @@ public class IncomingViewingKeyTests : TestBase
 	private readonly ITestOutputHelper logger;
 	private readonly IncomingViewingKey ivk = new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet).CreateSaplingAccount().IncomingViewingKey;
 
-	public IncomingViewingKeyTests(ITestOutputHelper logger)
+	public IncomingViewingKeyTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TextEncoding_TryDecode(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
@@ -35,7 +35,7 @@ public class IncomingViewingKeyTests : TestBase
 		Assert.Equal(account.FullViewingKey.IncomingViewingKey.WithoutDiversifierKey, key);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetDiversifierIndex_And_CheckReceiver()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -53,7 +53,7 @@ public class IncomingViewingKeyTests : TestBase
 		Assert.Null(idx);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode()
 	{
 		Assert.True(IncomingViewingKey.TryDecode(this.ivk.TextEncoding, out DecodeError? decodeError, out string? errorMessage, out IncomingViewingKey? imported));
@@ -63,7 +63,7 @@ public class IncomingViewingKeyTests : TestBase
 		Assert.Equal(this.ivk.TextEncoding, imported.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_ViaInterface()
 	{
 		Assert.True(TryDecodeViaInterface<IncomingViewingKey>(this.ivk.TextEncoding, out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? imported));
@@ -73,7 +73,7 @@ public class IncomingViewingKeyTests : TestBase
 		Assert.Equal(this.ivk.TextEncoding, imported.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_Fail()
 	{
 		Assert.False(IncomingViewingKey.TryDecode("fail", out DecodeError? decodeError, out string? errorMessage, out IncomingViewingKey? imported));
@@ -82,7 +82,7 @@ public class IncomingViewingKeyTests : TestBase
 		Assert.Null(imported);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_ViaInterface_Fail()
 	{
 		Assert.False(TryDecodeViaInterface<IncomingViewingKey>("fail", out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? imported));

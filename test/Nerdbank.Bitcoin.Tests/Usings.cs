@@ -3,5 +3,6 @@
 
 global using Nerdbank.Bitcoin;
 global using Nerdbank.Cryptocurrencies;
+global using TUnit.Core;
 global using Xunit;
 global using static TestUtilities;

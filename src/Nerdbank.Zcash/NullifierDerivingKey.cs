@@ -39,4 +39,15 @@ internal struct NullifierDerivingKey : IEquatable<NullifierDerivingKey>
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in NullifierDerivingKey other) => this[..].SequenceEqual(other);
+
+	/// <inheritdoc/>
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is NullifierDerivingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override readonly int GetHashCode()
+	{
+		HashCode hashCode = default;
+		hashCode.AddBytes(this[..]);
+		return hashCode.ToHashCode();
+	}
 }

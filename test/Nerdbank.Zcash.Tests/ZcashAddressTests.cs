@@ -8,9 +8,9 @@ public class ZcashAddressTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public ZcashAddressTests(ITestOutputHelper logger)
+	public ZcashAddressTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
 	public static object[][] ValidAddresses => new object[][]
@@ -29,60 +29,62 @@ public class ZcashAddressTests : TestBase
 		new object?[] { "foo" },
 	};
 
-	[Theory, MemberData(nameof(ValidAddresses))]
+	[Test, MethodDataSource(nameof(ValidAddresses))]
 	public void Decode_Valid(string address)
 	{
 		var addr = ZcashAddress.Decode(address);
 		Assert.Equal(address, addr.ToString());
 	}
 
-	[Theory, MemberData(nameof(ValidAddresses))]
+	[Test, MethodDataSource(nameof(ValidAddresses))]
 	public void TryDecode_Valid(string address)
 	{
 		Assert.True(ZcashAddress.TryDecode(address, out _, out _, out ZcashAddress? addr));
 		Assert.Equal(address, addr.ToString());
 	}
 
-	[Theory, MemberData(nameof(InvalidAddresses))]
+	[Test, MethodDataSource(nameof(InvalidAddresses))]
 	public void Parse_Invalid(string address)
 	{
 		Assert.Throws<InvalidAddressException>(() => ZcashAddress.Decode(address));
 	}
 
-	[Theory, MemberData(nameof(InvalidAddresses))]
+	[Test, MethodDataSource(nameof(InvalidAddresses))]
 	public void TryDecode_Invalid(string address)
 	{
 		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
-	[Fact]
+	[Test]
 	public void Parse_Null()
 	{
 		Assert.Throws<ArgumentNullException>(() => ZcashAddress.Decode(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_Null()
 	{
 		Assert.Throws<ArgumentNullException>(() => ZcashAddress.TryDecode(null!, out _, out _, out _));
 	}
 
-	[Theory]
-	[InlineData(ValidUnifiedAddressOrchard, typeof(OrchardAddress))]
-	[InlineData(ValidUnifiedAddressOrchardSapling, typeof(UnifiedAddress))]
-	[InlineData(ValidUnifiedAddressSapling, typeof(UnifiedAddress))]
-	[InlineData(ValidSaplingAddress, typeof(SaplingAddress))]
-	[InlineData(ValidSproutAddress, typeof(SproutAddress))]
-	[InlineData(ValidTransparentP2PKHAddress, typeof(TransparentP2PKHAddress))]
-	[InlineData(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
-	[InlineData(ValidTexAddress, typeof(TexAddress))]
-	public void Decode_ReturnsAppropriateType(string address, Type expectedKind)
+	[Test]
+	[Arguments(ValidUnifiedAddressOrchard, typeof(OrchardAddress))]
+	[Arguments(ValidUnifiedAddressOrchardSapling, typeof(UnifiedAddress))]
+	[Arguments(ValidUnifiedAddressSapling, typeof(UnifiedAddress))]
+	[Arguments(ValidSaplingAddress, typeof(SaplingAddress))]
+	[Arguments(ValidSproutAddress, typeof(SproutAddress))]
+	[Arguments(ValidTransparentP2PKHAddress, typeof(TransparentP2PKHAddress))]
+	[Arguments(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
+	[Arguments(ValidTexAddress, typeof(TexAddress))]
+	public void Decode_ReturnsAppropriateType(string address, object expectedKind)
 	{
+		// The parameter is typed as object rather than Type because TUnit's generated metadata for a Type parameter
+		// produces trim warning IL2111 when the test project is compiled with NativeAOT.
 		var addr = ZcashAddress.Decode(address);
-		Assert.IsAssignableFrom(expectedKind, addr);
+		Assert.IsAssignableFrom((Type)expectedKind, addr);
 	}
 
-	[Fact]
+	[Test]
 	public void ImplicitlyCastableToString()
 	{
 		var addr = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
@@ -90,7 +92,7 @@ public class ZcashAddressTests : TestBase
 		Assert.Equal(ValidTransparentP2PKHAddress, str);
 	}
 
-	[Fact]
+	[Test]
 	public void Equality()
 	{
 		var addr1a = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
@@ -100,7 +102,7 @@ public class ZcashAddressTests : TestBase
 		Assert.NotEqual(addr1a, addr2);
 	}
 
-	[Fact]
+	[Test]
 	public void Equality_SameReceiversDifferentEncodings()
 	{
 		ZcashAddress saplingEncoded = ZcashAddress.Decode(ValidSaplingAddress);
@@ -108,7 +110,7 @@ public class ZcashAddressTests : TestBase
 		Assert.NotEqual(saplingEncoded, unifiedEncoded);
 	}
 
-	[Fact]
+	[Test]
 	public void HashCodes()
 	{
 		var addr1a = ZcashAddress.Decode(ValidTransparentP2PKHAddress);
@@ -118,34 +120,34 @@ public class ZcashAddressTests : TestBase
 		Assert.NotEqual(addr1a.GetHashCode(), addr2.GetHashCode());
 	}
 
-	[Fact]
+	[Test]
 	public void ImplicitCast()
 	{
 		string address = ZcashAddress.Decode(ValidTransparentP2SHAddress);
 		Assert.Equal(ValidTransparentP2SHAddress, address);
 	}
 
-	[Fact]
+	[Test]
 	public void ImplicitCast_Null()
 	{
 		string? address = (ZcashAddress?)null;
 		Assert.Null(address);
 	}
 
-	[Theory]
-	[InlineData(ValidUnifiedAddressOrchard)]
-	[InlineData(ValidUnifiedAddressOrchardSapling)]
-	[InlineData(ValidUnifiedAddressSapling)]
-	[InlineData(ValidSaplingAddress)]
-	[InlineData(ValidSproutAddress)]
-	[InlineData(ValidTransparentP2PKHAddress)]
-	[InlineData(ValidTransparentP2SHAddress)]
+	[Test]
+	[Arguments(ValidUnifiedAddressOrchard)]
+	[Arguments(ValidUnifiedAddressOrchardSapling)]
+	[Arguments(ValidUnifiedAddressSapling)]
+	[Arguments(ValidSaplingAddress)]
+	[Arguments(ValidSproutAddress)]
+	[Arguments(ValidTransparentP2PKHAddress)]
+	[Arguments(ValidTransparentP2SHAddress)]
 	public void IsMatch_ExactMatch(string address)
 	{
 		Assert.Equal(MatchingReceiversFound, ZcashAddress.Decode(address).IsMatch(ZcashAddress.Decode(address)));
 	}
 
-	[Fact]
+	[Test]
 	public void IsMatch_ExactMatch_DifferentEncodings()
 	{
 		ZcashAddress saplingEncoded = ZcashAddress.Decode(ValidSaplingAddress);
@@ -154,7 +156,7 @@ public class ZcashAddressTests : TestBase
 		Assert.Equal(MatchingReceiversFound, unifiedEncoded.IsMatch(saplingEncoded));
 	}
 
-	[Fact]
+	[Test]
 	public void IsMatch_NoMatch()
 	{
 		Assert.Equal(
@@ -163,7 +165,7 @@ public class ZcashAddressTests : TestBase
 		Assert.Equal(MismatchingReceiversFound, ZcashAddress.Decode(ValidSaplingAddress2).IsMatch(ZcashAddress.Decode(ValidSaplingAddress)));
 	}
 
-	[Fact]
+	[Test]
 	public void IsMatch_PartialMatch()
 	{
 		// Construct a case where one receiver matches and the other does not.

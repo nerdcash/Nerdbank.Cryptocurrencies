@@ -5,14 +5,14 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 public class SecurityTests
 {
-	[Fact]
+	[Test]
 	public void WellKnown()
 	{
 		Assert.Same(Security.ATOM, Security.WellKnown["atom"]);
 		Assert.Same(Security.ATOM, Security.WellKnown["ATOM"]);
 	}
 
-	[Fact]
+	[Test]
 	public void Amount()
 	{
 		SecurityAmount expected = new(1.2m, Security.ZEC);
@@ -20,6 +20,6 @@ public class SecurityTests
 		Assert.Equal(expected, actual);
 	}
 
-	[Fact]
+	[Test]
 	public void ZEC_Precision() => Assert.Equal(8, Security.ZEC.Precision);
 }

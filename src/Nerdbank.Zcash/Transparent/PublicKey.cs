@@ -79,5 +79,16 @@ public class PublicKey : IZcashKey, IFullViewingKey
 
 		/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
 		public readonly bool Equals(in PublicKeyMaterial other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc/>
+		public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is PublicKeyMaterial other && this.Equals(other);
+
+		/// <inheritdoc/>
+		public override readonly int GetHashCode()
+		{
+			HashCode hashCode = default;
+			hashCode.AddBytes(this[..]);
+			return hashCode.ToHashCode();
+		}
 	}
 }

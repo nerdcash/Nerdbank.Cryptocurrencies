@@ -5,9 +5,9 @@ public class Bech32Tests
 {
 	private readonly ITestOutputHelper logger;
 
-	public Bech32Tests(ITestOutputHelper logger)
+	public Bech32Tests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
 	// TODO: Add invalid test cases.
@@ -44,7 +44,7 @@ public class Bech32Tests
 		new object?[] { ("a", string.Empty), "a1lqfn3a" },
 	};
 
-	[Theory, MemberData(nameof(Bech32Pairings))]
+	[Test, MethodDataSource(nameof(Bech32Pairings))]
 	public void Encode_Bech32((string Tag, string HexData) human, string bech32Encoding)
 	{
 		Span<byte> data = Convert.FromHexString(human.HexData);
@@ -53,7 +53,7 @@ public class Bech32Tests
 		Assert.Equal(bech32Encoding, encodedChars[..actualCount].ToString(), ignoreCase: false);
 	}
 
-	[Theory, MemberData(nameof(Bech32Pairings))]
+	[Test, MethodDataSource(nameof(Bech32Pairings))]
 	public void Decode_Bech32((string Tag, string HexData) human, string bech32Encoding)
 	{
 		(int TagLength, int DataLength)? maxLength = Bech32.GetDecodedLength(bech32Encoding);
@@ -66,7 +66,7 @@ public class Bech32Tests
 		Assert.Equal(human.HexData, Convert.ToHexString(data[..dataLength]).ToLowerInvariant(), ignoreCase: true);
 	}
 
-	[Theory, MemberData(nameof(Bech32mPairings))]
+	[Test, MethodDataSource(nameof(Bech32mPairings))]
 	public void Encode_Bech32m((string Tag, string HexData) human, string bech32Encoding)
 	{
 		Span<byte> data = Convert.FromHexString(human.HexData);
@@ -75,7 +75,7 @@ public class Bech32Tests
 		Assert.Equal(bech32Encoding.ToLowerInvariant(), encodedChars[..actualCount].ToString(), ignoreCase: false);
 	}
 
-	[Theory, MemberData(nameof(Bech32mPairings))]
+	[Test, MethodDataSource(nameof(Bech32mPairings))]
 	public void Decode_Bech32m((string Tag, string HexData) human, string bech32Encoding)
 	{
 		(int TagLength, int DataLength)? maxLength = Bech32.GetDecodedLength(bech32Encoding);
@@ -88,7 +88,7 @@ public class Bech32Tests
 		Assert.Equal(human.HexData, Convert.ToHexString(data[..dataLength]).ToLowerInvariant(), ignoreCase: true);
 	}
 
-	[Theory, MemberData(nameof(Bech32Pairings))]
+	[Test, MethodDataSource(nameof(Bech32Pairings))]
 	public void GetDecodedLength((string Tag, string HexData) human, string bech32Encoding)
 	{
 		(int TagLength, int DataLength)? maxLength = Bech32.GetDecodedLength(bech32Encoding);
@@ -97,19 +97,19 @@ public class Bech32Tests
 		Assert.Equal(human.HexData.Length / 2, maxLength.Value.DataLength);
 	}
 
-	[Fact]
+	[Test]
 	public void GetDecodedLength_NoSeparator()
 	{
 		Assert.Null(Bech32.GetDecodedLength("234"));
 	}
 
-	[Fact]
+	[Test]
 	public void GetDecodedLength_NoData()
 	{
 		Assert.Null(Bech32.GetDecodedLength("u1"));
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_NoSeparator()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -119,7 +119,7 @@ public class Bech32Tests
 		this.logger.WriteLine(msg);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_TagBufferTooSmall_ReturnsFalse()
 	{
 		// Arrange
@@ -135,7 +135,7 @@ public class Bech32Tests
 		Assert.Equal(DecodeError.BufferTooSmall, decodeResult);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_InvalidChecksum()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -145,7 +145,7 @@ public class Bech32Tests
 		this.logger.WriteLine(msg);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_ViolatesAlphabet()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -159,7 +159,7 @@ public class Bech32Tests
 	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
 	/// This is a "MUST" condition in the Bech32 spec.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void TryDecode_MixedCaseInData()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -173,7 +173,7 @@ public class Bech32Tests
 	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
 	/// This is a "MUST" condition in the Bech32 spec.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void TryDecode_MixedCaseInDataWithNoCaseInTag()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -187,7 +187,7 @@ public class Bech32Tests
 	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
 	/// This is a "MUST" condition in the Bech32 spec.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void TryDecode_MixedCaseInTag()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -201,7 +201,7 @@ public class Bech32Tests
 	/// Verifies that mixed case bech32 encodings are rejected, even if they would be valid as all lowercase or all uppercase.
 	/// This is a "MUST" condition in the Bech32 spec.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void TryDecode_MixedCaseBetweenTagAndData()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -211,7 +211,7 @@ public class Bech32Tests
 		Assert.Equal(DecodeError.InvalidCharacter, decodeResult);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_Uppercase()
 	{
 		Span<char> tag = stackalloc char[10];
@@ -224,14 +224,14 @@ public class Bech32Tests
 		Assert.Null(decodeResult);
 	}
 
-	[Theory, MemberData(nameof(Bech32Pairings))]
+	[Test, MethodDataSource(nameof(Bech32Pairings))]
 	public void GetEncodedLength((string Tag, string HexData) human, string bech32Encoding)
 	{
 		int length = Bech32.GetEncodedLength(human.Tag.Length, human.HexData.Length / 2);
 		Assert.Equal(bech32Encoding.Length, length);
 	}
 
-	[Fact]
+	[Test]
 	public void Decode_InputBufferTooSmall()
 	{
 		Assert.Throws<ArgumentException>(() =>

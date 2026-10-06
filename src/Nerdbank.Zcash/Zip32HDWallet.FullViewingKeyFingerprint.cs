@@ -38,5 +38,16 @@ public partial class Zip32HDWallet
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in FullViewingKeyFingerprint other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc/>
+		public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is FullViewingKeyFingerprint other && this.Equals(other);
+
+		/// <inheritdoc/>
+		public override readonly int GetHashCode()
+		{
+			HashCode hashCode = default;
+			hashCode.AddBytes(this[..]);
+			return hashCode.ToHashCode();
+		}
 	}
 }

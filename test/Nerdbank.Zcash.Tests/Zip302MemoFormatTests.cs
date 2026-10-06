@@ -5,12 +5,12 @@ public class Zip302MemoFormatTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public Zip302MemoFormatTests(ITestOutputHelper logger)
+	public Zip302MemoFormatTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeMessage()
 	{
 		Span<byte> actualMemo = stackalloc byte[512];
@@ -22,7 +22,7 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.True(actualMemo.SequenceEqual(expectedMemo));
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeMessage_EmptyMessage()
 	{
 		Span<byte> actualMemo = stackalloc byte[512];
@@ -32,7 +32,7 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.True(actualMemo.SequenceEqual(expectedMemo));
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeMessage_BufferNotExactSize()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("memo", () => Zip302MemoFormat.EncodeMessage(default, stackalloc byte[511]));
@@ -42,21 +42,21 @@ public class Zip302MemoFormatTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeMessage_TooMuchText()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("text", () => Zip302MemoFormat.EncodeMessage(new string('a', 513), stackalloc byte[512]));
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeMessage_EmptyString()
 	{
 		Assert.True(Zip302MemoFormat.TryDecodeMessage(stackalloc byte[512], out string? text));
 		Assert.Equal(string.Empty, text);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeMessage_SomeText()
 	{
 		Span<byte> memo = stackalloc byte[512];
@@ -65,7 +65,7 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.Equal("abc", text);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeMessage_MemoWrongSize()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("memo", () => Zip302MemoFormat.TryDecodeMessage(stackalloc byte[511], out _));
@@ -75,7 +75,7 @@ public class Zip302MemoFormatTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeMessage_NotAMessage()
 	{
 		Span<byte> memo = stackalloc byte[512];
@@ -93,7 +93,7 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.Null(text);
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeNoMemo()
 	{
 		Span<byte> actualMemo = stackalloc byte[512];
@@ -104,7 +104,7 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.True(expectedMemo.SequenceEqual(actualMemo));
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeNoMemo_BufferNotExactSize()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("memo", () => Zip302MemoFormat.EncodeNoMemo(stackalloc byte[511]));
@@ -114,7 +114,7 @@ public class Zip302MemoFormatTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeProprietaryData_MaxSize()
 	{
 		Span<byte> privateData = stackalloc byte[511];
@@ -129,7 +129,7 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.True(expectedMemo.SequenceEqual(actualMemo));
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeProprietaryData_LesserSize()
 	{
 		Span<byte> privateData = stackalloc byte[11];
@@ -144,14 +144,14 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.True(expectedMemo.SequenceEqual(actualMemo));
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeProprietaryData_PrivateDataTooLarge()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("data", () => Zip302MemoFormat.EncodeProprietaryData(stackalloc byte[512], stackalloc byte[512]));
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void EncodeProprietaryData_BufferNotExactSize()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("memo", () => Zip302MemoFormat.EncodeProprietaryData(stackalloc byte[5], stackalloc byte[511]));
@@ -161,7 +161,7 @@ public class Zip302MemoFormatTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeProprietaryData_MemoWrongSize()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("memo", () => Zip302MemoFormat.TryDecodeProprietaryData(stackalloc byte[511], stackalloc byte[511]));
@@ -171,7 +171,7 @@ public class Zip302MemoFormatTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeProprietaryData_DataWrongSize()
 	{
 		byte[] memo = new byte[512];
@@ -184,13 +184,13 @@ public class Zip302MemoFormatTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeProprietaryData_NotData()
 	{
 		Assert.False(Zip302MemoFormat.TryDecodeProprietaryData(stackalloc byte[512], stackalloc byte[511]));
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecodeProprietaryData()
 	{
 		Span<byte> memo = stackalloc byte[512];
@@ -202,7 +202,7 @@ public class Zip302MemoFormatTests : TestBase
 		Assert.True(memo[1..].SequenceEqual(data));
 	}
 
-	[Fact]
+	[Test]
 	public void DetectMemoFormat_MemoWrongSize()
 	{
 		ArgumentException ex = Assert.Throws<ArgumentException>("memo", () => Zip302MemoFormat.TryDecodeMessage(stackalloc byte[511], out _));
@@ -212,7 +212,7 @@ public class Zip302MemoFormatTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void DetectMemoFormat()
 	{
 		Span<byte> memo = stackalloc byte[512];

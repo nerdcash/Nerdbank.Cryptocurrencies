@@ -3,7 +3,7 @@
 
 public class SaplingReceiverTests
 {
-	[Fact]
+	[Test]
 	public void Ctor()
 	{
 		byte[] d = new byte[88 / 8];
@@ -19,20 +19,20 @@ public class SaplingReceiverTests
 		Assert.Equal(0, receiver.D[0]);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_ArgValidation()
 	{
 		Assert.Throws<ArgumentException>("d", () => new SaplingReceiver(new byte[1], new byte[256 / 8]));
 		Assert.Throws<ArgumentException>("pkd", () => new SaplingReceiver(new byte[88 / 8], new byte[1]));
 	}
 
-	[Fact]
+	[Test]
 	public void Pool_Sapling() => Assert.Equal(Pool.Sapling, default(SaplingReceiver).Pool);
 
-	[Fact]
+	[Test]
 	public void UnifiedReceiverTypeCode() => Assert.Equal(0x02, SaplingReceiver.UnifiedReceiverTypeCode);
 
-	[Fact]
+	[Test]
 	public void EqualityOfT()
 	{
 		byte[] d = new byte[11];
@@ -52,7 +52,7 @@ public class SaplingReceiverTests
 		Assert.NotEqual(receiver_unique2, receiver_unique);
 	}
 
-	[Fact]
+	[Test]
 	public void EqualsObjectOverride()
 	{
 		byte[] d = new byte[11];

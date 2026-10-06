@@ -3,7 +3,7 @@
 
 public class SproutReceiverTests
 {
-	[Fact]
+	[Test]
 	public void Ctor()
 	{
 		byte[] apk = new byte[256 / 8];
@@ -19,14 +19,14 @@ public class SproutReceiverTests
 		Assert.Equal(0, receiver.Apk[0]);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_ArgValidation()
 	{
 		Assert.Throws<ArgumentException>("apk", () => new SproutReceiver(new byte[1], new byte[256 / 8]));
 		Assert.Throws<ArgumentException>("pkEnc", () => new SproutReceiver(new byte[256 / 8], new byte[1]));
 	}
 
-	[Fact]
+	[Test]
 	public void EqualityOfT()
 	{
 		byte[] apk = new byte[32];
@@ -44,7 +44,7 @@ public class SproutReceiverTests
 		Assert.NotEqual(receiver3, receiver2);
 	}
 
-	[Fact]
+	[Test]
 	public void EqualsObjectOverride()
 	{
 		byte[] apk = new byte[32];
@@ -62,6 +62,6 @@ public class SproutReceiverTests
 		Assert.False(receiver3.Equals((object)receiver2));
 	}
 
-	[Fact]
+	[Test]
 	public void Pool_Sprout() => Assert.Equal(Pool.Sprout, default(SproutReceiver).Pool);
 }

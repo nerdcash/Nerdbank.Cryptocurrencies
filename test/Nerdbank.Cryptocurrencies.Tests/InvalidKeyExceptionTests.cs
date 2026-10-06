@@ -3,7 +3,7 @@
 
 public class InvalidKeyExceptionTests
 {
-	[Fact]
+	[Test]
 	public void Constructor_Default_NoException()
 	{
 		// Act
@@ -13,7 +13,7 @@ public class InvalidKeyExceptionTests
 		Assert.NotNull(exception);
 	}
 
-	[Fact]
+	[Test]
 	public void Constructor_WithMessage_NoException()
 	{
 		// Arrange
@@ -27,7 +27,7 @@ public class InvalidKeyExceptionTests
 		Assert.Equal(message, exception.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void Constructor_WithInnerException_NoException()
 	{
 		// Arrange
@@ -42,7 +42,7 @@ public class InvalidKeyExceptionTests
 		Assert.Equal(innerException, exception.InnerException);
 	}
 
-	[Fact]
+	[Test]
 	public void KeyPath_GetSet_KeyPathValue()
 	{
 		// Arrange

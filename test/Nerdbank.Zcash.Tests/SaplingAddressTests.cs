@@ -5,9 +5,9 @@ public class SaplingAddressTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public SaplingAddressTests(ITestOutputHelper logger)
+	public SaplingAddressTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
 	public static object?[][] InvalidAddresses => new object?[][]
@@ -16,22 +16,22 @@ public class SaplingAddressTests : TestBase
 		new object?[] { "zs1znewe2l2ucm8gsd2ue24kvp3jjjwgrhmytmv0scenaf460kdj70r299a88r8n0pyvwz7c9skfmy" },
 	};
 
-	[Fact]
+	[Test]
 	public void Network()
 	{
 		Assert.Equal(ZcashNetwork.MainNet, Assert.IsType<SaplingAddress>(ZcashAddress.Decode(ValidSaplingAddress)).Network);
 	}
 
-	[Fact]
+	[Test]
 	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Decode(ValidSaplingAddress).HasShieldedReceiver);
 
-	[Theory, MemberData(nameof(InvalidAddresses))]
+	[Test, MethodDataSource(nameof(InvalidAddresses))]
 	public void TryDecode_Invalid(string address)
 	{
 		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_Receiver_TestNet()
 	{
 		var receiver = new SaplingReceiver(new byte[88 / 8], new byte[256 / 8]);

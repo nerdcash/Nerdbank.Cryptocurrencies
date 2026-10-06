@@ -3,7 +3,7 @@
 
 public class UnifiedEncodingMetadataTests
 {
-	[Fact]
+	[Test]
 	public void ExpirationDate_TruncatesToSecondPrecision()
 	{
 		DateTimeOffset secondPrecision = new(1971, 2, 3, 4, 5, 6, TimeSpan.Zero);
@@ -15,7 +15,7 @@ public class UnifiedEncodingMetadataTests
 		Assert.Equal(secondPrecision, metadata.ExpirationDate);
 	}
 
-	[Fact]
+	[Test]
 	public void Equality()
 	{
 		UnifiedEncodingMetadata metadata1a = new()

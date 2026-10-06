@@ -4,17 +4,18 @@
 using Microsoft.Extensions.Logging;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
-[Trait("RequiresNetwork", "true")]
-public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(logger)
+[InheritsTests]
+[Property("RequiresNetwork", "true")]
+public class CoinbaseTests : HistoricalPriceTestBase
 {
 	private readonly Coinbase exchange = new(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", "Nerdbank.Cryptocurrencies.Tests" } } })
 	{
-		Logger = new XunitLogger(logger),
+		Logger = new XunitLogger(TestOutputHelper.Instance),
 	};
 
 	protected override IHistoricalExchangeRateProvider Provider => this.exchange;
 
-	[Fact]
+	[Test]
 	public async Task GetExchangeRateAsync()
 	{
 		DateTimeOffset when = new DateTimeOffset(2024, 10, 6, 13, 23, 5, 0, TimeSpan.Zero);
@@ -25,7 +26,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		Assert.True(Math.Abs(rate.Value.InBasisAmount.RoundedAmount - 29.08m) < 0.20m);
 	}
 
-	[Fact]
+	[Test]
 	public async Task Hourly_MultipleTimestampsInSameSegment_SingleQuery()
 	{
 		// Hourly granularity: 300 candles * 1 hour = 300 hours per segment (~12.5 days)
@@ -45,7 +46,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"Total requests: {handler.CandleRequestCount + handler.ProductRequestCount}, Candle requests: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task Hourly_TimestampsInDifferentSegments_MultipleQueries()
 	{
 		// Hourly granularity: 300 candles * 1 hour = 300 hours per segment (~12.5 days)
@@ -65,7 +66,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"Total requests: {handler.CandleRequestCount + handler.ProductRequestCount}, Candle requests: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task Minute_SmallSegmentsCacheCorrectly()
 	{
 		// Minute granularity: 300 candles * 1 minute = 300 minutes (5 hours) per segment
@@ -82,7 +83,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"Minute granularity - Candle requests for same segment: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task Minute_DifferentSegments_MultipleQueries()
 	{
 		// Minute granularity: 300 candles * 1 minute = 300 minutes (5 hours) per segment
@@ -100,7 +101,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"Minute granularity - Candle requests for different segments: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task Daily_LargeSegmentsCacheCorrectly()
 	{
 		// Daily granularity: 300 candles * 1 day = 300 days per segment
@@ -119,7 +120,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"Daily granularity - Candle requests for same segment: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task FiveMinutes_SegmentBoundaryBehavior()
 	{
 		// FiveMinutes granularity: 300 candles * 5 minutes = 1500 minutes (25 hours) per segment
@@ -155,7 +156,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"FiveMinutes granularity - After crossing segment: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task SixHours_SegmentsCacheCorrectly()
 	{
 		// SixHours granularity: 300 candles * 6 hours = 1800 hours (75 days) per segment
@@ -173,7 +174,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"SixHours granularity - Candle requests: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task CacheWorksAcrossMultipleTradingPairs()
 	{
 		using RequestCountingHandler handler = new();
@@ -196,7 +197,7 @@ public class CoinbaseTests(ITestOutputHelper logger) : HistoricalPriceTestBase(l
 		this.Logger.WriteLine($"Trading pair caching - Candle requests: {handler.CandleRequestCount}");
 	}
 
-	[Fact]
+	[Test]
 	public async Task SequentialQueriesAcrossSegmentBoundaries()
 	{
 		// Test that sequential queries that cross segment boundaries result in expected queries

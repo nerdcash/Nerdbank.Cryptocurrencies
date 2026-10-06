@@ -39,4 +39,15 @@ internal struct KeyAgreementPrivateKey : IEquatable<KeyAgreementPrivateKey>
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in KeyAgreementPrivateKey other) => this[..].SequenceEqual(other);
+
+	/// <inheritdoc/>
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is KeyAgreementPrivateKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override readonly int GetHashCode()
+	{
+		HashCode hashCode = default;
+		hashCode.AddBytes(this[..]);
+		return hashCode.ToHashCode();
+	}
 }

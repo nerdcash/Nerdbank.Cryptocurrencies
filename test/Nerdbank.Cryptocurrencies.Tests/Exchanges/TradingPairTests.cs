@@ -5,7 +5,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 public class TradingPairTests
 {
-	[Fact]
+	[Test]
 	public void OppositeDirection()
 	{
 		TradingPair pair = new(Security.USD, Security.BTC);
