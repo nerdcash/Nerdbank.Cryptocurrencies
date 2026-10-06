@@ -367,13 +367,13 @@ public class UnifiedAddressTests : TestBase
 		if (address.GetPoolReceiver<OrchardReceiver>() is OrchardReceiver orchard)
 		{
 			Assert.True(account.IncomingViewing.Orchard!.TryGetDiversifierIndex(orchard, out DiversifierIndex? actualOrchardIndex));
-			Assert.Equal(expectedIndex, actualOrchardIndex);
+			Assert.Equal(expectedIndex, actualOrchardIndex.Value);
 		}
 
 		if (address.GetPoolReceiver<SaplingReceiver>() is SaplingReceiver sapling)
 		{
 			Assert.True(account.IncomingViewing.Sapling!.TryGetDiversifierIndex(sapling, out DiversifierIndex? actualSaplingIndex));
-			Assert.Equal(expectedIndex, actualSaplingIndex);
+			Assert.Equal(expectedIndex, actualSaplingIndex.Value);
 		}
 
 		if (address.GetPoolReceiver<TransparentP2PKHReceiver>() is TransparentP2PKHReceiver actualTransparentReceiver)

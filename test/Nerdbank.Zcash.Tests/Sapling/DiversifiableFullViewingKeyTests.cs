@@ -25,7 +25,7 @@ public class DiversifiableFullViewingKeyTests : TestBase
 
 		Assert.True(account1.FullViewingKey.CheckReceiver(receiver.Value));
 		Assert.True(account1.FullViewingKey.TryGetDiversifierIndex(receiver.Value, out DiversifierIndex? idx));
-		Assert.Equal(expectedIndex, idx);
+		Assert.Equal(expectedIndex, idx.Value);
 
 		Assert.False(account2.FullViewingKey.CheckReceiver(receiver.Value));
 		Assert.False(account2.FullViewingKey.TryGetDiversifierIndex(receiver.Value, out idx));
