@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 [Property("RequiresNetwork", "true")]
+[NotInParallel(nameof(LightWalletClientTests))] // Tests share and mutate DefaultAccount, as xunit's serial same-class execution allowed.
 public class LightWalletClientTests : TestBase, IDisposable
 {
 	private static readonly ZcashAccount DefaultAccount = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet), 0);
