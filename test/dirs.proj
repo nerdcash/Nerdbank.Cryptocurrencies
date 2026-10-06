@@ -1,9 +1,27 @@
 <Project Sdk="Microsoft.Build.Traversal">
   <ItemGroup>
-    <ProjectReference Include="Nerdbank.Cryptocurrencies.Tests\Nerdbank.Cryptocurrencies.Tests.csproj" />
-    <ProjectReference Include="Nerdbank.Bitcoin.Tests\Nerdbank.Bitcoin.Tests.csproj" />
+    <ProjectReference Include="Nerdbank.Cryptocurrencies.Tests\Nerdbank.Cryptocurrencies.Tests.csproj" Publish="false" />
+    <ProjectReference Include="Nerdbank.Bitcoin.Tests\Nerdbank.Bitcoin.Tests.csproj" Publish="false" />
 
+    <!-- This project validates the shipping assemblies by running the NativeAOT compiler, so CI must publish it. -->
     <MultiRIDProjectReference Include="AotCompatibilityTest\AotCompatibilityTest.csproj" />
-    <MultiRIDProjectReference Include="Nerdbank.Zcash.Tests\Nerdbank.Zcash.Tests.csproj" />
+    <!-- NativeAOT test publishing is handled by the PublishNativeAOTTests target below. -->
+    <MultiRIDProjectReference Include="Nerdbank.Zcash.Tests\Nerdbank.Zcash.Tests.csproj" Publish="false" />
   </ItemGroup>
+
+  <Target Name="GetNativeAOTTests" Returns="@(_NativeAOTTest)">
+    <MSBuild Projects="@(ProjectReference)" Targets="GetNativeAOTTestVariants" BuildInParallel="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_NativeAOTTest" />
+    </MSBuild>
+    <ItemGroup>
+      <!-- MSBuild copies reference metadata to returned items; native publishes must retain _IsPublishing. -->
+      <_NativeAOTTest Update="@(_NativeAOTTest)" UndefineProperties="" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PublishNativeAOTTests" AfterTargets="Publish" DependsOnTargets="GetNativeAOTTests">
+    <MSBuild Projects="@(_NativeAOTTest)" Targets="Publish"
+             Properties="NativeAOT=true;TargetFramework=%(_NativeAOTTest.TargetFramework);_IsPublishing=true"
+             BuildInParallel="true" />
+  </Target>
 </Project>

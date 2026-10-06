@@ -71,6 +71,11 @@
   </ItemGroup>
 
   <ItemDefinitionGroup>
+    <ProjectReference>
+      <!-- Keep referenced builds identical to the traversal's managed builds. -->
+      <GlobalPropertiesToRemove>_IsPublishing</GlobalPropertiesToRemove>
+      <UndefineProperties Condition="'$(UsingMicrosoftTraversalSdk)' == 'true'">_IsPublishing</UndefineProperties>
+    </ProjectReference>
     <!-- We always want MSBuild properties generated that point at the restored location of each package. -->
     <PackageReference GeneratePathProperty="true" />
   </ItemDefinitionGroup>
