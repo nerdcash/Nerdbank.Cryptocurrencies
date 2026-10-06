@@ -81,7 +81,7 @@ public class ZcashAccountTests : TestBase
 		UnifiedAddress diversified = account.GetDiversifiedAddress(ref expectedIndex);
 
 		Assert.True(account.TryGetDiversifierIndex(new SaplingAddress(diversified.GetPoolReceiver<SaplingReceiver>()!.Value, diversified.Network), out DiversifierIndex? actualIndex));
-		Assert.Equal(expectedIndex, actualIndex.Value);
+		Assert.Equal(expectedIndex, actualIndex);
 	}
 
 	[Test]
@@ -92,7 +92,7 @@ public class ZcashAccountTests : TestBase
 		UnifiedAddress diversified = account.GetDiversifiedAddress(ref expectedIndex);
 
 		Assert.True(account.TryGetDiversifierIndex(new OrchardAddress(diversified.GetPoolReceiver<OrchardReceiver>()!.Value, diversified.Network), out DiversifierIndex? actualIndex));
-		Assert.Equal(expectedIndex, actualIndex.Value);
+		Assert.Equal(expectedIndex, actualIndex);
 	}
 
 	[Test]
@@ -103,7 +103,7 @@ public class ZcashAccountTests : TestBase
 		UnifiedAddress diversified = account.GetDiversifiedAddress(ref expectedIndex);
 
 		Assert.True(account.TryGetDiversifierIndex(diversified, out DiversifierIndex? actualIndex));
-		Assert.Equal(expectedIndex, actualIndex.Value);
+		Assert.Equal(expectedIndex, actualIndex);
 	}
 
 	[Test]

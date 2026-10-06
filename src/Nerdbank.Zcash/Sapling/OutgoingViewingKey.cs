@@ -39,4 +39,15 @@ internal struct OutgoingViewingKey : IEquatable<OutgoingViewingKey>
 
 	/// <inheritdoc cref="IEquatable{T}.Equals"/>
 	public readonly bool Equals(in OutgoingViewingKey other) => this[..].SequenceEqual(other);
+
+	/// <inheritdoc/>
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is OutgoingViewingKey other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override readonly int GetHashCode()
+	{
+		HashCode hashCode = default;
+		hashCode.AddBytes(this[..]);
+		return hashCode.ToHashCode();
+	}
 }

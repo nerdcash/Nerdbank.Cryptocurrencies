@@ -1,6 +1,7 @@
 ﻿// Copyright (c) IronPigeon, LLC. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Nerdbank.Bitcoin;
@@ -41,5 +42,16 @@ public static partial class Bip32HDWallet
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in ParentFingerprint other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc/>
+		public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is ParentFingerprint other && this.Equals(other);
+
+		/// <inheritdoc/>
+		public override readonly int GetHashCode()
+		{
+			HashCode hashCode = default;
+			hashCode.AddBytes(this[..]);
+			return hashCode.ToHashCode();
+		}
 	}
 }

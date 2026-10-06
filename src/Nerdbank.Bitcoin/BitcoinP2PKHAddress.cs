@@ -149,5 +149,16 @@ public class BitcoinP2PKHAddress
 
 		/// <inheritdoc cref="IEquatable{T}.Equals"/>
 		public readonly bool Equals(in PublicKeyHashArray other) => this[..].SequenceEqual(other);
+
+		/// <inheritdoc/>
+		public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is PublicKeyHashArray other && this.Equals(other);
+
+		/// <inheritdoc/>
+		public override readonly int GetHashCode()
+		{
+			HashCode hashCode = default;
+			hashCode.AddBytes(this[..]);
+			return hashCode.ToHashCode();
+		}
 	}
 }

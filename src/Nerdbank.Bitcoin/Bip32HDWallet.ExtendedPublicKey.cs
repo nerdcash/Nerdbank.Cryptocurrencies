@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Digests;
 using ECPubKey = NBitcoin.Secp256k1.ECPubKey;
@@ -147,6 +148,17 @@ public static partial class Bip32HDWallet
 
 			/// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
 			public readonly bool Equals(in InlineIdentifier other) => this[..].SequenceEqual(other);
+
+			/// <inheritdoc/>
+			public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is InlineIdentifier other && this.Equals(other);
+
+			/// <inheritdoc/>
+			public override readonly int GetHashCode()
+			{
+				HashCode hashCode = default;
+				hashCode.AddBytes(this[..]);
+				return hashCode.ToHashCode();
+			}
 		}
 	}
 }

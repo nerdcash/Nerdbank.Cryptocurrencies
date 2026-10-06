@@ -46,7 +46,7 @@ public class IncomingViewingKeyTests : TestBase
 
 		Assert.True(account1.IncomingViewingKey.CheckReceiver(receiver.Value));
 		Assert.True(account1.IncomingViewingKey.TryGetDiversifierIndex(receiver.Value, out DiversifierIndex? idx));
-		Assert.Equal(index, idx.Value);
+		Assert.Equal(index, idx);
 
 		Assert.False(account2.IncomingViewingKey.CheckReceiver(receiver.Value));
 		Assert.False(account2.IncomingViewingKey.TryGetDiversifierIndex(receiver.Value, out idx));

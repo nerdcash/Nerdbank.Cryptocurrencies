@@ -90,4 +90,15 @@ public struct DiversifierIndex : IEquatable<DiversifierIndex>
 
 	/// <inheritdoc/>
 	public override string ToString() => Convert.ToHexString(this);
+
+	/// <inheritdoc/>
+	public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is DiversifierIndex other && this.Equals(other);
+
+	/// <inheritdoc/>
+	public override readonly int GetHashCode()
+	{
+		HashCode hashCode = default;
+		hashCode.AddBytes(this[..]);
+		return hashCode.ToHashCode();
+	}
 }
