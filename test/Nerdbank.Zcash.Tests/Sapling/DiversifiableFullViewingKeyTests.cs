@@ -9,12 +9,12 @@ public class DiversifiableFullViewingKeyTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public DiversifiableFullViewingKeyTests(ITestOutputHelper logger)
+	public DiversifiableFullViewingKeyTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetDiversifierIndex_And_CheckReceiver()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -32,7 +32,7 @@ public class DiversifiableFullViewingKeyTests : TestBase
 		Assert.Null(idx);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TextEncoding_TryDecode(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;

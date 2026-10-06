@@ -7,14 +7,14 @@ public class BitcoinP2PKHAddressTests
 {
 	private readonly ITestOutputHelper logger;
 
-	public BitcoinP2PKHAddressTests(ITestOutputHelper logger)
+	public BitcoinP2PKHAddressTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Theory]
-	[InlineData("031e7bcc70c72770dbb72fea022e8a6d07f814d2ebe4de9ae3f7af75bf706902a7", false, "17JsmEygbbEUEpvt4PFtYaTeSqfb9ki1F1")]
-	[InlineData("031e7bcc70c72770dbb72fea022e8a6d07f814d2ebe4de9ae3f7af75bf706902a7", true, "mmpq4J4fQcfj1wQVmxEGNVfyJqGJ8gjMjQ")]
+	[Test]
+	[Arguments("031e7bcc70c72770dbb72fea022e8a6d07f814d2ebe4de9ae3f7af75bf706902a7", false, "17JsmEygbbEUEpvt4PFtYaTeSqfb9ki1F1")]
+	[Arguments("031e7bcc70c72770dbb72fea022e8a6d07f814d2ebe4de9ae3f7af75bf706902a7", true, "mmpq4J4fQcfj1wQVmxEGNVfyJqGJ8gjMjQ")]
 	public void AddressConstruction(string hexEncodedPublicKey, bool isTestNet, string expectedAddress)
 	{
 		ECPubKey pubKey = ECPubKey.Create(Convert.FromHexString(hexEncodedPublicKey));
@@ -23,9 +23,9 @@ public class BitcoinP2PKHAddressTests
 		Assert.Equal(expectedAddress, addr.TextEncoding);
 	}
 
-	[Theory]
-	[InlineData("17JsmEygbbEUEpvt4PFtYaTeSqfb9ki1F1", false, "453233600A96384BB8D73D400984117AC84D7E8B")]
-	[InlineData("mmpq4J4fQcfj1wQVmxEGNVfyJqGJ8gjMjQ", true, "453233600A96384BB8D73D400984117AC84D7E8B")]
+	[Test]
+	[Arguments("17JsmEygbbEUEpvt4PFtYaTeSqfb9ki1F1", false, "453233600A96384BB8D73D400984117AC84D7E8B")]
+	[Arguments("mmpq4J4fQcfj1wQVmxEGNVfyJqGJ8gjMjQ", true, "453233600A96384BB8D73D400984117AC84D7E8B")]
 	public void TryDecode(string address, bool isTestNet, string publicKeyHashHex)
 	{
 		Assert.True(BitcoinP2PKHAddress.TryDecode(address, out _, out _, out BitcoinP2PKHAddress? bitcoinAddress));

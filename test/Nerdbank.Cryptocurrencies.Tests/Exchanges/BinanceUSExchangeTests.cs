@@ -7,13 +7,8 @@ public class BinanceUSExchangeTests : TestBase
 {
 	private readonly BinanceUSExchange exchange = new(new HttpClient());
 
-	public BinanceUSExchangeTests(ITestOutputHelper logger)
-		: base(logger)
-	{
-	}
-
-	[Theory, PairwiseData]
-	[Trait("RequiresNetwork", "true")]
+	[Test, MatrixDataSource]
+	[Property("RequiresNetwork", "true")]
 	public async Task GetExchangeRateAsync_RespectsPairOrdering(bool fiatSecond)
 	{
 		TradingPair pair = new(Security.USDT, Security.ZEC);
@@ -28,11 +23,11 @@ public class BinanceUSExchangeTests : TestBase
 		Assert.Equal(rate.TradeInterest.Security, pair.TradeInterest);
 	}
 
-	[Fact]
+	[Test]
 	public void PricesAsOf_Initially() => Assert.Null(this.exchange.PricesAsOf);
 
-	[Fact]
-	[Trait("RequiresNetwork", "true")]
+	[Test]
+	[Property("RequiresNetwork", "true")]
 	public async Task PricesAsOf_AfterRefresh()
 	{
 		await this.exchange.RefreshPricesAsync(this.TimeoutToken);
@@ -40,8 +35,8 @@ public class BinanceUSExchangeTests : TestBase
 		Assert.True(DateTimeOffset.UtcNow - this.exchange.PricesAsOf < UnexpectedTimeout);
 	}
 
-	[Fact]
-	[Trait("RequiresNetwork", "true")]
+	[Test]
+	[Property("RequiresNetwork", "true")]
 	public async Task GetAvailableTradingPairsAsync()
 	{
 		IReadOnlyCollection<TradingPair> pairs = await this.exchange.GetAvailableTradingPairsAsync(this.TimeoutToken);

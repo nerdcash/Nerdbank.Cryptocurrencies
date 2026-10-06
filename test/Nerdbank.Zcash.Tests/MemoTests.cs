@@ -5,12 +5,12 @@ public class MemoTests
 {
 	private readonly ITestOutputHelper logger;
 
-	public MemoTests(ITestOutputHelper logger)
+	public MemoTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void DefaultMemo()
 	{
 		Assert.Equal(Zip302MemoFormat.MemoFormat.Message, default(Memo).MemoFormat);
@@ -19,7 +19,7 @@ public class MemoTests
 		Assert.False(default(Memo).IsEmpty);
 	}
 
-	[Fact]
+	[Test]
 	public void DefaultMemo_Message()
 	{
 		Memo memo = default;
@@ -28,7 +28,7 @@ public class MemoTests
 		Assert.Equal(Zip302MemoFormat.MemoFormat.Message, memo.MemoFormat);
 	}
 
-	[Fact]
+	[Test]
 	public void DefaultMemo_Data()
 	{
 		Span<byte> data = stackalloc byte[511];
@@ -41,7 +41,7 @@ public class MemoTests
 		Assert.Null(memo.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void DefaultMemo_Clear()
 	{
 		Memo memo = default;
@@ -49,7 +49,7 @@ public class MemoTests
 		Assert.Equal(Zip302MemoFormat.MemoFormat.NoMemo, memo.MemoFormat);
 	}
 
-	[Fact]
+	[Test]
 	public void Memo_ToString()
 	{
 		Memo memo = default;

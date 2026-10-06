@@ -7,12 +7,12 @@ public class TransparentP2PKHAddressTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public TransparentP2PKHAddressTests(ITestOutputHelper logger)
+	public TransparentP2PKHAddressTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_Receiver()
 	{
 		byte[] hash = new byte[20];
@@ -23,7 +23,7 @@ public class TransparentP2PKHAddressTests : TestBase
 		Assert.Equal(ZcashNetwork.MainNet, addr.Network);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_Receiver_TestNet()
 	{
 		byte[] hash = new byte[20];
@@ -34,7 +34,7 @@ public class TransparentP2PKHAddressTests : TestBase
 		Assert.Equal(ZcashNetwork.TestNet, addr.Network);
 	}
 
-	[Fact]
+	[Test]
 	public void GetPoolReceiver()
 	{
 		Assert.NotNull(ZcashAddress.Decode(ValidTransparentP2PKHAddress).GetPoolReceiver<TransparentP2PKHReceiver>());
@@ -42,7 +42,7 @@ public class TransparentP2PKHAddressTests : TestBase
 		Assert.Null(ZcashAddress.Decode(ValidTransparentP2PKHAddress).GetPoolReceiver<SaplingReceiver>());
 	}
 
-	[Fact]
+	[Test]
 	public void AddressDerivation()
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Parse("diary slender airport");

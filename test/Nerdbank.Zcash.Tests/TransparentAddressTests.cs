@@ -9,9 +9,9 @@ public class TransparentAddressTests : TestBase
 
 	private readonly ITestOutputHelper logger;
 
-	public TransparentAddressTests(ITestOutputHelper logger)
+	public TransparentAddressTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
 	public static object?[][] InvalidAddresses => new object?[][]
@@ -21,20 +21,20 @@ public class TransparentAddressTests : TestBase
 		new object?[] { "t1a7w3qM23i4ajQcbX5wd6oH4zTY8Bry5vFz" },
 	};
 
-	[Fact]
+	[Test]
 	public void Network()
 	{
 		Assert.Equal(ZcashNetwork.MainNet, ParsedP2PKHAddress.Network);
 		Assert.Equal(ZcashNetwork.MainNet, Assert.IsAssignableFrom<TransparentAddress>(ZcashAddress.Decode(ValidTransparentP2SHAddress)).Network);
 	}
 
-	[Theory, MemberData(nameof(InvalidAddresses))]
+	[Test, MethodDataSource(nameof(InvalidAddresses))]
 	public void TryDecode_Invalid(string address)
 	{
 		Assert.False(ZcashAddress.TryDecode(address, out _, out _, out _));
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_BadNetwork()
 	{
 		// Manufacture a transparent address with a bad network header.
@@ -49,10 +49,10 @@ public class TransparentAddressTests : TestBase
 		Assert.False(ZcashAddress.TryDecode(addr, out _, out _, out _));
 	}
 
-	[Theory]
-	[InlineData("tdasgh2344235")]
-	[InlineData("tadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada")]
-	[InlineData("tbalsdhfldsfhsdhfgdfgdf")]
+	[Test]
+	[Arguments("tdasgh2344235")]
+	[Arguments("tadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada")]
+	[Arguments("tbalsdhfldsfhsdhfgdfgdf")]
 	public void TryDecode_FuzzInputs_ShouldReturnFalse(string input)
 	{
 		Assert.False(ZcashAddress.TryDecode(input, out DecodeError? errorCode, out string? errorMessage, out ZcashAddress? address));

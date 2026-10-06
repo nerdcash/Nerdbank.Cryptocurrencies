@@ -8,25 +8,25 @@ public class ZcashUtilitiesTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public ZcashUtilitiesTests(ITestOutputHelper logger)
+	public ZcashUtilitiesTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void GetTickerName()
 	{
 		Assert.Equal("ZEC", ZcashUtilities.GetTickerName(ZcashNetwork.MainNet));
 		Assert.Equal("TAZ", ZcashUtilities.GetTickerName(ZcashNetwork.TestNet));
 	}
 
-	[Fact]
+	[Test]
 	public void AsSecurity_MainNet()
 	{
 		Assert.Equal(Security.ZEC, ZcashUtilities.AsSecurity(ZcashNetwork.MainNet));
 	}
 
-	[Fact]
+	[Test]
 	public void AsSecurity_TestNet()
 	{
 		Security actual = ZcashUtilities.AsSecurity(ZcashNetwork.TestNet);
@@ -35,43 +35,43 @@ public class ZcashUtilitiesTests : TestBase
 		Assert.Equal("Zcash (testnet)", actual.Name);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_UnifiedFullViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.FullViewing!.UnifiedKey);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_UnifiedIncomingViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.IncomingViewing.UnifiedKey);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Orchard_SpendingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.Spending!.Orchard!);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Orchard_FullViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseUnifiedKey(network, a => a.FullViewing!.Orchard!);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Orchard_IncomingViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseUnifiedKey(network, a => a.IncomingViewing.Orchard!);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Sapling_SpendingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.Spending!.Sapling!);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Sapling_ExtendedFullViewingKey(ZcashNetwork network)
 	{
 		// We can't round-trip a ZcashAccount.FullViewing.Sapling key because
@@ -83,44 +83,44 @@ public class ZcashUtilitiesTests : TestBase
 		this.Assert_KeyRoundTrip(saplingEFVK);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Sapling_DiversifiableFullViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.FullViewing!.Sapling!);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Sapling_FullViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.FullViewing!.Sapling!.WithoutDiversifierKey);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Sapling_DiversifiableIncomingViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.IncomingViewing.Sapling!);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Sapling_IncomingViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.IncomingViewing.Sapling!.WithoutDiversifierKey);
 	}
 
-	[Fact]
+	[Test]
 	public void TryParseKey_InvalidKey()
 	{
 		Assert.False(ZcashUtilities.TryParseKey("abc", out IKeyWithTextEncoding? key));
 		Assert.Null(key);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Transparent_SpendingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.Spending!.Transparent!);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TryParseKey_Transparent_FullViewingKey(ZcashNetwork network)
 	{
 		this.Assert_TryParseKey(network, a => a.FullViewing!.Transparent!);

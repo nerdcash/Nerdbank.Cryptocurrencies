@@ -5,12 +5,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 public class ExchangeRateTests : TestBase
 {
-	public ExchangeRateTests(ITestOutputHelper logger)
-		: base(logger)
-	{
-	}
-
-	[Fact]
+	[Test]
 	public void ToString_Formatting()
 	{
 		var basis = new SecurityAmount(30m, Security.USD);
@@ -21,7 +16,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal($"{basis} <=> {tradeInterest}", actual);
 	}
 
-	[Fact]
+	[Test]
 	public void InBasisAmount()
 	{
 		var basis = new SecurityAmount(30m, Security.USD);
@@ -31,7 +26,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(new SecurityAmount(20m, Security.USD), amountPerZEC);
 	}
 
-	[Fact]
+	[Test]
 	public void OppositeDirection()
 	{
 		SecurityAmount basis = new(30m, Security.USD);
@@ -41,7 +36,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(new ExchangeRate(tradeInterest, basis), opposite);
 	}
 
-	[Fact]
+	[Test]
 	public void Asset_Times_ExchangeRate()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(30m, Security.USD), new SecurityAmount(1m, Security.ZEC));
@@ -51,14 +46,14 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(Security.USD.Amount(60), zec * usdToZec.OppositeDirection);
 	}
 
-	[Fact]
+	[Test]
 	public void UnrelatedAsset_Times_ExchangeRate()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(30m, Security.USD), new SecurityAmount(1m, Security.ZEC));
 		Assert.Throws<ArgumentException>(() => Security.BTC.Amount(1) * usdToZec);
 	}
 
-	[Fact]
+	[Test]
 	public void ExchangeRate_Times_ExchangeRate1()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
@@ -73,7 +68,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(Security.BTC.Amount(0.5m), btc);
 	}
 
-	[Fact]
+	[Test]
 	public void ExchangeRate_Times_ExchangeRate2()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
@@ -88,7 +83,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(Security.BTC.Amount(0.5m), btc);
 	}
 
-	[Fact]
+	[Test]
 	public void ExchangeRate_Times_ExchangeRate3()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
@@ -103,7 +98,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(Security.BTC.Amount(0.5m), btc);
 	}
 
-	[Fact]
+	[Test]
 	public void ExchangeRate_Times_ExchangeRate4()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
@@ -118,7 +113,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(Security.BTC.Amount(0.5m), btc);
 	}
 
-	[Fact]
+	[Test]
 	public void ExchangeRate_Times_UnrelatedExchangeRate()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
@@ -126,14 +121,14 @@ public class ExchangeRateTests : TestBase
 		Assert.Throws<ArgumentException>(() => usdToZec * ethToBtc);
 	}
 
-	[Fact]
+	[Test]
 	public void ExchangeRate_Times_ExchangeRateWithSameUnits()
 	{
 		ExchangeRate usdToZec = new(new SecurityAmount(60m, Security.USD), new SecurityAmount(2m, Security.ZEC));
 		Assert.Throws<ArgumentException>(() => usdToZec * usdToZec);
 	}
 
-	[Fact]
+	[Test]
 	public void ExchangeRateChain()
 	{
 		SecurityAmount zec = Security.ZEC.Amount(5);
@@ -145,7 +140,7 @@ public class ExchangeRateTests : TestBase
 		Assert.Equal(Security.LTC.Amount(1.8m), ltc);
 	}
 
-	[Fact]
+	[Test]
 	public void MultiplyByScalar()
 	{
 		Assert.Equal(Rate(2, 4), Rate(1, 2) * 2);
@@ -153,7 +148,7 @@ public class ExchangeRateTests : TestBase
 		ExchangeRate Rate(decimal basis, decimal tradeInterest) => new(Security.USD.Amount(basis), Security.ZEC.Amount(tradeInterest));
 	}
 
-	[Fact]
+	[Test]
 	public void Normalized()
 	{
 		Assert.Equal(Rate(30, 1), Rate(60, 2).Normalized);
@@ -162,7 +157,7 @@ public class ExchangeRateTests : TestBase
 		ExchangeRate Rate(decimal basis, decimal tradeInterest) => new(Security.USD.Amount(basis), Security.ZEC.Amount(tradeInterest));
 	}
 
-	[Fact]
+	[Test]
 	public void TradingPair()
 	{
 		ExchangeRate rate = new(Security.USD.Amount(30), Security.ZEC.Amount(1));

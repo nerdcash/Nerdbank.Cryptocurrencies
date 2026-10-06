@@ -4,8 +4,9 @@
 using System.Globalization;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
-[Trait("RequiresNetwork", "true")]
-public class YahooFinanceTests(ITestOutputHelper logger) : HistoricalPriceTestBase(logger)
+[InheritsTests]
+[Property("RequiresNetwork", "true")]
+public class YahooFinanceTests : HistoricalPriceTestBase
 {
 	private readonly YahooFinance exchange = new(new HttpClient() { DefaultRequestHeaders = { { "User-Agent", "Nerdbank.Cryptocurrencies.Tests" } } });
 
@@ -13,7 +14,7 @@ public class YahooFinanceTests(ITestOutputHelper logger) : HistoricalPriceTestBa
 
 	protected override string? SkipGetExchangeRateTests => "Authentication now required.";
 
-	[Fact(Skip = "Authentication now required.")]
+	[Test, Skip("Authentication now required.")]
 	public async Task GetZecUsdHistoricalPricing()
 	{
 		DateTimeOffset when = DateTimeOffset.Parse("11/3/2022", CultureInfo.InvariantCulture);

@@ -8,12 +8,12 @@ public class Bip44MultiAccountHDTests
 {
 	private readonly ITestOutputHelper logger;
 
-	public Bip44MultiAccountHDTests(ITestOutputHelper logger)
+	public Bip44MultiAccountHDTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void CreateKeyPath()
 	{
 		Assert.Equal("m/44'/133'/2'/1/4", Bip44MultiAccountHD.CreateKeyPath(0x80000085, 2, Change.ChangeAddressChain, 4).ToString());
@@ -23,13 +23,13 @@ public class Bip44MultiAccountHDTests
 	/// <summary>
 	/// Although it is not customary to harden the last two steps in the path, this test asserts that we allow it.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void CreateKeyPath_HardenedLastParts()
 	{
 		Assert.Equal("m/44'/133'/2'/3'/4'", Bip44MultiAccountHD.CreateKeyPath(0x80000085, 2, (Change)(3 | Bip32KeyPath.HardenedBit), 4 | Bip32KeyPath.HardenedBit).ToString());
 	}
 
-	[Fact]
+	[Test]
 	public async Task DiscoverUsedAccountsAsync()
 	{
 		const int AddressGapLimit = 4;
@@ -46,7 +46,7 @@ public class Bip44MultiAccountHDTests
 		await this.DiscoveryTestHelperAsync(SearchExpected, 3, d => Bip44MultiAccountHD.DiscoverUsedAccountsAsync(133, d, AddressGapLimit));
 	}
 
-	[Fact]
+	[Test]
 	public async Task DiscoverUsedAddressesAsync()
 	{
 		const int AddressGapLimit = 4;

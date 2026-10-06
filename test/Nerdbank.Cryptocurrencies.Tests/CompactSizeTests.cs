@@ -17,7 +17,7 @@ public class CompactSizeTests
 		new object?[] { 0xffffffffffffffffUL, "FFffffffffffffffff" },
 	};
 
-	[Theory, MemberData(nameof(Pairings))]
+	[Test, MethodDataSource(nameof(Pairings))]
 	public void Encode(ulong value, string hex)
 	{
 		Span<byte> encodedBytes = stackalloc byte[9];
@@ -25,7 +25,7 @@ public class CompactSizeTests
 		Assert.Equal(hex, Convert.ToHexString(encodedBytes[..actualCount]), ignoreCase: true);
 	}
 
-	[Theory, MemberData(nameof(Pairings))]
+	[Test, MethodDataSource(nameof(Pairings))]
 	public void Decode(ulong value, string hex)
 	{
 		Span<byte> encodedBytes = Convert.FromHexString(hex);
@@ -34,7 +34,7 @@ public class CompactSizeTests
 		Assert.Equal(value, actualValue);
 	}
 
-	[Fact]
+	[Test]
 	public void Decode_InputBufferTooSmall()
 	{
 		Assert.Throws<ArgumentException>(() =>

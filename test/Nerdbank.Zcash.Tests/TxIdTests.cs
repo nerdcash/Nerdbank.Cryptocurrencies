@@ -6,13 +6,13 @@ public class TxIdTests
 	private const string ExpectedString = "201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201";
 	private static readonly byte[] TxIdBytes = Enumerable.Range(1, 32).Select(v => (byte)v).ToArray();
 
-	[Fact]
+	[Test]
 	public void ToString_HexReversedBytes()
 	{
 		Assert.Equal(ExpectedString, new TxId(TxIdBytes).ToString(), ignoreCase: false);
 	}
 
-	[Fact]
+	[Test]
 	public void Parse_Span()
 	{
 		TxId actual = TxId.Parse(ExpectedString.AsSpan());
@@ -20,7 +20,7 @@ public class TxIdTests
 		Assert.Equal(expected, actual);
 	}
 
-	[Fact]
+	[Test]
 	public void Parse_String()
 	{
 		TxId actual = TxId.Parse(ExpectedString);
@@ -29,19 +29,19 @@ public class TxIdTests
 		Assert.Same(ExpectedString, actual.ToString());
 	}
 
-	[Fact]
+	[Test]
 	public void Parse_BadLength()
 	{
 		Assert.Throws<ArgumentException>(() => TxId.Parse("201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a0908070605040302011"));
 	}
 
-	[Fact]
+	[Test]
 	public void Parse_BadChars()
 	{
 		Assert.Throws<FormatException>(() => TxId.Parse("201g1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201"));
 	}
 
-	[Fact]
+	[Test]
 	public void Parse_EmptyOrNull()
 	{
 		Assert.Throws<ArgumentException>(() => TxId.Parse(string.Empty));
@@ -49,7 +49,7 @@ public class TxIdTests
 		Assert.Throws<ArgumentException>(() => TxId.Parse(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void IsEqualDifferentBuffer()
 	{
 		TxId first = new(TxIdBytes);
@@ -62,7 +62,7 @@ public class TxIdTests
 		Assert.Equal(first.GetHashCode(), second.GetHashCode());
 	}
 
-	[Fact]
+	[Test]
 	public void NotEqual()
 	{
 		TxId first = new(TxIdBytes);
@@ -75,7 +75,7 @@ public class TxIdTests
 		Assert.NotEqual(first.GetHashCode(), second.GetHashCode());
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_BadLength()
 	{
 		Assert.Throws<ArgumentException>(() => new TxId(new byte[31]));
@@ -84,7 +84,7 @@ public class TxIdTests
 		Assert.Throws<ArgumentException>(() => new TxId(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void Indexer_Range()
 	{
 		TxId txid = new(TxIdBytes);
@@ -92,7 +92,7 @@ public class TxIdTests
 		Assert.True(txid[2..4].SequenceEqual(TxIdBytes[2..4]));
 	}
 
-	[Fact]
+	[Test]
 	public void ImplicitConversion_ToByteSpan()
 	{
 		TxId txid = new TxId(TxIdBytes);

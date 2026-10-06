@@ -9,12 +9,12 @@ public class SpendingKeyTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public SpendingKeyTests(ITestOutputHelper logger)
+	public SpendingKeyTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void TextEncoding_Test()
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet).CreateOrchardAccount().SpendingKey;
@@ -22,7 +22,7 @@ public class SpendingKeyTests : TestBase
 		Assert.Equal("secret-orchard-sk-test16swpunh96ywktramm4ft9st3872yhxujn3j746aq9vckt7ws94esuqcees", key.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void TextEncoding_Main()
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet).CreateOrchardAccount().SpendingKey;
@@ -30,14 +30,14 @@ public class SpendingKeyTests : TestBase
 		Assert.Equal("secret-orchard-sk-main17nmlypwfae54wumq4l2mh2c5yphf6n93k53ds8xuryg04xszj53sgf4cer", key.TextEncoding);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void Network(ZcashNetwork network)
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, network).CreateOrchardAccount().SpendingKey;
 		Assert.Equal(network, key.Network);
 	}
 
-	[Fact]
+	[Test]
 	public void FullViewingKey()
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet).CreateOrchardAccount().SpendingKey;
@@ -45,7 +45,7 @@ public class SpendingKeyTests : TestBase
 		Assert.Equal(ZcashNetwork.TestNet, key.Network);
 	}
 
-	[Fact]
+	[Test]
 	public void IncomingViewingKey()
 	{
 		SpendingKey key = new Zip32HDWallet(Mnemonic, ZcashNetwork.TestNet).CreateOrchardAccount().SpendingKey;

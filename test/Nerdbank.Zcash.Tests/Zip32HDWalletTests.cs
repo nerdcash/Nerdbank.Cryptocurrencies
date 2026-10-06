@@ -7,12 +7,12 @@ public class Zip32HDWalletTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public Zip32HDWalletTests(ITestOutputHelper logger)
+	public Zip32HDWalletTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void CreateSaplingMasterKey(ZcashNetwork network)
 	{
 		Bip39Mnemonic mnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
@@ -25,7 +25,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.NotEqual(default, spendingKey.ExtendedFullViewingKey.Fingerprint);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void CreateOrchardMasterKey(ZcashNetwork network)
 	{
 		this.logger.WriteLine($"Mnemonic: {Mnemonic}");
@@ -42,7 +42,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.NotEqual(default, masterSpendingKey.Fingerprint);
 	}
 
-	[Fact]
+	[Test]
 	public void CreateOrchardAddressFromSeed()
 	{
 		Zip32HDWallet zip32 = new(Mnemonic, ZcashNetwork.MainNet);
@@ -53,7 +53,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal("u1su5vtweds443eqwwzxtgmx4m2kxhwgax4hzm6xhxc6kugsakda3t3t0ae5nemwhlfwqw7uh2mvdgyg4pruu2t0dse02f2adpjv8pw35s", address.Address);
 	}
 
-	[Fact]
+	[Test]
 	public void CreateSaplingAddressFromSeed()
 	{
 		Zip32HDWallet zip32 = new(Mnemonic, ZcashNetwork.MainNet);
@@ -66,7 +66,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal("zs16jqxx7r4kqp2k7w95ul27u0dxqggmm3h4e9ng2m7jvfn9809jwjmdhg7wskeypjtw3pmzlr5flt", address.Address);
 	}
 
-	[Fact]
+	[Test]
 	public void CreateTransparentAddressFromSeed()
 	{
 		Zip32HDWallet zip32 = new(Mnemonic, ZcashNetwork.MainNet);
@@ -74,28 +74,28 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal("t1ULaxNrHTCgqrzQsmNMKQUCsfGF9iaHwJv", accountSpendingKey.FullViewingKey.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void Orchard_Create_SeedLengthRequirements()
 	{
 		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Orchard.Create(new byte[31], ZcashNetwork.MainNet));
 		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Orchard.Create(new byte[253], ZcashNetwork.MainNet));
 	}
 
-	[Fact]
+	[Test]
 	public void Sapling_Create_SeedLengthRequirements()
 	{
 		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Sapling.Create(new byte[31], ZcashNetwork.MainNet));
 		Assert.Throws<ArgumentException>(() => Zip32HDWallet.Sapling.Create(new byte[253], ZcashNetwork.MainNet));
 	}
 
-	[Fact]
+	[Test]
 	public void Zip32_Ctor_SeedPhraseLengthRequirements()
 	{
 		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
 		var x = new Zip32HDWallet(shortMnemonic, ZcashNetwork.MainNet);
 	}
 
-	[Fact]
+	[Test]
 	public void HasAtLeastRecommendedEntropy()
 	{
 		Bip39Mnemonic goodMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits);
@@ -104,21 +104,21 @@ public class Zip32HDWalletTests : TestBase
 		Assert.False(Zip32HDWallet.HasAtLeastRecommendedEntropy(shortMnemonic));
 	}
 
-	[Fact]
+	[Test]
 	public void Orchard_Create_SeedPhraseLengthRequirements()
 	{
 		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
 		Assert.NotNull(Zip32HDWallet.Orchard.Create(shortMnemonic, ZcashNetwork.MainNet));
 	}
 
-	[Fact]
+	[Test]
 	public void Sapling_Create_SeedPhraseLengthRequirements()
 	{
 		Bip39Mnemonic shortMnemonic = Bip39Mnemonic.Create(Zip32HDWallet.MinimumEntropyLengthInBits - 32);
 		Assert.NotNull(Zip32HDWallet.Sapling.Create(shortMnemonic, ZcashNetwork.MainNet));
 	}
 
-	[Fact]
+	[Test]
 	public void DeriveSaplingInternalSpendingKey()
 	{
 		Zip32HDWallet.Sapling.ExtendedSpendingKey sk = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet);
@@ -129,7 +129,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(internalSk.DefaultAddress, internalSk.ExtendedFullViewingKey.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void DeriveSaplingInternalFullViewingKey()
 	{
 		Zip32HDWallet.Sapling.ExtendedFullViewingKey fvk = Zip32HDWallet.Sapling.Create(Mnemonic, ZcashNetwork.MainNet).ExtendedFullViewingKey;
@@ -139,7 +139,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal("zs192frvl4cfusulnkcvg32z24phrx9kl3e8c58tzytnpj9er704ynkrq5zd8lg3pelnqujjs332mq", internalSk.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void MnemonicCtorInitializesProperties()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -148,7 +148,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(Mnemonic.Seed.ToArray(), wallet.Seed.ToArray());
 	}
 
-	[Fact]
+	[Test]
 	public void SeedCtorInitializesProperties()
 	{
 		Zip32HDWallet wallet = new(Mnemonic.Seed, ZcashNetwork.TestNet);
@@ -157,7 +157,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(Mnemonic.Seed.ToArray(), wallet.Seed.ToArray());
 	}
 
-	[Fact]
+	[Test]
 	public void CreateOrchardAccount()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -167,7 +167,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(new OrchardAddress(account.IncomingViewingKey.CreateReceiver(0), ZcashNetwork.TestNet), account.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void CreateSaplingAccount()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -179,7 +179,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(new SaplingAddress(receiver.Value, ZcashNetwork.TestNet), account.DefaultAddress);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void ExtendedSpendingKey_Sapling_TextEncoding_TryDecode(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
@@ -196,7 +196,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(account, decoded);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void ExtendedSpendingKey_Orchard_TextEncoding_TryDecode(bool testNet)
 	{
 		ZcashNetwork network = testNet ? ZcashNetwork.TestNet : ZcashNetwork.MainNet;
@@ -213,7 +213,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(account, decoded);
 	}
 
-	[Fact]
+	[Test]
 	public void Equals_True()
 	{
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
@@ -227,7 +227,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(wallet1.GetHashCode(), wallet2.GetHashCode());
 	}
 
-	[Fact]
+	[Test]
 	public void Equals_DifferentNetwork()
 	{
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
@@ -241,7 +241,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.NotEqual(wallet1.GetHashCode(), wallet2.GetHashCode());
 	}
 
-	[Fact]
+	[Test]
 	public void Equals_MnemonicVsEquivalentSeed()
 	{
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);
@@ -252,7 +252,7 @@ public class Zip32HDWalletTests : TestBase
 		Assert.Equal(wallet1.GetHashCode(), wallet2.GetHashCode());
 	}
 
-	[Fact]
+	[Test]
 	public void Equals_DifferentSeed()
 	{
 		Zip32HDWallet wallet1 = new(Mnemonic, ZcashNetwork.TestNet);

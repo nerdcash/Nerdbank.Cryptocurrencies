@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <PropertyGroup>
+    <!-- Evaluated here rather than in Directory.Build.props so that a RuntimeIdentifier set by the project (e.g. Nerdbank.Zcash.Tests, for its native bindings) is seen. -->
+    <UseAppHost Condition="'$(RuntimeIdentifier)' == '' and '$(NativeAOT)' != 'true'">false</UseAppHost>
+  </PropertyGroup>
+
   <Import Project="AOT.props"
           Condition="'$(IsTestProject)' == 'true' and '$(PublishNativeAOTTests)' == 'true' and '$(TargetFramework)' != '' and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
 

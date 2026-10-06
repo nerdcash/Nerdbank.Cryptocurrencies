@@ -5,12 +5,7 @@ using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 {
-	public ExtendedPrivateKeyTests(ITestOutputHelper logger)
-		: base(logger)
-	{
-	}
-
-	[Fact]
+	[Test]
 	public void Create()
 	{
 		var mnemonic = Bip39Mnemonic.Parse("diary slender airport");
@@ -25,7 +20,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		Assert.Equal(expected, actual);
 	}
 
-	[Fact]
+	[Test]
 	public void PublicKey()
 	{
 		var mnemonic = Bip39Mnemonic.Parse("diary slender airport");
@@ -46,7 +41,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 	/// Asserts matching <see href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#test-vectors">Test vectors from BIP-32</see>.
 	/// </summary>
 	/// <param name="vector">The vector to test.</param>
-	[Theory, MemberData(nameof(TestVectors))]
+	[Test, MethodDataSource(nameof(TestVectors))]
 	public void Derive_TestVectors(TestVector vector)
 	{
 		ExtendedPrivateKey current = ExtendedPrivateKey.Create(Convert.FromHexString(vector.SeedAsHex));
@@ -71,7 +66,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void Derive_KeyPath_FromMaster()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
@@ -87,7 +82,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		AssertEqual(expected, derive123Rooted);
 	}
 
-	[Fact]
+	[Test]
 	public void Derive_KeyPath_RootedOnNonMaster()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));
@@ -101,7 +96,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		Assert.Throws<NotSupportedException>(() => derived.Derive(Bip32KeyPath.Parse("m/1/2")));
 	}
 
-	[Fact]
+	[Test]
 	public void Decode_Roundtripping()
 	{
 		using ExtendedPrivateKey pvk = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(128));
@@ -116,7 +111,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		AssertEqual(pvkDerivedAsString, pvkDerived2);
 	}
 
-	[Fact]
+	[Test]
 	public void DerivationPath()
 	{
 		using ExtendedPrivateKey master = ExtendedPrivateKey.Create(Bip39Mnemonic.Create(32));

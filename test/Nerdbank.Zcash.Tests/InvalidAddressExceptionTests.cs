@@ -3,13 +3,13 @@
 
 public class InvalidAddressExceptionTests
 {
-	[Fact]
+	[Test]
 	public void Ctor_Default()
 	{
 		Assert.NotEqual(string.Empty, new InvalidAddressException().Message);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_Message()
 	{
 		InvalidAddressException ex = new("test");
@@ -17,7 +17,7 @@ public class InvalidAddressExceptionTests
 		Assert.Null(ex.InnerException);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_InnerException()
 	{
 		Exception inner = new();

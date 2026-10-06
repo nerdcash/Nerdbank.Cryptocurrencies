@@ -8,19 +8,19 @@ public class PrivateKeyTests
 {
 	private readonly ITestOutputHelper logger;
 
-	public PrivateKeyTests(ITestOutputHelper logger)
+	public PrivateKeyTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void Ctor(bool isTestNet)
 	{
 		PrivateKey bitcoinPrivateKey = CreatePrivateKey(isTestNet);
 		Assert.Equal(isTestNet, bitcoinPrivateKey.IsTestNet);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void EncodeDecode(bool isTestNet)
 	{
 		PrivateKey bitcoinPrivateKey = CreatePrivateKey(isTestNet);
@@ -31,7 +31,7 @@ public class PrivateKeyTests
 		Assert.Equal(bitcoinPrivateKey.IsTestNet, decodedKey.IsTestNet);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void PublicKey(bool isTestNet)
 	{
 		PrivateKey bitcoinPrivateKey = CreatePrivateKey(isTestNet);

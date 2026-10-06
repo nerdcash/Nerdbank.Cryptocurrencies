@@ -5,7 +5,7 @@ using Nerdbank.Cryptocurrencies.Exchanges;
 
 public class TradingPairEitherOrderEqualityComparerTests
 {
-	[Fact]
+	[Test]
 	public void OrderDoesNotMatter()
 	{
 		TradingPair pair1 = new(Security.BTC, Security.USD);
@@ -17,7 +17,7 @@ public class TradingPairEitherOrderEqualityComparerTests
 		Assert.Equal(TradingPairEitherOrderEqualityComparer.Instance.GetHashCode(pair1), TradingPairEitherOrderEqualityComparer.Instance.GetHashCode(pair2));
 	}
 
-	[Fact]
+	[Test]
 	public void DifferentTradingPairs()
 	{
 		TradingPair pair1 = new(Security.BTC, Security.USD);

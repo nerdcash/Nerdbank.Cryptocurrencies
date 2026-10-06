@@ -3,7 +3,7 @@
 
 public class TransparentP2PKHReceiverTests
 {
-	[Fact]
+	[Test]
 	public void Ctor()
 	{
 		byte[] hash = new byte[20];
@@ -16,19 +16,19 @@ public class TransparentP2PKHReceiverTests
 		Assert.Equal(0, receiver[0]);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_ArgValidation()
 	{
 		Assert.Throws<ArgumentException>(() => new TransparentP2PKHReceiver(new byte[1]));
 	}
 
-	[Fact]
+	[Test]
 	public void Pool_Transparent() => Assert.Equal(Pool.Transparent, default(TransparentP2PKHReceiver).Pool);
 
-	[Fact]
+	[Test]
 	public void UnifiedReceiverTypeCode() => Assert.Equal(0x00, TransparentP2PKHReceiver.UnifiedReceiverTypeCode);
 
-	[Fact]
+	[Test]
 	public void EqualityOfT()
 	{
 		byte[] hash = new byte[20];
@@ -42,7 +42,7 @@ public class TransparentP2PKHReceiverTests
 		Assert.NotEqual(receiver, receiver_unique);
 	}
 
-	[Fact]
+	[Test]
 	public void EqualsObjectOverride()
 	{
 		byte[] hash = new byte[20];

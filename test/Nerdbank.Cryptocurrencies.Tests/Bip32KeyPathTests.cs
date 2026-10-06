@@ -31,7 +31,7 @@ public class Bip32KeyPathTests
 		new object[] { "/0/3'/4'" },
 	};
 
-	[Fact]
+	[Test]
 	public void KeyPath_Constructor_Unrooted()
 	{
 		Bip32KeyPath keyPath = new(0);
@@ -50,7 +50,7 @@ public class Bip32KeyPathTests
 		Assert.Null(keyPath.Parent.Parent.Parent);
 	}
 
-	[Fact]
+	[Test]
 	public void KeyPath_Constructor_Rooted()
 	{
 		Bip32KeyPath keyPath = new(0, Bip32KeyPath.Root);
@@ -69,7 +69,7 @@ public class Bip32KeyPathTests
 		Assert.Same(Bip32KeyPath.Root, keyPath.Parent.Parent.Parent);
 	}
 
-	[Fact]
+	[Test]
 	public void Index()
 	{
 		Assert.Equal(1u, new Bip32KeyPath(1).Index);
@@ -78,7 +78,7 @@ public class Bip32KeyPathTests
 		Assert.Throws<InvalidOperationException>(() => Bip32KeyPath.Root.Index);
 	}
 
-	[Fact]
+	[Test]
 	public void Parent()
 	{
 		Assert.Null(new Bip32KeyPath(1).Parent);
@@ -87,7 +87,7 @@ public class Bip32KeyPathTests
 		Assert.Null(Bip32KeyPath.Root.Parent);
 	}
 
-	[Fact]
+	[Test]
 	public void Equality()
 	{
 		Bip32KeyPath path1a = new(0, new(1));
@@ -100,7 +100,7 @@ public class Bip32KeyPathTests
 		Assert.NotEqual(new Bip32KeyPath(0), Bip32KeyPath.Root);
 	}
 
-	[Fact]
+	[Test]
 	public void IsHardened()
 	{
 		Assert.True(new Bip32KeyPath(0x80000000).IsHardened);
@@ -110,7 +110,7 @@ public class Bip32KeyPathTests
 		Assert.False(new Bip32KeyPath(1).IsHardened);
 	}
 
-	[Fact]
+	[Test]
 	public void Length()
 	{
 		Assert.Equal(0u, Bip32KeyPath.Root.Length);
@@ -126,7 +126,7 @@ public class Bip32KeyPathTests
 		Assert.Equal(2u, new Bip32KeyPath(2, new Bip32KeyPath(1)).Length);
 	}
 
-	[Fact]
+	[Test]
 	public void ToString_Path()
 	{
 		// Rooted
@@ -140,7 +140,7 @@ public class Bip32KeyPathTests
 		Assert.Equal("/0/4'/6", new Bip32KeyPath(6, new(0x80000004, new(0))).ToString());
 	}
 
-	[Fact]
+	[Test]
 	public void IsRooted()
 	{
 		Assert.True(Bip32KeyPath.Root.IsRooted);
@@ -153,10 +153,10 @@ public class Bip32KeyPathTests
 		Assert.False(Bip32KeyPath.Parse("/1").IsRooted);
 	}
 
-	[Theory, MemberData(nameof(ValidPathsRooted))]
+	[Test, MethodDataSource(nameof(ValidPathsRooted))]
 	public void Parse(string path) => Assert.Equal(path, Bip32KeyPath.Parse(path).ToString());
 
-	[Theory, MemberData(nameof(ValidPathsRooted))]
+	[Test, MethodDataSource(nameof(ValidPathsRooted))]
 	public void TryParse_Rooted(string path)
 	{
 		Assert.True(Bip32KeyPath.TryParse(path, out Bip32KeyPath? result));
@@ -164,7 +164,7 @@ public class Bip32KeyPathTests
 		Assert.True(result.IsRooted);
 	}
 
-	[Theory, MemberData(nameof(ValidPathsUnrooted))]
+	[Test, MethodDataSource(nameof(ValidPathsUnrooted))]
 	public void TryParse_Unrooted(string path)
 	{
 		Assert.True(Bip32KeyPath.TryParse(path, out Bip32KeyPath? result));
@@ -172,45 +172,45 @@ public class Bip32KeyPathTests
 		Assert.False(result.IsRooted);
 	}
 
-	[Fact]
+	[Test]
 	public void TryParse_RootReturnsSingleton()
 	{
 		Assert.Same(Bip32KeyPath.Root, Bip32KeyPath.Parse("m"));
 	}
 
-	[Fact]
+	[Test]
 	public void Parse_NullOrEmptyPath()
 	{
 		Assert.Throws<ArgumentException>(() => Bip32KeyPath.Parse(null!));
 		Assert.Throws<ArgumentException>(() => Bip32KeyPath.Parse(string.Empty));
 	}
 
-	[Fact]
+	[Test]
 	public void TryParse_NullOrEmptyPath()
 	{
 		Assert.Throws<ArgumentException>(() => Bip32KeyPath.TryParse(null!, out _));
 		Assert.Throws<ArgumentException>(() => Bip32KeyPath.TryParse(string.Empty, out _));
 	}
 
-	[Theory, MemberData(nameof(InvalidPaths))]
+	[Test, MethodDataSource(nameof(InvalidPaths))]
 	public void Parse_InvalidPath(string path)
 	{
 		Assert.Throws<FormatException>(() => Bip32KeyPath.Parse(path));
 	}
 
-	[Theory, MemberData(nameof(InvalidPaths))]
+	[Test, MethodDataSource(nameof(InvalidPaths))]
 	public void TryParse_InvalidPath(string path)
 	{
 		Assert.False(Bip32KeyPath.TryParse(path, out _));
 	}
 
-	[Fact]
+	[Test]
 	public void CompareTo_OddCases()
 	{
 		Assert.Equal(1, new Bip32KeyPath(0).CompareTo(null));
 	}
 
-	[Fact]
+	[Test]
 	public void CompareTo_SortingBehavior()
 	{
 		Bip32KeyPath[] unsorted = new[]
@@ -234,13 +234,13 @@ public class Bip32KeyPathTests
 		Assert.Equal(sorted, unsorted.Order());
 	}
 
-	[Fact]
+	[Test]
 	public void Truncate_OutOfRange()
 	{
 		Assert.Throws<ArgumentOutOfRangeException>(() => Bip32KeyPath.Parse("m/0").Truncate(2));
 	}
 
-	[Fact]
+	[Test]
 	public void Truncate()
 	{
 		Assert.Same(Bip32KeyPath.Root, Bip32KeyPath.Parse("m/0").Truncate(0));
@@ -250,14 +250,14 @@ public class Bip32KeyPathTests
 		Assert.Same(kp, kp.Truncate(10));
 	}
 
-	[Fact]
+	[Test]
 	public void Indexer_OutOfRange()
 	{
 		Assert.Throws<IndexOutOfRangeException>(() => Bip32KeyPath.Parse("m/0")[2]);
 		Assert.Throws<IndexOutOfRangeException>(() => Bip32KeyPath.Parse("m/0")[0]);
 	}
 
-	[Fact]
+	[Test]
 	public void Indexer()
 	{
 		Bip32KeyPath kp = Bip32KeyPath.Parse("m/0/1/2/3/4/5/6/7/8/9");
@@ -265,7 +265,7 @@ public class Bip32KeyPathTests
 		Assert.Equal(9u, kp[10]);
 	}
 
-	[Fact]
+	[Test]
 	public void Root()
 	{
 		Assert.Equal("m", Bip32KeyPath.Root.ToString());
@@ -274,7 +274,7 @@ public class Bip32KeyPathTests
 		Assert.Null(Bip32KeyPath.Root.Parent);
 	}
 
-	[Fact]
+	[Test]
 	public void Steps()
 	{
 		Assert.Empty(Bip32KeyPath.Root.Steps);
@@ -288,7 +288,7 @@ public class Bip32KeyPathTests
 		Assert.Equal(new uint[] { 1, 3, 5 }, Bip32KeyPath.Parse("/1/3/5").Steps.Select(kp => kp.Index));
 	}
 
-	[Fact]
+	[Test]
 	public void Append()
 	{
 		Bip32KeyPath original = Bip32KeyPath.Parse("m/1");

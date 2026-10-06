@@ -10,12 +10,12 @@ public class FullViewingKeyTests : TestBase
 	private readonly ITestOutputHelper logger;
 	private readonly FullViewingKey fvk = new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet).CreateOrchardAccount().FullViewingKey;
 
-	public FullViewingKeyTests(ITestOutputHelper logger)
+	public FullViewingKeyTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void DeriveInternal()
 	{
 		this.logger.WriteLine($"Public address: {this.fvk.IncomingViewingKey.DefaultAddress}");
@@ -24,7 +24,7 @@ public class FullViewingKeyTests : TestBase
 		Assert.Equal("u16ddqv7tagn5wvfwwkarzq3wlw2kvpqldsd6dzy8f9lypm2lc9qxt04jurykft0kl69hg57j39866fde7sz0effua2sh67ld5gg7xlrrr", internalFvk.IncomingViewingKey.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode()
 	{
 		Assert.True(FullViewingKey.TryDecode(this.fvk.TextEncoding, out DecodeError? decodeError, out string? errorMessage, out FullViewingKey? imported));
@@ -34,7 +34,7 @@ public class FullViewingKeyTests : TestBase
 		Assert.Equal(this.fvk.TextEncoding, imported.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_ViaInterface()
 	{
 		Assert.True(TryDecodeViaInterface<FullViewingKey>(this.fvk.TextEncoding, out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? imported));
@@ -44,7 +44,7 @@ public class FullViewingKeyTests : TestBase
 		Assert.Equal(this.fvk.TextEncoding, imported.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_Fail()
 	{
 		Assert.False(FullViewingKey.TryDecode("fail", out DecodeError? decodeError, out string? errorMessage, out FullViewingKey? imported));
@@ -53,7 +53,7 @@ public class FullViewingKeyTests : TestBase
 		Assert.Null(imported);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_ViaInterface_Fail()
 	{
 		Assert.False(TryDecodeViaInterface<FullViewingKey>("fail", out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? imported));

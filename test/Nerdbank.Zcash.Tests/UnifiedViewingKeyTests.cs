@@ -14,12 +14,12 @@ public class UnifiedViewingKeyTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public UnifiedViewingKeyTests(ITestOutputHelper logger)
+	public UnifiedViewingKeyTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_NonUniqueTypes()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -31,7 +31,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_IVK_NonUniqueTypes()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -43,7 +43,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_MixedNetworks()
 	{
 		Zip32HDWallet testWallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -55,7 +55,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_IVK_MixedNetworks()
 	{
 		Zip32HDWallet testWallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -67,7 +67,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_MixedViewingTypes()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.TestNet);
@@ -78,7 +78,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.StartsWith("uivktest1", uivk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void ToString_FVK_ReturnsEncoding()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -87,7 +87,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(uvk.TextEncoding, uvk.ToString());
 	}
 
-	[Fact]
+	[Test]
 	public void ToString_IVK_ReturnsEncoding()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -96,7 +96,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(uvk.TextEncoding, uvk.ToString());
 	}
 
-	[Fact]
+	[Test]
 	public void ImplicitCastToString_FVK_ReturnsEncoding()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -106,7 +106,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(uvk.TextEncoding, uvkString);
 	}
 
-	[Fact]
+	[Test]
 	public void ImplicitCastToString_IVK_ReturnsEncoding()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -116,7 +116,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(uvk.TextEncoding, uvkString);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_Orchard_FVK()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -129,7 +129,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_Orchard_IVK()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -142,7 +142,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_Sapling_Full()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -155,7 +155,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_Sapling_IVK()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -168,7 +168,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_Orchard_Sapling()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -183,7 +183,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_IVK_Orchard_Sapling()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -197,7 +197,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_Transparent_FVK()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -211,7 +211,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_Transparent_IVK()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -224,7 +224,7 @@ public class UnifiedViewingKeyTests : TestBase
 			uvk.TextEncoding);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_Orchard_Sapling_Transparent()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -243,7 +243,7 @@ public class UnifiedViewingKeyTests : TestBase
 	/// Verifies that we get an encoding that does <em>not</em> carry outgoing view keys
 	/// even if the input contained them.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void Create_IVK_WithFullKeyInputs()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -258,7 +258,7 @@ public class UnifiedViewingKeyTests : TestBase
 	/// Verifies that we get an encoding that does <em>not</em> carry outgoing view keys
 	/// even if the input contained them.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void Create_FVK_WithSpendingKeyInputs()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -269,7 +269,7 @@ public class UnifiedViewingKeyTests : TestBase
 		AssertNoSpendingKey(ufvk);
 	}
 
-	[Fact]
+	[Test]
 	public void FullToIncomingViewingKey()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -283,37 +283,37 @@ public class UnifiedViewingKeyTests : TestBase
 		AssertNoOutgoingKey(uivk);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_IVK_Empty()
 	{
 		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Incoming.Create((IReadOnlyCollection<IIncomingViewingKey>)Array.Empty<IIncomingViewingKey>()));
 		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Incoming.Create(Array.Empty<IIncomingViewingKey>()));
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_Empty()
 	{
 		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Full.Create((IReadOnlyCollection<IFullViewingKey>)Array.Empty<IFullViewingKey>()));
 		Assert.Throws<ArgumentException>(() => UnifiedViewingKey.Full.Create(Array.Empty<IFullViewingKey>()));
 	}
 
-	[Fact]
+	[Test]
 	public void Create_IVK_Null()
 	{
 		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Incoming.Create((IReadOnlyCollection<IIncomingViewingKey>)null!));
 		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Incoming.Create((IIncomingViewingKey[])null!));
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_Null()
 	{
 		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Full.Create((IReadOnlyCollection<IFullViewingKey>)null!));
 		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Full.Create((IFullViewingKey[])null!));
 	}
 
-	[Theory]
-	[InlineData("abc")]
-	[InlineData("")]
+	[Test]
+	[Arguments("abc")]
+	[Arguments("")]
 	public void TryDecode_BadInputs(string key)
 	{
 		Assert.False(UnifiedViewingKey.TryDecode(key, out _, out _, out UnifiedViewingKey? result));
@@ -323,7 +323,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(ex.Message);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_Null()
 	{
 		UnifiedViewingKey? result = null;
@@ -332,7 +332,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Throws<ArgumentNullException>(() => UnifiedViewingKey.Decode(null!));
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void OrchardRoundtrip(ZcashNetwork network, bool isFullViewingKey)
 	{
 		Zip32HDWallet wallet = new(Mnemonic, network);
@@ -343,7 +343,7 @@ public class UnifiedViewingKeyTests : TestBase
 		AssertRoundtrip(uvk);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void SaplingRoundtrip(ZcashNetwork network, bool isFullViewingKey)
 	{
 		Zip32HDWallet wallet = new(Mnemonic, network);
@@ -354,7 +354,7 @@ public class UnifiedViewingKeyTests : TestBase
 		AssertRoundtrip(uvk);
 	}
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public void TransparentRoundtrip(ZcashNetwork network, bool isFullViewingKey)
 	{
 		Zip32HDWallet wallet = new(Mnemonic, network);
@@ -365,7 +365,7 @@ public class UnifiedViewingKeyTests : TestBase
 		AssertRoundtrip(uvk);
 	}
 
-	[Fact]
+	[Test]
 	public void Decode_GetViewingKey()
 	{
 		UnifiedViewingKey uvk = UnifiedViewingKey.Decode("uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z");
@@ -384,7 +384,7 @@ public class UnifiedViewingKeyTests : TestBase
 			orchard.IncomingViewingKey.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode()
 	{
 		Assert.True(TryDecodeViaInterface<UnifiedViewingKey>("uview1tz7evwpdc274ekw8a7pej527wpxmchsv0hj7g65fhjgpsvzjzc3qhe79qea74c7repnc6mya6wdkawl6chk0vrx4u9dxfwhd9kl9l8k48qvy7tjtuxc4wzc0ety3t0r4p9mz88w2736m4l9r7d7t8hhj92wdxcgaukqkxmnchpn45zn5pwdmd99q6msfv7dglgqpkq95rgglsmklr7quc27xhy03fs2nha4xuufzns3glh4560tccrm739pqh6sfs33m8d50gyv5jshyra9uwktf62sdxhrjmtprse2r7sfq58mj3kv6tmh4f4xk4qfspe5qwcc3rxhp4ef2j0n22kg8fy0htd5q7umrrquek50g4tfx8vhyklphr2lg2nzqfnc6sxsp0k23z", out DecodeError? decodeError, out string? errorMessage, out IKeyWithTextEncoding? key));
@@ -404,7 +404,7 @@ public class UnifiedViewingKeyTests : TestBase
 			orchard.IncomingViewingKey.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_RetainsViewingKeys()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -422,7 +422,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(orchardSK.FullViewingKey, orchard);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_IVK_RetainsViewingKeys()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -440,7 +440,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(orchardSK.IncomingViewingKey, orchard);
 	}
 
-	[Fact]
+	[Test]
 	public void DefaultAddress_Is_UnifiedReceivingAddress()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -454,7 +454,7 @@ public class UnifiedViewingKeyTests : TestBase
 		this.logger.WriteLine(ua);
 	}
 
-	[Fact]
+	[Test]
 	public void Metadata_Propagates_FVK_IVK_Address()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -477,7 +477,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(metadata, ufvk.IncomingViewingKey.DefaultAddress.Metadata);
 	}
 
-	[Fact]
+	[Test]
 	public void Revision_Propagates_FVK_IVK_Address()
 	{
 		// This encoding is revision 1 but contains no metadata, so it COULD be revision 0.
@@ -495,7 +495,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.StartsWith("ur1", ufvk.IncomingViewingKey.DefaultAddress.Address);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_FVK_Metadata()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -512,7 +512,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(metadata, ufvk.Metadata);
 	}
 
-	[Fact]
+	[Test]
 	public void Create_IVK_Metadata()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -528,7 +528,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.Equal(metadata, uivk.Metadata);
 	}
 
-	[Fact]
+	[Test]
 	public void Equals_ConsidersMetadata()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);
@@ -554,7 +554,7 @@ public class UnifiedViewingKeyTests : TestBase
 		Assert.False(ufvkWithMetadata.Equals(ufvk));
 	}
 
-	[Fact]
+	[Test]
 	public void Transparent_FVKtoIVK_AreNotSame()
 	{
 		Zip32HDWallet wallet = new(Mnemonic, ZcashNetwork.MainNet);

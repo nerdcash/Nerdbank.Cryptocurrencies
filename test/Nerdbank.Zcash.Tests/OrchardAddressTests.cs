@@ -5,21 +5,21 @@ public class OrchardAddressTests : TestBase
 {
 	private readonly ITestOutputHelper logger;
 
-	public OrchardAddressTests(ITestOutputHelper logger)
+	public OrchardAddressTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
-	[Fact]
+	[Test]
 	public void Decode_TestNet()
 	{
 		Assert.Equal(ZcashNetwork.TestNet, ZcashAddress.Decode(ValidUnifiedAddressOrchardTestNet).Network);
 	}
 
-	[Fact]
+	[Test]
 	public void HasShieldedReceiver() => Assert.True(ZcashAddress.Decode(ValidUnifiedAddressOrchard).HasShieldedReceiver);
 
-	[Fact]
+	[Test]
 	public void Ctor_Receiver_TestNet()
 	{
 		var receiver = new OrchardReceiver(new byte[88 / 8], new byte[256 / 8]);

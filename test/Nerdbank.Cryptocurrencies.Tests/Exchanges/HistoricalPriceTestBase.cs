@@ -4,7 +4,7 @@
 using System.Globalization;
 using Nerdbank.Cryptocurrencies.Exchanges;
 
-public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBase(logger)
+public abstract class HistoricalPriceTestBase : TestBase
 {
 	protected static readonly TradingPair UsdZec = new(Security.USD, Security.ZEC);
 
@@ -12,10 +12,10 @@ public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBa
 
 	protected virtual string? SkipGetExchangeRateTests => null;
 
-	[Theory, PairwiseData]
+	[Test, MatrixDataSource]
 	public async Task GetExchangeRateAsync_RespectsPairOrdering(bool fiatSecond)
 	{
-		Assert.SkipWhen(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests ?? "Not skipped");
+		Skip.When(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests ?? "Not skipped");
 
 		TradingPair pair = UsdZec;
 		if (fiatSecond)
@@ -31,21 +31,21 @@ public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBa
 		Assert.Equal(exchangeRate.TradeInterest.Security, pair.TradeInterest);
 	}
 
-	[Fact]
+	[Test]
 	public async Task GetHistoricalPricing_TooFarBack()
 	{
 		DateTimeOffset when = DateTimeOffset.Parse("11/3/2005", CultureInfo.InvariantCulture);
 		Assert.Null(await this.Provider.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public async Task GetHistoricalPricing_TooFarForward()
 	{
 		DateTimeOffset when = DateTimeOffset.Now.AddDays(2);
 		Assert.Null(await this.Provider.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public async Task GetAvailableTradingPairsAsync()
 	{
 		IReadOnlyCollection<TradingPair> pairs = await this.Provider.GetAvailableTradingPairsAsync(this.TimeoutToken);
@@ -57,10 +57,10 @@ public abstract class HistoricalPriceTestBase(ITestOutputHelper logger) : TestBa
 		}
 	}
 
-	[Fact]
+	[Test]
 	public async Task GetHistoricalPricing_Now()
 	{
-		Assert.SkipWhen(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests ?? "Not skipped");
+		Skip.When(this.SkipGetExchangeRateTests is not null, this.SkipGetExchangeRateTests ?? "Not skipped");
 
 		DateTimeOffset when = DateTimeOffset.Now;
 		ExchangeRate? rate = await this.Provider.GetExchangeRateAsync(UsdZec, when, this.TimeoutToken);

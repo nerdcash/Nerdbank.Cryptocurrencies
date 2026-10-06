@@ -8,16 +8,16 @@ public class ZcashAccountTests : TestBase
 	private static readonly Zip32HDWallet Zip32 = new(Mnemonic, ZcashNetwork.TestNet);
 	private readonly ITestOutputHelper logger;
 
-	public ZcashAccountTests(ITestOutputHelper logger)
+	public ZcashAccountTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
 	protected ZcashAccount DefaultAccount { get; } = new(Zip32, 0);
 
 	protected ZcashAccount AlternateAccount { get; } = new(Zip32, 1);
 
-	[Fact]
+	[Test]
 	public void DefaultAccountProperties()
 	{
 		Assert.Same(Zip32, this.DefaultAccount.HDDerivation?.Wallet);
@@ -44,7 +44,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal("uivktest1hpq6h37kxr8eccyvaefrxsdg9afxs56n748mngy4p70ngv5099vypdzw6p4h6yznfus3856hlgmnv7q0ya5cjq25ysnmr9ulgu3svlr8frw7f59w7sh2tuyqp573p7hujls8s3782z387hq3g0mcw66hwl2j9lwkkxg6gy9gd0hz36vqnmd9z3wl0d4x2pymuq68nzjk3jgcuduvxvvfk7hfv6d6ykp2l5schf7lexhe97jnh3kphxktnclxnqtg8puc4xcrk4lcgn0squ3x3hcu68u9f0uks0spat8ftycw4yxv64h8xhdlnr7kxgfzs5ggxp4wc9fxedvuhzf96jfwlcnrac", this.DefaultAccount.IncomingViewing.UnifiedKey);
 	}
 
-	[Fact]
+	[Test]
 	public void GetDiversifiedAddress_TimeBased()
 	{
 		UnifiedAddress diversified = this.DefaultAccount.GetDiversifiedAddress();
@@ -53,7 +53,7 @@ public class ZcashAccountTests : TestBase
 		Assert.NotEqual(this.DefaultAccount.DefaultAddress, diversified);
 	}
 
-	[Fact]
+	[Test]
 	public void GetDiversifiedAddress_ManualIndex()
 	{
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
@@ -73,7 +73,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(diversified, diversified2);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetDiversifierIndex_SaplingReceiver()
 	{
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
@@ -84,7 +84,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(expectedIndex, actualIndex);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetDiversifierIndex_OrchardReceiver()
 	{
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
@@ -95,7 +95,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(expectedIndex, actualIndex);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetDiversifierIndex_DualReceiverMatch()
 	{
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
@@ -106,7 +106,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(expectedIndex, actualIndex);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetDiversifierIndex_DualReceiverMismatch()
 	{
 		ZcashAccount account = new(new Zip32HDWallet(Mnemonic, ZcashNetwork.MainNet));
@@ -125,7 +125,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(actualIndex);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetTransparentIndex_NoMatch()
 	{
 		ZcashAccount account = new(Zip32);
@@ -135,7 +135,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(index);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetTransparentIndex_MatchWithinMax()
 	{
 		ZcashAccount account = new(Zip32);
@@ -146,7 +146,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(5u, index);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetTransparentIndex_MatchBeyondMaxWithinGap()
 	{
 		ZcashAccount account = new(Zip32);
@@ -158,7 +158,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(5u, index);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetTransparentIndex_MatchBeyondMaxAndGap()
 	{
 		ZcashAccount account = new(Zip32);
@@ -174,7 +174,7 @@ public class ZcashAccountTests : TestBase
 	/// Verifies that for an account with a sapling key that doesn't produce a valid diversifier at index 0,
 	/// the default UA uses the same index for all receivers, as required by ZIP-316.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void DefaultAddress_WithInvalidSaplingKeyAt0_HasConsistentIndexes()
 	{
 		// The particular mnemonic used here has a sapling key that doesn't produce a valid diversifier at index 0.
@@ -182,13 +182,13 @@ public class ZcashAccountTests : TestBase
 		UnifiedAddressTests.AssertAddressIndex(account, new DiversifierIndex(3), account.DefaultAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void TryGetDiversifierIndex_TransparentReceiverOnly()
 	{
 		Assert.False(this.DefaultAccount.TryGetDiversifierIndex(this.DefaultAccount.IncomingViewing.Transparent!.DefaultAddress, out _));
 	}
 
-	[Fact]
+	[Test]
 	public void GetTransparentAddress()
 	{
 		Assert.Equal<uint?>(0, this.DefaultAccount.MaxTransparentAddressIndex);
@@ -205,7 +205,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(5, tAddrs.Count);
 	}
 
-	[Fact]
+	[Test]
 	public void GetTransparentAddress_WithoutTransparentKey()
 	{
 		Assert.True(ZcashAccount.TryImportAccount(this.DefaultAccount.Spending!.Orchard!.TextEncoding, out ZcashAccount? account));
@@ -213,7 +213,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Throws<InvalidOperationException>(() => account.GetTransparentAddress());
 	}
 
-	[Fact]
+	[Test]
 	public void AddressSendsToThisAccount_Unified()
 	{
 		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.DefaultAddress));
@@ -221,7 +221,7 @@ public class ZcashAccountTests : TestBase
 		Assert.False(this.DefaultAccount.AddressSendsToThisAccount(this.AlternateAccount.DefaultAddress));
 	}
 
-	[Fact]
+	[Test]
 	public void AddressSendsToThisAccount_Sapling()
 	{
 		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.IncomingViewing.Sapling!.DefaultAddress));
@@ -232,7 +232,7 @@ public class ZcashAccountTests : TestBase
 	/// Verifies that a compound unified address with receivers both inside and outside the account
 	/// is recognized as an unfriendly address.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void AddressSendsToThisAccount_HijackerDefense()
 	{
 		// Craft a UA that has a receiver in this account and outside this account.
@@ -245,7 +245,7 @@ public class ZcashAccountTests : TestBase
 		Assert.False(this.DefaultAccount.AddressSendsToThisAccount(unfriendly));
 	}
 
-	[Fact]
+	[Test]
 	public void AddressSendsToThisAccount_Internal()
 	{
 		Assert.True(this.DefaultAccount.AddressSendsToThisAccount(this.DefaultAccount.FullViewing!.Internal.Orchard!.IncomingViewingKey.DefaultAddress, out bool? isInternalAddress));
@@ -258,7 +258,7 @@ public class ZcashAccountTests : TestBase
 		Assert.False(isInternalAddress);
 	}
 
-	[Fact]
+	[Test]
 	public void FullViewingAccount()
 	{
 		ZcashAccount fullViewAccount = new(this.DefaultAccount.FullViewing!.UnifiedKey);
@@ -272,7 +272,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(this.DefaultAccount.FullViewing!.UnifiedKey, fullViewAccount.FullViewing?.UnifiedKey);
 	}
 
-	[Fact]
+	[Test]
 	public void IncomingViewingAccount()
 	{
 		ZcashAccount incomingViewAccount = new(this.DefaultAccount.IncomingViewing.UnifiedKey);
@@ -285,7 +285,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Equal(this.DefaultAccount.IncomingViewing!.UnifiedKey, incomingViewAccount.IncomingViewing?.UnifiedKey);
 	}
 
-	[Fact]
+	[Test]
 	public void HasDiversifiableKeys()
 	{
 		// Default account has diversifiable keys.
@@ -301,14 +301,14 @@ public class ZcashAccountTests : TestBase
 		Assert.False(new ZcashAccount(UnifiedViewingKey.Incoming.Create(this.DefaultAccount.IncomingViewing.Transparent!)).HasDiversifiableKeys);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_InvalidKey()
 	{
 		Assert.False(ZcashAccount.TryImportAccount("abc", out ZcashAccount? account));
 		Assert.Null(account);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_Spending_Orchard()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.Spending!.Orchard!.TextEncoding);
@@ -325,7 +325,7 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing.Orchard);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_Spending_Sapling()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.Spending!.Sapling!.TextEncoding);
@@ -342,7 +342,7 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing.Sapling);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_UVK()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.FullViewing!.UnifiedKey.TextEncoding);
@@ -361,7 +361,7 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing.Orchard);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_FullViewing_Orchard()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.FullViewing!.Orchard!.TextEncoding);
@@ -380,7 +380,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(account.IncomingViewing.Sapling);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_ExtendedFullViewing_Sapling()
 	{
 		ZcashAccount account = this.ImportAccount(Zip32.CreateSaplingAccount(0).ExtendedFullViewingKey.TextEncoding);
@@ -399,7 +399,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_FullViewing_Sapling()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.FullViewing!.Sapling!.TextEncoding);
@@ -418,7 +418,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_Spending_Transparent()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.Spending!.Transparent!.TextEncoding);
@@ -440,7 +440,7 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing.Transparent);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_FullViewing_Transparent()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.FullViewing!.Transparent!.TextEncoding);
@@ -459,7 +459,7 @@ public class ZcashAccountTests : TestBase
 		Assert.NotNull(account.IncomingViewing.Transparent);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_IncomingViewing_Orchard()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.IncomingViewing.Orchard!.TextEncoding);
@@ -475,7 +475,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_IncomingViewing_Sapling()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.IncomingViewing.Sapling!.TextEncoding);
@@ -491,7 +491,7 @@ public class ZcashAccountTests : TestBase
 		Assert.Null(account.IncomingViewing.Transparent);
 	}
 
-	[Fact]
+	[Test]
 	public void TryImportAccount_IncomingViewing_Unified()
 	{
 		ZcashAccount account = this.ImportAccount(this.DefaultAccount.IncomingViewing.UnifiedKey.TextEncoding);

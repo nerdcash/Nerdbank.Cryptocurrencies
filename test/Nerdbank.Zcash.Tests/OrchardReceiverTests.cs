@@ -3,7 +3,7 @@
 
 public class OrchardReceiverTests
 {
-	[Fact]
+	[Test]
 	public void Ctor()
 	{
 		byte[] d = new byte[88 / 8];
@@ -19,20 +19,20 @@ public class OrchardReceiverTests
 		Assert.Equal(0, receiver.D[0]);
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_ArgValidation()
 	{
 		Assert.Throws<ArgumentException>("d", () => new OrchardReceiver(new byte[1], new byte[256 / 8]));
 		Assert.Throws<ArgumentException>("pkd", () => new OrchardReceiver(new byte[88 / 8], new byte[1]));
 	}
 
-	[Fact]
+	[Test]
 	public void Pool_Orchard() => Assert.Equal(Pool.Orchard, default(OrchardReceiver).Pool);
 
-	[Fact]
+	[Test]
 	public void UnifiedReceiverTypeCode() => Assert.Equal(0x03, OrchardReceiver.UnifiedReceiverTypeCode);
 
-	[Fact]
+	[Test]
 	public void EqualityOfT()
 	{
 		byte[] d = new byte[11];
@@ -52,7 +52,7 @@ public class OrchardReceiverTests
 		Assert.NotEqual(receiver_unique2, receiver_unique);
 	}
 
-	[Fact]
+	[Test]
 	public void EqualsObjectOverride()
 	{
 		byte[] d = new byte[11];

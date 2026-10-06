@@ -7,9 +7,9 @@ public class Base58CheckTests
 {
 	private readonly ITestOutputHelper logger;
 
-	public Base58CheckTests(ITestOutputHelper logger)
+	public Base58CheckTests()
 	{
-		this.logger = logger;
+		this.logger = TestOutputHelper.Instance;
 	}
 
 	/// <summary>
@@ -17,11 +17,11 @@ public class Base58CheckTests
 	/// </summary>
 	public static object?[][] Pairings => new object?[][]
 	{
-		new[] { "00F54A5851E9372B87810A8E60CDD2E7CFD80B6E31", "1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs" },
-		new[] { string.Empty, "3QJmnh" },
+		new object?[] { "00F54A5851E9372B87810A8E60CDD2E7CFD80B6E31", "1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs" },
+		new object?[] { string.Empty, "3QJmnh" },
 	};
 
-	[Theory, MemberData(nameof(Pairings))]
+	[Test, MethodDataSource(nameof(Pairings))]
 	public void Encode(string hexEncoding, string base58checkEncoding)
 	{
 		Span<byte> decodedBytes = Convert.FromHexString(hexEncoding);
@@ -30,7 +30,7 @@ public class Base58CheckTests
 		Assert.Equal(base58checkEncoding, encodedChars[..actualCount].ToString(), ignoreCase: false);
 	}
 
-	[Theory, MemberData(nameof(Pairings))]
+	[Test, MethodDataSource(nameof(Pairings))]
 	public void Decode(string hexEncoding, string base58checkEncoding)
 	{
 		int expectedBytesWrittenCount = hexEncoding.Length / 2;
@@ -42,15 +42,15 @@ public class Base58CheckTests
 		Assert.Equal(hexEncoding, Convert.ToHexString(actual[..actualBytesWrittenCount]), ignoreCase: true);
 	}
 
-	[Theory]
-	[InlineData("")]
-	[InlineData("111")]
+	[Test]
+	[Arguments("")]
+	[Arguments("111")]
 	public void Decode_BadInput(string badBase58)
 	{
 		Assert.Throws<FormatException>(() => Encoder.Decode(badBase58, default));
 	}
 
-	[Fact]
+	[Test]
 	public void Decode_InputBufferTooSmall()
 	{
 		Assert.Throws<ArgumentException>(() =>
@@ -60,7 +60,7 @@ public class Base58CheckTests
 		});
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_InvalidChecksum()
 	{
 		// Arrange
@@ -76,7 +76,7 @@ public class Base58CheckTests
 		Assert.Equal(expectedDecodeResult, decodeResult);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_InputTooShort_InvalidChecksumResult()
 	{
 		// Arrange
@@ -92,7 +92,7 @@ public class Base58CheckTests
 		Assert.Equal(expectedDecodeResult, decodeResult);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_InvalidCharacter()
 	{
 		Assert.False(Base58Check.TryDecode(":", new byte[10], out DecodeError? decodeError, out string? errorMessage, out _));
@@ -100,7 +100,7 @@ public class Base58CheckTests
 		Assert.Equal(DecodeError.InvalidCharacter, decodeError.Value);
 	}
 
-	[Fact]
+	[Test]
 	public void TryDecode_OutputBufferTooShort()
 	{
 		Assert.False(Base58Check.TryDecode("1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs", new byte[5], out DecodeError? decodeError, out string? errorMessage, out _));
