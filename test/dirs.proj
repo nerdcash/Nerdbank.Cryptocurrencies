@@ -10,7 +10,11 @@
   </ItemGroup>
 
   <Target Name="GetNativeAOTTests" Returns="@(_NativeAOTTest)">
-    <MSBuild Projects="@(ProjectReference)" Targets="GetNativeAOTTestVariants" BuildInParallel="true">
+    <ItemGroup>
+      <!-- MultiRID references produce one item per RID; only the variants that run on this machine (Test != false) get a NativeAOT build. -->
+      <_NativeAOTTestCandidate Include="@(ProjectReference)" Condition="'%(ProjectReference.Test)' != 'false'" />
+    </ItemGroup>
+    <MSBuild Projects="@(_NativeAOTTestCandidate)" Targets="GetNativeAOTTestVariants" BuildInParallel="true">
       <Output TaskParameter="TargetOutputs" ItemName="_NativeAOTTest" />
     </MSBuild>
     <ItemGroup>
