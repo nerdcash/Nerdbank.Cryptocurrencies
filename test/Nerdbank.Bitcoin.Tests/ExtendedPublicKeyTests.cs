@@ -5,7 +5,7 @@ using static Nerdbank.Bitcoin.Bip32HDWallet;
 
 public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 {
-		/// <summary>
+	/// <summary>
 	/// Asserts matching <see href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#test-vectors">Test vectors from BIP-32</see>
 	/// using the public key as the source of derivation wherever allowed.
 	/// </summary>

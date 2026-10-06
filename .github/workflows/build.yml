@@ -104,7 +104,7 @@ jobs:
       working-directory: .github
 
     - name: 🧪 test
-      run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
+      run: tools/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }} -IncludeNativeAOT
       shell: pwsh
 
     - name: 📢 Publish artifacts

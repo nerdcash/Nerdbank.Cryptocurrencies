@@ -76,10 +76,12 @@ public class ZcashAddressTests : TestBase
 	[Arguments(ValidTransparentP2PKHAddress, typeof(TransparentP2PKHAddress))]
 	[Arguments(ValidTransparentP2SHAddress, typeof(TransparentP2SHAddress))]
 	[Arguments(ValidTexAddress, typeof(TexAddress))]
-	public void Decode_ReturnsAppropriateType(string address, Type expectedKind)
+	public void Decode_ReturnsAppropriateType(string address, object expectedKind)
 	{
+		// The parameter is typed as object rather than Type because TUnit's generated metadata for a Type parameter
+		// produces trim warning IL2111 when the test project is compiled with NativeAOT.
 		var addr = ZcashAddress.Decode(address);
-		Assert.IsAssignableFrom(expectedKind, addr);
+		Assert.IsAssignableFrom((Type)expectedKind, addr);
 	}
 
 	[Test]
