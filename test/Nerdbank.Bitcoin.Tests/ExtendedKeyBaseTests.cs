@@ -24,9 +24,9 @@ public class ExtendedKeyBaseTests : Bip32HDWalletTestBase
 	[Arguments("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHL", DecodeError.InvalidChecksum)] // invalid checksum
 	public void ExtendedKey_TryDecode(string base58Encoded, DecodeError expectedDecodeError)
 	{
-		this.logger.WriteLine($"Decoding {base58Encoded}");
+		this.Logger.WriteLine($"Decoding {base58Encoded}");
 		Assert.False(ExtendedKeyBase.TryDecode(base58Encoded, out DecodeError? decodeError, out string? errorMessage, out _));
-		this.logger.WriteLine($"DecodeError {decodeError}: {errorMessage}");
+		this.Logger.WriteLine($"DecodeError {decodeError}: {errorMessage}");
 		Assert.Equal(expectedDecodeError, decodeError.Value);
 	}
 
@@ -34,7 +34,7 @@ public class ExtendedKeyBaseTests : Bip32HDWalletTestBase
 	public void ExtendedKeyBase_TryDecode_Empty()
 	{
 		Assert.False(ExtendedKeyBase.TryDecode(string.Empty, out DecodeError? decodeError, out string? errorMessage, out _));
-		this.logger.WriteLine($"DecodeError {decodeError}: {errorMessage}");
+		this.Logger.WriteLine($"DecodeError {decodeError}: {errorMessage}");
 	}
 
 	[Test]

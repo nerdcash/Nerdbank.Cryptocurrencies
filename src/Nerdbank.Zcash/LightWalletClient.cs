@@ -313,9 +313,11 @@ public partial class LightWalletClient : IDisposable
 	{
 		Requires.NotNull(address);
 
-		return [.. LightWalletMethods.GetIncomingPayments(this.dbinit, address.Address, startingBlock)
-			.Select(CreateTransaction)
-			.OrderBy(t => t.When)];
+		return [
+			.. LightWalletMethods.GetIncomingPayments(this.dbinit, address.Address, startingBlock)
+				.Select(CreateTransaction)
+				.OrderBy(t => t.When),
+		];
 	}
 
 	/// <summary>
@@ -461,11 +463,12 @@ public partial class LightWalletClient : IDisposable
 			}
 		}
 
-		return [..
-			from tAddrString in index
-			let addr = (TransparentAddress)ZcashAddress.Decode(tAddrString.Key)
-			orderby tAddrString.Value.Age
-			select (addr, tAddrString.Value.Balance)];
+		return [
+			.. from tAddrString in index
+				let addr = (TransparentAddress)ZcashAddress.Decode(tAddrString.Key)
+				orderby tAddrString.Value.Age
+				select (addr, tAddrString.Value.Balance),
+		];
 	}
 
 	/// <inheritdoc cref="ShieldAsync(ZcashAccount, TransparentAddress?, ulong, in Memo?, CancellationToken)"/>
@@ -553,8 +556,9 @@ public partial class LightWalletClient : IDisposable
 			line.ToAddress.HasShieldedReceiver ? line.Memo.RawBytes.ToArray() :
 			line.Memo.MemoFormat == Zip302MemoFormat.MemoFormat.NoMemo ? null :
 			throw new InvalidOperationException(Strings.MemoForTransparentReceiverNotSupported);
-		TransactionSendDetail[] details = [.. payments
-			.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), GetMemoBytes(p), p.ToAddress))];
+		TransactionSendDetail[] details = [
+			.. payments.Select(p => new TransactionSendDetail((ulong)(p.Amount * ZatsPerZEC), GetMemoBytes(p), p.ToAddress)),
+		];
 		return details;
 	}
 
