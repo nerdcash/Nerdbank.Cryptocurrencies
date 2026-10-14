@@ -8,8 +8,8 @@ public partial record Transaction
 	/// <summary>
 	/// Describes an individual line item (a spend or a receive) in a transaction.
 	/// </summary>
-	/// <param name="Amount">The amount spent.</param>
 	/// <param name="ToAddress">The receiver of this ZEC.</param>
+	/// <param name="Amount">The amount spent.</param>
 	/// <param name="Memo">The memo included for this recipient.</param>
 	public record struct LineItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo)
 	{

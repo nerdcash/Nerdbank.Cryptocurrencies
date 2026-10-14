@@ -9,14 +9,14 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 	public void Create()
 	{
 		var mnemonic = Bip39Mnemonic.Parse("diary slender airport");
-		this.logger.WriteLine(mnemonic.SeedPhrase);
+		this.Logger.WriteLine(mnemonic.SeedPhrase);
 
 		using var extKey = ExtendedPrivateKey.Create(mnemonic);
 		string actual = extKey.ToString();
 
 		string expected = "xprv9s21ZrQH143K3YEex7MKRytjL5o6c8T9jZ8MUQPftJHJDAcitqjWTTiXh6sGNBdLhRiMNwMNQvGVu86qFVzCSKtRqNqBsppThKWnQ6GXJxW";
-		this.logger.WriteLine($"EXPECTED: {expected}");
-		this.logger.WriteLine($"ACTUAL:   {actual}");
+		this.Logger.WriteLine($"EXPECTED: {expected}");
+		this.Logger.WriteLine($"ACTUAL:   {actual}");
 		Assert.Equal(expected, actual);
 	}
 
@@ -24,17 +24,17 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 	public void PublicKey()
 	{
 		var mnemonic = Bip39Mnemonic.Parse("diary slender airport");
-		this.logger.WriteLine(mnemonic.SeedPhrase);
+		this.Logger.WriteLine(mnemonic.SeedPhrase);
 
 		using var privateKey = ExtendedPrivateKey.Create(mnemonic);
 		string actual = privateKey.PublicKey.ToString();
 
 		string expected = "xpub661MyMwAqRbcG2K848tKo7qTt7db1bB16n3xGnoHSdpH5xwsSP3m1G31YMDw3C5bugL4CxHaCPKTvj1rFi8aFaY9zGT8E1GUdFt9Mst2UNu";
-		this.logger.WriteLine($"EXPECTED: {expected}");
-		this.logger.WriteLine($"ACTUAL:   {actual}");
+		this.Logger.WriteLine($"EXPECTED: {expected}");
+		this.Logger.WriteLine($"ACTUAL:   {actual}");
 		Assert.Equal(expected, actual);
 
-		this.logger.WriteLine($"Identifier: {Convert.ToHexString(privateKey.PublicKey.Identifier)}");
+		this.Logger.WriteLine($"Identifier: {Convert.ToHexString(privateKey.PublicKey.Identifier)}");
 	}
 
 	/// <summary>
@@ -46,7 +46,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 	{
 		ExtendedPrivateKey current = ExtendedPrivateKey.Create(Convert.FromHexString(vector.SeedAsHex));
 		Bip32KeyPath keyPath = Bip32KeyPath.Root;
-		this.logger.WriteLine($"Initial state: {keyPath}");
+		this.Logger.WriteLine($"Initial state: {keyPath}");
 		TestVectorStep step = vector.Steps[0];
 		AssertMatch();
 
@@ -54,7 +54,7 @@ public class ExtendedPrivateKeyTests : Bip32HDWalletTestBase
 		{
 			step = vector.Steps[i];
 			keyPath = new Bip32KeyPath(step.ChildIndex, keyPath);
-			this.logger.WriteLine($"Step {i}: {keyPath}");
+			this.Logger.WriteLine($"Step {i}: {keyPath}");
 			current = current.Derive(step.ChildIndex);
 			AssertMatch();
 		}

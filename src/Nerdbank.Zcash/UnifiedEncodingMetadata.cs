@@ -73,6 +73,20 @@ public record UnifiedEncodingMetadata
 	internal bool HasMustUnderstandMetadata => this.ExpirationDate.HasValue || this.ExpirationHeight.HasValue;
 
 	/// <summary>
+	/// Decodes a value for <see cref="ExpirationDate"/> from its unified encoding.
+	/// </summary>
+	/// <param name="span">The 8 byte buffer to decode.</param>
+	/// <returns>The value to use for <see cref="ExpirationDate"/>.</returns>
+	internal static DateTimeOffset DecodeExpirationDate(ReadOnlySpan<byte> span) => DateTimeOffset.FromUnixTimeSeconds(checked((long)BitUtilities.ReadUInt64LE(span)));
+
+	/// <summary>
+	/// Decodes a value for <see cref="ExpirationHeight"/> from its unified encoding.
+	/// </summary>
+	/// <param name="span">The 4 byte buffer to decode.</param>
+	/// <returns>The value to use for <see cref="ExpirationHeight"/>.</returns>
+	internal static uint DecodeExpirationHeight(ReadOnlySpan<byte> span) => BitUtilities.ReadUInt32LE(span);
+
+	/// <summary>
 	/// Gets the unified elements that represent this metadata.
 	/// </summary>
 	/// <returns>A sequence of elements.</returns>
@@ -102,20 +116,6 @@ public record UnifiedEncodingMetadata
 			};
 		}
 	}
-
-	/// <summary>
-	/// Decodes a value for <see cref="ExpirationDate"/> from its unified encoding.
-	/// </summary>
-	/// <param name="span">The 8 byte buffer to decode.</param>
-	/// <returns>The value to use for <see cref="ExpirationDate"/>.</returns>
-	internal static DateTimeOffset DecodeExpirationDate(ReadOnlySpan<byte> span) => DateTimeOffset.FromUnixTimeSeconds(checked((long)BitUtilities.ReadUInt64LE(span)));
-
-	/// <summary>
-	/// Decodes a value for <see cref="ExpirationHeight"/> from its unified encoding.
-	/// </summary>
-	/// <param name="span">The 4 byte buffer to decode.</param>
-	/// <returns>The value to use for <see cref="ExpirationHeight"/>.</returns>
-	internal static uint DecodeExpirationHeight(ReadOnlySpan<byte> span) => BitUtilities.ReadUInt32LE(span);
 
 	private class Element : IUnifiedEncodingElement
 	{

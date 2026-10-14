@@ -103,11 +103,11 @@ public abstract class Bip32HDWalletTestBase
 				"xprv9xJocDuwtYCMNAo3Zw76WENQeAS6WGXQ55RCy7tDJ8oALr4FWkuVoHJeHVAcAqiZLE7Je3vZJHxspZdFHfnBEjHqU5hG1Jaj32dVoS6XLT1"),
 		});
 
-	protected readonly ITestOutputHelper logger;
+	protected readonly ITestOutputHelper Logger;
 
 	public Bip32HDWalletTestBase()
 	{
-		this.logger = TestOutputHelper.Instance;
+		this.Logger = TestOutputHelper.Instance;
 	}
 
 	public static object[][] TestVectors => new object[][]

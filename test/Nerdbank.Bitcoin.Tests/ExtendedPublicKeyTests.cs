@@ -16,7 +16,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 		ExtendedPrivateKey m = ExtendedPrivateKey.Create(Convert.FromHexString(vector.SeedAsHex));
 		ExtendedPublicKey current = m.PublicKey;
 		Bip32KeyPath keyPath = Bip32KeyPath.Root;
-		this.logger.WriteLine($"Initial state: {keyPath}");
+		this.Logger.WriteLine($"Initial state: {keyPath}");
 		TestVectorStep step = vector.Steps[0];
 		AssertMatch();
 
@@ -26,7 +26,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 			keyPath = new Bip32KeyPath(step.ChildIndex, keyPath);
 			if (keyPath.IsHardened)
 			{
-				this.logger.WriteLine($"Step {i}: {keyPath} (skipped due to hardened child)");
+				this.Logger.WriteLine($"Step {i}: {keyPath} (skipped due to hardened child)");
 
 				// Continue the derivation by way of the private key so wecan take the next step.
 				current = m.Derive(keyPath).PublicKey;
@@ -34,7 +34,7 @@ public class ExtendedPublicKeyTests : Bip32HDWalletTestBase
 			}
 			else
 			{
-				this.logger.WriteLine($"Step {i}: {keyPath}");
+				this.Logger.WriteLine($"Step {i}: {keyPath}");
 				current = current.Derive(step.ChildIndex);
 				AssertMatch();
 			}
