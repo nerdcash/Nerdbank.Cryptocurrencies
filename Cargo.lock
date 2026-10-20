@@ -556,7 +556,7 @@ dependencies = [
  "hmac 0.13.0-pre.4",
  "rand_core 0.6.4",
  "ripemd 0.2.0-pre.4",
- "secp256k1",
+ "secp256k1 0.29.1",
  "sha2 0.11.0-pre.4",
  "subtle",
  "zeroize",
@@ -3431,7 +3431,7 @@ dependencies = [
  "redjubjub",
  "ripemd 0.1.3",
  "sapling-crypto",
- "secp256k1",
+ "secp256k1 0.33.1",
  "serde",
  "serde_with",
  "sha2 0.10.9",
@@ -4471,8 +4471,17 @@ version = "0.29.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9465315bc9d4566e1724f0fffcbcc446268cb522e60f9a27bcded6b19c108113"
 dependencies = [
- "rand 0.8.5",
- "secp256k1-sys",
+ "secp256k1-sys 0.10.1",
+]
+
+[[package]]
+name = "secp256k1"
+version = "0.33.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7f404a8dab7a7a5a631e741d8699aa9c8e1d689fc26ccf897c7187565490b69"
+dependencies = [
+ "rand 0.9.5",
+ "secp256k1-sys 0.14.1",
 ]
 
 [[package]]
@@ -4480,6 +4489,15 @@ name = "secp256k1-sys"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4387882333d3aa8cb20530a17c69a3752e97837832f34f6dccc760e715001d9"
+dependencies = [
+ "cc",
+]
+
+[[package]]
+name = "secp256k1-sys"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6b2992d4a3cd244539a7d5d0966aadbe5ca7fb868a5d7e38c29499b9e709bbd"
 dependencies = [
  "cc",
 ]
@@ -7465,7 +7483,7 @@ dependencies = [
  "rayon",
  "rust_decimal",
  "sapling-crypto",
- "secp256k1",
+ "secp256k1 0.33.1",
  "secrecy",
  "serde",
  "serde_json",
@@ -7533,7 +7551,7 @@ dependencies = [
  "sapling-crypto",
  "schemerz",
  "schemerz-rusqlite",
- "secp256k1",
+ "secp256k1 0.33.1",
  "secrecy",
  "serde",
  "shardtree",
@@ -7596,7 +7614,7 @@ dependencies = [
  "rand_core 0.6.4",
  "regex",
  "sapling-crypto",
- "secp256k1",
+ "secp256k1 0.33.1",
  "secrecy",
  "subtle",
  "tracing",
@@ -7686,7 +7704,7 @@ dependencies = [
  "rand_xorshift",
  "redjubjub",
  "sapling-crypto",
- "secp256k1",
+ "secp256k1 0.33.1",
  "sha2 0.10.9",
  "zcash_encoding",
  "zcash_note_encryption",
@@ -7744,7 +7762,7 @@ dependencies = [
  "bounded-vec",
  "hex",
  "ripemd 0.1.3",
- "secp256k1",
+ "secp256k1 0.29.1",
  "sha1",
  "sha2 0.10.9",
  "thiserror 2.0.17",
@@ -7772,7 +7790,7 @@ dependencies = [
  "nonempty",
  "proptest",
  "ripemd 0.1.3",
- "secp256k1",
+ "secp256k1 0.33.1",
  "sha2 0.10.9",
  "subtle",
  "zcash_address",
