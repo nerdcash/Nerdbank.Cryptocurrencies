@@ -261,7 +261,7 @@ internal static class UnifiedEncoding
 
 		static void Xor(Span<byte> left, ReadOnlySpan<byte> right)
 		{
-			for (int i = 0; i < left.Length & i < right.Length; i++)
+			for (int i = 0; (i < left.Length) & (i < right.Length); i++)
 			{
 				left[i] ^= right[i];
 			}
