@@ -235,7 +235,7 @@ public sealed class Bech32
 		foreach (byte v in buffer)
 		{
 			uint b = chk >> 25;
-			chk = (chk & 0x1ffffff) << 5 ^ v;
+			chk = ((chk & 0x1ffffff) << 5) ^ v;
 			for (int i = 0; i < 5; i++)
 			{
 				chk ^= ((b >> i) & 1) != 0 ? genSpan[i] : 0;
