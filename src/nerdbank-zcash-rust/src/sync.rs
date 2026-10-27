@@ -1,4 +1,4 @@
-use futures_util::{StreamExt, TryStreamExt};
+use futures_util::{StreamExt, TryStreamExt, stream};
 use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
@@ -7,14 +7,12 @@ use rusqlite::{Connection, named_params};
 use std::{
     borrow::Borrow,
     collections::{BTreeSet, HashMap},
+    future::Future,
     ops::Range,
     path::Path,
     sync::Arc,
 };
-use tokio::{
-    select,
-    sync::{Mutex, mpsc},
-};
+use tokio::{select, sync::mpsc};
 use tokio_util::sync::CancellationToken;
 use tonic::{Status, transport::Channel};
 use tracing::{debug, info};
@@ -85,6 +83,12 @@ const CHUNK_CHANNEL_CAPACITY: usize = 10;
 /// during trial decryption and other stages.
 /// https://discord.com/channels/809218587167293450/1250828701864693761/1250942856198230086
 const BLOCKS_CHUNK_THRESHOLD: usize = BLOCK_ACTIONS_MEMORY_LIMIT / CHUNK_CHANNEL_CAPACITY;
+
+/// Maximum number of in-flight lightwalletd reads for one ordered batch.
+///
+/// Gap-limit rounds and scan ranges stay serial. Only independent reads inside one round overlap,
+/// and their results are still applied in the previous order.
+const RPC_CONCURRENCY: usize = 8;
 
 pub async fn sync<P: AsRef<Path>>(
     uri: Uri,
@@ -205,32 +209,76 @@ async fn sync_scoped<P: AsRef<Path>>(
             Ok(())
         }
 
-        // Download all the transparent ops related to the wallet first.
-        // We don't need batches for this as that would just multiply the number of LWD requests we have to make.
+        // Download transparent transactions before shielded scanning.
+        // Each gap-limit round stays serial, because the next addresses exist only after this
+        // round's results are applied. Within a round, txid fetches overlap up to
+        // RPC_CONCURRENCY and are applied in the same address order as a sequential scan.
         let mut taddrs = db.data.get_transparent_addresses_and_sync_heights()?;
         let mut taddrs_to_scan = taddrs.clone();
         while !taddrs_to_scan.is_empty() {
-            for addr_info in taddrs.iter_mut().filter(|a| taddrs_to_scan.contains(a)) {
+            let mut planned = Vec::new();
+            // A height past the tip used to fail inside the sequential loop, after earlier
+            // addresses in that round had already been stored. Collect the valid prefix, apply
+            // it, then return the same error.
+            let mut height_error = None;
+            for (index, addr_info) in taddrs.iter().enumerate() {
+                if !taddrs_to_scan.contains(addr_info) {
+                    continue;
+                }
                 // In a weird case, I've seen the addr_info.height be greater than the tip_height, so we need to check for that.
-                let range = BlockRange::try_from(addr_info.height..(status.tip_height + 1).into())
-                    .map_err(|_| {
-                        Error::Internal(format!(
-                            "T address {:?} has sync height {}, which exceeds tip height {}.",
-                            addr_info.address, addr_info.height, status.tip_height
-                        ))
-                    })?;
+                let range =
+                    match BlockRange::try_from(addr_info.height..(status.tip_height + 1).into()) {
+                        Ok(range) => range,
+                        Err(_) => {
+                            height_error = Some(Error::Internal(format!(
+                                "T address {:?} has sync height {}, which exceeds tip height {}.",
+                                addr_info.address, addr_info.height, status.tip_height
+                            )));
+                            break;
+                        }
+                    };
+                if range.is_empty() {
+                    continue;
+                }
+                planned.push(PlannedTransparent {
+                    index,
+                    address: addr_info.address,
+                    range,
+                });
+            }
 
-                let txids = download_transparent_transactions(
-                    &mut client,
+            let fetches = planned.into_iter().map(|job| {
+                let fetch_client = client.clone();
+                let network = state.network;
+                let cancellation_token = state.cancellation_token.clone();
+                async move {
+                    let raw_transactions = fetch_transparent_transactions(
+                        fetch_client,
+                        network,
+                        job.address,
+                        &job.range,
+                        cancellation_token,
+                    )
+                    .await?;
+                    Ok::<_, Error>(FetchedTransparent {
+                        index: job.index,
+                        address: job.address,
+                        range: job.range,
+                        raw_transactions,
+                    })
+                }
+            });
+
+            apply_in_order_bounded(fetches, RPC_CONCURRENCY, |fetched| {
+                let txids = store_transparent_transactions(
                     &mut db,
                     &state.network,
-                    &addr_info.address,
-                    &range,
-                    state.cancellation_token.clone(),
-                )
-                .await?;
+                    &fetched.address,
+                    &fetched.range,
+                    fetched.raw_transactions,
+                )?;
                 if !txids.is_empty() {
-                    addr_info.used = true;
+                    taddrs[fetched.index].used = true;
                     report_new_transactions(
                         txids,
                         state.progress.borrow(),
@@ -240,6 +288,12 @@ async fn sync_scoped<P: AsRef<Path>>(
                         state.network,
                     )?;
                 }
+                Ok(())
+            })
+            .await?;
+
+            if let Some(error) = height_error {
+                return Err(error);
             }
 
             taddrs_to_scan = fill_in_taddrs_to_gap_limit(&mut taddrs, &mut db.data)?;
@@ -726,8 +780,6 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
     network: &Network,
     cancellation_token: CancellationToken,
 ) -> Result<Vec<TxId>, Error> {
-    let _timer = SyncTiming::current().start(Phase::TxEnhance);
-    let client = Arc::new(Mutex::new(client));
     // Scope the database connection so it's closed before we use the db argument,
     // to avoid 'database is locked' errors.
     let txids;
@@ -739,37 +791,50 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
             .collect::<Result<Vec<_>, _>>()?;
     }
 
-    for txid in txids.iter() {
-        let raw_tx = webrequest_with_retry(
-            || async {
-                Ok(client
-                    .lock()
-                    .await
-                    .get_transaction(TxFilter {
-                        hash: txid.as_ref().to_vec(),
-                        ..Default::default()
-                    })
-                    .await?
-                    .into_inner())
-            },
-            cancellation_token.clone(),
-        )
-        .await?;
+    let network = *network;
+    let fetches = txids.iter().copied().map(|txid| {
+        let fetch_client = client.clone();
+        let cancellation_token = cancellation_token.clone();
+        async move {
+            let raw_tx = {
+                let _timer = SyncTiming::current().start(Phase::TxEnhance);
+                webrequest_with_retry(
+                    || {
+                        let mut fetch_client = fetch_client.clone();
+                        let hash = txid.as_ref().to_vec();
+                        async move {
+                            Ok(fetch_client
+                                .get_transaction(TxFilter {
+                                    hash,
+                                    ..Default::default()
+                                })
+                                .await?
+                                .into_inner())
+                        }
+                    },
+                    cancellation_token,
+                )
+                .await?
+            };
 
-        // The consensus branch ID passed in here does not matter:
-        // - v4 and below cache it internally, but all we do with this transaction while
-        //   it is in memory is decryption and serialization, neither of which use the
-        //   consensus branch ID.
-        // - v5 and above transactions ignore the argument, and parse the correct value
-        //   from their encoding.
-        let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
-        decrypt_and_store_transaction(
-            network,
-            &mut db.data,
-            &tx,
-            Some((raw_tx.height as u32).into()),
-        )?;
-    }
+            // The consensus branch ID passed in here does not matter:
+            // - v4 and below cache it internally, but all we do with this transaction while
+            //   it is in memory is decryption and serialization, neither of which use the
+            //   consensus branch ID.
+            // - v5 and above transactions ignore the argument, and parse the correct value
+            //   from their encoding.
+            let tx = Transaction::read(raw_tx.data.reader(), BranchId::Sapling)?;
+            Ok::<_, Error>((txid, tx, BlockHeight::from_u32(raw_tx.height as u32)))
+        }
+    });
+
+    // Fetches overlap. Decrypt-and-store stays in txid order so a failure still leaves the
+    // same prefix of transactions that a sequential loop would have committed.
+    apply_in_order_bounded(fetches, RPC_CONCURRENCY, |(_txid, tx, height)| {
+        decrypt_and_store_transaction(&network, &mut db.data, &tx, Some(height))?;
+        Ok(())
+    })
+    .await?;
 
     Ok(txids)
 }
@@ -830,42 +895,62 @@ async fn update_subtree_roots<P: Parameters>(
     Ok(())
 }
 
-async fn download_transparent_transactions(
-    client: &mut CompactTxStreamerClient<Channel>,
-    db: &mut Db,
-    network: &Network,
-    address: &TransparentAddress,
+struct PlannedTransparent {
+    index: usize,
+    address: TransparentAddress,
+    range: BlockRange,
+}
+
+struct FetchedTransparent {
+    index: usize,
+    address: TransparentAddress,
+    range: BlockRange,
+    raw_transactions: Vec<RawTransaction>,
+}
+
+async fn fetch_transparent_transactions(
+    client: CompactTxStreamerClient<Channel>,
+    network: Network,
+    address: TransparentAddress,
     range: &BlockRange,
     cancellation_token: CancellationToken,
-) -> Result<Vec<TxId>, Error> {
-    if range.block_range().is_empty() {
-        return Ok(vec![]);
-    }
-
+) -> Result<Vec<RawTransaction>, Error> {
     let _timer = SyncTiming::current().start(Phase::TransparentTxids);
-    let mut txids_for_new_transparent_transactions = vec![];
-    let client = Arc::new(Mutex::new(client));
-    let transparent_transactions = webrequest_with_retry(
-        || async {
-            client
-                .lock()
-                .await
-                .get_taddress_txids(TransparentAddressBlockFilter {
-                    address: address.encode(network),
-                    range: Some(range.into()),
-                })
-                .await?
-                .into_inner()
-                .try_collect::<Vec<_>>()
-                .await
+    let transactions = webrequest_with_retry(
+        || {
+            let mut client = client.clone();
+            let address = address.encode(&network);
+            let range = range.into();
+            async move {
+                client
+                    .get_taddress_txids(TransparentAddressBlockFilter {
+                        address,
+                        range: Some(range),
+                    })
+                    .await?
+                    .into_inner()
+                    .try_collect::<Vec<_>>()
+                    .await
+            }
         },
         cancellation_token,
     )
     .await?;
-    for rawtx in transparent_transactions {
+    Ok(transactions)
+}
+
+fn store_transparent_transactions(
+    db: &mut Db,
+    network: &Network,
+    address: &TransparentAddress,
+    range: &BlockRange,
+    raw_transactions: Vec<RawTransaction>,
+) -> Result<Vec<TxId>, Error> {
+    let mut txids = Vec::new();
+    for rawtx in raw_transactions {
         let height = BlockHeight::from_u32(rawtx.height as u32);
         let tx = Transaction::read(&rawtx.data[..], BranchId::for_height(network, height))?;
-        txids_for_new_transparent_transactions.push(tx.txid());
+        txids.push(tx.txid());
 
         // Record spends.
         decrypt_and_store_transaction(network, &mut db.data, &tx, Some(height))?;
@@ -895,7 +980,26 @@ async fn download_transparent_transactions(
     db.data
         .put_latest_scanned_block_for_transparent(address, range.end())?;
 
-    Ok(txids_for_new_transparent_transactions)
+    Ok(txids)
+}
+
+/// Polls `jobs` with at most `concurrency` futures in flight and applies each success in input order.
+///
+/// The first error is returned after every earlier success has been applied. Later futures are
+/// dropped, which cancels in-flight lightwalletd reads. A concurrency of 0 runs one at a time.
+async fn apply_in_order_bounded<T, E, Fut>(
+    jobs: impl IntoIterator<Item = Fut>,
+    concurrency: usize,
+    mut apply: impl FnMut(T) -> Result<(), E>,
+) -> Result<(), E>
+where
+    Fut: Future<Output = Result<T, E>>,
+{
+    let mut incoming = std::pin::pin!(stream::iter(jobs).buffered(concurrency.max(1)));
+    while let Some(item) = incoming.next().await {
+        apply(item?)?;
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone)]
@@ -1029,11 +1133,22 @@ async fn download_blocks(
         pool_types: vec![],
     };
 
+    // The first chunk's tree state is the block before the scan range, so it can be in flight
+    // for the whole compact-block stream. Later chunks arm a fetch once their first block arrives.
+    // Chunks are still sent in order. A prefetch is used only when its height matches the chunk.
+    let start_height: u64 = scan_range.block_range().start.into();
+    let mut prefetch = start_height
+        .checked_sub(1)
+        .map(|height| PrefetchedTreeState::spawn(client.clone(), height, timing.clone()));
+
     let mut blocks = Vec::new();
     let mut download = timing.start(Phase::BlockDownload);
     let mut stream = client.get_block_range(range).await?.into_inner();
     let mut accumulated_size = 0;
     while let Some(block) = stream.try_next().await? {
+        if blocks.is_empty() {
+            arm_tree_state_prefetch(&mut prefetch, client, block.height, &timing);
+        }
         // Process each block here
         accumulated_size += block.vtx.iter().fold(0, |acc, tx| {
             acc + tx.actions.len() + tx.outputs.len() + tx.spends.len()
@@ -1043,7 +1158,7 @@ async fn download_blocks(
         if accumulated_size > BLOCKS_CHUNK_THRESHOLD {
             // Tree-state fetches and channel backpressure are not block-download time.
             download.pause();
-            send_blocks_and_chainstate(client, blocks, &sender, &timing).await?;
+            send_blocks_and_chainstate(client, blocks, &sender, &timing, &mut prefetch).await?;
             blocks = Vec::new();
             accumulated_size = 0;
             download.resume();
@@ -1062,34 +1177,120 @@ async fn download_blocks(
     );
 
     if !blocks.is_empty() {
-        send_blocks_and_chainstate(client, blocks, &sender, &timing).await?;
-    }
-
-    async fn send_blocks_and_chainstate(
-        client: &mut CompactTxStreamerClient<Channel>,
-        blocks: Vec<CompactBlock>,
-        sender: &mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
-        timing: &SyncTiming,
-    ) -> Result<(), Status> {
-        let base_height = blocks[0].height - 1;
-        let chain_state = {
-            let _timer = timing.start(Phase::TreeState);
-            let tree_state = client
-                .get_tree_state(service::BlockId {
-                    height: base_height,
-                    ..Default::default()
-                })
-                .await?
-                .into_inner();
-            tree_state.to_chain_state()?
-        };
-
-        sender.send((blocks, chain_state)).await.unwrap();
-
-        Ok(())
+        send_blocks_and_chainstate(client, blocks, &sender, &timing, &mut prefetch).await?;
     }
 
     Ok(())
+}
+
+/// A `GetTreeState` round trip started before the chunk that needs it is ready to send.
+///
+/// Dropping the prefetch aborts the task so a discarded or cancelled fetch does not stay running.
+struct PrefetchedTreeState {
+    height: u64,
+    handle: tokio::task::JoinHandle<Result<ChainState, Status>>,
+}
+
+impl PrefetchedTreeState {
+    fn spawn(
+        mut client: CompactTxStreamerClient<Channel>,
+        height: u64,
+        timing: SyncTiming,
+    ) -> Self {
+        let handle =
+            tokio::spawn(async move { fetch_tree_state(&mut client, height, &timing).await });
+        Self { height, handle }
+    }
+
+    async fn into_chain_state(mut self) -> Result<ChainState, Status> {
+        // Poll through `self` so dropping this future still aborts the task.
+        let joined = (&mut self.handle).await;
+        match joined {
+            Ok(result) => result,
+            Err(error) if error.is_cancelled() => {
+                Err(Status::cancelled("tree state prefetch cancelled"))
+            }
+            Err(error) => Err(Status::internal(format!(
+                "tree state prefetch failed: {error}"
+            ))),
+        }
+    }
+}
+
+impl Drop for PrefetchedTreeState {
+    fn drop(&mut self) {
+        self.handle.abort();
+    }
+}
+
+fn arm_tree_state_prefetch(
+    prefetch: &mut Option<PrefetchedTreeState>,
+    client: &CompactTxStreamerClient<Channel>,
+    block_height: u64,
+    timing: &SyncTiming,
+) {
+    // Height 0 has no prior block. Leave that case to the send path, which keeps the
+    // previous wrapping subtraction instead of inventing a different base height.
+    let Some(base_height) = block_height.checked_sub(1) else {
+        *prefetch = None;
+        return;
+    };
+    if prefetch
+        .as_ref()
+        .is_some_and(|existing| existing.height == base_height)
+    {
+        return;
+    }
+    *prefetch = Some(PrefetchedTreeState::spawn(
+        client.clone(),
+        base_height,
+        timing.clone(),
+    ));
+}
+
+async fn fetch_tree_state(
+    client: &mut CompactTxStreamerClient<Channel>,
+    height: u64,
+    timing: &SyncTiming,
+) -> Result<ChainState, Status> {
+    let _timer = timing.start(Phase::TreeState);
+    let tree_state = client
+        .get_tree_state(service::BlockId {
+            height,
+            ..Default::default()
+        })
+        .await?
+        .into_inner();
+    Ok(tree_state.to_chain_state()?)
+}
+
+async fn send_blocks_and_chainstate(
+    client: &mut CompactTxStreamerClient<Channel>,
+    blocks: Vec<CompactBlock>,
+    sender: &mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
+    timing: &SyncTiming,
+    prefetch: &mut Option<PrefetchedTreeState>,
+) -> Result<(), Status> {
+    let chain_state = chain_state_for_blocks(client, &blocks, timing, prefetch).await?;
+    sender.send((blocks, chain_state)).await.unwrap();
+    Ok(())
+}
+
+async fn chain_state_for_blocks(
+    client: &mut CompactTxStreamerClient<Channel>,
+    blocks: &[CompactBlock],
+    timing: &SyncTiming,
+    prefetch: &mut Option<PrefetchedTreeState>,
+) -> Result<ChainState, Status> {
+    // Same base height as the previous sequential fetch, including the height-0 wrap.
+    let base_height = blocks[0].height - 1;
+    if let Some(prefetched) = prefetch.take() {
+        if prefetched.height == base_height {
+            return prefetched.into_chain_state().await;
+        }
+        drop(prefetched);
+    }
+    fetch_tree_state(client, base_height, timing).await
 }
 
 /// Scans the given block range and checks for scanning errors that indicate the wallet's
@@ -1503,6 +1704,81 @@ mod tests {
         let txs =
             get_transactions(&mut setup.db, &mut conn, &setup.network, None, None, None).unwrap();
         assert_eq!(txs.len(), 0);
+    }
+
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn bounded_apply_preserves_order_and_concurrency() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        const LIMIT: usize = 4;
+        let in_flight = Arc::new(AtomicUsize::new(0));
+        let max_in_flight = Arc::new(AtomicUsize::new(0));
+        let jobs = (0..20).map({
+            let in_flight = Arc::clone(&in_flight);
+            let max_in_flight = Arc::clone(&max_in_flight);
+            move |index| {
+                let in_flight = Arc::clone(&in_flight);
+                let max_in_flight = Arc::clone(&max_in_flight);
+                async move {
+                    let now = in_flight.fetch_add(1, Ordering::SeqCst) + 1;
+                    max_in_flight.fetch_max(now, Ordering::SeqCst);
+                    tokio::task::yield_now().await;
+                    in_flight.fetch_sub(1, Ordering::SeqCst);
+                    Ok::<usize, &'static str>(index)
+                }
+            }
+        });
+
+        let mut applied = Vec::new();
+        apply_in_order_bounded(jobs, LIMIT, |index| {
+            applied.push(index);
+            Ok(())
+        })
+        .await
+        .unwrap();
+
+        assert_eq!(applied, (0..20).collect::<Vec<_>>());
+        let max = max_in_flight.load(Ordering::SeqCst);
+        assert!(max <= LIMIT, "in flight {max}");
+        assert!(
+            max > 1,
+            "expected overlapping fetches, max in flight was {max}"
+        );
+    }
+
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn bounded_apply_stops_at_first_error() {
+        let jobs =
+            (0..6).map(|index| async move { if index == 1 { Err("stop") } else { Ok(index) } });
+
+        let mut applied = Vec::new();
+        let error = apply_in_order_bounded(jobs, 8, |index| {
+            applied.push(index);
+            Ok(())
+        })
+        .await
+        .unwrap_err();
+
+        assert_eq!(error, "stop");
+        assert_eq!(applied, vec![0]);
+    }
+
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn bounded_apply_stops_when_apply_fails() {
+        let jobs = (0..5).map(|index| async move { Ok::<_, &'static str>(index) });
+        let mut applied = Vec::new();
+        let error = apply_in_order_bounded(jobs, 2, |index| {
+            if index == 2 {
+                return Err("apply");
+            }
+            applied.push(index);
+            Ok(())
+        })
+        .await
+        .unwrap_err();
+
+        assert_eq!(error, "apply");
+        assert_eq!(applied, vec![0, 1]);
     }
 
     const COIN: u64 = 1_0000_0000;
