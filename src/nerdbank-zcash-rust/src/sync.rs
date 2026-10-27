@@ -63,6 +63,7 @@ use crate::{
     lightclient::parse_network,
     resilience::webrequest_with_retry,
     sql_statements::{GET_OUTPOINT_VALUE, GET_TRANSACTIONS_SQL},
+    sync_timing::{Phase, RangeGuard, SYNC_TIMING, SyncTiming},
 };
 
 type ChainError =
@@ -93,6 +94,31 @@ pub async fn sync<P: AsRef<Path>>(
     continually: bool,
     cancellation_token: CancellationToken,
 ) -> Result<SyncUpdateData, Error> {
+    let timing = SyncTiming::from_env();
+    let _guard = timing.finish_guard();
+    SYNC_TIMING
+        .scope(
+            timing,
+            sync_scoped(
+                uri,
+                data_file,
+                progress,
+                confirmations_policy,
+                continually,
+                cancellation_token,
+            ),
+        )
+        .await
+}
+
+async fn sync_scoped<P: AsRef<Path>>(
+    uri: Uri,
+    data_file: P,
+    progress: Option<Box<dyn SyncUpdate>>,
+    confirmations_policy: ConfirmationsPolicy,
+    continually: bool,
+    cancellation_token: CancellationToken,
+) -> Result<SyncUpdateData, Error> {
     let mut client = get_client(uri.clone()).await?;
     let info = webrequest_with_retry(
         || async {
@@ -110,6 +136,7 @@ pub async fn sync<P: AsRef<Path>>(
         confirmations_policy,
         network: parse_network(&info)?,
         progress: Arc::new(progress),
+        timing: SyncTiming::current(),
     };
 
     let mut db = Db::load(&data_file, state.network)?;
@@ -117,7 +144,7 @@ pub async fn sync<P: AsRef<Path>>(
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
-    update_subtree_roots(&mut client.clone(), &mut db.data).await?;
+    update_subtree_roots(&mut client.clone(), &mut db.data, &state.timing).await?;
 
     let mut status = SyncUpdateData {
         current_step: 0,
@@ -230,6 +257,7 @@ pub async fn sync<P: AsRef<Path>>(
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
+                    let _range = open_range(&state.timing, scan_range);
                     let scan_result = download_and_scan_blocks(
                         &mut client,
                         Db::load(&data_file, state.network)?,
@@ -238,6 +266,7 @@ pub async fn sync<P: AsRef<Path>>(
                         scan_range,
                     )
                     .await?;
+                    drop(_range);
 
                     if scan_result.priorities_changed {
                         // The suggested scan ranges have been updated, so we re-request.
@@ -279,6 +308,7 @@ pub async fn sync<P: AsRef<Path>>(
 
         let mut caught_up = true;
         for scan_range in scan_ranges.into_iter() {
+            let _range = open_range(&state.timing, &scan_range);
             let scan_result = download_and_scan_blocks(
                 &mut client,
                 Db::load(&data_file, state.network)?,
@@ -301,6 +331,7 @@ pub async fn sync<P: AsRef<Path>>(
                 state.cancellation_token.clone(),
             )
             .await?;
+            drop(_range);
 
             // Report all transactions that are in the block range we just scanned,
             // even if we didn't just download them (which would have only included shielded transactions).
@@ -339,6 +370,7 @@ pub async fn sync<P: AsRef<Path>>(
                 info!("Fetching data for request {:?}", data_request);
                 match &data_request {
                     TransactionDataRequest::GetStatus(txid) => {
+                        let _timer = state.timing.start(Phase::TxEnhance);
                         let status = fetch_transaction(
                             &mut client,
                             &state.network,
@@ -359,6 +391,7 @@ pub async fn sync<P: AsRef<Path>>(
                         db.data.set_transaction_status(*txid, status)?;
                     }
                     TransactionDataRequest::Enhancement(txid) => {
+                        let _timer = state.timing.start(Phase::TxEnhance);
                         match fetch_transaction(
                             &mut client,
                             &state.network,
@@ -389,6 +422,7 @@ pub async fn sync<P: AsRef<Path>>(
                         }
                     }
                     TransactionDataRequest::TransactionsInvolvingAddress(tia) => {
+                        let _timer = state.timing.start(Phase::TransparentTxids);
                         let address = tia.address().encode(&state.network);
                         let request = service::TransparentAddressBlockFilter {
                             address: address.clone(),
@@ -443,12 +477,14 @@ pub async fn sync<P: AsRef<Path>>(
                 return Ok(status);
             }
 
+            state.timing.emit("sync pass");
             report_status(&status, &state.progress);
 
             // We'll loop around again when the next block is mined.
             // Eventually we should actually do something with the transactions in the mempool too.
             // WARNING: This is vulnerable to a race condition, because if a new block has *already* been mined
             // but not noticed above, we'll end up waiting for yet *another* block to be mined.
+            let _idle = state.timing.begin_idle();
             select! {
                 _ = state.cancellation_token.cancelled() => Err(Status::cancelled("Request cancelled")),
                 _ = watch_mempool(&state.network, &mut client, &data_file, &mut db, &state.progress) => Ok(()),
@@ -690,6 +726,7 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
     network: &Network,
     cancellation_token: CancellationToken,
 ) -> Result<Vec<TxId>, Error> {
+    let _timer = SyncTiming::current().start(Phase::TxEnhance);
     let client = Arc::new(Mutex::new(client));
     // Scope the database connection so it's closed before we use the db argument,
     // to avoid 'database is locked' errors.
@@ -740,42 +777,55 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
 async fn update_subtree_roots<P: Parameters>(
     client: &mut CompactTxStreamerClient<Channel>,
     db_data: &mut WalletDb<rusqlite::Connection, P, SystemClock, OsRng>,
+    timing: &SyncTiming,
 ) -> Result<(), anyhow::Error> {
     // Update sapling subtree roots
     let mut request = service::GetSubtreeRootsArg::default();
     request.set_shielded_protocol(service::ShieldedProtocol::Sapling);
-    let roots: Vec<CommitmentTreeRoot<sapling::Node>> = client
-        .get_subtree_roots(request)
-        .await?
-        .into_inner()
-        .and_then(|root| async move {
-            let root_hash = sapling::Node::read(&root.root_hash[..])?;
-            Ok(CommitmentTreeRoot::from_parts(
-                BlockHeight::from_u32(root.completing_block_height as u32),
-                root_hash,
-            ))
-        })
-        .try_collect()
-        .await?;
-    db_data.put_sapling_subtree_roots(0, &roots)?;
+    let roots: Vec<CommitmentTreeRoot<sapling::Node>> = {
+        let _timer = timing.start(Phase::TreeState);
+        client
+            .get_subtree_roots(request)
+            .await?
+            .into_inner()
+            .and_then(|root| async move {
+                let root_hash = sapling::Node::read(&root.root_hash[..])?;
+                Ok(CommitmentTreeRoot::from_parts(
+                    BlockHeight::from_u32(root.completing_block_height as u32),
+                    root_hash,
+                ))
+            })
+            .try_collect()
+            .await?
+    };
+    {
+        let _timer = timing.start(Phase::DbWrite);
+        db_data.put_sapling_subtree_roots(0, &roots)?;
+    }
 
     // Update orchard subtree roots
     request = service::GetSubtreeRootsArg::default();
     request.set_shielded_protocol(service::ShieldedProtocol::Orchard);
-    let roots: Vec<CommitmentTreeRoot<MerkleHashOrchard>> = client
-        .get_subtree_roots(request)
-        .await?
-        .into_inner()
-        .and_then(|root| async move {
-            let root_hash = MerkleHashOrchard::read(&root.root_hash[..])?;
-            Ok(CommitmentTreeRoot::from_parts(
-                BlockHeight::from_u32(root.completing_block_height as u32),
-                root_hash,
-            ))
-        })
-        .try_collect()
-        .await?;
-    db_data.put_orchard_subtree_roots(0, roots.as_slice())?;
+    let roots: Vec<CommitmentTreeRoot<MerkleHashOrchard>> = {
+        let _timer = timing.start(Phase::TreeState);
+        client
+            .get_subtree_roots(request)
+            .await?
+            .into_inner()
+            .and_then(|root| async move {
+                let root_hash = MerkleHashOrchard::read(&root.root_hash[..])?;
+                Ok(CommitmentTreeRoot::from_parts(
+                    BlockHeight::from_u32(root.completing_block_height as u32),
+                    root_hash,
+                ))
+            })
+            .try_collect()
+            .await?
+    };
+    {
+        let _timer = timing.start(Phase::DbWrite);
+        db_data.put_orchard_subtree_roots(0, roots.as_slice())?;
+    }
 
     Ok(())
 }
@@ -792,6 +842,7 @@ async fn download_transparent_transactions(
         return Ok(vec![]);
     }
 
+    let _timer = SyncTiming::current().start(Phase::TransparentTxids);
     let mut txids_for_new_transparent_transactions = vec![];
     let client = Arc::new(Mutex::new(client));
     let transparent_transactions = webrequest_with_retry(
@@ -853,6 +904,18 @@ struct SyncState {
     progress: Arc<Option<Box<dyn SyncUpdate>>>,
     confirmations_policy: ConfirmationsPolicy,
     cancellation_token: CancellationToken,
+    timing: SyncTiming,
+}
+
+fn open_range(timing: &SyncTiming, scan_range: &ScanRange) -> RangeGuard {
+    if !timing.is_enabled() {
+        return timing.begin_range(0, 0, "");
+    }
+    timing.begin_range(
+        u32::from(scan_range.block_range().start),
+        u32::from(scan_range.block_range().end),
+        &format!("{:?}", scan_range.priority()),
+    )
 }
 
 async fn download_and_scan_blocks(
@@ -872,12 +935,14 @@ async fn download_and_scan_blocks(
     let mut client = client.to_owned();
     let downloader_block_range = block_range.clone();
     let downloader_priorities_changed_token = priorities_changed_token.clone();
+    let downloader_timing = state.timing.clone();
     let downloader = tokio::spawn(async move {
         download_blocks(
             &mut client,
             &downloader_block_range,
             send,
             downloader_priorities_changed_token,
+            downloader_timing,
         )
         .await
     });
@@ -901,8 +966,13 @@ async fn download_and_scan_blocks(
             // Insert the blocks into the block cache.
             db.blocks.insert_range(chunk);
 
-            if scan_blocks(&state.network, &mut db, &scan_range, &chain_state)?
-                && !priorities_changed
+            if scan_blocks(
+                &state.network,
+                &mut db,
+                &scan_range,
+                &chain_state,
+                &state.timing,
+            )? && !priorities_changed
             {
                 // Notify the downloader to break out early because we'll be getting a new range request.
                 // But we don't abort here. Presumably the original scan range is still interesting
@@ -946,6 +1016,7 @@ async fn download_blocks(
     scan_range: &ScanRange,
     sender: mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
     cancellation_token: CancellationToken,
+    timing: SyncTiming,
 ) -> Result<(), Status> {
     info!("Fetching {}", scan_range);
     let mut start = service::BlockId::default();
@@ -959,6 +1030,7 @@ async fn download_blocks(
     };
 
     let mut blocks = Vec::new();
+    let mut download = timing.start(Phase::BlockDownload);
     let mut stream = client.get_block_range(range).await?.into_inner();
     let mut accumulated_size = 0;
     while let Some(block) = stream.try_next().await? {
@@ -969,9 +1041,12 @@ async fn download_blocks(
         blocks.push(block);
 
         if accumulated_size > BLOCKS_CHUNK_THRESHOLD {
-            send_blocks_and_chainstate(client, blocks, &sender).await?;
+            // Tree-state fetches and channel backpressure are not block-download time.
+            download.pause();
+            send_blocks_and_chainstate(client, blocks, &sender, &timing).await?;
             blocks = Vec::new();
             accumulated_size = 0;
+            download.resume();
         }
 
         if cancellation_token.is_cancelled() {
@@ -979,6 +1054,7 @@ async fn download_blocks(
             break;
         }
     }
+    drop(download);
 
     info!(
         "Block download exiting. Cancelled? {}",
@@ -986,23 +1062,27 @@ async fn download_blocks(
     );
 
     if !blocks.is_empty() {
-        send_blocks_and_chainstate(client, blocks, &sender).await?;
+        send_blocks_and_chainstate(client, blocks, &sender, &timing).await?;
     }
 
     async fn send_blocks_and_chainstate(
         client: &mut CompactTxStreamerClient<Channel>,
         blocks: Vec<CompactBlock>,
         sender: &mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
+        timing: &SyncTiming,
     ) -> Result<(), Status> {
         let base_height = blocks[0].height - 1;
-        let tree_state = client
-            .get_tree_state(service::BlockId {
-                height: base_height,
-                ..Default::default()
-            })
-            .await?
-            .into_inner();
-        let chain_state = tree_state.to_chain_state()?;
+        let chain_state = {
+            let _timer = timing.start(Phase::TreeState);
+            let tree_state = client
+                .get_tree_state(service::BlockId {
+                    height: base_height,
+                    ..Default::default()
+                })
+                .await?
+                .into_inner();
+            tree_state.to_chain_state()?
+        };
 
         sender.send((blocks, chain_state)).await.unwrap();
 
@@ -1021,20 +1101,24 @@ fn scan_blocks(
     db: &mut Db,
     scan_range: &ScanRange,
     chain_state: &ChainState,
+    timing: &SyncTiming,
 ) -> Result<bool, Error> {
-    let scan_result = scan_cached_blocks(
-        network,
-        &db.blocks,
-        &mut db.data,
-        scan_range.block_range().start,
-        chain_state,
-        scan_range.len(),
-    );
+    let scan_result = timing.measure_scan(|| {
+        scan_cached_blocks(
+            network,
+            &db.blocks,
+            &mut db.data,
+            scan_range.block_range().start,
+            chain_state,
+            scan_range.len(),
+        )
+    });
 
     // Check for scanning errors that indicate that the wallet's chain tip is out of
     // sync with blockchain history.
     match scan_result {
         Ok(_) => {
+            timing.add_blocks(scan_range.len() as u64);
             // If scanning these blocks caused a suggested range to be added that has a
             // higher priority than the current range, invalidate the current ranges.
             let latest_ranges = db.data.suggest_scan_ranges()?;

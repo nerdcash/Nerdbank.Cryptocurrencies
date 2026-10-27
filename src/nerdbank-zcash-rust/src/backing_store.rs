@@ -21,7 +21,7 @@ use zcash_keys::{
 use zcash_protocol::consensus::Network;
 use zip32::DiversifierIndex;
 
-use crate::{block_source::BlockCache, error::Error};
+use crate::{block_source::BlockCache, error::Error, sync_timing::SyncTiming};
 
 pub(crate) struct Db {
     pub(crate) data: WalletDb<Connection, Network, SystemClock, OsRng>,
@@ -149,6 +149,7 @@ fn get_db_internal<P: AsRef<Path>>(
     network: Network,
     init: bool,
 ) -> Result<Db, Error> {
+    let _timer = SyncTiming::db_open_timer();
     if init && let Some(data_dir) = data_file.as_ref().parent() {
         fs::create_dir_all(data_dir)?;
     }
