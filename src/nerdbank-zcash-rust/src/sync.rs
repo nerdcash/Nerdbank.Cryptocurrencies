@@ -1630,17 +1630,109 @@ pub(crate) fn get_transactions(
 mod tests {
     use zcash_client_backend::data_api::Account;
 
-    use crate::test_constants::setup_test;
+    use crate::test_constants::{self, setup_test};
 
     use super::*;
+
+    /// Samples compact-block shielded density. Ignored so CI does not download chain data.
+    ///
+    /// ```bash
+    /// cargo test -r --lib profile_shielded_density -- --ignored --nocapture --test-threads=1
+    /// ```
+    #[ignore]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn profile_shielded_density() {
+        for (name, uri) in [
+            ("testnet", test_constants::TESTNET_LIGHTSERVER_URI.clone()),
+            ("mainnet", test_constants::MAINNET_LIGHTSERVER_URI.clone()),
+        ] {
+            let mut client = get_client(uri.clone()).await.unwrap();
+            let tip = client
+                .get_latest_block(service::ChainSpec::default())
+                .await
+                .unwrap()
+                .get_ref()
+                .height;
+            eprintln!("{name} tip {tip} via {uri}");
+            for (label, start) in [
+                ("recent", tip.saturating_sub(2_000)),
+                ("back-30k", tip.saturating_sub(30_000)),
+                ("back-80k", tip.saturating_sub(80_000)),
+            ] {
+                sample_compact_range(&mut client, name, label, start, start + 1_000).await;
+            }
+        }
+    }
+
+    async fn sample_compact_range(
+        client: &mut CompactTxStreamerClient<Channel>,
+        network: &str,
+        label: &str,
+        start: u64,
+        end_exclusive: u64,
+    ) {
+        let range = service::BlockRange {
+            start: Some(service::BlockId {
+                height: start,
+                ..Default::default()
+            }),
+            end: Some(service::BlockId {
+                height: end_exclusive.saturating_sub(1),
+                ..Default::default()
+            }),
+            pool_types: vec![],
+        };
+        let started = std::time::Instant::now();
+        let mut stream = client
+            .clone()
+            .get_block_range(range)
+            .await
+            .unwrap()
+            .into_inner();
+        let mut blocks = 0u64;
+        let mut txs = 0usize;
+        let mut sapling = 0usize;
+        let mut orchard = 0usize;
+        let mut bytes = 0usize;
+        while let Some(block) = stream.try_next().await.unwrap() {
+            blocks += 1;
+            bytes += prost::Message::encoded_len(&block);
+            txs += block.vtx.len();
+            for tx in &block.vtx {
+                sapling += tx.spends.len() + tx.outputs.len();
+                orchard += tx.actions.len();
+            }
+        }
+        let elapsed = started.elapsed().as_secs_f64();
+        let actions = sapling + orchard;
+        eprintln!(
+            "{network} {label} [{start},{end_exclusive}) blocks={blocks} txs={txs} sapling={sapling} orchard={orchard} actions={actions} bytes={bytes} {:.2}s {:.0} blocks/s {:.2} actions/block",
+            elapsed,
+            if elapsed == 0.0 {
+                0.0
+            } else {
+                blocks as f64 / elapsed
+            },
+            if blocks == 0 {
+                0.0
+            } else {
+                actions as f64 / blocks as f64
+            },
+        );
+    }
 
     /// Times `put_blocks` and `scan_cached_blocks` for one historic shielded sync.
     ///
     /// Ignored so CI does not download chain data. `NERDBANK_ZCASH_TREE_WRITE_BACK=0` selects the
     /// immediate shard-tree writes; leave it unset for the write-back cache. The birthday defaults
     /// to 3487990 on mainnet, the height used for the completing 44k-block profile. Override it
-    /// with `NERDBANK_ZCASH_PROFILE_BIRTHDAY`. `NERDBANK_ZCASH_PROFILE_MAINNET=1` selects mainnet
+    /// with `NERDBANK_ZCASH_PROFILE_BIRTHDAY`, or set `NERDBANK_ZCASH_PROFILE_BLOCKS` to place the
+    /// birthday that many blocks behind the tip. `NERDBANK_ZCASH_PROFILE_MAINNET=1` selects mainnet
     /// (`https://zcash.mysideoftheweb.com:9067/`).
+    ///
+    /// A mainnet birthday below the current Ironwood shard tip makes `suggest_scan_ranges` scan the
+    /// chain-tip shard first. The older historic range then fails in `put_blocks` with
+    /// `SubtreeDiscontinuity` on the Ironwood tree unless subtree roots were preloaded from index 0.
     ///
     /// ```bash
     /// NERDBANK_ZCASH_PROFILE_MAINNET=1 \
@@ -1649,6 +1741,9 @@ mod tests {
     #[ignore]
     #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn profile_historic_shielded_sync() {
+        let blocks_back_override: Option<u64> = std::env::var("NERDBANK_ZCASH_PROFILE_BLOCKS")
+            .ok()
+            .and_then(|value| value.parse().ok());
         let birthday_override: Option<u64> = std::env::var("NERDBANK_ZCASH_PROFILE_BIRTHDAY")
             .ok()
             .and_then(|value| value.parse().ok());
@@ -1681,11 +1776,12 @@ mod tests {
             .into_inner();
         let network = parse_network(&info).unwrap();
         let tip = info.block_height;
-        let birthday = birthday_override.unwrap_or(if mainnet {
-            3_487_990
-        } else {
-            tip.saturating_sub(25_000)
-        });
+        let birthday = match (birthday_override, blocks_back_override) {
+            (Some(height), _) => height,
+            (None, Some(blocks_back)) => tip.saturating_sub(blocks_back),
+            (None, None) if mainnet => 3_487_990,
+            (None, None) => tip.saturating_sub(25_000),
+        };
         let write_back = std::env::var("NERDBANK_ZCASH_TREE_WRITE_BACK")
             .ok()
             .is_none_or(|value| {
@@ -1701,7 +1797,7 @@ mod tests {
 
         let wallet_dir = testdir::testdir!();
         let data_file = wallet_dir.join("wallet.sqlite");
-        let mut db = crate::backing_store::Db::init(&data_file, network).unwrap();
+        let mut db = Db::init(&data_file, network).unwrap();
         let seed = secrecy::SecretVec::new(
             bip0039::Mnemonic::<bip0039::English>::generate(bip0039::Count::Words24)
                 .to_seed("")
