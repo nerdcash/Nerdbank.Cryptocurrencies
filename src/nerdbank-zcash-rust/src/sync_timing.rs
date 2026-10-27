@@ -9,7 +9,11 @@
 //! `WalletWrite::put_blocks`. Upstream marks that method with a `tracing` span named
 //! `put_blocks`. While a timed scan runs, a thread-local subscriber records that span so scan
 //! CPU and the database write can be reported separately. The subscriber does not enable any
-//! other span, and the callsite cache is restored when the scan returns.
+//! other span. The callsite cache is rebuilt after that subscriber is gone, including when the
+//! scan unwinds, so its interests and max-level hint do not stay enabled.
+//!
+//! Each summary lists only the scan ranges finished since the previous summary. Phase totals
+//! and the block count stay cumulative for the whole sync.
 
 use std::{
     collections::HashMap,
@@ -271,13 +275,19 @@ impl SyncTiming {
             ids: Mutex::new(HashMap::new()),
             tracker: Arc::clone(&tracker),
         };
+        // Drop the restore guard only after `with_default` has removed the temporary
+        // dispatcher. Rebuilding inside the closure records this subscriber's callsite
+        // interests and max-level hint, and those stay in effect once it is gone.
+        // The guard also runs when `scan` unwinds: `with_default` restores the previous
+        // dispatcher first, then this drop rebuilds against that dispatcher.
+        let _restore = RestoreInterestCache;
         let (result, total) = tracing::subscriber::with_default(subscriber, || {
             tracing::callsite::rebuild_interest_cache();
-            let _restore = RestoreInterestCache;
             let started = Instant::now();
             let result = scan();
             (result, started.elapsed())
         });
+        drop(_restore);
 
         let (busy, saw) = {
             let observed = lock(&tracker);
@@ -291,15 +301,26 @@ impl SyncTiming {
         result
     }
 
+    /// Prints one summary, then drops scan-range rows already included in it.
+    ///
+    /// Phase totals and the block count are kept. The next summary therefore stays
+    /// cumulative without reprinting every earlier range. In continual mode that keeps
+    /// each pass from emitting the full history again.
     pub(crate) fn emit(&self, label: &str) {
-        let Some(inner) = &self.inner else {
+        let Some(summary) = self.take_summary(label) else {
             return;
         };
-        let state = lock(inner);
-        let summary = format_summary(label, &state);
-        drop(state);
         tracing::info!("{summary}");
         eprintln!("{summary}");
+    }
+
+    /// Formats the current summary and clears reported scan ranges.
+    fn take_summary(&self, label: &str) -> Option<String> {
+        let inner = self.inner.as_ref()?;
+        let mut state = lock(inner);
+        let summary = format_summary(label, &state);
+        state.ranges.clear();
+        Some(summary)
     }
 
     fn end_range(&self) {
@@ -492,6 +513,11 @@ impl OutermostSpan {
     }
 }
 
+/// Rebuilds tracing callsite interest when dropped.
+///
+/// Construct this before [`tracing::subscriber::with_default`] and drop it after that
+/// call returns. `with_default` removes its dispatcher before unwinding out of the
+/// closure, so this drop then rebuilds against the restored dispatcher.
 struct RestoreInterestCache;
 
 impl Drop for RestoreInterestCache {
@@ -636,7 +662,8 @@ fn format_summary_parts(
         "note: download and scanning overlap, so wall% can sum past 100. \
          busy% is each phase's share of measured busy time. \
          wall is elapsed sync time excluding waits for the next block in continual mode. \
-         Initial server connection, chain-tip polls, and UI reporting are in wall but not in a phase."
+         Initial server connection, chain-tip polls, and UI reporting are in wall but not in a phase. \
+         Scan ranges are since the previous summary; phase totals and the block count are cumulative."
     );
     if missing_put_blocks {
         let _ = writeln!(
@@ -855,6 +882,7 @@ mod tests {
 
     #[test]
     fn measure_scan_observes_put_blocks_and_ignores_other_spans() {
+        let _tracing = lock_tracing_cache();
         let timing = SyncTiming::enabled();
         timing.measure_scan(|| {
             let _outer = tracing::info_span!("put_blocks").entered();
@@ -883,6 +911,82 @@ mod tests {
         let value = timing.measure_scan(|| 7);
         assert_eq!(value, 7);
         assert_eq!(timing.phase_calls(Phase::Scan), 0);
+    }
+
+    #[test]
+    fn measure_scan_restores_callsite_interest_after_the_temporary_subscriber() {
+        let _tracing = lock_tracing_cache();
+        let timing = SyncTiming::enabled();
+        timing.measure_scan(|| {
+            let _entered = put_blocks_span().entered();
+        });
+        assert_eq!(timing.phase_calls(Phase::DbWrite), 1);
+        assert!(
+            put_blocks_span().is_disabled(),
+            "put_blocks callsite stayed enabled after the temporary subscriber was removed"
+        );
+    }
+
+    #[test]
+    fn measure_scan_restores_callsite_interest_when_scan_unwinds() {
+        let _tracing = lock_tracing_cache();
+        let timing = SyncTiming::enabled();
+        let caught = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            timing.measure_scan(|| {
+                let _entered = put_blocks_span().entered();
+                panic!("scan failed");
+            });
+        }));
+        assert!(caught.is_err());
+        assert!(
+            put_blocks_span().is_disabled(),
+            "put_blocks callsite stayed enabled after a timed scan unwound"
+        );
+    }
+
+    #[test]
+    fn emit_drops_reported_ranges_and_keeps_cumulative_totals() {
+        let timing = SyncTiming::enabled();
+        {
+            let _range = timing.begin_range(100, 110, "Historic");
+            timing.record_duration(Phase::BlockDownload, Duration::from_millis(4));
+            timing.add_blocks(10);
+        }
+        let first = timing.take_summary("sync pass").expect("timing is enabled");
+        assert!(first.contains("[100,110) Historic"));
+        assert!(first.contains("blocks 10"));
+        assert!(first.contains("phase totals and the block count are cumulative"));
+        assert_eq!(timing.finished_range_count(), 0);
+        assert_eq!(timing.phase_calls(Phase::BlockDownload), 1);
+        assert_eq!(timing.block_count(), 10);
+
+        {
+            let _range = timing.begin_range(110, 130, "ChainTip");
+            timing.record_duration(Phase::Scan, Duration::from_millis(8));
+            timing.add_blocks(20);
+        }
+        let second = timing.take_summary("sync pass").expect("timing is enabled");
+        assert!(second.contains("[110,130) ChainTip"));
+        assert!(!second.contains("[100,110)"));
+        assert!(second.contains("blocks 30"));
+        assert_eq!(timing.phase_calls(Phase::BlockDownload), 1);
+        assert_eq!(timing.phase_calls(Phase::Scan), 1);
+        assert_eq!(timing.block_count(), 30);
+        assert_eq!(timing.finished_range_count(), 0);
+
+        timing.emit("sync pass");
+        assert_eq!(timing.finished_range_count(), 0);
+        assert_eq!(timing.block_count(), 30);
+    }
+
+    /// One callsite for `put_blocks`, shared by the interest-cache tests.
+    fn put_blocks_span() -> tracing::Span {
+        tracing::info_span!("put_blocks")
+    }
+
+    fn lock_tracing_cache() -> std::sync::MutexGuard<'static, ()> {
+        static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        LOCK.lock().unwrap_or_else(|err| err.into_inner())
     }
 
     impl SyncTiming {
