@@ -1629,9 +1629,179 @@ pub(crate) fn get_transactions(
 mod tests {
     use zcash_client_backend::data_api::Account;
 
-    use crate::test_constants::setup_test;
+    use crate::test_constants::{self, setup_test};
 
     use super::*;
+
+    /// Samples compact-block shielded density. Ignored so CI does not download chain data.
+    ///
+    /// ```bash
+    /// cargo test -r --lib profile_shielded_density -- --ignored --nocapture --test-threads=1
+    /// ```
+    #[ignore]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn profile_shielded_density() {
+        for (name, uri) in [
+            ("testnet", test_constants::TESTNET_LIGHTSERVER_URI.clone()),
+            ("mainnet", test_constants::MAINNET_LIGHTSERVER_URI.clone()),
+        ] {
+            let mut client = get_client(uri.clone()).await.unwrap();
+            let tip = client
+                .get_latest_block(service::ChainSpec::default())
+                .await
+                .unwrap()
+                .get_ref()
+                .height;
+            eprintln!("{name} tip {tip} via {uri}");
+            for (label, start) in [
+                ("recent", tip.saturating_sub(2_000)),
+                ("back-30k", tip.saturating_sub(30_000)),
+                ("back-80k", tip.saturating_sub(80_000)),
+            ] {
+                sample_compact_range(&mut client, name, label, start, start + 1_000).await;
+            }
+        }
+    }
+
+    async fn sample_compact_range(
+        client: &mut CompactTxStreamerClient<Channel>,
+        network: &str,
+        label: &str,
+        start: u64,
+        end_exclusive: u64,
+    ) {
+        let range = service::BlockRange {
+            start: Some(service::BlockId {
+                height: start,
+                ..Default::default()
+            }),
+            end: Some(service::BlockId {
+                height: end_exclusive.saturating_sub(1),
+                ..Default::default()
+            }),
+            pool_types: vec![],
+        };
+        let started = std::time::Instant::now();
+        let mut stream = client
+            .clone()
+            .get_block_range(range)
+            .await
+            .unwrap()
+            .into_inner();
+        let mut blocks = 0u64;
+        let mut txs = 0usize;
+        let mut sapling = 0usize;
+        let mut orchard = 0usize;
+        let mut bytes = 0usize;
+        while let Some(block) = stream.try_next().await.unwrap() {
+            blocks += 1;
+            bytes += prost::Message::encoded_len(&block);
+            txs += block.vtx.len();
+            for tx in &block.vtx {
+                sapling += tx.spends.len() + tx.outputs.len();
+                orchard += tx.actions.len();
+            }
+        }
+        let elapsed = started.elapsed().as_secs_f64();
+        let actions = sapling + orchard;
+        eprintln!(
+            "{network} {label} [{start},{end_exclusive}) blocks={blocks} txs={txs} sapling={sapling} orchard={orchard} actions={actions} bytes={bytes} {:.2}s {:.0} blocks/s {:.2} actions/block",
+            elapsed,
+            if elapsed == 0.0 {
+                0.0
+            } else {
+                blocks as f64 / elapsed
+            },
+            if blocks == 0 {
+                0.0
+            } else {
+                actions as f64 / blocks as f64
+            },
+        );
+    }
+
+    /// Historic shielded sync used to locate scan and commitment-tree time.
+    ///
+    /// `NERDBANK_ZCASH_PROFILE_BLOCKS` is how far behind the tip the birthday sits (default 25000).
+    /// `NERDBANK_ZCASH_PROFILE_BIRTHDAY` overrides that with an absolute height.
+    /// `NERDBANK_ZCASH_PROFILE_MAINNET=1` uses the mainnet lightwalletd. Timing still comes from
+    /// `NERDBANK_ZCASH_SYNC_TIMING`.
+    ///
+    /// A mainnet birthday below the current Ironwood shard tip makes `suggest_scan_ranges` scan the
+    /// chain-tip shard first. The older historic range then fails in `put_blocks` with
+    /// `SubtreeDiscontinuity` on the Ironwood tree. Pick a birthday at or above that shard tip for a
+    /// run that commits.
+    ///
+    /// ```bash
+    /// NERDBANK_ZCASH_SYNC_TIMING=1 NERDBANK_ZCASH_PROFILE_BLOCKS=25000 \
+    ///   cargo test -r --lib profile_historic_shielded_sync -- --ignored --nocapture --test-threads=1
+    /// ```
+    #[ignore]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn profile_historic_shielded_sync() {
+        let blocks_back: u64 = std::env::var("NERDBANK_ZCASH_PROFILE_BLOCKS")
+            .ok()
+            .and_then(|value| value.parse().ok())
+            .unwrap_or(25_000);
+        let birthday_override: Option<u64> = std::env::var("NERDBANK_ZCASH_PROFILE_BIRTHDAY")
+            .ok()
+            .and_then(|value| value.parse().ok());
+        let mainnet = std::env::var("NERDBANK_ZCASH_PROFILE_MAINNET")
+            .ok()
+            .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "yes"));
+        let uri = if mainnet {
+            test_constants::MAINNET_LIGHTSERVER_URI.clone()
+        } else {
+            test_constants::TESTNET_LIGHTSERVER_URI.clone()
+        };
+
+        let mut client = get_client(uri.clone()).await.unwrap();
+        let info = client
+            .get_lightd_info(service::Empty {})
+            .await
+            .unwrap()
+            .into_inner();
+        let network = parse_network(&info).unwrap();
+        let tip = info.block_height;
+        let birthday = birthday_override.unwrap_or_else(|| tip.saturating_sub(blocks_back));
+        eprintln!(
+            "historic profile network={network:?} tip={tip} birthday={birthday} span={} uri={uri}",
+            tip.saturating_sub(birthday)
+        );
+
+        let wallet_dir = testdir::testdir!();
+        let data_file = wallet_dir.join("wallet.sqlite");
+        let mut db = Db::init(&data_file, network).unwrap();
+        let seed = secrecy::SecretVec::new(
+            bip0039::Mnemonic::<bip0039::English>::generate(bip0039::Count::Words24)
+                .to_seed("")
+                .to_vec(),
+        );
+        db.add_account(
+            "historic profile",
+            &seed,
+            zip32::AccountId::ZERO,
+            birthday,
+            &mut client,
+        )
+        .await
+        .unwrap();
+
+        let result = sync(
+            uri,
+            &data_file,
+            None,
+            ConfirmationsPolicy::default(),
+            false,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        eprintln!(
+            "historic profile done tip={} fully_scanned={:?}",
+            result.tip_height, result.last_fully_scanned_block
+        );
+    }
 
     #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn test_sync() {
