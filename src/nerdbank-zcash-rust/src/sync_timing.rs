@@ -54,9 +54,15 @@ pub(crate) enum Phase {
     Scan,
     /// `put_blocks` (note commitment trees) and subtree-root persistence.
     DbWrite,
-    /// Transparent address txid fetches, including local apply of those transactions.
+    /// Transparent address `GetTaddressTxids` round trips.
+    ///
+    /// Overlapping calls each add their own busy time, so this phase can exceed wall time.
+    /// Local apply stays on the sync task, in address order, and is not included.
     TransparentTxids,
-    /// Full transaction fetch (`GetTransaction`) and decrypt-and-store enhancement.
+    /// Full transaction `GetTransaction` round trips.
+    ///
+    /// Overlapping calls each add their own busy time. Decrypt-and-store stays on the sync
+    /// task, in txid order, and is not included.
     TxEnhance,
     /// Wallet database open and load (`WalletDb::for_path`, including init when requested).
     DbOpen,
@@ -653,13 +659,15 @@ fn format_summary_parts(
          tree_state=lightwalletd tree-state and subtree-root fetches; \
          scan=scan_cached_blocks excluding put_blocks; \
          db_write=put_blocks commitment-tree persistence and subtree-root writes; \
-         transparent_txids=transparent address txid fetches and local apply; \
-         tx_enhance=full transaction fetch and enhancement; \
-         db_open=wallet database open/load"
+         transparent_txids=GetTaddressTxids round trips (concurrent calls sum busy time); \
+         tx_enhance=GetTransaction round trips (concurrent calls sum busy time); \
+         db_open=wallet database open/load. \
+         Local transparent apply and decrypt-and-store stay ordered on the sync task and are not included."
     );
     let _ = writeln!(
         out,
-        "note: download and scanning overlap, so wall% can sum past 100. \
+        "note: download and scanning overlap, and concurrent calls in one phase sum busy time, \
+         so wall% and a single phase can pass 100. \
          busy% is each phase's share of measured busy time. \
          wall is elapsed sync time excluding waits for the next block in continual mode. \
          Initial server connection, chain-tip polls, and UI reporting are in wall but not in a phase. \
