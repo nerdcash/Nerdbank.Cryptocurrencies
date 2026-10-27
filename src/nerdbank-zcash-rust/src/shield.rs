@@ -4,7 +4,7 @@ use crate::interop::{DbInit, TransparentNote};
 use crate::sql_statements::GET_UNSPENT_TRANSPARENT_NOTES;
 use crate::util::zip317_helper;
 use crate::{
-    backing_store::Db,
+    backing_store::{Db, WalletRng},
     error::Error,
     prover::get_prover,
     send::{SendTransactionResult, transmit_transaction},
@@ -18,7 +18,7 @@ use zcash_client_backend::{
     keys::UnifiedSpendingKey,
     wallet::OvkPolicy,
 };
-use zcash_client_sqlite::AccountUuid;
+use zcash_client_sqlite::{AccountUuid, util::SystemClock};
 use zcash_protocol::memo::MemoBytes;
 use zcash_protocol::{consensus::Network, value::Zatoshis};
 use zcash_transparent::address::TransparentAddress;
@@ -123,6 +123,8 @@ pub async fn shield_funds<P: AsRef<Path>>(
     let txids = create_proposed_transactions::<_, _, Infallible, _, Infallible, _>(
         &mut db.data,
         &network,
+        &SystemClock,
+        &mut WalletRng::default(),
         &prover,
         &prover,
         &wallet::SpendingKeys::from_unified_spending_key(usk.to_owned()),

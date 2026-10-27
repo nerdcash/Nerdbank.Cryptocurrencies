@@ -74,11 +74,11 @@ pub extern "C" fn decrypt_sapling_diversifier_with_ivk(
     let receiver = unsafe { &*receiver };
     let diversifier_index = unsafe { &mut *diversifier_index };
 
-    let fr = jubjub::Fr::from_bytes(ivk);
-    if fr.is_none().into() {
+    let ivk = SaplingIvk::from_bytes(ivk);
+    if ivk.is_none().into() {
         return -1;
     }
-    let ivk = SaplingIvk(fr.unwrap());
+    let ivk = ivk.unwrap();
 
     let dk = DiversifierKey::from_bytes(*dk);
 
@@ -123,7 +123,10 @@ pub extern "C" fn derive_sapling_child(
     // Do the same thing as derive_child, but write the result to the child variable and return an error code when it fails.
     match ExtendedSpendingKey::from_bytes(ext_sk) {
         Ok(sk) => {
-            let derived_child = sk.derive_child(child_index);
+            let Some(derived_child) = sk.derive_child(child_index) else {
+                // ZIP 32 rejects a child whose authorizing key or viewing key is zero.
+                return -3;
+            };
             child_bytes.copy_from_slice(&derived_child.to_bytes());
             0
         }
@@ -145,7 +148,10 @@ pub extern "C" fn derive_internal_fvk_sapling(
 
     if let Ok(fvk) = FullViewingKey::read(&fvk[..]) {
         let dk = DiversifierKey::from_bytes(dk.to_owned());
-        let internal_key = sapling_derive_internal_fvk(&fvk, &dk);
+        let Some(internal_key) = sapling_derive_internal_fvk(&fvk, &dk) else {
+            // ZIP 32 rejects an internal key whose incoming viewing key is zero.
+            return -2;
+        };
         internal_fvk.copy_from_slice(&internal_key.0.to_bytes()[..]);
         internal_dk.copy_from_slice(&internal_key.1.as_bytes()[..]);
         0
@@ -167,7 +173,10 @@ pub extern "C" fn derive_internal_sk_sapling(
     let internal_ext_sk = unsafe { &mut *internal_ext_sk };
 
     if let Ok(ext_sk) = ExtendedSpendingKey::from_bytes(ext_sk) {
-        let internal = ext_sk.derive_internal();
+        let Some(internal) = ext_sk.derive_internal() else {
+            // ZIP 32 rejects an internal key whose incoming viewing key is zero.
+            return -2;
+        };
         internal_ext_sk.copy_from_slice(&internal.to_bytes()[..]);
         0
     } else {
@@ -180,8 +189,14 @@ pub extern "C" fn get_sapling_expanded_sk(sk: *const [u8; 32], expsk: *mut [u8; 
     let sk = unsafe { &*sk };
     let expsk_bytes = unsafe { &mut *expsk };
 
-    let expsk = ExpandedSpendingKey::from_spending_key(sk);
-    expsk_bytes.copy_from_slice(&expsk.to_bytes());
+    // A spending key that expands to a zero scalar is not a Sapling key. The
+    // probability is negligible; zero the output so callers do not observe
+    // whatever the buffer previously held.
+    if let Some(expsk) = ExpandedSpendingKey::from_spending_key(sk) {
+        expsk_bytes.copy_from_slice(&expsk.to_bytes());
+    } else {
+        expsk_bytes.fill(0);
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -219,9 +234,9 @@ pub extern "C" fn get_sapling_receiver(
 
     let j = DiversifierIndex::from(*diversifier_index);
 
-    let fr = jubjub::Fr::from_bytes(ivk);
-    if fr.is_some().into() {
-        let ivk = SaplingIvk(fr.unwrap());
+    let parsed = SaplingIvk::from_bytes(ivk);
+    if parsed.is_some().into() {
+        let ivk = parsed.unwrap();
         if let Some((index, d)) = dk.find_diversifier(j) {
             diversifier_index.copy_from_slice(index.as_bytes());
             if let Some(addr) = ivk.to_payment_address(d) {
