@@ -1452,8 +1452,18 @@ mod tests {
             .unwrap_or_default();
         let scan_without_writes = scan.saturating_sub(put_blocks);
         let outside_scan = wall.saturating_sub(scan);
+        let rows = totals.get("put_blocks_rows").copied().unwrap_or_default();
+        let build = totals
+            .get("put_blocks_build_subtrees")
+            .copied()
+            .unwrap_or_default();
+        let trees = totals
+            .get("put_blocks_update_trees")
+            .copied()
+            .unwrap_or_default();
+        let notify = totals.get("put_blocks_notify").copied().unwrap_or_default();
         eprintln!(
-            "historic profile done tip={} fully_scanned={:?} wall={:.3}s put_blocks={:.3}s scan_cached_blocks={:.3}s scan_without_put_blocks={:.3}s outside_scan={:.3}s",
+            "historic profile done tip={} fully_scanned={:?} wall={:.3}s put_blocks={:.3}s scan_cached_blocks={:.3}s scan_without_put_blocks={:.3}s outside_scan={:.3}s rows={:.3}s build_subtrees={:.3}s update_trees={:.3}s notify={:.3}s",
             result.tip_height,
             result.last_fully_scanned_block,
             wall.as_secs_f64(),
@@ -1461,6 +1471,10 @@ mod tests {
             scan.as_secs_f64(),
             scan_without_writes.as_secs_f64(),
             outside_scan.as_secs_f64(),
+            rows.as_secs_f64(),
+            build.as_secs_f64(),
+            trees.as_secs_f64(),
+            notify.as_secs_f64(),
         );
     }
 
@@ -1483,7 +1497,15 @@ mod tests {
 
     impl tracing::Subscriber for SpanTimer {
         fn enabled(&self, metadata: &tracing::Metadata<'_>) -> bool {
-            matches!(metadata.name(), "put_blocks" | "scan_cached_blocks")
+            matches!(
+                metadata.name(),
+                "put_blocks"
+                    | "scan_cached_blocks"
+                    | "put_blocks_rows"
+                    | "put_blocks_build_subtrees"
+                    | "put_blocks_update_trees"
+                    | "put_blocks_notify"
+            )
         }
 
         fn new_span(&self, attrs: &tracing::span::Attributes<'_>) -> tracing::span::Id {
