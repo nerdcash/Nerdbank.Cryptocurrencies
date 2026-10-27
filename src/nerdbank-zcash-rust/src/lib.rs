@@ -20,6 +20,7 @@ mod send;
 mod shield;
 mod sql_statements;
 mod sync;
+mod sync_timing;
 mod util;
 
 #[cfg(test)]
