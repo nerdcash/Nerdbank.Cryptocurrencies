@@ -2,7 +2,6 @@ use std::{convert::Infallible, path::Path};
 
 use http::Uri;
 use nonempty::NonEmpty;
-use rand::rngs::OsRng;
 use rusqlite::Connection;
 use zcash_address::ZcashAddress;
 use zcash_client_backend::{
@@ -23,8 +22,12 @@ use zcash_primitives::transaction::TxId;
 use zcash_protocol::{consensus::Network, memo::MemoBytes, value::Zatoshis};
 
 use crate::{
-    backing_store::Db, error::Error, grpc::get_client, interop::TransactionSendDetail,
-    prover::get_prover, util::zip317_helper,
+    backing_store::{Db, WalletRng},
+    error::Error,
+    grpc::get_client,
+    interop::TransactionSendDetail,
+    prover::get_prover,
+    util::zip317_helper,
 };
 
 #[derive(Debug)]
@@ -99,6 +102,8 @@ pub async fn send_transaction<P: AsRef<Path>>(
     let txids = create_proposed_transactions::<_, _, Infallible, _, Infallible, _>(
         &mut db.data,
         &network,
+        &SystemClock,
+        &mut WalletRng::default(),
         &prover,
         &prover,
         &wallet::SpendingKeys::from_unified_spending_key(usk.to_owned()),
@@ -118,7 +123,7 @@ pub async fn send_transaction<P: AsRef<Path>>(
 pub(crate) async fn transmit_transaction(
     txid: TxId,
     server_uri: Uri,
-    db: &mut WalletDb<Connection, Network, SystemClock, OsRng>,
+    db: &mut WalletDb<Connection, Network, SystemClock, WalletRng>,
 ) -> Result<SendTransactionResult, Error> {
     let mut client = get_client(server_uri).await?;
     let raw_tx = db

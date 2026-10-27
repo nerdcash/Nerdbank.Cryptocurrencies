@@ -2,7 +2,6 @@ use futures_util::{StreamExt, TryStreamExt};
 use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
-use rand::rngs::OsRng;
 use rusqlite::{Connection, named_params};
 use std::{
     borrow::Borrow,
@@ -54,7 +53,7 @@ use zcash_protocol::{
 };
 
 use crate::{
-    backing_store::Db,
+    backing_store::{Db, WalletRng},
     block_source::BlockCacheError,
     blockrange::BlockRange,
     error::Error,
@@ -501,7 +500,7 @@ fn report_transactions_in_range<P: AsRef<Path>>(
 
 fn update_status<'a>(
     status: &'a mut SyncUpdateData,
-    data: &WalletDb<Connection, Network, SystemClock, OsRng>,
+    data: &WalletDb<Connection, Network, SystemClock, WalletRng>,
     confirmations_policy: ConfirmationsPolicy,
 ) -> Result<&'a SyncUpdateData, Error> {
     status.last_fully_scanned_block = data.block_fully_scanned()?.map(|b| b.block_height().into());
@@ -528,7 +527,7 @@ fn report_status(status: &SyncUpdateData, progress: &Option<Box<dyn SyncUpdate>>
 
 fn update_and_report_status(
     status: &mut SyncUpdateData,
-    data: &WalletDb<Connection, Network, SystemClock, OsRng>,
+    data: &WalletDb<Connection, Network, SystemClock, WalletRng>,
     confirmations_policy: ConfirmationsPolicy,
     progress: &Option<Box<dyn SyncUpdate>>,
 ) -> Result<(), Error> {
@@ -543,7 +542,7 @@ struct DownloadAndScanResult {
 
 fn fill_in_taddrs_to_gap_limit(
     taddrs: &mut Vec<TransparentAddressSyncInfo<AccountUuid>>,
-    db: &mut WalletDb<Connection, Network, SystemClock, OsRng>,
+    db: &mut WalletDb<Connection, Network, SystemClock, WalletRng>,
 ) -> Result<Vec<TransparentAddressSyncInfo<AccountUuid>>, Error> {
     // Transform the vector of addresses into this structure:
     // Account -> (DiversifierIndex -> TransparentAddressSyncInfo)
@@ -739,7 +738,7 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
 
 async fn update_subtree_roots<P: Parameters>(
     client: &mut CompactTxStreamerClient<Channel>,
-    db_data: &mut WalletDb<rusqlite::Connection, P, SystemClock, OsRng>,
+    db_data: &mut WalletDb<rusqlite::Connection, P, SystemClock, WalletRng>,
 ) -> Result<(), anyhow::Error> {
     // Update sapling subtree roots
     let mut request = service::GetSubtreeRootsArg::default();
@@ -1236,6 +1235,8 @@ pub(crate) fn get_transactions(
                                         ),
                                         Scope::External,
                                     )),
+                                    None,
+                                    None,
                                     None,
                                     None,
                                 )

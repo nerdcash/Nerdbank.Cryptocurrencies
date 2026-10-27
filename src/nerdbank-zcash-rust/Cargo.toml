@@ -14,21 +14,21 @@ crate-type = ["cdylib"]
 uniffi = { version = "0.29.4", features = ["build"] }
 
 [dependencies]
-ff = "0.13"
+ff = "0.14"
 futures-util = "0.3"
-group = "0.13"
+group = "0.14"
 http = "1"
-jubjub = "0.10"
+jubjub = "0.11"
 lazy_static = "1.4"
 minreq = "2.11.0"
 nonempty = "0.11"
-orchard = { version = "0.15.0", default-features = false }
-pasta_curves = "0.5"
+orchard = { version = "0.16.0", default-features = false }
+pasta_curves = "0.6"
 prost = "0.14"
-rand = "0.8"
+rand = { version = "0.10", features = ["sys_rng"] }
 rusqlite = { version = "0.37", features = ["bundled"] }
-sapling = { package = "sapling-crypto", version = "0.7" }
-schemerz = "0.2"
+sapling = { package = "sapling-crypto", version = "0.9" }
+schemerz = "0.3"
 secrecy = "0.8.0"
 thiserror = "2.0"
 time = "0.3.22"
@@ -37,9 +37,9 @@ tokio = { version = "1", features = ["rt", "fs", "macros", "rt-multi-thread"] }
 tokio-util = "0.7.10"
 tonic = { version = "0.14", features = ["gzip", "tls-webpki-roots"] }
 uniffi = "0.29.4"
-zcash_address = { version = "0.13.0", path = "../../external/librustzcash/components/zcash_address" }
-zcash_transparent = { version = "0.10.0", path = "../../external/librustzcash/zcash_transparent" }
-zcash_primitives = { version = "0.30.1", path = "../../external/librustzcash/zcash_primitives", features = [
+zcash_address = { version = "0.14.0", path = "../../external/librustzcash/components/zcash_address" }
+zcash_transparent = { version = "0.11.0", path = "../../external/librustzcash/zcash_transparent" }
+zcash_primitives = { version = "0.31.0", path = "../../external/librustzcash/zcash_primitives", features = [
 	"transparent-inputs",
 ] }
 zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backend", features = [
@@ -61,14 +61,14 @@ zcash_keys = { path = "../../external/librustzcash/zcash_keys", features = [
 	"unstable",
 	"test-dependencies",
 ] }
-zcash_protocol = { version = "0.10.5", path = "../../external/librustzcash/components/zcash_protocol" }
-zcash_proofs = { version = "0.30.0", path = "../../external/librustzcash/zcash_proofs", features = [
+zcash_protocol = { version = "0.11.0", path = "../../external/librustzcash/components/zcash_protocol" }
+zcash_proofs = { version = "0.31.0", path = "../../external/librustzcash/zcash_proofs", features = [
 	"download-params",
 	"local-prover",
 	"multicore",
 ], default-features = false }
 zeroize = "1.7"
-zip32 = "0.2"
+zip32 = "0.3"
 tokio-shared-rt = "0.1.0"
 uuid.workspace = true
 aws-lc-rs = "1.15.2"
