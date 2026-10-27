@@ -138,6 +138,8 @@ pub(crate) fn get_incoming_payments(
                                         )),
                                         None,
                                         None,
+                                        None,
+                                        None,
                                     )
                                     .unwrap()
                                     .encode(network)

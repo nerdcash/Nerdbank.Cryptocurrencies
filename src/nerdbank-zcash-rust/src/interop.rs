@@ -407,9 +407,15 @@ pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError
             continue;
         };
         let uvk = if let Some(ufvk) = account.ufvk() {
-            Some(ufvk.encode(&network))
+            Some(ufvk.encode(&network).map_err(|e| {
+                Error::Internal(format!("Failed to encode unified full viewing key: {e}"))
+            })?)
         } else {
-            Some(account.uivk().encode(&network))
+            Some(account.uivk().encode(&network).map_err(|e| {
+                Error::Internal(format!(
+                    "Failed to encode unified incoming viewing key: {e}"
+                ))
+            })?)
         };
         result.push(AccountInfo {
             id: uuid_to_bytes(&account_id),
@@ -585,8 +591,11 @@ pub fn simulate_send(
 ) -> Result<SendDetails, LightWalletError> {
     let network = config.network.into();
     let mut db = Db::init(config.data_file, network)?;
-    let ufvk = UnifiedFullViewingKey::decode(&network, &ufvk)
-        .map_err(|s| LightWalletError::InvalidArgument { message: s })?;
+    let ufvk = UnifiedFullViewingKey::decode(&network, &ufvk).map_err(|e| {
+        LightWalletError::InvalidArgument {
+            message: e.to_string(),
+        }
+    })?;
     let proposal = create_send_proposal(&mut db, network, &ufvk, send_details)?;
 
     Ok(SendDetails {
