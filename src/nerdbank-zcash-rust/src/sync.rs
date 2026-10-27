@@ -1349,6 +1349,208 @@ mod tests {
 
     use super::*;
 
+    /// Times `put_blocks` and `scan_cached_blocks` for one historic shielded sync.
+    ///
+    /// Ignored so CI does not download chain data. `NERDBANK_ZCASH_TREE_WRITE_BACK=0` selects the
+    /// immediate shard-tree writes; leave it unset for the write-back cache. The birthday defaults
+    /// to 3487990 on mainnet, the height used for the completing 44k-block profile. Override it
+    /// with `NERDBANK_ZCASH_PROFILE_BIRTHDAY`. `NERDBANK_ZCASH_PROFILE_MAINNET=1` selects mainnet
+    /// (`https://zcash.mysideoftheweb.com:9067/`).
+    ///
+    /// ```bash
+    /// NERDBANK_ZCASH_PROFILE_MAINNET=1 \
+    ///   cargo test -p nerdbank-zcash-rust --release --lib profile_historic_shielded_sync -- --ignored --nocapture --test-threads=1
+    /// ```
+    #[ignore]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn profile_historic_shielded_sync() {
+        let birthday_override: Option<u64> = std::env::var("NERDBANK_ZCASH_PROFILE_BIRTHDAY")
+            .ok()
+            .and_then(|value| value.parse().ok());
+        let mainnet = std::env::var("NERDBANK_ZCASH_PROFILE_MAINNET")
+            .ok()
+            .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "yes" | "on"));
+        let uri = if mainnet {
+            crate::test_constants::MAINNET_LIGHTSERVER_URI.clone()
+        } else {
+            crate::test_constants::TESTNET_LIGHTSERVER_URI.clone()
+        };
+
+        let totals = std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::<
+            String,
+            std::time::Duration,
+        >::new()));
+        let subscriber = SpanTimer {
+            next_id: std::sync::atomic::AtomicU64::new(1),
+            spans: std::sync::Mutex::new(std::collections::HashMap::new()),
+            totals: totals.clone(),
+        };
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("span timer could not be installed");
+
+        let mut client = get_client(uri.clone()).await.unwrap();
+        let info = client
+            .get_lightd_info(service::Empty {})
+            .await
+            .unwrap()
+            .into_inner();
+        let network = parse_network(&info).unwrap();
+        let tip = info.block_height;
+        let birthday = birthday_override.unwrap_or(if mainnet {
+            3_487_990
+        } else {
+            tip.saturating_sub(25_000)
+        });
+        let write_back = std::env::var("NERDBANK_ZCASH_TREE_WRITE_BACK")
+            .ok()
+            .is_none_or(|value| {
+                !matches!(
+                    value.to_ascii_lowercase().as_str(),
+                    "0" | "false" | "off" | "no"
+                )
+            });
+        eprintln!(
+            "historic profile network={network:?} tip={tip} birthday={birthday} span={} write_back={write_back} uri={uri}",
+            tip.saturating_sub(birthday)
+        );
+
+        let wallet_dir = testdir::testdir!();
+        let data_file = wallet_dir.join("wallet.sqlite");
+        let mut db = crate::backing_store::Db::init(&data_file, network).unwrap();
+        let seed = secrecy::SecretVec::new(
+            bip0039::Mnemonic::<bip0039::English>::generate(bip0039::Count::Words24)
+                .to_seed("")
+                .to_vec(),
+        );
+        db.add_account(
+            "historic profile",
+            &seed,
+            zip32::AccountId::ZERO,
+            birthday,
+            &mut client,
+        )
+        .await
+        .unwrap();
+
+        let started = std::time::Instant::now();
+        let result = sync(
+            uri,
+            &data_file,
+            None,
+            ConfirmationsPolicy::default(),
+            false,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        let wall = started.elapsed();
+        let totals = totals.lock().unwrap();
+        let put_blocks = totals.get("put_blocks").copied().unwrap_or_default();
+        let scan = totals
+            .get("scan_cached_blocks")
+            .copied()
+            .unwrap_or_default();
+        let scan_without_writes = scan.saturating_sub(put_blocks);
+        let outside_scan = wall.saturating_sub(scan);
+        let rows = totals.get("put_blocks_rows").copied().unwrap_or_default();
+        let build = totals
+            .get("put_blocks_build_subtrees")
+            .copied()
+            .unwrap_or_default();
+        let trees = totals
+            .get("put_blocks_update_trees")
+            .copied()
+            .unwrap_or_default();
+        let notify = totals.get("put_blocks_notify").copied().unwrap_or_default();
+        eprintln!(
+            "historic profile done tip={} fully_scanned={:?} wall={:.3}s put_blocks={:.3}s scan_cached_blocks={:.3}s scan_without_put_blocks={:.3}s outside_scan={:.3}s rows={:.3}s build_subtrees={:.3}s update_trees={:.3}s notify={:.3}s",
+            result.tip_height,
+            result.last_fully_scanned_block,
+            wall.as_secs_f64(),
+            put_blocks.as_secs_f64(),
+            scan.as_secs_f64(),
+            scan_without_writes.as_secs_f64(),
+            outside_scan.as_secs_f64(),
+            rows.as_secs_f64(),
+            build.as_secs_f64(),
+            trees.as_secs_f64(),
+            notify.as_secs_f64(),
+        );
+    }
+
+    /// Records the wall time spent inside named tracing spans.
+    ///
+    /// `scan_cached_blocks` stays entered across the nested `put_blocks` span, so its total
+    /// includes the writes. Subtract `put_blocks` for the scan-only portion.
+    struct SpanTimer {
+        next_id: std::sync::atomic::AtomicU64,
+        spans: std::sync::Mutex<std::collections::HashMap<u64, OpenSpan>>,
+        totals: std::sync::Arc<
+            std::sync::Mutex<std::collections::HashMap<String, std::time::Duration>>,
+        >,
+    }
+
+    struct OpenSpan {
+        name: String,
+        entered: Option<std::time::Instant>,
+    }
+
+    impl tracing::Subscriber for SpanTimer {
+        fn enabled(&self, metadata: &tracing::Metadata<'_>) -> bool {
+            matches!(
+                metadata.name(),
+                "put_blocks"
+                    | "scan_cached_blocks"
+                    | "put_blocks_rows"
+                    | "put_blocks_build_subtrees"
+                    | "put_blocks_update_trees"
+                    | "put_blocks_notify"
+            )
+        }
+
+        fn new_span(&self, attrs: &tracing::span::Attributes<'_>) -> tracing::span::Id {
+            let id = self
+                .next_id
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+                .max(1);
+            self.spans.lock().unwrap().insert(
+                id,
+                OpenSpan {
+                    name: attrs.metadata().name().to_owned(),
+                    entered: None,
+                },
+            );
+            tracing::span::Id::from_u64(id)
+        }
+
+        fn record(&self, _span: &tracing::span::Id, _values: &tracing::span::Record<'_>) {}
+
+        fn record_follows_from(&self, _span: &tracing::span::Id, _follows: &tracing::span::Id) {}
+
+        fn event(&self, _event: &tracing::Event<'_>) {}
+
+        fn enter(&self, span: &tracing::span::Id) {
+            if let Some(state) = self.spans.lock().unwrap().get_mut(&span.into_u64()) {
+                state.entered = Some(std::time::Instant::now());
+            }
+        }
+
+        fn exit(&self, span: &tracing::span::Id) {
+            let mut spans = self.spans.lock().unwrap();
+            if let Some(state) = spans.get_mut(&span.into_u64())
+                && let Some(start) = state.entered.take()
+            {
+                let elapsed = start.elapsed();
+                *self
+                    .totals
+                    .lock()
+                    .unwrap()
+                    .entry(state.name.clone())
+                    .or_default() += elapsed;
+            }
+        }
+    }
+
     #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn test_sync() {
         let mut setup = setup_test().await;

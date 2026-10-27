@@ -151,6 +151,18 @@ impl Db {
     }
 }
 
+/// `NERDBANK_ZCASH_TREE_WRITE_BACK=0|false|off|no` selects the immediate SQLite shard-tree
+/// writes. Any other value, including an unset variable, keeps the write-back cache.
+fn commitment_tree_write_back_from_env() -> bool {
+    match std::env::var("NERDBANK_ZCASH_TREE_WRITE_BACK") {
+        Ok(value) => !matches!(
+            value.to_ascii_lowercase().as_str(),
+            "0" | "false" | "off" | "no"
+        ),
+        Err(_) => true,
+    }
+}
+
 fn get_db_internal<P: AsRef<Path>>(
     data_file: P,
     network: Network,
@@ -161,6 +173,9 @@ fn get_db_internal<P: AsRef<Path>>(
     }
 
     let mut data = WalletDb::for_path(data_file, network, SystemClock, WalletRng::default())?;
+    if !commitment_tree_write_back_from_env() {
+        data.set_commitment_tree_write_back(false);
+    }
 
     if init {
         init_wallet_db(&mut data, None)?;
