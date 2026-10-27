@@ -839,58 +839,87 @@ async fn download_full_shielded_transactions<P: AsRef<Path> + Clone>(
     Ok(txids)
 }
 
+async fn download_subtree_roots<H: HashSer + Send>(
+    client: &mut CompactTxStreamerClient<Channel>,
+    protocol: service::ShieldedProtocol,
+    timing: &SyncTiming,
+) -> Result<Vec<CommitmentTreeRoot<H>>, anyhow::Error> {
+    let mut request = service::GetSubtreeRootsArg::default();
+    request.set_shielded_protocol(protocol);
+    let _timer = timing.start(Phase::TreeState);
+    Ok(client
+        .get_subtree_roots(request)
+        .await?
+        .into_inner()
+        .and_then(|root| async move {
+            let root_hash = H::read(&root.root_hash[..])?;
+            Ok(CommitmentTreeRoot::from_parts(
+                BlockHeight::from_u32(root.completing_block_height as u32),
+                root_hash,
+            ))
+        })
+        .try_collect()
+        .await?)
+}
+
 async fn update_subtree_roots<P: Parameters>(
     client: &mut CompactTxStreamerClient<Channel>,
     db_data: &mut WalletDb<rusqlite::Connection, P, SystemClock, OsRng>,
     timing: &SyncTiming,
 ) -> Result<(), anyhow::Error> {
-    // Update sapling subtree roots
-    let mut request = service::GetSubtreeRootsArg::default();
-    request.set_shielded_protocol(service::ShieldedProtocol::Sapling);
-    let roots: Vec<CommitmentTreeRoot<sapling::Node>> = {
-        let _timer = timing.start(Phase::TreeState);
-        client
-            .get_subtree_roots(request)
-            .await?
-            .into_inner()
-            .and_then(|root| async move {
-                let root_hash = sapling::Node::read(&root.root_hash[..])?;
-                Ok(CommitmentTreeRoot::from_parts(
-                    BlockHeight::from_u32(root.completing_block_height as u32),
-                    root_hash,
-                ))
-            })
-            .try_collect()
-            .await?
-    };
+    // Subtree roots are a contiguous prefix from index 0. Scan ranges run chain-tip before
+    // historic, and the chain-tip range can complete a later shard while the historic range
+    // still has to write an earlier one. An empty shard table accepts that later shard; the
+    // earlier insert then fails with SubtreeDiscontinuity. Sapling and Orchard were already
+    // preloaded. Ironwood uses the same hash type as Orchard and has to be preloaded too.
+    let sapling_roots =
+        download_subtree_roots::<sapling::Node>(client, service::ShieldedProtocol::Sapling, timing)
+            .await?;
     {
         let _timer = timing.start(Phase::DbWrite);
-        db_data.put_sapling_subtree_roots(0, &roots)?;
+        db_data
+            .put_sapling_subtree_roots(0, &sapling_roots)
+            .map_err(|e| {
+                anyhow::anyhow!("sapling subtree roots ({}): {e:?}", sapling_roots.len())
+            })?;
     }
 
-    // Update orchard subtree roots
-    request = service::GetSubtreeRootsArg::default();
-    request.set_shielded_protocol(service::ShieldedProtocol::Orchard);
-    let roots: Vec<CommitmentTreeRoot<MerkleHashOrchard>> = {
-        let _timer = timing.start(Phase::TreeState);
-        client
-            .get_subtree_roots(request)
-            .await?
-            .into_inner()
-            .and_then(|root| async move {
-                let root_hash = MerkleHashOrchard::read(&root.root_hash[..])?;
-                Ok(CommitmentTreeRoot::from_parts(
-                    BlockHeight::from_u32(root.completing_block_height as u32),
-                    root_hash,
-                ))
-            })
-            .try_collect()
-            .await?
-    };
+    let orchard_roots = download_subtree_roots::<MerkleHashOrchard>(
+        client,
+        service::ShieldedProtocol::Orchard,
+        timing,
+    )
+    .await?;
     {
         let _timer = timing.start(Phase::DbWrite);
-        db_data.put_orchard_subtree_roots(0, roots.as_slice())?;
+        db_data
+            .put_orchard_subtree_roots(0, &orchard_roots)
+            .map_err(|e| {
+                anyhow::anyhow!("orchard subtree roots ({}): {e:?}", orchard_roots.len())
+            })?;
     }
+
+    let ironwood_roots = download_subtree_roots::<MerkleHashOrchard>(
+        client,
+        service::ShieldedProtocol::Ironwood,
+        timing,
+    )
+    .await?;
+    {
+        let _timer = timing.start(Phase::DbWrite);
+        db_data
+            .put_ironwood_subtree_roots(0, &ironwood_roots)
+            .map_err(|e| {
+                anyhow::anyhow!("ironwood subtree roots ({}): {e:?}", ironwood_roots.len())
+            })?;
+    }
+
+    info!(
+        "Loaded subtree roots sapling={} orchard={} ironwood={}",
+        sapling_roots.len(),
+        orchard_roots.len(),
+        ironwood_roots.len()
+    );
 
     Ok(())
 }
@@ -1728,9 +1757,9 @@ mod tests {
     /// `NERDBANK_ZCASH_SYNC_TIMING`.
     ///
     /// A mainnet birthday below the current Ironwood shard tip makes `suggest_scan_ranges` scan the
-    /// chain-tip shard first. The older historic range then fails in `put_blocks` with
-    /// `SubtreeDiscontinuity` on the Ironwood tree. Pick a birthday at or above that shard tip for a
-    /// run that commits.
+    /// chain-tip shard first. That succeeds only when Ironwood subtree roots were preloaded from
+    /// index 0; otherwise the older historic range fails in `put_blocks` with `SubtreeDiscontinuity`
+    /// on the Ironwood tree.
     ///
     /// ```bash
     /// NERDBANK_ZCASH_SYNC_TIMING=1 NERDBANK_ZCASH_PROFILE_BLOCKS=25000 \
@@ -1801,6 +1830,118 @@ mod tests {
             "historic profile done tip={} fully_scanned={:?}",
             result.tip_height, result.last_fully_scanned_block
         );
+    }
+
+    fn orchard_subtree_root(index: u32) -> CommitmentTreeRoot<MerkleHashOrchard> {
+        let mut bytes = [0u8; 32];
+        bytes[0] = u8::try_from(index).unwrap_or(u8::MAX);
+        bytes[1] = u8::try_from(index >> 8).unwrap_or(0);
+        let hash = MerkleHashOrchard::from_bytes(&bytes).expect("canonical Pallas encoding");
+        CommitmentTreeRoot::from_parts(BlockHeight::from_u32(1_000 + index * 100), hash)
+    }
+
+    fn shard_span(path: &Path, table: &str) -> (i64, i64, i64) {
+        let conn = Connection::open(path).unwrap();
+        conn.query_row(
+            &format!(
+                "SELECT COALESCE(MIN(shard_index), -1), COALESCE(MAX(shard_index), -1), COUNT(*) \
+                 FROM {table}"
+            ),
+            [],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        )
+        .unwrap()
+    }
+
+    fn assert_contiguous_from_zero(path: &Path, table: &str) {
+        let (min, max, count) = shard_span(path, table);
+        assert!(
+            count > 0 && min == 0 && count == max - min + 1,
+            "{table} min={min} max={max} count={count}"
+        );
+    }
+
+    /// An empty Ironwood shard table accepts whatever shard a chain-tip scan writes first.
+    /// A later historic scan that completes an earlier shard then hits `SubtreeDiscontinuity`.
+    /// Preloading a prefix from index 0 makes that earlier insert an overlap instead.
+    #[test]
+    fn ironwood_subtree_roots_from_index_zero_avoid_discontinuity() {
+        let wallet_dir = testdir::testdir!();
+        let data_file = wallet_dir.join("gapped.sqlite");
+        let mut gapped = Db::init(&data_file, Network::MainNetwork).unwrap();
+        gapped
+            .data
+            .put_ironwood_subtree_roots(6, &[orchard_subtree_root(6)])
+            .unwrap();
+        let err = gapped
+            .data
+            .put_ironwood_subtree_roots(1, &[orchard_subtree_root(1)])
+            .unwrap_err();
+        let message = format!("{err:?}");
+        assert!(
+            message.contains("SubtreeDiscontinuity")
+                && message.contains("attempted_insertion_range: 1..2")
+                && message.contains("existing_range: 6..7"),
+            "{message}"
+        );
+
+        let preloaded_file = wallet_dir.join("preloaded.sqlite");
+        let mut preloaded = Db::init(&preloaded_file, Network::MainNetwork).unwrap();
+        let prefix: Vec<_> = (0..8).map(orchard_subtree_root).collect();
+        preloaded
+            .data
+            .put_ironwood_subtree_roots(0, &prefix)
+            .unwrap();
+        preloaded
+            .data
+            .put_ironwood_subtree_roots(1, &[orchard_subtree_root(1)])
+            .unwrap();
+        assert_contiguous_from_zero(&preloaded_file, "ironwood_tree_shards");
+    }
+
+    /// Sync must store Ironwood subtree roots as a contiguous prefix from index 0 before scanning.
+    /// Mainnet has completed Ironwood shards; omitting this preload is what made a fresh wallet
+    /// with a birthday ~80_000 blocks back fail after the chain-tip range.
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn update_subtree_roots_preloads_ironwood_from_index_zero() {
+        for (label, uri, require_ironwood) in [
+            (
+                "testnet",
+                test_constants::TESTNET_LIGHTSERVER_URI.clone(),
+                false,
+            ),
+            (
+                "mainnet",
+                test_constants::MAINNET_LIGHTSERVER_URI.clone(),
+                true,
+            ),
+        ] {
+            let mut client = get_client(uri).await.unwrap();
+            let info = client
+                .get_lightd_info(service::Empty {})
+                .await
+                .unwrap()
+                .into_inner();
+            let network = parse_network(&info).unwrap();
+            // `testdir!()` is one directory per test, so each server needs its own file.
+            // Reusing the testnet wallet would make the mainnet root insert conflict.
+            let data_file = testdir::testdir!().join(format!("{label}.sqlite"));
+            let mut db = Db::init(&data_file, network).unwrap();
+            update_subtree_roots(&mut client, &mut db.data, &SyncTiming::disabled())
+                .await
+                .unwrap();
+
+            assert_contiguous_from_zero(&data_file, "sapling_tree_shards");
+            assert_contiguous_from_zero(&data_file, "orchard_tree_shards");
+            let (min, max, count) = shard_span(&data_file, "ironwood_tree_shards");
+            eprintln!("{label} ironwood shards min={min} max={max} count={count}");
+            if require_ironwood || count > 0 {
+                assert!(
+                    count > 0 && min == 0 && count == max - min + 1,
+                    "{label} ironwood shards min={min} max={max} count={count}"
+                );
+            }
+        }
     }
 
     #[tokio_shared_rt::test(flavor = "multi_thread")]
