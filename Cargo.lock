@@ -8078,6 +8078,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shardtree",
+ "sinsemilla",
  "subtle",
  "tempfile",
  "time",
