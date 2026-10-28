@@ -2122,6 +2122,9 @@ class FfiConverterTypeTransparentNote : FfiConverterRustBuffer<TransparentNote>
 	}
 }
 
+/// <param name="viewed">
+/// Notes a view-only wallet decrypted and has not seen spent. Zero for a spending wallet.
+/// </param>
 internal record UserBalances(
 	ulong @spendable,
 	ulong @immatureChange,
@@ -2130,6 +2133,9 @@ internal record UserBalances(
 	ulong @dust,
 	ulong @incoming,
 	ulong @incomingDust,
+	/// <summary>
+	/// Notes a view-only wallet decrypted and has not seen spent. Zero for a spending wallet.
+	/// </summary>
 	ulong @viewed
 ) { }
 
