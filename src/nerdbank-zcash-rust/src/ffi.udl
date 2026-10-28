@@ -79,6 +79,8 @@ dictionary UserBalances {
 	u64 dust;
 	u64 incoming;
 	u64 incoming_dust;
+	/// Notes a view-only wallet decrypted and has not seen spent. Zero for a spending wallet.
+	u64 viewed;
 };
 
 dictionary BirthdayHeights {

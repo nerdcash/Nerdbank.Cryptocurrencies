@@ -2129,7 +2129,8 @@ internal record UserBalances(
 	ulong @immatureIncome,
 	ulong @dust,
 	ulong @incoming,
-	ulong @incomingDust
+	ulong @incomingDust,
+	ulong @viewed
 ) { }
 
 class FfiConverterTypeUserBalances : FfiConverterRustBuffer<UserBalances>
@@ -2145,7 +2146,8 @@ class FfiConverterTypeUserBalances : FfiConverterRustBuffer<UserBalances>
 			@immatureIncome: FfiConverterUInt64.INSTANCE.Read(stream),
 			@dust: FfiConverterUInt64.INSTANCE.Read(stream),
 			@incoming: FfiConverterUInt64.INSTANCE.Read(stream),
-			@incomingDust: FfiConverterUInt64.INSTANCE.Read(stream)
+			@incomingDust: FfiConverterUInt64.INSTANCE.Read(stream),
+			@viewed: FfiConverterUInt64.INSTANCE.Read(stream)
 		);
 	}
 
@@ -2158,7 +2160,8 @@ class FfiConverterTypeUserBalances : FfiConverterRustBuffer<UserBalances>
 			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@immatureIncome)
 			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@dust)
 			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@incoming)
-			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@incomingDust);
+			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@incomingDust)
+			+ FfiConverterUInt64.INSTANCE.AllocationSize(value.@viewed);
 	}
 
 	public override void Write(UserBalances value, BigEndianStream stream)
@@ -2170,6 +2173,7 @@ class FfiConverterTypeUserBalances : FfiConverterRustBuffer<UserBalances>
 		FfiConverterUInt64.INSTANCE.Write(value.@dust, stream);
 		FfiConverterUInt64.INSTANCE.Write(value.@incoming, stream);
 		FfiConverterUInt64.INSTANCE.Write(value.@incomingDust, stream);
+		FfiConverterUInt64.INSTANCE.Write(value.@viewed, stream);
 	}
 }
 

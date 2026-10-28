@@ -5,7 +5,7 @@ use rusqlite::Connection;
 use secrecy::SecretVec;
 use tonic::transport::Channel;
 use zcash_client_backend::{
-    data_api::{AccountBirthday, AccountPurpose, WalletWrite},
+    data_api::{AccountBirthday, AccountPurpose, WalletRead, WalletWrite},
     keys::UnifiedSpendingKey,
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
@@ -18,7 +18,8 @@ use zcash_keys::{
     address::UnifiedAddress,
     keys::{UnifiedFullViewingKey, UnifiedIncomingViewingKey},
 };
-use zcash_protocol::consensus::Network;
+use zcash_primitives::block::BlockHash;
+use zcash_protocol::consensus::{BlockHeight, Network};
 use zip32::DiversifierIndex;
 
 use crate::{block_source::BlockCache, error::Error, sync_timing::SyncTiming};
@@ -66,17 +67,9 @@ impl Db {
             .expect("block heights must fit into u32");
         let recover_until = Some(chain_tip.into());
 
-        // Construct an `AccountBirthday` for the account's birthday.
-        let birthday = {
-            // Fetch the tree state corresponding to the last block prior to the wallet's
-            // birthday height. NOTE: THIS APPROACH LEAKS THE BIRTHDAY TO THE SERVER!
-            let request = service::BlockId {
-                height: birthday.saturating_sub(1),
-                ..Default::default()
-            };
-            let treestate = client.get_tree_state(request).await?.into_inner();
-            AccountBirthday::from_treestate(treestate, recover_until)?
-        };
+        // A seed account can spend. Its birthday needs the prior note commitment frontiers.
+        let birthday =
+            chain_state_birthday(client, birthday.saturating_sub(1), recover_until).await?;
 
         Ok(self
             .data
@@ -92,17 +85,10 @@ impl Db {
         key_source: Option<&str>,
         client: &mut CompactTxStreamerClient<Channel>,
     ) -> Result<Account, Error> {
-        // Construct an `AccountBirthday` for the account's birthday.
-        let birthday = {
-            // Fetch the tree state corresponding to the last block prior to the wallet's
-            // birthday height. NOTE: THIS APPROACH LEAKS THE BIRTHDAY TO THE SERVER!
-            let request = service::BlockId {
-                height: birthday - 1,
-                ..Default::default()
-            };
-            let treestate = client.get_tree_state(request).await?.into_inner();
-            AccountBirthday::from_treestate(treestate, None)?
-        };
+        let importing_spending = matches!(purpose, AccountPurpose::Spending { .. });
+        let birthday = self
+            .birthday_for_import(client, birthday, None, importing_spending)
+            .await?;
 
         Ok(self
             .data
@@ -117,27 +103,51 @@ impl Db {
         key_source: Option<&str>,
         client: &mut CompactTxStreamerClient<Channel>,
     ) -> Result<Account, Error> {
-        if birthday == 0 {
-            return Err(Error::InvalidArgument(
-                "Account birthday height must be greater than 0.".to_string(),
-            ));
-        }
-
-        // Construct an `AccountBirthday` for the account's birthday.
-        let birthday = {
-            // Fetch the tree state corresponding to the last block prior to the wallet's
-            // birthday height. NOTE: THIS APPROACH LEAKS THE BIRTHDAY TO THE SERVER!
-            let request = service::BlockId {
-                height: birthday - 1,
-                ..Default::default()
-            };
-            let treestate = client.get_tree_state(request).await?.into_inner();
-            AccountBirthday::from_treestate(treestate, None)?
-        };
+        // A UIVK cannot spend. Tree state is still required when this wallet already
+        // maintains note commitment trees for a spending account.
+        let birthday = self
+            .birthday_for_import(client, birthday, None, false)
+            .await?;
 
         Ok(self
             .data
             .import_account_uivk(name, uivk, &birthday, key_source)?)
+    }
+
+    /// Builds the birthday for an account import.
+    ///
+    /// Spending imports, and view-only imports into a wallet that already has a spending
+    /// account, fetch `GetTreeState` so the note commitment frontiers are real. A wallet that
+    /// is empty or contains only view-only accounts uses [`AccountBirthday::from_viewing_parts`]
+    /// and does not fetch a tree state. The prior block hash comes from that block's compact
+    /// form. An empty wallet reports that it maintains trees, so the spending check is based on
+    /// the accounts already stored, not on that default.
+    async fn birthday_for_import(
+        &self,
+        client: &mut CompactTxStreamerClient<Channel>,
+        birthday: u64,
+        recover_until: Option<BlockHeight>,
+        importing_spending: bool,
+    ) -> Result<AccountBirthday, Error> {
+        if importing_spending || self.has_spending_account()? {
+            if birthday == 0 {
+                return chain_state_birthday(client, 0, recover_until).await;
+            }
+            return chain_state_birthday(client, birthday - 1, recover_until).await;
+        }
+
+        viewing_birthday(client, birthday, recover_until).await
+    }
+
+    /// `true` when the wallet already contains an account that can spend.
+    ///
+    /// An empty wallet returns `false`. [`WalletRead::maintains_note_commitment_trees`] returns
+    /// `true` for an empty wallet, which is the right scan default and the wrong answer here.
+    fn has_spending_account(&self) -> Result<bool, Error> {
+        if self.data.get_account_ids()?.is_empty() {
+            return Ok(false);
+        }
+        Ok(self.data.maintains_note_commitment_trees()?)
     }
 
     pub(crate) fn add_diversifier(
@@ -149,6 +159,80 @@ impl Db {
             .data
             .put_address_with_diversifier_index(account_id, diversifier_index)?)
     }
+}
+
+/// Fetches `GetTreeState` for `prior_height` and builds a spending birthday from it.
+///
+/// The request tells the server which height the wallet will start scanning. Spending wallets
+/// need the frontiers in that response.
+async fn chain_state_birthday(
+    client: &mut CompactTxStreamerClient<Channel>,
+    prior_height: u64,
+    recover_until: Option<BlockHeight>,
+) -> Result<AccountBirthday, Error> {
+    let request = service::BlockId {
+        height: prior_height,
+        ..Default::default()
+    };
+    let treestate = client.get_tree_state(request).await?.into_inner();
+    Ok(AccountBirthday::from_treestate(treestate, recover_until)?)
+}
+
+/// Birthday for a wallet that will scan without note commitment trees.
+///
+/// The prior block hash is read from the compact block at `birthday - 1`. Frontiers stay empty.
+async fn viewing_birthday(
+    client: &mut CompactTxStreamerClient<Channel>,
+    birthday: u64,
+    recover_until: Option<BlockHeight>,
+) -> Result<AccountBirthday, Error> {
+    if birthday == 0 {
+        return Err(Error::InvalidArgument(
+            "Account birthday height must be greater than 0.".to_string(),
+        ));
+    }
+
+    let prior_height = birthday - 1;
+    let prior_hash = prior_compact_block_hash(client, prior_height).await?;
+    let prior_height = u32::try_from(prior_height).map_err(|_| Error::InvalidHeight)?;
+    Ok(AccountBirthday::from_viewing_parts(
+        BlockHeight::from_u32(prior_height),
+        prior_hash,
+        recover_until,
+    ))
+}
+
+/// Hash of the compact block at `height`, without asking for a note commitment tree state.
+async fn prior_compact_block_hash(
+    client: &mut CompactTxStreamerClient<Channel>,
+    height: u64,
+) -> Result<BlockHash, Error> {
+    let block_id = service::BlockId {
+        height,
+        ..Default::default()
+    };
+    let range = service::BlockRange {
+        start: Some(block_id.clone()),
+        end: Some(block_id),
+        pool_types: vec![],
+    };
+    let block = client
+        .get_block_range(range)
+        .await?
+        .into_inner()
+        .message()
+        .await?
+        .ok_or_else(|| {
+            Error::Internal(format!(
+                "lightwalletd returned no compact block at height {height}"
+            ))
+        })?;
+    if block.hash.len() != 32 && block.header.is_empty() {
+        return Err(Error::Internal(format!(
+            "compact block at height {height} has no block hash"
+        )));
+    }
+    Ok(block.hash())
 }
 
 /// `NERDBANK_ZCASH_TREE_WRITE_BACK=0|false|off|no` selects the immediate SQLite shard-tree
@@ -288,5 +372,106 @@ mod tests {
                 after.len()
             );
         }
+    }
+
+    fn viewing_birthday() -> AccountBirthday {
+        AccountBirthday::from_viewing_parts(BlockHeight::from_u32(1), BlockHash([0; 32]), None)
+    }
+
+    fn ufvk_from_seed(network: Network, seed: &[u8]) -> UnifiedFullViewingKey {
+        UnifiedSpendingKey::from_seed(&network, seed, zip32::AccountId::ZERO)
+            .expect("seed derives")
+            .to_unified_full_viewing_key()
+    }
+
+    /// View-only imports record `AccountPurpose::ViewOnly` and, while they are the whole wallet,
+    /// skip note commitment trees. A spending account in the same wallet turns tree maintenance
+    /// back on. Seed accounts are spending accounts: the seed is stored and the purpose is
+    /// `Spending`.
+    #[test]
+    fn view_only_wallet_skips_trees_until_a_spending_account_is_added() {
+        let network = Network::TestNetwork;
+        let wallet_dir = testdir!();
+        let mut db = Db::init(wallet_dir.join("wallet.sqlite"), network).unwrap();
+        assert!(
+            !db.has_spending_account().unwrap(),
+            "an empty wallet has no spending account"
+        );
+        // The scan default for an empty wallet is still to maintain trees.
+        assert!(db.data.maintains_note_commitment_trees().unwrap());
+
+        let birthday = viewing_birthday();
+        let view_ufvk = ufvk_from_seed(network, &[0x11; 32]);
+        let view = db
+            .data
+            .import_account_ufvk(
+                "view",
+                &view_ufvk,
+                &birthday,
+                AccountPurpose::ViewOnly,
+                None,
+            )
+            .unwrap();
+        assert!(matches!(view.purpose(), AccountPurpose::ViewOnly));
+        assert!(!db.has_spending_account().unwrap());
+        assert!(!db.data.maintains_note_commitment_trees().unwrap());
+
+        let ivk_ufvk = ufvk_from_seed(network, &[0x33; 32]);
+        let ivk = db
+            .data
+            .import_account_uivk(
+                "ivk",
+                &ivk_ufvk.to_unified_incoming_viewing_key(),
+                &birthday,
+                None,
+            )
+            .unwrap();
+        assert!(matches!(ivk.purpose(), AccountPurpose::ViewOnly));
+        assert!(ivk.ufvk().is_none());
+        assert!(!db.data.maintains_note_commitment_trees().unwrap());
+
+        let spend_ufvk = ufvk_from_seed(network, &[0x22; 32]);
+        let spend = db
+            .data
+            .import_account_ufvk(
+                "spend",
+                &spend_ufvk,
+                &birthday,
+                AccountPurpose::Spending { derivation: None },
+                None,
+            )
+            .unwrap();
+        assert!(matches!(
+            spend.purpose(),
+            AccountPurpose::Spending { derivation: None }
+        ));
+        assert!(db.has_spending_account().unwrap());
+        assert!(db.data.maintains_note_commitment_trees().unwrap());
+    }
+
+    #[test]
+    fn seed_account_is_a_spending_account() {
+        let network = Network::TestNetwork;
+        let wallet_dir = testdir!();
+        let mut db = Db::init(wallet_dir.join("wallet.sqlite"), network).unwrap();
+        let seed = SecretVec::new(vec![0xab; 64]);
+        let (account, _) = db
+            .data
+            .import_account_hd(
+                "hd",
+                &seed,
+                zip32::AccountId::ZERO,
+                &viewing_birthday(),
+                None,
+            )
+            .unwrap();
+        assert!(matches!(
+            account.purpose(),
+            AccountPurpose::Spending {
+                derivation: Some(_)
+            }
+        ));
+        assert!(db.has_spending_account().unwrap());
+        assert!(db.data.maintains_note_commitment_trees().unwrap());
     }
 }

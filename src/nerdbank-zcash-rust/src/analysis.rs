@@ -1,7 +1,7 @@
 use rusqlite::{Connection, named_params};
 use zcash_client_sqlite::AccountUuid;
 
-use zcash_client_backend::data_api::{WalletRead, wallet::ConfirmationsPolicy};
+use zcash_client_backend::data_api::{AccountBalance, WalletRead, wallet::ConfirmationsPolicy};
 use zcash_primitives::transaction::fees::zip317::{FeeRule, MINIMUM_FEE};
 
 use crate::{
@@ -51,7 +51,7 @@ pub fn get_birthday_heights(
 ///
 /// Name | Value
 /// --- | ---
-/// "Balance" | `spendable` - `minimum_fees` + `immature_change` + `immature_income`
+/// "Balance" | `spendable` - `minimum_fees` + `immature_change` + `immature_income` + `viewed`
 /// "Incoming" | `incoming`
 ///
 /// If dust is sent to the wallet, the simpler view's Incoming balance would include it,
@@ -104,6 +104,13 @@ pub struct UserBalances {
 
     /// The sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as dust.
     pub incoming_dust: u64,
+
+    /// Notes a view-only wallet decrypted and has not seen spent.
+    ///
+    /// A spending wallet reports zero. Those notes are in `spendable` or `immature_income`.
+    /// A view-only wallet has no witness, so `spendable` stays zero and the observed total is
+    /// here, including notes at or below the marginal fee.
+    pub viewed: u64,
 }
 
 pub fn get_user_balances(
@@ -113,6 +120,7 @@ pub fn get_user_balances(
 ) -> Result<UserBalances, Error> {
     let marginal_fee: u64 = FeeRule::standard().marginal_fee().into();
     let db = Db::load(&config.data_file, config.network.into())?;
+    let mut balances = UserBalances::default();
     let trusted_anchor = db
         .data
         .get_target_and_anchor_heights(confirmations_policy.trusted())?;
@@ -127,10 +135,6 @@ pub fn get_user_balances(
         let mut rows = balances_query.query(named_params! {
             ":account_uuid": account_uuid.expose_uuid(),
         })?;
-
-        let mut balances = UserBalances {
-            ..Default::default()
-        };
 
         while let Some(row) = rows.next()? {
             let block_height: Option<u32> = row.get("block")?;
@@ -195,20 +199,38 @@ pub fn get_user_balances(
 
         // librustzcash is coming around to having more of these balances themselves.
         // For those values that it can provide, consider them more reliable and override what we computed.
-        if let Some(summary) = db.data.get_wallet_summary(confirmations_policy)? {
-            let account_balance = summary
-                .account_balances()
-                .get(account_uuid)
-                .ok_or_else(|| Error::InvalidArgument("Account not found.".to_string()))?;
-            balances.spendable = account_balance.spendable_value().into_u64();
-            balances.immature_change = account_balance.change_pending_confirmation().into_u64();
-            balances.dust = account_balance.uneconomic_value().into_u64();
-        }
-
-        Ok(balances)
-    } else {
-        Ok(Default::default())
     }
+
+    // A view-only wallet has no anchor checkpoints, so the note query above does not run.
+    // `get_wallet_snapshot` still reports `viewed_value` without those checkpoints. A spending
+    // wallet prefers the summary, which splits the same notes into spendable and pending.
+    if let Some(summary) = db.data.get_wallet_summary(confirmations_policy)? {
+        let account_balance = summary
+            .account_balances()
+            .get(account_uuid)
+            .ok_or_else(|| Error::InvalidArgument("Account not found.".to_string()))?;
+        balances.spendable = account_balance.spendable_value().into_u64();
+        balances.immature_change = account_balance.change_pending_confirmation().into_u64();
+        balances.dust = account_balance.uneconomic_value().into_u64();
+        balances.viewed = viewed_zatoshis(account_balance);
+    } else if let Some(snapshot) = db.data.get_wallet_snapshot(confirmations_policy)?
+        && let Some(account_balance) = snapshot.account_balances().get(account_uuid)
+    {
+        balances.viewed = viewed_zatoshis(account_balance);
+    }
+
+    Ok(balances)
+}
+
+/// Sum of [`Balance::viewed_value`](zcash_client_backend::data_api::Balance::viewed_value) across pools.
+fn viewed_zatoshis(balance: &AccountBalance) -> u64 {
+    (balance.sapling_balance().viewed_value()
+        + balance.orchard_balance().viewed_value()
+        + balance.ironwood_balance().viewed_value()
+        + balance.unshielded_regular_balance().viewed_value()
+        + balance.unshielded_coinbase_balance().viewed_value())
+    .expect("viewed balance cannot overflow MAX_MONEY")
+    .into_u64()
 }
 
 #[cfg(test)]
@@ -238,5 +260,6 @@ mod tests {
         let balances =
             get_user_balances(&setup.db_init, &account_id, ConfirmationsPolicy::default()).unwrap();
         assert_eq!(balances.spendable, 0);
+        assert_eq!(balances.viewed, 0);
     }
 }
