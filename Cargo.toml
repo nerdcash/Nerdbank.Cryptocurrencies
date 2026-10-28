@@ -82,7 +82,7 @@ sha2 = { version = "0.10", default-features = false }
 document-features = "0.2"
 
 # Encodings and Parsing
-base64 = "0.22"
+base64 = "0.23"
 bech32 = { version = "0.11", default-features = false, features = ["alloc"] }
 bitflags = "2"
 bs58 = { version = "0.5", default-features = false, features = [
@@ -113,7 +113,7 @@ tracing = { version = "0.1", default-features = false }
 corez = { version = "0.1.1", default-features = false, features = ["alloc"] }
 
 # Parallel processing
-flume = "0.11"
+flume = "0.12"
 maybe-rayon = { version = "0.1.0", default-features = false }
 rayon = "1.5"
 
@@ -140,7 +140,7 @@ uuid = "1.1"
 static_assertions = "1"
 
 # Tests and benchmarks
-ambassador = "0.4"
+ambassador = "0.5"
 assert_matches = "1.5"
 criterion = "0.5"
 proptest = "1.12"
