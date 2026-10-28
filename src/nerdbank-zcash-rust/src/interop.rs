@@ -396,6 +396,12 @@ pub fn import_account_uivk(
     })
 }
 
+pub fn note_spending_key(config: DbInit, account_id: Vec<u8>) -> Result<bool, LightWalletError> {
+    let account_id = bytes_to_uuid(account_id)?;
+    let mut db = Db::load(config.data_file, config.network.into())?;
+    Ok(db.note_spending_key(account_id)?)
+}
+
 pub fn get_accounts(config: DbInit) -> Result<Vec<AccountInfo>, LightWalletError> {
     use crate::analysis::get_birthday_heights;
 

@@ -103,6 +103,18 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	WHERE account_id = (SELECT account_id FROM params) AND j.transaction_id IS NULL
 "#;
 
+/// Unspent transparent outputs for one account, with a null mined height when the
+/// creating transaction is still unconfirmed. This does not consult shielded anchors.
+pub(crate) const GET_UNSPENT_TRANSPARENT_BY_MINED_HEIGHT: &str = r#"
+	SELECT t.mined_height, txo.value_zat
+	FROM transparent_received_outputs txo
+	INNER JOIN transactions t ON t.id_tx = txo.transaction_id
+	INNER JOIN accounts a ON a.id = txo.account_id
+	LEFT OUTER JOIN transparent_received_output_spends spent
+		ON spent.transparent_received_output_id = txo.id
+	WHERE a.uuid = :account_uuid AND spent.transaction_id IS NULL
+"#;
+
 pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
 	WITH params(account_id) AS (
 		SELECT id FROM accounts WHERE uuid = :account_uuid LIMIT 1

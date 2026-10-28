@@ -135,6 +135,12 @@ namespace LightWallet {
 	[Throws=LightWalletError]
 	bytes import_account_uivk(DbInit config, string uri, string name, string uivk, u32? birthday_height, CancellationSource? cancellation);
 
+	/// Records that an imported account can spend, and requeues a historic rescan of blocks
+	/// already stored so note commitment trees can be built. Returns false when the account
+	/// was already marked spending.
+	[Throws=LightWalletError]
+	boolean note_spending_key(DbInit config, bytes account_id);
+
 	[Throws=LightWalletError]
 	sequence<AccountInfo> get_accounts(DbInit config);
 

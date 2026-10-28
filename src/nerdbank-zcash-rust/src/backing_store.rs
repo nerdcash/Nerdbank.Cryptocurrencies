@@ -3,12 +3,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use nonempty::NonEmpty;
 use rand::{rand_core::UnwrapErr, rngs::SysRng};
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension, named_params};
 use secrecy::SecretVec;
 use tonic::transport::Channel;
 use zcash_client_backend::{
-    data_api::{AccountBirthday, AccountPurpose, WalletRead, WalletWrite},
+    data_api::{AccountBirthday, AccountPurpose, WalletRead, WalletWrite, scanning::ScanPriority},
     keys::UnifiedSpendingKey,
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
@@ -155,6 +156,62 @@ impl Db {
         Ok(self.data.maintains_note_commitment_trees()?)
     }
 
+    /// Marks an imported full-viewing-key account as able to spend.
+    ///
+    /// Returns whether the stored purpose changed. A change also requeues a historic scan from
+    /// the account birthday through the newest stored block, because blocks already scanned
+    /// without note commitment trees have no witnesses.
+    ///
+    /// An incoming-viewing-key account has no full viewing key, so it cannot be marked spending.
+    pub(crate) fn note_spending_key(&mut self, account_id: AccountUuid) -> Result<bool, Error> {
+        let conn = Connection::open(&self.path)?;
+        let row = conn
+            .query_row(
+                "SELECT has_spend_key, ufvk IS NOT NULL, birthday_height
+                 FROM accounts WHERE uuid = :uuid",
+                named_params![":uuid": account_id.expose_uuid()],
+                |row| {
+                    Ok((
+                        row.get::<_, i64>(0)?,
+                        row.get::<_, i64>(1)?,
+                        row.get::<_, u32>(2)?,
+                    ))
+                },
+            )
+            .optional()?;
+        let Some((has_spend_key, has_ufvk, birthday)) = row else {
+            return Err(Error::InvalidArgument("Account not found.".to_string()));
+        };
+        if has_ufvk == 0 {
+            return Err(Error::InvalidArgument(
+                "An incoming-viewing-key account cannot be upgraded to spending.".to_string(),
+            ));
+        }
+        if has_spend_key != 0 {
+            return Ok(false);
+        }
+        // Queue the rescan before flipping the flag. A failure then leaves the account
+        // view-only, so a retry can queue the same range again. The reverse order would
+        // return `false` on retry and never rebuild the missing witnesses.
+        let max_height: Option<u32> =
+            conn.query_row("SELECT MAX(height) FROM blocks", [], |row| row.get(0))?;
+        drop(conn);
+        if let Some(max_height) = max_height {
+            let start = BlockHeight::from_u32(birthday);
+            let end = BlockHeight::from_u32(max_height) + 1;
+            if start < end {
+                self.data
+                    .queue_rescans(NonEmpty::singleton(start..end), ScanPriority::Historic)?;
+            }
+        }
+        let conn = Connection::open(&self.path)?;
+        conn.execute(
+            "UPDATE accounts SET has_spend_key = 1 WHERE uuid = :uuid",
+            named_params![":uuid": account_id.expose_uuid()],
+        )?;
+        Ok(true)
+    }
+
     pub(crate) fn add_diversifier(
         &mut self,
         account_id: AccountUuid,
@@ -282,6 +339,7 @@ fn get_db_internal<P: AsRef<Path>>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rusqlite::Connection;
     use testdir::testdir;
     use zcash_client_backend::data_api::{Account as _, WalletRead};
 
@@ -480,5 +538,87 @@ mod tests {
         ));
         assert!(db.has_spending_account().unwrap());
         assert!(db.data.maintains_note_commitment_trees().unwrap());
+    }
+
+    /// Recording a spending key for a stored full viewing key flips the account to
+    /// `Spending`, turns tree maintenance on, and replaces scanned history with a historic
+    /// rescan. An incoming viewing key cannot be upgraded. A second call is a no-op.
+    #[test]
+    fn note_spending_key_upgrades_a_view_only_ufvk_and_requeues_history() {
+        let network = Network::TestNetwork;
+        let wallet_dir = testdir!();
+        let mut db = Db::init(wallet_dir.join("wallet.sqlite"), network).unwrap();
+        let birthday = viewing_birthday();
+        let ufvk = ufvk_from_seed(network, &[0x44; 32]);
+        let account = db
+            .data
+            .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+            .unwrap();
+        assert!(matches!(account.purpose(), AccountPurpose::ViewOnly));
+        assert!(!db.data.maintains_note_commitment_trees().unwrap());
+
+        let conn = Connection::open(&db.path).unwrap();
+        let birthday_height: u32 = conn
+            .query_row(
+                "SELECT birthday_height FROM accounts WHERE uuid = ?1",
+                [account.id().expose_uuid()],
+                |row| row.get(0),
+            )
+            .unwrap();
+        let scanned_height = birthday_height + 4;
+        conn.execute(
+            "INSERT INTO blocks (height, hash, time, sapling_tree) VALUES (?1, ?2, 0, ?3)",
+            (scanned_height, vec![0u8; 32], vec![0u8]),
+        )
+        .unwrap();
+        // Pretend those blocks were already scanned without witnesses.
+        conn.execute("UPDATE scan_queue SET priority = 10", [])
+            .unwrap();
+        drop(conn);
+
+        assert!(db.note_spending_key(account.id()).unwrap());
+        assert!(db.data.maintains_note_commitment_trees().unwrap());
+        let reloaded = db.data.get_account(account.id()).unwrap().unwrap();
+        assert!(matches!(
+            reloaded.purpose(),
+            AccountPurpose::Spending { derivation: None }
+        ));
+
+        let conn = Connection::open(&db.path).unwrap();
+        let covered: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM scan_queue
+                 WHERE priority = 20
+                   AND block_range_start <= ?1
+                   AND block_range_end >= ?2",
+                (birthday_height, scanned_height + 1),
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            covered, 1,
+            "birthday through the newest stored block must be queued as historic"
+        );
+        drop(conn);
+
+        assert!(!db.note_spending_key(account.id()).unwrap());
+
+        // A second wallet avoids the placeholder block row, which is not a real tree.
+        let mut ivk_db = Db::init(wallet_dir.join("ivk.sqlite"), network).unwrap();
+        let ivk_ufvk = ufvk_from_seed(network, &[0x55; 32]);
+        let ivk = ivk_db
+            .data
+            .import_account_uivk(
+                "ivk",
+                &ivk_ufvk.to_unified_incoming_viewing_key(),
+                &birthday,
+                None,
+            )
+            .unwrap();
+        let err = ivk_db.note_spending_key(ivk.id()).unwrap_err();
+        assert!(matches!(err, Error::InvalidArgument(_)));
+        let still_view = ivk_db.data.get_account(ivk.id()).unwrap().unwrap();
+        assert!(matches!(still_view.purpose(), AccountPurpose::ViewOnly));
+        assert!(!ivk_db.data.maintains_note_commitment_trees().unwrap());
     }
 }

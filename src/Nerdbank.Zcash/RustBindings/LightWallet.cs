@@ -958,6 +958,13 @@ static class _UniFFILib
 	public static extern void uniffi_nerdbank_zcash_rust_fn_func_init(RustBuffer @config, ref UniffiRustCallStatus _uniffi_out_err);
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern sbyte uniffi_nerdbank_zcash_rust_fn_func_note_spending_key(
+		RustBuffer @config,
+		RustBuffer @accountId,
+		ref UniffiRustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_send(
 		RustBuffer @config,
 		RustBuffer @uri,
@@ -1226,6 +1233,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_init();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_note_spending_key();
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_send();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
@@ -1403,6 +1413,15 @@ static class _UniFFILib
 			{
 				throw new UniffiContractChecksumException(
 					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_init` checksum `24220`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_note_spending_key();
+			if (checksum != 47273)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_note_spending_key` checksum `47273`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -3556,6 +3575,27 @@ internal static class LightWalletMethods
 			FfiConverterTypeLightWalletError.INSTANCE,
 			(ref UniffiRustCallStatus _status) =>
 				_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_init(FfiConverterTypeDbInit.INSTANCE.Lower(@config), ref _status)
+		);
+	}
+
+	/// <summary>
+	/// Records that an imported account can spend, and requeues a historic rescan of blocks
+	/// already stored so note commitment trees can be built. Returns false when the account
+	/// was already marked spending.
+	/// </summary>
+	/// <exception cref="LightWalletException"></exception>
+	public static bool NoteSpendingKey(DbInit @config, byte[] @accountId)
+	{
+		return FfiConverterBoolean.INSTANCE.Lift(
+			_UniffiHelpers.RustCallWithError(
+				FfiConverterTypeLightWalletError.INSTANCE,
+				(ref UniffiRustCallStatus _status) =>
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_note_spending_key(
+						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
+						FfiConverterByteArray.INSTANCE.Lower(@accountId),
+						ref _status
+					)
+			)
 		);
 	}
 

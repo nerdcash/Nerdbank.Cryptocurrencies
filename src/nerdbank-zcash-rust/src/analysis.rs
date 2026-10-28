@@ -1,17 +1,16 @@
 use rusqlite::{Connection, named_params};
 use zcash_client_sqlite::AccountUuid;
 
-use zcash_client_backend::data_api::{
-    AccountBalance, Balance, WalletRead, wallet::ConfirmationsPolicy,
-};
+use zcash_client_backend::data_api::{AccountBalance, WalletRead, wallet::ConfirmationsPolicy};
 use zcash_primitives::transaction::fees::zip317::{FeeRule, MINIMUM_FEE};
-use zcash_protocol::value::Zatoshis;
 
 use crate::{
     backing_store::Db,
     error::Error,
     interop::DbInit,
-    sql_statements::{GET_BIRTHDAY_HEIGHTS, GET_UNSPENT_NOTES},
+    sql_statements::{
+        GET_BIRTHDAY_HEIGHTS, GET_UNSPENT_NOTES, GET_UNSPENT_TRANSPARENT_BY_MINED_HEIGHT,
+    },
 };
 
 pub struct BirthdayHeights {
@@ -127,8 +126,8 @@ pub fn get_user_balances(
     // View-only shielded notes are reported from `viewed_value`. The legacy note query
     // classifies those same notes as spendable or immature and adds a spending fee, which
     // double-counts them once `viewed` is included. Transparent rows still use that query
-    // only for a spending wallet; a view-only wallet takes transparent buckets from the
-    // library snapshot below, which does not need a shielded anchor.
+    // only for a spending wallet. A view-only wallet classifies transparent outputs by
+    // mined height after the shielded overlay, which does not need a shielded anchor.
     let view_only = !db.data.maintains_note_commitment_trees()?;
     let trusted_anchor = db
         .data
@@ -212,9 +211,10 @@ pub fn get_user_balances(
     }
 
     // Shielded anchors are absent for a wallet that never maintained note commitment trees.
-    // `get_wallet_snapshot` still returns shielded `viewed_value` and the ordinary transparent
-    // buckets. A spending wallet prefers the summary for the shielded split and keeps the
-    // legacy query's transparent and incoming figures.
+    // The summary or snapshot still reports shielded `viewed_value`. A spending wallet prefers
+    // the summary for the shielded split and keeps the legacy query's transparent figures.
+    // A view-only wallet classifies transparent outputs from mined height directly, because the
+    // library's pending and uneconomic buckets mix confirmed and unconfirmed funds.
     if let Some(summary) = db.data.get_wallet_summary(confirmations_policy)? {
         let account_balance = summary
             .account_balances()
@@ -226,19 +226,70 @@ pub fn get_user_balances(
     {
         overlay_library_balance(&mut balances, account_balance, view_only);
     }
+    if view_only {
+        add_view_only_transparent_outputs(
+            &config.data_file,
+            account_uuid,
+            marginal_fee,
+            &mut balances,
+        )?;
+    }
 
     Ok(balances)
 }
 
-/// Copies library balance buckets into the user-facing totals.
+/// Classifies unspent transparent outputs without a shielded anchor.
 ///
-/// Called for both `get_wallet_summary` and `get_wallet_snapshot` so a view-only wallet
-/// without shielded anchors still reports transparent funds.
+/// Mined outputs, including those still waiting for confirmations or coinbase maturity, count
+/// toward the main balance (`immature_income`, or `dust` when they are below the marginal fee).
+/// Unmined outputs count as incoming, and unmined dust also counts as `incoming_dust`.
+fn add_view_only_transparent_outputs(
+    data_file: &str,
+    account_uuid: &AccountUuid,
+    marginal_fee: u64,
+    balances: &mut UserBalances,
+) -> Result<(), Error> {
+    let conn = Connection::open(data_file)?;
+    let mut query = conn.prepare(GET_UNSPENT_TRANSPARENT_BY_MINED_HEIGHT)?;
+    let mut rows = query.query(named_params! {
+        ":account_uuid": account_uuid.expose_uuid(),
+    })?;
+    while let Some(row) = rows.next()? {
+        let mined_height: Option<u32> = row.get(0)?;
+        let value = u64::try_from(row.get::<_, i64>(1)?).map_err(|_| {
+            Error::InvalidArgument("Transparent output value is negative.".to_string())
+        })?;
+        note_transparent_output(balances, mined_height, value, marginal_fee);
+    }
+    Ok(())
+}
+
+/// Adds one transparent output to the user-facing buckets.
+fn note_transparent_output(
+    balances: &mut UserBalances,
+    mined_height: Option<u32>,
+    value: u64,
+    marginal_fee: u64,
+) {
+    let is_dust = value < marginal_fee;
+    if mined_height.is_none() {
+        balances.incoming += value;
+        if is_dust {
+            balances.incoming_dust += value;
+        }
+    } else if is_dust {
+        balances.dust += value;
+    } else {
+        balances.immature_income += value;
+    }
+}
+
+/// Copies shielded library balance buckets into the user-facing totals.
 ///
 /// A spending wallet keeps the legacy query's incoming and immature-income figures and
 /// replaces the shielded spendable, change, and dust totals with the summary. A view-only
-/// wallet does not run that query. Its shielded notes are only `viewed`, and transparent
-/// UTXOs come from the library's ordinary spendable, pending, and uneconomic buckets.
+/// wallet clears those spending buckets. Its shielded notes are only `viewed`. Transparent
+/// outputs are added separately from mined height, not from these aggregate buckets.
 fn overlay_library_balance(
     balances: &mut UserBalances,
     account_balance: &AccountBalance,
@@ -247,14 +298,11 @@ fn overlay_library_balance(
     if view_only {
         balances.spendable = 0;
         balances.minimum_fees = 0;
-        balances.immature_change =
-            transparent_zatoshis(account_balance, Balance::change_pending_confirmation);
-        balances.immature_income = transparent_zatoshis(account_balance, |balance| {
-            (balance.spendable_value() + balance.locked_value()).unwrap_or(Zatoshis::ZERO)
-        });
-        balances.incoming =
-            transparent_zatoshis(account_balance, Balance::value_pending_spendability);
-        balances.dust = transparent_zatoshis(account_balance, Balance::uneconomic_value);
+        balances.immature_change = 0;
+        balances.immature_income = 0;
+        balances.incoming = 0;
+        balances.incoming_dust = 0;
+        balances.dust = 0;
         balances.viewed = viewed_zatoshis(account_balance);
     } else {
         balances.spendable = account_balance.spendable_value().into_u64();
@@ -262,19 +310,6 @@ fn overlay_library_balance(
         balances.dust = account_balance.uneconomic_value().into_u64();
         balances.viewed = viewed_zatoshis(account_balance);
     }
-}
-
-/// Sums one transparent bucket across the regular and coinbase pools.
-fn transparent_zatoshis(balance: &AccountBalance, part: impl Fn(&Balance) -> Zatoshis) -> u64 {
-    [
-        balance.unshielded_regular_balance(),
-        balance.unshielded_coinbase_balance(),
-    ]
-    .into_iter()
-    .map(part)
-    .try_fold(Zatoshis::ZERO, |total, value| total + value)
-    .expect("transparent balance cannot overflow MAX_MONEY")
-    .into_u64()
 }
 
 /// Sum of [`Balance::viewed_value`](zcash_client_backend::data_api::Balance::viewed_value) across pools.
@@ -320,7 +355,7 @@ mod tests {
 
     #[test]
     fn view_only_overlay_keeps_shielded_notes_out_of_spending_buckets() {
-        use zcash_protocol::value::BalanceError;
+        use zcash_protocol::value::{BalanceError, Zatoshis};
 
         let mut account = AccountBalance::ZERO;
         account
@@ -329,15 +364,6 @@ mod tests {
                 Ok(())
             })
             .unwrap();
-        account
-            .with_unshielded_regular_balance_mut::<(), BalanceError>(|balance| {
-                balance.add_spendable_value(Zatoshis::from_u64(25_000_000).unwrap())?;
-                balance.add_pending_spendable_value(Zatoshis::from_u64(4_000_000).unwrap())?;
-                balance.add_uneconomic_value(Zatoshis::from_u64(1_000).unwrap())?;
-                Ok(())
-            })
-            .unwrap();
-
         let mut balances = UserBalances {
             spendable: 50_000_000,
             minimum_fees: 10_000,
@@ -345,12 +371,19 @@ mod tests {
             ..UserBalances::default()
         };
         overlay_library_balance(&mut balances, &account, true);
+        let marginal_fee = 10_000;
+        note_transparent_output(&mut balances, Some(1), 25_000_000, marginal_fee);
+        note_transparent_output(&mut balances, Some(2), 1_000, marginal_fee);
+        note_transparent_output(&mut balances, None, 4_000_000, marginal_fee);
+        note_transparent_output(&mut balances, None, 500, marginal_fee);
 
         assert_eq!(balances.spendable, 0);
         assert_eq!(balances.minimum_fees, 0);
         assert_eq!(balances.viewed, 50_000_000);
+        // Mined value, including outputs that have not reached the confirmation target.
         assert_eq!(balances.immature_income, 25_000_000);
-        assert_eq!(balances.incoming, 4_000_000);
         assert_eq!(balances.dust, 1_000);
+        assert_eq!(balances.incoming, 4_000_500);
+        assert_eq!(balances.incoming_dust, 500);
     }
 }

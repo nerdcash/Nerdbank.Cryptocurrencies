@@ -86,6 +86,7 @@ public partial class LightWalletClient : IDisposable
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>A task that completes when the account has been added.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with.</exception>
+	/// <exception cref="LightWalletException">Thrown when an existing account cannot be marked as able to spend.</exception>
 	/// <remarks>
 	/// An account may already exist in the database, in which case this method will upgrade the account
 	/// as <see cref="UpgradeAccount(ZcashAccount)"/> would, adding a spending key if one is available.
@@ -102,7 +103,13 @@ public partial class LightWalletClient : IDisposable
 		if (this.accountIds.TryGetValue(account, out Guid id))
 		{
 			// The database already has this account.
-			// But we'll replace our copy with the given one which may contain a spending key.
+			// A spending key supplied now has to be recorded, or a later sync keeps the
+			// view-only scan and never builds note commitment trees for these blocks.
+			if (account.HDDerivation is not null || account.Spending is not null)
+			{
+				this.PersistSpendingCapability(id);
+			}
+
 			this.accountIds = this.accountIds.Remove(account).Add(account, id);
 			this.accountsById = this.accountsById.SetItem(id, account);
 			return;
@@ -144,16 +151,27 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// Adds an account to the wallet, if does not already exist.
+	/// Upgrades an account that is already in the wallet so a later sync can spend from it.
 	/// </summary>
-	/// <param name="account">The account to add.</param>
-	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with.</exception>
+	/// <param name="account">The account to upgrade. It must already be in the wallet and must carry a spending key or an HD seed.</param>
+	/// <exception cref="InvalidOperationException">Thrown if the account's network doesn't match the one this instance was created with, or the account is not in the wallet.</exception>
+	/// <exception cref="NotSupportedException">Thrown if the account is incoming-viewing-key only, or has a full viewing key but no spending key.</exception>
+	/// <exception cref="LightWalletException">Thrown when the wallet database rejects the upgrade.</exception>
+	/// <remarks>
+	/// Blocks already scanned for a view-only account have no note witnesses. This records the
+	/// spending capability and queues those blocks for a historic rescan.
+	/// </remarks>
 	public void UpgradeAccount(ZcashAccount account)
 	{
 		Requires.NotNull(account);
-		if (account.HDDerivation is null)
+		if (account.HDDerivation is null && account.FullViewing?.UnifiedKey is null)
 		{
-			throw new NotSupportedException("Only HD derived accounts are supported at present.");
+			throw new NotSupportedException("An incoming-viewing-key account cannot be upgraded to spending.");
+		}
+
+		if (account.HDDerivation is null && account.Spending is null)
+		{
+			throw new NotSupportedException("The account has no spending key.");
 		}
 
 		if (account.Network != this.Network)
@@ -162,6 +180,8 @@ public partial class LightWalletClient : IDisposable
 		}
 
 		Verify.Operation(this.accountIds.TryGetValue(account, out Guid id), Strings.UnrecognizedAccount);
+
+		this.PersistSpendingCapability(id);
 
 		// The database already has this account.
 		// But we'll replace our copy with the given one which may contain a spending key.
@@ -614,6 +634,23 @@ public partial class LightWalletClient : IDisposable
 		byte[] uskBytes = new byte[500];
 		int len = usk.ToBytes(uskBytes);
 		return uskBytes[..len];
+	}
+
+	/// <summary>
+	/// Records that <paramref name="accountId"/> can spend and requeues a historic rescan of blocks already stored.
+	/// </summary>
+	/// <param name="accountId">The account to mark.</param>
+	/// <exception cref="LightWalletException">Thrown when the account cannot be marked spending.</exception>
+	private void PersistSpendingCapability(Guid accountId)
+	{
+		try
+		{
+			LightWalletMethods.NoteSpendingKey(this.dbinit, ToAccountIdBuffer(accountId));
+		}
+		catch (uniffi.LightWallet.LightWalletException ex)
+		{
+			throw LightWalletException.Wrap(ex);
+		}
 	}
 
 	private void ReadAccountsFromDatabase()

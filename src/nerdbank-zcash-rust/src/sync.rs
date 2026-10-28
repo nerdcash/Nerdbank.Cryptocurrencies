@@ -323,6 +323,10 @@ async fn sync_scoped<P: AsRef<Path>>(
             // the first element of the vector of suggested ranges.
             match scan_ranges.first() {
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
+                    // A spending account imported during this loop must be noticed before the
+                    // next attempt. Otherwise a `CommitmentTreeRequired` result retries the same
+                    // `CompactChainState` download and never reaches the pass-level check.
+                    ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
                     // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
                     // is out of sync with blockchain history.
                     let _range = open_range(&state.timing, scan_range);
