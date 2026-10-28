@@ -232,6 +232,9 @@ pub fn get_user_balances(
 
 /// Copies library balance buckets into the user-facing totals.
 ///
+/// Called for both `get_wallet_summary` and `get_wallet_snapshot` so a view-only wallet
+/// without shielded anchors still reports transparent funds.
+///
 /// A spending wallet keeps the legacy query's incoming and immature-income figures and
 /// replaces the shielded spendable, change, and dust totals with the summary. A view-only
 /// wallet does not run that query. Its shielded notes are only `viewed`, and transparent
