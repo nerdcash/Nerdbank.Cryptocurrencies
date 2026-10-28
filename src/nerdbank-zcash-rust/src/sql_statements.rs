@@ -103,6 +103,37 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	WHERE account_id = (SELECT account_id FROM params) AND j.transaction_id IS NULL
 "#;
 
+/// Unspent transparent outputs for one account, with a null mined height when the
+/// creating transaction is still unconfirmed.
+///
+/// A spend row is ignored once its spending transaction has expired without being mined.
+/// `expiry_delta_sql` is the library's default-expiry expression for `stx.min_observed_height`.
+/// The caller binds `:account_uuid` and `:target_height` (the exclusive end of the wallet's
+/// chain tip, matching `spent_utxos_clause`).
+pub(crate) fn get_unspent_transparent_by_mined_height_sql(expiry_delta_sql: &str) -> String {
+    format!(
+        r#"
+	SELECT t.mined_height, txo.value_zat
+	FROM transparent_received_outputs txo
+	INNER JOIN transactions t ON t.id_tx = txo.transaction_id
+	INNER JOIN accounts a ON a.id = txo.account_id
+	WHERE a.uuid = :account_uuid
+	  AND txo.id NOT IN (
+		SELECT spent.transparent_received_output_id
+		FROM transparent_received_output_spends spent
+		JOIN transactions stx ON stx.id_tx = spent.transaction_id
+		WHERE stx.mined_height < :target_height
+		   OR stx.expiry_height = 0
+		   OR stx.expiry_height >= :target_height
+		   OR (
+				stx.expiry_height IS NULL
+				AND stx.min_observed_height + {expiry_delta_sql} >= :target_height
+		   )
+	  )
+"#
+    )
+}
+
 pub(crate) const GET_UNSPENT_TRANSPARENT_NOTES: &str = r#"
 	WITH params(account_id) AS (
 		SELECT id FROM accounts WHERE uuid = :account_uuid LIMIT 1

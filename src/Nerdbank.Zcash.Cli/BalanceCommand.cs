@@ -62,6 +62,7 @@ internal class BalanceCommand : SyncFirstCommandBase
 			("Dust", userBalances.Dust),
 			("Incoming", userBalances.Incoming),
 			("Incoming dust", userBalances.IncomingDust),
+			("Viewed", userBalances.Viewed),
 		];
 
 		int captionWidth = lines.Max(l => l.Item1.Length);

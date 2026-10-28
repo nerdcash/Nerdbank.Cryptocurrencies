@@ -36,18 +36,19 @@ public record AccountBalances
 		this.Dust = security.Amount(ZatsToZEC(balances.dust));
 		this.Incoming = security.Amount(ZatsToZEC(balances.incoming));
 		this.IncomingDust = security.Amount(ZatsToZEC(balances.incomingDust));
+		this.Viewed = security.Amount(ZatsToZEC(balances.viewed));
 	}
 
 	/// <summary>
 	/// Gets the main balance to display to the user.
 	/// </summary>
 	/// <value>
-	/// This is the sum of <see cref="Spendable"/>, <see cref="MinimumFees"/>, <see cref="ImmatureChange"/>, and <see cref="ImmatureIncome"/>.
+	/// This is the sum of <see cref="Spendable"/>, <see cref="MinimumFees"/>, <see cref="ImmatureChange"/>, <see cref="ImmatureIncome"/>, and <see cref="Viewed"/>.
 	/// </value>
 	/// <remarks>
 	/// The other high-level balance to show is usually <see cref="Incoming"/>, if it is positive.
 	/// </remarks>
-	public SecurityAmount MainBalance => this.Spendable + this.MinimumFees + this.ImmatureChange + this.ImmatureIncome;
+	public SecurityAmount MainBalance => this.Spendable + this.MinimumFees + this.ImmatureChange + this.ImmatureIncome + this.Viewed;
 
 	/// <summary>
 	/// Gets the funds available for immediate spending.
@@ -107,4 +108,19 @@ public record AccountBalances
 	/// Gets the sum of all *unconfirmed* UTXOs and notes that are not change and are each counted as dust.
 	/// </summary>
 	public SecurityAmount IncomingDust { get; init; }
+
+	/// <summary>
+	/// Gets notes a view-only wallet decrypted and has not seen spent.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// A spending wallet reports zero. Those notes are in <see cref="Spendable"/> or <see cref="ImmatureIncome"/>.
+	/// </para>
+	/// <para>
+	/// A view-only wallet has no witness, so <see cref="Spendable"/> stays zero and the observed total is here,
+	/// including notes at or below the marginal fee. Incoming-viewing-key accounts still cannot report a balance;
+	/// this value is for accounts that have a full viewing key and no spending key.
+	/// </para>
+	/// </remarks>
+	public SecurityAmount Viewed { get; init; }
 }

@@ -35,7 +35,13 @@ if ($LASTEXITCODE -ne 0) {
     throw "uniffi-bindgen-cs failed with exit code $LASTEXITCODE."
 }
 
-dotnet csharpier --include-generated $outDir
+# The local tool command is `dotnet-csharpier` (see .config/dotnet-tools.json).
+# `dotnet csharpier` does not resolve that command on every SDK, so formatting is skipped
+# and the bindings diff fails. `dotnet tool run` uses the manifest command directly.
+dotnet tool run dotnet-csharpier -- --include-generated $outDir
+if ($LASTEXITCODE -ne 0) {
+    throw "csharpier failed with exit code $LASTEXITCODE."
+}
 Copy-Item $outDir\LightWallet.cs $outDir\LightWallet.iOS.cs -Force
 
 # Customize the lib name based on platform

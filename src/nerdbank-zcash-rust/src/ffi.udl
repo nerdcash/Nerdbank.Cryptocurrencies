@@ -79,6 +79,8 @@ dictionary UserBalances {
 	u64 dust;
 	u64 incoming;
 	u64 incoming_dust;
+	/// Notes a view-only wallet decrypted and has not seen spent. Zero for a spending wallet.
+	u64 viewed;
 };
 
 dictionary BirthdayHeights {
@@ -132,6 +134,12 @@ namespace LightWallet {
 
 	[Throws=LightWalletError]
 	bytes import_account_uivk(DbInit config, string uri, string name, string uivk, u32? birthday_height, CancellationSource? cancellation);
+
+	/// Records that an imported account can spend, and requeues a historic rescan of blocks
+	/// already stored so note commitment trees can be built. Returns false when the account
+	/// was already marked spending.
+	[Throws=LightWalletError]
+	boolean note_spending_key(DbInit config, bytes account_id);
 
 	[Throws=LightWalletError]
 	sequence<AccountInfo> get_accounts(DbInit config);

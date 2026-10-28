@@ -47,6 +47,7 @@ zcash_client_backend = { path = "../../external/librustzcash/zcash_client_backen
 	"transparent-inputs",
 	"orchard",
 	"lightwalletd-tonic",
+	"unstable-spanning-tree",
 ] }
 zcash_client_sqlite = { path = "../../external/librustzcash/zcash_client_sqlite", features = [
 	"multicore",

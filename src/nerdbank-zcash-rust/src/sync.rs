@@ -2,7 +2,7 @@ use futures_util::{StreamExt, TryStreamExt, stream};
 use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
-use rusqlite::{Connection, named_params};
+use rusqlite::{Connection, OptionalExtension, named_params};
 use std::{
     borrow::Borrow,
     collections::{BTreeSet, HashMap},
@@ -20,6 +20,7 @@ use uuid::Uuid;
 use zcash_client_sqlite::{AccountUuid, WalletDb, error::SqliteClientError, util::SystemClock};
 use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
+    block::BlockHash,
     merkle_tree::HashSer,
     transaction::{Transaction, TxId},
 };
@@ -29,7 +30,7 @@ use zcash_client_backend::{
     data_api::{
         TransactionDataRequest, TransactionStatus, TransparentAddressSyncInfo,
         WalletCommitmentTrees, WalletRead, WalletWrite,
-        chain::{ChainState, CommitmentTreeRoot, scan_cached_blocks},
+        chain::{ChainState, CommitmentTreeRoot, CompactChainState, scan_cached_blocks},
         scanning::{ScanPriority, ScanRange},
         wallet::{ConfirmationsPolicy, decrypt_and_store_transaction},
     },
@@ -51,7 +52,7 @@ use zcash_protocol::{
 };
 
 use crate::{
-    backing_store::{Db, WalletRng},
+    backing_store::{Db, WalletRng, wallet_scan_lock},
     block_source::BlockCacheError,
     blockrange::BlockRange,
     error::Error,
@@ -134,20 +135,29 @@ async fn sync_scoped<P: AsRef<Path>>(
         cancellation_token.clone(),
     )
     .await?;
-    let state = SyncState {
+    let network = parse_network(&info)?;
+    let mut db = Db::load(&data_file, network)?;
+    let conn = Connection::open(&data_file)?;
+    // Automatic mode skips note commitment trees only when every stored account is view-only.
+    // An empty wallet still maintains trees, so a later spending account keeps the old path.
+    let view_only = !db.data.maintains_note_commitment_trees()?;
+    let mut state = SyncState {
         cancellation_token,
         confirmations_policy,
-        network: parse_network(&info)?,
+        network,
         progress: Arc::new(progress),
         timing: SyncTiming::current(),
+        view_only,
     };
-
-    let mut db = Db::load(&data_file, state.network)?;
-    let conn = Connection::open(&data_file)?;
 
     // 1) Download note commitment tree data from lightwalletd
     // 2) Pass the commitment tree data to the database.
-    update_subtree_roots(&mut client.clone(), &mut db.data, &state.timing).await?;
+    // A view-only scan never appends those trees, so the subtree-root round trips are skipped.
+    if view_only {
+        info!("View-only wallet; skipping note commitment subtree roots");
+    } else {
+        update_subtree_roots(&mut client.clone(), &mut db.data, &state.timing).await?;
+    }
 
     let mut status = SyncUpdateData {
         current_step: 0,
@@ -158,6 +168,11 @@ async fn sync_scoped<P: AsRef<Path>>(
     };
 
     loop {
+        // An account imported while a continual scan is running can change whether this
+        // wallet maintains trees. Re-read that before each pass and, when a spending
+        // account appears, load the subtree roots this pass's `ChainState` scan needs.
+        ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
+
         // 3) Download chain tip metadata from lightwalletd
         status.tip_height = webrequest_with_retry(
             || async {
@@ -308,8 +323,11 @@ async fn sync_scoped<P: AsRef<Path>>(
             // the first element of the vector of suggested ranges.
             match scan_ranges.first() {
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
-                    // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
-                    // is out of sync with blockchain history.
+                    // A spending account imported during this loop must be noticed before the
+                    // next attempt. Otherwise a `CommitmentTreeRequired` result retries the same
+                    // `CompactChainState` download and never reaches the pass-level check.
+                    // Each chunk takes the scan lock only around its own commit.
+                    ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
                     let _range = open_range(&state.timing, scan_range);
                     let scan_result = download_and_scan_blocks(
                         &mut client,
@@ -1037,6 +1055,16 @@ struct SyncState {
     confirmations_policy: ConfirmationsPolicy,
     cancellation_token: CancellationToken,
     timing: SyncTiming,
+    /// `true` when this wallet scans without note commitment trees.
+    view_only: bool,
+}
+
+/// Prior-block continuity passed from the downloader to `scan_cached_blocks`.
+enum PriorBlock {
+    /// Frontiers from `GetTreeState`, for a wallet that appends note commitment trees.
+    Spending(ChainState),
+    /// Height, hash, and end-of-block tree sizes taken from the compact block itself.
+    ViewOnly(CompactChainState),
 }
 
 fn open_range(timing: &SyncTiming, scan_range: &ScanRange) -> RangeGuard {
@@ -1059,7 +1087,7 @@ async fn download_and_scan_blocks(
 ) -> Result<DownloadAndScanResult, Error> {
     info!("Received instructions to download [{})", block_range);
     let (send, mut receive) =
-        mpsc::channel::<(Vec<CompactBlock>, ChainState)>(CHUNK_CHANNEL_CAPACITY);
+        mpsc::channel::<(Vec<CompactBlock>, PriorBlock)>(CHUNK_CHANNEL_CAPACITY);
     let priorities_changed_token = state.cancellation_token.child_token();
 
     // Download the blocks in `scan_range` into the block source, overwriting any
@@ -1068,6 +1096,7 @@ async fn download_and_scan_blocks(
     let downloader_block_range = block_range.clone();
     let downloader_priorities_changed_token = priorities_changed_token.clone();
     let downloader_timing = state.timing.clone();
+    let downloader_view_only = state.view_only;
     let downloader = tokio::spawn(async move {
         download_blocks(
             &mut client,
@@ -1075,6 +1104,7 @@ async fn download_and_scan_blocks(
             send,
             downloader_priorities_changed_token,
             downloader_timing,
+            downloader_view_only,
         )
         .await
     });
@@ -1084,7 +1114,9 @@ async fn download_and_scan_blocks(
     let scanner_block_range = block_range.clone();
     let scanner = tokio::spawn(async move {
         let mut priorities_changed = false;
-        while let Some((chunk, chain_state)) = select! {
+        let mut mode_stale = false;
+        let scan_lock = wallet_scan_lock(&db.path)?;
+        while let Some((chunk, prior)) = select! {
             result = receive.recv() => Ok(result),
             _ = state.cancellation_token.cancelled() => Err(Error::Canceled),
         }? {
@@ -1093,18 +1125,30 @@ async fn download_and_scan_blocks(
                 scanner_block_range.priority(),
             );
 
+            // A spending-key upgrade can land while this range is still downloading.
+            // Only the commit is serialized with that upgrade. If this chunk was prepared
+            // for the other tree mode, leave it uncommitted and let the next pass fetch it
+            // again. Keep draining so the downloader is not stuck on a full channel.
+            if mode_stale {
+                continue;
+            }
+            let _guard = scan_lock.lock().await;
+            let maintains_trees = db.data.maintains_note_commitment_trees()?;
+            let downloaded_view_only = matches!(prior, PriorBlock::ViewOnly(_));
+            if maintains_trees == downloaded_view_only {
+                mode_stale = true;
+                priorities_changed = true;
+                priorities_changed_token.cancel();
+                info!(
+                    "Tree maintenance changed before committing [{}); the chunk will be fetched again.",
+                    scan_range
+                );
+                continue;
+            }
             info!("Scanning {} blocks [{}).", chunk.len(), scan_range);
-
-            // Insert the blocks into the block cache.
             db.blocks.insert_range(chunk);
-
-            if scan_blocks(
-                &state.network,
-                &mut db,
-                &scan_range,
-                &chain_state,
-                &state.timing,
-            )? && !priorities_changed
+            if scan_blocks(&state.network, &mut db, &scan_range, &prior, &state.timing)?
+                && !priorities_changed
             {
                 // Notify the downloader to break out early because we'll be getting a new range request.
                 // But we don't abort here. Presumably the original scan range is still interesting
@@ -1113,6 +1157,7 @@ async fn download_and_scan_blocks(
                 priorities_changed = true;
                 info!("Resetting...");
             }
+            drop(_guard);
 
             // Now that they've been scanned, we don't need them any more.
             db.blocks.remove_range(scan_range.block_range());
@@ -1138,17 +1183,20 @@ async fn download_and_scan_blocks(
         })
     });
 
-    let (_, scan_result) = tokio::try_join!(downloader, scanner)?;
-
-    scan_result
+    let (downloaded, scanned) = tokio::try_join!(downloader, scanner)?;
+    // `JoinHandle`'s success value is the task result. A `GetTreeState` or compact-block
+    // failure would otherwise be dropped while the scanner saw a closed channel and returned Ok.
+    downloaded?;
+    scanned
 }
 
 async fn download_blocks(
     client: &mut CompactTxStreamerClient<Channel>,
     scan_range: &ScanRange,
-    sender: mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
+    sender: mpsc::Sender<(Vec<CompactBlock>, PriorBlock)>,
     cancellation_token: CancellationToken,
     timing: SyncTiming,
+    view_only: bool,
 ) -> Result<(), Status> {
     info!("Fetching {}", scan_range);
     let mut start = service::BlockId::default();
@@ -1164,17 +1212,22 @@ async fn download_blocks(
     // The first chunk's tree state is the block before the scan range, so it can be in flight
     // for the whole compact-block stream. Later chunks arm a fetch once their first block arrives.
     // Chunks are still sent in order. A prefetch is used only when its height matches the chunk.
+    // View-only scans read continuity from the compact block and do not call `GetTreeState`.
     let start_height: u64 = scan_range.block_range().start.into();
-    let mut prefetch = start_height
-        .checked_sub(1)
-        .map(|height| PrefetchedTreeState::spawn(client.clone(), height, timing.clone()));
+    let mut prefetch = if view_only {
+        None
+    } else {
+        start_height
+            .checked_sub(1)
+            .map(|height| PrefetchedTreeState::spawn(client.clone(), height, timing.clone()))
+    };
 
     let mut blocks = Vec::new();
     let mut download = timing.start(Phase::BlockDownload);
     let mut stream = client.get_block_range(range).await?.into_inner();
     let mut accumulated_size = 0;
     while let Some(block) = stream.try_next().await? {
-        if blocks.is_empty() {
+        if blocks.is_empty() && !view_only {
             arm_tree_state_prefetch(&mut prefetch, client, block.height, &timing);
         }
         // Process each block here
@@ -1186,7 +1239,8 @@ async fn download_blocks(
         if accumulated_size > BLOCKS_CHUNK_THRESHOLD {
             // Tree-state fetches and channel backpressure are not block-download time.
             download.pause();
-            send_blocks_and_chainstate(client, blocks, &sender, &timing, &mut prefetch).await?;
+            send_blocks_and_chainstate(client, blocks, &sender, &timing, &mut prefetch, view_only)
+                .await?;
             blocks = Vec::new();
             accumulated_size = 0;
             download.resume();
@@ -1205,7 +1259,8 @@ async fn download_blocks(
     );
 
     if !blocks.is_empty() {
-        send_blocks_and_chainstate(client, blocks, &sender, &timing, &mut prefetch).await?;
+        send_blocks_and_chainstate(client, blocks, &sender, &timing, &mut prefetch, view_only)
+            .await?;
     }
 
     Ok(())
@@ -1295,13 +1350,90 @@ async fn fetch_tree_state(
 async fn send_blocks_and_chainstate(
     client: &mut CompactTxStreamerClient<Channel>,
     blocks: Vec<CompactBlock>,
-    sender: &mpsc::Sender<(Vec<CompactBlock>, ChainState)>,
+    sender: &mpsc::Sender<(Vec<CompactBlock>, PriorBlock)>,
     timing: &SyncTiming,
     prefetch: &mut Option<PrefetchedTreeState>,
+    view_only: bool,
 ) -> Result<(), Status> {
-    let chain_state = chain_state_for_blocks(client, &blocks, timing, prefetch).await?;
-    sender.send((blocks, chain_state)).await.unwrap();
+    let prior = if view_only {
+        PriorBlock::ViewOnly(compact_chain_state_before(&blocks[0])?)
+    } else {
+        PriorBlock::Spending(chain_state_for_blocks(client, &blocks, timing, prefetch).await?)
+    };
+    sender.send((blocks, prior)).await.unwrap();
     Ok(())
+}
+
+/// Prior-block continuity for a view-only scan, taken from the first compact block in the chunk.
+///
+/// The compact block's chain metadata is the tree size at the end of that block. Subtracting the
+/// block's commitment count yields the size at the end of the previous block. The previous
+/// block's hash is `prev_hash`. No `GetTreeState` round trip is required.
+fn compact_chain_state_before(block: &CompactBlock) -> Result<CompactChainState, Status> {
+    if block.height == 0 {
+        return Err(Status::failed_precondition(
+            "view-only scan cannot start at height 0",
+        ));
+    }
+    if block.prev_hash.len() != 32 && block.header.is_empty() {
+        return Err(Status::internal(format!(
+            "compact block {} has no prev_hash",
+            block.height
+        )));
+    }
+    let metadata = block.chain_metadata.as_ref().ok_or_else(|| {
+        Status::internal(format!(
+            "compact block {} has no chain metadata",
+            block.height
+        ))
+    })?;
+    let sapling_outputs = commitment_count(block, |tx| tx.outputs.len())?;
+    let orchard_actions = commitment_count(block, |tx| tx.actions.len())?;
+    let ironwood_actions = commitment_count(block, |tx| tx.ironwood_actions.len())?;
+    Ok(CompactChainState::from_parts(
+        block.height().saturating_sub(1),
+        block.prev_hash(),
+        metadata
+            .sapling_commitment_tree_size
+            .checked_sub(sapling_outputs)
+            .ok_or_else(|| {
+                Status::internal(format!(
+                    "sapling tree size underflow at block {}",
+                    block.height
+                ))
+            })?,
+        metadata
+            .orchard_commitment_tree_size
+            .checked_sub(orchard_actions)
+            .ok_or_else(|| {
+                Status::internal(format!(
+                    "orchard tree size underflow at block {}",
+                    block.height
+                ))
+            })?,
+        metadata
+            .ironwood_commitment_tree_size
+            .checked_sub(ironwood_actions)
+            .ok_or_else(|| {
+                Status::internal(format!(
+                    "ironwood tree size underflow at block {}",
+                    block.height
+                ))
+            })?,
+    ))
+}
+
+fn commitment_count(
+    block: &CompactBlock,
+    count: impl Fn(&zcash_client_backend::proto::compact_formats::CompactTx) -> usize,
+) -> Result<u32, Status> {
+    block.vtx.iter().try_fold(0u32, |total, tx| {
+        let n = u32::try_from(count(tx))
+            .map_err(|_| Status::internal("commitment count does not fit in u32"))?;
+        total
+            .checked_add(n)
+            .ok_or_else(|| Status::internal("commitment count overflow"))
+    })
 }
 
 async fn chain_state_for_blocks(
@@ -1329,18 +1461,26 @@ fn scan_blocks(
     network: &Network,
     db: &mut Db,
     scan_range: &ScanRange,
-    chain_state: &ChainState,
+    prior: &PriorBlock,
     timing: &SyncTiming,
 ) -> Result<bool, Error> {
-    let scan_result = timing.measure_scan(|| {
-        scan_cached_blocks(
+    let scan_result = timing.measure_scan(|| match prior {
+        PriorBlock::Spending(chain_state) => scan_cached_blocks(
             network,
             &db.blocks,
             &mut db.data,
             scan_range.block_range().start,
             chain_state,
             scan_range.len(),
-        )
+        ),
+        PriorBlock::ViewOnly(chain_state) => scan_cached_blocks(
+            network,
+            &db.blocks,
+            &mut db.data,
+            scan_range.block_range().start,
+            chain_state,
+            scan_range.len(),
+        ),
     });
 
     // Check for scanning errors that indicate that the wallet's chain tip is out of
@@ -1358,32 +1498,122 @@ fn scan_blocks(
                 false
             })
         }
+        Err(ChainError::Scan(
+            zcash_client_backend::scanning::ScanError::CommitmentTreeRequired { .. },
+        )) => {
+            // A spending account was imported after this chunk was fetched without frontiers.
+            // Nothing was written. The next pass reloads subtree roots and scans with a ChainState.
+            info!(
+                "Note commitment trees became required during a view-only scan; reloading subtree roots"
+            );
+            Ok(true)
+        }
         Err(ChainError::Scan(err)) if err.is_continuity_error() => {
             // Pick a height to rewind to, which must be at least one block before
             // the height at which the error occurred, but may be an earlier height
             // determined based on heuristics such as the platform, available bandwidth,
             // size of recent CompactBlocks, etc.
-            let rewind_height = err.at_height().saturating_sub(10);
-            info!(
-                "Chain reorg detected at {}, rewinding to {}",
-                err.at_height(),
-                rewind_height,
-            );
-
-            // Rewind to the chosen height.
-            db.data.truncate_to_height(rewind_height)?;
-
-            // Delete cached blocks from rewind_height onwards.
-            //
-            // This does imply that assumed-valid blocks will be re-downloaded, but it
-            // is also possible that in the intervening time, a chain reorg has
-            // occurred that orphaned some of those blocks.
-            db.blocks.truncate_to_height(rewind_height);
+            info!("Chain reorg detected at {}, rewinding", err.at_height(),);
+            rewind_for_continuity(db, err.at_height())?;
 
             Ok(true)
         }
         Err(other) => Err(other.into()),
     }
+}
+
+/// Reloads subtree roots when a spending account appears during a view-only sync.
+///
+/// `view_only` is otherwise fixed for the whole `sync` call, including a continual scan.
+/// Importing a spending account on another call makes the database maintain trees, and the
+/// next compact-block chunk must carry frontiers or `scan_cached_blocks` returns
+/// `CommitmentTreeRequired`.
+async fn ensure_tree_maintenance(
+    client: &mut CompactTxStreamerClient<Channel>,
+    db: &mut Db,
+    state: &mut SyncState,
+) -> Result<(), Error> {
+    let maintains_trees = db.data.maintains_note_commitment_trees()?;
+    if maintains_trees && state.view_only {
+        info!("A spending account is in the wallet; loading note commitment subtree roots");
+        update_subtree_roots(client, &mut db.data, &state.timing).await?;
+    }
+    state.view_only = !maintains_trees;
+    Ok(())
+}
+
+/// Rewinds about ten blocks before a continuity error.
+///
+/// A spending wallet uses `truncate_to_height`, which needs a note commitment checkpoint.
+/// A view-only wallet uses `rewind_view_only` and the hash of a stored block. The preferred
+/// target is ten blocks before the error. If that block was never stored, the newest stored
+/// block below the error is used instead. When no stored block is below the error, this
+/// returns an error instead of reporting a rewind that did not happen.
+fn rewind_for_continuity(db: &mut Db, at_height: BlockHeight) -> Result<(), Error> {
+    let rewind_height = at_height.saturating_sub(10);
+    if db.data.maintains_note_commitment_trees()? {
+        db.data.truncate_to_height(rewind_height)?;
+        db.blocks.truncate_to_height(rewind_height);
+        return Ok(());
+    }
+
+    let Some((height, hash)) = view_only_rewind_target(db, rewind_height, at_height)? else {
+        return Err(Error::Internal(format!(
+            "View-only continuity error at {at_height}, and no stored block below it to rewind to"
+        )));
+    };
+    info!("Chain reorg detected at {at_height}, rewinding view-only wallet to {height}");
+    db.data.rewind_view_only(height, hash)?;
+    // Delete cached blocks from the recovery height onwards.
+    //
+    // This does imply that assumed-valid blocks will be re-downloaded, but it
+    // is also possible that in the intervening time, a chain reorg has
+    // occurred that orphaned some of those blocks.
+    db.blocks.truncate_to_height(height);
+    Ok(())
+}
+
+/// Stored block to rewind a view-only wallet to, strictly below `at_height`.
+///
+/// Prefers the newest stored block at or below `desired`. If the scan has not reached
+/// `desired`, uses the newest stored block that is still below the continuity error.
+fn view_only_rewind_target(
+    db: &Db,
+    desired: BlockHeight,
+    at_height: BlockHeight,
+) -> Result<Option<(BlockHeight, BlockHash)>, Error> {
+    if let Some(found) = newest_stored_block_at_or_below(db, desired)? {
+        return Ok(Some(found));
+    }
+    let Some(found) = newest_stored_block_at_or_below(db, at_height.saturating_sub(1))? else {
+        return Ok(None);
+    };
+    if found.0 >= at_height {
+        return Ok(None);
+    }
+    Ok(Some(found))
+}
+
+fn newest_stored_block_at_or_below(
+    db: &Db,
+    max_height: BlockHeight,
+) -> Result<Option<(BlockHeight, BlockHash)>, Error> {
+    let conn = Connection::open(&db.path)?;
+    let row = conn
+        .query_row(
+            "SELECT height, hash FROM blocks WHERE height <= :height ORDER BY height DESC LIMIT 1",
+            named_params![":height": u32::from(max_height)],
+            |row| Ok((row.get::<_, u32>(0)?, row.get::<_, Vec<u8>>(1)?)),
+        )
+        .optional()?;
+    let Some((height, hash)) = row else {
+        return Ok(None);
+    };
+    let hash: [u8; 32] = hash
+        .as_slice()
+        .try_into()
+        .map_err(|_| Error::Internal(format!("stored block hash at {height} is not 32 bytes")))?;
+    Ok(Some((BlockHeight::from_u32(height), BlockHash(hash))))
 }
 
 async fn watch_mempool<P: AsRef<Path>>(
@@ -2220,6 +2450,293 @@ mod tests {
 
         assert_eq!(error, "apply");
         assert_eq!(applied, vec![0, 1]);
+    }
+
+    #[test]
+    fn view_only_rewind_without_a_stored_block_is_an_error() {
+        use zcash_client_backend::data_api::{AccountBirthday, AccountPurpose, WalletWrite};
+        use zcash_client_backend::keys::UnifiedSpendingKey;
+
+        let dir = testdir::testdir!();
+        let mut db = Db::init(dir.join("wallet.sqlite"), Network::TestNetwork).unwrap();
+        let ufvk = UnifiedSpendingKey::from_seed(
+            &Network::TestNetwork,
+            &[0x11; 64],
+            zip32::AccountId::ZERO,
+        )
+        .unwrap()
+        .to_unified_full_viewing_key();
+        let birthday =
+            AccountBirthday::from_viewing_parts(BlockHeight::from_u32(1), BlockHash([0; 32]), None);
+        db.data
+            .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+            .unwrap();
+
+        let error = rewind_for_continuity(&mut db, BlockHeight::from_u32(100)).unwrap_err();
+        let message = format!("{error:?}");
+        assert!(
+            message.contains("no stored block"),
+            "unexpected error: {message}"
+        );
+    }
+
+    #[test]
+    fn view_only_rewind_uses_the_newest_stored_block_below_the_error() {
+        use zcash_client_backend::data_api::{AccountBirthday, AccountPurpose, WalletWrite};
+        use zcash_client_backend::keys::UnifiedSpendingKey;
+
+        let dir = testdir::testdir!();
+        let mut db = Db::init(dir.join("wallet.sqlite"), Network::TestNetwork).unwrap();
+        let ufvk = UnifiedSpendingKey::from_seed(
+            &Network::TestNetwork,
+            &[0x22; 64],
+            zip32::AccountId::ZERO,
+        )
+        .unwrap()
+        .to_unified_full_viewing_key();
+        let birthday =
+            AccountBirthday::from_viewing_parts(BlockHeight::from_u32(1), BlockHash([0; 32]), None);
+        db.data
+            .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+            .unwrap();
+        let conn = Connection::open(&db.path).unwrap();
+        conn.execute(
+            "INSERT INTO blocks (
+                height, hash, time,
+                sapling_commitment_tree_size, sapling_output_count, sapling_tree,
+                orchard_commitment_tree_size, orchard_action_count,
+                ironwood_commitment_tree_size, ironwood_action_count
+            ) VALUES (90, ?1, 0, 0, 0, x'00', 0, 0, 0, 0)",
+            [vec![9u8; 32]],
+        )
+        .unwrap();
+
+        let (height, hash) =
+            view_only_rewind_target(&db, BlockHeight::from_u32(80), BlockHeight::from_u32(100))
+                .unwrap()
+                .expect("stored block 90 is below the error");
+        assert_eq!(u32::from(height), 90);
+        assert_eq!(hash, BlockHash([9; 32]));
+
+        rewind_for_continuity(&mut db, BlockHeight::from_u32(100)).unwrap();
+        let remaining: i64 = conn
+            .query_row("SELECT COUNT(*) FROM blocks WHERE height > 90", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        assert_eq!(remaining, 0);
+    }
+
+    #[test]
+    fn view_only_prior_block_uses_compact_metadata() {
+        use zcash_client_backend::proto::compact_formats::{
+            ChainMetadata, CompactBlock, CompactOrchardAction, CompactSaplingOutput, CompactTx,
+        };
+        use zcash_primitives::block::BlockHash;
+
+        let block = CompactBlock {
+            height: 10,
+            prev_hash: vec![7; 32],
+            chain_metadata: Some(ChainMetadata {
+                sapling_commitment_tree_size: 100,
+                orchard_commitment_tree_size: 40,
+                ironwood_commitment_tree_size: 5,
+            }),
+            vtx: vec![CompactTx {
+                outputs: vec![
+                    CompactSaplingOutput::default(),
+                    CompactSaplingOutput::default(),
+                ],
+                actions: vec![CompactOrchardAction::default()],
+                ironwood_actions: vec![
+                    CompactOrchardAction::default(),
+                    CompactOrchardAction::default(),
+                ],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        let prior = compact_chain_state_before(&block).unwrap();
+        assert_eq!(u32::from(prior.block_height()), 9);
+        assert_eq!(prior.block_hash(), BlockHash([7; 32]));
+        assert_eq!(prior.sapling_tree_size(), 98);
+        assert_eq!(prior.orchard_tree_size(), 39);
+        assert_eq!(prior.ironwood_tree_size(), 3);
+    }
+
+    /// A short mainnet sync on `https://zec.rocks:443` must scan without subtree roots.
+    ///
+    /// The view-only wallet's shard tables stay empty. The spending wallet preloads subtree roots
+    /// before it scans the same recent range.
+    #[ignore]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn view_only_near_tip_skips_subtree_roots() {
+        use zcash_client_backend::data_api::{AccountPurpose, WalletRead};
+        use zcash_client_backend::keys::UnifiedSpendingKey;
+
+        let uri: http::Uri = "https://zec.rocks:443".parse().unwrap();
+        let mut client = get_client(uri.clone()).await.unwrap();
+        let info = client
+            .get_lightd_info(service::Empty {})
+            .await
+            .unwrap()
+            .into_inner();
+        let network = parse_network(&info).unwrap();
+        let tip = info.block_height;
+        let birthday = tip.saturating_sub(20);
+        eprintln!("near-tip tip={tip} birthday={birthday}");
+
+        let dir = testdir::testdir!();
+        let view_file = dir.join("view.sqlite");
+        let mut view_db = Db::init(&view_file, network).unwrap();
+        let ufvk = UnifiedSpendingKey::from_seed(&network, &[0x46; 64], zip32::AccountId::ZERO)
+            .unwrap()
+            .to_unified_full_viewing_key();
+        view_db
+            .import_account_ufvk(
+                "view-only",
+                &ufvk,
+                AccountPurpose::ViewOnly,
+                birthday,
+                None,
+                &mut client,
+            )
+            .await
+            .unwrap();
+        assert!(!view_db.data.maintains_note_commitment_trees().unwrap());
+        sync(
+            uri,
+            &view_file,
+            None,
+            ConfirmationsPolicy::default(),
+            false,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        let conn = rusqlite::Connection::open(&view_file).unwrap();
+        let blocks: i64 = conn
+            .query_row("SELECT COUNT(*) FROM blocks", [], |row| row.get(0))
+            .unwrap();
+        let shards: i64 = conn
+            .query_row("SELECT COUNT(*) FROM sapling_tree_shards", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        assert!(blocks > 0, "view-only scan stored no blocks");
+        assert_eq!(shards, 0, "view-only scan wrote sapling subtree roots");
+    }
+
+    /// Times a view-only UFVK wallet against a spending seed wallet.
+    ///
+    /// The birthday defaults to 3_487_990. Override it with `NERDBANK_ZCASH_PROFILE_BIRTHDAY`.
+    /// The server is `https://zec.rocks:443`. `NERDBANK_ZCASH_SYNC_TIMING=1` prints phase totals;
+    /// a view-only wallet should report no tree-state time.
+    ///
+    /// ```bash
+    /// NERDBANK_ZCASH_SYNC_TIMING=1 \
+    ///   cargo test -p nerdbank-zcash-rust --release --lib profile_view_only_and_spending_sync -- --ignored --nocapture --test-threads=1
+    /// ```
+    #[ignore]
+    #[tokio_shared_rt::test(flavor = "multi_thread")]
+    async fn profile_view_only_and_spending_sync() {
+        use secrecy::SecretVec;
+        use zcash_client_backend::data_api::{AccountPurpose, WalletRead};
+        use zcash_client_backend::keys::UnifiedSpendingKey;
+
+        let uri: http::Uri = "https://zec.rocks:443".parse().unwrap();
+        let mut client = crate::grpc::get_client(uri.clone()).await.unwrap();
+        let info = client
+            .get_lightd_info(service::Empty {})
+            .await
+            .unwrap()
+            .into_inner();
+        let network = parse_network(&info).unwrap();
+        let tip = info.block_height;
+        let birthday = std::env::var("NERDBANK_ZCASH_PROFILE_BIRTHDAY")
+            .ok()
+            .and_then(|value| value.parse().ok())
+            .unwrap_or(3_487_990);
+        eprintln!(
+            "profile tip={tip} birthday={birthday} span={}",
+            tip.saturating_sub(birthday)
+        );
+
+        let view_dir = testdir::testdir!();
+        let view_file = view_dir.join("view.sqlite");
+        let mut view_db = Db::init(&view_file, network).unwrap();
+        let view_seed = [0x44; 64];
+        let view_ufvk = UnifiedSpendingKey::from_seed(&network, &view_seed, zip32::AccountId::ZERO)
+            .unwrap()
+            .to_unified_full_viewing_key();
+        view_db
+            .import_account_ufvk(
+                "view-only",
+                &view_ufvk,
+                AccountPurpose::ViewOnly,
+                birthday,
+                None,
+                &mut client,
+            )
+            .await
+            .unwrap();
+        assert!(!view_db.data.maintains_note_commitment_trees().unwrap());
+
+        let view_started = std::time::Instant::now();
+        let view_result = sync(
+            uri.clone(),
+            &view_file,
+            None,
+            ConfirmationsPolicy::default(),
+            false,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        let view_wall = view_started.elapsed();
+        eprintln!(
+            "view-only done wall={:.3}s tip={} fully_scanned={:?}",
+            view_wall.as_secs_f64(),
+            view_result.tip_height,
+            view_result.last_fully_scanned_block
+        );
+
+        let spend_dir = testdir::testdir!();
+        let spend_file = spend_dir.join("spend.sqlite");
+        let mut spend_db = Db::init(&spend_file, network).unwrap();
+        let spend_seed = SecretVec::new(vec![0x55; 64]);
+        spend_db
+            .add_account(
+                "spending",
+                &spend_seed,
+                zip32::AccountId::ZERO,
+                birthday,
+                &mut client,
+            )
+            .await
+            .unwrap();
+        assert!(spend_db.data.maintains_note_commitment_trees().unwrap());
+
+        let spend_started = std::time::Instant::now();
+        let spend_result = sync(
+            uri,
+            &spend_file,
+            None,
+            ConfirmationsPolicy::default(),
+            false,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        let spend_wall = spend_started.elapsed();
+        eprintln!(
+            "spending done wall={:.3}s tip={} fully_scanned={:?}",
+            spend_wall.as_secs_f64(),
+            spend_result.tip_height,
+            spend_result.last_fully_scanned_block
+        );
     }
 
     const COIN: u64 = 1_0000_0000;
