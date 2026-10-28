@@ -460,7 +460,6 @@ fn get_db_internal<P: AsRef<Path>>(
 mod tests {
     use super::*;
     use rusqlite::Connection;
-    use std::sync::Arc;
     use testdir::testdir;
     use zcash_client_backend::data_api::{Account as _, WalletRead};
 
@@ -743,8 +742,11 @@ mod tests {
         assert!(!ivk_db.data.maintains_note_commitment_trees().unwrap());
     }
 
+    #[cfg(unix)]
     #[test]
     fn wallet_scan_lock_follows_symlinks() {
+        use std::sync::Arc;
+
         let wallet_dir = testdir!();
         let real = wallet_dir.join("wallet.sqlite");
         Db::init(&real, Network::TestNetwork).unwrap();
