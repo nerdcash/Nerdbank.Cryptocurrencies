@@ -1,8 +1,11 @@
 use rusqlite::{Connection, named_params};
 use zcash_client_sqlite::AccountUuid;
 
-use zcash_client_backend::data_api::{AccountBalance, WalletRead, wallet::ConfirmationsPolicy};
+use zcash_client_backend::data_api::{
+    AccountBalance, Balance, WalletRead, wallet::ConfirmationsPolicy,
+};
 use zcash_primitives::transaction::fees::zip317::{FeeRule, MINIMUM_FEE};
+use zcash_protocol::value::Zatoshis;
 
 use crate::{
     backing_store::Db,
@@ -121,13 +124,20 @@ pub fn get_user_balances(
     let marginal_fee: u64 = FeeRule::standard().marginal_fee().into();
     let db = Db::load(&config.data_file, config.network.into())?;
     let mut balances = UserBalances::default();
+    // View-only shielded notes are reported from `viewed_value`. The legacy note query
+    // classifies those same notes as spendable or immature and adds a spending fee, which
+    // double-counts them once `viewed` is included. Transparent rows still use that query
+    // only for a spending wallet; a view-only wallet takes transparent buckets from the
+    // library snapshot below, which does not need a shielded anchor.
+    let view_only = !db.data.maintains_note_commitment_trees()?;
     let trusted_anchor = db
         .data
         .get_target_and_anchor_heights(confirmations_policy.trusted())?;
     let untrusted_anchor = db
         .data
         .get_target_and_anchor_heights(confirmations_policy.untrusted())?;
-    if let Some((_, trusted_anchor)) = trusted_anchor
+    if !view_only
+        && let Some((_, trusted_anchor)) = trusted_anchor
         && let Some((_, untrusted_anchor)) = untrusted_anchor
     {
         let conn = Connection::open(config.data_file.clone())?;
@@ -201,25 +211,67 @@ pub fn get_user_balances(
         // For those values that it can provide, consider them more reliable and override what we computed.
     }
 
-    // A view-only wallet has no anchor checkpoints, so the note query above does not run.
-    // `get_wallet_snapshot` still reports `viewed_value` without those checkpoints. A spending
-    // wallet prefers the summary, which splits the same notes into spendable and pending.
+    // Shielded anchors are absent for a wallet that never maintained note commitment trees.
+    // `get_wallet_snapshot` still returns shielded `viewed_value` and the ordinary transparent
+    // buckets. A spending wallet prefers the summary for the shielded split and keeps the
+    // legacy query's transparent and incoming figures.
     if let Some(summary) = db.data.get_wallet_summary(confirmations_policy)? {
         let account_balance = summary
             .account_balances()
             .get(account_uuid)
             .ok_or_else(|| Error::InvalidArgument("Account not found.".to_string()))?;
+        overlay_library_balance(&mut balances, account_balance, view_only);
+    } else if let Some(snapshot) = db.data.get_wallet_snapshot(confirmations_policy)?
+        && let Some(account_balance) = snapshot.account_balances().get(account_uuid)
+    {
+        overlay_library_balance(&mut balances, account_balance, view_only);
+    }
+
+    Ok(balances)
+}
+
+/// Copies library balance buckets into the user-facing totals.
+///
+/// A spending wallet keeps the legacy query's incoming and immature-income figures and
+/// replaces the shielded spendable, change, and dust totals with the summary. A view-only
+/// wallet does not run that query. Its shielded notes are only `viewed`, and transparent
+/// UTXOs come from the library's ordinary spendable, pending, and uneconomic buckets.
+fn overlay_library_balance(
+    balances: &mut UserBalances,
+    account_balance: &AccountBalance,
+    view_only: bool,
+) {
+    if view_only {
+        balances.spendable = 0;
+        balances.minimum_fees = 0;
+        balances.immature_change =
+            transparent_zatoshis(account_balance, Balance::change_pending_confirmation);
+        balances.immature_income = transparent_zatoshis(account_balance, |balance| {
+            (balance.spendable_value() + balance.locked_value()).unwrap_or(Zatoshis::ZERO)
+        });
+        balances.incoming =
+            transparent_zatoshis(account_balance, Balance::value_pending_spendability);
+        balances.dust = transparent_zatoshis(account_balance, Balance::uneconomic_value);
+        balances.viewed = viewed_zatoshis(account_balance);
+    } else {
         balances.spendable = account_balance.spendable_value().into_u64();
         balances.immature_change = account_balance.change_pending_confirmation().into_u64();
         balances.dust = account_balance.uneconomic_value().into_u64();
         balances.viewed = viewed_zatoshis(account_balance);
-    } else if let Some(snapshot) = db.data.get_wallet_snapshot(confirmations_policy)?
-        && let Some(account_balance) = snapshot.account_balances().get(account_uuid)
-    {
-        balances.viewed = viewed_zatoshis(account_balance);
     }
+}
 
-    Ok(balances)
+/// Sums one transparent bucket across the regular and coinbase pools.
+fn transparent_zatoshis(balance: &AccountBalance, part: impl Fn(&Balance) -> Zatoshis) -> u64 {
+    [
+        balance.unshielded_regular_balance(),
+        balance.unshielded_coinbase_balance(),
+    ]
+    .into_iter()
+    .map(part)
+    .try_fold(Zatoshis::ZERO, |total, value| total + value)
+    .expect("transparent balance cannot overflow MAX_MONEY")
+    .into_u64()
 }
 
 /// Sum of [`Balance::viewed_value`](zcash_client_backend::data_api::Balance::viewed_value) across pools.
@@ -261,5 +313,41 @@ mod tests {
             get_user_balances(&setup.db_init, &account_id, ConfirmationsPolicy::default()).unwrap();
         assert_eq!(balances.spendable, 0);
         assert_eq!(balances.viewed, 0);
+    }
+
+    #[test]
+    fn view_only_overlay_keeps_shielded_notes_out_of_spending_buckets() {
+        use zcash_protocol::value::BalanceError;
+
+        let mut account = AccountBalance::ZERO;
+        account
+            .with_sapling_balance_mut::<(), BalanceError>(|balance| {
+                balance.add_viewed_value(Zatoshis::from_u64(50_000_000).unwrap())?;
+                Ok(())
+            })
+            .unwrap();
+        account
+            .with_unshielded_regular_balance_mut::<(), BalanceError>(|balance| {
+                balance.add_spendable_value(Zatoshis::from_u64(25_000_000).unwrap())?;
+                balance.add_pending_spendable_value(Zatoshis::from_u64(4_000_000).unwrap())?;
+                balance.add_uneconomic_value(Zatoshis::from_u64(1_000).unwrap())?;
+                Ok(())
+            })
+            .unwrap();
+
+        let mut balances = UserBalances {
+            spendable: 50_000_000,
+            minimum_fees: 10_000,
+            immature_income: 50_000_000,
+            ..UserBalances::default()
+        };
+        overlay_library_balance(&mut balances, &account, true);
+
+        assert_eq!(balances.spendable, 0);
+        assert_eq!(balances.minimum_fees, 0);
+        assert_eq!(balances.viewed, 50_000_000);
+        assert_eq!(balances.immature_income, 25_000_000);
+        assert_eq!(balances.incoming, 4_000_000);
+        assert_eq!(balances.dust, 1_000);
     }
 }

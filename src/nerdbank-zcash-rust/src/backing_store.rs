@@ -1,4 +1,7 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use rand::{rand_core::UnwrapErr, rngs::SysRng};
 use rusqlite::Connection;
@@ -34,6 +37,8 @@ pub(crate) type WalletRng = UnwrapErr<SysRng>;
 pub(crate) struct Db {
     pub(crate) data: WalletDb<Connection, Network, SystemClock, WalletRng>,
     pub(crate) blocks: BlockCache,
+    /// Wallet file path, used when a query needs a second connection.
+    pub(crate) path: PathBuf,
 }
 
 impl Db {
@@ -257,7 +262,8 @@ fn get_db_internal<P: AsRef<Path>>(
         fs::create_dir_all(data_dir)?;
     }
 
-    let mut data = WalletDb::for_path(data_file, network, SystemClock, WalletRng::default())?;
+    let path = data_file.as_ref().to_path_buf();
+    let mut data = WalletDb::for_path(&path, network, SystemClock, WalletRng::default())?;
     if !commitment_tree_write_back_from_env() {
         data.set_commitment_tree_write_back(false);
     }
@@ -269,6 +275,7 @@ fn get_db_internal<P: AsRef<Path>>(
     Ok(Db {
         data,
         blocks: BlockCache::new(),
+        path,
     })
 }
 

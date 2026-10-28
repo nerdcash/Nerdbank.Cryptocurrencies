@@ -2,7 +2,7 @@ use futures_util::{StreamExt, TryStreamExt, stream};
 use http::Uri;
 use orchard::{keys::Scope, tree::MerkleHashOrchard};
 use prost::bytes::Buf;
-use rusqlite::{Connection, named_params};
+use rusqlite::{Connection, OptionalExtension, named_params};
 use std::{
     borrow::Borrow,
     collections::{BTreeSet, HashMap},
@@ -20,6 +20,7 @@ use uuid::Uuid;
 use zcash_client_sqlite::{AccountUuid, WalletDb, error::SqliteClientError, util::SystemClock};
 use zcash_keys::address::UnifiedAddress;
 use zcash_primitives::{
+    block::BlockHash,
     merkle_tree::HashSer,
     transaction::{Transaction, TxId},
 };
@@ -140,7 +141,7 @@ async fn sync_scoped<P: AsRef<Path>>(
     // Automatic mode skips note commitment trees only when every stored account is view-only.
     // An empty wallet still maintains trees, so a later spending account keeps the old path.
     let view_only = !db.data.maintains_note_commitment_trees()?;
-    let state = SyncState {
+    let mut state = SyncState {
         cancellation_token,
         confirmations_policy,
         network,
@@ -167,6 +168,11 @@ async fn sync_scoped<P: AsRef<Path>>(
     };
 
     loop {
+        // An account imported while a continual scan is running can change whether this
+        // wallet maintains trees. Re-read that before each pass and, when a spending
+        // account appears, load the subtree roots this pass's `ChainState` scan needs.
+        ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
+
         // 3) Download chain tip metadata from lightwalletd
         status.tip_height = webrequest_with_retry(
             || async {
@@ -1469,6 +1475,16 @@ fn scan_blocks(
                 false
             })
         }
+        Err(ChainError::Scan(
+            zcash_client_backend::scanning::ScanError::CommitmentTreeRequired { .. },
+        )) => {
+            // A spending account was imported after this chunk was fetched without frontiers.
+            // Nothing was written. The next pass reloads subtree roots and scans with a ChainState.
+            info!(
+                "Note commitment trees became required during a view-only scan; reloading subtree roots"
+            );
+            Ok(true)
+        }
         Err(ChainError::Scan(err)) if err.is_continuity_error() => {
             // Pick a height to rewind to, which must be at least one block before
             // the height at which the error occurred, but may be an earlier height
@@ -1483,30 +1499,98 @@ fn scan_blocks(
     }
 }
 
+/// Reloads subtree roots when a spending account appears during a view-only sync.
+///
+/// `view_only` is otherwise fixed for the whole `sync` call, including a continual scan.
+/// Importing a spending account on another call makes the database maintain trees, and the
+/// next compact-block chunk must carry frontiers or `scan_cached_blocks` returns
+/// `CommitmentTreeRequired`.
+async fn ensure_tree_maintenance(
+    client: &mut CompactTxStreamerClient<Channel>,
+    db: &mut Db,
+    state: &mut SyncState,
+) -> Result<(), Error> {
+    let maintains_trees = db.data.maintains_note_commitment_trees()?;
+    if maintains_trees && state.view_only {
+        info!("A spending account is in the wallet; loading note commitment subtree roots");
+        update_subtree_roots(client, &mut db.data, &state.timing).await?;
+    }
+    state.view_only = !maintains_trees;
+    Ok(())
+}
+
 /// Rewinds about ten blocks before a continuity error.
 ///
 /// A spending wallet uses `truncate_to_height`, which needs a note commitment checkpoint.
-/// A view-only wallet uses `rewind_view_only` and the hash of the stored block at that height.
-/// When that block was never stored, nothing is deleted and the caller scans again.
+/// A view-only wallet uses `rewind_view_only` and the hash of a stored block. The preferred
+/// target is ten blocks before the error. If that block was never stored, the newest stored
+/// block below the error is used instead. When no stored block is below the error, this
+/// returns an error instead of reporting a rewind that did not happen.
 fn rewind_for_continuity(db: &mut Db, at_height: BlockHeight) -> Result<(), Error> {
     let rewind_height = at_height.saturating_sub(10);
     if db.data.maintains_note_commitment_trees()? {
         db.data.truncate_to_height(rewind_height)?;
-    } else if let Some(hash) = db.data.get_block_hash(rewind_height)? {
-        db.data.rewind_view_only(rewind_height, hash)?;
-    } else {
-        info!(
-            "View-only continuity error at {at_height}; no stored block at {rewind_height} to rewind to"
-        );
+        db.blocks.truncate_to_height(rewind_height);
+        return Ok(());
     }
 
-    // Delete cached blocks from rewind_height onwards.
+    let Some((height, hash)) = view_only_rewind_target(db, rewind_height, at_height)? else {
+        return Err(Error::Internal(format!(
+            "View-only continuity error at {at_height}, and no stored block below it to rewind to"
+        )));
+    };
+    info!("Chain reorg detected at {at_height}, rewinding view-only wallet to {height}");
+    db.data.rewind_view_only(height, hash)?;
+    // Delete cached blocks from the recovery height onwards.
     //
     // This does imply that assumed-valid blocks will be re-downloaded, but it
     // is also possible that in the intervening time, a chain reorg has
     // occurred that orphaned some of those blocks.
-    db.blocks.truncate_to_height(rewind_height);
+    db.blocks.truncate_to_height(height);
     Ok(())
+}
+
+/// Stored block to rewind a view-only wallet to, strictly below `at_height`.
+///
+/// Prefers the newest stored block at or below `desired`. If the scan has not reached
+/// `desired`, uses the newest stored block that is still below the continuity error.
+fn view_only_rewind_target(
+    db: &Db,
+    desired: BlockHeight,
+    at_height: BlockHeight,
+) -> Result<Option<(BlockHeight, BlockHash)>, Error> {
+    if let Some(found) = newest_stored_block_at_or_below(db, desired)? {
+        return Ok(Some(found));
+    }
+    let Some(found) = newest_stored_block_at_or_below(db, at_height.saturating_sub(1))? else {
+        return Ok(None);
+    };
+    if found.0 >= at_height {
+        return Ok(None);
+    }
+    Ok(Some(found))
+}
+
+fn newest_stored_block_at_or_below(
+    db: &Db,
+    max_height: BlockHeight,
+) -> Result<Option<(BlockHeight, BlockHash)>, Error> {
+    let conn = Connection::open(&db.path)?;
+    let row = conn
+        .query_row(
+            "SELECT height, hash FROM blocks WHERE height <= :height ORDER BY height DESC LIMIT 1",
+            named_params![":height": u32::from(max_height)],
+            |row| Ok((row.get::<_, u32>(0)?, row.get::<_, Vec<u8>>(1)?)),
+        )
+        .optional()?;
+    let Some((height, hash)) = row else {
+        return Ok(None);
+    };
+    let hash: [u8; 32] = hash
+        .as_slice()
+        .try_into()
+        .map_err(|_| Error::Internal(format!("stored block hash at {height} is not 32 bytes")))?;
+    Ok(Some((BlockHeight::from_u32(height), BlockHash(hash))))
 }
 
 async fn watch_mempool<P: AsRef<Path>>(
@@ -2343,6 +2427,81 @@ mod tests {
 
         assert_eq!(error, "apply");
         assert_eq!(applied, vec![0, 1]);
+    }
+
+    #[test]
+    fn view_only_rewind_without_a_stored_block_is_an_error() {
+        use zcash_client_backend::data_api::{AccountBirthday, AccountPurpose, WalletWrite};
+        use zcash_client_backend::keys::UnifiedSpendingKey;
+
+        let dir = testdir::testdir!();
+        let mut db = Db::init(dir.join("wallet.sqlite"), Network::TestNetwork).unwrap();
+        let ufvk = UnifiedSpendingKey::from_seed(
+            &Network::TestNetwork,
+            &[0x11; 64],
+            zip32::AccountId::ZERO,
+        )
+        .unwrap()
+        .to_unified_full_viewing_key();
+        let birthday =
+            AccountBirthday::from_viewing_parts(BlockHeight::from_u32(1), BlockHash([0; 32]), None);
+        db.data
+            .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+            .unwrap();
+
+        let error = rewind_for_continuity(&mut db, BlockHeight::from_u32(100)).unwrap_err();
+        let message = format!("{error:?}");
+        assert!(
+            message.contains("no stored block"),
+            "unexpected error: {message}"
+        );
+    }
+
+    #[test]
+    fn view_only_rewind_uses_the_newest_stored_block_below_the_error() {
+        use zcash_client_backend::data_api::{AccountBirthday, AccountPurpose, WalletWrite};
+        use zcash_client_backend::keys::UnifiedSpendingKey;
+
+        let dir = testdir::testdir!();
+        let mut db = Db::init(dir.join("wallet.sqlite"), Network::TestNetwork).unwrap();
+        let ufvk = UnifiedSpendingKey::from_seed(
+            &Network::TestNetwork,
+            &[0x22; 64],
+            zip32::AccountId::ZERO,
+        )
+        .unwrap()
+        .to_unified_full_viewing_key();
+        let birthday =
+            AccountBirthday::from_viewing_parts(BlockHeight::from_u32(1), BlockHash([0; 32]), None);
+        db.data
+            .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+            .unwrap();
+        let conn = Connection::open(&db.path).unwrap();
+        conn.execute(
+            "INSERT INTO blocks (
+                height, hash, time,
+                sapling_commitment_tree_size, sapling_output_count, sapling_tree,
+                orchard_commitment_tree_size, orchard_action_count,
+                ironwood_commitment_tree_size, ironwood_action_count
+            ) VALUES (90, ?1, 0, 0, 0, x'00', 0, 0, 0, 0)",
+            [vec![9u8; 32]],
+        )
+        .unwrap();
+
+        let (height, hash) =
+            view_only_rewind_target(&db, BlockHeight::from_u32(80), BlockHeight::from_u32(100))
+                .unwrap()
+                .expect("stored block 90 is below the error");
+        assert_eq!(u32::from(height), 90);
+        assert_eq!(hash, BlockHash([9; 32]));
+
+        rewind_for_continuity(&mut db, BlockHeight::from_u32(100)).unwrap();
+        let remaining: i64 = conn
+            .query_row("SELECT COUNT(*) FROM blocks WHERE height > 90", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        assert_eq!(remaining, 0);
     }
 
     #[test]
