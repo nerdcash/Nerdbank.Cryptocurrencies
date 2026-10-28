@@ -155,7 +155,7 @@ arti-client = { version = "0.47", default-features = false, features = [
 	"tokio",
 ] }
 dynosaur = "0.3"
-fs-mistrust = "0.14"
+fs-mistrust = "0.16"
 tokio = "1"
 tor-rtcompat = "0.43"
 tower = "0.5"
