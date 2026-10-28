@@ -1,15 +1,20 @@
 use std::{
+    collections::HashMap,
     fs,
     path::{Path, PathBuf},
+    sync::{Arc, LazyLock, Mutex as StdMutex},
 };
 
-use nonempty::NonEmpty;
 use rand::{rand_core::UnwrapErr, rngs::SysRng};
-use rusqlite::{Connection, OptionalExtension, named_params};
+use rusqlite::{Connection, OptionalExtension, Transaction, TransactionBehavior, named_params};
 use secrecy::SecretVec;
+use tokio::sync::Mutex;
 use tonic::transport::Channel;
 use zcash_client_backend::{
-    data_api::{AccountBirthday, AccountPurpose, WalletRead, WalletWrite, scanning::ScanPriority},
+    data_api::{
+        AccountBirthday, AccountPurpose, WalletRead, WalletWrite,
+        scanning::{ScanPriority, ScanRange, spanning_tree::SpanningTree},
+    },
     keys::UnifiedSpendingKey,
     proto::service::{self, compact_tx_streamer_client::CompactTxStreamerClient},
 };
@@ -27,6 +32,21 @@ use zcash_protocol::consensus::{BlockHeight, Network};
 use zip32::DiversifierIndex;
 
 use crate::{block_source::BlockCache, error::Error, sync_timing::SyncTiming};
+
+/// One mutex per wallet file. Sync holds it from the tree-mode check through the scan
+/// commit. [`Db::note_spending_key`] holds it while it records the spending flag and the
+/// historic rescan, so an in-flight view-only commit cannot land in the middle.
+static WALLET_SCAN_LOCKS: LazyLock<StdMutex<HashMap<PathBuf, Arc<Mutex<()>>>>> =
+    LazyLock::new(|| StdMutex::new(HashMap::new()));
+
+/// Lock that serializes chain scans of `path` with a spending-key upgrade.
+pub(crate) fn wallet_scan_lock(path: &Path) -> Arc<Mutex<()>> {
+    let mut locks = WALLET_SCAN_LOCKS.lock().expect("wallet scan lock map");
+    locks
+        .entry(path.to_path_buf())
+        .or_insert_with(|| Arc::new(Mutex::new(())))
+        .clone()
+}
 
 /// Operating-system RNG stored on [`WalletDb`].
 ///
@@ -162,10 +182,18 @@ impl Db {
     /// the account birthday through the newest stored block, because blocks already scanned
     /// without note commitment trees have no witnesses.
     ///
+    /// The flag and the rescan commit in one immediate transaction, and the call waits until
+    /// no chain scan of this wallet is between its tree-mode check and its commit. A scan that
+    /// is still downloading therefore cannot mark a later block scanned without witnesses
+    /// after this returns.
+    ///
     /// An incoming-viewing-key account has no full viewing key, so it cannot be marked spending.
     pub(crate) fn note_spending_key(&mut self, account_id: AccountUuid) -> Result<bool, Error> {
-        let conn = Connection::open(&self.path)?;
-        let row = conn
+        let scan_lock = wallet_scan_lock(&self.path);
+        let _scan = scan_lock.blocking_lock();
+        let mut conn = Connection::open(&self.path)?;
+        let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let row = tx
             .query_row(
                 "SELECT has_spend_key, ufvk IS NOT NULL, birthday_height
                  FROM accounts WHERE uuid = :uuid",
@@ -190,25 +218,20 @@ impl Db {
         if has_spend_key != 0 {
             return Ok(false);
         }
-        // Queue the rescan before flipping the flag. A failure then leaves the account
-        // view-only, so a retry can queue the same range again. The reverse order would
-        // return `false` on retry and never rebuild the missing witnesses.
         let max_height: Option<u32> =
-            conn.query_row("SELECT MAX(height) FROM blocks", [], |row| row.get(0))?;
-        drop(conn);
+            tx.query_row("SELECT MAX(height) FROM blocks", [], |row| row.get(0))?;
         if let Some(max_height) = max_height {
             let start = BlockHeight::from_u32(birthday);
             let end = BlockHeight::from_u32(max_height) + 1;
             if start < end {
-                self.data
-                    .queue_rescans(NonEmpty::singleton(start..end), ScanPriority::Historic)?;
+                queue_historic_rescan(&tx, start..end)?;
             }
         }
-        let conn = Connection::open(&self.path)?;
-        conn.execute(
+        tx.execute(
             "UPDATE accounts SET has_spend_key = 1 WHERE uuid = :uuid",
             named_params![":uuid": account_id.expose_uuid()],
         )?;
+        tx.commit()?;
         Ok(true)
     }
 
@@ -220,6 +243,99 @@ impl Db {
         Ok(self
             .data
             .put_address_with_diversifier_index(account_id, diversifier_index)?)
+    }
+}
+
+/// Replaces scanned coverage of `range` with [`ScanPriority::Historic`].
+///
+/// Same merge as `WalletDb::queue_rescans`: a higher priority than historic is kept, and
+/// the replacement commits with the caller's transaction.
+fn queue_historic_rescan(
+    tx: &Transaction<'_>,
+    range: std::ops::Range<BlockHeight>,
+) -> Result<(), Error> {
+    if range.is_empty() {
+        return Ok(());
+    }
+
+    let mut stmt = tx.prepare(
+        "SELECT block_range_start, block_range_end, priority
+         FROM scan_queue
+         WHERE NOT (block_range_start > :end OR :start > block_range_end)
+         ORDER BY block_range_end",
+    )?;
+    let mut rows = stmt.query(named_params![
+        ":start": u32::from(range.start),
+        ":end": u32::from(range.end),
+    ])?;
+    let mut tree: Option<SpanningTree> = None;
+    let mut ends = Vec::new();
+    while let Some(row) = rows.next()? {
+        let entry = scan_range_from_row(row)?;
+        ends.push(u32::from(entry.block_range().end));
+        tree = Some(match tree {
+            Some(current) => current.insert(entry, true),
+            None => SpanningTree::Leaf(entry),
+        });
+    }
+    drop(rows);
+    drop(stmt);
+
+    let historic = ScanRange::from_parts(range, ScanPriority::Historic);
+    let tree = match tree {
+        Some(current) => current.insert(historic, true),
+        None => SpanningTree::Leaf(historic),
+    };
+    for end in ends {
+        tx.execute("DELETE FROM scan_queue WHERE block_range_end = ?1", [end])?;
+    }
+    for entry in tree.into_vec() {
+        if entry.is_empty() {
+            continue;
+        }
+        tx.execute(
+            "INSERT INTO scan_queue (block_range_start, block_range_end, priority)
+             VALUES (?1, ?2, ?3)",
+            (
+                u32::from(entry.block_range().start),
+                u32::from(entry.block_range().end),
+                priority_code(entry.priority()),
+            ),
+        )?;
+    }
+    Ok(())
+}
+
+fn scan_range_from_row(row: &rusqlite::Row<'_>) -> Result<ScanRange, Error> {
+    let start = BlockHeight::from_u32(row.get(0)?);
+    let end = BlockHeight::from_u32(row.get(1)?);
+    let priority = parse_priority_code(row.get(2)?)
+        .ok_or_else(|| Error::Internal("scan_queue contains an unknown priority".to_string()))?;
+    Ok(ScanRange::from_parts(start..end, priority))
+}
+
+fn priority_code(priority: ScanPriority) -> i64 {
+    match priority {
+        ScanPriority::Ignored => 0,
+        ScanPriority::Scanned => 10,
+        ScanPriority::Historic => 20,
+        ScanPriority::OpenAdjacent => 30,
+        ScanPriority::FoundNote => 40,
+        ScanPriority::ChainTip => 50,
+        ScanPriority::Verify => 60,
+    }
+}
+
+fn parse_priority_code(code: i64) -> Option<ScanPriority> {
+    match code {
+        0 => Some(ScanPriority::Ignored),
+        10 => Some(ScanPriority::Scanned),
+        20 => Some(ScanPriority::Historic),
+        30 => Some(ScanPriority::OpenAdjacent),
+        40 => Some(ScanPriority::FoundNote),
+        50 => Some(ScanPriority::ChainTip),
+        60 => Some(ScanPriority::Verify),
+        _ => None,
     }
 }
 

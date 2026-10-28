@@ -2,14 +2,16 @@ use rusqlite::{Connection, named_params};
 use zcash_client_sqlite::AccountUuid;
 
 use zcash_client_backend::data_api::{AccountBalance, WalletRead, wallet::ConfirmationsPolicy};
+use zcash_primitives::transaction::builder::default_tx_expiry_delta;
 use zcash_primitives::transaction::fees::zip317::{FeeRule, MINIMUM_FEE};
+use zcash_protocol::consensus::{BranchId, Network, Parameters as _, UPGRADES_IN_ORDER};
 
 use crate::{
     backing_store::Db,
     error::Error,
     interop::DbInit,
     sql_statements::{
-        GET_BIRTHDAY_HEIGHTS, GET_UNSPENT_NOTES, GET_UNSPENT_TRANSPARENT_BY_MINED_HEIGHT,
+        GET_BIRTHDAY_HEIGHTS, GET_UNSPENT_NOTES, get_unspent_transparent_by_mined_height_sql,
     },
 };
 
@@ -229,6 +231,7 @@ pub fn get_user_balances(
     if view_only {
         add_view_only_transparent_outputs(
             &config.data_file,
+            config.network.into(),
             account_uuid,
             marginal_fee,
             &mut balances,
@@ -245,14 +248,24 @@ pub fn get_user_balances(
 /// Unmined outputs count as incoming, and unmined dust also counts as `incoming_dust`.
 fn add_view_only_transparent_outputs(
     data_file: &str,
+    network: Network,
     account_uuid: &AccountUuid,
     marginal_fee: u64,
     balances: &mut UserBalances,
 ) -> Result<(), Error> {
     let conn = Connection::open(data_file)?;
-    let mut query = conn.prepare(GET_UNSPENT_TRANSPARENT_BY_MINED_HEIGHT)?;
+    // `scan_queue` ends are exclusive, so the maximum end is the target height the
+    // library passes to `spent_utxos_clause` (`chain_tip + 1`).
+    let target_height: u32 = conn.query_row(
+        "SELECT COALESCE(MAX(block_range_end), 1) FROM scan_queue",
+        [],
+        |row| row.get(0),
+    )?;
+    let sql = get_unspent_transparent_by_mined_height_sql(&expiry_delta_sql(&network));
+    let mut query = conn.prepare(&sql)?;
     let mut rows = query.query(named_params! {
         ":account_uuid": account_uuid.expose_uuid(),
+        ":target_height": target_height,
     })?;
     while let Some(row) = rows.next()? {
         let mined_height: Option<u32> = row.get(0)?;
@@ -262,6 +275,47 @@ fn add_view_only_transparent_outputs(
         note_transparent_output(balances, mined_height, value, marginal_fee);
     }
     Ok(())
+}
+
+/// SQL expression for the default expiry delta at `transactions.min_observed_height`.
+///
+/// This follows `zcash_client_sqlite`'s `default_tx_expiry_delta_sql`: the delta changes
+/// only when a network upgrade selects a different [`default_tx_expiry_delta`].
+fn expiry_delta_sql(network: &Network) -> String {
+    let mut activation_heights = UPGRADES_IN_ORDER
+        .iter()
+        .filter_map(|upgrade| network.activation_height(*upgrade))
+        .collect::<Vec<_>>();
+    activation_heights.sort();
+    activation_heights.dedup();
+
+    let mut current_delta = default_tx_expiry_delta(BranchId::Sprout);
+    let mut delta_changes = Vec::new();
+    for activation_height in activation_heights {
+        let delta = default_tx_expiry_delta(BranchId::for_height(network, activation_height));
+        if delta != current_delta {
+            delta_changes.push((activation_height, delta));
+            current_delta = delta;
+        }
+    }
+
+    if delta_changes.is_empty() {
+        return current_delta.to_string();
+    }
+
+    let arms = delta_changes
+        .iter()
+        .rev()
+        .map(|(activation_height, delta)| {
+            format!(
+                "WHEN stx.min_observed_height >= {} THEN {delta}",
+                u32::from(*activation_height)
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+    let base = default_tx_expiry_delta(BranchId::Sprout);
+    format!("(CASE {arms} ELSE {base} END)")
 }
 
 /// Adds one transparent output to the user-facing buckets.
@@ -385,5 +439,111 @@ mod tests {
         assert_eq!(balances.dust, 1_000);
         assert_eq!(balances.incoming, 4_000_500);
         assert_eq!(balances.incoming_dust, 500);
+    }
+
+    /// An unmined spend that has expired does not keep the transparent output out of the balance.
+    /// A mined spend, and an unexpired unmined spend, still do.
+    #[test]
+    fn view_only_transparent_balance_ignores_expired_spends() {
+        use zcash_client_backend::data_api::{
+            Account as _, AccountBirthday, AccountPurpose, WalletWrite,
+        };
+        use zcash_client_backend::keys::UnifiedSpendingKey;
+        use zcash_primitives::block::BlockHash;
+        use zcash_protocol::consensus::BlockHeight;
+
+        use super::Db;
+
+        let network = Network::TestNetwork;
+        let wallet_dir = testdir::testdir!();
+        let mut db = Db::init(wallet_dir.join("wallet.sqlite"), network).unwrap();
+        let birthday =
+            AccountBirthday::from_viewing_parts(BlockHeight::from_u32(1), BlockHash([0; 32]), None);
+        let ufvk = UnifiedSpendingKey::from_seed(&network, &[0x66; 32], zip32::AccountId::ZERO)
+            .unwrap()
+            .to_unified_full_viewing_key();
+        let account = db
+            .data
+            .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+            .unwrap();
+
+        let conn = rusqlite::Connection::open(&db.path).unwrap();
+        conn.execute("DELETE FROM scan_queue", []).unwrap();
+        conn.execute(
+            "INSERT INTO scan_queue (block_range_start, block_range_end, priority) VALUES (1, 100, 10)",
+            [],
+        )
+        .unwrap();
+        let account_row: i64 = conn
+            .query_row(
+                "SELECT id FROM accounts WHERE uuid = ?1",
+                [account.id().expose_uuid()],
+                |row| row.get(0),
+            )
+            .unwrap();
+        let (address_id, address): (i64, String) = conn
+            .query_row(
+                "SELECT id, address FROM addresses WHERE account_id = ?1 LIMIT 1",
+                [account_row],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+
+        let mut txid = [0u8; 32];
+        let mut insert_tx = |mined: Option<i64>, expiry: Option<i64>| {
+            txid[0] = txid[0].wrapping_add(1);
+            conn.query_row(
+                "INSERT INTO transactions (txid, mined_height, expiry_height, min_observed_height)
+                 VALUES (?1, ?2, ?3, 10) RETURNING id_tx",
+                (txid.to_vec(), mined, expiry),
+                |row| row.get(0),
+            )
+            .unwrap()
+        };
+        let insert_output = |tx_id: i64, index: i64, value: i64| {
+            conn.query_row(
+                "INSERT INTO transparent_received_outputs
+                    (transaction_id, output_index, account_id, address, script, value_zat, address_id)
+                 VALUES (?1, ?2, ?3, ?4, X'51', ?5, ?6)
+                 RETURNING id",
+                (tx_id, index, account_row, &address, value, address_id),
+                |row| row.get(0),
+            )
+            .unwrap()
+        };
+        let link_spend = |output_id: i64, spend_tx: i64| {
+            conn.execute(
+                "INSERT INTO transparent_received_output_spends
+                    (transparent_received_output_id, transaction_id) VALUES (?1, ?2)",
+                (output_id, spend_tx),
+            )
+            .unwrap();
+        };
+
+        let received = insert_tx(Some(10), None);
+        let expired_output = insert_output(received, 0, 25_000_000);
+        let active_output = insert_output(received, 1, 8_000_000);
+        let dust_output = insert_output(received, 2, 1_000);
+        let unmined = insert_tx(None, Some(200));
+        insert_output(unmined, 0, 4_000_000);
+
+        link_spend(expired_output, insert_tx(None, Some(40)));
+        link_spend(active_output, insert_tx(None, Some(150)));
+        let _ = dust_output;
+
+        drop(conn);
+        let mut balances = UserBalances::default();
+        add_view_only_transparent_outputs(
+            db.path.to_str().unwrap(),
+            network,
+            &account.id(),
+            10_000,
+            &mut balances,
+        )
+        .unwrap();
+        assert_eq!(balances.immature_income, 25_000_000);
+        assert_eq!(balances.dust, 1_000);
+        assert_eq!(balances.incoming, 4_000_000);
+        assert_eq!(balances.incoming_dust, 0);
     }
 }

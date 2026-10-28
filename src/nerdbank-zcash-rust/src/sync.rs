@@ -52,7 +52,7 @@ use zcash_protocol::{
 };
 
 use crate::{
-    backing_store::{Db, WalletRng},
+    backing_store::{Db, WalletRng, wallet_scan_lock},
     block_source::BlockCacheError,
     blockrange::BlockRange,
     error::Error,
@@ -323,21 +323,24 @@ async fn sync_scoped<P: AsRef<Path>>(
             // the first element of the vector of suggested ranges.
             match scan_ranges.first() {
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
-                    // A spending account imported during this loop must be noticed before the
-                    // next attempt. Otherwise a `CommitmentTreeRequired` result retries the same
-                    // `CompactChainState` download and never reaches the pass-level check.
-                    ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
-                    // Download and scan the blocks and check for scanning errors that indicate that the wallet's chain tip
-                    // is out of sync with blockchain history.
+                    // Hold the wallet scan lock from the tree-mode check through the commit.
+                    // A spending-key upgrade waits for this attempt, then records its rescan
+                    // against every block this attempt stored. The check also has to happen
+                    // before each retry: `CommitmentTreeRequired` stays inside this loop.
                     let _range = open_range(&state.timing, scan_range);
-                    let scan_result = download_and_scan_blocks(
-                        &mut client,
-                        Db::load(&data_file, state.network)?,
-                        &state,
-                        None,
-                        scan_range,
-                    )
-                    .await?;
+                    let scan_lock = wallet_scan_lock(data_file.as_ref());
+                    let scan_result = {
+                        let _guard = scan_lock.lock().await;
+                        ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
+                        download_and_scan_blocks(
+                            &mut client,
+                            Db::load(&data_file, state.network)?,
+                            &state,
+                            None,
+                            scan_range,
+                        )
+                        .await?
+                    };
                     drop(_range);
 
                     if scan_result.priorities_changed {
@@ -381,14 +384,21 @@ async fn sync_scoped<P: AsRef<Path>>(
         let mut caught_up = true;
         for scan_range in scan_ranges.into_iter() {
             let _range = open_range(&state.timing, &scan_range);
-            let scan_result = download_and_scan_blocks(
-                &mut client,
-                Db::load(&data_file, state.network)?,
-                &state,
-                Some(&status),
-                &scan_range,
-            )
-            .await?;
+            let scan_lock = wallet_scan_lock(data_file.as_ref());
+            let scan_result = {
+                let _guard = scan_lock.lock().await;
+                // Re-read tree maintenance under the same lock the upgrade takes, so this
+                // chunk cannot commit a view-only scan after the spending flag is stored.
+                ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
+                download_and_scan_blocks(
+                    &mut client,
+                    Db::load(&data_file, state.network)?,
+                    &state,
+                    Some(&status),
+                    &scan_range,
+                )
+                .await?
+            };
             if let Some(s) = scan_result.status {
                 status = s;
             }
