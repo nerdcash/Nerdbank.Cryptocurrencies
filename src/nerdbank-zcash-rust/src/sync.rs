@@ -323,24 +323,20 @@ async fn sync_scoped<P: AsRef<Path>>(
             // the first element of the vector of suggested ranges.
             match scan_ranges.first() {
                 Some(scan_range) if scan_range.priority() == ScanPriority::Verify => {
-                    // Hold the wallet scan lock from the tree-mode check through the commit.
-                    // A spending-key upgrade waits for this attempt, then records its rescan
-                    // against every block this attempt stored. The check also has to happen
-                    // before each retry: `CommitmentTreeRequired` stays inside this loop.
+                    // A spending account imported during this loop must be noticed before the
+                    // next attempt. Otherwise a `CommitmentTreeRequired` result retries the same
+                    // `CompactChainState` download and never reaches the pass-level check.
+                    // Each chunk takes the scan lock only around its own commit.
+                    ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
                     let _range = open_range(&state.timing, scan_range);
-                    let scan_lock = wallet_scan_lock(data_file.as_ref());
-                    let scan_result = {
-                        let _guard = scan_lock.lock().await;
-                        ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
-                        download_and_scan_blocks(
-                            &mut client,
-                            Db::load(&data_file, state.network)?,
-                            &state,
-                            None,
-                            scan_range,
-                        )
-                        .await?
-                    };
+                    let scan_result = download_and_scan_blocks(
+                        &mut client,
+                        Db::load(&data_file, state.network)?,
+                        &state,
+                        None,
+                        scan_range,
+                    )
+                    .await?;
                     drop(_range);
 
                     if scan_result.priorities_changed {
@@ -384,21 +380,14 @@ async fn sync_scoped<P: AsRef<Path>>(
         let mut caught_up = true;
         for scan_range in scan_ranges.into_iter() {
             let _range = open_range(&state.timing, &scan_range);
-            let scan_lock = wallet_scan_lock(data_file.as_ref());
-            let scan_result = {
-                let _guard = scan_lock.lock().await;
-                // Re-read tree maintenance under the same lock the upgrade takes, so this
-                // chunk cannot commit a view-only scan after the spending flag is stored.
-                ensure_tree_maintenance(&mut client, &mut db, &mut state).await?;
-                download_and_scan_blocks(
-                    &mut client,
-                    Db::load(&data_file, state.network)?,
-                    &state,
-                    Some(&status),
-                    &scan_range,
-                )
-                .await?
-            };
+            let scan_result = download_and_scan_blocks(
+                &mut client,
+                Db::load(&data_file, state.network)?,
+                &state,
+                Some(&status),
+                &scan_range,
+            )
+            .await?;
             if let Some(s) = scan_result.status {
                 status = s;
             }
@@ -1125,6 +1114,8 @@ async fn download_and_scan_blocks(
     let scanner_block_range = block_range.clone();
     let scanner = tokio::spawn(async move {
         let mut priorities_changed = false;
+        let mut mode_stale = false;
+        let scan_lock = wallet_scan_lock(&db.path)?;
         while let Some((chunk, prior)) = select! {
             result = receive.recv() => Ok(result),
             _ = state.cancellation_token.cancelled() => Err(Error::Canceled),
@@ -1134,11 +1125,28 @@ async fn download_and_scan_blocks(
                 scanner_block_range.priority(),
             );
 
+            // A spending-key upgrade can land while this range is still downloading.
+            // Only the commit is serialized with that upgrade. If this chunk was prepared
+            // for the other tree mode, leave it uncommitted and let the next pass fetch it
+            // again. Keep draining so the downloader is not stuck on a full channel.
+            if mode_stale {
+                continue;
+            }
+            let _guard = scan_lock.lock().await;
+            let maintains_trees = db.data.maintains_note_commitment_trees()?;
+            let downloaded_view_only = matches!(prior, PriorBlock::ViewOnly(_));
+            if maintains_trees == downloaded_view_only {
+                mode_stale = true;
+                priorities_changed = true;
+                priorities_changed_token.cancel();
+                info!(
+                    "Tree maintenance changed before committing [{}); the chunk will be fetched again.",
+                    scan_range
+                );
+                continue;
+            }
             info!("Scanning {} blocks [{}).", chunk.len(), scan_range);
-
-            // Insert the blocks into the block cache.
             db.blocks.insert_range(chunk);
-
             if scan_blocks(&state.network, &mut db, &scan_range, &prior, &state.timing)?
                 && !priorities_changed
             {
@@ -1149,6 +1157,7 @@ async fn download_and_scan_blocks(
                 priorities_changed = true;
                 info!("Resetting...");
             }
+            drop(_guard);
 
             // Now that they've been scanned, we don't need them any more.
             db.blocks.remove_range(scan_range.block_range());

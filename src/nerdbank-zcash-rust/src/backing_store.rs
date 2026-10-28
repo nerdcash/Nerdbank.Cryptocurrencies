@@ -33,19 +33,23 @@ use zip32::DiversifierIndex;
 
 use crate::{block_source::BlockCache, error::Error, sync_timing::SyncTiming};
 
-/// One mutex per wallet file. Sync holds it from the tree-mode check through the scan
-/// commit. [`Db::note_spending_key`] holds it while it records the spending flag and the
-/// historic rescan, so an in-flight view-only commit cannot land in the middle.
+/// One mutex per canonical wallet path. A scan holds it only while committing one chunk.
+/// [`Db::note_spending_key`] holds it while it records the spending flag and the historic
+/// rescan, so that commit cannot land in the middle of the upgrade.
 static WALLET_SCAN_LOCKS: LazyLock<StdMutex<HashMap<PathBuf, Arc<Mutex<()>>>>> =
     LazyLock::new(|| StdMutex::new(HashMap::new()));
 
-/// Lock that serializes chain scans of `path` with a spending-key upgrade.
-pub(crate) fn wallet_scan_lock(path: &Path) -> Arc<Mutex<()>> {
+/// Lock that serializes one scan commit of `path` with a spending-key upgrade.
+///
+/// The key is the canonical path, so a relative path, an absolute path, and a symlink
+/// to the same wallet file share one mutex. Fails if `path` cannot be resolved.
+pub(crate) fn wallet_scan_lock(path: &Path) -> Result<Arc<Mutex<()>>, Error> {
+    let canonical = path.canonicalize()?;
     let mut locks = WALLET_SCAN_LOCKS.lock().expect("wallet scan lock map");
-    locks
-        .entry(path.to_path_buf())
+    Ok(locks
+        .entry(canonical)
         .or_insert_with(|| Arc::new(Mutex::new(())))
-        .clone()
+        .clone())
 }
 
 /// Operating-system RNG stored on [`WalletDb`].
@@ -189,7 +193,7 @@ impl Db {
     ///
     /// An incoming-viewing-key account has no full viewing key, so it cannot be marked spending.
     pub(crate) fn note_spending_key(&mut self, account_id: AccountUuid) -> Result<bool, Error> {
-        let scan_lock = wallet_scan_lock(&self.path);
+        let scan_lock = wallet_scan_lock(&self.path)?;
         let _scan = scan_lock.blocking_lock();
         let mut conn = Connection::open(&self.path)?;
         let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -456,6 +460,7 @@ fn get_db_internal<P: AsRef<Path>>(
 mod tests {
     use super::*;
     use rusqlite::Connection;
+    use std::sync::Arc;
     use testdir::testdir;
     use zcash_client_backend::data_api::{Account as _, WalletRead};
 
@@ -736,5 +741,17 @@ mod tests {
         let still_view = ivk_db.data.get_account(ivk.id()).unwrap().unwrap();
         assert!(matches!(still_view.purpose(), AccountPurpose::ViewOnly));
         assert!(!ivk_db.data.maintains_note_commitment_trees().unwrap());
+    }
+
+    #[test]
+    fn wallet_scan_lock_follows_symlinks() {
+        let wallet_dir = testdir!();
+        let real = wallet_dir.join("wallet.sqlite");
+        Db::init(&real, Network::TestNetwork).unwrap();
+        let link = wallet_dir.join("link.sqlite");
+        std::os::unix::fs::symlink(&real, &link).unwrap();
+        let via_real = wallet_scan_lock(&real).unwrap();
+        let via_link = wallet_scan_lock(&link).unwrap();
+        assert!(Arc::ptr_eq(&via_real, &via_link));
     }
 }

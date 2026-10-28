@@ -107,6 +107,9 @@ public partial class LightWalletClient : IDisposable
 			// view-only scan and never builds note commitment trees for these blocks.
 			if (account.HDDerivation is not null || account.Spending is not null)
 			{
+				// NoteSpendingKey waits out the scan chunk that is committing. That wait
+				// belongs on the thread pool, not on the caller that has not awaited yet.
+				await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 				this.PersistSpendingCapability(id);
 			}
 
