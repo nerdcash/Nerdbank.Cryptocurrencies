@@ -140,7 +140,7 @@ uuid = "1.1"
 static_assertions = "1"
 
 # Tests and benchmarks
-ambassador = "0.4"
+ambassador = "0.5"
 assert_matches = "1.5"
 criterion = "0.5"
 proptest = "1.12"
