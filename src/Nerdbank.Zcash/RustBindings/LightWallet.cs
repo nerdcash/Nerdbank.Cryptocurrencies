@@ -5,9 +5,6 @@
 
 #nullable enable
 
-
-
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -632,7 +629,6 @@ class BigEndianStream
 
 // Contains loading, initialization code,
 // and the FFI Function declarations in a com.sun.jna.Library.
-
 
 // This is an implementation detail that will be called internally by the public API.
 static class _UniFFILib
@@ -1495,9 +1491,6 @@ static class _UniFFILib
 
 #pragma warning disable 8625
 
-
-
-
 class FfiConverterUInt32 : FfiConverter<uint, uint>
 {
 	public static FfiConverterUInt32 INSTANCE = new FfiConverterUInt32();
@@ -2245,7 +2238,6 @@ internal class LightWalletException : UniffiException
 		: base(@Message) { }
 
 	// Each variant is a nested class
-
 
 	public class InvalidArgument : LightWalletException
 	{

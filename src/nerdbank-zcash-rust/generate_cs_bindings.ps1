@@ -35,10 +35,9 @@ if ($LASTEXITCODE -ne 0) {
     throw "uniffi-bindgen-cs failed with exit code $LASTEXITCODE."
 }
 
-# The local tool command is `dotnet-csharpier` (see .config/dotnet-tools.json).
-# `dotnet csharpier` does not resolve that command on every SDK, so formatting is skipped
-# and the bindings diff fails. `dotnet tool run` uses the manifest command directly.
-dotnet tool run dotnet-csharpier -- --include-generated $outDir
+# The local tool command is `csharpier` (see .config/dotnet-tools.json).
+# `dotnet tool run` uses the manifest command directly, which resolves on every SDK.
+dotnet tool run csharpier format --include-generated $outDir
 if ($LASTEXITCODE -ne 0) {
     throw "csharpier failed with exit code $LASTEXITCODE."
 }
