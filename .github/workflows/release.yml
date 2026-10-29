@@ -124,7 +124,19 @@ jobs:
         user: ${{ secrets.NUGET_USER }}
 
     - name: 🚀 Push NuGet packages
-      run: dotnet nuget push ${{ runner.temp }}/deployables/NuGet/*.nupkg --source https://api.nuget.org/v3/index.json -k '${{ steps.nuget-login.outputs.NUGET_API_KEY }}'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $packages = @(Get-ChildItem -Path (Join-Path '${{ runner.temp }}' 'deployables') -Filter *.nupkg -File -Recurse)
+        if ($packages.Count -eq 0) {
+          Get-ChildItem -Path (Join-Path '${{ runner.temp }}' 'deployables') -Recurse | Select-Object -ExpandProperty FullName
+          throw 'No NuGet packages found to push.'
+        }
+        foreach ($package in $packages) {
+          Write-Host "Pushing $($package.FullName)"
+          dotnet nuget push $package.FullName --source https://api.nuget.org/v3/index.json -k '${{ steps.nuget-login.outputs.NUGET_API_KEY }}' --skip-duplicate
+          if ($LASTEXITCODE -ne 0) { throw "Failed to push $($package.Name)." }
+        }
 
     - name: 💽 Upload artifacts to release
       shell: pwsh
