@@ -5,7 +5,6 @@
     <IsAotCompatible>true</IsAotCompatible>
     <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
     <Description>A .NET library for Zcash, capable of creating accounts, deriving addresses, interacting with lightwallet servers, syncing, and sending transactions.</Description>
-    <PackageValidationBaselineVersion>0.5.29</PackageValidationBaselineVersion>
   </PropertyGroup>
   <ItemGroup>
     <Protobuf Include="Protos\*.proto" GrpcServices="Client" Access="internal" />

@@ -4,7 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <IsAotCompatible>true</IsAotCompatible>
     <Description>A .NET library for cryptocurrencies, capable of several commonly-used algorithms.</Description>
-    <PackageValidationBaselineVersion>0.5.29</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
