@@ -994,11 +994,21 @@ static class _UniFFILib
 	);
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern sbyte uniffi_nerdbank_zcash_rust_fn_func_skips_sandblast_trial_decryption(
+		sbyte @enabled,
+		RustBuffer @network,
+		uint @blockHeight,
+		ulong @shieldedOutputs,
+		ref UniffiRustCallStatus _uniffi_out_err
+	);
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_sync(
 		RustBuffer @config,
 		RustBuffer @uri,
 		RustBuffer @progress,
 		sbyte @continually,
+		sbyte @skipSandblastTrialDecryption,
 		RustBuffer @cancellation,
 		ref UniffiRustCallStatus _uniffi_out_err
 	);
@@ -1245,6 +1255,9 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_simulate_send();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
+	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_skips_sandblast_trial_decryption();
+
+	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_sync();
 
 	[DllImport("nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
@@ -1453,11 +1466,20 @@ static class _UniFFILib
 			}
 		}
 		{
-			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_sync();
-			if (checksum != 57942)
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_skips_sandblast_trial_decryption();
+			if (checksum != 55328)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `57942`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_skips_sandblast_trial_decryption` checksum `55328`, library returned `{checksum}`"
+				);
+			}
+		}
+		{
+			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_sync();
+			if (checksum != 8484)
+			{
+				throw new UniffiContractChecksumException(
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `8484`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -3667,8 +3689,33 @@ internal static class LightWalletMethods
 	}
 
 	/// <summary>
+	/// Returns whether a sync that passes `enabled` as `skip_sandblast_trial_decryption` would skip
+	/// trial decryption of a transaction at `block_height` with `shielded_outputs` shielded outputs.
+	/// `enabled` false never skips. `enabled` true skips only inside the 2022 mainnet sandblast range.
+	/// </summary>
+	public static bool SkipsSandblastTrialDecryption(bool @enabled, ChainType @network, uint @blockHeight, ulong @shieldedOutputs)
+	{
+		return FfiConverterBoolean.INSTANCE.Lift(
+			_UniffiHelpers.RustCall(
+				(ref UniffiRustCallStatus _status) =>
+					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_skips_sandblast_trial_decryption(
+						FfiConverterBoolean.INSTANCE.Lower(@enabled),
+						FfiConverterTypeChainType.INSTANCE.Lower(@network),
+						FfiConverterUInt32.INSTANCE.Lower(@blockHeight),
+						FfiConverterUInt64.INSTANCE.Lower(@shieldedOutputs),
+						ref _status
+					)
+			)
+		);
+	}
+
+	/// <summary>
 	/// Downloads blocks from the blockchain, scans them for transactions, and updates the database.
 	/// If `continually` is `true`, this function will never exit unless cancellation is signaled.
+	/// When `skip_sandblast_trial_decryption` is `true`, trial decryption is skipped for transactions
+	/// with more than 50 shielded outputs, and only on mainnet inside the 2022 sandblast range
+	/// (heights 1710000 through 2050000, inclusive). Outside that range, and on every other network,
+	/// every transaction is still trial-decrypted. `false` leaves the filter off.
 	/// </summary>
 	/// <exception cref="LightWalletException"></exception>
 	public static SyncUpdateData Sync(
@@ -3676,6 +3723,7 @@ internal static class LightWalletMethods
 		string @uri,
 		SyncUpdate? @progress,
 		bool @continually,
+		bool @skipSandblastTrialDecryption,
 		CancellationSource? @cancellation
 	)
 	{
@@ -3688,6 +3736,7 @@ internal static class LightWalletMethods
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterOptionalTypeSyncUpdate.INSTANCE.Lower(@progress),
 						FfiConverterBoolean.INSTANCE.Lower(@continually),
+						FfiConverterBoolean.INSTANCE.Lower(@skipSandblastTrialDecryption),
 						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
 					)

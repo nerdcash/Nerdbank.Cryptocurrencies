@@ -167,6 +167,7 @@ mod tests {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await

@@ -498,6 +498,7 @@ pub fn sync(
     uri: String,
     progress: Option<Box<dyn SyncUpdate>>,
     continually: bool,
+    skip_sandblast_trial_decryption: bool,
     cancellation: Option<Box<dyn CancellationSource>>,
 ) -> Result<SyncUpdateData, LightWalletError> {
     use crate::sync::sync;
@@ -510,10 +511,29 @@ pub fn sync(
             progress,
             ConfirmationsPolicy::default(),
             continually,
+            skip_sandblast_trial_decryption,
             cancellation_token.0.clone(),
         )
         .await?)
     })
+}
+
+/// Whether trial decryption would be skipped for this transaction.
+///
+/// `enabled` is the opt-in passed to [`sync`]. The filter is off when it is false.
+/// When it is true, skipping applies only inside the 2022 mainnet sandblast range.
+pub fn skips_sandblast_trial_decryption(
+    enabled: bool,
+    network: ChainType,
+    block_height: u32,
+    shielded_outputs: u64,
+) -> bool {
+    crate::sync::skips_sandblast_trial_decryption(
+        enabled,
+        &Network::from(network),
+        block_height,
+        shielded_outputs,
+    )
 }
 
 pub fn get_transactions(

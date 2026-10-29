@@ -277,10 +277,63 @@ public partial class LightWalletClient : IDisposable
 	/// A task that never completes successfully when <paramref name="continually"/> is <see langword="true" />,
 	/// or completes with the last <see cref="SyncProgress"/> after the blockchain has been fully downloaded as of when the call was made.
 	/// </returns>
+	/// <remarks>
+	/// This overload leaves the sandblast trial-decryption filter off.
+	/// Use <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyDictionary{ZcashAccount, IReadOnlyCollection{Transaction}}}?, bool, bool, CancellationToken)"/>
+	/// to skip trial decryption of transactions with many shielded outputs inside the 2022 mainnet sandblast range.
+	/// </remarks>
+	public Task<SyncProgress> DownloadTransactionsAsync(
+		IProgress<SyncProgress>? statusUpdates,
+		IProgress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>? discoveredTransactions,
+		bool continually,
+		CancellationToken cancellationToken)
+		=> this.DownloadTransactionsAsync(
+			statusUpdates,
+			discoveredTransactions,
+			continually,
+			skipSandblastTrialDecryption: false,
+			cancellationToken);
+
+	/// <summary>
+	/// Scans the blockchain for new transactions related to the accounts known to this wallet.
+	/// </summary>
+	/// <param name="statusUpdates">
+	/// An optional receiver of updates that report on progress toward the tip of the blockchain.
+	/// Because scanning the blockchain may take a <em>very</em> long time, reporting progress to the user is <em>highly</em> recommended.
+	/// </param>
+	/// <param name="discoveredTransactions">
+	/// Receives the transactions that are discovered during the scan.
+	/// </param>
+	/// <param name="continually">
+	/// A value indicating whether to keep scanning the blockchain,
+	/// watching for mempool transactions and new blocks as they come.
+	/// </param>
+	/// <param name="skipSandblastTrialDecryption">
+	/// <see langword="true"/> to skip trial decryption of transactions with many shielded outputs,
+	/// and only on mainnet inside the 2022 sandblast range (block heights 1,710,000 through 2,050,000, inclusive).
+	/// Shielded outputs are Sapling outputs, Orchard actions, and Ironwood actions.
+	/// Transparent outputs are not counted.
+	/// The scanner skips a transaction only when that shielded-output count is greater than 50.
+	/// Outside that height range, and on every other network, every transaction is still trial-decrypted,
+	/// including a later payment such as a payroll that legitimately has many outputs.
+	/// A note inside a skipped transaction is not discovered by this scan.
+	/// The default is <see langword="false"/>.
+	/// </param>
+	/// <param name="cancellationToken">
+	/// A cancellation token.
+	/// There may be a substantial delay between cancellation and when the blockchain scan is suspended in order to conclude work on the current 'batch'.
+	/// Cancellation does <em>not</em> result in an <see cref="OperationCanceledException"/> being thrown,
+	/// but rather concludes the operation early with an indication of the last block that was scanned.
+	/// </param>
+	/// <returns>
+	/// A task that never completes successfully when <paramref name="continually"/> is <see langword="true" />,
+	/// or completes with the last <see cref="SyncProgress"/> after the blockchain has been fully downloaded as of when the call was made.
+	/// </returns>
 	public async Task<SyncProgress> DownloadTransactionsAsync(
 		IProgress<SyncProgress>? statusUpdates,
 		IProgress<IReadOnlyDictionary<ZcashAccount, IReadOnlyCollection<Transaction>>>? discoveredTransactions,
 		bool continually,
+		bool skipSandblastTrialDecryption,
 		CancellationToken cancellationToken)
 	{
 		await TaskScheduler.Default.SwitchTo(true);
@@ -290,6 +343,7 @@ public partial class LightWalletClient : IDisposable
 				this.serverUrl.AbsoluteUri,
 				new SyncUpdateSink(this, statusUpdates, discoveredTransactions),
 				continually,
+				skipSandblastTrialDecryption,
 				cancellation),
 			cancellationToken);
 
@@ -532,6 +586,22 @@ public partial class LightWalletClient : IDisposable
 	public void Dispose()
 	{
 	}
+
+	/// <summary>
+	/// Asks the native scanner whether trial decryption would be skipped for one transaction.
+	/// </summary>
+	/// <param name="skipSandblastTrialDecryption">
+	/// The same flag <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyDictionary{ZcashAccount, IReadOnlyCollection{Transaction}}}?, bool, bool, CancellationToken)"/> passes to the native sync.
+	/// <see langword="false"/> is the default and never skips.
+	/// </param>
+	/// <param name="network">The network of the block.</param>
+	/// <param name="blockHeight">The block height.</param>
+	/// <param name="shieldedOutputs">
+	/// The number of shielded outputs (Sapling outputs, Orchard actions, and Ironwood actions).
+	/// </param>
+	/// <returns><see langword="true"/> when the native filter would skip trial decryption.</returns>
+	internal static bool SkipsSandblastTrialDecryption(bool skipSandblastTrialDecryption, ZcashNetwork network, uint blockHeight, ulong shieldedOutputs)
+		=> LightWalletMethods.SkipsSandblastTrialDecryption(skipSandblastTrialDecryption, ToChainType(network), blockHeight, shieldedOutputs);
 
 	/// <summary>
 	/// Converts our own <see cref="ZcashNetwork"/> enum to the uniffi's <see cref="ChainType"/> enum.
@@ -779,7 +849,7 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync"/> operation.
+	/// The data in a periodic status report during a <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyDictionary{ZcashAccount, IReadOnlyCollection{Transaction}}}?, bool, CancellationToken)"/> operation.
 	/// </summary>
 	/// <param name="LastFullyScannedBlock">The last block that has been fully scanned.</param>
 	/// <param name="TipHeight">The length of the blockchain.</param>

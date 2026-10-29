@@ -30,7 +30,9 @@ use zcash_client_backend::{
     data_api::{
         TransactionDataRequest, TransactionStatus, TransparentAddressSyncInfo,
         WalletCommitmentTrees, WalletRead, WalletWrite,
-        chain::{ChainState, CommitmentTreeRoot, CompactChainState, scan_cached_blocks},
+        chain::{
+            ChainState, CommitmentTreeRoot, CompactChainState, scan_cached_blocks_with_options,
+        },
         scanning::{ScanPriority, ScanRange},
         wallet::{ConfirmationsPolicy, decrypt_and_store_transaction},
     },
@@ -42,6 +44,7 @@ use zcash_client_backend::{
             compact_tx_streamer_client::CompactTxStreamerClient,
         },
     },
+    scanning::{ScanOptions, SpamFilter},
     wallet::WalletTransparentOutput,
 };
 use zcash_protocol::{
@@ -96,6 +99,7 @@ pub async fn sync<P: AsRef<Path>>(
     progress: Option<Box<dyn SyncUpdate>>,
     confirmations_policy: ConfirmationsPolicy,
     continually: bool,
+    skip_sandblast_trial_decryption: bool,
     cancellation_token: CancellationToken,
 ) -> Result<SyncUpdateData, Error> {
     let timing = SyncTiming::from_env();
@@ -109,6 +113,7 @@ pub async fn sync<P: AsRef<Path>>(
                 progress,
                 confirmations_policy,
                 continually,
+                skip_sandblast_trial_decryption,
                 cancellation_token,
             ),
         )
@@ -121,6 +126,7 @@ async fn sync_scoped<P: AsRef<Path>>(
     progress: Option<Box<dyn SyncUpdate>>,
     confirmations_policy: ConfirmationsPolicy,
     continually: bool,
+    skip_sandblast_trial_decryption: bool,
     cancellation_token: CancellationToken,
 ) -> Result<SyncUpdateData, Error> {
     let mut client = get_client(uri.clone()).await?;
@@ -148,6 +154,7 @@ async fn sync_scoped<P: AsRef<Path>>(
         progress: Arc::new(progress),
         timing: SyncTiming::current(),
         view_only,
+        skip_sandblast_trial_decryption,
     };
 
     // 1) Download note commitment tree data from lightwalletd
@@ -1057,6 +1064,8 @@ struct SyncState {
     timing: SyncTiming,
     /// `true` when this wallet scans without note commitment trees.
     view_only: bool,
+    /// When set, skip trial decryption of high-output transactions in the 2022 mainnet sandblast range.
+    skip_sandblast_trial_decryption: bool,
 }
 
 /// Prior-block continuity passed from the downloader to `scan_cached_blocks`.
@@ -1147,8 +1156,14 @@ async fn download_and_scan_blocks(
             }
             info!("Scanning {} blocks [{}).", chunk.len(), scan_range);
             db.blocks.insert_range(chunk);
-            if scan_blocks(&state.network, &mut db, &scan_range, &prior, &state.timing)?
-                && !priorities_changed
+            if scan_blocks(
+                &state.network,
+                &mut db,
+                &scan_range,
+                &prior,
+                &state.timing,
+                state.skip_sandblast_trial_decryption,
+            )? && !priorities_changed
             {
                 // Notify the downloader to break out early because we'll be getting a new range request.
                 // But we don't abort here. Presumably the original scan range is still interesting
@@ -1453,6 +1468,39 @@ async fn chain_state_for_blocks(
     fetch_tree_state(client, base_height, timing).await
 }
 
+/// Scan options for one sync.
+///
+/// The sandblast filter is off unless `skip_sandblast_trial_decryption` is set. When it is
+/// set, trial decryption is skipped only for transactions with more shielded outputs than
+/// [`SpamFilter`]'s default threshold, and only inside the 2022 mainnet sandblast range.
+pub(crate) fn scan_options(skip_sandblast_trial_decryption: bool) -> ScanOptions {
+    if skip_sandblast_trial_decryption {
+        ScanOptions::default().spam_filter(SpamFilter::default())
+    } else {
+        ScanOptions::default()
+    }
+}
+
+/// Whether trial decryption of this transaction would be skipped.
+///
+/// `enabled` false never skips. `enabled` true skips only inside the 2022 mainnet sandblast
+/// range, and only when `shielded_outputs` is above the default [`SpamFilter`] threshold.
+pub(crate) fn skips_sandblast_trial_decryption(
+    enabled: bool,
+    network: &Network,
+    block_height: u32,
+    shielded_outputs: u64,
+) -> bool {
+    let Some(filter) = scan_options(enabled).spam_filter else {
+        return false;
+    };
+    filter.skips_trial_decryption(
+        network,
+        BlockHeight::from(block_height),
+        usize::try_from(shielded_outputs).unwrap_or(usize::MAX),
+    )
+}
+
 /// Scans the given block range and checks for scanning errors that indicate the wallet's
 /// chain tip is out of sync with blockchain history.
 ///
@@ -1463,23 +1511,27 @@ fn scan_blocks(
     scan_range: &ScanRange,
     prior: &PriorBlock,
     timing: &SyncTiming,
+    skip_sandblast_trial_decryption: bool,
 ) -> Result<bool, Error> {
+    let options = scan_options(skip_sandblast_trial_decryption);
     let scan_result = timing.measure_scan(|| match prior {
-        PriorBlock::Spending(chain_state) => scan_cached_blocks(
+        PriorBlock::Spending(chain_state) => scan_cached_blocks_with_options(
             network,
             &db.blocks,
             &mut db.data,
             scan_range.block_range().start,
             chain_state,
             scan_range.len(),
+            options,
         ),
-        PriorBlock::ViewOnly(chain_state) => scan_cached_blocks(
+        PriorBlock::ViewOnly(chain_state) => scan_cached_blocks_with_options(
             network,
             &db.blocks,
             &mut db.data,
             scan_range.block_range().start,
             chain_state,
             scan_range.len(),
+            options,
         ),
     });
 
@@ -1893,6 +1945,66 @@ mod tests {
 
     use super::*;
 
+    /// The sandblast filter stays off unless the sync option is set, and when it is set it
+    /// skips trial decryption only inside the 2022 mainnet sandblast range.
+    #[test]
+    fn scan_options_sandblast_filter_is_opt_in_and_limited_to_the_sandblast_range() {
+        use zcash_client_backend::scanning::{
+            MAINNET_SANDBLAST_END_HEIGHT, MAINNET_SANDBLAST_START_HEIGHT,
+        };
+        use zcash_protocol::consensus::{BlockHeight, Network};
+
+        assert!(scan_options(false).spam_filter.is_none());
+
+        let filter = scan_options(true)
+            .spam_filter
+            .expect("opt-in enables the sandblast filter");
+        let inside = BlockHeight::from(MAINNET_SANDBLAST_START_HEIGHT + 100_000);
+        assert!(filter.skips_trial_decryption(&Network::MainNetwork, inside, 51));
+        assert!(!filter.skips_trial_decryption(&Network::MainNetwork, inside, 50));
+        assert!(!filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_START_HEIGHT - 1),
+            51,
+        ));
+        assert!(filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_START_HEIGHT),
+            51,
+        ));
+        assert!(filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_END_HEIGHT),
+            51,
+        ));
+        assert!(!filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_END_HEIGHT + 1),
+            51,
+        ));
+        assert!(!filter.skips_trial_decryption(&Network::TestNetwork, inside, 10_000));
+
+        let inside_height = u32::from(inside);
+        assert!(!skips_sandblast_trial_decryption(
+            false,
+            &Network::MainNetwork,
+            inside_height,
+            51,
+        ));
+        assert!(skips_sandblast_trial_decryption(
+            true,
+            &Network::MainNetwork,
+            inside_height,
+            51,
+        ));
+        assert!(!skips_sandblast_trial_decryption(
+            true,
+            &Network::TestNetwork,
+            inside_height,
+            10_000,
+        ));
+    }
+
     /// Samples compact-block shielded density. Ignored so CI does not download chain data.
     ///
     /// ```bash
@@ -2080,6 +2192,7 @@ mod tests {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await
@@ -2088,7 +2201,8 @@ mod tests {
         let totals = totals.lock().unwrap();
         let put_blocks = totals.get("put_blocks").copied().unwrap_or_default();
         let scan = totals
-            .get("scan_cached_blocks")
+            .get("scan_cached_blocks_with_options")
+            .or_else(|| totals.get("scan_cached_blocks"))
             .copied()
             .unwrap_or_default();
         let scan_without_writes = scan.saturating_sub(put_blocks);
@@ -2142,6 +2256,7 @@ mod tests {
                 metadata.name(),
                 "put_blocks"
                     | "scan_cached_blocks"
+                    | "scan_cached_blocks_with_options"
                     | "put_blocks_rows"
                     | "put_blocks_build_subtrees"
                     | "put_blocks_update_trees"
@@ -2337,6 +2452,7 @@ mod tests {
             &setup.data_file,
             None,
             ConfirmationsPolicy::default(),
+            false,
             false,
             CancellationToken::new(),
         )
@@ -2611,6 +2727,7 @@ mod tests {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await
@@ -2691,6 +2808,7 @@ mod tests {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await
@@ -2725,6 +2843,7 @@ mod tests {
             &spend_file,
             None,
             ConfirmationsPolicy::default(),
+            false,
             false,
             CancellationToken::new(),
         )

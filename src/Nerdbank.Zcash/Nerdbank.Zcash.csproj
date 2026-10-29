@@ -11,6 +11,9 @@
     <Protobuf Include="Protos\*.proto" GrpcServices="Client" Access="internal" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Nerdbank.Zcash.Tests, PublicKey=0024000004800000140100000602000000240000525341310008000001000100611c99f86e3ef3e962a75bd98e8c72a939e789afc4df0f5c52d924ae3dc934e0c8aae5c3666558266f158eb4b5ccbe7653339bc228561d880baa47011014ddc9707318ebf04d889b01e484dcd22d9b743fe0df0d783c5b2d685781dd950b33cccae276533b09601912037c824fc21d6708e05e0db209b751428004e7c7c0b4d90b80e555ea7de9e6e445d49ca905afd3989a3384c1c8c1a4a63c4f441cbaf4a1402ba92e0fb8507e06bc82c1a89d21e834ad7116edaba67105cdbb83704fed1ad021e30ad90c9be760de60d2399b00c2c96a9a3aa8332335103d7358fa99342f426ee0885980c08ae7f38fbc2945997d2a9a692b44215fc02947f18e4ede5bc9" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Workaround gRPC generating a totally empty source file: https://github.com/protocolbuffers/protobuf/issues/7880#issuecomment-1722294889 -->
     <EditorConfigFiles Include="..\..\obj\.editorconfig" Link="obj\.editorconfig" />
   </ItemGroup>
