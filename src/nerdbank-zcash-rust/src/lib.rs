@@ -34,5 +34,5 @@ use interop::{
     disconnect_server, get_accounts, get_birthday_height, get_birthday_heights, get_block_height,
     get_incoming_payments, get_sync_height, get_transactions, get_unshielded_utxos,
     get_user_balances, import_account_ufvk, import_account_uivk, init, note_spending_key, send,
-    shield, simulate_send, skips_sandblast_trial_decryption, sync,
+    shield, simulate_send, sync,
 };

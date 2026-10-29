@@ -588,22 +588,6 @@ public partial class LightWalletClient : IDisposable
 	}
 
 	/// <summary>
-	/// Asks the native scanner whether trial decryption would be skipped for one transaction.
-	/// </summary>
-	/// <param name="skipSandblastTrialDecryption">
-	/// The same flag <see cref="DownloadTransactionsAsync(IProgress{SyncProgress}?, IProgress{IReadOnlyDictionary{ZcashAccount, IReadOnlyCollection{Transaction}}}?, bool, bool, CancellationToken)"/> passes to the native sync.
-	/// <see langword="false"/> is the default and never skips.
-	/// </param>
-	/// <param name="network">The network of the block.</param>
-	/// <param name="blockHeight">The block height.</param>
-	/// <param name="shieldedOutputs">
-	/// The number of shielded outputs (Sapling outputs, Orchard actions, and Ironwood actions).
-	/// </param>
-	/// <returns><see langword="true"/> when the native filter would skip trial decryption.</returns>
-	internal static bool SkipsSandblastTrialDecryption(bool skipSandblastTrialDecryption, ZcashNetwork network, uint blockHeight, ulong shieldedOutputs)
-		=> LightWalletMethods.SkipsSandblastTrialDecryption(skipSandblastTrialDecryption, ToChainType(network), blockHeight, shieldedOutputs);
-
-	/// <summary>
 	/// Converts our own <see cref="ZcashNetwork"/> enum to the uniffi's <see cref="ChainType"/> enum.
 	/// </summary>
 	/// <param name="network">The network to convert.</param>

@@ -994,15 +994,6 @@ static class _UniFFILib
 	);
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
-	public static extern sbyte uniffi_nerdbank_zcash_rust_fn_func_skips_sandblast_trial_decryption(
-		sbyte @enabled,
-		RustBuffer @network,
-		uint @blockHeight,
-		ulong @shieldedOutputs,
-		ref UniffiRustCallStatus _uniffi_out_err
-	);
-
-	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern RustBuffer uniffi_nerdbank_zcash_rust_fn_func_sync(
 		RustBuffer @config,
 		RustBuffer @uri,
@@ -1255,9 +1246,6 @@ static class _UniFFILib
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_simulate_send();
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
-	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_skips_sandblast_trial_decryption();
-
-	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
 	public static extern ushort uniffi_nerdbank_zcash_rust_checksum_func_sync();
 
 	[DllImport("@rpath/nerdbank_zcash_rust.framework/nerdbank_zcash_rust", CallingConvention = CallingConvention.Cdecl)]
@@ -1462,15 +1450,6 @@ static class _UniFFILib
 			{
 				throw new UniffiContractChecksumException(
 					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_simulate_send` checksum `46308`, library returned `{checksum}`"
-				);
-			}
-		}
-		{
-			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_skips_sandblast_trial_decryption();
-			if (checksum != 55328)
-			{
-				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_skips_sandblast_trial_decryption` checksum `55328`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -3682,27 +3661,6 @@ internal static class LightWalletMethods
 						FfiConverterTypeDbInit.INSTANCE.Lower(@config),
 						FfiConverterString.INSTANCE.Lower(@ufvk),
 						FfiConverterSequenceTypeTransactionSendDetail.INSTANCE.Lower(@sendDetails),
-						ref _status
-					)
-			)
-		);
-	}
-
-	/// <summary>
-	/// Returns whether a sync that passes `enabled` as `skip_sandblast_trial_decryption` would skip
-	/// trial decryption of a transaction at `block_height` with `shielded_outputs` shielded outputs.
-	/// `enabled` false never skips. `enabled` true skips only inside the 2022 mainnet sandblast range.
-	/// </summary>
-	public static bool SkipsSandblastTrialDecryption(bool @enabled, ChainType @network, uint @blockHeight, ulong @shieldedOutputs)
-	{
-		return FfiConverterBoolean.INSTANCE.Lift(
-			_UniffiHelpers.RustCall(
-				(ref UniffiRustCallStatus _status) =>
-					_UniFFILib.uniffi_nerdbank_zcash_rust_fn_func_skips_sandblast_trial_decryption(
-						FfiConverterBoolean.INSTANCE.Lower(@enabled),
-						FfiConverterTypeChainType.INSTANCE.Lower(@network),
-						FfiConverterUInt32.INSTANCE.Lower(@blockHeight),
-						FfiConverterUInt64.INSTANCE.Lower(@shieldedOutputs),
 						ref _status
 					)
 			)

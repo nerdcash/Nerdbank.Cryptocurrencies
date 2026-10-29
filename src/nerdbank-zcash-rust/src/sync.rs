@@ -1481,26 +1481,6 @@ pub(crate) fn scan_options(skip_sandblast_trial_decryption: bool) -> ScanOptions
     }
 }
 
-/// Whether trial decryption of this transaction would be skipped.
-///
-/// `enabled` false never skips. `enabled` true skips only inside the 2022 mainnet sandblast
-/// range, and only when `shielded_outputs` is above the default [`SpamFilter`] threshold.
-pub(crate) fn skips_sandblast_trial_decryption(
-    enabled: bool,
-    network: &Network,
-    block_height: u32,
-    shielded_outputs: u64,
-) -> bool {
-    let Some(filter) = scan_options(enabled).spam_filter else {
-        return false;
-    };
-    filter.skips_trial_decryption(
-        network,
-        BlockHeight::from(block_height),
-        usize::try_from(shielded_outputs).unwrap_or(usize::MAX),
-    )
-}
-
 /// Scans the given block range and checks for scanning errors that indicate the wallet's
 /// chain tip is out of sync with blockchain history.
 ///
@@ -1983,26 +1963,6 @@ mod tests {
             51,
         ));
         assert!(!filter.skips_trial_decryption(&Network::TestNetwork, inside, 10_000));
-
-        let inside_height = u32::from(inside);
-        assert!(!skips_sandblast_trial_decryption(
-            false,
-            &Network::MainNetwork,
-            inside_height,
-            51,
-        ));
-        assert!(skips_sandblast_trial_decryption(
-            true,
-            &Network::MainNetwork,
-            inside_height,
-            51,
-        ));
-        assert!(!skips_sandblast_trial_decryption(
-            true,
-            &Network::TestNetwork,
-            inside_height,
-            10_000,
-        ));
     }
 
     /// `scan_blocks` is what the sync loop calls for both spending and view-only wallets, and

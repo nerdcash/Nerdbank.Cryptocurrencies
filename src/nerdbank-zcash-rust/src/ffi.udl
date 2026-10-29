@@ -163,11 +163,6 @@ namespace LightWallet {
 	[Throws=LightWalletError]
 	SyncUpdateData sync(DbInit config, string uri, SyncUpdate? progress, boolean continually, boolean skip_sandblast_trial_decryption, CancellationSource? cancellation);
 
-	/// Returns whether a sync that passes `enabled` as `skip_sandblast_trial_decryption` would skip
-	/// trial decryption of a transaction at `block_height` with `shielded_outputs` shielded outputs.
-	/// `enabled` false never skips. `enabled` true skips only inside the 2022 mainnet sandblast range.
-	boolean skips_sandblast_trial_decryption(boolean enabled, ChainType network, u32 block_height, u64 shielded_outputs);
-
 	[Throws=LightWalletError]
 	boolean disconnect_server(string uri);
 
