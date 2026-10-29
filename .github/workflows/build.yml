@@ -280,14 +280,70 @@ jobs:
 
     - name: 📦 Push CI package
       shell: pwsh
-      run: |
-        dotnet nuget push bin\Packages\${{ env.BUILDCONFIGURATION }}\NuGet\*.nupkg -s https://nuget.pkg.github.com/nerdcash/index.json -k ${{ secrets.GITHUB_TOKEN }}
-        if ('${{ secrets.AZP_TOKEN }}') {
-          dotnet nuget add source https://pkgs.dev.azure.com/andrewarnott/OSS/_packaging/PublicCI/nuget/v3/index.json -n publicCI -u andrewarnott -p ${{ secrets.AZP_TOKEN }} --store-password-in-clear-text
-          dotnet nuget push bin\Packages\${{ env.BUILDCONFIGURATION }}\NuGet\*.nupkg -s publicCI -k x
-        }
+      run: dotnet nuget push bin\Packages\${{ env.BUILDCONFIGURATION }}\NuGet\*.nupkg -s https://nuget.pkg.github.com/nerdcash/index.json -k ${{ secrets.GITHUB_TOKEN }}
       if: success() && github.event_name != 'pull_request'
       continue-on-error: true
+
+  azure_artifacts:
+    name: 📦 Azure Artifacts
+    needs: pack
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: public-ci
+    permissions:
+      actions: read # Download the pack job's deployables artifact
+      contents: read
+      id-token: write # Azure Entra OIDC authentication
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+    - name: 🔻 Download deployables
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      with:
+        name: deployables
+        path: deployables
+
+    - name: ⚙ Install .NET SDK
+      shell: pwsh
+      run: |
+        ./tools/Install-DotNetSdk.ps1 -SdkOnly
+        if ($LASTEXITCODE -ne 0) {
+          throw "SDK installation failed."
+        }
+
+    - name: ⚙ Install Azure Artifacts credential provider
+      shell: pwsh
+      run: ./tools/Install-NuGetCredProvider.ps1
+
+    - name: 🔐 Authenticate to Azure
+      uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        allow-no-subscriptions: true
+
+    - name: 🚀 Push NuGet packages to Azure Artifacts
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+
+        # 499b84ac-1321-427f-aa17-267ca6975798 is the Azure DevOps application id.
+        $accessToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken --output tsv
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($accessToken)) {
+          throw "Failed to acquire an Azure DevOps access token."
+        }
+
+        $accessToken = $accessToken.Trim()
+        Write-Host "::add-mask::$accessToken"
+        $env:VSS_NUGET_ACCESSTOKEN = $accessToken
+        $env:ARTIFACTS_CREDENTIALPROVIDER_ACCESSTOKEN = $accessToken
+        $env:VSS_NUGET_URI_PREFIXES = 'https://pkgs.dev.azure.com/andrewarnott/'
+        $env:ARTIFACTS_CREDENTIALPROVIDER_URI_PREFIXES = 'https://pkgs.dev.azure.com/andrewarnott/'
+
+        dotnet nuget push deployables/NuGet/*.nupkg --source https://pkgs.dev.azure.com/andrewarnott/OSS/_packaging/PublicCI/nuget/v3/index.json --api-key AzureDevOps --skip-duplicate
+        if ($LASTEXITCODE -ne 0) {
+          throw "Azure Artifacts push failed."
+        }
 
   analyze:
     name: 🕵️‍♂️ Analyze
