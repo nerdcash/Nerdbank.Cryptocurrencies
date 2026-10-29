@@ -4,7 +4,7 @@
   <PropertyGroup>
     <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageValidationBaselineVersion>0.5.29</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion Condition="'$(MSBuildProjectExtension)' != '.proj'">0.5.29</PackageValidationBaselineVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Condition="Exists('README.md')" Include="README.md" Pack="true" PackagePath="" />
