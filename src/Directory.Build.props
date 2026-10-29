@@ -4,9 +4,6 @@
   <PropertyGroup>
     <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <!-- Packages that have shipped a stable release validate API compatibility against the latest stable version. -->
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Nerdbank.Cryptocurrencies' or '$(MSBuildProjectName)' == 'Nerdbank.Zcash' or '$(MSBuildProjectName)' == 'Nerdbank.Bitcoin'">
     <PackageValidationBaselineVersion>0.5.29</PackageValidationBaselineVersion>
   </PropertyGroup>
   <ItemGroup>
