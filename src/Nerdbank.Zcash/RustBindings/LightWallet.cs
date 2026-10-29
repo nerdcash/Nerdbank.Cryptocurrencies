@@ -999,6 +999,7 @@ static class _UniFFILib
 		RustBuffer @uri,
 		RustBuffer @progress,
 		sbyte @continually,
+		sbyte @skipSandblastTrialDecryption,
 		RustBuffer @cancellation,
 		ref UniffiRustCallStatus _uniffi_out_err
 	);
@@ -1454,10 +1455,10 @@ static class _UniFFILib
 		}
 		{
 			var checksum = _UniFFILib.uniffi_nerdbank_zcash_rust_checksum_func_sync();
-			if (checksum != 57942)
+			if (checksum != 8484)
 			{
 				throw new UniffiContractChecksumException(
-					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `57942`, library returned `{checksum}`"
+					$"uniffi.LightWallet: uniffi bindings expected function `uniffi_nerdbank_zcash_rust_checksum_func_sync` checksum `8484`, library returned `{checksum}`"
 				);
 			}
 		}
@@ -3669,6 +3670,10 @@ internal static class LightWalletMethods
 	/// <summary>
 	/// Downloads blocks from the blockchain, scans them for transactions, and updates the database.
 	/// If `continually` is `true`, this function will never exit unless cancellation is signaled.
+	/// When `skip_sandblast_trial_decryption` is `true`, trial decryption is skipped for transactions
+	/// with more than 50 shielded outputs, and only on mainnet inside the 2022 sandblast range
+	/// (heights 1710000 through 2050000, inclusive). Outside that range, and on every other network,
+	/// every transaction is still trial-decrypted. `false` leaves the filter off.
 	/// </summary>
 	/// <exception cref="LightWalletException"></exception>
 	public static SyncUpdateData Sync(
@@ -3676,6 +3681,7 @@ internal static class LightWalletMethods
 		string @uri,
 		SyncUpdate? @progress,
 		bool @continually,
+		bool @skipSandblastTrialDecryption,
 		CancellationSource? @cancellation
 	)
 	{
@@ -3688,6 +3694,7 @@ internal static class LightWalletMethods
 						FfiConverterString.INSTANCE.Lower(@uri),
 						FfiConverterOptionalTypeSyncUpdate.INSTANCE.Lower(@progress),
 						FfiConverterBoolean.INSTANCE.Lower(@continually),
+						FfiConverterBoolean.INSTANCE.Lower(@skipSandblastTrialDecryption),
 						FfiConverterOptionalTypeCancellationSource.INSTANCE.Lower(@cancellation),
 						ref _status
 					)

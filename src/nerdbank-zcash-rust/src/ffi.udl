@@ -156,8 +156,12 @@ namespace LightWallet {
 
 	/// Downloads blocks from the blockchain, scans them for transactions, and updates the database.
 	/// If `continually` is `true`, this function will never exit unless cancellation is signaled.
+	/// When `skip_sandblast_trial_decryption` is `true`, trial decryption is skipped for transactions
+	/// with more than 50 shielded outputs, and only on mainnet inside the 2022 sandblast range
+	/// (heights 1710000 through 2050000, inclusive). Outside that range, and on every other network,
+	/// every transaction is still trial-decrypted. `false` leaves the filter off.
 	[Throws=LightWalletError]
-	SyncUpdateData sync(DbInit config, string uri, SyncUpdate? progress, boolean continually, CancellationSource? cancellation);
+	SyncUpdateData sync(DbInit config, string uri, SyncUpdate? progress, boolean continually, boolean skip_sandblast_trial_decryption, CancellationSource? cancellation);
 
 	[Throws=LightWalletError]
 	boolean disconnect_server(string uri);

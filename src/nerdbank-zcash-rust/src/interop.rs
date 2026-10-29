@@ -498,6 +498,7 @@ pub fn sync(
     uri: String,
     progress: Option<Box<dyn SyncUpdate>>,
     continually: bool,
+    skip_sandblast_trial_decryption: bool,
     cancellation: Option<Box<dyn CancellationSource>>,
 ) -> Result<SyncUpdateData, LightWalletError> {
     use crate::sync::sync;
@@ -510,6 +511,7 @@ pub fn sync(
             progress,
             ConfirmationsPolicy::default(),
             continually,
+            skip_sandblast_trial_decryption,
             cancellation_token.0.clone(),
         )
         .await?)

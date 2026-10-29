@@ -107,6 +107,7 @@ impl TestSetup {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await

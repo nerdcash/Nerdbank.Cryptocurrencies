@@ -30,7 +30,9 @@ use zcash_client_backend::{
     data_api::{
         TransactionDataRequest, TransactionStatus, TransparentAddressSyncInfo,
         WalletCommitmentTrees, WalletRead, WalletWrite,
-        chain::{ChainState, CommitmentTreeRoot, CompactChainState, scan_cached_blocks},
+        chain::{
+            ChainState, CommitmentTreeRoot, CompactChainState, scan_cached_blocks_with_options,
+        },
         scanning::{ScanPriority, ScanRange},
         wallet::{ConfirmationsPolicy, decrypt_and_store_transaction},
     },
@@ -42,6 +44,7 @@ use zcash_client_backend::{
             compact_tx_streamer_client::CompactTxStreamerClient,
         },
     },
+    scanning::{ScanOptions, SpamFilter},
     wallet::WalletTransparentOutput,
 };
 use zcash_protocol::{
@@ -96,6 +99,7 @@ pub async fn sync<P: AsRef<Path>>(
     progress: Option<Box<dyn SyncUpdate>>,
     confirmations_policy: ConfirmationsPolicy,
     continually: bool,
+    skip_sandblast_trial_decryption: bool,
     cancellation_token: CancellationToken,
 ) -> Result<SyncUpdateData, Error> {
     let timing = SyncTiming::from_env();
@@ -109,6 +113,7 @@ pub async fn sync<P: AsRef<Path>>(
                 progress,
                 confirmations_policy,
                 continually,
+                skip_sandblast_trial_decryption,
                 cancellation_token,
             ),
         )
@@ -121,6 +126,7 @@ async fn sync_scoped<P: AsRef<Path>>(
     progress: Option<Box<dyn SyncUpdate>>,
     confirmations_policy: ConfirmationsPolicy,
     continually: bool,
+    skip_sandblast_trial_decryption: bool,
     cancellation_token: CancellationToken,
 ) -> Result<SyncUpdateData, Error> {
     let mut client = get_client(uri.clone()).await?;
@@ -148,6 +154,7 @@ async fn sync_scoped<P: AsRef<Path>>(
         progress: Arc::new(progress),
         timing: SyncTiming::current(),
         view_only,
+        skip_sandblast_trial_decryption,
     };
 
     // 1) Download note commitment tree data from lightwalletd
@@ -1057,6 +1064,8 @@ struct SyncState {
     timing: SyncTiming,
     /// `true` when this wallet scans without note commitment trees.
     view_only: bool,
+    /// When set, skip trial decryption of high-output transactions in the 2022 mainnet sandblast range.
+    skip_sandblast_trial_decryption: bool,
 }
 
 /// Prior-block continuity passed from the downloader to `scan_cached_blocks`.
@@ -1147,8 +1156,14 @@ async fn download_and_scan_blocks(
             }
             info!("Scanning {} blocks [{}).", chunk.len(), scan_range);
             db.blocks.insert_range(chunk);
-            if scan_blocks(&state.network, &mut db, &scan_range, &prior, &state.timing)?
-                && !priorities_changed
+            if scan_blocks(
+                &state.network,
+                &mut db,
+                &scan_range,
+                &prior,
+                &state.timing,
+                state.skip_sandblast_trial_decryption,
+            )? && !priorities_changed
             {
                 // Notify the downloader to break out early because we'll be getting a new range request.
                 // But we don't abort here. Presumably the original scan range is still interesting
@@ -1453,6 +1468,19 @@ async fn chain_state_for_blocks(
     fetch_tree_state(client, base_height, timing).await
 }
 
+/// Scan options for one sync.
+///
+/// The sandblast filter is off unless `skip_sandblast_trial_decryption` is set. When it is
+/// set, trial decryption is skipped only for transactions with more shielded outputs than
+/// [`SpamFilter`]'s default threshold, and only inside the 2022 mainnet sandblast range.
+pub(crate) fn scan_options(skip_sandblast_trial_decryption: bool) -> ScanOptions {
+    if skip_sandblast_trial_decryption {
+        ScanOptions::default().spam_filter(SpamFilter::default())
+    } else {
+        ScanOptions::default()
+    }
+}
+
 /// Scans the given block range and checks for scanning errors that indicate the wallet's
 /// chain tip is out of sync with blockchain history.
 ///
@@ -1463,23 +1491,27 @@ fn scan_blocks(
     scan_range: &ScanRange,
     prior: &PriorBlock,
     timing: &SyncTiming,
+    skip_sandblast_trial_decryption: bool,
 ) -> Result<bool, Error> {
+    let options = scan_options(skip_sandblast_trial_decryption);
     let scan_result = timing.measure_scan(|| match prior {
-        PriorBlock::Spending(chain_state) => scan_cached_blocks(
+        PriorBlock::Spending(chain_state) => scan_cached_blocks_with_options(
             network,
             &db.blocks,
             &mut db.data,
             scan_range.block_range().start,
             chain_state,
             scan_range.len(),
+            options,
         ),
-        PriorBlock::ViewOnly(chain_state) => scan_cached_blocks(
+        PriorBlock::ViewOnly(chain_state) => scan_cached_blocks_with_options(
             network,
             &db.blocks,
             &mut db.data,
             scan_range.block_range().start,
             chain_state,
             scan_range.len(),
+            options,
         ),
     });
 
@@ -1893,6 +1925,181 @@ mod tests {
 
     use super::*;
 
+    /// The sandblast filter stays off unless the sync option is set, and when it is set it
+    /// skips trial decryption only inside the 2022 mainnet sandblast range.
+    #[test]
+    fn scan_options_sandblast_filter_is_opt_in_and_limited_to_the_sandblast_range() {
+        use zcash_client_backend::scanning::{
+            MAINNET_SANDBLAST_END_HEIGHT, MAINNET_SANDBLAST_START_HEIGHT,
+        };
+        use zcash_protocol::consensus::{BlockHeight, Network};
+
+        assert!(scan_options(false).spam_filter.is_none());
+
+        let filter = scan_options(true)
+            .spam_filter
+            .expect("opt-in enables the sandblast filter");
+        let inside = BlockHeight::from(MAINNET_SANDBLAST_START_HEIGHT + 100_000);
+        assert!(filter.skips_trial_decryption(&Network::MainNetwork, inside, 51));
+        assert!(!filter.skips_trial_decryption(&Network::MainNetwork, inside, 50));
+        assert!(!filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_START_HEIGHT - 1),
+            51,
+        ));
+        assert!(filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_START_HEIGHT),
+            51,
+        ));
+        assert!(filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_END_HEIGHT),
+            51,
+        ));
+        assert!(!filter.skips_trial_decryption(
+            &Network::MainNetwork,
+            BlockHeight::from(MAINNET_SANDBLAST_END_HEIGHT + 1),
+            51,
+        ));
+        assert!(!filter.skips_trial_decryption(&Network::TestNetwork, inside, 10_000));
+    }
+
+    /// `scan_blocks` is what the sync loop calls for both spending and view-only wallets, and
+    /// both arms receive the same [`scan_options`] value. A note the wallet can decrypt, inside
+    /// a transaction with more than 50 shielded outputs, is stored when the filter is off,
+    /// omitted when the filter is on inside the sandblast window, and stored again when the
+    /// filter is on outside that window.
+    #[test]
+    fn scan_blocks_applies_the_sandblast_filter_to_a_wallet_note() {
+        const MANY_OUTPUTS: usize = 51;
+        const INSIDE: u32 = 1_820_000;
+        const OUTSIDE: u32 = 2_200_000;
+
+        assert_eq!(
+            notes_found_by_scan(INSIDE, MANY_OUTPUTS, false),
+            MANY_OUTPUTS
+        );
+        assert_eq!(notes_found_by_scan(INSIDE, MANY_OUTPUTS, true), 0);
+        assert_eq!(
+            notes_found_by_scan(OUTSIDE, MANY_OUTPUTS, true),
+            MANY_OUTPUTS
+        );
+    }
+
+    /// Builds a view-only mainnet wallet whose birthday is `height`, caches one compact block
+    /// at that height containing `outputs` notes payable to the wallet, and scans it.
+    fn notes_found_by_scan(
+        height: u32,
+        outputs: usize,
+        skip_sandblast_trial_decryption: bool,
+    ) -> usize {
+        use rand::{Rng, rand_core::UnwrapErr, rngs::SysRng};
+        use sapling::{
+            note_encryption::{COMPACT_NOTE_SIZE, SaplingDomain, sapling_note_encryption},
+            util::generate_random_rseed,
+            value::NoteValue,
+        };
+        use zcash_client_backend::{
+            data_api::{AccountBirthday, AccountPurpose, WalletWrite},
+            keys::UnifiedSpendingKey,
+            proto::compact_formats::{ChainMetadata, CompactSaplingOutput, CompactTx},
+        };
+        use zcash_note_encryption::Domain;
+        use zcash_primitives::transaction::components::sapling::zip212_enforcement;
+        use zcash_protocol::memo::MemoBytes;
+        use zip32::AccountId;
+
+        let network = Network::MainNetwork;
+        let usk = UnifiedSpendingKey::from_seed(&network, &[0x5a; 64], AccountId::ZERO)
+            .expect("seed derives a spending key");
+        let ufvk = usk.to_unified_full_viewing_key();
+        let dfvk = ufvk.sapling().expect("sapling viewing key").clone();
+
+        let mut rng = UnwrapErr(SysRng);
+        let zip212 = zip212_enforcement(&network, BlockHeight::from(height));
+        let to = dfvk.default_address().1;
+        let sapling_outputs = (0..outputs)
+            .map(|_| {
+                let rseed = generate_random_rseed(zip212, &mut rng);
+                let note = sapling::Note::from_parts(to, NoteValue::from_raw(5), rseed);
+                let encryptor = sapling_note_encryption(
+                    Some(dfvk.fvk().ovk),
+                    note.clone(),
+                    MemoBytes::empty().into_bytes(),
+                    &mut rng,
+                );
+                CompactSaplingOutput {
+                    cmu: note.cmu().to_bytes().to_vec(),
+                    ephemeral_key: SaplingDomain::epk_bytes(encryptor.epk()).0.to_vec(),
+                    ciphertext: encryptor.encrypt_note_plaintext().0[..COMPACT_NOTE_SIZE].to_vec(),
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let mut txid = vec![0u8; 32];
+        rng.fill_bytes(&mut txid);
+        let prev_hash = vec![4u8; 32];
+        let block = CompactBlock {
+            hash: vec![8u8; 32],
+            prev_hash: prev_hash.clone(),
+            height: u64::from(height),
+            vtx: vec![CompactTx {
+                txid,
+                outputs: sapling_outputs,
+                ..Default::default()
+            }],
+            chain_metadata: Some(ChainMetadata {
+                sapling_commitment_tree_size: u32::try_from(outputs).unwrap(),
+                orchard_commitment_tree_size: 0,
+                ironwood_commitment_tree_size: 0,
+            }),
+            ..Default::default()
+        };
+
+        let data_file = testdir::testdir!().join(format!(
+            "wallet-{height}-{skip_sandblast_trial_decryption}.sqlite"
+        ));
+        let mut db = Db::init(&data_file, network).unwrap();
+        let birthday = AccountBirthday::from_viewing_parts(
+            BlockHeight::from(height - 1),
+            BlockHash(prev_hash.as_slice().try_into().unwrap()),
+            None,
+        );
+        db.data
+            .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+            .unwrap();
+        assert!(!db.data.maintains_note_commitment_trees().unwrap());
+        db.data.update_chain_tip(BlockHeight::from(height)).unwrap();
+        let scan_range = db
+            .data
+            .suggest_scan_ranges()
+            .unwrap()
+            .into_iter()
+            .find(|range| range.block_range().start == BlockHeight::from(height))
+            .expect("the birthday block is queued");
+        let prior = PriorBlock::ViewOnly(compact_chain_state_before(&block).unwrap());
+        db.blocks.insert(block);
+
+        scan_blocks(
+            &network,
+            &mut db,
+            &scan_range,
+            &prior,
+            &SyncTiming::disabled(),
+            skip_sandblast_trial_decryption,
+        )
+        .unwrap();
+
+        let notes: i64 = Connection::open(&db.path)
+            .unwrap()
+            .query_row("SELECT COUNT(*) FROM sapling_received_notes", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        usize::try_from(notes).unwrap()
+    }
+
     /// Samples compact-block shielded density. Ignored so CI does not download chain data.
     ///
     /// ```bash
@@ -2080,6 +2287,7 @@ mod tests {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await
@@ -2088,7 +2296,8 @@ mod tests {
         let totals = totals.lock().unwrap();
         let put_blocks = totals.get("put_blocks").copied().unwrap_or_default();
         let scan = totals
-            .get("scan_cached_blocks")
+            .get("scan_cached_blocks_with_options")
+            .or_else(|| totals.get("scan_cached_blocks"))
             .copied()
             .unwrap_or_default();
         let scan_without_writes = scan.saturating_sub(put_blocks);
@@ -2142,6 +2351,7 @@ mod tests {
                 metadata.name(),
                 "put_blocks"
                     | "scan_cached_blocks"
+                    | "scan_cached_blocks_with_options"
                     | "put_blocks_rows"
                     | "put_blocks_build_subtrees"
                     | "put_blocks_update_trees"
@@ -2337,6 +2547,7 @@ mod tests {
             &setup.data_file,
             None,
             ConfirmationsPolicy::default(),
+            false,
             false,
             CancellationToken::new(),
         )
@@ -2611,6 +2822,7 @@ mod tests {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await
@@ -2691,6 +2903,7 @@ mod tests {
             None,
             ConfirmationsPolicy::default(),
             false,
+            false,
             CancellationToken::new(),
         )
         .await
@@ -2725,6 +2938,7 @@ mod tests {
             &spend_file,
             None,
             ConfirmationsPolicy::default(),
+            false,
             false,
             CancellationToken::new(),
         )
