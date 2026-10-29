@@ -23,7 +23,7 @@ jobs:
     name: 🏭 Linux
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -117,7 +117,7 @@ jobs:
     name: 🏭 Windows
     runs-on: windows-2025
     steps:
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -172,7 +172,7 @@ jobs:
     name: 🏭 Android
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -200,7 +200,7 @@ jobs:
     name: ⚖️ Licenses
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -227,7 +227,7 @@ jobs:
     - licenses
     runs-on: windows-2025 # Must not be linux because linux cannot build net8.0-ios targets.
     steps:
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
@@ -295,7 +295,7 @@ jobs:
       contents: read
       id-token: write # Azure Entra OIDC authentication
     steps:
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - name: 🔻 Download deployables
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -349,7 +349,7 @@ jobs:
     name: 🕵️‍♂️ Analyze
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         submodules: true
