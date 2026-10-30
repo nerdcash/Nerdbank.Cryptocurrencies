@@ -2580,24 +2580,52 @@ mod tests {
         assert_contiguous_from_zero(&preloaded_file, "ironwood_tree_shards");
     }
 
+    /// Retry a dropped connect, then try the next URI.
+    ///
+    /// `zcash.mysideoftheweb.com:9067` is sometimes unreachable from GitHub macOS and Windows
+    /// runners (`Network is unreachable` or a TCP timeout) while port 443 still works.
+    async fn connect_lightwallet(uris: &[Uri]) -> CompactTxStreamerClient<Channel> {
+        const ATTEMPTS: u32 = 3;
+        let mut last_err = None;
+        for uri in uris {
+            for attempt in 1..=ATTEMPTS {
+                match get_client(uri.clone()).await {
+                    Ok(client) => return client,
+                    Err(err) => {
+                        eprintln!("get_client({uri}) attempt {attempt}/{ATTEMPTS} failed: {err}");
+                        last_err = Some(err);
+                        if attempt < ATTEMPTS {
+                            tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                        }
+                    }
+                }
+            }
+        }
+        panic!("lightwalletd connect failed: {last_err:?}");
+    }
+
     /// Sync must store Ironwood subtree roots as a contiguous prefix from index 0 before scanning.
     /// Mainnet has completed Ironwood shards; omitting this preload is what made a fresh wallet
     /// with a birthday ~80_000 blocks back fail after the chain-tip range.
     #[tokio_shared_rt::test(flavor = "multi_thread")]
     async fn update_subtree_roots_preloads_ironwood_from_index_zero() {
-        for (label, uri, require_ironwood) in [
+        for (label, uris, require_ironwood) in [
             (
                 "testnet",
-                test_constants::TESTNET_LIGHTSERVER_URI.clone(),
+                vec![test_constants::TESTNET_LIGHTSERVER_URI.clone()],
                 false,
             ),
             (
                 "mainnet",
-                test_constants::MAINNET_LIGHTSERVER_URI.clone(),
+                vec![
+                    test_constants::MAINNET_LIGHTSERVER_URI.clone(),
+                    // Port 443 fallback when the default mainnet host is unreachable from CI.
+                    "https://zec.rocks:443".parse().expect("zec.rocks uri"),
+                ],
                 true,
             ),
         ] {
-            let mut client = get_client(uri).await.unwrap();
+            let mut client = connect_lightwallet(&uris).await;
             let info = client
                 .get_lightd_info(service::Empty {})
                 .await
