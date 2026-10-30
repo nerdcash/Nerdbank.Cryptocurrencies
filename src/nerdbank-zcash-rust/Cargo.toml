@@ -20,7 +20,7 @@ group = "0.14"
 http = "1"
 jubjub = "0.11"
 lazy_static = "1.4"
-minreq = "2.11.0"
+minreq = "3.0.0"
 nonempty = "0.11"
 orchard = { version = "0.16.0", default-features = false }
 pasta_curves = "0.6"
