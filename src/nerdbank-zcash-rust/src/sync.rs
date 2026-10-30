@@ -500,42 +500,48 @@ async fn sync_scoped<P: AsRef<Path>>(
                         }
                     }
                     TransactionDataRequest::TransactionsInvolvingAddress(tia) => {
-                        let _timer = state.timing.start(Phase::TransparentTxids);
-                        let address = tia.address().encode(&state.network);
-                        let request = service::TransparentAddressBlockFilter {
-                            address: address.clone(),
-                            range: Some(service::BlockRange {
-                                start: Some(service::BlockId {
-                                    height: u64::from(tia.block_range_start()),
-                                    ..Default::default()
-                                }),
-                                end: tia.block_range_end().map(|h| service::BlockId {
-                                    height: u64::from(h - 1), // `BlockRange` end is inclusive.
-                                    ..Default::default()
-                                }),
-                                pool_types: vec![],
-                            }),
-                        };
+                        // Ephemeral-address checks leave `block_range_end` unset, meaning "through
+                        // the tip". The lightwalletd wire range requires both ends (zinder returns
+                        // `range.end is required` when `end` is absent) and rejects height 0.
+                        if let Some(range) = taddress_txid_block_range(
+                            tia.block_range_start(),
+                            tia.block_range_end(),
+                            BlockHeight::from(status.tip_height),
+                        ) {
+                            let _timer = state.timing.start(Phase::TransparentTxids);
+                            let address = tia.address().encode(&state.network);
+                            let request = service::TransparentAddressBlockFilter {
+                                address: address.clone(),
+                                range: Some(range),
+                            };
 
-                        let mut stream = client.get_taddress_txids(request).await?.into_inner();
-                        while let Some(raw_tx) = stream.next().await {
-                            let (tx, mined_height) = parse_raw_transaction(
-                                &state.network,
-                                status.tip_height.into(),
-                                raw_tx?,
-                            )?;
+                            let mut stream = client.get_taddress_txids(request).await?.into_inner();
+                            while let Some(raw_tx) = stream.next().await {
+                                let (tx, mined_height) = parse_raw_transaction(
+                                    &state.network,
+                                    status.tip_height.into(),
+                                    raw_tx?,
+                                )?;
+                                info!(
+                                    "Found tx {:?} for address {} with mined height {:?}",
+                                    tx.txid(),
+                                    address,
+                                    mined_height
+                                );
+                                decrypt_and_store_transaction(
+                                    &state.network,
+                                    &mut db.data,
+                                    &tx,
+                                    mined_height,
+                                )?
+                            }
+                        } else {
                             info!(
-                                "Found tx {:?} for address {} with mined height {:?}",
-                                tx.txid(),
-                                address,
-                                mined_height
+                                "Skipping transparent address query; start {} end {:?} tip {} contains no indexable block",
+                                tia.block_range_start(),
+                                tia.block_range_end(),
+                                status.tip_height
                             );
-                            decrypt_and_store_transaction(
-                                &state.network,
-                                &mut db.data,
-                                &tx,
-                                mined_height,
-                            )?
                         }
                     }
                 }
@@ -959,6 +965,52 @@ struct FetchedTransparent {
     address: TransparentAddress,
     range: BlockRange,
     raw_transactions: Vec<RawTransaction>,
+}
+
+/// Inclusive lightwalletd bounds for `GetTaddressTxids`.
+///
+/// Wallet `block_range_end` is exclusive, and `None` means scan through `chain_tip`.
+/// Both protobuf bounds are always set. Height 0 is not sent: zinder rejects it with
+/// `block height 0 is not indexed`, and genesis has no transparent transactions to find.
+/// Returns `None` when the range is empty or contains only height 0.
+fn taddress_txid_block_range(
+    block_range_start: BlockHeight,
+    block_range_end: Option<BlockHeight>,
+    chain_tip: BlockHeight,
+) -> Option<service::BlockRange> {
+    let inclusive_end = match block_range_end {
+        Some(end) => {
+            // Exclusive end 0 is empty. Exclusive end 1 is only height 0.
+            if end <= BlockHeight::from(1u32) {
+                return None;
+            }
+            end - 1
+        }
+        None => {
+            if chain_tip < BlockHeight::from(1u32) {
+                return None;
+            }
+            chain_tip
+        }
+    };
+
+    // A start of 0 means "beginning of the chain". Height 1 is the first indexable block.
+    let start = std::cmp::max(block_range_start, BlockHeight::from(1u32));
+    if inclusive_end < start {
+        return None;
+    }
+
+    Some(service::BlockRange {
+        start: Some(service::BlockId {
+            height: u64::from(start),
+            ..Default::default()
+        }),
+        end: Some(service::BlockId {
+            height: u64::from(inclusive_end),
+            ..Default::default()
+        }),
+        pool_types: vec![],
+    })
 }
 
 async fn fetch_transparent_transactions(
@@ -2098,6 +2150,65 @@ mod tests {
             })
             .unwrap();
         usize::try_from(notes).unwrap()
+    }
+
+    fn range_heights(range: &service::BlockRange) -> (u64, u64) {
+        (
+            range.start.as_ref().expect("start").height,
+            range.end.as_ref().expect("end").height,
+        )
+    }
+
+    #[test]
+    fn taddress_txid_block_range_sets_end_and_skips_height_zero() {
+        let tip = BlockHeight::from(3_000_000u32);
+
+        // Brand-new ephemeral addresses request start 0 and an open end.
+        let open_from_zero =
+            taddress_txid_block_range(BlockHeight::from(0u32), None, tip).expect("open range");
+        assert_eq!(range_heights(&open_from_zero), (1, 3_000_000));
+
+        // Birthday at the tip is a single block, and `end` is still present.
+        let at_tip = taddress_txid_block_range(tip, None, tip).expect("tip block");
+        assert_eq!(range_heights(&at_tip), (3_000_000, 3_000_000));
+
+        // Closed wallet ends are exclusive. The wire end is the last included height.
+        let closed = taddress_txid_block_range(
+            BlockHeight::from(100u32),
+            Some(BlockHeight::from(180u32)),
+            tip,
+        )
+        .expect("closed range");
+        assert_eq!(range_heights(&closed), (100, 179));
+
+        assert!(
+            taddress_txid_block_range(BlockHeight::from(0u32), Some(BlockHeight::from(1u32)), tip)
+                .is_none(),
+            "height 0 is the only block in 0..1"
+        );
+        assert!(
+            taddress_txid_block_range(BlockHeight::from(0u32), Some(BlockHeight::from(0u32)), tip)
+                .is_none(),
+            "exclusive end 0 is empty"
+        );
+        assert!(
+            taddress_txid_block_range(
+                BlockHeight::from(50u32),
+                Some(BlockHeight::from(50u32)),
+                tip
+            )
+            .is_none(),
+            "start == exclusive end is empty"
+        );
+        assert!(
+            taddress_txid_block_range(tip + 1, None, tip).is_none(),
+            "a start above the tip is empty once the open end is capped"
+        );
+        assert!(
+            taddress_txid_block_range(BlockHeight::from(0u32), None, BlockHeight::from(0u32))
+                .is_none(),
+            "a tip of 0 leaves nothing indexable"
+        );
     }
 
     /// Samples compact-block shielded density. Ignored so CI does not download chain data.
