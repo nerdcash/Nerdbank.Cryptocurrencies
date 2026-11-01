@@ -607,6 +607,7 @@ public partial class LightWalletClient : IDisposable
 	/// Initializes a new instance of the <see cref="LineItem"/> class.
 	/// </summary>
 	/// <param name="d">The uniffi data to copy from.</param>
+	/// <returns>The line item with its native receiving pool preserved.</returns>
 	private static LineItem CreateLineItem(TransactionNote d)
 	{
 		var recipient = ZcashAddress.Decode(d.recipient);
@@ -619,12 +620,18 @@ public partial class LightWalletClient : IDisposable
 				uniffi.LightWallet.Pool.Transparent when ua.GetPoolReceiver<TransparentP2PKHReceiver>() is { } p2pkh => new TransparentP2PKHAddress(p2pkh, recipient.Network),
 				uniffi.LightWallet.Pool.Transparent when ua.GetPoolReceiver<TransparentP2SHReceiver>() is { } p2sh => new TransparentP2SHAddress(p2sh, recipient.Network),
 				uniffi.LightWallet.Pool.Sapling => new SaplingAddress(recipient.GetPoolReceiver<SaplingReceiver>() ?? throw new ArgumentException(), recipient.Network),
-				uniffi.LightWallet.Pool.Orchard => new OrchardAddress(recipient.GetPoolReceiver<OrchardReceiver>() ?? throw new ArgumentException(), recipient.Network),
+				uniffi.LightWallet.Pool.Orchard or uniffi.LightWallet.Pool.Ironwood => new OrchardAddress(recipient.GetPoolReceiver<OrchardReceiver>() ?? throw new ArgumentException(), recipient.Network),
 				_ => throw new NotSupportedException(),
 			};
 		}
 
-		return new(recipient, ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
+		LineItem item = new(recipient, ZatsToZEC(d.value), d.memo is null ? Memo.NoMemo : new Memo(d.memo.ToArray()));
+		return d.pool switch
+		{
+			uniffi.LightWallet.Pool.Ironwood => item with { Pool = Pool.Ironwood },
+			uniffi.LightWallet.Pool.Transparent or uniffi.LightWallet.Pool.Sapling or uniffi.LightWallet.Pool.Orchard => item,
+			_ => throw new NotSupportedException(),
+		};
 	}
 
 	private static TransactionSendDetail[] LineItemsToSendDetails(IReadOnlyCollection<LineItem> payments)

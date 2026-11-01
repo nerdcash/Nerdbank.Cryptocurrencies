@@ -1,6 +1,6 @@
 use futures_util::{StreamExt, TryStreamExt, stream};
 use http::Uri;
-use orchard::{keys::Scope, tree::MerkleHashOrchard};
+use orchard::tree::MerkleHashOrchard;
 use prost::bytes::Buf;
 use rusqlite::{Connection, OptionalExtension, named_params};
 use std::{
@@ -1831,6 +1831,7 @@ pub(crate) fn get_transactions(
                 0 => PoolType::Transparent,
                 2 => PoolType::SAPLING,
                 3 => PoolType::ORCHARD,
+                4 => PoolType::IRONWOOD,
                 _ => {
                     return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
                         format!("Unknown output pool type: {output_pool}"),
@@ -1845,23 +1846,26 @@ pub(crate) fn get_transactions(
             if recipient.is_none() {
                 let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
                 if let Some(diversifier) = diversifier {
+                    let scope =
+                        crate::util::parse_recipient_key_scope(row.get("recipient_key_scope")?)?;
                     recipient = match output_pool {
                         PoolType::SAPLING => ufvk.and_then(|k| {
                             k.sapling().and_then(|s| {
-                                s.diversified_address(sapling::keys::Diversifier(
-                                    diversifier.try_into().unwrap(),
-                                ))
-                                .map(|a| a.encode(network))
+                                s.to_ivk(scope)
+                                    .to_payment_address(sapling::keys::Diversifier(
+                                        diversifier.try_into().unwrap(),
+                                    ))
+                                    .map(|a| a.encode(network))
                             })
                         }),
-                        PoolType::ORCHARD => ufvk.and_then(|k| {
+                        PoolType::ORCHARD | PoolType::IRONWOOD => ufvk.and_then(|k| {
                             k.orchard().map(|o| {
                                 UnifiedAddress::from_receivers(
                                     Some(o.address(
                                         orchard::keys::Diversifier::from_bytes(
                                             diversifier.try_into().unwrap(),
                                         ),
-                                        Scope::External,
+                                        scope,
                                     )),
                                     None,
                                     None,

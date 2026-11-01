@@ -12,7 +12,6 @@ use zcash_protocol::{
     consensus::{Network, Parameters},
     memo::Memo,
 };
-use zip32::DiversifierIndex;
 
 use crate::{
     backing_store::Db,
@@ -25,11 +24,15 @@ use crate::{
 /// account it belongs to and the diversifier that can be used to filter in SQL.
 struct ReceiverInfo {
     account_uuid: AccountUuid,
-    /// The diversifier bytes for shielded receivers (Orchard/Sapling).
+    /// The diversifier bytes for shielded receivers (Orchard/Ironwood/Sapling).
     /// For transparent, this will be None since transparent uses address strings.
     diversifier: Option<Vec<u8>>,
     /// For transparent addresses, the encoded address string.
     transparent_address: Option<String>,
+    /// The receiver pool; Orchard receivers also accept Ironwood payments.
+    pool: PoolType,
+    /// The shielded receiver's key scope, or None for transparent receivers.
+    scope: Option<Scope>,
 }
 
 /// Returns all transactions containing incoming payments to any receiver within the given address.
@@ -85,6 +88,16 @@ pub(crate) fn get_incoming_payments(
                 ":starting_block": starting_block,
                 ":diversifier": receiver_info.diversifier.as_ref(),
                 ":transparent_address": receiver_info.transparent_address.as_ref(),
+                ":output_pool": match receiver_info.pool {
+                    PoolType::Transparent => 0,
+                    PoolType::SAPLING => 2,
+                    PoolType::ORCHARD => 3,
+                    PoolType::IRONWOOD => 4
+                },
+                ":recipient_key_scope": receiver_info.scope.map(|scope| match scope {
+                    Scope::External => 0,
+                    Scope::Internal => 1
+                }),
             },
             |row| -> Result<Transaction, Error> {
                 let account_uuid = AccountUuid::from_uuid(row.get("account_uuid")?);
@@ -104,6 +117,7 @@ pub(crate) fn get_incoming_payments(
                     0 => PoolType::Transparent,
                     2 => PoolType::SAPLING,
                     3 => PoolType::ORCHARD,
+                    4 => PoolType::IRONWOOD,
                     _ => {
                         return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
                             format!("Unknown output pool type: {output_pool}"),
@@ -118,23 +132,27 @@ pub(crate) fn get_incoming_payments(
                 if recipient.is_none() {
                     let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
                     if let Some(diversifier) = diversifier {
+                        let scope = crate::util::parse_recipient_key_scope(
+                            row.get("recipient_key_scope")?,
+                        )?;
                         recipient = match output_pool {
                             PoolType::SAPLING => ufvk.and_then(|k| {
                                 k.sapling().and_then(|s| {
-                                    s.diversified_address(sapling::keys::Diversifier(
-                                        diversifier.clone().try_into().unwrap(),
-                                    ))
-                                    .map(|a| a.encode(network))
+                                    s.to_ivk(scope)
+                                        .to_payment_address(sapling::keys::Diversifier(
+                                            diversifier.clone().try_into().unwrap(),
+                                        ))
+                                        .map(|a| a.encode(network))
                                 })
                             }),
-                            PoolType::ORCHARD => ufvk.and_then(|k| {
+                            PoolType::ORCHARD | PoolType::IRONWOOD => ufvk.and_then(|k| {
                                 k.orchard().map(|o| {
                                     UnifiedAddress::from_receivers(
                                         Some(o.address(
                                             orchard::keys::Diversifier::from_bytes(
                                                 diversifier.clone().try_into().unwrap(),
                                             ),
-                                            Scope::External,
+                                            scope,
                                         )),
                                         None,
                                         None,
@@ -220,24 +238,8 @@ pub(crate) fn get_incoming_payments(
                 .iter_mut()
                 .find(|t| t.account_id == row.account_id && t.txid == row.txid)
             {
-                for note in row.incoming {
-                    if !existing
-                        .incoming
-                        .iter()
-                        .any(|n| n.value == note.value && n.recipient == note.recipient)
-                    {
-                        existing.incoming.push(note);
-                    }
-                }
-                for note in row.change {
-                    if !existing
-                        .change
-                        .iter()
-                        .any(|n| n.value == note.value && n.recipient == note.recipient)
-                    {
-                        existing.change.push(note);
-                    }
-                }
+                existing.incoming.extend(row.incoming);
+                existing.change.extend(row.change);
             } else {
                 all_transactions.push(row);
             }
@@ -273,24 +275,28 @@ fn find_receiver_info(
         zcash_keys::address::Address::Unified(ua) => {
             // Try to find the account that owns this unified address by checking each receiver
             if let Some(orchard_addr) = ua.orchard()
-                && let Some((account_uuid, diversifier)) =
+                && let Some((account_uuid, diversifier, scope)) =
                     find_orchard_receiver_info(&ufvkeys, orchard_addr)
             {
                 receiver_infos.push(ReceiverInfo {
                     account_uuid,
                     diversifier: Some(diversifier),
                     transparent_address: None,
+                    pool: PoolType::ORCHARD,
+                    scope: Some(scope),
                 });
             }
 
             if let Some(sapling_addr) = ua.sapling()
-                && let Some((account_uuid, diversifier)) =
+                && let Some((account_uuid, diversifier, scope)) =
                     find_sapling_receiver_info(&ufvkeys, sapling_addr)
             {
                 receiver_infos.push(ReceiverInfo {
                     account_uuid,
                     diversifier: Some(diversifier),
                     transparent_address: None,
+                    pool: PoolType::SAPLING,
+                    scope: Some(scope),
                 });
             }
 
@@ -304,16 +310,22 @@ fn find_receiver_info(
                         account_uuid,
                         diversifier: None,
                         transparent_address: Some(addr_str),
+                        pool: PoolType::Transparent,
+                        scope: None,
                     });
                 }
             }
         }
         zcash_keys::address::Address::Sapling(pa) => {
-            if let Some((account_uuid, diversifier)) = find_sapling_receiver_info(&ufvkeys, &pa) {
+            if let Some((account_uuid, diversifier, scope)) =
+                find_sapling_receiver_info(&ufvkeys, &pa)
+            {
                 receiver_infos.push(ReceiverInfo {
                     account_uuid,
                     diversifier: Some(diversifier),
                     transparent_address: None,
+                    pool: PoolType::SAPLING,
+                    scope: Some(scope),
                 });
             }
         }
@@ -325,6 +337,8 @@ fn find_receiver_info(
                     account_uuid,
                     diversifier: None,
                     transparent_address: Some(addr_str),
+                    pool: PoolType::Transparent,
+                    scope: None,
                 });
             }
         }
@@ -337,6 +351,8 @@ fn find_receiver_info(
                     account_uuid,
                     diversifier: None,
                     transparent_address: Some(addr_str),
+                    pool: PoolType::Transparent,
+                    scope: None,
                 });
             }
         }
@@ -349,43 +365,41 @@ fn find_receiver_info(
     Ok(receiver_infos)
 }
 
-/// Find the account and diversifier for an Orchard receiver.
+/// Find the account, diversifier, and key scope for an Orchard receiver.
 fn find_orchard_receiver_info(
     ufvkeys: &std::collections::HashMap<AccountUuid, zcash_keys::keys::UnifiedFullViewingKey>,
     orchard_addr: &orchard::Address,
-) -> Option<(AccountUuid, Vec<u8>)> {
+) -> Option<(AccountUuid, Vec<u8>, Scope)> {
     for (account_uuid, ufvk) in ufvkeys {
-        if let Some(fvk) = ufvk.orchard() {
-            let ivk = fvk.to_ivk(Scope::External);
-            // Check if this IVK owns this address by trying to get the diversifier index
-            if ivk.diversifier_index(orchard_addr).is_some() {
-                // The diversifier stored in the DB is the diversifier from the address itself
-                let diversifier = orchard_addr.diversifier();
-                return Some((*account_uuid, diversifier.as_array().to_vec()));
-            }
+        if let Some(fvk) = ufvk.orchard()
+            && let Some(scope) = fvk.scope_for_address(orchard_addr)
+        {
+            return Some((
+                *account_uuid,
+                orchard_addr.diversifier().as_array().to_vec(),
+                scope,
+            ));
         }
     }
     None
 }
 
-/// Find the account and diversifier for a Sapling receiver.
+/// Find the account, diversifier, and key scope for a Sapling receiver.
 fn find_sapling_receiver_info(
     ufvkeys: &std::collections::HashMap<AccountUuid, zcash_keys::keys::UnifiedFullViewingKey>,
     sapling_addr: &sapling::PaymentAddress,
-) -> Option<(AccountUuid, Vec<u8>)> {
+) -> Option<(AccountUuid, Vec<u8>, Scope)> {
     for (account_uuid, ufvk) in ufvkeys {
         if let Some(dfvk) = ufvk.sapling() {
-            let ivk = dfvk.to_external_ivk();
-            // Check if this IVK can decrypt to this address's diversifier
-            // The diversifier is directly available from the payment address
-            let diversifier = sapling_addr.diversifier();
-            // Verify this address belongs to this account by checking if the IVK
-            // can derive the same address from this diversifier
-            let diversifier_bytes: [u8; 11] = diversifier.0;
-            if let Some(derived_addr) = ivk.address_at(DiversifierIndex::from(diversifier_bytes))
-                && &derived_addr == sapling_addr
-            {
-                return Some((*account_uuid, diversifier.0.to_vec()));
+            for scope in [Scope::External, Scope::Internal] {
+                if dfvk
+                    .to_ivk(scope)
+                    .to_payment_address(*sapling_addr.diversifier())
+                    .as_ref()
+                    == Some(sapling_addr)
+                {
+                    return Some((*account_uuid, sapling_addr.diversifier().0.to_vec(), scope));
+                }
             }
         }
     }
@@ -430,5 +444,782 @@ fn find_transparent_receiver_info(
 
 #[cfg(test)]
 mod tests {
-    // Tests would go here but require a test database setup
+    use super::*;
+    use zcash_client_backend::data_api::{Account, AccountBirthday, AccountPurpose, WalletWrite};
+    use zcash_client_backend::keys::UnifiedSpendingKey;
+    use zcash_primitives::block::BlockHash;
+    use zcash_protocol::consensus::BlockHeight;
+
+    struct QueryFixture {
+        db: Db,
+        conn: Connection,
+        account_uuid: AccountUuid,
+        account_id: i64,
+        address: String,
+        diversifier: Vec<u8>,
+        ufvk: zcash_keys::keys::UnifiedFullViewingKey,
+    }
+
+    impl QueryFixture {
+        fn new() -> Self {
+            Self::new_with_spending_keys(false)
+        }
+
+        fn new_with_spending_keys(spending: bool) -> Self {
+            let file = testdir::testdir!().join("wallet.sqlite");
+            let mut db = Db::init(&file, Network::TestNetwork).unwrap();
+            let ufvk = UnifiedSpendingKey::from_seed(
+                &Network::TestNetwork,
+                &[0x51; 64],
+                zip32::AccountId::ZERO,
+            )
+            .unwrap()
+            .to_unified_full_viewing_key();
+            let birthday = AccountBirthday::from_viewing_parts(
+                BlockHeight::from_u32(1),
+                BlockHash([0; 32]),
+                None,
+            );
+            let account_uuid = if spending {
+                db.data
+                    .create_account(
+                        "spend",
+                        &secrecy::SecretVec::new(vec![0x51; 64]),
+                        &birthday,
+                        None,
+                    )
+                    .unwrap()
+                    .0
+            } else {
+                db.data
+                    .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+                    .unwrap()
+                    .id()
+            };
+            let receiver = ufvk.orchard().unwrap().address_at(0u32, Scope::External);
+            let address = UnifiedAddress::from_receivers(Some(receiver), None, None, None, None)
+                .unwrap()
+                .encode(&Network::TestNetwork);
+            let conn = Connection::open(&file).unwrap();
+            let account_id = conn
+                .query_row(
+                    "SELECT id FROM accounts WHERE uuid = ?1",
+                    [account_uuid.expose_uuid()],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            conn.execute_batch(
+                "INSERT INTO blocks (height, hash, time, sapling_tree)
+                 VALUES (100, zeroblob(32), 1000, X'000000');
+                 INSERT INTO transactions (id_tx, txid, block, mined_height, min_observed_height)
+                 VALUES (1, zeroblob(32), 100, 100, 100);",
+            )
+            .unwrap();
+            Self {
+                db,
+                conn,
+                account_uuid,
+                account_id,
+                address,
+                diversifier: receiver.diversifier().as_array().to_vec(),
+                ufvk,
+            }
+        }
+
+        fn add_note(&self, pool: Pool, sent: bool) {
+            self.add_scoped_note(pool, sent, Scope::External, 0);
+        }
+
+        fn receiver(&self, pool: Pool, scope: Scope) -> (String, Vec<u8>) {
+            match pool {
+                Pool::Sapling => {
+                    let dfvk = self.ufvk.sapling().unwrap();
+                    let diversifier = *dfvk.default_address().1.diversifier();
+                    let receiver = dfvk.to_ivk(scope).to_payment_address(diversifier).unwrap();
+                    (
+                        receiver.encode(&Network::TestNetwork),
+                        diversifier.0.to_vec(),
+                    )
+                }
+                Pool::Orchard | Pool::Ironwood => {
+                    let receiver = self.ufvk.orchard().unwrap().address(
+                        orchard::keys::Diversifier::from_bytes(
+                            self.diversifier.clone().try_into().unwrap(),
+                        ),
+                        scope,
+                    );
+                    let address =
+                        UnifiedAddress::from_receivers(Some(receiver), None, None, None, None)
+                            .unwrap()
+                            .encode(&Network::TestNetwork);
+                    (address, self.diversifier.clone())
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        fn add_scoped_note(&self, pool: Pool, sent: bool, scope: Scope, output_index: u32) {
+            let (table, code, index_column, randomness_columns, randomness, version) = match pool {
+                Pool::Sapling => (
+                    "sapling_received_notes",
+                    2,
+                    "output_index",
+                    "rcm",
+                    "zeroblob(32)",
+                    "",
+                ),
+                Pool::Orchard => (
+                    "orchard_received_notes",
+                    3,
+                    "action_index",
+                    "rho, rseed",
+                    "zeroblob(32), zeroblob(32)",
+                    "",
+                ),
+                Pool::Ironwood => (
+                    "ironwood_received_notes",
+                    4,
+                    "action_index",
+                    "rho, rseed",
+                    "zeroblob(32), zeroblob(32)",
+                    ", note_version",
+                ),
+                _ => unreachable!(),
+            };
+            let (_, diversifier) = self.receiver(pool, scope);
+            let scope = match scope {
+                Scope::External => 0,
+                Scope::Internal => 1,
+            };
+            self.conn
+                .execute(
+                    &format!(
+                        "INSERT INTO {table}
+                    (transaction_id, {index_column}, account_id, diversifier, value,
+                     {randomness_columns}, is_change, memo, recipient_key_scope{version})
+                    VALUES (1, ?5, ?1, ?2, 20000, {randomness}, ?3, X'F6', ?4{})",
+                        if matches!(pool, Pool::Ironwood) {
+                            ", 2"
+                        } else {
+                            ""
+                        }
+                    ),
+                    rusqlite::params![self.account_id, diversifier, sent, scope, output_index],
+                )
+                .unwrap();
+            if sent {
+                self.conn
+                    .execute(
+                        "INSERT INTO sent_notes
+                     (transaction_id, output_pool, output_index, from_account_id,
+                      to_account_id, value, memo)
+                     VALUES (1, ?1, ?3, ?2, ?2, 20000, X'F6')",
+                        rusqlite::params![code, self.account_id, output_index],
+                    )
+                    .unwrap();
+            }
+        }
+
+        fn transactions(&mut self) -> Vec<Transaction> {
+            crate::sync::get_transactions(
+                &mut self.db,
+                &mut self.conn,
+                &Network::TestNetwork,
+                Some(self.account_uuid),
+                None,
+                None,
+            )
+            .unwrap()
+        }
+
+        fn incoming(&mut self) -> Vec<Transaction> {
+            get_incoming_payments(
+                &mut self.db,
+                &mut self.conn,
+                &Network::TestNetwork,
+                &self.address,
+                None,
+            )
+            .unwrap()
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_preserve_both_pools_and_reconstruct_recipients() {
+        let mut fixture = QueryFixture::new();
+        fixture.add_note(Pool::Orchard, false);
+        fixture.add_note(Pool::Ironwood, false);
+        for txs in [fixture.transactions(), fixture.incoming()] {
+            assert_eq!(txs.len(), 1);
+            assert_eq!(txs[0].incoming.len(), 2);
+            assert!(txs[0].outgoing.is_empty());
+            assert!(txs[0].change.is_empty());
+            assert_eq!(txs[0].mined_height, Some(100));
+            assert_eq!(txs[0].incoming[0].pool, Pool::Orchard);
+            assert_eq!(txs[0].incoming[1].pool, Pool::Ironwood);
+            for note in &txs[0].incoming {
+                assert_eq!(note.recipient, fixture.address);
+                assert_eq!(note.value, 20000);
+            }
+        }
+        assert!(
+            get_incoming_payments(
+                &mut fixture.db,
+                &mut fixture.conn,
+                &Network::TestNetwork,
+                &fixture.address,
+                Some(101)
+            )
+            .unwrap()
+            .is_empty()
+        );
+        assert!(
+            crate::sync::get_transactions(
+                &mut fixture.db,
+                &mut fixture.conn,
+                &Network::TestNetwork,
+                Some(fixture.account_uuid),
+                Some(101),
+                None
+            )
+            .unwrap()
+            .is_empty()
+        );
+    }
+
+    #[test]
+    fn ironwood_queries_preserve_equal_valued_incoming_outputs() {
+        assert_equal_valued_outputs(false);
+    }
+
+    #[test]
+    fn ironwood_queries_preserve_equal_valued_change_outputs() {
+        assert_equal_valued_outputs(true);
+    }
+
+    fn assert_equal_valued_outputs(change: bool) {
+        let mut fixture = QueryFixture::new();
+        fixture.add_scoped_note(Pool::Ironwood, change, Scope::External, 0);
+        fixture.add_scoped_note(Pool::Ironwood, change, Scope::External, 1);
+        for txs in [fixture.transactions(), fixture.incoming()] {
+            assert_eq!(txs.len(), 1);
+            let notes = if change {
+                assert!(txs[0].incoming.is_empty());
+                &txs[0].change
+            } else {
+                assert!(txs[0].change.is_empty());
+                &txs[0].incoming
+            };
+            assert_eq!(notes.len(), 2);
+            assert_eq!(notes.iter().map(|note| note.value).sum::<u64>(), 40_000);
+            assert!(
+                notes
+                    .iter()
+                    .all(|note| note.pool == Pool::Ironwood && note.recipient == fixture.address)
+            );
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_merge_disjoint_receivers_without_losing_outputs() {
+        let mut fixture = QueryFixture::new();
+        fixture.diversifier = fixture.receiver(Pool::Sapling, Scope::External).1;
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 0);
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 1);
+        fixture.add_note(Pool::Sapling, false);
+        let orchard_receiver = fixture.ufvk.orchard().unwrap().address(
+            orchard::keys::Diversifier::from_bytes(fixture.diversifier.clone().try_into().unwrap()),
+            Scope::External,
+        );
+        let address = UnifiedAddress::from_receivers(
+            Some(orchard_receiver),
+            Some(fixture.ufvk.sapling().unwrap().default_address().1),
+            None,
+            None,
+            None,
+        )
+        .unwrap()
+        .encode(&Network::TestNetwork);
+        let txs = get_incoming_payments(
+            &mut fixture.db,
+            &mut fixture.conn,
+            &Network::TestNetwork,
+            &address,
+            None,
+        )
+        .unwrap();
+        assert_eq!(txs.len(), 1);
+        assert_eq!(txs[0].incoming.len(), 3);
+        assert_eq!(
+            txs[0].incoming.iter().map(|note| note.value).sum::<u64>(),
+            60_000
+        );
+        assert_eq!(
+            txs[0]
+                .incoming
+                .iter()
+                .filter(|note| note.pool == Pool::Ironwood)
+                .count(),
+            2
+        );
+        assert_eq!(
+            txs[0]
+                .incoming
+                .iter()
+                .filter(|note| note.pool == Pool::Sapling)
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn ironwood_queries_classify_change_and_self_payments() {
+        let mut fixture = QueryFixture::new();
+        fixture.add_note(Pool::Ironwood, true);
+        for txs in [fixture.transactions(), fixture.incoming()] {
+            assert_eq!(txs[0].change.len(), 1);
+            assert_eq!(txs[0].change[0].pool, Pool::Ironwood);
+            assert!(txs[0].incoming.is_empty());
+            assert!(txs[0].outgoing.is_empty());
+        }
+        fixture
+            .conn
+            .execute_batch(
+                "UPDATE ironwood_received_notes SET memo = X'68656c6c6f';
+             UPDATE sent_notes SET memo = X'68656c6c6f';",
+            )
+            .unwrap();
+        let txs = fixture.transactions();
+        assert_eq!(txs[0].incoming.len(), 1);
+        assert_eq!(txs[0].outgoing.len(), 1);
+        assert!(txs[0].change.is_empty());
+        assert_eq!(fixture.incoming()[0].incoming.len(), 1);
+    }
+
+    #[test]
+    fn ironwood_queries_find_sender_from_spent_notes() {
+        assert_sender_from_spent_notes(None);
+    }
+
+    #[test]
+    fn ironwood_queries_find_sender_from_mixed_orchard_spends() {
+        assert_sender_from_spent_notes(Some(Pool::Orchard));
+    }
+
+    #[test]
+    fn ironwood_queries_find_sender_from_mixed_sapling_spends() {
+        assert_sender_from_spent_notes(Some(Pool::Sapling));
+    }
+
+    fn assert_sender_from_spent_notes(other_pool: Option<Pool>) {
+        let mut fixture = QueryFixture::new();
+        fixture.add_note(Pool::Ironwood, false);
+        if let Some(pool) = other_pool {
+            fixture.add_note(pool, false);
+        }
+        fixture
+            .conn
+            .execute_batch(
+                "INSERT INTO transactions (id_tx, txid, mined_height, min_observed_height)
+             VALUES (2, randomblob(32), 101, 101);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id)
+             VALUES (1, 2);
+             INSERT INTO ironwood_received_notes
+             (transaction_id, action_index, account_id, diversifier, value,
+              rho, rseed, is_change, memo, recipient_key_scope, note_version)
+             SELECT 2, 0, account_id, diversifier, 10000,
+                    rho, rseed, 1, X'F6', 0, note_version
+             FROM ironwood_received_notes WHERE id = 1;",
+            )
+            .unwrap();
+        if let Some(pool) = other_pool {
+            let (table, column) = match pool {
+                Pool::Orchard => ("orchard_received_note_spends", "orchard_received_note_id"),
+                Pool::Sapling => ("sapling_received_note_spends", "sapling_received_note_id"),
+                _ => unreachable!(),
+            };
+            fixture
+                .conn
+                .execute(
+                    &format!("INSERT INTO {table} ({column}, transaction_id) VALUES (1, 2)"),
+                    [],
+                )
+                .unwrap();
+        }
+
+        for txs in [fixture.transactions(), fixture.incoming()] {
+            assert_eq!(txs.len(), 2);
+            assert_eq!(txs[1].mined_height, Some(101));
+            assert!(txs[1].incoming.is_empty());
+            assert_eq!(txs[1].change.len(), 1);
+            assert_eq!(txs[1].change[0].pool, Pool::Ironwood);
+            assert_eq!(txs[1].change[0].recipient, fixture.address);
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_reconstruct_and_filter_both_recipient_scopes() {
+        let mut fixture = QueryFixture::new();
+        fixture.diversifier = fixture.receiver(Pool::Sapling, Scope::External).1;
+        let pools = [Pool::Sapling, Pool::Orchard, Pool::Ironwood];
+        for pool in pools {
+            fixture.add_scoped_note(pool, false, Scope::External, 0);
+            fixture.add_scoped_note(pool, false, Scope::Internal, 1);
+            let (external, external_diversifier) = fixture.receiver(pool, Scope::External);
+            let (internal, internal_diversifier) = fixture.receiver(pool, Scope::Internal);
+            assert_ne!(external, internal);
+            assert_eq!(external_diversifier, internal_diversifier);
+            assert_eq!(external_diversifier, fixture.diversifier);
+        }
+
+        let txs = fixture.transactions();
+        assert_eq!(txs.len(), 1);
+        assert_eq!(txs[0].incoming.len(), 6);
+        for pool in pools {
+            for scope in [Scope::External, Scope::Internal] {
+                let (address, _) = fixture.receiver(pool, scope);
+                assert_eq!(
+                    txs[0]
+                        .incoming
+                        .iter()
+                        .filter(|note| note.pool == pool && note.recipient == address)
+                        .count(),
+                    1
+                );
+                let incoming = get_incoming_payments(
+                    &mut fixture.db,
+                    &mut fixture.conn,
+                    &Network::TestNetwork,
+                    &address,
+                    None,
+                )
+                .unwrap();
+                assert_eq!(incoming.len(), 1);
+                assert_eq!(
+                    incoming[0].incoming.len(),
+                    if pool == Pool::Sapling { 1 } else { 2 }
+                );
+                assert!(
+                    incoming[0]
+                        .incoming
+                        .iter()
+                        .all(|note| note.recipient == address)
+                );
+                assert!(
+                    incoming[0]
+                        .incoming
+                        .iter()
+                        .all(|note| if pool == Pool::Sapling {
+                            note.pool == Pool::Sapling
+                        } else {
+                            matches!(note.pool, Pool::Orchard | Pool::Ironwood)
+                        })
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_reject_unknown_recipient_scopes() {
+        let mut fixture = QueryFixture::new();
+        fixture.add_note(Pool::Ironwood, false);
+        for scope in [None, Some(-1), Some(2)] {
+            fixture
+                .conn
+                .execute(
+                    "UPDATE ironwood_received_notes SET recipient_key_scope = ?1",
+                    [scope],
+                )
+                .unwrap();
+            let error = crate::sync::get_transactions(
+                &mut fixture.db,
+                &mut fixture.conn,
+                &Network::TestNetwork,
+                Some(fixture.account_uuid),
+                None,
+                None,
+            )
+            .unwrap_err();
+            assert!(error.to_string().contains("Unknown recipient key scope:"));
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_track_unspent_notes_and_birthday_heights() {
+        use crate::sql_statements::{get_birthday_heights_sql, get_unspent_notes_sql};
+
+        let fixture = QueryFixture::new();
+        let expiry = crate::analysis::expiry_delta_sql(&Network::TestNetwork);
+        let notes_sql = get_unspent_notes_sql(&expiry);
+        let birthday_sql = get_birthday_heights_sql(&expiry);
+        fixture.add_note(Pool::Ironwood, false);
+        fixture
+            .conn
+            .execute_batch("UPDATE ironwood_received_notes SET recipient_key_scope = 1;")
+            .unwrap();
+        let params = named_params! {
+            ":account_uuid": fixture.account_uuid.expose_uuid(),
+            ":target_height": 102,
+        };
+        let note: (u32, u64, u32, u32) = fixture
+            .conn
+            .query_row(&notes_sql, params, |row| {
+                Ok((
+                    row.get("block")?,
+                    row.get("value")?,
+                    row.get("output_pool")?,
+                    row.get("recipient_key_scope")?,
+                ))
+            })
+            .unwrap();
+        assert_eq!(note, (100, 20000, 4, 1));
+        let birthday: Option<u32> = fixture
+            .conn
+            .query_row(&birthday_sql, params, |row| {
+                row.get("Block with first unspent note")
+            })
+            .unwrap();
+        assert_eq!(birthday, Some(100));
+
+        fixture
+            .conn
+            .execute_batch(
+                "INSERT INTO transactions (id_tx, txid, mined_height, min_observed_height)
+             VALUES (2, randomblob(32), 101, 101);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id)
+             VALUES (1, 2);",
+            )
+            .unwrap();
+        let mut stmt = fixture.conn.prepare(&notes_sql).unwrap();
+        assert!(stmt.query(params).unwrap().next().unwrap().is_none());
+        let birthday: Option<u32> = fixture
+            .conn
+            .query_row(&birthday_sql, params, |row| {
+                row.get("Block with first unspent note")
+            })
+            .unwrap();
+        assert_eq!(birthday, None);
+    }
+
+    #[test]
+    fn ironwood_queries_birthday_heights_avoid_mixed_pool_cross_products() {
+        let fixture = QueryFixture::new();
+        for pool in [Pool::Sapling, Pool::Orchard, Pool::Ironwood] {
+            for index in 0..50 {
+                fixture.add_scoped_note(pool, false, Scope::External, index);
+            }
+        }
+        let sql = crate::sql_statements::get_birthday_heights_sql(
+            &crate::analysis::expiry_delta_sql(&Network::TestNetwork),
+        );
+        let mut stmt = fixture.conn.prepare(&sql).unwrap();
+        let rebirth: Option<u32> = stmt
+            .query_row(
+                named_params! {
+                    ":account_uuid": fixture.account_uuid.expose_uuid(),
+                    ":target_height": 150,
+                },
+                |row| row.get("Block with first unspent note"),
+            )
+            .unwrap();
+        assert_eq!(rebirth, Some(100));
+        let steps = stmt.get_status(rusqlite::StatementStatus::VmStep);
+        assert!(
+            steps > 0 && steps < 100_000,
+            "150 notes should not form a cross product: {steps} SQLite VM steps"
+        );
+    }
+
+    #[test]
+    fn ironwood_queries_include_recovered_outputs_in_minimum_fees() {
+        let fixture = QueryFixture::new_with_spending_keys(true);
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 0);
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 1);
+        fixture.conn.execute_batch(
+            "DELETE FROM scan_queue;
+             INSERT INTO scan_queue (block_range_start, block_range_end, priority) VALUES (1, 150, 10);
+             INSERT INTO sapling_tree_checkpoints (checkpoint_id) VALUES (100);
+             INSERT INTO orchard_tree_checkpoints (checkpoint_id) VALUES (100);
+             INSERT INTO transactions (id_tx, txid, expiry_height, min_observed_height)
+             VALUES (2, randomblob(32), 149, 100);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id) VALUES (1, 2), (2, 2);"
+        ).unwrap();
+        let config = crate::interop::DbInit {
+            data_file: fixture.db.path.to_str().unwrap().to_owned(),
+            network: Network::TestNetwork.into(),
+        };
+        let fee: u64 = zcash_primitives::transaction::fees::zip317::FeeRule::standard()
+            .marginal_fee()
+            .into();
+        let balances = crate::analysis::get_user_balances(
+            &config,
+            &fixture.account_uuid,
+            zcash_client_backend::data_api::wallet::ConfirmationsPolicy::default(),
+        )
+        .unwrap();
+        assert_eq!(balances.minimum_fees, 3 * fee);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET expiry_height = 150 WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        let balances = crate::analysis::get_user_balances(
+            &config,
+            &fixture.account_uuid,
+            zcash_client_backend::data_api::wallet::ConfirmationsPolicy::default(),
+        )
+        .unwrap();
+        assert_eq!(balances.minimum_fees, 0);
+    }
+
+    #[test]
+    fn ironwood_queries_recover_notes_after_expired_spends() {
+        let fixture = QueryFixture::new();
+        for pool in [Pool::Sapling, Pool::Orchard, Pool::Ironwood] {
+            fixture.add_note(pool, false);
+        }
+        fixture.conn.execute_batch(
+            "INSERT INTO transactions (id_tx, txid, expiry_height, min_observed_height)
+             VALUES (2, randomblob(32), 105, 100);
+             INSERT INTO sapling_received_note_spends (sapling_received_note_id, transaction_id) VALUES (1, 2);
+             INSERT INTO orchard_received_note_spends (orchard_received_note_id, transaction_id) VALUES (1, 2);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id) VALUES (1, 2);"
+        ).unwrap();
+
+        assert_notes_available(&fixture, 105, false);
+        assert_notes_available(&fixture, 106, true);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET mined_height = 104 WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        assert_notes_available(&fixture, 106, false);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET mined_height = NULL, expiry_height = 0 WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        assert_notes_available(&fixture, 200, false);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET expiry_height = NULL WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        let expiry = zcash_primitives::transaction::builder::default_tx_expiry_delta(
+            zcash_protocol::consensus::BranchId::for_height(
+                &Network::TestNetwork,
+                BlockHeight::from_u32(100),
+            ),
+        );
+        assert_notes_available(&fixture, 100 + expiry, false);
+        assert_notes_available(&fixture, 101 + expiry, true);
+
+        fixture.conn.execute_batch(
+            "INSERT INTO transactions (id_tx, txid, expiry_height, min_observed_height)
+             VALUES (3, randomblob(32), 200, 100);
+             INSERT INTO sapling_received_note_spends (sapling_received_note_id, transaction_id) VALUES (1, 3);
+             INSERT INTO orchard_received_note_spends (orchard_received_note_id, transaction_id) VALUES (1, 3);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id) VALUES (1, 3);"
+        ).unwrap();
+        assert_notes_available(&fixture, 150, false);
+        assert_notes_available(&fixture, 201, true);
+
+        for height in zcash_protocol::consensus::UPGRADES_IN_ORDER
+            .iter()
+            .filter_map(|upgrade| Network::TestNetwork.activation_height(*upgrade))
+        {
+            fixture.conn.execute(
+                "UPDATE transactions SET expiry_height = NULL, min_observed_height = ?1 WHERE id_tx = 2",
+                [u32::from(height)],
+            ).unwrap();
+            let expiry = zcash_primitives::transaction::builder::default_tx_expiry_delta(
+                zcash_protocol::consensus::BranchId::for_height(&Network::TestNetwork, height),
+            );
+            assert_notes_available(&fixture, u32::from(height) + expiry, false);
+            assert_notes_available(&fixture, u32::from(height) + expiry + 1, true);
+        }
+    }
+
+    fn assert_notes_available(fixture: &QueryFixture, target_height: u32, available: bool) {
+        fixture.conn.execute("DELETE FROM scan_queue", []).unwrap();
+        fixture.conn.execute(
+            "INSERT INTO scan_queue (block_range_start, block_range_end, priority) VALUES (1, ?1, 10)",
+            [target_height],
+        ).unwrap();
+        let sql = crate::sql_statements::get_unspent_notes_sql(&crate::analysis::expiry_delta_sql(
+            &Network::TestNetwork,
+        ));
+        let mut stmt = fixture.conn.prepare(&sql).unwrap();
+        let mut notes = stmt
+            .query_map(
+                named_params! {
+                    ":account_uuid": fixture.account_uuid.expose_uuid(),
+                    ":target_height": target_height,
+                },
+                |row| {
+                    Ok((
+                        row.get::<_, u32>("output_pool")?,
+                        row.get::<_, u64>("value")?,
+                    ))
+                },
+            )
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        notes.sort();
+        assert_eq!(
+            notes,
+            if available {
+                vec![(2, 20_000), (3, 20_000), (4, 20_000)]
+            } else {
+                vec![]
+            }
+        );
+        let heights = crate::analysis::get_birthday_heights(
+            crate::interop::DbInit {
+                data_file: fixture.db.path.to_str().unwrap().to_owned(),
+                network: Network::TestNetwork.into(),
+            },
+            &fixture.account_uuid,
+        )
+        .unwrap();
+        assert_eq!(heights.birthday_height, Some(100));
+        assert_eq!(
+            heights.rebirth_height,
+            if available { Some(100) } else { None }
+        );
+    }
+
+    #[test]
+    fn ironwood_queries_still_reject_unknown_pool_codes() {
+        let mut fixture = QueryFixture::new();
+        fixture.add_note(Pool::Ironwood, false);
+        fixture
+            .conn
+            .execute_batch(
+                "CREATE TEMP VIEW v_tx_outputs AS
+             SELECT txid, 5 AS output_pool, output_index, from_account_uuid,
+                    to_account_uuid, to_address, value, memo
+             FROM main.v_tx_outputs;",
+            )
+            .unwrap();
+        let error = crate::sync::get_transactions(
+            &mut fixture.db,
+            &mut fixture.conn,
+            &Network::TestNetwork,
+            Some(fixture.account_uuid),
+            None,
+            None,
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("Unknown output pool type: 5"));
+    }
 }

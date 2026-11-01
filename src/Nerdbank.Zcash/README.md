@@ -10,7 +10,8 @@
 ### Light client functionality
 
 * Programmatically receive or spend Zcash.
-* Supports Orchard, Sapling and Transparent pools.
+* Supports Ironwood, Orchard, Sapling and Transparent pools.
+* Reads Ironwood transaction history and balances. Ironwood shares Orchard receiving addresses; `Transaction.LineItem.Pool` preserves the pool recorded by the wallet instead of inferring Orchard from that address.
 * Zcash CLI allows you to download and send transactions with simple commands and no programming.
 * User-friendly balances that helps an app to illustrate spendable funds vs. other funds that are held by the user but are not yet available for spending.
 * Supports spending and full viewing keys. (Incoming viewing keys coming later.)

@@ -11,7 +11,8 @@ use crate::{
     error::Error,
     interop::DbInit,
     sql_statements::{
-        GET_BIRTHDAY_HEIGHTS, GET_UNSPENT_NOTES, get_unspent_transparent_by_mined_height_sql,
+        get_birthday_heights_sql, get_unspent_notes_sql,
+        get_unspent_transparent_by_mined_height_sql,
     },
 };
 
@@ -31,10 +32,12 @@ pub fn get_birthday_heights(
     account_uuid: &AccountUuid,
 ) -> Result<BirthdayHeights, Error> {
     let conn = Connection::open(config.data_file)?;
+    let sql = get_birthday_heights_sql(&expiry_delta_sql(&config.network.into()));
     let heights = conn.query_row(
-        GET_BIRTHDAY_HEIGHTS,
+        &sql,
         named_params! {
             ":account_uuid": account_uuid.expose_uuid(),
+            ":target_height": query_target_height(&conn)?,
         },
         |row| Ok((row.get(0)?, row.get::<_, Option<u32>>(1)?, row.get(2)?)),
     )?;
@@ -142,9 +145,11 @@ pub fn get_user_balances(
         && let Some((_, untrusted_anchor)) = untrusted_anchor
     {
         let conn = Connection::open(config.data_file.clone())?;
-        let mut balances_query = conn.prepare(GET_UNSPENT_NOTES)?;
+        let sql = get_unspent_notes_sql(&expiry_delta_sql(&config.network.into()));
+        let mut balances_query = conn.prepare(&sql)?;
         let mut rows = balances_query.query(named_params! {
             ":account_uuid": account_uuid.expose_uuid(),
+            ":target_height": query_target_height(&conn)?,
         })?;
 
         while let Some(row) = rows.next()? {
@@ -254,18 +259,11 @@ fn add_view_only_transparent_outputs(
     balances: &mut UserBalances,
 ) -> Result<(), Error> {
     let conn = Connection::open(data_file)?;
-    // `scan_queue` ends are exclusive, so the maximum end is the target height the
-    // library passes to `spent_utxos_clause` (`chain_tip + 1`).
-    let target_height: u32 = conn.query_row(
-        "SELECT COALESCE(MAX(block_range_end), 1) FROM scan_queue",
-        [],
-        |row| row.get(0),
-    )?;
     let sql = get_unspent_transparent_by_mined_height_sql(&expiry_delta_sql(&network));
     let mut query = conn.prepare(&sql)?;
     let mut rows = query.query(named_params! {
         ":account_uuid": account_uuid.expose_uuid(),
-        ":target_height": target_height,
+        ":target_height": query_target_height(&conn)?,
     })?;
     while let Some(row) = rows.next()? {
         let mined_height: Option<u32> = row.get(0)?;
@@ -277,11 +275,20 @@ fn add_view_only_transparent_outputs(
     Ok(())
 }
 
+/// Returns the exclusive chain tip from the scan queue, matching librustzcash's spend queries.
+fn query_target_height(conn: &Connection) -> Result<u32, Error> {
+    Ok(conn.query_row(
+        "SELECT COALESCE(MAX(block_range_end), 1) FROM scan_queue",
+        [],
+        |row| row.get(0),
+    )?)
+}
+
 /// SQL expression for the default expiry delta at `transactions.min_observed_height`.
 ///
 /// This follows `zcash_client_sqlite`'s `default_tx_expiry_delta_sql`: the delta changes
 /// only when a network upgrade selects a different [`default_tx_expiry_delta`].
-fn expiry_delta_sql(network: &Network) -> String {
+pub(crate) fn expiry_delta_sql(network: &Network) -> String {
     let mut activation_heights = UPGRADES_IN_ORDER
         .iter()
         .filter_map(|upgrade| network.activation_height(*upgrade))

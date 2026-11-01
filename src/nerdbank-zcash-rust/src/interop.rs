@@ -78,7 +78,7 @@ pub enum ChainType {
     Testnet,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Pool {
     Transparent,
     Sapling,

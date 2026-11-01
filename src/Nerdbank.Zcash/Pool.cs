@@ -27,4 +27,9 @@ public enum Pool
 	/// The third shielded pool. Uses a trustless setup.
 	/// </summary>
 	Orchard,
+
+	/// <summary>
+	/// The successor to Orchard, sharing its keys and receiving addresses.
+	/// </summary>
+	Ironwood,
 }

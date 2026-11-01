@@ -13,12 +13,15 @@ public partial record Transaction
 	/// <param name="Memo">The memo included for this recipient.</param>
 	public record struct LineItem(ZcashAddress ToAddress, decimal Amount, in Memo Memo)
 	{
+		private Pool? pool;
+
 		/// <summary>
-		/// Gets the pool that received this note.
+		/// Gets or initializes the pool that received this note.
 		/// </summary>
+		/// <remarks>When not explicitly initialized, the pool is inferred from the receiving address.</remarks>
 		public Pool Pool
 		{
-			get => this.ToAddress switch
+			get => this.pool ?? this.ToAddress switch
 			{
 				TransparentAddress => Pool.Transparent,
 				SaplingAddress => Pool.Sapling,
@@ -26,6 +29,7 @@ public partial record Transaction
 				null => throw new InvalidOperationException("This struct hasn't been initialized."),
 				_ => throw new NotSupportedException(),
 			};
+			init => this.pool = value;
 		}
 	}
 }

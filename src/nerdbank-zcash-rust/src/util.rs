@@ -27,3 +27,18 @@ pub fn zip317_helper<DbT>(
         GreedyInputSelector::new(),
     )
 }
+
+/// Decodes a recorded shielded recipient key scope, rejecting missing or unknown scopes.
+pub(crate) fn parse_recipient_key_scope(
+    code: Option<i64>,
+) -> Result<zip32::Scope, crate::error::Error> {
+    match code {
+        Some(0) => Ok(zip32::Scope::External),
+        Some(1) => Ok(zip32::Scope::Internal),
+        _ => Err(crate::error::Error::SqliteClient(
+            zcash_client_sqlite::error::SqliteClientError::CorruptedData(format!(
+                "Unknown recipient key scope: {code:?}"
+            )),
+        )),
+    }
+}
