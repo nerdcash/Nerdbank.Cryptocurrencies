@@ -58,9 +58,16 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 
 // TODO: update this to consider UTXOs in "Block with first unspent note" column.
 // Note that WalletDb::get_min_unspent_height provides the rebirth height at the wallet level (instead of the account level).
-pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
+/// Returns birthday-height SQL, treating only mined or unexpired transactions as spends.
+/// The caller binds `:account_uuid` and the exclusive chain-tip `:target_height`.
+pub(crate) fn get_birthday_heights_sql(expiry_delta_sql: &str) -> String {
+    let unexpired_spend = unexpired_spend_condition(expiry_delta_sql);
+    format!(
+        r#"
 	WITH params(account_id) AS (
 		SELECT id FROM accounts WHERE uuid = :account_uuid LIMIT 1
+	), unexpired_spends(transaction_id) AS (
+		SELECT stx.id_tx FROM transactions stx WHERE {unexpired_spend}
 	)
 	SELECT
 		(SELECT birthday_height FROM accounts WHERE uuid = :account_uuid) AS "Original birthday height",
@@ -68,21 +75,30 @@ pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
 		(SELECT MIN(t.block)
 			FROM transactions t
 			LEFT OUTER JOIN sapling_received_notes s ON s.transaction_id = t.id_tx
-			LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id
+			LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id AND ss.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
 			LEFT OUTER JOIN orchard_received_notes o ON o.transaction_id = t.id_tx
-			LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id
+			LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id AND os.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
 			LEFT OUTER JOIN ironwood_received_notes i ON i.transaction_id = t.id_tx
-			LEFT OUTER JOIN ironwood_received_note_spends isp ON isp.ironwood_received_note_id = i.id
+			LEFT OUTER JOIN ironwood_received_note_spends isp ON isp.ironwood_received_note_id = i.id AND isp.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
 			WHERE (s.account_id = (SELECT account_id FROM params) AND ss.transaction_id IS NULL)
 				OR (o.account_id = (SELECT account_id FROM params) AND os.transaction_id IS NULL)
 				OR (i.account_id = (SELECT account_id FROM params) AND isp.transaction_id IS NULL)
 		) AS "Block with first unspent note"
-"#;
+"#
+    )
+}
 
 // The v_tx_outputs view doesn't include transparent UTXOs, so we filter them out (for good measure) and add them via UNION with the utxos table.
-pub(crate) const GET_UNSPENT_NOTES: &str = r#"
+/// Returns unspent-note SQL, ignoring spends that expired without being mined.
+/// The caller binds `:account_uuid` and the exclusive chain-tip `:target_height`.
+pub(crate) fn get_unspent_notes_sql(expiry_delta_sql: &str) -> String {
+    let unexpired_spend = unexpired_spend_condition(expiry_delta_sql);
+    format!(
+        r#"
 	WITH params(account_id) AS (
 		SELECT id FROM accounts WHERE uuid = :account_uuid LIMIT 1
+	), unexpired_spends(transaction_id) AS (
+		SELECT stx.id_tx FROM transactions stx WHERE {unexpired_spend}
 	)
 
 	SELECT
@@ -94,14 +110,14 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	FROM v_tx_outputs txo
 	INNER JOIN transactions tx ON tx.txid = txo.txid
 	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.transaction_id = tx.id_tx AND s.output_index = txo.output_index
-	LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id
+	LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id AND ss.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
 	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.transaction_id = tx.id_tx AND o.action_index = txo.output_index
-	LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id
+	LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id AND os.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
 	LEFT OUTER JOIN ironwood_received_notes i ON txo.output_pool = 4 AND i.transaction_id = tx.id_tx AND i.action_index = txo.output_index
-	LEFT OUTER JOIN ironwood_received_note_spends isp ON isp.ironwood_received_note_id = i.id
+	LEFT OUTER JOIN ironwood_received_note_spends isp ON isp.ironwood_received_note_id = i.id AND isp.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
 	WHERE txo.to_account_uuid = :account_uuid AND ss.transaction_id IS NULL AND os.transaction_id IS NULL AND isp.transaction_id IS NULL AND txo.output_pool > 0
 
-	UNION
+	UNION ALL
 
 	SELECT
 		t.block,
@@ -111,9 +127,11 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 		0  -- is_change
 	FROM transparent_received_outputs txo
 	INNER JOIN transactions t ON t.id_tx = txo.transaction_id
-	LEFT OUTER JOIN transparent_received_output_spends j ON txo.id = j.transparent_received_output_id
+	LEFT OUTER JOIN transparent_received_output_spends j ON txo.id = j.transparent_received_output_id AND j.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
 	WHERE account_id = (SELECT account_id FROM params) AND j.transaction_id IS NULL
-"#;
+"#
+    )
+}
 
 /// Unspent transparent outputs for one account, with a null mined height when the
 /// creating transaction is still unconfirmed.
@@ -123,6 +141,7 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 /// The caller binds `:account_uuid` and `:target_height` (the exclusive end of the wallet's
 /// chain tip, matching `spent_utxos_clause`).
 pub(crate) fn get_unspent_transparent_by_mined_height_sql(expiry_delta_sql: &str) -> String {
+    let unexpired_spend = unexpired_spend_condition(expiry_delta_sql);
     format!(
         r#"
 	SELECT t.mined_height, txo.value_zat
@@ -134,15 +153,24 @@ pub(crate) fn get_unspent_transparent_by_mined_height_sql(expiry_delta_sql: &str
 		SELECT spent.transparent_received_output_id
 		FROM transparent_received_output_spends spent
 		JOIN transactions stx ON stx.id_tx = spent.transaction_id
-		WHERE stx.mined_height < :target_height
-		   OR stx.expiry_height = 0
-		   OR stx.expiry_height >= :target_height
-		   OR (
-				stx.expiry_height IS NULL
-				AND stx.min_observed_height + {expiry_delta_sql} >= :target_height
-		   )
+		WHERE {unexpired_spend}
 	  )
 "#
+    )
+}
+
+/// Matches librustzcash's mined-or-unexpired transaction condition at `:target_height`.
+fn unexpired_spend_condition(expiry_delta_sql: &str) -> String {
+    format!(
+        r#"
+		stx.mined_height < :target_height
+		OR stx.expiry_height = 0
+		OR stx.expiry_height >= :target_height
+		OR (
+			stx.expiry_height IS NULL
+			AND stx.min_observed_height + {expiry_delta_sql} >= :target_height
+		)
+	"#
     )
 }
 

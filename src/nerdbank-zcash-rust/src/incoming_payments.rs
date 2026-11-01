@@ -238,24 +238,8 @@ pub(crate) fn get_incoming_payments(
                 .iter_mut()
                 .find(|t| t.account_id == row.account_id && t.txid == row.txid)
             {
-                for note in row.incoming {
-                    if !existing.incoming.iter().any(|n| {
-                        n.pool == note.pool
-                            && n.value == note.value
-                            && n.recipient == note.recipient
-                    }) {
-                        existing.incoming.push(note);
-                    }
-                }
-                for note in row.change {
-                    if !existing.change.iter().any(|n| {
-                        n.pool == note.pool
-                            && n.value == note.value
-                            && n.recipient == note.recipient
-                    }) {
-                        existing.change.push(note);
-                    }
-                }
+                existing.incoming.extend(row.incoming);
+                existing.change.extend(row.change);
             } else {
                 all_transactions.push(row);
             }
@@ -478,6 +462,10 @@ mod tests {
 
     impl QueryFixture {
         fn new() -> Self {
+            Self::new_with_spending_keys(false)
+        }
+
+        fn new_with_spending_keys(spending: bool) -> Self {
             let file = testdir::testdir!().join("wallet.sqlite");
             let mut db = Db::init(&file, Network::TestNetwork).unwrap();
             let ufvk = UnifiedSpendingKey::from_seed(
@@ -492,11 +480,22 @@ mod tests {
                 BlockHash([0; 32]),
                 None,
             );
-            let account_uuid = db
-                .data
-                .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
-                .unwrap()
-                .id();
+            let account_uuid = if spending {
+                db.data
+                    .create_account(
+                        "spend",
+                        &secrecy::SecretVec::new(vec![0x51; 64]),
+                        &birthday,
+                        None,
+                    )
+                    .unwrap()
+                    .0
+            } else {
+                db.data
+                    .import_account_ufvk("view", &ufvk, &birthday, AccountPurpose::ViewOnly, None)
+                    .unwrap()
+                    .id()
+            };
             let receiver = ufvk.orchard().unwrap().address_at(0u32, Scope::External);
             let address = UnifiedAddress::from_receivers(Some(receiver), None, None, None, None)
                 .unwrap()
@@ -689,6 +688,91 @@ mod tests {
     }
 
     #[test]
+    fn ironwood_queries_preserve_equal_valued_incoming_outputs() {
+        assert_equal_valued_outputs(false);
+    }
+
+    #[test]
+    fn ironwood_queries_preserve_equal_valued_change_outputs() {
+        assert_equal_valued_outputs(true);
+    }
+
+    fn assert_equal_valued_outputs(change: bool) {
+        let mut fixture = QueryFixture::new();
+        fixture.add_scoped_note(Pool::Ironwood, change, Scope::External, 0);
+        fixture.add_scoped_note(Pool::Ironwood, change, Scope::External, 1);
+        for txs in [fixture.transactions(), fixture.incoming()] {
+            assert_eq!(txs.len(), 1);
+            let notes = if change {
+                assert!(txs[0].incoming.is_empty());
+                &txs[0].change
+            } else {
+                assert!(txs[0].change.is_empty());
+                &txs[0].incoming
+            };
+            assert_eq!(notes.len(), 2);
+            assert_eq!(notes.iter().map(|note| note.value).sum::<u64>(), 40_000);
+            assert!(
+                notes
+                    .iter()
+                    .all(|note| note.pool == Pool::Ironwood && note.recipient == fixture.address)
+            );
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_merge_disjoint_receivers_without_losing_outputs() {
+        let mut fixture = QueryFixture::new();
+        fixture.diversifier = fixture.receiver(Pool::Sapling, Scope::External).1;
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 0);
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 1);
+        fixture.add_note(Pool::Sapling, false);
+        let orchard_receiver = fixture.ufvk.orchard().unwrap().address(
+            orchard::keys::Diversifier::from_bytes(fixture.diversifier.clone().try_into().unwrap()),
+            Scope::External,
+        );
+        let address = UnifiedAddress::from_receivers(
+            Some(orchard_receiver),
+            Some(fixture.ufvk.sapling().unwrap().default_address().1),
+            None,
+            None,
+            None,
+        )
+        .unwrap()
+        .encode(&Network::TestNetwork);
+        let txs = get_incoming_payments(
+            &mut fixture.db,
+            &mut fixture.conn,
+            &Network::TestNetwork,
+            &address,
+            None,
+        )
+        .unwrap();
+        assert_eq!(txs.len(), 1);
+        assert_eq!(txs[0].incoming.len(), 3);
+        assert_eq!(
+            txs[0].incoming.iter().map(|note| note.value).sum::<u64>(),
+            60_000
+        );
+        assert_eq!(
+            txs[0]
+                .incoming
+                .iter()
+                .filter(|note| note.pool == Pool::Ironwood)
+                .count(),
+            2
+        );
+        assert_eq!(
+            txs[0]
+                .incoming
+                .iter()
+                .filter(|note| note.pool == Pool::Sapling)
+                .count(),
+            1
+        );
+    }
+
+    #[test]
     fn ironwood_queries_classify_change_and_self_payments() {
         let mut fixture = QueryFixture::new();
         fixture.add_note(Pool::Ironwood, true);
@@ -862,18 +946,24 @@ mod tests {
 
     #[test]
     fn ironwood_queries_track_unspent_notes_and_birthday_heights() {
-        use crate::sql_statements::{GET_BIRTHDAY_HEIGHTS, GET_UNSPENT_NOTES};
+        use crate::sql_statements::{get_birthday_heights_sql, get_unspent_notes_sql};
 
         let fixture = QueryFixture::new();
+        let expiry = crate::analysis::expiry_delta_sql(&Network::TestNetwork);
+        let notes_sql = get_unspent_notes_sql(&expiry);
+        let birthday_sql = get_birthday_heights_sql(&expiry);
         fixture.add_note(Pool::Ironwood, false);
         fixture
             .conn
             .execute_batch("UPDATE ironwood_received_notes SET recipient_key_scope = 1;")
             .unwrap();
-        let params = named_params! { ":account_uuid": fixture.account_uuid.expose_uuid() };
+        let params = named_params! {
+            ":account_uuid": fixture.account_uuid.expose_uuid(),
+            ":target_height": 102,
+        };
         let note: (u32, u64, u32, u32) = fixture
             .conn
-            .query_row(GET_UNSPENT_NOTES, params, |row| {
+            .query_row(&notes_sql, params, |row| {
                 Ok((
                     row.get("block")?,
                     row.get("value")?,
@@ -885,7 +975,7 @@ mod tests {
         assert_eq!(note, (100, 20000, 4, 1));
         let birthday: Option<u32> = fixture
             .conn
-            .query_row(GET_BIRTHDAY_HEIGHTS, params, |row| {
+            .query_row(&birthday_sql, params, |row| {
                 row.get("Block with first unspent note")
             })
             .unwrap();
@@ -900,15 +990,183 @@ mod tests {
              VALUES (1, 2);",
             )
             .unwrap();
-        let mut stmt = fixture.conn.prepare(GET_UNSPENT_NOTES).unwrap();
+        let mut stmt = fixture.conn.prepare(&notes_sql).unwrap();
         assert!(stmt.query(params).unwrap().next().unwrap().is_none());
         let birthday: Option<u32> = fixture
             .conn
-            .query_row(GET_BIRTHDAY_HEIGHTS, params, |row| {
+            .query_row(&birthday_sql, params, |row| {
                 row.get("Block with first unspent note")
             })
             .unwrap();
         assert_eq!(birthday, None);
+    }
+
+    #[test]
+    fn ironwood_queries_include_recovered_outputs_in_minimum_fees() {
+        let fixture = QueryFixture::new_with_spending_keys(true);
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 0);
+        fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 1);
+        fixture.conn.execute_batch(
+            "DELETE FROM scan_queue;
+             INSERT INTO scan_queue (block_range_start, block_range_end, priority) VALUES (1, 150, 10);
+             INSERT INTO sapling_tree_checkpoints (checkpoint_id) VALUES (100);
+             INSERT INTO orchard_tree_checkpoints (checkpoint_id) VALUES (100);
+             INSERT INTO transactions (id_tx, txid, expiry_height, min_observed_height)
+             VALUES (2, randomblob(32), 149, 100);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id) VALUES (1, 2), (2, 2);"
+        ).unwrap();
+        let config = crate::interop::DbInit {
+            data_file: fixture.db.path.to_str().unwrap().to_owned(),
+            network: Network::TestNetwork.into(),
+        };
+        let fee: u64 = zcash_primitives::transaction::fees::zip317::FeeRule::standard()
+            .marginal_fee()
+            .into();
+        let balances = crate::analysis::get_user_balances(
+            &config,
+            &fixture.account_uuid,
+            zcash_client_backend::data_api::wallet::ConfirmationsPolicy::default(),
+        )
+        .unwrap();
+        assert_eq!(balances.minimum_fees, 3 * fee);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET expiry_height = 150 WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        let balances = crate::analysis::get_user_balances(
+            &config,
+            &fixture.account_uuid,
+            zcash_client_backend::data_api::wallet::ConfirmationsPolicy::default(),
+        )
+        .unwrap();
+        assert_eq!(balances.minimum_fees, 0);
+    }
+
+    #[test]
+    fn ironwood_queries_recover_notes_after_expired_spends() {
+        let fixture = QueryFixture::new();
+        for pool in [Pool::Sapling, Pool::Orchard, Pool::Ironwood] {
+            fixture.add_note(pool, false);
+        }
+        fixture.conn.execute_batch(
+            "INSERT INTO transactions (id_tx, txid, expiry_height, min_observed_height)
+             VALUES (2, randomblob(32), 105, 100);
+             INSERT INTO sapling_received_note_spends (sapling_received_note_id, transaction_id) VALUES (1, 2);
+             INSERT INTO orchard_received_note_spends (orchard_received_note_id, transaction_id) VALUES (1, 2);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id) VALUES (1, 2);"
+        ).unwrap();
+
+        assert_notes_available(&fixture, 105, false);
+        assert_notes_available(&fixture, 106, true);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET mined_height = 104 WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        assert_notes_available(&fixture, 106, false);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET mined_height = NULL, expiry_height = 0 WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        assert_notes_available(&fixture, 200, false);
+        fixture
+            .conn
+            .execute(
+                "UPDATE transactions SET expiry_height = NULL WHERE id_tx = 2",
+                [],
+            )
+            .unwrap();
+        let expiry = zcash_primitives::transaction::builder::default_tx_expiry_delta(
+            zcash_protocol::consensus::BranchId::for_height(
+                &Network::TestNetwork,
+                BlockHeight::from_u32(100),
+            ),
+        );
+        assert_notes_available(&fixture, 100 + expiry, false);
+        assert_notes_available(&fixture, 101 + expiry, true);
+
+        fixture.conn.execute_batch(
+            "INSERT INTO transactions (id_tx, txid, expiry_height, min_observed_height)
+             VALUES (3, randomblob(32), 200, 100);
+             INSERT INTO sapling_received_note_spends (sapling_received_note_id, transaction_id) VALUES (1, 3);
+             INSERT INTO orchard_received_note_spends (orchard_received_note_id, transaction_id) VALUES (1, 3);
+             INSERT INTO ironwood_received_note_spends (ironwood_received_note_id, transaction_id) VALUES (1, 3);"
+        ).unwrap();
+        assert_notes_available(&fixture, 150, false);
+        assert_notes_available(&fixture, 201, true);
+
+        for height in zcash_protocol::consensus::UPGRADES_IN_ORDER
+            .iter()
+            .filter_map(|upgrade| Network::TestNetwork.activation_height(*upgrade))
+        {
+            fixture.conn.execute(
+                "UPDATE transactions SET expiry_height = NULL, min_observed_height = ?1 WHERE id_tx = 2",
+                [u32::from(height)],
+            ).unwrap();
+            let expiry = zcash_primitives::transaction::builder::default_tx_expiry_delta(
+                zcash_protocol::consensus::BranchId::for_height(&Network::TestNetwork, height),
+            );
+            assert_notes_available(&fixture, u32::from(height) + expiry, false);
+            assert_notes_available(&fixture, u32::from(height) + expiry + 1, true);
+        }
+    }
+
+    fn assert_notes_available(fixture: &QueryFixture, target_height: u32, available: bool) {
+        fixture.conn.execute("DELETE FROM scan_queue", []).unwrap();
+        fixture.conn.execute(
+            "INSERT INTO scan_queue (block_range_start, block_range_end, priority) VALUES (1, ?1, 10)",
+            [target_height],
+        ).unwrap();
+        let sql = crate::sql_statements::get_unspent_notes_sql(&crate::analysis::expiry_delta_sql(
+            &Network::TestNetwork,
+        ));
+        let mut stmt = fixture.conn.prepare(&sql).unwrap();
+        let mut notes = stmt
+            .query_map(
+                named_params! {
+                    ":account_uuid": fixture.account_uuid.expose_uuid(),
+                    ":target_height": target_height,
+                },
+                |row| {
+                    Ok((
+                        row.get::<_, u32>("output_pool")?,
+                        row.get::<_, u64>("value")?,
+                    ))
+                },
+            )
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        notes.sort();
+        assert_eq!(
+            notes,
+            if available {
+                vec![(2, 20_000), (3, 20_000), (4, 20_000)]
+            } else {
+                vec![]
+            }
+        );
+        let heights = crate::analysis::get_birthday_heights(
+            crate::interop::DbInit {
+                data_file: fixture.db.path.to_str().unwrap().to_owned(),
+                network: Network::TestNetwork.into(),
+            },
+            &fixture.account_uuid,
+        )
+        .unwrap();
+        assert_eq!(heights.birthday_height, Some(100));
+        assert_eq!(
+            heights.rebirth_height,
+            if available { Some(100) } else { None }
+        );
     }
 
     #[test]
