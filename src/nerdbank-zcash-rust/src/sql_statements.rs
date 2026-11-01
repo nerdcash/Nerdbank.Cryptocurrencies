@@ -72,18 +72,25 @@ pub(crate) fn get_birthday_heights_sql(expiry_delta_sql: &str) -> String {
 	SELECT
 		(SELECT birthday_height FROM accounts WHERE uuid = :account_uuid) AS "Original birthday height",
 		(SELECT MIN(mined_height) FROM v_transactions WHERE account_uuid = :account_uuid) AS "Block with first note",
-		(SELECT MIN(t.block)
-			FROM transactions t
-			LEFT OUTER JOIN sapling_received_notes s ON s.transaction_id = t.id_tx
+		(SELECT MIN(block) FROM (
+			SELECT t.block
+			FROM sapling_received_notes s
+			JOIN transactions t ON t.id_tx = s.transaction_id
 			LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id AND ss.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
-			LEFT OUTER JOIN orchard_received_notes o ON o.transaction_id = t.id_tx
+			WHERE s.account_id = (SELECT account_id FROM params) AND ss.transaction_id IS NULL
+			UNION ALL
+			SELECT t.block
+			FROM orchard_received_notes o
+			JOIN transactions t ON t.id_tx = o.transaction_id
 			LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id AND os.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
-			LEFT OUTER JOIN ironwood_received_notes i ON i.transaction_id = t.id_tx
+			WHERE o.account_id = (SELECT account_id FROM params) AND os.transaction_id IS NULL
+			UNION ALL
+			SELECT t.block
+			FROM ironwood_received_notes i
+			JOIN transactions t ON t.id_tx = i.transaction_id
 			LEFT OUTER JOIN ironwood_received_note_spends isp ON isp.ironwood_received_note_id = i.id AND isp.transaction_id IN (SELECT transaction_id FROM unexpired_spends)
-			WHERE (s.account_id = (SELECT account_id FROM params) AND ss.transaction_id IS NULL)
-				OR (o.account_id = (SELECT account_id FROM params) AND os.transaction_id IS NULL)
-				OR (i.account_id = (SELECT account_id FROM params) AND isp.transaction_id IS NULL)
-		) AS "Block with first unspent note"
+			WHERE i.account_id = (SELECT account_id FROM params) AND isp.transaction_id IS NULL
+		)) AS "Block with first unspent note"
 "#
     )
 }

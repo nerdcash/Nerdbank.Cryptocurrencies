@@ -1002,6 +1002,35 @@ mod tests {
     }
 
     #[test]
+    fn ironwood_queries_birthday_heights_avoid_mixed_pool_cross_products() {
+        let fixture = QueryFixture::new();
+        for pool in [Pool::Sapling, Pool::Orchard, Pool::Ironwood] {
+            for index in 0..50 {
+                fixture.add_scoped_note(pool, false, Scope::External, index);
+            }
+        }
+        let sql = crate::sql_statements::get_birthday_heights_sql(
+            &crate::analysis::expiry_delta_sql(&Network::TestNetwork),
+        );
+        let mut stmt = fixture.conn.prepare(&sql).unwrap();
+        let rebirth: Option<u32> = stmt
+            .query_row(
+                named_params! {
+                    ":account_uuid": fixture.account_uuid.expose_uuid(),
+                    ":target_height": 150,
+                },
+                |row| row.get("Block with first unspent note"),
+            )
+            .unwrap();
+        assert_eq!(rebirth, Some(100));
+        let steps = stmt.get_status(rusqlite::StatementStatus::VmStep);
+        assert!(
+            steps > 0 && steps < 100_000,
+            "150 notes should not form a cross product: {steps} SQLite VM steps"
+        );
+    }
+
+    #[test]
     fn ironwood_queries_include_recovered_outputs_in_minimum_fees() {
         let fixture = QueryFixture::new_with_spending_keys(true);
         fixture.add_scoped_note(Pool::Ironwood, false, Scope::External, 0);
