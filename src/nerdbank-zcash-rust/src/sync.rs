@@ -1831,6 +1831,7 @@ pub(crate) fn get_transactions(
                 0 => PoolType::Transparent,
                 2 => PoolType::SAPLING,
                 3 => PoolType::ORCHARD,
+                4 => PoolType::IRONWOOD,
                 _ => {
                     return Err(Error::SqliteClient(SqliteClientError::CorruptedData(
                         format!("Unknown output pool type: {output_pool}"),
@@ -1854,7 +1855,7 @@ pub(crate) fn get_transactions(
                                 .map(|a| a.encode(network))
                             })
                         }),
-                        PoolType::ORCHARD => ufvk.and_then(|k| {
+                        PoolType::ORCHARD | PoolType::IRONWOOD => ufvk.and_then(|k| {
                             k.orchard().map(|o| {
                                 UnifiedAddress::from_receivers(
                                     Some(o.address(

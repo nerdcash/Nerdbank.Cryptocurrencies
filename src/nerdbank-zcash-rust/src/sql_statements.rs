@@ -26,14 +26,20 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 			 	SELECT orchard_received_note_id
 			 	FROM orchard_received_note_spends srns
 			 	WHERE transaction_id = tx.id_tx
-			 ))
+			 )),
+			(SELECT a.uuid
+			 FROM ironwood_received_notes rn
+			 JOIN accounts a ON a.id = rn.account_id
+			 JOIN ironwood_received_note_spends spends ON spends.ironwood_received_note_id = rn.id
+			 WHERE spends.transaction_id = tx.id_tx
+			 LIMIT 1)
 		) AS from_account_uuid,
 		txo.to_account_uuid,
 		coalesce(
 			(SELECT to_address FROM v_tx_outputs vtxo WHERE vtxo.txid = t.txid AND vtxo.output_pool = txo.output_pool AND vtxo.output_index = txo.output_index AND to_address IS NOT NULL),
 			(SELECT address FROM transparent_received_outputs txo WHERE txo.transaction_id = tx.id_tx AND txo.output_index = txo.output_index AND address IS NOT NULL)
 		) AS to_address,
-		coalesce(s.diversifier, o.diversifier) AS diversifier,
+		coalesce(s.diversifier, o.diversifier, i.diversifier) AS diversifier,
 		txo.value,
 		txo.memo
 	FROM v_transactions t
@@ -41,6 +47,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 	LEFT OUTER JOIN transactions tx ON tx.txid = t.txid
 	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.transaction_id = tx.id_tx AND s.output_index = txo.output_index
 	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.transaction_id = tx.id_tx AND o.action_index = txo.output_index
+	LEFT OUTER JOIN ironwood_received_notes i ON txo.output_pool = 4 AND i.transaction_id = tx.id_tx AND i.action_index = txo.output_index
 	WHERE (:account_uuid IS NULL OR t.account_uuid = :account_uuid)
 		AND (from_account_uuid = t.account_uuid OR txo.to_account_uuid = t.account_uuid)
 		AND (from_account_uuid IS NOT NULL OR to_account_uuid IS NOT NULL) -- ignore transactions that probably aren't fully initialized
@@ -65,7 +72,11 @@ pub(crate) const GET_BIRTHDAY_HEIGHTS: &str = r#"
 			LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id
 			LEFT OUTER JOIN orchard_received_notes o ON o.transaction_id = t.id_tx
 			LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id
-			WHERE (s.account_id = (SELECT account_id FROM params) AND ss.transaction_id IS NULL) OR (o.account_id = (SELECT account_id FROM params) AND os.transaction_id IS NULL)
+			LEFT OUTER JOIN ironwood_received_notes i ON i.transaction_id = t.id_tx
+			LEFT OUTER JOIN ironwood_received_note_spends isp ON isp.ironwood_received_note_id = i.id
+			WHERE (s.account_id = (SELECT account_id FROM params) AND ss.transaction_id IS NULL)
+				OR (o.account_id = (SELECT account_id FROM params) AND os.transaction_id IS NULL)
+				OR (i.account_id = (SELECT account_id FROM params) AND isp.transaction_id IS NULL)
 		) AS "Block with first unspent note"
 "#;
 
@@ -79,7 +90,7 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 		tx.block,
 		txo.value,
 		txo.output_pool,
-		coalesce(s.recipient_key_scope, o.recipient_key_scope) AS recipient_key_scope,
+		coalesce(s.recipient_key_scope, o.recipient_key_scope, i.recipient_key_scope) AS recipient_key_scope,
 		COALESCE(txo.from_account_uuid = txo.to_account_uuid, 0) AS is_change
 	FROM v_tx_outputs txo
 	INNER JOIN transactions tx ON tx.txid = txo.txid
@@ -87,7 +98,9 @@ pub(crate) const GET_UNSPENT_NOTES: &str = r#"
 	LEFT OUTER JOIN sapling_received_note_spends ss ON ss.sapling_received_note_id = s.id
 	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.transaction_id = tx.id_tx AND o.action_index = txo.output_index
 	LEFT OUTER JOIN orchard_received_note_spends os ON os.orchard_received_note_id = o.id
-	WHERE txo.to_account_uuid = :account_uuid AND ss.transaction_id IS NULL AND os.transaction_id IS NULL AND txo.output_pool > 0
+	LEFT OUTER JOIN ironwood_received_notes i ON txo.output_pool = 4 AND i.transaction_id = tx.id_tx AND i.action_index = txo.output_index
+	LEFT OUTER JOIN ironwood_received_note_spends isp ON isp.ironwood_received_note_id = i.id
+	WHERE txo.to_account_uuid = :account_uuid AND ss.transaction_id IS NULL AND os.transaction_id IS NULL AND isp.transaction_id IS NULL AND txo.output_pool > 0
 
 	UNION
 
@@ -157,7 +170,7 @@ pub(crate) const GET_OUTPOINT_VALUE: &str = r#"
 "#;
 
 /// Returns transactions containing incoming payments filtered by account and diversifier/address.
-/// For shielded pools (Orchard/Sapling), filters by the diversifier bytes.
+/// For shielded pools (Orchard/Ironwood/Sapling), filters by the diversifier bytes.
 /// For transparent pools, filters by the address string.
 pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 	SELECT
@@ -187,14 +200,20 @@ pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 				SELECT orchard_received_note_id
 				FROM orchard_received_note_spends srns
 				WHERE transaction_id = tx.id_tx
-			 ))
+			 )),
+			(SELECT a.uuid
+			 FROM ironwood_received_notes rn
+			 JOIN accounts a ON a.id = rn.account_id
+			 JOIN ironwood_received_note_spends spends ON spends.ironwood_received_note_id = rn.id
+			 WHERE spends.transaction_id = tx.id_tx
+			 LIMIT 1)
 		) AS from_account_uuid,
 		txo.to_account_uuid,
 		coalesce(
 			(SELECT to_address FROM v_tx_outputs vtxo WHERE vtxo.txid = t.txid AND vtxo.output_pool = txo.output_pool AND vtxo.output_index = txo.output_index AND to_address IS NOT NULL),
 			(SELECT address FROM transparent_received_outputs tro WHERE tro.transaction_id = tx.id_tx AND tro.output_index = txo.output_index AND address IS NOT NULL)
 		) AS to_address,
-		coalesce(s.diversifier, o.diversifier) AS diversifier,
+		coalesce(s.diversifier, o.diversifier, i.diversifier) AS diversifier,
 		txo.value,
 		txo.memo
 	FROM v_transactions t
@@ -202,6 +221,7 @@ pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 	LEFT OUTER JOIN transactions tx ON tx.txid = t.txid
 	LEFT OUTER JOIN sapling_received_notes s ON txo.output_pool = 2 AND s.transaction_id = tx.id_tx AND s.output_index = txo.output_index
 	LEFT OUTER JOIN orchard_received_notes o ON txo.output_pool = 3 AND o.transaction_id = tx.id_tx AND o.action_index = txo.output_index
+	LEFT OUTER JOIN ironwood_received_notes i ON txo.output_pool = 4 AND i.transaction_id = tx.id_tx AND i.action_index = txo.output_index
 	LEFT OUTER JOIN transparent_received_outputs tro ON txo.output_pool = 0 AND tro.transaction_id = tx.id_tx AND tro.output_index = txo.output_index
 	WHERE t.account_uuid = :account_uuid
 		AND txo.to_account_uuid = t.account_uuid
@@ -209,7 +229,7 @@ pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 		AND (t.mined_height IS NULL OR :starting_block IS NULL OR t.mined_height >= :starting_block)
 		AND (
 			-- For shielded pools, match by diversifier
-			(txo.output_pool IN (2, 3) AND coalesce(s.diversifier, o.diversifier) = :diversifier)
+			(txo.output_pool IN (2, 3, 4) AND coalesce(s.diversifier, o.diversifier, i.diversifier) = :diversifier)
 			-- For transparent pool, match by address string directly from transparent_received_outputs
 			OR (txo.output_pool = 0 AND :transparent_address IS NOT NULL AND tro.address = :transparent_address)
 		)
