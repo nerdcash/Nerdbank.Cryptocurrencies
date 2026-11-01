@@ -13,20 +13,18 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 		txo.output_pool,
 		coalesce(
 			txo.from_account_uuid,
-			(SELECT account_id
-			 FROM sapling_received_notes srn
-			 WHERE srn.id = (
-			 	SELECT sapling_received_note_id
-			 	FROM sapling_received_note_spends srns
-			 	WHERE transaction_id = tx.id_tx
-			 )),
-			(SELECT account_id
-			 FROM orchard_received_notes srn
-			 WHERE srn.id = (
-			 	SELECT orchard_received_note_id
-			 	FROM orchard_received_note_spends srns
-			 	WHERE transaction_id = tx.id_tx
-			 )),
+			(SELECT a.uuid
+			 FROM sapling_received_notes rn
+			 JOIN accounts a ON a.id = rn.account_id
+			 JOIN sapling_received_note_spends spends ON spends.sapling_received_note_id = rn.id
+			 WHERE spends.transaction_id = tx.id_tx
+			 LIMIT 1),
+			(SELECT a.uuid
+			 FROM orchard_received_notes rn
+			 JOIN accounts a ON a.id = rn.account_id
+			 JOIN orchard_received_note_spends spends ON spends.orchard_received_note_id = rn.id
+			 WHERE spends.transaction_id = tx.id_tx
+			 LIMIT 1),
 			(SELECT a.uuid
 			 FROM ironwood_received_notes rn
 			 JOIN accounts a ON a.id = rn.account_id
@@ -40,6 +38,7 @@ pub(crate) const GET_TRANSACTIONS_SQL: &str = r#"
 			(SELECT address FROM transparent_received_outputs txo WHERE txo.transaction_id = tx.id_tx AND txo.output_index = txo.output_index AND address IS NOT NULL)
 		) AS to_address,
 		coalesce(s.diversifier, o.diversifier, i.diversifier) AS diversifier,
+		coalesce(s.recipient_key_scope, o.recipient_key_scope, i.recipient_key_scope) AS recipient_key_scope,
 		txo.value,
 		txo.memo
 	FROM v_transactions t
@@ -169,8 +168,8 @@ pub(crate) const GET_OUTPOINT_VALUE: &str = r#"
 	WHERE t.txid = :txid AND output_index = :idx
 "#;
 
-/// Returns transactions containing incoming payments filtered by account and diversifier/address.
-/// For shielded pools (Orchard/Ironwood/Sapling), filters by the diversifier bytes.
+/// Returns transactions containing incoming payments filtered by account and receiver.
+/// For shielded pools (Orchard/Ironwood/Sapling), filters by pool, diversifier, and key scope.
 /// For transparent pools, filters by the address string.
 pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 	SELECT
@@ -187,20 +186,18 @@ pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 		txo.output_pool,
 		coalesce(
 			txo.from_account_uuid,
-			(SELECT account_id
-			 FROM sapling_received_notes srn
-			 WHERE srn.id = (
-				SELECT sapling_received_note_id
-				FROM sapling_received_note_spends srns
-				WHERE transaction_id = tx.id_tx
-			 )),
-			(SELECT account_id
-			 FROM orchard_received_notes srn
-			 WHERE srn.id = (
-				SELECT orchard_received_note_id
-				FROM orchard_received_note_spends srns
-				WHERE transaction_id = tx.id_tx
-			 )),
+			(SELECT a.uuid
+			 FROM sapling_received_notes rn
+			 JOIN accounts a ON a.id = rn.account_id
+			 JOIN sapling_received_note_spends spends ON spends.sapling_received_note_id = rn.id
+			 WHERE spends.transaction_id = tx.id_tx
+			 LIMIT 1),
+			(SELECT a.uuid
+			 FROM orchard_received_notes rn
+			 JOIN accounts a ON a.id = rn.account_id
+			 JOIN orchard_received_note_spends spends ON spends.orchard_received_note_id = rn.id
+			 WHERE spends.transaction_id = tx.id_tx
+			 LIMIT 1),
 			(SELECT a.uuid
 			 FROM ironwood_received_notes rn
 			 JOIN accounts a ON a.id = rn.account_id
@@ -214,6 +211,7 @@ pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 			(SELECT address FROM transparent_received_outputs tro WHERE tro.transaction_id = tx.id_tx AND tro.output_index = txo.output_index AND address IS NOT NULL)
 		) AS to_address,
 		coalesce(s.diversifier, o.diversifier, i.diversifier) AS diversifier,
+		coalesce(s.recipient_key_scope, o.recipient_key_scope, i.recipient_key_scope) AS recipient_key_scope,
 		txo.value,
 		txo.memo
 	FROM v_transactions t
@@ -228,8 +226,11 @@ pub(crate) const GET_INCOMING_PAYMENTS_SQL: &str = r#"
 		AND (from_account_uuid IS NOT NULL OR to_account_uuid IS NOT NULL)
 		AND (t.mined_height IS NULL OR :starting_block IS NULL OR t.mined_height >= :starting_block)
 		AND (
-			-- For shielded pools, match by diversifier
-			(txo.output_pool IN (2, 3, 4) AND coalesce(s.diversifier, o.diversifier, i.diversifier) = :diversifier)
+			-- Orchard and Ironwood share a receiver; Sapling uses a distinct receiver.
+			(txo.output_pool IN (2, 3, 4)
+			 AND (txo.output_pool = :output_pool OR (:output_pool = 3 AND txo.output_pool = 4))
+			 AND coalesce(s.diversifier, o.diversifier, i.diversifier) = :diversifier
+			 AND coalesce(s.recipient_key_scope, o.recipient_key_scope, i.recipient_key_scope) = :recipient_key_scope)
 			-- For transparent pool, match by address string directly from transparent_received_outputs
 			OR (txo.output_pool = 0 AND :transparent_address IS NOT NULL AND tro.address = :transparent_address)
 		)

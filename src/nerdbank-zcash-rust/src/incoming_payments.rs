@@ -12,7 +12,6 @@ use zcash_protocol::{
     consensus::{Network, Parameters},
     memo::Memo,
 };
-use zip32::DiversifierIndex;
 
 use crate::{
     backing_store::Db,
@@ -30,6 +29,10 @@ struct ReceiverInfo {
     diversifier: Option<Vec<u8>>,
     /// For transparent addresses, the encoded address string.
     transparent_address: Option<String>,
+    /// The receiver pool; Orchard receivers also accept Ironwood payments.
+    pool: PoolType,
+    /// The shielded receiver's key scope, or None for transparent receivers.
+    scope: Option<Scope>,
 }
 
 /// Returns all transactions containing incoming payments to any receiver within the given address.
@@ -85,6 +88,16 @@ pub(crate) fn get_incoming_payments(
                 ":starting_block": starting_block,
                 ":diversifier": receiver_info.diversifier.as_ref(),
                 ":transparent_address": receiver_info.transparent_address.as_ref(),
+                ":output_pool": match receiver_info.pool {
+                    PoolType::Transparent => 0,
+                    PoolType::SAPLING => 2,
+                    PoolType::ORCHARD => 3,
+                    PoolType::IRONWOOD => 4
+                },
+                ":recipient_key_scope": receiver_info.scope.map(|scope| match scope {
+                    Scope::External => 0,
+                    Scope::Internal => 1
+                }),
             },
             |row| -> Result<Transaction, Error> {
                 let account_uuid = AccountUuid::from_uuid(row.get("account_uuid")?);
@@ -119,13 +132,17 @@ pub(crate) fn get_incoming_payments(
                 if recipient.is_none() {
                     let diversifier: Option<Vec<u8>> = row.get("diversifier")?;
                     if let Some(diversifier) = diversifier {
+                        let scope = crate::util::parse_recipient_key_scope(
+                            row.get("recipient_key_scope")?,
+                        )?;
                         recipient = match output_pool {
                             PoolType::SAPLING => ufvk.and_then(|k| {
                                 k.sapling().and_then(|s| {
-                                    s.diversified_address(sapling::keys::Diversifier(
-                                        diversifier.clone().try_into().unwrap(),
-                                    ))
-                                    .map(|a| a.encode(network))
+                                    s.to_ivk(scope)
+                                        .to_payment_address(sapling::keys::Diversifier(
+                                            diversifier.clone().try_into().unwrap(),
+                                        ))
+                                        .map(|a| a.encode(network))
                                 })
                             }),
                             PoolType::ORCHARD | PoolType::IRONWOOD => ufvk.and_then(|k| {
@@ -135,7 +152,7 @@ pub(crate) fn get_incoming_payments(
                                             orchard::keys::Diversifier::from_bytes(
                                                 diversifier.clone().try_into().unwrap(),
                                             ),
-                                            Scope::External,
+                                            scope,
                                         )),
                                         None,
                                         None,
@@ -274,24 +291,28 @@ fn find_receiver_info(
         zcash_keys::address::Address::Unified(ua) => {
             // Try to find the account that owns this unified address by checking each receiver
             if let Some(orchard_addr) = ua.orchard()
-                && let Some((account_uuid, diversifier)) =
+                && let Some((account_uuid, diversifier, scope)) =
                     find_orchard_receiver_info(&ufvkeys, orchard_addr)
             {
                 receiver_infos.push(ReceiverInfo {
                     account_uuid,
                     diversifier: Some(diversifier),
                     transparent_address: None,
+                    pool: PoolType::ORCHARD,
+                    scope: Some(scope),
                 });
             }
 
             if let Some(sapling_addr) = ua.sapling()
-                && let Some((account_uuid, diversifier)) =
+                && let Some((account_uuid, diversifier, scope)) =
                     find_sapling_receiver_info(&ufvkeys, sapling_addr)
             {
                 receiver_infos.push(ReceiverInfo {
                     account_uuid,
                     diversifier: Some(diversifier),
                     transparent_address: None,
+                    pool: PoolType::SAPLING,
+                    scope: Some(scope),
                 });
             }
 
@@ -305,16 +326,22 @@ fn find_receiver_info(
                         account_uuid,
                         diversifier: None,
                         transparent_address: Some(addr_str),
+                        pool: PoolType::Transparent,
+                        scope: None,
                     });
                 }
             }
         }
         zcash_keys::address::Address::Sapling(pa) => {
-            if let Some((account_uuid, diversifier)) = find_sapling_receiver_info(&ufvkeys, &pa) {
+            if let Some((account_uuid, diversifier, scope)) =
+                find_sapling_receiver_info(&ufvkeys, &pa)
+            {
                 receiver_infos.push(ReceiverInfo {
                     account_uuid,
                     diversifier: Some(diversifier),
                     transparent_address: None,
+                    pool: PoolType::SAPLING,
+                    scope: Some(scope),
                 });
             }
         }
@@ -326,6 +353,8 @@ fn find_receiver_info(
                     account_uuid,
                     diversifier: None,
                     transparent_address: Some(addr_str),
+                    pool: PoolType::Transparent,
+                    scope: None,
                 });
             }
         }
@@ -338,6 +367,8 @@ fn find_receiver_info(
                     account_uuid,
                     diversifier: None,
                     transparent_address: Some(addr_str),
+                    pool: PoolType::Transparent,
+                    scope: None,
                 });
             }
         }
@@ -350,43 +381,41 @@ fn find_receiver_info(
     Ok(receiver_infos)
 }
 
-/// Find the account and diversifier for an Orchard receiver.
+/// Find the account, diversifier, and key scope for an Orchard receiver.
 fn find_orchard_receiver_info(
     ufvkeys: &std::collections::HashMap<AccountUuid, zcash_keys::keys::UnifiedFullViewingKey>,
     orchard_addr: &orchard::Address,
-) -> Option<(AccountUuid, Vec<u8>)> {
+) -> Option<(AccountUuid, Vec<u8>, Scope)> {
     for (account_uuid, ufvk) in ufvkeys {
-        if let Some(fvk) = ufvk.orchard() {
-            let ivk = fvk.to_ivk(Scope::External);
-            // Check if this IVK owns this address by trying to get the diversifier index
-            if ivk.diversifier_index(orchard_addr).is_some() {
-                // The diversifier stored in the DB is the diversifier from the address itself
-                let diversifier = orchard_addr.diversifier();
-                return Some((*account_uuid, diversifier.as_array().to_vec()));
-            }
+        if let Some(fvk) = ufvk.orchard()
+            && let Some(scope) = fvk.scope_for_address(orchard_addr)
+        {
+            return Some((
+                *account_uuid,
+                orchard_addr.diversifier().as_array().to_vec(),
+                scope,
+            ));
         }
     }
     None
 }
 
-/// Find the account and diversifier for a Sapling receiver.
+/// Find the account, diversifier, and key scope for a Sapling receiver.
 fn find_sapling_receiver_info(
     ufvkeys: &std::collections::HashMap<AccountUuid, zcash_keys::keys::UnifiedFullViewingKey>,
     sapling_addr: &sapling::PaymentAddress,
-) -> Option<(AccountUuid, Vec<u8>)> {
+) -> Option<(AccountUuid, Vec<u8>, Scope)> {
     for (account_uuid, ufvk) in ufvkeys {
         if let Some(dfvk) = ufvk.sapling() {
-            let ivk = dfvk.to_external_ivk();
-            // Check if this IVK can decrypt to this address's diversifier
-            // The diversifier is directly available from the payment address
-            let diversifier = sapling_addr.diversifier();
-            // Verify this address belongs to this account by checking if the IVK
-            // can derive the same address from this diversifier
-            let diversifier_bytes: [u8; 11] = diversifier.0;
-            if let Some(derived_addr) = ivk.address_at(DiversifierIndex::from(diversifier_bytes))
-                && &derived_addr == sapling_addr
-            {
-                return Some((*account_uuid, diversifier.0.to_vec()));
+            for scope in [Scope::External, Scope::Internal] {
+                if dfvk
+                    .to_ivk(scope)
+                    .to_payment_address(*sapling_addr.diversifier())
+                    .as_ref()
+                    == Some(sapling_addr)
+                {
+                    return Some((*account_uuid, sapling_addr.diversifier().0.to_vec(), scope));
+                }
             }
         }
     }
@@ -444,6 +473,7 @@ mod tests {
         account_id: i64,
         address: String,
         diversifier: Vec<u8>,
+        ufvk: zcash_keys::keys::UnifiedFullViewingKey,
     }
 
     impl QueryFixture {
@@ -493,29 +523,89 @@ mod tests {
                 account_id,
                 address,
                 diversifier: receiver.diversifier().as_array().to_vec(),
+                ufvk,
             }
         }
 
         fn add_note(&self, pool: Pool, sent: bool) {
-            let (table, code, version) = match pool {
-                Pool::Orchard => ("orchard_received_notes", 3, ""),
-                Pool::Ironwood => ("ironwood_received_notes", 4, ", note_version"),
+            self.add_scoped_note(pool, sent, Scope::External, 0);
+        }
+
+        fn receiver(&self, pool: Pool, scope: Scope) -> (String, Vec<u8>) {
+            match pool {
+                Pool::Sapling => {
+                    let dfvk = self.ufvk.sapling().unwrap();
+                    let diversifier = *dfvk.default_address().1.diversifier();
+                    let receiver = dfvk.to_ivk(scope).to_payment_address(diversifier).unwrap();
+                    (
+                        receiver.encode(&Network::TestNetwork),
+                        diversifier.0.to_vec(),
+                    )
+                }
+                Pool::Orchard | Pool::Ironwood => {
+                    let receiver = self.ufvk.orchard().unwrap().address(
+                        orchard::keys::Diversifier::from_bytes(
+                            self.diversifier.clone().try_into().unwrap(),
+                        ),
+                        scope,
+                    );
+                    let address =
+                        UnifiedAddress::from_receivers(Some(receiver), None, None, None, None)
+                            .unwrap()
+                            .encode(&Network::TestNetwork);
+                    (address, self.diversifier.clone())
+                }
                 _ => unreachable!(),
+            }
+        }
+
+        fn add_scoped_note(&self, pool: Pool, sent: bool, scope: Scope, output_index: u32) {
+            let (table, code, index_column, randomness_columns, randomness, version) = match pool {
+                Pool::Sapling => (
+                    "sapling_received_notes",
+                    2,
+                    "output_index",
+                    "rcm",
+                    "zeroblob(32)",
+                    "",
+                ),
+                Pool::Orchard => (
+                    "orchard_received_notes",
+                    3,
+                    "action_index",
+                    "rho, rseed",
+                    "zeroblob(32), zeroblob(32)",
+                    "",
+                ),
+                Pool::Ironwood => (
+                    "ironwood_received_notes",
+                    4,
+                    "action_index",
+                    "rho, rseed",
+                    "zeroblob(32), zeroblob(32)",
+                    ", note_version",
+                ),
+                _ => unreachable!(),
+            };
+            let (_, diversifier) = self.receiver(pool, scope);
+            let scope = match scope {
+                Scope::External => 0,
+                Scope::Internal => 1,
             };
             self.conn
                 .execute(
                     &format!(
                         "INSERT INTO {table}
-                    (transaction_id, action_index, account_id, diversifier, value,
-                     rho, rseed, is_change, memo, recipient_key_scope{version})
-                    VALUES (1, 0, ?1, ?2, 20000, zeroblob(32), zeroblob(32), ?3, X'F6', 0{})",
+                    (transaction_id, {index_column}, account_id, diversifier, value,
+                     {randomness_columns}, is_change, memo, recipient_key_scope{version})
+                    VALUES (1, ?5, ?1, ?2, 20000, {randomness}, ?3, X'F6', ?4{})",
                         if matches!(pool, Pool::Ironwood) {
                             ", 2"
                         } else {
                             ""
                         }
                     ),
-                    rusqlite::params![self.account_id, self.diversifier, sent],
+                    rusqlite::params![self.account_id, diversifier, sent, scope, output_index],
                 )
                 .unwrap();
             if sent {
@@ -524,8 +614,8 @@ mod tests {
                         "INSERT INTO sent_notes
                      (transaction_id, output_pool, output_index, from_account_id,
                       to_account_id, value, memo)
-                     VALUES (1, ?1, 0, ?2, ?2, 20000, X'F6')",
-                        rusqlite::params![code, self.account_id],
+                     VALUES (1, ?1, ?3, ?2, ?2, 20000, X'F6')",
+                        rusqlite::params![code, self.account_id, output_index],
                     )
                     .unwrap();
             }
@@ -624,8 +714,25 @@ mod tests {
 
     #[test]
     fn ironwood_queries_find_sender_from_spent_notes() {
+        assert_sender_from_spent_notes(None);
+    }
+
+    #[test]
+    fn ironwood_queries_find_sender_from_mixed_orchard_spends() {
+        assert_sender_from_spent_notes(Some(Pool::Orchard));
+    }
+
+    #[test]
+    fn ironwood_queries_find_sender_from_mixed_sapling_spends() {
+        assert_sender_from_spent_notes(Some(Pool::Sapling));
+    }
+
+    fn assert_sender_from_spent_notes(other_pool: Option<Pool>) {
         let mut fixture = QueryFixture::new();
         fixture.add_note(Pool::Ironwood, false);
+        if let Some(pool) = other_pool {
+            fixture.add_note(pool, false);
+        }
         fixture
             .conn
             .execute_batch(
@@ -641,6 +748,20 @@ mod tests {
              FROM ironwood_received_notes WHERE id = 1;",
             )
             .unwrap();
+        if let Some(pool) = other_pool {
+            let (table, column) = match pool {
+                Pool::Orchard => ("orchard_received_note_spends", "orchard_received_note_id"),
+                Pool::Sapling => ("sapling_received_note_spends", "sapling_received_note_id"),
+                _ => unreachable!(),
+            };
+            fixture
+                .conn
+                .execute(
+                    &format!("INSERT INTO {table} ({column}, transaction_id) VALUES (1, 2)"),
+                    [],
+                )
+                .unwrap();
+        }
 
         for txs in [fixture.transactions(), fixture.incoming()] {
             assert_eq!(txs.len(), 2);
@@ -649,6 +770,93 @@ mod tests {
             assert_eq!(txs[1].change.len(), 1);
             assert_eq!(txs[1].change[0].pool, Pool::Ironwood);
             assert_eq!(txs[1].change[0].recipient, fixture.address);
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_reconstruct_and_filter_both_recipient_scopes() {
+        let mut fixture = QueryFixture::new();
+        fixture.diversifier = fixture.receiver(Pool::Sapling, Scope::External).1;
+        let pools = [Pool::Sapling, Pool::Orchard, Pool::Ironwood];
+        for pool in pools {
+            fixture.add_scoped_note(pool, false, Scope::External, 0);
+            fixture.add_scoped_note(pool, false, Scope::Internal, 1);
+            let (external, external_diversifier) = fixture.receiver(pool, Scope::External);
+            let (internal, internal_diversifier) = fixture.receiver(pool, Scope::Internal);
+            assert_ne!(external, internal);
+            assert_eq!(external_diversifier, internal_diversifier);
+            assert_eq!(external_diversifier, fixture.diversifier);
+        }
+
+        let txs = fixture.transactions();
+        assert_eq!(txs.len(), 1);
+        assert_eq!(txs[0].incoming.len(), 6);
+        for pool in pools {
+            for scope in [Scope::External, Scope::Internal] {
+                let (address, _) = fixture.receiver(pool, scope);
+                assert_eq!(
+                    txs[0]
+                        .incoming
+                        .iter()
+                        .filter(|note| note.pool == pool && note.recipient == address)
+                        .count(),
+                    1
+                );
+                let incoming = get_incoming_payments(
+                    &mut fixture.db,
+                    &mut fixture.conn,
+                    &Network::TestNetwork,
+                    &address,
+                    None,
+                )
+                .unwrap();
+                assert_eq!(incoming.len(), 1);
+                assert_eq!(
+                    incoming[0].incoming.len(),
+                    if pool == Pool::Sapling { 1 } else { 2 }
+                );
+                assert!(
+                    incoming[0]
+                        .incoming
+                        .iter()
+                        .all(|note| note.recipient == address)
+                );
+                assert!(
+                    incoming[0]
+                        .incoming
+                        .iter()
+                        .all(|note| if pool == Pool::Sapling {
+                            note.pool == Pool::Sapling
+                        } else {
+                            matches!(note.pool, Pool::Orchard | Pool::Ironwood)
+                        })
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn ironwood_queries_reject_unknown_recipient_scopes() {
+        let mut fixture = QueryFixture::new();
+        fixture.add_note(Pool::Ironwood, false);
+        for scope in [None, Some(-1), Some(2)] {
+            fixture
+                .conn
+                .execute(
+                    "UPDATE ironwood_received_notes SET recipient_key_scope = ?1",
+                    [scope],
+                )
+                .unwrap();
+            let error = crate::sync::get_transactions(
+                &mut fixture.db,
+                &mut fixture.conn,
+                &Network::TestNetwork,
+                Some(fixture.account_uuid),
+                None,
+                None,
+            )
+            .unwrap_err();
+            assert!(error.to_string().contains("Unknown recipient key scope:"));
         }
     }
 
