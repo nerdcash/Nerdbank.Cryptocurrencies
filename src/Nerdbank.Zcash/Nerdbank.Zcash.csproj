@@ -2,6 +2,9 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <TargetFrameworks Condition="!$([MSBuild]::IsOsPlatform('Linux'))">$(TargetFrameworks);net9.0-ios18.0</TargetFrameworks>
+    <!-- The .NET 11 SDK reports the net9.0-ios workload as out of support (NETSDK1202), which -warnAsError turns into a build break.
+         Suppress it until this project moves to a supported iOS target framework (e.g. net10.0-ios). -->
+    <CheckEolWorkloads>false</CheckEolWorkloads>
     <IsAotCompatible>true</IsAotCompatible>
     <DefineConstants>$(DefineConstants);ZCASH</DefineConstants>
     <Description>A .NET library for Zcash, capable of creating accounts, deriving addresses, interacting with lightwallet servers, syncing, and sending transactions.</Description>
