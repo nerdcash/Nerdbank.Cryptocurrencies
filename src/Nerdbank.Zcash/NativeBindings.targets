@@ -78,11 +78,11 @@
     <!-- iOS -->
     <!-- The '$(BuildingInsideVisualStudio)'!='true' condition is a workaround because CPS fails to load the project when this item exists. -->
     <RustBinary Condition="'$(BuildingInsideVisualStudio)'!='true' and ('$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true')" Include="$(iOSFrameworkPath)/**">
-      <PackagePath>lib/net9.0-ios18.0/Nerdbank.Zcash.resources/$(iOSFrameworkName)/</PackagePath>
+      <PackagePath>lib/net10.0-ios26.0/Nerdbank.Zcash.resources/$(iOSFrameworkName)/</PackagePath>
       <Visible>false</Visible>
     </RustBinary>
     <RustBinary Condition="'$(IsPackable)'=='true' or '$(IncludeiOSBinaries)'=='true'" Include="$(RepoRootPath).github/manifest">
-      <PackagePath>lib/net9.0-ios18.0/Nerdbank.Zcash.resources/</PackagePath>
+      <PackagePath>lib/net10.0-ios26.0/Nerdbank.Zcash.resources/</PackagePath>
       <Visible>false</Visible>
     </RustBinary>
   </ItemGroup>
