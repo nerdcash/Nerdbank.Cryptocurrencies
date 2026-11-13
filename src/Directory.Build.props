@@ -5,6 +5,7 @@
     <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageValidationBaselineVersion Condition="'$(MSBuildProjectExtension)' != '.proj'">0.5.53</PackageValidationBaselineVersion>
+    <!-- Baseline 0.5.53 still ships net8.0 and net9.0-ios18.0. Dropping those TFMs is intentional; per-project CompatibilitySuppressions.xml files record PKV006. -->
   </PropertyGroup>
   <ItemGroup>
     <None Condition="Exists('README.md')" Include="README.md" Pack="true" PackagePath="" />

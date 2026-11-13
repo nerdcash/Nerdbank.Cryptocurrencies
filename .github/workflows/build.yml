@@ -225,7 +225,7 @@ jobs:
     - linux
     - android
     - licenses
-    runs-on: windows-2025 # Must not be linux because linux cannot build net8.0-ios targets.
+    runs-on: windows-2025 # Must not be linux because linux cannot build net10.0-ios26.0 targets.
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
