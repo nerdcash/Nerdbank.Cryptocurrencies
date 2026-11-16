@@ -52,7 +52,7 @@ pasta_curves = "0.6"
 
 # - Transparent
 bip32 = { version = "0.6", default-features = false, features = ["alloc"] }
-ripemd = { version = "0.1", default-features = false }
+ripemd = { version = "0.2", default-features = false }
 secp256k1 = { version = "0.33", default-features = false, features = ["alloc"] }
 transparent = { package = "zcash_transparent", version = "0.11.0", path = "external/librustzcash/zcash_transparent", default-features = false }
 zcash_script = { version = "0.6", default-features = false }
